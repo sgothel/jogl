@@ -49,7 +49,7 @@ public class DisplayList {
    * @param m invoked method
    * @param arg method argument
    */
-  public void append(Object src, Method m, Object arg) {
+  public void append(final Object src, final Method m, final Object arg) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO displaylist append");
   }

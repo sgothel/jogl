@@ -49,8 +49,8 @@ class StrokeRec {
   public int num_coords;
   public CoordRec[] coord;
 
-  public StrokeRec(int num_coords,
-            CoordRec[] coord) {
+  public StrokeRec(final int num_coords,
+            final CoordRec[] coord) {
     this.num_coords = num_coords;
     this.coord = coord;
   }

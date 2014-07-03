@@ -97,14 +97,14 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
             final FBObject ssink = new FBObject();
             {
                 ssink.reset(gl, width, height);
-                ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+                ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
             }
             fbo.setSamplingSink(ssink);
             fbo.resetSamplingSink(gl); // validate
             fboTex = fbo.getSamplingSink();
         } else {
-            fboTex = fbo.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fboTex = fbo.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             fbo.attachRenderbuffer(gl, Type.DEPTH, 24);
         }
         fbo.unbind(gl);

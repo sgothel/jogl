@@ -38,7 +38,7 @@ public class RedSquareShader {
                 "#if __VERSION__ >= 130\n" +
                 "  #define attribute in\n" +
                 "  #define varying out\n" +
-                "#endif\n"+               
+                "#endif\n"+
                 "\n" +
                 "uniform mat4    mgl_PMVMatrix[2];\n" +
                 "attribute vec4    mgl_Vertex;\n" +
@@ -61,7 +61,7 @@ public class RedSquareShader {
                 "  #define varying in\n" +
                 "  out vec4 mgl_FragColor;\n" +
                 "#else\n" +
-                "  #define mgl_FragColor gl_FragColor\n" +   
+                "  #define mgl_FragColor gl_FragColor\n" +
                 "#endif\n" +
                 "\n" +
                 "varying   vec4    frontColor;\n" +

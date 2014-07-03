@@ -83,7 +83,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     boolean ignoreInput = false;
 
-    public UIListenerBase01(int renderModes, RegionRenderer rRenderer, boolean debug, boolean trace) {
+    public UIListenerBase01(final int renderModes, final RegionRenderer rRenderer, final boolean debug, final boolean trace) {
         this.renderModes = renderModes;
         this.rRenderer = rRenderer;
         this.debug = debug;
@@ -98,14 +98,14 @@ public abstract class UIListenerBase01 implements GLEventListener {
     public final float getAngle() { return ang; }
     public final float[] getPosition() { return position; }
 
-    public void setMatrix(float xtrans, float ytrans, float angle, int zoom) {
+    public void setMatrix(final float xtrans, final float ytrans, final float angle, final int zoom) {
         this.xTran = xtrans;
         this.yTran = ytrans;
         this.ang = angle;
         this.zoom = zoom;
     }
 
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         autoDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(debug) {
@@ -118,32 +118,32 @@ public abstract class UIListenerBase01 implements GLEventListener {
         getRegionRenderer().init(gl, renderModes);
     }
 
-    public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glViewport(xstart, ystart, width, height);
         rRenderer.reshapePerspective(45.0f, width, height, 0.1f, 7000.0f);
         dumpMatrix();
     }
 
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         autoDrawable = null;
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         screenshot.dispose(gl);
         rRenderer.destroy(gl);
     }
 
-    public void zoom(int v){
+    public void zoom(final int v){
         zoom += v;
         dumpMatrix();
     }
 
-    public void move(float x, float y){
+    public void move(final float x, final float y){
         xTran += x;
         yTran += y;
         dumpMatrix();
     }
-    public void rotate(float delta){
+    public void rotate(final float delta){
         ang += delta;
         ang %= 360.0f;
         dumpMatrix();
@@ -154,7 +154,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
     }
 
     /** Attach the input listener to the window */
-    public void attachInputListenerTo(GLWindow window) {
+    public void attachInputListenerTo(final GLWindow window) {
         if ( null == keyAction ) {
             keyAction = new KeyAction();
             window.addKeyListener(keyAction);
@@ -165,7 +165,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
         }
     }
 
-    public void detachFrom(GLWindow window) {
+    public void detachFrom(final GLWindow window) {
         if ( null == keyAction ) {
             return;
         }
@@ -177,9 +177,9 @@ public abstract class UIListenerBase01 implements GLEventListener {
         window.removeMouseListener(mouseAction);
     }
 
-    public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
+    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zoom), 0, objName);
 
         final String filename = dir + tech + sw +".png";
@@ -190,7 +190,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     int screenshot_num = 0;
 
-    public void setIgnoreInput(boolean v) {
+    public void setIgnoreInput(final boolean v) {
         ignoreInput = v;
     }
     public boolean getIgnoreInput() {
@@ -199,37 +199,37 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     public class MouseAction implements MouseListener{
 
-        public void mouseClicked(MouseEvent e) {
+        public void mouseClicked(final MouseEvent e) {
 
         }
 
-        public void mouseEntered(MouseEvent e) {
+        public void mouseEntered(final MouseEvent e) {
         }
 
-        public void mouseExited(MouseEvent e) {
+        public void mouseExited(final MouseEvent e) {
         }
 
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
             button.setLabelColor(0.8f,0.8f,0.8f);
             button.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         }
 
-        public void mouseReleased(MouseEvent e) {
+        public void mouseReleased(final MouseEvent e) {
             button.setLabelColor(1.0f,1.0f,1.0f);
             button.setColor(0.6f,0.6f,0.6f, 1.0f);
         }
 
-        public void mouseMoved(MouseEvent e) {
+        public void mouseMoved(final MouseEvent e) {
             // TODO Auto-generated method stub
 
         }
 
-        public void mouseDragged(MouseEvent e) {
+        public void mouseDragged(final MouseEvent e) {
             // TODO Auto-generated method stub
 
         }
 
-        public void mouseWheelMoved(MouseEvent e) {
+        public void mouseWheelMoved(final MouseEvent e) {
             // TODO Auto-generated method stub
 
         }
@@ -237,7 +237,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
     }
 
     public class KeyAction implements KeyListener {
-        public void keyPressed(KeyEvent arg0) {
+        public void keyPressed(final KeyEvent arg0) {
             if(ignoreInput) {
                 return;
             }
@@ -285,8 +285,8 @@ public abstract class UIListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_V) {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
-                        public boolean run(GLAutoDrawable drawable) {
-                            GL gl = drawable.getGL();
+                        public boolean run(final GLAutoDrawable drawable) {
+                            final GL gl = drawable.getGL();
                             int i = gl.getSwapInterval();
                             i = i==0 ? 1 : 0;
                             gl.setSwapInterval(i);
@@ -304,14 +304,14 @@ public abstract class UIListenerBase01 implements GLEventListener {
                 rotate(-1);
                     if(null != autoDrawable) {
                         autoDrawable.invoke(false, new GLRunnable() {
-                            public boolean run(GLAutoDrawable drawable) {
+                            public boolean run(final GLAutoDrawable drawable) {
                                 try {
                                     final String type = Region.getRenderModeString(renderModes);
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
-                                } catch (GLException e) {
+                                } catch (final GLException e) {
                                     e.printStackTrace();
-                                } catch (IOException e) {
+                                } catch (final IOException e) {
                                     e.printStackTrace();
                                 }
                                 return true;
@@ -320,6 +320,6 @@ public abstract class UIListenerBase01 implements GLEventListener {
                     }
             }
         }
-        public void keyReleased(KeyEvent arg0) {}
+        public void keyReleased(final KeyEvent arg0) {}
     }
 }

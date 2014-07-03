@@ -121,7 +121,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
      * @param style additional styles to SWT#NO_BACKGROUND
      * @param child optional preassigned {@link #Window}, maybe null
      */
-    public NewtCanvasSWT(final Composite parent, final int style, Window child) {
+    public NewtCanvasSWT(final Composite parent, final int style, final Window child) {
         super(parent, style | SWT.NO_BACKGROUND);
 
         SWTAccessor.setRealized(this, true);
@@ -138,7 +138,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
 
         final Listener listener = new Listener () {
             @Override
-            public void handleEvent (Event event) {
+            public void handleEvent (final Event event) {
                 switch (event.type) {
                 case SWT.Paint:
                     if( DEBUG ) {
@@ -339,7 +339,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     }
 
     @Override
-    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+    public WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
         return newtChildCloseOp = op; // TODO: implement ?!
     }
 
@@ -392,11 +392,11 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     }
 
     @Override
-    public boolean setParent(Composite parent) {
+    public boolean setParent(final Composite parent) {
         return super.setParent(parent);
     }
 
-    /* package */ void configureNewtChild(boolean attach) {
+    /* package */ void configureNewtChild(final boolean attach) {
         newtChildReady = attach;
         if( null != newtChild ) {
             newtChild.setKeyboardFocusHandler(null);
@@ -409,7 +409,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
     }
 
-    void reparentWindow(boolean add) {
+    void reparentWindow(final boolean add) {
         if( null == newtChild ) {
             return; // nop
         }
@@ -469,7 +469,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         private final long nativeWindowHandle;
         private final InsetsImmutable insets; // only required to allow proper client position calculation on OSX
 
-        public SWTNativeWindow(AbstractGraphicsConfiguration config, long nativeWindowHandle) {
+        public SWTNativeWindow(final AbstractGraphicsConfiguration config, final long nativeWindowHandle) {
             this.config = config;
             this.nativeWindowHandle = nativeWindowHandle;
             if( SWTAccessor.isOSX ) {
@@ -503,14 +503,14 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
 
         @Override
-        public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) { }
+        public void addSurfaceUpdatedListener(final SurfaceUpdatedListener l) { }
 
         @Override
-        public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+        public void addSurfaceUpdatedListener(final int index, final SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         }
 
         @Override
-        public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) { }
+        public void removeSurfaceUpdatedListener(final SurfaceUpdatedListener l) { }
 
         @Override
         public long getSurfaceHandle() {
@@ -566,7 +566,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
 
         @Override
-        public void surfaceUpdated(Object updater, NativeSurface ns, long when) { }
+        public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) { }
 
         @Override
         public void destroy() { }
@@ -597,7 +597,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
 
         @Override
-        public Point getLocationOnScreen(Point point) {
+        public Point getLocationOnScreen(final Point point) {
             final Point los; // client window location on screen
             if( SWTAccessor.isOSX ) {
             	// let getLOS provide the point where the child window may be placed
@@ -625,10 +625,10 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
     };
 
-    static String newtWinHandleToHexString(Window w) {
+    static String newtWinHandleToHexString(final Window w) {
         return null != w ? toHexString(w.getWindowHandle()) : "nil";
     }
-    static String toHexString(long l) {
+    static String toHexString(final long l) {
         return "0x"+Long.toHexString(l);
     }
 }

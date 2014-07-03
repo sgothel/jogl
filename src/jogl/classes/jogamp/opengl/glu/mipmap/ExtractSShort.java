@@ -57,7 +57,7 @@ public class ExtractSShort implements ExtractPrimitive {
   }
 
   @Override
-  public double extract( boolean isSwap, ByteBuffer ushort ) {
+  public double extract( final boolean isSwap, final ByteBuffer ushort ) {
     short s = 0;
     if( isSwap ) {
       s = Mipmap.GLU_SWAP_2_BYTES( ushort.getShort() );
@@ -69,9 +69,9 @@ public class ExtractSShort implements ExtractPrimitive {
   }
 
   @Override
-  public void shove( double value, int index, ByteBuffer data ) {
+  public void shove( final double value, final int index, final ByteBuffer data ) {
     assert(0.0 <= value && value < 32768.0);
-    ShortBuffer sb = data.asShortBuffer();
+    final ShortBuffer sb = data.asShortBuffer();
     sb.position( index );
     sb.put( (short)value );
   }

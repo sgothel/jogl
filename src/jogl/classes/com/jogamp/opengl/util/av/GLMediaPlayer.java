@@ -246,10 +246,10 @@ public interface GLMediaPlayer extends TextureSequence {
      */
     @SuppressWarnings("serial")
     public static class StreamException extends Exception {
-        public StreamException(Throwable cause) {
+        public StreamException(final Throwable cause) {
             super(cause);
         }
-        public StreamException(String message, Throwable cause) {
+        public StreamException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }
@@ -318,7 +318,7 @@ public interface GLMediaPlayer extends TextureSequence {
 
         public final int id;
 
-        State(int id){
+        State(final int id){
             this.id = id;
         }
     }

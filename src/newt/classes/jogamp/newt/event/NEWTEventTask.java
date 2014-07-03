@@ -35,18 +35,18 @@ import com.jogamp.newt.event.NEWTEvent;
  * which notifies after sending the event for the <code>invokeAndWait()</code> semantics.
  */
 public class NEWTEventTask {
-    private NEWTEvent event;
-    private Object notifyObject;
+    private final NEWTEvent event;
+    private final Object notifyObject;
     private RuntimeException exception;
 
-    public NEWTEventTask(NEWTEvent event, Object notifyObject) {
+    public NEWTEventTask(final NEWTEvent event, final Object notifyObject) {
         this.event = event ;
         this.notifyObject = notifyObject ;
         this.exception = null;
     }
 
     public final NEWTEvent get() { return event; }
-    public final void setException(RuntimeException e) { exception = e; }
+    public final void setException(final RuntimeException e) { exception = e; }
     public final RuntimeException getException() { return exception; }
     public final boolean isCallerWaiting() { return null != notifyObject; }
 

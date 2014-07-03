@@ -72,8 +72,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfigID();
     }
 
-    EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen,
-                             EGLGLCapabilities capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+    EGLGraphicsConfiguration(final AbstractGraphicsScreen absScreen,
+                             final EGLGLCapabilities capsChosen, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
         super(absScreen, capsChosen, capsRequested);
         this.chooser = chooser;
     }
@@ -85,7 +85,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
      * @return
      * @throws GLException if invalid EGL display.
      */
-    public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int eglConfigID) {
+    public static EGLGraphicsConfiguration create(final GLCapabilitiesImmutable capsRequested, final AbstractGraphicsScreen absScreen, final int eglConfigID) {
         final AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice || !(absDevice instanceof EGLGraphicsDevice)) {
             throw new GLException("GraphicsDevice must be a valid EGLGraphicsDevice");
@@ -110,8 +110,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     }
 
     void updateGraphicsConfiguration() {
-        CapabilitiesImmutable capsChosen = getChosenCapabilities();
-        EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
+        final CapabilitiesImmutable capsChosen = getChosenCapabilities();
+        final EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), capsChosen).chooseGraphicsConfiguration(
                 capsChosen, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
         if(null!=newConfig) {
@@ -123,7 +123,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         }
     }
 
-    public static long EGLConfigId2EGLConfig(long display, int configID) {
+    public static long EGLConfigId2EGLConfig(final long display, final int configID) {
         final IntBuffer attrs = Buffers.newDirectIntBuffer(new int[] {
                 EGL.EGL_CONFIG_ID, configID,
                 EGL.EGL_NONE
@@ -142,7 +142,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return configs.get(0);
     }
 
-    public static boolean isEGLConfigValid(long display, long config) {
+    public static boolean isEGLConfigValid(final long display, final long config) {
         if(0 == config) {
             return false;
         }
@@ -190,8 +190,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
      * @param forceTransparentFlag
      * @return
      */
-    public static EGLGLCapabilities EGLConfig2Capabilities(GLRendererQuirks defaultQuirks, EGLGraphicsDevice device, GLProfile glp,
-                                                           long config, int winattrmask, boolean forceTransparentFlag) {
+    public static EGLGLCapabilities EGLConfig2Capabilities(final GLRendererQuirks defaultQuirks, final EGLGraphicsDevice device, GLProfile glp,
+                                                           final long config, final int winattrmask, final boolean forceTransparentFlag) {
         final long display = device.getHandle();
         final int cfgID;
         final int rType;
@@ -267,7 +267,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
                 return null;
             }
             caps = new EGLGLCapabilities(config, cfgID, visualID, glp, rType);
-        } catch (GLException gle) {
+        } catch (final GLException gle) {
             if(DEBUG) {
                 System.err.println("config "+toHexString(config)+": "+gle);
             }
@@ -381,7 +381,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, caps);
     }
 
-    public static IntBuffer GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
+    public static IntBuffer GLCapabilities2AttribList(final GLCapabilitiesImmutable caps) {
         final IntBuffer attrs = Buffers.newDirectIntBuffer(32);
         int idx=0;
 
@@ -480,8 +480,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return attrs;
     }
 
-    public static IntBuffer CreatePBufferSurfaceAttribList(int width, int height, int texFormat) {
-        IntBuffer attrs = Buffers.newDirectIntBuffer(16);
+    public static IntBuffer CreatePBufferSurfaceAttribList(final int width, final int height, final int texFormat) {
+        final IntBuffer attrs = Buffers.newDirectIntBuffer(16);
         int idx=0;
 
         attrs.put(idx++, EGL.EGL_WIDTH);

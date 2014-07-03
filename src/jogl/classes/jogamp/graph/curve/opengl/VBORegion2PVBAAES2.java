@@ -37,6 +37,7 @@ import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -79,7 +80,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     static {
         Debug.initSingleton();
         final String key = "jogl.debug.graph.curve.vbaa.resizeLowerBoundary";
-        RESIZE_BOUNDARY = Math.max(0, Debug.getIntProperty(key, true, 0));
+        RESIZE_BOUNDARY = Math.max(0, PropertyAccess.getIntProperty(key, true, 0));
         if( RESIZE_BOUNDARY > 0 ) {
             System.err.println("key: "+RESIZE_BOUNDARY);
         }
@@ -178,15 +179,15 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         final int initialElementCount = 256;
 
         // Pass 1:
-        indicesBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer = GLArrayDataServer.createData(3, GL.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
-        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
                                                       false, initialElementCount, GL.GL_STATIC_DRAW);
 
-        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
                                                        false, initialElementCount, GL.GL_STATIC_DRAW);
         if( hasColorChannel() ) {
-            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL2ES2.GL_FLOAT,
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
                                                           false, initialElementCount, GL.GL_STATIC_DRAW);
         } else {
             gca_ColorsAttr = null;
@@ -209,12 +210,12 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);
         gcu_FboTexSize = new GLUniformData(UniformNames.gcu_FboTexSize, 2, FloatBuffer.wrap(new float[2]));
 
-        indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesFbo = GLArrayDataServer.createData(3, GL.GL_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
         indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
         indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
         indicesFbo.seal(true);
 
-        gca_FboTexCoordsAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_TEXCOORDS_ATTR_NAME, 2, GL2ES2.GL_FLOAT,
+        gca_FboTexCoordsAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_TEXCOORDS_ATTR_NAME, 2, GL.GL_FLOAT,
                                                            false, 4, GL.GL_STATIC_DRAW);
         gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(0);
         gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(1);
@@ -222,7 +223,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(0);
         gca_FboTexCoordsAttr.seal(true);
 
-        gca_FboVerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+        gca_FboVerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
                                                            false, 4, GL.GL_STATIC_DRAW);
     }
 
@@ -274,7 +275,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected final void pushIndex(int idx) {
+    protected final void pushIndex(final int idx) {
         indicesBuffer.puts((short)idx);
     }
 
@@ -549,7 +550,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         gca_FboTexCoordsAttr.enableBuffer(gl, true);
         indicesFbo.bindBuffer(gl, true); // keeps VBO binding
 
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesFbo.getElementCount() * indicesFbo.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        gl.glDrawElements(GL.GL_TRIANGLES, indicesFbo.getElementCount() * indicesFbo.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
 
         indicesFbo.bindBuffer(gl, false);
         gca_FboTexCoordsAttr.enableBuffer(gl, false);
@@ -581,7 +582,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             // Shall not use bilinear (GL_LINEAR), due to own VBAA. Result is smooth w/o it now!
             // FIXME: FXAA requires bilinear filtering!
             // texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
-            texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            texA = fbo.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             if( !blendingEnabled ) {
                 // no depth-buffer w/ blending
                 fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
@@ -610,14 +611,14 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         gl.glViewport(0, 0, fboWidth, fboHeight);
         if( blendingEnabled ) {
             gl.glClearColor(0f, 0f, 0f, 0.0f);
-            gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT); // no depth-buffer w/ blending
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT); // no depth-buffer w/ blending
             // For already pre-multiplied alpha values, use:
             // gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
 
             // Multiply RGB w/ Alpha, preserve alpha for renderFBO(..)
             gl.glBlendFuncSeparate(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA, GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
         } else {
-            gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         }
 
         renderRegion(gl);
@@ -644,10 +645,10 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             gcu_ColorTexUnit.setData(colorTexSeq.getTextureUnit());
             gl.glUniform(gcu_ColorTexUnit); // Always update, since program maybe used by multiple regions
             gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
-            gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
             tex.disable(gl); // nop on core
         } else {
-            gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
         }
 
         indicesBuffer.bindBuffer(gl, false);

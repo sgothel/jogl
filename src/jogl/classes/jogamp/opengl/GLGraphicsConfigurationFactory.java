@@ -37,8 +37,8 @@ import javax.media.opengl.DefaultGLCapabilitiesChooser;
 
 public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
 
-    protected static int chooseCapabilities(CapabilitiesChooser chooser, CapabilitiesImmutable capsRequested,
-                                            List<? extends CapabilitiesImmutable> availableCaps, int recommendedIndex) {
+    protected static int chooseCapabilities(CapabilitiesChooser chooser, final CapabilitiesImmutable capsRequested,
+                                            final List<? extends CapabilitiesImmutable> availableCaps, final int recommendedIndex) {
         if (null == capsRequested) {
             throw new NativeWindowException("Null requested capabilities");
         }
@@ -69,7 +69,7 @@ public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurati
                 }
                 return chosenIndex;
             }
-        } catch (NativeWindowException e) {
+        } catch (final NativeWindowException e) {
             if (DEBUG) {
                 e.printStackTrace();
             }

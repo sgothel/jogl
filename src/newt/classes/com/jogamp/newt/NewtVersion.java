@@ -38,7 +38,7 @@ public class NewtVersion extends JogampVersion {
 
     protected static volatile NewtVersion jogampCommonVersionInfo;
 
-    protected NewtVersion(String packageName, Manifest mf) {
+    protected NewtVersion(final String packageName, final Manifest mf) {
         super(packageName, mf);
     }
 
@@ -56,7 +56,7 @@ public class NewtVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(NativeWindowVersion.getInstance());

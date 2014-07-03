@@ -55,16 +55,16 @@ import jogamp.nativewindow.windows.GDI;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
-  private WindowsExternalWGLDrawable(GLDrawableFactory factory, NativeSurface component) {
+  private WindowsExternalWGLDrawable(final GLDrawableFactory factory, final NativeSurface component) {
     super(factory, component, true);
   }
 
-  protected static WindowsExternalWGLDrawable create(GLDrawableFactory factory, GLProfile glp) {
-    long hdc = WGL.wglGetCurrentDC();
+  protected static WindowsExternalWGLDrawable create(final GLDrawableFactory factory, final GLProfile glp) {
+    final long hdc = WGL.wglGetCurrentDC();
     if (0==hdc) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current, werr " + GDI.GetLastError());
     }
-    int pfdID = WGLUtil.GetPixelFormat(hdc);
+    final int pfdID = WGLUtil.GetPixelFormat(hdc);
     if (pfdID == 0) {
       throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat, werr " + GDI.GetLastError());
     }
@@ -76,11 +76,11 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
 
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new WindowsWGLContext(this, shareWith);
   }
 
-  public void setSize(int newWidth, int newHeight) {
+  public void setSize(final int newWidth, final int newHeight) {
     throw new GLException("Should not call this");
   }
 

@@ -40,7 +40,7 @@ public class TableException extends java.lang.Exception {
      * Constructs an instance of <code>TableException</code> with the specified detail message.
      * @param msg the detail message.
      */
-    public TableException(String msg) {
+    public TableException(final String msg) {
         super(msg);
     }
 }

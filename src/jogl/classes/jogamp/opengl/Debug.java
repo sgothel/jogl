@@ -63,7 +63,7 @@ public class Debug extends PropertyAccess {
     verbose = isPropertyDefined("jogl.verbose", true);
     debugAll = isPropertyDefined("jogl.debug", true);
     if (verbose) {
-       Package p = Package.getPackage("javax.media.opengl");
+       final Package p = Package.getPackage("javax.media.opengl");
        System.err.println("JOGL specification version " + p.getSpecificationVersion());
        System.err.println("JOGL implementation version " + p.getImplementationVersion());
        System.err.println("JOGL implementation vendor " + p.getImplementationVendor());
@@ -81,7 +81,7 @@ public class Debug extends PropertyAccess {
     return debugAll;
   }
 
-  public static final boolean debug(String subcomponent) {
+  public static final boolean debug(final String subcomponent) {
     return debugAll() || isPropertyDefined("jogl.debug." + subcomponent, true);
   }
 }

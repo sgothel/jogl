@@ -39,7 +39,7 @@ public class GLVersionNumber extends VersionNumberString {
 
     private final boolean valid;
 
-    private GLVersionNumber(int[] val, int strEnd, short state, String versionString, boolean valid) {
+    private GLVersionNumber(final int[] val, final int strEnd, final short state, final String versionString, final boolean valid) {
         super(val[0], val[1], val[2], strEnd, state, versionString);
         this.valid = valid;
     }
@@ -56,8 +56,8 @@ public class GLVersionNumber extends VersionNumberString {
     }
     private static volatile java.util.regex.Pattern _Pattern = null;
 
-    public static final GLVersionNumber create(String versionString) {
-        int[] val = new int[] { 0, 0, 0 };
+    public static final GLVersionNumber create(final String versionString) {
+        final int[] val = new int[] { 0, 0, 0 };
         int strEnd = 0;
         short state = 0;
         boolean valid = false;
@@ -67,7 +67,7 @@ public class GLVersionNumber extends VersionNumberString {
                 if (versionString.startsWith("GL_VERSION_")) {
                     versionPattern = getUnderscorePattern();
                 } else {
-                    versionPattern = VersionNumberString.getDefaultVersionNumberPattern();
+                    versionPattern = VersionNumber.getDefaultVersionNumberPattern();
                 }
                 final VersionNumberString version = new VersionNumberString(versionString, versionPattern);
                 strEnd = version.endOfStringMatch();
@@ -76,7 +76,7 @@ public class GLVersionNumber extends VersionNumberString {
                 state = (short) ( ( version.hasMajor() ? VersionNumber.HAS_MAJOR : (short)0 ) |
                                   ( version.hasMinor() ? VersionNumber.HAS_MINOR : (short)0 ) );
                 valid = version.hasMajor() && version.hasMinor(); // Requires at least a defined major and minor version component!
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
                 System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: " + e);
                 val[0] = 1;
@@ -101,7 +101,7 @@ public class GLVersionNumber extends VersionNumberString {
      *   4.3.0 NVIDIA 310.32 -> 310.32 (310.32)
      * </pre>
      */
-    public static final VersionNumberString createVendorVersion(String versionString) {
+    public static final VersionNumberString createVendorVersion(final String versionString) {
         if (versionString == null || versionString.length() <= 0) {
             return null;
         }

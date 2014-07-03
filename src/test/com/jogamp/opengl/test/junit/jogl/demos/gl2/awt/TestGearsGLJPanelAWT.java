@@ -85,7 +85,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps)
+    protected void runTestGL(final GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
         final JFrame frame = new JFrame("Swing GLJPanel");
@@ -93,7 +93,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
         final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
-        Dimension glc_sz = new Dimension(width, height);
+        final Dimension glc_sz = new Dimension(width, height);
         glJPanel.setMinimumSize(glc_sz);
         glJPanel.setPreferredSize(glc_sz);
         glJPanel.setSize(glc_sz);
@@ -157,7 +157,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     public void test01_DefaultNorm()
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         if(useMSAA) {
             caps.setNumSamples(4);
             caps.setSampleBuffers(true);
@@ -178,7 +178,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         runTestGL(caps);
@@ -191,7 +191,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setPBuffer(true);
         runTestGL(caps);
     }
@@ -203,7 +203,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         caps.setPBuffer(true);
@@ -217,7 +217,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setBitmap(true);
         runTestGL(caps);
     }
@@ -229,7 +229,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         caps.setBitmap(true);
@@ -238,7 +238,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

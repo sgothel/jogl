@@ -49,7 +49,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class GPURegionGLListener02 extends GPURendererListenerBase01 {
     List<OutlineShape> outlineShapes = new ArrayList<OutlineShape>();
 
-    public GPURegionGLListener02 (RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
+    public GPURegionGLListener02 (final RenderState rs, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
         super(RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
@@ -97,23 +97,23 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
         region.addOutlineShapes(outlineShapes, null, null);
     }
 
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         super.init(drawable);
 
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final RenderState rs = getRenderer().getRenderState();
 
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_BLEND);
         rs.setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
 
         createTestOutline();
     }
 
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);

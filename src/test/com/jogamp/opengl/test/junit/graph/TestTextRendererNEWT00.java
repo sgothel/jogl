@@ -80,13 +80,13 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static int fontStylebits = 0;
     static float fontSizeFixed = 14f;
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         try {
             return Integer.parseInt(a);
-        } catch (Exception ex) { throw new RuntimeException(ex); }
+        } catch (final Exception ex) { throw new RuntimeException(ex); }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         ManualTest = args.length > 0;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -130,7 +130,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         System.err.println("Graph MSAA Samples "+GraphMSAASamples);
         System.err.println("Graph VBAA Samples "+GraphVBAASamples);
         System.err.println("swapInterval "+SwapInterval);
-        String tstname = TestTextRendererNEWT00.class.getName();
+        final String tstname = TestTextRendererNEWT00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
@@ -141,19 +141,19 @@ public class TestTextRendererNEWT00 extends UITestCase {
         try {
             System.err.println("** new frame ** (sleep: "+d+"ms)");
             Thread.sleep(d);
-        } catch (InterruptedException ie) {}
+        } catch (final InterruptedException ie) {}
     }
 
-    static void destroyWindow(GLWindow window) {
+    static void destroyWindow(final GLWindow window) {
         if(null!=window) {
             window.destroy();
         }
     }
 
-    static GLWindow createWindow(String title, GLCapabilitiesImmutable caps, int width, int height) {
+    static GLWindow createWindow(final String title, final GLCapabilitiesImmutable caps, final int width, final int height) {
         Assert.assertNotNull(caps);
 
-        GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(caps);
         window.setSize(width, height);
         window.setPosition(10, 10);
         window.setTitle(title);
@@ -195,8 +195,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     public void testImpl(final int sceneMSAASamples, final int graphMSAASamples, final int graphVBAASamples) throws InterruptedException {
-        GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( 0 < sceneMSAASamples ) {
             caps.setSampleBuffers(true);
@@ -204,7 +204,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
         System.err.println("Requested: "+caps+", graph[msaaSamples "+graphMSAASamples+", vbaaSamples "+graphVBAASamples+"]");
 
-        GLWindow window = createWindow("text-gvbaa"+graphVBAASamples+"-gmsaa"+graphMSAASamples+"-smsaa"+sceneMSAASamples, caps, 1024, 640);
+        final GLWindow window = createWindow("text-gvbaa"+graphVBAASamples+"-gmsaa"+graphMSAASamples+"-smsaa"+sceneMSAASamples, caps, 1024, 640);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
         if( WaitStartEnd ) {
@@ -228,18 +228,18 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
         window.addGLEventListener(textGLListener);
 
-        Animator anim = new Animator();
+        final Animator anim = new Animator();
         anim.add(window);
         anim.start();
         anim.setUpdateFPSFrames(60, null);
         sleep();
         window.invoke(true, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
+            public boolean run(final GLAutoDrawable drawable) {
                 try {
                     textGLListener.printScreen(renderModes, drawable, "./", "TestTextRendererNEWT00-snap"+screenshot_num, false);
                     screenshot_num++;
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
                 return true;
@@ -283,7 +283,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 Font _font = null;
                 try {
                     _font = FontFactory.get(getClass(), fontFileName, false);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
                 font = _font;
@@ -305,7 +305,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             super.init(drawable);
             drawable.getGL().setSwapInterval(SwapInterval);
             t0 = Platform.currentTimeMillis();
@@ -319,7 +319,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             screenshot.dispose(gl);
             regionFPS.destroy(gl);
@@ -327,7 +327,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             super.dispose(drawable);
         }
 
-        public void printScreen(int renderModes, GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
+        public void printScreen(final int renderModes, final GLAutoDrawable drawable, final String dir, final String objName, final boolean exportAlpha) throws GLException, IOException {
             final String modeS = Region.getRenderModeString(renderModes);
             final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                     drawable.getChosenGLCapabilities().getNumSamples(),
@@ -348,7 +348,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
             gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

@@ -47,7 +47,7 @@ public class CrossFadePlayer
 	static GLMediaPlayer[] player;
 	static volatile boolean stop = false;
 
-	public static void main(String[] args)
+	public static void main(final String[] args)
 	{
 
         if(args.length==0) {
@@ -57,13 +57,13 @@ public class CrossFadePlayer
                     "and i will try CrossFade-play them all in parallel!");
         }
 
-		GLMediaEventListener mediaEventListener = new GLMediaEventListener()
+		final GLMediaEventListener mediaEventListener = new GLMediaEventListener()
 		{
 			@Override
-			public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+			public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
 			@Override
-			public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when)
+			public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when)
 			{
 				System.out.println("\n***\nEvent mask changed: " + event_mask);
 				System.out.println("Timestamp: "+ when);
@@ -80,7 +80,7 @@ public class CrossFadePlayer
                                 if ( GLMediaPlayer.State.Paused == mp.getState() ) { // init OK
                                     mp.play();
                                 }
-                            } catch (Exception e) {
+                            } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -126,7 +126,7 @@ public class CrossFadePlayer
         // Initialize media players
         player = new GLMediaPlayer[args.length];
         int i=0;
-        for( String arg: args ) {
+        for( final String arg: args ) {
             player[i] = GLMediaPlayerFactory.createDefault();
             if(player[i]!=null){
                 System.out.println("Created CrossFade player: "+ i + " " + player[i].getClass().getName());
@@ -137,18 +137,18 @@ public class CrossFadePlayer
                         System.out.println("No file selected: arg " + i +" = "+ filename);
                         player[i]=null;
                     } else {
-                        File file = new File(filename);
+                        final File file = new File(filename);
                         if(!file.exists()){
                             System.out.println("File do not exist");
                         } else {
-                            URI uri = file.toURI();
+                            final URI uri = file.toURI();
                             System.out.println("State of player "+ i +": " + player[i].getState().toString());
                             System.out.println("...initializing stream "+ i +"...");
                             player[i].initStream(uri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
 
                         }
                     }
-                } catch (Exception e1) {
+                } catch (final Exception e1) {
                     e1.printStackTrace();
                 }
             } else {
@@ -159,17 +159,17 @@ public class CrossFadePlayer
 
 
         // Main thread CrossFade until playback is done
-		long startTime = com.jogamp.common.os.Platform.currentTimeMillis();
-        double piPlayers = Math.PI*2.0f/args.length;
+		final long startTime = com.jogamp.common.os.Platform.currentTimeMillis();
+        final double piPlayers = Math.PI*2.0f/args.length;
 		StreamException se = null;
 		while( null == se && stop == false ) {
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException e) { }
+				} catch (final InterruptedException e) { }
 
                 // Find out the longest duration...
                 float maxDuration = 1000.0f ;
-                for(GLMediaPlayer p: player) {
+                for(final GLMediaPlayer p: player) {
                     if(p!=null){
                         if( p.getDuration() > maxDuration) {
                             maxDuration = p.getDuration();
@@ -178,15 +178,15 @@ public class CrossFadePlayer
                 }
 
 				// tune the volume on players to crossfade!
-				float progress = (com.jogamp.common.os.Platform.currentTimeMillis()-startTime)/maxDuration;
+				final float progress = (com.jogamp.common.os.Platform.currentTimeMillis()-startTime)/maxDuration;
 
                 i = 0;
-                for(GLMediaPlayer p: player){
+                for(final GLMediaPlayer p: player){
                     if(p!=null){
-                        AudioSink sink = p.getAudioSink();
+                        final AudioSink sink = p.getAudioSink();
 				        if(sink != null){
-                            float volume = (float) (0.5f+(0.5f*(Math.cos(40.0f*progress+(piPlayers*i)))));
-                            float playbacktime = com.jogamp.common.os.Platform.currentTimeMillis()-startTime;
+                            final float volume = (float) (0.5f+(0.5f*(Math.cos(40.0f*progress+(piPlayers*i)))));
+                            final float playbacktime = com.jogamp.common.os.Platform.currentTimeMillis()-startTime;
                             // System.out.println("player: "+ i +" volume = " + volume +" progress = "+ progress +" time = "+ playbacktime + " / duration = " + maxDuration);
                             sink.setVolume(volume);
 				        }
@@ -202,7 +202,7 @@ public class CrossFadePlayer
                 }
 		}
 
-        for(GLMediaPlayer p: player) {
+        for(final GLMediaPlayer p: player) {
             if(p!=null)
                 p.destroy(null);
         }

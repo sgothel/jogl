@@ -284,16 +284,16 @@ public class PostTable implements Table {
         ""              // 257
     };
 
-    private DirectoryEntry de;
-    private int version;
-    private int italicAngle;
-    private short underlinePosition;
-    private short underlineThickness;
-    private int isFixedPitch;
-    private int minMemType42;
-    private int maxMemType42;
-    private int minMemType1;
-    private int maxMemType1;
+    private final DirectoryEntry de;
+    private final int version;
+    private final int italicAngle;
+    private final short underlinePosition;
+    private final short underlineThickness;
+    private final int isFixedPitch;
+    private final int minMemType42;
+    private final int maxMemType42;
+    private final int minMemType1;
+    private final int maxMemType1;
 
     // v2
     private int numGlyphs;
@@ -301,7 +301,7 @@ public class PostTable implements Table {
     private String[] psGlyphName;
 
     /** Creates new PostTable */
-    protected PostTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected PostTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readInt();
         italicAngle = di.readInt();
@@ -324,8 +324,8 @@ public class PostTable implements Table {
                 h -= 257;
                 psGlyphName = new String[h];
                 for (int i = 0; i < h; i++) {
-                    int len = di.readUnsignedByte();
-                    byte[] buf = new byte[len];
+                    final int len = di.readUnsignedByte();
+                    final byte[] buf = new byte[len];
                     di.readFully(buf);
                     psGlyphName[i] = new String(buf);
                 }
@@ -349,7 +349,7 @@ public class PostTable implements Table {
         return high;
     }
 
-    public String getGlyphName(int i) {
+    public String getGlyphName(final int i) {
         if (version == 0x00020000) {
             return (glyphNameIndex[i] > 257)
                 ? psGlyphName[glyphNameIndex[i] - 258]
@@ -359,7 +359,7 @@ public class PostTable implements Table {
         }
     }
 
-    private boolean isMacGlyphName(int i) {
+    private boolean isMacGlyphName(final int i) {
         if (version == 0x00020000) {
             return glyphNameIndex[i] <= 257;
         } else {
@@ -377,7 +377,7 @@ public class PostTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'post' Table - PostScript Metrics\n---------------------------------\n")
             .append("\n        'post' version:        ").append(Fixed.floatValue(version))
             .append("\n        italicAngle:           ").append(Fixed.floatValue(italicAngle))

@@ -101,7 +101,7 @@ public class AWTNewtEventFactory {
         }
     }
 
-    public static final short eventTypeAWT2NEWT(int awtType) {
+    public static final short eventTypeAWT2NEWT(final int awtType) {
         switch( awtType ) {
             // n/a case java.awt.event.WindowEvent.WINDOW_OPENED: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_OPENED;
             case java.awt.event.WindowEvent.WINDOW_CLOSING: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY;
@@ -136,7 +136,7 @@ public class AWTNewtEventFactory {
         return (short)0;
     }
 
-    private static int getAWTButtonDownMaskImpl(int button) {
+    private static int getAWTButtonDownMaskImpl(final int button) {
         /**
          * java.awt.event.InputEvent.getMaskForButton(button);
          *
@@ -173,7 +173,7 @@ public class AWTNewtEventFactory {
      * @param button
      * @return
      */
-    public static int getAWTButtonDownMask(int button) {
+    public static int getAWTButtonDownMask(final int button) {
         if( 0 < button && button <= awtButtonDownMasks.length ) {
             return awtButtonDownMasks[button-1];
         } else {
@@ -181,7 +181,7 @@ public class AWTNewtEventFactory {
         }
     }
 
-    public static final short awtButton2Newt(int awtButton) {
+    public static final short awtButton2Newt(final int awtButton) {
         if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
             return (short)awtButton;
         } else {

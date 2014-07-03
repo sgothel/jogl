@@ -32,10 +32,13 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLDebugListener;
 import javax.media.opengl.GLDebugMessage;
 import javax.media.opengl.GLException;
+
+import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -84,7 +87,7 @@ public class GLDebugMessageHandler {
      * @param ctx the associated GLContext
      * @param glDebugExtension chosen extension to use
      */
-    public GLDebugMessageHandler(GLContextImpl ctx) {
+    public GLDebugMessageHandler(final GLContextImpl ctx) {
         this.ctx = ctx;
         this.listenerImpl = new ListenerSyncedImplStub<GLDebugListener>();
         this.glDebugMessageCallbackProcAddress = 0;
@@ -95,7 +98,7 @@ public class GLDebugMessageHandler {
         this.synchronous = true;
     }
 
-    public void init(boolean enable) {
+    public void init(final boolean enable) {
         if(DEBUG) {
             System.err.println("GLDebugMessageHandler.init("+enable+")");
         }
@@ -113,7 +116,7 @@ public class GLDebugMessageHandler {
             public Long run() {
                 try {
                     return Long.valueOf( table.getAddressFor(functionName) );
-                } catch (IllegalArgumentException iae) {
+                } catch (final IllegalArgumentException iae) {
                     return Long.valueOf(0);
                 }
             }
@@ -132,7 +135,7 @@ public class GLDebugMessageHandler {
             }
             return;
         }
-        if(Platform.OS_TYPE == Platform.OSType.WINDOWS && Platform.is32Bit()) {
+        if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS && Platform.is32Bit()) {
             // Currently buggy, ie. throws an exception after leaving the native callback.
             // Probably a 32bit on 64bit JVM / OpenGL-driver issue.
             if(DEBUG) {
@@ -216,7 +219,7 @@ public class GLDebugMessageHandler {
     /**
      * @see javax.media.opengl.GLContext#setGLDebugSynchronous(boolean)
      */
-    public final void setSynchronous(boolean synchronous) {
+    public final void setSynchronous(final boolean synchronous) {
         this.synchronous = synchronous;
         if( isEnabled() ) {
             setSynchronousImpl();
@@ -225,9 +228,9 @@ public class GLDebugMessageHandler {
     private final void setSynchronousImpl() {
         if(isExtensionARB()) {
             if(synchronous) {
-                ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+                ctx.getGL().glEnable(GL2ES2.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             } else {
-                ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+                ctx.getGL().glDisable(GL2ES2.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             }
             if(DEBUG) {
                 System.err.println("GLDebugMessageHandler: synchronous "+synchronous);
@@ -238,14 +241,14 @@ public class GLDebugMessageHandler {
     /**
      * @see javax.media.opengl.GLContext#enableGLDebugMessage(boolean)
      */
-    public final void enable(boolean enable) throws GLException {
+    public final void enable(final boolean enable) throws GLException {
         ctx.validateCurrent();
         if(!isAvailable()) {
             return;
         }
         enableImpl(enable);
     }
-    final void enableImpl(boolean enable) throws GLException {
+    final void enableImpl(final boolean enable) throws GLException {
         if(enable) {
             if(0 == handle) {
                 setSynchronousImpl();
@@ -271,19 +274,19 @@ public class GLDebugMessageHandler {
         return listenerImpl.size();
     }
 
-    public final void addListener(GLDebugListener listener) {
+    public final void addListener(final GLDebugListener listener) {
         listenerImpl.addListener(-1, listener);
     }
 
-    public final void addListener(int index, GLDebugListener listener) {
+    public final void addListener(final int index, final GLDebugListener listener) {
         listenerImpl.addListener(index, listener);
     }
 
-    public final void removeListener(GLDebugListener listener) {
+    public final void removeListener(final GLDebugListener listener) {
         listenerImpl.removeListener(listener);
     }
 
-    private final void sendMessage(GLDebugMessage msg) {
+    private final void sendMessage(final GLDebugMessage msg) {
         synchronized(listenerImpl) {
             if(DEBUG) {
                 System.err.println("GLDebugMessageHandler: "+msg);
@@ -298,11 +301,11 @@ public class GLDebugMessageHandler {
     public static class StdErrGLDebugListener implements GLDebugListener {
         boolean threadDump;
 
-        public StdErrGLDebugListener(boolean threadDump) {
+        public StdErrGLDebugListener(final boolean threadDump) {
             this.threadDump = threadDump;
         }
         @Override
-        public void messageSent(GLDebugMessage event) {
+        public void messageSent(final GLDebugMessage event) {
             System.err.println(event);
             if(threadDump) {
                 Thread.dumpStack();
@@ -314,12 +317,12 @@ public class GLDebugMessageHandler {
     // native -> java
     //
 
-    protected final void glDebugMessageARB(int source, int type, int id, int severity, String msg) {
+    protected final void glDebugMessageARB(final int source, final int type, final int id, final int severity, final String msg) {
         final GLDebugMessage event = new GLDebugMessage(ctx, System.currentTimeMillis(), source, type, id, severity, msg);
         sendMessage(event);
     }
 
-    protected final void glDebugMessageAMD(int id, int category, int severity, String msg) {
+    protected final void glDebugMessageAMD(final int id, final int category, final int severity, final String msg) {
         final GLDebugMessage event = GLDebugMessage.translateAMDEvent(ctx, System.currentTimeMillis(), id, category, severity, msg);
         sendMessage(event);
     }

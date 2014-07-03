@@ -41,6 +41,7 @@ import javax.media.opengl.GLUniformData;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
@@ -60,7 +61,7 @@ public class ShaderState {
 
     static {
         Debug.initSingleton();
-        DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true);
+        DEBUG = PropertyAccess.isPropertyDefined("jogl.debug.GLSLState", true);
     }
 
     public ShaderState() {
@@ -68,12 +69,12 @@ public class ShaderState {
 
     public boolean verbose() { return verbose; }
 
-    public void setVerbose(boolean v) { verbose = DEBUG || v; }
+    public void setVerbose(final boolean v) { verbose = DEBUG || v; }
 
     /**
      * Returns the attached user object for the given name to this ShaderState.
      */
-    public final Object getAttachedObject(String name) {
+    public final Object getAttachedObject(final String name) {
       return attachedObjectsByString.get(name);
     }
 
@@ -83,7 +84,7 @@ public class ShaderState {
      *
      * @return the previous mapped object or null if none
      */
-    public final Object attachObject(String name, Object obj) {
+    public final Object attachObject(final String name, final Object obj) {
       return attachedObjectsByString.put(name, obj);
     }
 
@@ -92,7 +93,7 @@ public class ShaderState {
      *
      * @return the previous mapped object or null if none
      */
-    public final Object detachObject(String name) {
+    public final Object detachObject(final String name) {
         return attachedObjectsByString.remove(name);
     }
 
@@ -103,7 +104,7 @@ public class ShaderState {
      *
      * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
      */
-    public synchronized void useProgram(GL2ES2 gl, boolean on) throws GLException {
+    public synchronized void useProgram(final GL2ES2 gl, final boolean on) throws GLException {
         if(null==shaderProgram) { throw new GLException("No program is attached"); }
         if(on) {
             if(shaderProgram.linked()) {
@@ -154,10 +155,10 @@ public class ShaderState {
      *
      * @throws GLException if program was not linked and linking fails
      */
-    public synchronized boolean attachShaderProgram(GL2ES2 gl, ShaderProgram prog, boolean enable) throws GLException {
+    public synchronized boolean attachShaderProgram(final GL2ES2 gl, final ShaderProgram prog, final boolean enable) throws GLException {
         if(verbose) {
-            int curId = (null!=shaderProgram)?shaderProgram.id():-1;
-            int newId = (null!=prog)?prog.id():-1;
+            final int curId = (null!=shaderProgram)?shaderProgram.id():-1;
+            final int newId = (null!=prog)?prog.id():-1;
             System.err.println("ShaderState: attachShaderProgram: "+curId+" -> "+newId+" (enable: "+enable+")\n\t"+shaderProgram+"\n\t"+prog);
             if(DEBUG) {
                 Thread.dumpStack();
@@ -213,7 +214,7 @@ public class ShaderState {
      * @see #glReleaseAllUniforms
      * @see #release(GL2ES2, boolean, boolean, boolean)
      */
-    public synchronized void destroy(GL2ES2 gl) {
+    public synchronized void destroy(final GL2ES2 gl) {
         release(gl, true, true, true);
         attachedObjectsByString.clear();
     }
@@ -225,7 +226,7 @@ public class ShaderState {
      * @see #glReleaseAllUniforms
      * @see #release(GL2ES2, boolean, boolean, boolean)
      */
-    public synchronized void releaseAllData(GL2ES2 gl) {
+    public synchronized void releaseAllData(final GL2ES2 gl) {
         release(gl, false, false, false);
     }
 
@@ -234,12 +235,12 @@ public class ShaderState {
      * @see #glReleaseAllUniforms
      * @see ShaderProgram#release(GL2ES2, boolean)
      */
-    public synchronized void release(GL2ES2 gl, boolean destroyBoundAttributes, boolean destroyShaderProgram, boolean destroyShaderCode) {
+    public synchronized void release(final GL2ES2 gl, final boolean destroyBoundAttributes, final boolean destroyShaderProgram, final boolean destroyShaderCode) {
         if(null!=shaderProgram && shaderProgram.linked() ) {
             shaderProgram.useProgram(gl, false);
         }
         if(destroyBoundAttributes) {
-            for(Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
+            for(final Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
                 iter.next().destroy(gl);
             }
         }
@@ -265,8 +266,8 @@ public class ShaderState {
      * @see #getAttribLocation(GL2ES2, String)
      * @see GL2ES2#glGetAttribLocation(int, String)
      */
-    public int getCachedAttribLocation(String name) {
-        Integer idx = activeAttribLocationMap.get(name);
+    public int getCachedAttribLocation(final String name) {
+        final Integer idx = activeAttribLocationMap.get(name);
         return (null!=idx)?idx.intValue():-1;
     }
 
@@ -285,11 +286,11 @@ public class ShaderState {
      * @see #glResetAllVertexAttributes
      * @see ShaderProgram#glReplaceShader
      */
-    public GLArrayData getAttribute(String name) {
+    public GLArrayData getAttribute(final String name) {
         return activeAttribDataMap.get(name);
     }
 
-    public boolean isActiveAttribute(GLArrayData attribute) {
+    public boolean isActiveAttribute(final GLArrayData attribute) {
         return attribute == activeAttribDataMap.get(attribute.getName());
     }
 
@@ -313,7 +314,7 @@ public class ShaderState {
      * @see #getAttribute(String)
      * @see GLArrayData#associate(Object, boolean)
      */
-    public void ownAttribute(GLArrayData attribute, boolean own) {
+    public void ownAttribute(final GLArrayData attribute, final boolean own) {
         if(own) {
             final int location = getCachedAttribLocation(attribute.getName());
             if(0<=location) {
@@ -326,7 +327,7 @@ public class ShaderState {
         attribute.associate(this, own);
     }
 
-    public boolean ownsAttribute(GLArrayData attribute) {
+    public boolean ownsAttribute(final GLArrayData attribute) {
         return managedAttributes.contains(attribute);
     }
 
@@ -343,7 +344,7 @@ public class ShaderState {
      * @see #getAttribLocation(GL2ES2, String)
      * @see #getCachedAttribLocation(String)
      */
-    public void bindAttribLocation(GL2ES2 gl, int location, String name) {
+    public void bindAttribLocation(final GL2ES2 gl, final int location, final String name) {
         if(null==shaderProgram) throw new GLException("No program is attached");
         if(shaderProgram.linked()) throw new GLException("Program is already linked");
         final Integer loc = new Integer(location);
@@ -366,7 +367,7 @@ public class ShaderState {
      * @see #getCachedAttribLocation(String)
      * @see #getAttribute(String)
      */
-    public void bindAttribLocation(GL2ES2 gl, int location, GLArrayData data) {
+    public void bindAttribLocation(final GL2ES2 gl, final int location, final GLArrayData data) {
         if(null==shaderProgram) throw new GLException("No program is attached");
         if(shaderProgram.linked()) throw new GLException("Program is already linked");
         final String name = data.getName();
@@ -391,7 +392,7 @@ public class ShaderState {
      * @see #bindAttribLocation(GL2ES2, int, String)
      * @see GL2ES2#glGetAttribLocation(int, String)
      */
-    public int getAttribLocation(GL2ES2 gl, String name) {
+    public int getAttribLocation(final GL2ES2 gl, final String name) {
         if(null==shaderProgram) throw new GLException("No program is attached");
         int location = getCachedAttribLocation(name);
         if(0>location) {
@@ -431,7 +432,7 @@ public class ShaderState {
      * @see GL2ES2#glGetAttribLocation(int, String)
      * @see #getAttribute(String)
      */
-    public int getAttribLocation(GL2ES2 gl, GLArrayData data) {
+    public int getAttribLocation(final GL2ES2 gl, final GLArrayData data) {
         if(null==shaderProgram) throw new GLException("No program is attached");
         final String name = data.getName();
         int location = getCachedAttribLocation(name);
@@ -441,7 +442,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = data.setLocation(gl, shaderProgram.program());
             if(0<=location) {
-                Integer idx = new Integer(location);
+                final Integer idx = new Integer(location);
                 activeAttribLocationMap.put(name, idx);
                 if(DEBUG) {
                     System.err.println("ShaderState: glGetAttribLocation: "+name+", loc: "+location);
@@ -464,7 +465,7 @@ public class ShaderState {
     /**
      * @return true if the named attribute is enable
      */
-    public final boolean isVertexAttribArrayEnabled(String name) {
+    public final boolean isVertexAttribArrayEnabled(final String name) {
         final Boolean v = activedAttribEnabledMap.get(name);
         return null != v && v.booleanValue();
     }
@@ -472,11 +473,11 @@ public class ShaderState {
     /**
      * @return true if the {@link GLArrayData} attribute is enable
      */
-    public final boolean isVertexAttribArrayEnabled(GLArrayData data) {
+    public final boolean isVertexAttribArrayEnabled(final GLArrayData data) {
         return isVertexAttribArrayEnabled(data.getName());
     }
 
-    private boolean enableVertexAttribArray(GL2ES2 gl, String name, int location) {
+    private boolean enableVertexAttribArray(final GL2ES2 gl, final String name, int location) {
         activedAttribEnabledMap.put(name, Boolean.TRUE);
         if(0>location) {
             location = getAttribLocation(gl, name);
@@ -515,7 +516,7 @@ public class ShaderState {
      * @see #glVertexAttribPointer
      * @see #getVertexAttribPointer
      */
-    public boolean enableVertexAttribArray(GL2ES2 gl, String name) {
+    public boolean enableVertexAttribArray(final GL2ES2 gl, final String name) {
         return enableVertexAttribArray(gl, name, -1);
     }
 
@@ -541,7 +542,7 @@ public class ShaderState {
      * @see #getVertexAttribPointer
      * @see GLArrayDataEditable#enableBuffer(GL, boolean)
      */
-    public boolean enableVertexAttribArray(GL2ES2 gl, GLArrayData data) {
+    public boolean enableVertexAttribArray(final GL2ES2 gl, final GLArrayData data) {
         if(0 > data.getLocation()) {
             getAttribLocation(gl, data);
         } else {
@@ -551,7 +552,7 @@ public class ShaderState {
         return enableVertexAttribArray(gl, data.getName(), data.getLocation());
     }
 
-    private boolean disableVertexAttribArray(GL2ES2 gl, String name, int location) {
+    private boolean disableVertexAttribArray(final GL2ES2 gl, final String name, int location) {
         activedAttribEnabledMap.put(name, Boolean.FALSE);
         if(0>location) {
             location = getAttribLocation(gl, name);
@@ -591,7 +592,7 @@ public class ShaderState {
      * @see #glVertexAttribPointer
      * @see #getVertexAttribPointer
      */
-    public boolean disableVertexAttribArray(GL2ES2 gl, String name) {
+    public boolean disableVertexAttribArray(final GL2ES2 gl, final String name) {
         return disableVertexAttribArray(gl, name, -1);
     }
 
@@ -616,7 +617,7 @@ public class ShaderState {
      * @see #glVertexAttribPointer
      * @see #getVertexAttribPointer
      */
-    public boolean disableVertexAttribArray(GL2ES2 gl, GLArrayData data) {
+    public boolean disableVertexAttribArray(final GL2ES2 gl, final GLArrayData data) {
         if(0 > data.getLocation()) {
             getAttribLocation(gl, data);
         }
@@ -641,7 +642,7 @@ public class ShaderState {
      * @see #glVertexAttribPointer
      * @see #getVertexAttribPointer
      */
-    public boolean vertexAttribPointer(GL2ES2 gl, GLArrayData data) {
+    public boolean vertexAttribPointer(final GL2ES2 gl, final GLArrayData data) {
         int location = data.getLocation();
         if(0 > location) {
             location = getAttribLocation(gl, data);
@@ -670,12 +671,12 @@ public class ShaderState {
      * @see #glResetAllVertexAttributes
      * @see ShaderProgram#glReplaceShader
      */
-    public void releaseAllAttributes(GL2ES2 gl) {
+    public void releaseAllAttributes(final GL2ES2 gl) {
         if(null!=shaderProgram) {
-            for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
+            for(final Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
                 disableVertexAttribArray(gl, iter.next());
             }
-            for(Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
+            for(final Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
                 disableVertexAttribArray(gl, iter.next());
             }
         }
@@ -702,8 +703,8 @@ public class ShaderState {
      * @see #glResetAllVertexAttributes
      * @see ShaderProgram#glReplaceShader
      */
-    public void disableAllVertexAttributeArrays(GL2ES2 gl, boolean removeFromState) {
-        for(Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
+    public void disableAllVertexAttributeArrays(final GL2ES2 gl, final boolean removeFromState) {
+        for(final Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
             final String name = iter.next();
             if(removeFromState) {
                 activedAttribEnabledMap.remove(name);
@@ -715,7 +716,7 @@ public class ShaderState {
         }
     }
 
-    private final void relocateAttribute(GL2ES2 gl, GLArrayData attribute) {
+    private final void relocateAttribute(final GL2ES2 gl, final GLArrayData attribute) {
         // get new location .. note: 'activeAttribLocationMap' is cleared before
         final String name = attribute.getName();
         final int loc = attribute.setLocation(gl, shaderProgram.program());
@@ -760,19 +761,19 @@ public class ShaderState {
      *
      * @see #attachShaderProgram(GL2ES2, ShaderProgram)
      */
-    private final void resetAllAttributes(GL2ES2 gl) {
+    private final void resetAllAttributes(final GL2ES2 gl) {
         if(!shaderProgram.linked()) throw new GLException("Program is not linked");
         activeAttribLocationMap.clear();
 
         for(int i=0; i<managedAttributes.size(); i++) {
             managedAttributes.get(i).setLocation(-1);
         }
-        for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
             relocateAttribute(gl, iter.next());
         }
     }
 
-    private final void setAttribute(GL2ES2 gl, GLArrayData attribute) {
+    private final void setAttribute(final GL2ES2 gl, final GLArrayData attribute) {
         // get new location ..
         final String name = attribute.getName();
         final int loc = attribute.getLocation();
@@ -798,8 +799,8 @@ public class ShaderState {
     /**
      * preserves the attribute location .. (program not linked)
      */
-    private final void setAllAttributes(GL2ES2 gl) {
-        for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
+    private final void setAllAttributes(final GL2ES2 gl) {
+        for(final Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
             setAttribute(gl, iter.next());
         }
     }
@@ -814,8 +815,8 @@ public class ShaderState {
      * @return -1 if there is no such uniform available,
      *         otherwise >= 0
      */
-    public final int getCachedUniformLocation(String name) {
-        Integer idx = activeUniformLocationMap.get(name);
+    public final int getCachedUniformLocation(final String name) {
+        final Integer idx = activeUniformLocationMap.get(name);
         return (null!=idx)?idx.intValue():-1;
     }
 
@@ -833,7 +834,7 @@ public class ShaderState {
      *
      * @see #getUniform(String)
      */
-    public void ownUniform(GLUniformData uniform) {
+    public void ownUniform(final GLUniformData uniform) {
         final int location = getCachedUniformLocation(uniform.getName());
         if(0<=location) {
             uniform.setLocation(location);
@@ -842,7 +843,7 @@ public class ShaderState {
         managedUniforms.add(uniform);
     }
 
-    public boolean ownsUniform(GLUniformData uniform) {
+    public boolean ownsUniform(final GLUniformData uniform) {
         return managedUniforms.contains(uniform);
     }
 
@@ -865,14 +866,14 @@ public class ShaderState {
      * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */
-    public final int getUniformLocation(GL2ES2 gl, String name) {
+    public final int getUniformLocation(final GL2ES2 gl, final String name) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         int location = getCachedUniformLocation(name);
         if(0>location) {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = gl.glGetUniformLocation(shaderProgram.program(), name);
             if(0<=location) {
-                Integer idx = new Integer(location);
+                final Integer idx = new Integer(location);
                 activeUniformLocationMap.put(name, idx);
             } else if(verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
@@ -904,7 +905,7 @@ public class ShaderState {
      * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */
-    public int getUniformLocation(GL2ES2 gl, GLUniformData data) {
+    public int getUniformLocation(final GL2ES2 gl, final GLUniformData data) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         final String name = data.getName();
         int location = getCachedUniformLocation(name);
@@ -942,7 +943,7 @@ public class ShaderState {
      * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */
-    public boolean uniform(GL2ES2 gl, GLUniformData data) {
+    public boolean uniform(final GL2ES2 gl, final GLUniformData data) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         int location = data.getLocation();
         if(0>location) {
@@ -964,7 +965,7 @@ public class ShaderState {
      *
      * @return the GLUniformData object, null if not previously set.
      */
-    public GLUniformData getUniform(String name) {
+    public GLUniformData getUniform(final String name) {
         return activeUniformDataMap.get(name);
     }
 
@@ -972,7 +973,7 @@ public class ShaderState {
      * Releases all mapped uniform data
      * and loses all indices
      */
-    public void releaseAllUniforms(GL2ES2 gl) {
+    public void releaseAllUniforms(final GL2ES2 gl) {
         activeUniformDataMap.clear();
         activeUniformLocationMap.clear();
         managedUniforms.clear();
@@ -993,13 +994,13 @@ public class ShaderState {
      *
      * @see #attachShaderProgram(GL2ES2, ShaderProgram)
      */
-    private final void resetAllUniforms(GL2ES2 gl) {
+    private final void resetAllUniforms(final GL2ES2 gl) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         activeUniformLocationMap.clear();
-        for(Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
             iter.next().setLocation(-1);
         }
-        for(Iterator<GLUniformData> iter = activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLUniformData> iter = activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
             final GLUniformData data = iter.next();
             final int loc = data.setLocation(gl, shaderProgram.program());
             if( 0 <= loc ) {
@@ -1013,7 +1014,7 @@ public class ShaderState {
         }
     }
 
-    public StringBuilder toString(StringBuilder sb, boolean alsoUnlocated) {
+    public StringBuilder toString(StringBuilder sb, final boolean alsoUnlocated) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -1028,35 +1029,35 @@ public class ShaderState {
         }
         sb.append(Platform.getNewline()).append(" enabledAttributes [");
         {
-            Iterator<String> names = activedAttribEnabledMap.keySet().iterator();
-            Iterator<Boolean> values = activedAttribEnabledMap.values().iterator();
+            final Iterator<String> names = activedAttribEnabledMap.keySet().iterator();
+            final Iterator<Boolean> values = activedAttribEnabledMap.values().iterator();
             while( names.hasNext() ) {
                 sb.append(Platform.getNewline()).append("  ").append(names.next()).append(": ").append(values.next());
             }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" activeAttributes [");
-        for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
             final GLArrayData ad = iter.next();
             if( alsoUnlocated || 0 <= ad.getLocation() ) {
                 sb.append(Platform.getNewline()).append("  ").append(ad);
             }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" managedAttributes [");
-        for(Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
             final GLArrayData ad = iter.next();
             if( alsoUnlocated || 0 <= ad.getLocation() ) {
                 sb.append(Platform.getNewline()).append("  ").append(ad);
             }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" activeUniforms [");
-        for(Iterator<GLUniformData> iter=activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLUniformData> iter=activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
             final GLUniformData ud = iter.next();
             if( alsoUnlocated || 0 <= ud.getLocation() ) {
                 sb.append(Platform.getNewline()).append("  ").append(ud);
             }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" managedUniforms [");
-        for(Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
+        for(final Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
             final GLUniformData ud = iter.next();
             if( alsoUnlocated || 0 <= ud.getLocation() ) {
                 sb.append(Platform.getNewline()).append("  ").append(ud);

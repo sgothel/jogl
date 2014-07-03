@@ -167,7 +167,7 @@ public class GLProfile {
      *
      * @throws GLException if no profile for the given device is available.
      */
-    public static void initProfiles(AbstractGraphicsDevice device) throws GLException {
+    public static void initProfiles(final AbstractGraphicsDevice device) throws GLException {
         getProfileMap(device, true);
     }
 
@@ -208,11 +208,11 @@ public class GLProfile {
      *        or <code>[ null, GL ]</code> for the default profile.
      * @return true if the profile is available for the device, otherwise false.
      */
-    public static boolean isAvailable(AbstractGraphicsDevice device, String profile) {
+    public static boolean isAvailable(final AbstractGraphicsDevice device, final String profile) {
         initSingleton();
         return isAvailableImpl(getProfileMap(device, false), profile);
     }
-    private static boolean isAvailableImpl(HashMap<String /*GLProfile_name*/, GLProfile> map, String profile) {
+    private static boolean isAvailableImpl(final HashMap<String /*GLProfile_name*/, GLProfile> map, final String profile) {
         return null != map && null != map.get(profile);
     }
 
@@ -223,7 +223,7 @@ public class GLProfile {
      *        or <code>[ null, GL ]</code> for the default profile.
      * @return true if the profile is available for the default device, otherwise false.
      */
-    public static boolean isAvailable(String profile) {
+    public static boolean isAvailable(final String profile) {
         return isAvailable(null, profile);
     }
 
@@ -236,21 +236,21 @@ public class GLProfile {
         return isAvailable(null, null);
     }
 
-    public static String glAvailabilityToString(AbstractGraphicsDevice device) {
+    public static String glAvailabilityToString(final AbstractGraphicsDevice device) {
         return glAvailabilityToString(device, null).toString();
     }
 
-    public static StringBuilder glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb) {
+    public static StringBuilder glAvailabilityToString(final AbstractGraphicsDevice device, final StringBuilder sb) {
         return glAvailabilityToString(device, sb, null, 0);
     }
-    private static StringBuilder doIndent(StringBuilder sb, String indent, int indentCount) {
+    private static StringBuilder doIndent(final StringBuilder sb, final String indent, int indentCount) {
         while(indentCount>0) {
             sb.append(indent);
             indentCount--;
         }
         return sb;
     }
-    public static StringBuilder glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb, String indent, int indentCount) {
+    public static StringBuilder glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb, final String indent, int indentCount) {
         boolean avail;
         if(null == sb) {
             sb = new StringBuilder();
@@ -425,7 +425,7 @@ public class GLProfile {
         int profileCount = 0;
 
         if(null != map) {
-            for (Map.Entry<String,GLProfile> entry : map.entrySet()) {
+            for (final Map.Entry<String,GLProfile> entry : map.entrySet()) {
                 if( !GL_DEFAULT.equals(entry.getKey()) ) {
                     if(useIndent) {
                         doIndent(sb.append(Platform.getNewline()), indent, indentCount);
@@ -444,7 +444,7 @@ public class GLProfile {
             }
             try {
                 sb.append(getDefault(device));
-            } catch (GLException gle) {
+            } catch (final GLException gle) {
                 sb.append("n/a");
             }
         }
@@ -628,8 +628,8 @@ public class GLProfile {
      * @throws GLException if no profile is available for the device.
      * @see #GL_PROFILE_LIST_ALL
      */
-    public static GLProfile getDefault(AbstractGraphicsDevice device) {
-        GLProfile glp = get(device, GL_DEFAULT);
+    public static GLProfile getDefault(final AbstractGraphicsDevice device) {
+        final GLProfile glp = get(device, GL_DEFAULT);
         return glp;
     }
 
@@ -650,7 +650,7 @@ public class GLProfile {
      * @throws GLException if no profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX
      */
-    public static GLProfile getMaximum(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
+    public static GLProfile getMaximum(final AbstractGraphicsDevice device, final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(device, GL_PROFILE_LIST_MAX, favorHardwareRasterizer);
@@ -660,7 +660,7 @@ public class GLProfile {
      * @throws GLException if no profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX
      */
-    public static GLProfile getMaximum(boolean favorHardwareRasterizer)
+    public static GLProfile getMaximum(final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(GL_PROFILE_LIST_MAX, favorHardwareRasterizer);
@@ -673,7 +673,7 @@ public class GLProfile {
      * @throws GLException if no desktop profile is available for the device.
      * @see #GL_PROFILE_LIST_MIN
      */
-    public static GLProfile getMinimum(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
+    public static GLProfile getMinimum(final AbstractGraphicsDevice device, final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(device, GL_PROFILE_LIST_MIN, favorHardwareRasterizer);
@@ -683,7 +683,7 @@ public class GLProfile {
      * @throws GLException if no desktop profile is available for the default device.
      * @see #GL_PROFILE_LIST_MIN
      */
-    public static GLProfile getMinimum(boolean favorHardwareRasterizer)
+    public static GLProfile getMinimum(final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(GL_PROFILE_LIST_MIN, favorHardwareRasterizer);
@@ -697,7 +697,7 @@ public class GLProfile {
      * @throws GLException if no fixed function profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX_FIXEDFUNC
      */
-    public static GLProfile getMaxFixedFunc(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
+    public static GLProfile getMaxFixedFunc(final AbstractGraphicsDevice device, final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(device, GL_PROFILE_LIST_MAX_FIXEDFUNC, favorHardwareRasterizer);
@@ -707,7 +707,7 @@ public class GLProfile {
      * @throws GLException if no fixed function profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX_FIXEDFUNC
      */
-    public static GLProfile getMaxFixedFunc(boolean favorHardwareRasterizer)
+    public static GLProfile getMaxFixedFunc(final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(GL_PROFILE_LIST_MAX_FIXEDFUNC, favorHardwareRasterizer);
@@ -720,7 +720,7 @@ public class GLProfile {
      * @throws GLException if no programmable profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX_PROGSHADER
      */
-    public static GLProfile getMaxProgrammable(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
+    public static GLProfile getMaxProgrammable(final AbstractGraphicsDevice device, final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(device, GL_PROFILE_LIST_MAX_PROGSHADER, favorHardwareRasterizer);
@@ -730,7 +730,7 @@ public class GLProfile {
      * @throws GLException if no programmable profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX_PROGSHADER
      */
-    public static GLProfile getMaxProgrammable(boolean favorHardwareRasterizer)
+    public static GLProfile getMaxProgrammable(final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(GL_PROFILE_LIST_MAX_PROGSHADER, favorHardwareRasterizer);
@@ -743,7 +743,7 @@ public class GLProfile {
      * @throws GLException if no programmable core profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX_PROGSHADER_CORE
      */
-    public static GLProfile getMaxProgrammableCore(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
+    public static GLProfile getMaxProgrammableCore(final AbstractGraphicsDevice device, final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(device, GL_PROFILE_LIST_MAX_PROGSHADER_CORE, favorHardwareRasterizer);
@@ -753,7 +753,7 @@ public class GLProfile {
      * @throws GLException if no programmable core profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX_PROGSHADER_CORE
      */
-    public static GLProfile getMaxProgrammableCore(boolean favorHardwareRasterizer)
+    public static GLProfile getMaxProgrammableCore(final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(GL_PROFILE_LIST_MAX_PROGSHADER_CORE, favorHardwareRasterizer);
@@ -772,7 +772,7 @@ public class GLProfile {
      * @see #get(AbstractGraphicsDevice, String)
      * @see #getImpl()
      */
-    public static GLProfile getGL2ES1(AbstractGraphicsDevice device)
+    public static GLProfile getGL2ES1(final AbstractGraphicsDevice device)
         throws GLException
     {
         return get(device, GL2ES1).getImpl();
@@ -802,7 +802,7 @@ public class GLProfile {
      * @see #get(AbstractGraphicsDevice, String)
      * @see #getImpl()
      */
-    public static GLProfile getGL2ES2(AbstractGraphicsDevice device)
+    public static GLProfile getGL2ES2(final AbstractGraphicsDevice device)
         throws GLException
     {
         return get(device, GL2ES2).getImpl();
@@ -832,7 +832,7 @@ public class GLProfile {
      * @see #get(AbstractGraphicsDevice, String)
      * @see #getImpl()
      */
-    public static GLProfile getGL4ES3(AbstractGraphicsDevice device)
+    public static GLProfile getGL4ES3(final AbstractGraphicsDevice device)
         throws GLException
     {
         return get(device, GL4ES3).getImpl();
@@ -862,7 +862,7 @@ public class GLProfile {
      * @see #get(AbstractGraphicsDevice, String)
      * @see #getImpl()
      */
-    public static GLProfile getGL2GL3(AbstractGraphicsDevice device)
+    public static GLProfile getGL2GL3(final AbstractGraphicsDevice device)
         throws GLException
     {
         return get(device, GL2GL3).getImpl();
@@ -889,7 +889,7 @@ public class GLProfile {
      *        or <code>[ null, GL ]</code> for the default profile.
      * @throws GLException if the requested profile is not available for the device.
      */
-    public static GLProfile get(AbstractGraphicsDevice device, String profile)
+    public static GLProfile get(final AbstractGraphicsDevice device, String profile)
         throws GLException
     {
         if(null==profile || profile.equals("GL")) {
@@ -908,7 +908,7 @@ public class GLProfile {
      *        or <code>[ null, GL ]</code> for the default profile.
      * @throws GLException if the requested profile is not available for the default device.
      */
-    public static GLProfile get(String profile)
+    public static GLProfile get(final String profile)
         throws GLException
     {
         return get(defaultDevice, profile);
@@ -923,12 +923,12 @@ public class GLProfile {
      * @param favorHardwareRasterizer set to true, if hardware rasterizer shall be favored, otherwise false.
      * @throws GLException if the non of the requested profiles is available for the device.
      */
-    public static GLProfile get(AbstractGraphicsDevice device, String[] profiles, boolean favorHardwareRasterizer)
+    public static GLProfile get(final AbstractGraphicsDevice device, final String[] profiles, final boolean favorHardwareRasterizer)
         throws GLException
     {
         GLProfile glProfileAny = null;
 
-        HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, true);
+        final HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, true);
         for(int i=0; i<profiles.length; i++) {
             final GLProfile glProfile = map.get(profiles[i]);
             if(null!=glProfile) {
@@ -954,7 +954,7 @@ public class GLProfile {
      * @param favorHardwareRasterizer set to true, if hardware rasterizer shall be favored, otherwise false.
      * @throws GLException if the non of the requested profiles is available for the default device.
      */
-    public static GLProfile get(String[] profiles, boolean favorHardwareRasterizer)
+    public static GLProfile get(final String[] profiles, final boolean favorHardwareRasterizer)
         throws GLException
     {
         return get(defaultDevice, profiles, favorHardwareRasterizer);
@@ -963,26 +963,26 @@ public class GLProfile {
     /** Indicates whether the native OpenGL ES1 profile is in use.
      * This requires an EGL interface.
      */
-    public static boolean usesNativeGLES1(String profileImpl) {
+    public static boolean usesNativeGLES1(final String profileImpl) {
         return GLES1.equals(profileImpl);
     }
 
     /** Indicates whether the native OpenGL ES3 or ES2 profile is in use.
      * This requires an EGL, ES3 or ES2 compatible interface.
      */
-    public static boolean usesNativeGLES2(String profileImpl) {
+    public static boolean usesNativeGLES2(final String profileImpl) {
         return GLES3.equals(profileImpl) || GLES2.equals(profileImpl);
     }
 
     /** Indicates whether the native OpenGL ES2 profile is in use.
      * This requires an EGL, ES3 compatible interface.
      */
-    public static boolean usesNativeGLES3(String profileImpl) {
+    public static boolean usesNativeGLES3(final String profileImpl) {
         return GLES3.equals(profileImpl);
     }
 
     /** Indicates whether either of the native OpenGL ES profiles are in use. */
-    public static boolean usesNativeGLES(String profileImpl) {
+    public static boolean usesNativeGLES(final String profileImpl) {
         return usesNativeGLES2(profileImpl) || usesNativeGLES1(profileImpl);
     }
 
@@ -990,7 +990,7 @@ public class GLProfile {
         JOGL's AWT part */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
 
-    public static String getGLTypeName(int type) {
+    public static String getGLTypeName(final int type) {
         switch (type) {
         case GL.GL_UNSIGNED_BYTE:
             return "GL_UNSIGNED_BYTE";
@@ -1006,9 +1006,9 @@ public class GLProfile {
             return "GL_FIXED";
         case javax.media.opengl.GL2ES2.GL_INT:
             return "GL_INT";
-        case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+        case GL.GL_UNSIGNED_INT:
             return "GL_UNSIGNED_INT";
-        case javax.media.opengl.GL2.GL_DOUBLE:
+        case javax.media.opengl.GL2GL3.GL_DOUBLE:
             return "GL_DOUBLE";
         case javax.media.opengl.GL2.GL_2_BYTES:
             return "GL_2_BYTES";
@@ -1020,7 +1020,7 @@ public class GLProfile {
         return null;
     }
 
-    public static String getGLArrayName(int array) {
+    public static String getGLArrayName(final int array) {
         switch(array) {
         case GLPointerFunc.GL_VERTEX_ARRAY:
             return "GL_VERTEX_ARRAY";
@@ -1037,7 +1037,7 @@ public class GLProfile {
     public final String getGLImplBaseClassName() {
         return getGLImplBaseClassName(getImplName());
     }
-    private static final String getGLImplBaseClassName(String profileImpl) {
+    private static final String getGLImplBaseClassName(final String profileImpl) {
         if( GLES2 == profileImpl || GLES3 == profileImpl ) {
             return "jogamp.opengl.es3.GLES3";
         } else if( GLES1 == profileImpl ) {
@@ -1053,10 +1053,10 @@ public class GLProfile {
         }
     }
 
-    public final Constructor<?> getGLCtor(boolean glObject) {
+    public final Constructor<?> getGLCtor(final boolean glObject) {
         return getGLCtor(getImplName(), glObject);
     }
-    private static final Constructor<?> getGLCtor(String profileImpl, boolean glObject) {
+    private static final Constructor<?> getGLCtor(final String profileImpl, final boolean glObject) {
         if( GLES2 == profileImpl || GLES3 == profileImpl ) {
             return glObject ? ctorGLES3Impl : ctorGLES3ProcAddr;
         } else if( GLES1 == profileImpl ) {
@@ -1078,7 +1078,7 @@ public class GLProfile {
      *         if both, profile and profileImpl is equal with this.
      */
     @Override
-    public final boolean equals(Object o) {
+    public final boolean equals(final Object o) {
         if(this==o) { return true; }
         if(o instanceof GLProfile) {
             final GLProfile glp = (GLProfile)o;
@@ -1099,7 +1099,7 @@ public class GLProfile {
      * @param glp GLProfile to compare with
      * @throws GLException if given GLProfile and this aren't equal
      */
-    public final void verifyEquality(GLProfile glp) throws GLException  {
+    public final void verifyEquality(final GLProfile glp) throws GLException  {
         if(!this.equals(glp)) {
             throw new GLException("GLProfiles are not equal: "+this+" != "+glp);
         }
@@ -1235,7 +1235,7 @@ public class GLProfile {
      * General validation if type is a valid GL data type
      * for the current profile
      */
-    public boolean isValidDataType(int type, boolean throwException) {
+    public boolean isValidDataType(final int type, final boolean throwException) {
         switch(type) {
             case GL.GL_UNSIGNED_BYTE:
             case GL.GL_BYTE:
@@ -1245,11 +1245,11 @@ public class GLProfile {
             case GL.GL_FIXED:
                 return true;
             case javax.media.opengl.GL2ES2.GL_INT:
-            case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
+            case GL.GL_UNSIGNED_INT:
                 if( isGL2ES2() ) {
                     return true;
                 }
-            case javax.media.opengl.GL2.GL_DOUBLE:
+            case javax.media.opengl.GL2GL3.GL_DOUBLE:
                 if( isGL3() ) {
                     return true;
                 }
@@ -1266,8 +1266,8 @@ public class GLProfile {
         return false;
     }
 
-    public boolean isValidArrayDataType(int index, int comps, int type,
-                                        boolean isVertexAttribPointer, boolean throwException) {
+    public boolean isValidArrayDataType(final int index, final int comps, final int type,
+                                        final boolean isVertexAttribPointer, final boolean throwException) {
         final String arrayName = getGLArrayName(index);
         if( isGLES1() ) {
             if(isVertexAttribPointer) {
@@ -1391,8 +1391,8 @@ public class GLProfile {
                     case GL.GL_SHORT:
                     case GL.GL_FLOAT:
                     case javax.media.opengl.GL2ES2.GL_INT:
-                    case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
-                    case javax.media.opengl.GL2.GL_DOUBLE:
+                    case GL.GL_UNSIGNED_INT:
+                    case javax.media.opengl.GL2GL3.GL_DOUBLE:
                         break;
                     default:
                         if(throwException) {
@@ -1420,7 +1420,7 @@ public class GLProfile {
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
                             case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2.GL_DOUBLE:
+                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1447,7 +1447,7 @@ public class GLProfile {
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
                             case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2.GL_DOUBLE:
+                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1474,8 +1474,8 @@ public class GLProfile {
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
                             case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2ES2.GL_UNSIGNED_INT:
-                            case javax.media.opengl.GL2.GL_DOUBLE:
+                            case GL.GL_UNSIGNED_INT:
+                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1500,7 +1500,7 @@ public class GLProfile {
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
                             case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2.GL_DOUBLE:
+                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1566,7 +1566,7 @@ public class GLProfile {
     private static final Constructor<?> getCtor(final String clazzName, final boolean glObject, final ClassLoader cl) {
         try {
             return ReflectionUtil.getConstructor(clazzName, glObject ? ctorGLArgs : ctorProcArgs, false, cl);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             if( DEBUG ) {
                 System.err.println("Caught: "+t.getMessage());
                 t.printStackTrace();
@@ -1656,16 +1656,16 @@ public class GLProfile {
         try {
             desktopFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GL2);
             if(null != desktopFactory) {
-                DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(0);
+                final DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(0);
                 if(null!=glLookupHelper) {
                     hasDesktopGLFactory = glLookupHelper.isLibComplete() && hasGL234Impl;
                 }
             }
-        } catch (LinkageError le) {
+        } catch (final LinkageError le) {
             t=le;
-        } catch (RuntimeException re) {
+        } catch (final RuntimeException re) {
             t=re;
-        } catch (Throwable tt) {
+        } catch (final Throwable tt) {
             t=tt;
         }
         if(DEBUG) {
@@ -1696,13 +1696,13 @@ public class GLProfile {
                     hasGLES3Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES3Impl;
                     hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
                 }
-            } catch (LinkageError le) {
+            } catch (final LinkageError le) {
                 t=le;
-            } catch (SecurityException se) {
+            } catch (final SecurityException se) {
                 t=se;
-            } catch (NullPointerException npe) {
+            } catch (final NullPointerException npe) {
                 t=npe;
-            } catch (RuntimeException re) {
+            } catch (final RuntimeException re) {
                 t=re;
             }
             if(DEBUG) {
@@ -1765,13 +1765,13 @@ public class GLProfile {
      * @param device the device for which profiles shall be initialized
      * @return true if any profile for the device exists, otherwise false
      */
-    private static boolean initProfilesForDevice(AbstractGraphicsDevice device) {
+    private static boolean initProfilesForDevice(final AbstractGraphicsDevice device) {
         if(null == device) {
             return false;
         }
         initLock.lock();
         try {
-            GLDrawableFactory factory = GLDrawableFactory.getFactoryImpl(device);
+            final GLDrawableFactory factory = GLDrawableFactory.getFactoryImpl(device);
             factory.enterThreadCriticalZone();
             try {
                 return initProfilesForDeviceCritical(device);
@@ -1782,8 +1782,8 @@ public class GLProfile {
             initLock.unlock();
         }
     }
-    private static boolean initProfilesForDeviceCritical(AbstractGraphicsDevice device) {
-        boolean isSet = GLContext.getAvailableGLVersionsSet(device);
+    private static boolean initProfilesForDeviceCritical(final AbstractGraphicsDevice device) {
+        final boolean isSet = GLContext.getAvailableGLVersionsSet(device);
 
         if(DEBUG) {
             System.err.println("Info: GLProfile.initProfilesForDevice: "+device+" ("+device.getClass().getName()+"), isSet "+isSet+", hasDesktopGLFactory "+hasDesktopGLFactory+", hasEGLFactory "+hasEGLFactory);
@@ -1791,7 +1791,7 @@ public class GLProfile {
         if(isSet) {
             // Avoid recursion and check whether impl. is sane!
             final String deviceKey = device.getUniqueID();
-            HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
+            final HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
             if( null == map ) {
                 throw new InternalError("GLContext Avail. GLVersion is set - but no profile map for device: "+device);
             }
@@ -1813,7 +1813,7 @@ public class GLProfile {
             if(null != sharedResourceThread) {
                 initLock.addOwner(sharedResourceThread);
             }
-            boolean desktopSharedCtxAvail = desktopFactory.createSharedResource(device);
+            final boolean desktopSharedCtxAvail = desktopFactory.createSharedResource(device);
             if(null != sharedResourceThread) {
                 initLock.removeOwner(sharedResourceThread);
             }
@@ -1841,7 +1841,7 @@ public class GLProfile {
             if(null != sharedResourceThread) {
                 initLock.addOwner(sharedResourceThread);
             }
-            boolean eglSharedCtxAvail = eglFactory.createSharedResource(device);
+            final boolean eglSharedCtxAvail = eglFactory.createSharedResource(device);
             if(null != sharedResourceThread) {
                 initLock.removeOwner(sharedResourceThread);
             }
@@ -1881,13 +1881,13 @@ public class GLProfile {
             System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": "+glAvailabilityToString(device));
             if(addedDesktopProfile) {
                 dumpGLInfo(desktopFactory, device);
-                List<GLCapabilitiesImmutable> availCaps = desktopFactory.getAvailableCapabilities(device);
+                final List<GLCapabilitiesImmutable> availCaps = desktopFactory.getAvailableCapabilities(device);
                 for(int i=0; i<availCaps.size(); i++) {
                     System.err.println(availCaps.get(i));
                 }
             } else if(addedEGLProfile) {
                 dumpGLInfo(eglFactory, device);
-                List<GLCapabilitiesImmutable> availCaps = eglFactory.getAvailableCapabilities(device);
+                final List<GLCapabilitiesImmutable> availCaps = eglFactory.getAvailableCapabilities(device);
                 for(int i=0; i<availCaps.size(); i++) {
                     System.err.println(availCaps.get(i));
                 }
@@ -1897,8 +1897,8 @@ public class GLProfile {
         return addedDesktopProfile || addedEGLProfile;
     }
 
-    private static void dumpGLInfo(GLDrawableFactoryImpl factory, AbstractGraphicsDevice device)  {
-        GLContext ctx = factory.getOrCreateSharedContext(device);
+    private static void dumpGLInfo(final GLDrawableFactoryImpl factory, final AbstractGraphicsDevice device)  {
+        final GLContext ctx = factory.getOrCreateSharedContext(device);
         if(null != ctx) {
             System.err.println("GLProfile.dumpGLInfo: "+ctx);
             ctx.makeCurrent();
@@ -1917,8 +1917,8 @@ public class GLProfile {
         return defaultDevice;
     }
 
-    private static String array2String(String[] list) {
-        StringBuilder msg = new StringBuilder();
+    private static String array2String(final String[] list) {
+        final StringBuilder msg = new StringBuilder();
         msg.append("[");
         for (int i = 0; i < list.length; i++) {
             if (i > 0)
@@ -1929,8 +1929,8 @@ public class GLProfile {
         return msg.toString();
     }
 
-    private static void glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb, int major, int profile) {
-        String str = GLContext.getAvailableGLVersionAsString(device, major, profile);
+    private static void glAvailabilityToString(final AbstractGraphicsDevice device, final StringBuilder sb, final int major, final int profile) {
+        final String str = GLContext.getAvailableGLVersionAsString(device, major, profile);
         if(null==str) {
             throw new GLException("Internal Error");
         }
@@ -1939,7 +1939,7 @@ public class GLProfile {
         sb.append("]");
     }
 
-    private static boolean computeProfileMap(AbstractGraphicsDevice device, boolean desktopCtxUndef, boolean esCtxUndef) {
+    private static boolean computeProfileMap(final AbstractGraphicsDevice device, final boolean desktopCtxUndef, final boolean esCtxUndef) {
         if (DEBUG) {
             System.err.println("GLProfile.init map "+device.getConnection()+", desktopCtxUndef "+desktopCtxUndef+", esCtxUndef "+esCtxUndef);
         }
@@ -1994,7 +1994,7 @@ public class GLProfile {
     /**
      * Returns the profile implementation
      */
-    private static String computeProfileImpl(AbstractGraphicsDevice device, String profile, boolean desktopCtxUndef, boolean esCtxUndef, boolean isHardwareRasterizer[]) {
+    private static String computeProfileImpl(final AbstractGraphicsDevice device, final String profile, final boolean desktopCtxUndef, final boolean esCtxUndef, final boolean isHardwareRasterizer[]) {
         if (GL2ES1.equals(profile)) {
             final boolean es1HardwareRasterizer[] = new boolean[1];
             final boolean gles1Available = hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, es1HardwareRasterizer) );
@@ -2143,7 +2143,7 @@ public class GLProfile {
      * @return the GLProfile HashMap if exists, otherwise null
      * @throws GLException if no profile for the given device is available.
      */
-    private static HashMap<String /*GLProfile_name*/, GLProfile> getProfileMap(AbstractGraphicsDevice device, boolean throwExceptionOnZeroProfile)
+    private static HashMap<String /*GLProfile_name*/, GLProfile> getProfileMap(AbstractGraphicsDevice device, final boolean throwExceptionOnZeroProfile)
         throws GLException
     {
         initSingleton();
@@ -2175,13 +2175,13 @@ public class GLProfile {
         return map;
     }
 
-    private static void setProfileMap(AbstractGraphicsDevice device, HashMap<String /*GLProfile_name*/, GLProfile> mappedProfiles) {
+    private static void setProfileMap(final AbstractGraphicsDevice device, final HashMap<String /*GLProfile_name*/, GLProfile> mappedProfiles) {
         synchronized ( deviceConn2ProfileMap ) {
             deviceConn2ProfileMap.put(device.getUniqueID(), mappedProfiles);
         }
     }
 
-    private GLProfile(String profile, GLProfile profileImpl, boolean isHardwareRasterizer) {
+    private GLProfile(final String profile, final GLProfile profileImpl, final boolean isHardwareRasterizer) {
         this.profile = profile;
         this.profileImpl = profileImpl;
         this.isHardwareRasterizer = isHardwareRasterizer;

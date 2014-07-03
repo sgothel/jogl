@@ -85,7 +85,7 @@ public class PixelFormatUtil {
      * Returns the {@link PixelFormat} with reversed components of <code>fmt</code>.
      * If no reversed  {@link PixelFormat} is available, returns <code>fmt</code>.
      */
-    public static PixelFormat getReversed(PixelFormat fmt) {
+    public static PixelFormat getReversed(final PixelFormat fmt) {
         switch(fmt) {
             case LUMINANCE:
                 return PixelFormat.LUMINANCE;
@@ -106,7 +106,7 @@ public class PixelFormatUtil {
         }
     }
 
-    public static int getValue32(PixelFormat src_fmt, ByteBuffer src, int srcOff) {
+    public static int getValue32(final PixelFormat src_fmt, final ByteBuffer src, int srcOff) {
         switch(src_fmt) {
             case LUMINANCE: {
                     final byte c1 = src.get(srcOff++);
@@ -134,7 +134,7 @@ public class PixelFormatUtil {
         }
     }
 
-    public static int convertToInt32(PixelFormat dest_fmt, final byte r, final byte g, final byte b, final byte a) {
+    public static int convertToInt32(final PixelFormat dest_fmt, final byte r, final byte g, final byte b, final byte a) {
         switch(dest_fmt) {
             case LUMINANCE: {
                 final byte l = ( byte) ( ( ( ( 0xff & r ) + ( 0xff & g ) + ( 0xff & b ) ) / 3 ) );
@@ -157,7 +157,7 @@ public class PixelFormatUtil {
         }
     }
 
-    public static int convertToInt32(PixelFormat dest_fmt, PixelFormat src_fmt, ByteBuffer src, int srcOff) {
+    public static int convertToInt32(final PixelFormat dest_fmt, final PixelFormat src_fmt, final ByteBuffer src, int srcOff) {
         final byte r, g, b, a;
         switch(src_fmt) {
             case LUMINANCE:
@@ -208,7 +208,7 @@ public class PixelFormatUtil {
         return convertToInt32(dest_fmt, r, g, b, a);
     }
 
-    public static int convertToInt32(PixelFormat dest_fmt, PixelFormat src_fmt, final int src_pixel) {
+    public static int convertToInt32(final PixelFormat dest_fmt, final PixelFormat src_fmt, final int src_pixel) {
         final byte r, g, b, a;
         switch(src_fmt) {
             case LUMINANCE:
@@ -260,7 +260,7 @@ public class PixelFormatUtil {
     }
 
     public static PixelRectangle convert32(final PixelRectangle src,
-                                           final PixelFormat destFmt, int ddestStride, final boolean isGLOriented,
+                                           final PixelFormat destFmt, final int ddestStride, final boolean isGLOriented,
                                            final boolean destIsDirect) {
         final int width = src.getSize().getWidth();
         final int height = src.getSize().getHeight();
@@ -281,7 +281,7 @@ public class PixelFormatUtil {
         // System.err.println("XXX: DEST fmt "+destFmt+", stride "+destStride+" ("+ddestStride+"), isGL "+isGLOriented+", "+width+"x"+height+", capacity "+capacity+", "+bb);
 
         final PixelFormatUtil.PixelSink32 imgSink = new PixelFormatUtil.PixelSink32() {
-            public void store(int x, int y, int pixel) {
+            public void store(final int x, final int y, final int pixel) {
                 int o = destStride*y+x*bpp;
                 bb.put(o++, (byte) ( pixel        )); // 1
                 if( 3 <= bpp ) {
@@ -309,7 +309,7 @@ public class PixelFormatUtil {
         return new PixelRectangle.GenericPixelRect(destFmt, src.getSize(), destStride, isGLOriented, bb);
     }
 
-    public static void convert32(PixelSink32 destInt32, final PixelRectangle src) {
+    public static void convert32(final PixelSink32 destInt32, final PixelRectangle src) {
         convert32(destInt32,
                   src.getPixels(), src.getPixelformat(),
                   src.isGLOriented(),
@@ -333,7 +333,7 @@ public class PixelFormatUtil {
      *                     Must be >= {@link PixelFormat#bytesPerPixel() src_fmt.bytesPerPixel()} * width.
      * @throws IllegalArgumentException if <code>strideInBytes</code> is invalid
      */
-    public static void convert32(PixelSink32 dest32,
+    public static void convert32(final PixelSink32 dest32,
                                  final ByteBuffer src_bb, final PixelFormat src_fmt, final boolean src_glOriented, final int width, final int height, int stride_bytes) {
         final int src_bpp = src_fmt.bytesPerPixel();
         if( 0 != stride_bytes ) {

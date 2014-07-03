@@ -57,11 +57,11 @@ import com.jogamp.opengl.util.GLPixelStorageModes;
 public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implements GLEventListener {
 
     /* @Override */
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
     }
 
     /* @Override */
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         if( !testDone ) {
             testDone = true;
 
@@ -76,7 +76,7 @@ public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implemen
 
     boolean testDone = false;
 
-    private void testGLUScaleImage(GL gl, GLU glu, int unpackAlignment) {
+    private void testGLUScaleImage(final GL gl, final GLU glu, final int unpackAlignment) {
         final GLPixelStorageModes psm = new GLPixelStorageModes();
         if(0 < unpackAlignment) {
             psm.setUnpackAlignment(gl, unpackAlignment);
@@ -98,8 +98,8 @@ public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implemen
         System.err.println("Unpack-Alignment "+unpackAlignment+":  in-size "+unpackSizeInLen);
         System.err.println("Unpack-Alignment "+unpackAlignment+": out-size "+unpackSizeOutLen);
 
-        ByteBuffer bufferIn  = Buffers.newDirectByteBuffer(unpackSizeInLen);
-        ByteBuffer bufferOut = Buffers.newDirectByteBuffer(unpackSizeOutLen);
+        final ByteBuffer bufferIn  = Buffers.newDirectByteBuffer(unpackSizeInLen);
+        final ByteBuffer bufferOut = Buffers.newDirectByteBuffer(unpackSizeOutLen);
 
         glu.gluScaleImage( GL.GL_LUMINANCE,
                            widthin, heightin, GL.GL_UNSIGNED_BYTE, bufferIn,
@@ -111,18 +111,18 @@ public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implemen
     }
 
     /* @Override */
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     }
 
 
     /* @Override */
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
     }
 
     @Test
     public void test01() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getDefault();
-        GLCapabilities glCapabilities = new GLCapabilities(glprofile);
+        final GLProfile glprofile = GLProfile.getDefault();
+        final GLCapabilities glCapabilities = new GLCapabilities(glprofile);
         final GLCanvas canvas = new GLCanvas(glCapabilities);
         canvas.addGLEventListener( this );
 
@@ -136,7 +136,7 @@ public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implemen
                 public void run() {
                     frame.setVisible(true);
                 }});
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
@@ -152,13 +152,13 @@ public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implemen
                     frame.remove(canvas);
                     frame.dispose();
                 }});
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
    }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestBug694ScaleImageUnpackBufferSizeAWT.class.getName());
     }
 }

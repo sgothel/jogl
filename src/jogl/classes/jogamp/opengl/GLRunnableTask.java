@@ -44,7 +44,7 @@ public class GLRunnableTask implements GLRunnable {
 
     Throwable runnableException;
 
-    public GLRunnableTask(GLRunnable runnable, Object notifyObject, boolean catchExceptions) {
+    public GLRunnableTask(final GLRunnable runnable, final Object notifyObject, final boolean catchExceptions) {
         this.runnable = runnable ;
         this.notifyObject = notifyObject ;
         this.catchExceptions = catchExceptions;
@@ -53,12 +53,12 @@ public class GLRunnableTask implements GLRunnable {
     }
 
     @Override
-    public boolean run(GLAutoDrawable drawable) {
+    public boolean run(final GLAutoDrawable drawable) {
         boolean res = true;
         if(null == notifyObject) {
             try {
                 res = runnable.run(drawable);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 runnableException = t;
                 if(catchExceptions) {
                     runnableException.printStackTrace();
@@ -72,7 +72,7 @@ public class GLRunnableTask implements GLRunnable {
             synchronized (notifyObject) {
                 try {
                     res = runnable.run(drawable);
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     runnableException = t;
                     if(catchExceptions) {
                         runnableException.printStackTrace();

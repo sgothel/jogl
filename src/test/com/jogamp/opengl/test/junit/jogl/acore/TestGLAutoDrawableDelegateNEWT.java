@@ -55,6 +55,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 
 /**
  * Test using a NEWT {@link Window} for onscreen case.
@@ -72,7 +73,7 @@ import com.jogamp.opengl.util.Animator;
 public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
     static long duration = 500; // ms
 
-    void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
 
         //
@@ -105,27 +106,27 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
 
         window.addWindowListener(new WindowAdapter() {
                 @Override
-                public void windowRepaint(WindowUpdateEvent e) {
+                public void windowRepaint(final WindowUpdateEvent e) {
                     glad.windowRepaintOp();
                 }
 
                 @Override
-                public void windowResized(WindowEvent e) {
+                public void windowResized(final WindowEvent e) {
                     glad.windowResizedOp(window.getSurfaceWidth(), window.getSurfaceHeight());
                 }
             });
 
         glad.addGLEventListener(demo);
 
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         window.addKeyListener(quitAdapter);
         window.addWindowListener(quitAdapter);
 
-        Animator animator = new Animator();
+        final Animator animator = new Animator();
         animator.setUpdateFPSFrames(60, System.err);
-        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.add(glad);
         animator.start();
         Assert.assertTrue(animator.isStarted());
@@ -150,7 +151,7 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         doTest(reqGLCaps, new GearsES2(1));
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

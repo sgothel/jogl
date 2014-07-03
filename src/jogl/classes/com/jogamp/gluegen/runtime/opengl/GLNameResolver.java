@@ -72,19 +72,19 @@ public class GLNameResolver {
                                                    };
 
 
-    public static final boolean isGLFunction(String str) {
+    public static final boolean isGLFunction(final String str) {
         return str.startsWith("gl")  || /* str.startsWith("glu") || str.startsWith("glX") || */
                str.startsWith("egl") || str.startsWith("wgl") || str.startsWith("agl") ||
                str.startsWith("cgl") ;
     }
 
-    public static final boolean isGLEnumeration(String str) {
+    public static final boolean isGLEnumeration(final String str) {
         return str.startsWith("GL_")  || str.startsWith("GLU_") || str.startsWith("GLX_") ||
                str.startsWith("EGL_") || str.startsWith("WGL_") || str.startsWith("AGL_") ||
                str.startsWith("CGL_") ;
     }
 
-    public static final int getExtensionIdx(String[] extensions, String str, boolean isGLFunc) {
+    public static final int getExtensionIdx(final String[] extensions, final String str, final boolean isGLFunc) {
         if(isGLFunc) {
             for(int i = extensions.length - 1 ; i>=0 ; i--) {
                 if( str.endsWith(extensions[i]) ) {
@@ -101,11 +101,11 @@ public class GLNameResolver {
         return -1;
     }
 
-    public static final boolean isExtension(String[] extensions, String str, boolean isGLFunc) {
+    public static final boolean isExtension(final String[] extensions, final String str, final boolean isGLFunc) {
         return getExtensionIdx(extensions, str, isGLFunc)>=0;
     }
 
-    public static final String getExtensionSuffix(String str, boolean isGLFunc) {
+    public static final String getExtensionSuffix(final String str, final boolean isGLFunc) {
         int idx = getExtensionIdx(extensionsARB, str, isGLFunc);
         if(idx>=0) {
             return extensionsARB[idx];
@@ -117,7 +117,7 @@ public class GLNameResolver {
         return null;
     }
 
-    public static final String normalize(String[] extensions, String str, boolean isGLFunc) {
+    public static final String normalize(final String[] extensions, String str, final boolean isGLFunc) {
         boolean touched = false;
         for(int i = extensions.length - 1 ; !touched && i>=0 ; i--) {
             if(isGLFunc) {
@@ -136,19 +136,19 @@ public class GLNameResolver {
         }
         return str;
     }
-    public static final String normalizeARB(String str, boolean isGLFunc) {
+    public static final String normalizeARB(final String str, final boolean isGLFunc) {
         return normalize(extensionsARB, str, isGLFunc);
     }
-    public static final boolean isExtensionARB(String str, boolean isGLFunc) {
+    public static final boolean isExtensionARB(final String str, final boolean isGLFunc) {
         return isExtension(extensionsARB, str, isGLFunc);
     }
-    public static final String normalizeVEN(String str, boolean isGLFunc) {
+    public static final String normalizeVEN(final String str, final boolean isGLFunc) {
         return normalize(extensionsVEN, str, isGLFunc);
     }
-    public static final boolean isExtensionVEN(String str, boolean isGLFunc) {
+    public static final boolean isExtensionVEN(final String str, final boolean isGLFunc) {
         return isExtension(extensionsVEN, str, isGLFunc);
     }
-    public static final String normalize(String str, boolean isGLFunc) {
+    public static final String normalize(final String str, final boolean isGLFunc) {
         if (isExtensionARB(str, isGLFunc)) {
             return normalizeARB(str, isGLFunc);
         }
@@ -157,12 +157,12 @@ public class GLNameResolver {
         }
         return str;
     }
-    public static final boolean isExtension(String str, boolean isGLFunc) {
+    public static final boolean isExtension(final String str, final boolean isGLFunc) {
         return isExtension(extensionsARB, str, isGLFunc) ||
                isExtension(extensionsVEN, str, isGLFunc);
     }
 
-    public static final int getFuncNamePermutationNumber(String name) {
+    public static final int getFuncNamePermutationNumber(final String name) {
         if(isExtensionARB(name, true) || isExtensionVEN(name, true)) {
             // no name permutation, if it's already a known extension
             return 1;
@@ -170,7 +170,7 @@ public class GLNameResolver {
         return 1 + extensionsARB.length + extensionsVEN.length;
     }
 
-    public static final String getFuncNamePermutation(String name, int i) {
+    public static final String getFuncNamePermutation(final String name, int i) {
         // identity
         if(i==0) {
             return name;

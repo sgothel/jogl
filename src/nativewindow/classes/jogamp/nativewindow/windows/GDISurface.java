@@ -58,7 +58,7 @@ public class GDISurface extends ProxySurfaceImpl {
    *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
    *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
    */
-  public GDISurface(AbstractGraphicsConfiguration cfg, long windowHandle, UpstreamSurfaceHook upstream, boolean ownsDevice) {
+  public GDISurface(final AbstractGraphicsConfiguration cfg, final long windowHandle, final UpstreamSurfaceHook upstream, final boolean ownsDevice) {
     super(cfg, upstream, ownsDevice);
     this.windowHandle=windowHandle;
     this.surfaceHandle=0;
@@ -81,14 +81,14 @@ public class GDISurface extends ProxySurfaceImpl {
    * </p>
    */
   @Override
-  public final void setSurfaceHandle(long surfaceHandle) {
+  public final void setSurfaceHandle(final long surfaceHandle) {
       this.windowHandle = surfaceHandle;
   }
 
   /**
    * Sets the window handle (HWND).
    */
-  public final void setWindowHandle(long windowHandle) {
+  public final void setWindowHandle(final long windowHandle) {
       this.windowHandle = windowHandle;
   }
 

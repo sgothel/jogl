@@ -128,13 +128,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected void setScreen(ScreenImpl newScreen) { // never null !
+    protected void setScreen(final ScreenImpl newScreen) { // never null !
         super.setScreen(newScreen);
         updatePixelScaleByScreenIdx(false /* sendEvent*/);  // caller (reparent, ..) will send reshape event
     }
 
     @Override
-    protected void monitorModeChanged(MonitorEvent me, boolean success) {
+    protected void monitorModeChanged(final MonitorEvent me, final boolean success) {
         updatePixelScaleByWindowHandle(false /* sendEvent*/); // send reshape event itself
     }
 
@@ -210,9 +210,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                        close0( handle );
                    } });
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             if(DEBUG_IMPLEMENTATION) {
-                Exception e = new Exception("Warning: closeNative failed - "+Thread.currentThread().getName(), t);
+                final Exception e = new Exception("Warning: closeNative failed - "+Thread.currentThread().getName(), t);
                 e.printStackTrace();
             }
         }
@@ -255,7 +255,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    public void setSurfaceHandle(long surfaceHandle) {
+    public void setSurfaceHandle(final long surfaceHandle) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.setSurfaceHandle(): 0x"+Long.toHexString(surfaceHandle));
         }
@@ -324,10 +324,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
     }
 
-    private boolean useParent(NativeWindow parent) { return null != parent && 0 != parent.getWindowHandle(); }
+    private boolean useParent(final NativeWindow parent) { return null != parent && 0 != parent.getWindowHandle(); }
 
     @Override
-    public void updatePosition(int x, int y) {
+    public void updatePosition(final int x, final int y) {
         final long handle = getWindowHandle();
         if( 0 != handle && !isOffscreenInstance ) {
             final NativeWindow parent = getParent();
@@ -348,7 +348,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
+    protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
         final long handle = getWindowHandle();
         if( 0 != handle && !isOffscreenInstance ) {
             final NativeWindow parent = getParent();
@@ -370,7 +370,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, final int width, final int height, int flags) {
+    protected boolean reconfigureWindowImpl(int x, int y, final int width, final int height, final int flags) {
         final boolean _isOffscreenInstance = isOffscreenInstance(this, this.getParent());
         isOffscreenInstance = 0 != sscSurfaceHandle || _isOffscreenInstance;
         final PointImmutable pClientLevelOnSreen;
@@ -471,7 +471,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         final NativeWindow parent = getParent();
         final boolean useParent = useParent(parent);
         return getLocationOnScreenImpl(x, y, parent, useParent);
@@ -490,12 +490,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop - using event driven insetsChange(..)
     }
 
     /** Callback for native screen position change event of the client area. */
-    protected void screenPositionChanged(boolean defer, int newX, int newY) {
+    protected void screenPositionChanged(final boolean defer, final int newX, final int newY) {
         // passed coordinates are in screen position of the client area
         if(getWindowHandle()!=0) {
             final NativeWindow parent = getParent();
@@ -506,8 +506,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 positionChanged(defer, newX, newY);
             } else {
                 // screen position -> rel child window position
-                Point absPos = new Point(newX, newY);
-                Point parentOnScreen = parent.getLocationOnScreen(null);
+                final Point absPos = new Point(newX, newY);
+                final Point parentOnScreen = parent.getLocationOnScreen(null);
                 absPos.translate( parentOnScreen.scale(-1, -1) );
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("MacWindow.positionChanged.1 (Screen Pos - CHILD): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> absPos "+newX+"/"+newY+", parentOnScreen "+parentOnScreen+" -> "+absPos);
@@ -567,22 +567,22 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 
     @Override
-    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short _keyCode, short _keySym, char keyChar) {
+    public final void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short _keyCode, final short _keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 
-    protected final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short _keyCode, char keyChar, char keySymChar) {
+    protected final void enqueueKeyEvent(final boolean wait, final short eventType, int modifiers, final short _keyCode, final char keyChar, final char keySymChar) {
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         final short keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
         final short keySym;
         {
-            short _keySym = KeyEvent.NULL_CHAR != keySymChar ? KeyEvent.utf16ToVKey(keySymChar) : KeyEvent.VK_UNDEFINED;
+            final short _keySym = KeyEvent.NULL_CHAR != keySymChar ? KeyEvent.utf16ToVKey(keySymChar) : KeyEvent.VK_UNDEFINED;
             keySym = KeyEvent.VK_UNDEFINED != _keySym ? _keySym : keyCode;
         }
         /**
@@ -682,7 +682,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                             setAlwaysOnTop0(getWindowHandle(), alwaysOnTop);
                         }
                     } });
-        } catch (Exception ie) {
+        } catch (final Exception ie) {
             ie.printStackTrace();
         }
     }

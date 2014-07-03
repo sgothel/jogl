@@ -64,16 +64,16 @@ public class VBORegionSPES2 extends GLRegion {
         rsLocal = new RenderState.ProgramLocal();
 
         final int initialElementCount = 256;
-        indicesBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer = GLArrayDataServer.createData(3, GL.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
-        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
                                                         false, initialElementCount, GL.GL_STATIC_DRAW);
 
-        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
                                                            false, initialElementCount, GL.GL_STATIC_DRAW);
 
         if( hasColorChannel() ) {
-            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL2ES2.GL_FLOAT,
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
                                                           false, initialElementCount, GL.GL_STATIC_DRAW);
         } else {
             gca_ColorsAttr = null;
@@ -135,7 +135,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected final void pushIndex(int idx) {
+    protected final void pushIndex(final int idx) {
         indicesBuffer.puts((short)idx);
     }
 
@@ -244,10 +244,10 @@ public class VBORegionSPES2 extends GLRegion {
             gcu_ColorTexUnit.setData(colorTexSeq.getTextureUnit());
             gl.glUniform(gcu_ColorTexUnit); // Always update, since program maybe used by multiple regions
             gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
-            gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
             tex.disable(gl); // nop on core
         } else {
-            gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
         }
 
         indicesBuffer.bindBuffer(gl, false);

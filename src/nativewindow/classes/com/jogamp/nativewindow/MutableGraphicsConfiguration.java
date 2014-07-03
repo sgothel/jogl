@@ -32,18 +32,18 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.DefaultGraphicsConfiguration;
 
 public class MutableGraphicsConfiguration extends DefaultGraphicsConfiguration {
-    public MutableGraphicsConfiguration(AbstractGraphicsScreen screen,
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
+    public MutableGraphicsConfiguration(final AbstractGraphicsScreen screen,
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested) {
         super(screen, capsChosen, capsRequested);
     }
 
     @Override
-    public void setChosenCapabilities(CapabilitiesImmutable caps) {
+    public void setChosenCapabilities(final CapabilitiesImmutable caps) {
         super.setChosenCapabilities(caps);
     }
 
     @Override
-    public void setScreen(AbstractGraphicsScreen screen) {
+    public void setScreen(final AbstractGraphicsScreen screen) {
         super.setScreen(screen);
     }
 

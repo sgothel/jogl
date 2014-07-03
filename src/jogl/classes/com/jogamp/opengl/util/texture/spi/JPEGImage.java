@@ -51,12 +51,12 @@ public class JPEGImage {
      * @return
      * @throws IOException
      */
-    public static JPEGImage read(InputStream in, ColorSpace cs) throws IOException {
+    public static JPEGImage read(final InputStream in, final ColorSpace cs) throws IOException {
         return new JPEGImage(in, cs);
     }
 
     /** Reads a JPEG image from the specified InputStream, using the {@link ColorSpace#RGB}. */
-    public static JPEGImage read(InputStream in) throws IOException {
+    public static JPEGImage read(final InputStream in) throws IOException {
         return new JPEGImage(in, ColorSpace.RGB);
     }
 
@@ -68,7 +68,7 @@ public class JPEGImage {
         final ColorSpace storageCS;
         ByteBuffer data = null;
 
-        JPEGColorSink(ColorSpace storageCM) {
+        JPEGColorSink(final ColorSpace storageCM) {
             this.storageCS = storageCM;
             switch(storageCS) {
             case RGB:
@@ -81,7 +81,7 @@ public class JPEGImage {
         }
 
         @Override
-        public final ColorSpace allocate(int width, int height, ColorSpace sourceCM, int sourceComponents) throws RuntimeException {
+        public final ColorSpace allocate(final int width, final int height, final ColorSpace sourceCM, final int sourceComponents) throws RuntimeException {
             this.width = width;
             this.height = height;
             this.sourceComponents = sourceComponents;
@@ -91,7 +91,7 @@ public class JPEGImage {
         }
 
         @Override
-        public final void storeRGB(int x, int y, byte r, byte g, byte b) {
+        public final void storeRGB(final int x, final int y, final byte r, final byte g, final byte b) {
             int i = ( ( height - y - 1 ) * width + x ) * storageComponents;
             data.put(i++, r);
             data.put(i++, g);
@@ -100,12 +100,12 @@ public class JPEGImage {
         }
 
         @Override
-        public final void store2(int x, int y, byte c1, byte c2) {
+        public final void store2(final int x, final int y, final byte c1, final byte c2) {
             throw new RuntimeException("not supported yet");
         }
 
         @Override
-        public final void storeYCbCr(int x, int y, byte Y, byte Cb, byte Cr) {
+        public final void storeYCbCr(final int x, final int y, final byte Y, final byte Cb, final byte Cr) {
             int i = ( ( height - y - 1 ) * width + x ) * storageComponents;
             data.put(i++, Y);
             data.put(i++, Cb);
@@ -118,7 +118,7 @@ public class JPEGImage {
         }
     };
 
-    private JPEGImage(InputStream in, ColorSpace cs) throws IOException {
+    private JPEGImage(final InputStream in, final ColorSpace cs) throws IOException {
         pixelStorage = new JPEGColorSink(cs);
         final JPEGDecoder decoder = new JPEGDecoder();
         decoder.parse(in);
@@ -139,9 +139,9 @@ public class JPEGImage {
         }
         decoder.clear(null);
     }
-    private JPEGColorSink pixelStorage;
+    private final JPEGColorSink pixelStorage;
     private final int pixelWidth, pixelHeight, glFormat, bytesPerPixel;
-    private boolean reversedChannels;
+    private final boolean reversedChannels;
     private final ByteBuffer data;
 
     /** Returns the color space of the pixel data */

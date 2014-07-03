@@ -34,6 +34,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.common.os.Platform;
@@ -64,7 +65,7 @@ public class RenderState {
      * </p>
      */
     public static final int BITHINT_BLENDING_ENABLED = 1 << 0 ;
-    
+
     /**
      * Bitfield hint, {@link #isHintMaskSet(int) if set}
      * stating globally <i>enabled</i> {@link GL#GL_DEPTH_TEST}, otherwise <i>disabled</i>.
@@ -81,15 +82,15 @@ public class RenderState {
      */
     public static final int BITHINT_GLOBAL_DEPTH_TEST_ENABLED = 1 << 1 ;
 
-    public static RenderState createRenderState(Vertex.Factory<? extends Vertex> pointFactory) {
+    public static RenderState createRenderState(final Vertex.Factory<? extends Vertex> pointFactory) {
         return new RenderState(pointFactory, null);
     }
 
-    public static RenderState createRenderState(Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
+    public static RenderState createRenderState(final Vertex.Factory<? extends Vertex> pointFactory, final PMVMatrix pmvMatrix) {
         return new RenderState(pointFactory, pmvMatrix);
     }
 
-    public static final RenderState getRenderState(GL2ES2 gl) {
+    public static final RenderState getRenderState(final GL2ES2 gl) {
         return (RenderState) gl.getContext().getAttachedObject(thisKey);
     }
 
@@ -167,13 +168,13 @@ public class RenderState {
             return res;
         }
 
-        public StringBuilder toString(StringBuilder sb, boolean alsoUnlocated) {
+        public StringBuilder toString(StringBuilder sb, final boolean alsoUnlocated) {
             if(null==sb) {
                 sb = new StringBuilder();
             }
-            sb.append("ProgramLocal[rsID ").append(rsId).append(Platform.NEWLINE);
+            sb.append("ProgramLocal[rsID ").append(rsId).append(PlatformPropsImpl.NEWLINE);
             // pmvMatrix.toString(sb, "%.2f");
-            sb.append(gcu_PMVMatrix01).append(", ").append(Platform.NEWLINE);
+            sb.append(gcu_PMVMatrix01).append(", ").append(PlatformPropsImpl.NEWLINE);
             sb.append(gcu_ColorStatic).append(", ");
             sb.append(gcu_Weight).append("]");
             return sb;
@@ -185,7 +186,7 @@ public class RenderState {
         }
     }
 
-    protected RenderState(Vertex.Factory<? extends Vertex> vertexFactory, PMVMatrix pmvMatrix) {
+    protected RenderState(final Vertex.Factory<? extends Vertex> vertexFactory, final PMVMatrix pmvMatrix) {
         this.id = getNextID();
         this.sp = null;
         this.vertexFactory = vertexFactory;
@@ -226,11 +227,11 @@ public class RenderState {
 
     public final PMVMatrix getMatrix() { return pmvMatrix; }
 
-    public static boolean isWeightValid(float v) {
+    public static boolean isWeightValid(final float v) {
         return 0.0f <= v && v <= 1.9f ;
     }
     public final float getWeight() { return weight[0]; }
-    public final void setWeight(float v) {
+    public final void setWeight(final float v) {
         if( !isWeightValid(v) ) {
              throw new IllegalArgumentException("Weight out of range");
         }
@@ -238,11 +239,11 @@ public class RenderState {
     }
 
 
-    public final float[] getColorStatic(float[] rgbaColor) {
+    public final float[] getColorStatic(final float[] rgbaColor) {
         System.arraycopy(colorStatic, 0, rgbaColor, 0, 4);
         return rgbaColor;
     }
-    public final void setColorStatic(float r, float g, float b, float a){
+    public final void setColorStatic(final float r, final float g, final float b, final float a){
         colorStatic[0] = r;
         colorStatic[1] = g;
         colorStatic[2] = b;
@@ -301,7 +302,7 @@ public class RenderState {
      * @param throwOnError TODO
      * @return true if no error occured, i.e. all locations found, otherwise false.
      */
-    public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataServer data, boolean throwOnError) {
+    public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataServer data, final boolean throwOnError) {
         if( updateLocation || 0 > data.getLocation() ) {
             final boolean ok = 0 <= data.setLocation(gl, sp.program());
             if( throwOnError && !ok ) {
@@ -314,29 +315,29 @@ public class RenderState {
     }
 
 
-    public final boolean isHintMaskSet(int mask) {
+    public final boolean isHintMaskSet(final int mask) {
         return mask == ( hintBitfield & mask );
     }
-    public final void setHintMask(int mask) {
+    public final void setHintMask(final int mask) {
         hintBitfield |= mask;
     }
-    public final void clearHintMask(int mask) {
+    public final void clearHintMask(final int mask) {
         hintBitfield &= ~mask;
     }
 
-    public void destroy(GL2ES2 gl) {
+    public void destroy(final GL2ES2 gl) {
         if( null != sp ) {
             sp.destroy(gl);
             sp = null;
         }
     }
 
-    public final RenderState attachTo(GL2ES2 gl) {
+    public final RenderState attachTo(final GL2ES2 gl) {
         return (RenderState) gl.getContext().attachObject(thisKey, this);
     }
 
-    public final boolean detachFrom(GL2ES2 gl) {
-        RenderState _rs = (RenderState) gl.getContext().getAttachedObject(thisKey);
+    public final boolean detachFrom(final GL2ES2 gl) {
+        final RenderState _rs = (RenderState) gl.getContext().getAttachedObject(thisKey);
         if(_rs == this) {
             gl.getContext().detachObject(thisKey);
             return true;

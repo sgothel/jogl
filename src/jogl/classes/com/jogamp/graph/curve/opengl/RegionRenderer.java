@@ -207,7 +207,7 @@ public class RegionRenderer {
         initialized = true;
     }
 
-    public final void destroy(GL2ES2 gl) {
+    public final void destroy(final GL2ES2 gl) {
         if(!initialized){
             if(DEBUG_INSTANCE) {
                 System.err.println("TextRenderer: Not initialized!");
@@ -234,7 +234,7 @@ public class RegionRenderer {
      * </p>
      * @see #create(RenderState, GLCallback, GLCallback)
      */
-    public final void enable(GL2ES2 gl, boolean enable) {
+    public final void enable(final GL2ES2 gl, final boolean enable) {
         if( enable ) {
             if( null != enableCallback ) {
                 enableCallback.run(gl, this);
@@ -253,12 +253,12 @@ public class RegionRenderer {
     }
 
     /** No PMVMatrix operation is performed here. PMVMatrix is marked dirty. */
-    public final void reshapeNotify(int width, int height) {
+    public final void reshapeNotify(final int width, final int height) {
         this.vp_width = width;
         this.vp_height = height;
     }
 
-    public final void reshapePerspective(float angle, int width, int height, float near, float far) {
+    public final void reshapePerspective(final float angle, final int width, final int height, final float near, final float far) {
         this.vp_width = width;
         this.vp_height = height;
         final float ratio = (float)width/(float)height;
@@ -268,7 +268,7 @@ public class RegionRenderer {
         p.gluPerspective(angle, ratio, near, far);
     }
 
-    public final void reshapeOrtho(int width, int height, float near, float far) {
+    public final void reshapeOrtho(final int width, final int height, final float near, final float far) {
         this.vp_width = width;
         this.vp_height = height;
         final PMVMatrix p = rs.getMatrix();
@@ -298,7 +298,7 @@ public class RegionRenderer {
     // FIXME: Really required to have sampler2D def. precision ? If not, we can drop getFragmentShaderPrecision(..) and use default ShaderCode ..
     private static final String es2_precision_fp = "\nprecision mediump float;\nprecision mediump int;\nprecision mediump sampler2D;\n";
 
-    private final String getFragmentShaderPrecision(GL2ES2 gl) {
+    private final String getFragmentShaderPrecision(final GL2ES2 gl) {
         if( gl.isGLES() ) {
             return es2_precision_fp;
         }
@@ -489,7 +489,7 @@ public class RegionRenderer {
         try {
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "uniforms.glsl");
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "varyings.glsl");
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new RuntimeException("Failed to read: includes", ioe);
         }
         if( 0 > posFp ) {
@@ -514,7 +514,7 @@ public class RegionRenderer {
         }
         try {
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, shaderSegment);
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new RuntimeException("Failed to read: "+shaderSegment, ioe);
         }
         if( 0 > posFp ) {

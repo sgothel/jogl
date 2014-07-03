@@ -123,7 +123,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -132,7 +132,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         composite = null;
     }
 
-    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo ) throws InterruptedException {
+    protected void runTestAGL( final GLCapabilitiesImmutable caps, final GLEventListener demo ) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
 
         final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null);
@@ -158,14 +158,14 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             shell.open();
            } } );
 
-        Animator anim = new Animator();
+        final Animator anim = new Animator();
         if(doAnimation) {
             anim.add(canvas);
             anim.start();
         }
 
-        long lStartTime = System.currentTimeMillis();
-        long lEndTime = lStartTime + duration;
+        final long lStartTime = System.currentTimeMillis();
+        final long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !canvas.isDisposed() ) {
                 if( !display.readAndDispatch() ) {
@@ -173,7 +173,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
                     Thread.sleep(10);
                 }
             }
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -193,21 +193,21 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
     @Test
     public void test_MultisampleAndAlpha() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         caps.setSampleBuffers(true);
         caps.setNumSamples(2);
         runTestAGL( caps, new MultisampleDemoES2(true) );
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = atoi(args[++i]);

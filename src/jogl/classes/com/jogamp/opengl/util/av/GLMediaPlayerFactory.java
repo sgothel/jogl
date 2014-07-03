@@ -55,12 +55,12 @@ public class GLMediaPlayerFactory {
         return new NullGLMediaPlayer();
     }
 
-    public static GLMediaPlayer create(final ClassLoader cl, String implName) {
+    public static GLMediaPlayer create(final ClassLoader cl, final String implName) {
         try {
             if(((Boolean)ReflectionUtil.callStaticMethod(implName, isAvailableMethodName, null, null, cl)).booleanValue()) {
                 return (GLMediaPlayer) ReflectionUtil.createInstance(implName, cl);
             }
-        } catch (Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
+        } catch (final Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
         return null;
     }
 }

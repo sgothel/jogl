@@ -62,12 +62,12 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     protected void closeNativeImpl() { }
 
     @Override
-    protected int validateScreenIndex(int idx) {
+    protected int validateScreenIndex(final int idx) {
         return 0; // only one screen available
     }
 
     @Override
-    protected final void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
+    protected final void collectNativeMonitorModesAndDevicesImpl(final MonitorModeProps.Cache cache) {
         int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
@@ -108,7 +108,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     }
 
     @Override
-    protected void calcVirtualScreenOriginAndSize(Rectangle viewport, Rectangle viewportInWindowUnits) {
+    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
         viewport.set(0, 0, fixedWidth, fixedHeight); // FIXME
     }
 

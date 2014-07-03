@@ -84,7 +84,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
      *                  and no further lifecycle handling is applied.
      * @param lock optional custom {@link RecursiveLock}.
      */
-    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget, boolean ownDevice, RecursiveLock lock) {
+    public GLAutoDrawableDelegate(final GLDrawable drawable, final GLContext context, final Object upstreamWidget, final boolean ownDevice, final RecursiveLock lock) {
         super((GLDrawableImpl)drawable, (GLContextImpl)context, ownDevice);
         if(null == drawable) {
             throw new IllegalArgumentException("null drawable");
@@ -118,7 +118,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
      * @param newWidth new width in pixel units
      * @param newWidth new height in pixel units
      */
-    public final void windowResizedOp(int newWidth, int newHeight) {
+    public final void windowResizedOp(final int newWidth, final int newHeight) {
         super.defaultWindowResizedOp(newWidth, newHeight);
     }
 
@@ -154,7 +154,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
      * Set the upstream UI toolkit object.
      * @see #getUpstreamWidget()
      */
-    public final void setUpstreamWidget(Object newUpstreamWidget) {
+    public final void setUpstreamWidget(final Object newUpstreamWidget) {
         upstreamWidget = newUpstreamWidget;
     }
 

@@ -17,18 +17,18 @@ import java.io.IOException;
  */
 public class LocaTable implements Table {
 
-    private DirectoryEntry _de;
+    private final DirectoryEntry _de;
     private int[] _offsets = null;
     private short _factor = 0;
 
     protected LocaTable(
-            DirectoryEntry de,
-            DataInput di,
-            HeadTable head,
-            MaxpTable maxp) throws IOException {
+            final DirectoryEntry de,
+            final DataInput di,
+            final HeadTable head,
+            final MaxpTable maxp) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _offsets = new int[maxp.getNumGlyphs() + 1];
-        boolean shortEntries = head.getIndexToLocFormat() == 0;
+        final boolean shortEntries = head.getIndexToLocFormat() == 0;
         if (shortEntries) {
             _factor = 2;
             for (int i = 0; i <= maxp.getNumGlyphs(); i++) {
@@ -42,7 +42,7 @@ public class LocaTable implements Table {
         }
     }
 
-    public int getOffset(int i) {
+    public int getOffset(final int i) {
         if (_offsets == null) {
             return 0;
         }
@@ -56,7 +56,7 @@ public class LocaTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'loca' Table - Index To Location Table\n--------------------------------------\n")
             .append("Size = ").append(_de.getLength()).append(" bytes, ")
             .append(_offsets.length).append(" entries\n");

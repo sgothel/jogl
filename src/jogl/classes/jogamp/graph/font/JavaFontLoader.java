@@ -78,7 +78,7 @@ public class JavaFontLoader implements FontSet {
         }
     }
 
-    static boolean is(int bits, int bit) {
+    static boolean is(final int bits, final int bit) {
         return 0 != ( bits & bit ) ;
     }
 
@@ -88,7 +88,7 @@ public class JavaFontLoader implements FontSet {
     }
 
     @Override
-    public Font get(int family, int style) throws IOException {
+    public Font get(final int family, final int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -138,7 +138,7 @@ public class JavaFontLoader implements FontSet {
         return font;
     }
 
-    Font abspath(String fname, int family, int style) throws IOException {
+    Font abspath(final String fname, final int family, final int style) throws IOException {
         if(null == javaFontPath) {
             throw new GLException("java font path undefined");
         }
@@ -151,7 +151,7 @@ public class JavaFontLoader implements FontSet {
                 return f;
             }
             throw new IOException (err);
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new IOException(err, ioe);
         }
     }

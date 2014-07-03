@@ -53,6 +53,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -87,7 +88,7 @@ public class TestRulerNEWT01 extends UITestCase {
             final GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
 
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
                 Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -134,16 +135,16 @@ public class TestRulerNEWT01 extends UITestCase {
 
                 // misc GL setup
                 gl.glClearColor(1, 1, 1, 1);
-                gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+                gl.glEnable(GL.GL_DEPTH_TEST);
                 Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
             }
 
             @Override
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
             }
 
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 final GL2ES2 gl = drawable.getGL().getGL2ES2();
                 vertices0.enableBuffer(gl, true);
                 gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -152,13 +153,13 @@ public class TestRulerNEWT01 extends UITestCase {
             }
 
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 final GL2ES2 gl = drawable.getGL().getGL2ES2();
-                pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+                pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
                 pmvMatrix.glLoadIdentity();
                 pmvMatrix.glOrthof(0f, 1f, 0f, 1f, -10f, 10f);
                 // pmvMatrix.gluPerspective(45.0F, (float) drawable.getWidth() / (float) drawable.getHeight(), 1.0F, 100.0F);
-                pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+                pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
                 pmvMatrix.glLoadIdentity();
                 // pmvMatrix.glTranslatef(0, 0, -6);
                 // pmvMatrix.glRotatef(45f, 1f, 0f, 0f);
@@ -235,7 +236,7 @@ public class TestRulerNEWT01 extends UITestCase {
         runTestGL();
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         System.err.println("main - start");
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -249,7 +250,7 @@ public class TestRulerNEWT01 extends UITestCase {
                 manualTest = true;
             }
         }
-        String tstname = TestRulerNEWT01.class.getName();
+        final String tstname = TestRulerNEWT01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
         System.err.println("main - end");
     }

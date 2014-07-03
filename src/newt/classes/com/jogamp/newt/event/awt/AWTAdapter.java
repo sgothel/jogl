@@ -128,7 +128,7 @@ public abstract class AWTAdapter implements java.util.EventListener
      * where the given {@link NativeSurfaceHolder} impersonates the event's source.
      * The NEWT EventListener will be called when an event happens.<br>
      */
-    protected AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener, NativeSurfaceHolder nsProxy) {
+    protected AWTAdapter(final com.jogamp.newt.event.NEWTEventListener newtListener, final NativeSurfaceHolder nsProxy) {
         if(null==newtListener) {
             throw new IllegalArgumentException("Argument newtListener is null");
         }
@@ -147,7 +147,7 @@ public abstract class AWTAdapter implements java.util.EventListener
      * where the given {@link com.jogamp.newt.Window NEWT Window}, a  {@link NativeSurfaceHolder}, impersonates the event's source.
      * The NEWT EventListener will be called when an event happens.<br>
      */
-    protected AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener, com.jogamp.newt.Window newtProxy) {
+    protected AWTAdapter(final com.jogamp.newt.event.NEWTEventListener newtListener, final com.jogamp.newt.Window newtProxy) {
         if(null==newtListener) {
             throw new IllegalArgumentException("Argument newtListener is null");
         }
@@ -167,7 +167,7 @@ public abstract class AWTAdapter implements java.util.EventListener
      * This is only supported with EDT enabled!
      * @throws IllegalStateException if EDT is not enabled
      */
-    protected AWTAdapter(com.jogamp.newt.Window downstream) throws IllegalStateException {
+    protected AWTAdapter(final com.jogamp.newt.Window downstream) throws IllegalStateException {
         this();
         setDownstream(downstream);
     }
@@ -183,7 +183,7 @@ public abstract class AWTAdapter implements java.util.EventListener
      * This is only supported with EDT enabled!
      * @throws IllegalStateException if EDT is not enabled
      */
-    public synchronized AWTAdapter setDownstream(com.jogamp.newt.Window downstream) throws IllegalStateException {
+    public synchronized AWTAdapter setDownstream(final com.jogamp.newt.Window downstream) throws IllegalStateException {
         if(null==downstream) {
             throw new RuntimeException("Argument downstream is null");
         }
@@ -212,7 +212,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         return this;
     }
 
-    public final synchronized void setConsumeAWTEvent(boolean v) {
+    public final synchronized void setConsumeAWTEvent(final boolean v) {
         this.consumeAWTEvent = v;
     }
 

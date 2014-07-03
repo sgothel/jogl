@@ -47,14 +47,14 @@ import com.jogamp.common.nio.Buffers;
 public final class DirectDataBufferInt extends DataBuffer {
 
     public static class DirectWritableRaster extends WritableRaster {
-        protected DirectWritableRaster(SampleModel sampleModel, DirectDataBufferInt dataBuffer, Point origin) {
+        protected DirectWritableRaster(final SampleModel sampleModel, final DirectDataBufferInt dataBuffer, final Point origin) {
             super(sampleModel, dataBuffer, origin);
         }
     }
 
     public static class BufferedImageInt extends BufferedImage {
         final int customImageType;
-        public BufferedImageInt (int customImageType, ColorModel cm, WritableRaster raster, Hashtable<?,?> properties) {
+        public BufferedImageInt (final int customImageType, final ColorModel cm, final WritableRaster raster, final Hashtable<?,?> properties) {
             super(cm, raster, false /* isRasterPremultiplied */, properties);
             this.customImageType = customImageType;
         }
@@ -97,7 +97,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      *                  <code>String</code>/<code>Object</code> pairs. Used for {@link BufferedImage#getProperty(String)} etc.
      * @return
      */
-    public static BufferedImageInt createBufferedImage(int width, int height, int imageType, Point location, Hashtable<?,?> properties) {
+    public static BufferedImageInt createBufferedImage(final int width, final int height, final int imageType, Point location, final Hashtable<?,?> properties) {
         final ColorSpace colorSpace = ColorSpace.getInstance(ColorSpace.CS_sRGB);
         final int transferType = DataBuffer.TYPE_INT;
         final int bpp, rmask, gmask, bmask, amask;
@@ -167,10 +167,10 @@ public final class DirectDataBufferInt extends DataBuffer {
     }
 
     /** Default data bank. */
-    private IntBuffer data;
+    private final IntBuffer data;
 
     /** All data banks */
-    private IntBuffer bankdata[];
+    private final IntBuffer bankdata[];
 
     /**
      * Constructs an nio integer-based {@link DataBuffer} with a single bank
@@ -178,7 +178,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      *
      * @param size The size of the {@link DataBuffer}.
      */
-    public DirectDataBufferInt(int size) {
+    public DirectDataBufferInt(final int size) {
         super(TYPE_INT, size);
         data = Buffers.newDirectIntBuffer(size);
         bankdata = new IntBuffer[1];
@@ -192,7 +192,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @param size The size of the banks in the {@link DataBuffer}.
      * @param numBanks The number of banks in the a{@link DataBuffer}.
      */
-    public DirectDataBufferInt(int size, int numBanks) {
+    public DirectDataBufferInt(final int size, final int numBanks) {
         super(TYPE_INT,size,numBanks);
         bankdata = new IntBuffer[numBanks];
         for (int i= 0; i < numBanks; i++) {
@@ -213,7 +213,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @param dataArray The integer array for the {@link DataBuffer}.
      * @param size The size of the {@link DataBuffer} bank.
      */
-    public DirectDataBufferInt(IntBuffer dataArray, int size) {
+    public DirectDataBufferInt(final IntBuffer dataArray, final int size) {
         super(TYPE_INT,size);
         data = dataArray;
         bankdata = new IntBuffer[1];
@@ -235,7 +235,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @param bank The bank whose data array you want to get.
      * @return The data array for the specified bank.
      */
-    public IntBuffer getData(int bank) {
+    public IntBuffer getData(final int bank) {
         return bankdata[bank];
     }
 
@@ -248,7 +248,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @see #setElem(int, int, int)
      */
     @Override
-    public int getElem(int i) {
+    public int getElem(final int i) {
         return data.get(i+offset);
     }
 
@@ -262,7 +262,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @see #setElem(int, int, int)
      */
     @Override
-    public int getElem(int bank, int i) {
+    public int getElem(final int bank, final int i) {
         return bankdata[bank].get(i+offsets[bank]);
     }
 
@@ -276,7 +276,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @see #getElem(int, int)
      */
     @Override
-    public void setElem(int i, int val) {
+    public void setElem(final int i, final int val) {
         data.put(i+offset, val);
     }
 
@@ -290,7 +290,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @see #getElem(int, int)
      */
     @Override
-    public void setElem(int bank, int i, int val) {
+    public void setElem(final int bank, final int i, final int val) {
         bankdata[bank].put(i+offsets[bank], val);
     }
 }

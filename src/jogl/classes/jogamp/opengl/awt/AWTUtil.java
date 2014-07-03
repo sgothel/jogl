@@ -59,7 +59,7 @@ public class AWTUtil {
             isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", (Class[])null);
             isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", (Class[])null);
             j2dOk = true;
-        } catch (Exception e) {}
+        } catch (final Exception e) {}
     }
   }
 
@@ -84,7 +84,7 @@ public class AWTUtil {
             !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
           NativeWindowFactory.getAWTToolkitLock().lock();
         }
-      } catch (Exception e) { j2dOk=false; }
+      } catch (final Exception e) { j2dOk=false; }
     }
     if(!j2dOk) {
       NativeWindowFactory.getAWTToolkitLock().lock();
@@ -107,7 +107,7 @@ public class AWTUtil {
                 !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
               NativeWindowFactory.getAWTToolkitLock().unlock();
             }
-          } catch (Exception e) { j2dOk=false; }
+          } catch (final Exception e) { j2dOk=false; }
         }
         if(!j2dOk) {
           NativeWindowFactory.getAWTToolkitLock().unlock();

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -59,24 +59,24 @@ public class Bug816AppletOSXCALayerPos03a extends Applet {
     @Override
     public void init() {
         System.err.println("GearsApplet: init() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
-        GLProfile glp = GLProfile.getDefault();
+        final GLProfile glp = GLProfile.getDefault();
         final GLCapabilities caps = new GLCapabilities(glp);
         final GLCanvas glCanvas1 = new GLCanvas(caps);
         glCanvas1.addGLEventListener(new GearsES2(1));
-        
+
         animator = new Animator();
         animator.add(glCanvas1);
         setLayout(new BorderLayout());
-        
-        // Build a GUI where the canvas 3D is located at top right of the frame 
+
+        // Build a GUI where the canvas 3D is located at top right of the frame
         // and can be resized with split panes dividers
-        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
-            true, new JScrollPane(), glCanvas1);    
+        final JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+            true, new JScrollPane(), glCanvas1);
         verticalSplitPane.setResizeWeight(0.5);
-        JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
+        final JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
             true, new JScrollPane(), verticalSplitPane);
         horizontalSplitPane.setResizeWeight(0.5);
-        JRootPane intermediateRootPane = new JRootPane();
+        final JRootPane intermediateRootPane = new JRootPane();
         intermediateRootPane.setContentPane(horizontalSplitPane);
         add(intermediateRootPane, BorderLayout.CENTER);
         System.err.println("GearsApplet: init() - end [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
@@ -85,7 +85,7 @@ public class Bug816AppletOSXCALayerPos03a extends Applet {
     String currentThreadName() {
         return Thread.currentThread().getName();
     }
-    
+
     @Override
     public void start() {
         System.err.println("GearsApplet: start() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());

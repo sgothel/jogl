@@ -62,16 +62,16 @@ public class MultisampleDemoES2 implements GLEventListener {
     private GLUniformData pmvMatrixUniform;
     private ImmModeSink immModeSink;
 
-    public MultisampleDemoES2(boolean multisample) {
+    public MultisampleDemoES2(final boolean multisample) {
         this.multisample = multisample;
         st = new ShaderState();
-        st.setVerbose(true);        
-        pmvMatrix = new PMVMatrix();        
+        st.setVerbose(true);
+        pmvMatrix = new PMVMatrix();
     }
 
-    public void init(GLAutoDrawable glad) {
+    public void init(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
-                
+
         System.err.println();
         System.err.println("req. msaa: "+multisample);
         System.err.println("Requested: " + glad.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
@@ -79,26 +79,26 @@ public class MultisampleDemoES2 implements GLEventListener {
         System.err.println("Chosen   : " + glad.getChosenGLCapabilities());
         System.err.println("has  msaa: "+multisample);
         System.err.println();
-                
+
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MultisampleDemoES2.class, "shader",
                 "shader/bin", "mgl_default_xxx", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MultisampleDemoES2.class, "shader",
                 "shader/bin", "mgl_default_xxx", true);
         vp0.defaultShaderCustomization(gl, true, true);
         fp0.defaultShaderCustomization(gl, true, true);
-        
+
         sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
-        sp0.add(gl, fp0, System.err);       
+        sp0.add(gl, fp0, System.err);
         st.attachShaderProgram(gl, sp0, true);
-        
+
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
-        st.ownUniform(pmvMatrixUniform);       
+        st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
-        
-        // Using predef array names, see 
+
+        // Using predef array names, see
         //    GLPointerFuncUtil.getPredefinedArrayIndexName(glArrayIndex);
-        immModeSink = ImmModeSink.createGLSL(40, 
+        immModeSink = ImmModeSink.createGLSL(40,
                                               3, GL.GL_FLOAT,  // vertex
                                               4, GL.GL_FLOAT,  // color
                                               0, GL.GL_FLOAT,  // normal
@@ -109,28 +109,28 @@ public class MultisampleDemoES2 implements GLEventListener {
         final double radius = 1;
         immModeSink.glBegin(GL.GL_LINES);
         for (int i = numSteps - 1; i >= 0; i--) {
-            immModeSink.glVertex3f((float) (radius * Math.cos(i * increment)), 
-                                   (float) (radius * Math.sin(i * increment)), 
+            immModeSink.glVertex3f((float) (radius * Math.cos(i * increment)),
+                                   (float) (radius * Math.sin(i * increment)),
                                    0f);
-            immModeSink.glColor4f( 1f, 1f, 1f, 1f ); 
-            immModeSink.glVertex3f((float) (-1.0 * radius * Math.cos(i * increment)), 
-                                   (float) (-1.0 * radius * Math.sin(i * increment)), 
+            immModeSink.glColor4f( 1f, 1f, 1f, 1f );
+            immModeSink.glVertex3f((float) (-1.0 * radius * Math.cos(i * increment)),
+                                   (float) (-1.0 * radius * Math.sin(i * increment)),
                                    0f);
-            immModeSink.glColor4f( 1f, 1f, 1f, 1f ); 
+            immModeSink.glColor4f( 1f, 1f, 1f, 1f );
         }
         immModeSink.glEnd(gl, false);
-        
+
         st.useProgram(gl, false);
     }
 
-    public void dispose(GLAutoDrawable glad) {
+    public void dispose(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         immModeSink.destroy(gl);
         immModeSink = null;
         st.destroy(gl);
     }
 
-    public void display(GLAutoDrawable glad) {
+    public void display(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
@@ -139,16 +139,16 @@ public class MultisampleDemoES2 implements GLEventListener {
         //      gl.glEnable(GL.GL_DEPTH_TEST);
         //      gl.glDepthFunc(GL.GL_LESS);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        
+
         st.useProgram(gl, true);
-        
+
         immModeSink.draw(gl, true);
-        
+
         st.useProgram(gl, false);
     }
 
     // Unused routines
-    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         System.err.println("reshape ..");
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -157,12 +157,12 @@ public class MultisampleDemoES2 implements GLEventListener {
         pmvMatrix.glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 10.0f);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        
+
         st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
     }
 
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
+    public void displayChanged(final GLAutoDrawable drawable, final boolean modeChanged, final boolean deviceChanged) {
     }
 }

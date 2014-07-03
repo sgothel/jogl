@@ -97,14 +97,14 @@ public abstract class UIShape {
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
     public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean v) { enabled = v; }
+    public void setEnabled(final boolean v) { enabled = v; }
 
     /**
      * Clears all data and reset all states as if this instance was newly created
      * @param gl TODO
      * @param renderer TODO\
      */
-    public void clear(GL2ES2 gl, RegionRenderer renderer) {
+    public void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         clearImpl(gl, renderer);
         translate[0] = 0f;
         translate[1] = 0f;
@@ -125,7 +125,7 @@ public abstract class UIShape {
      * @param gl
      * @param renderer
      */
-    public void destroy(GL2ES2 gl, RegionRenderer renderer) {
+    public void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         destroyImpl(gl, renderer);
         translate[0] = 0f;
         translate[1] = 0f;
@@ -141,13 +141,13 @@ public abstract class UIShape {
         markShapeDirty();
     }
 
-    public void setTranslate(float tx, float ty, float tz) {
+    public void setTranslate(final float tx, final float ty, final float tz) {
         translate[0] = tx;
         translate[1] = ty;
         translate[2] = tz;
         // System.err.println("UIShape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
-    public void translate(float tx, float ty, float tz) {
+    public void translate(final float tx, final float ty, final float tz) {
         translate[0] += tx;
         translate[1] += ty;
         translate[2] += tz;
@@ -156,17 +156,17 @@ public abstract class UIShape {
     public final float[] getTranslate() { return translate; }
     public final Quaternion getRotation() { return rotation; }
     public final float[] getRotationOrigin() { return rotOrigin; }
-    public void setRotationOrigin(float rx, float ry, float rz) {
+    public void setRotationOrigin(final float rx, final float ry, final float rz) {
         rotOrigin[0] = rx;
         rotOrigin[1] = ry;
         rotOrigin[2] = rz;
     }
-    public void setScale(float sx, float sy, float sz) {
+    public void setScale(final float sx, final float sy, final float sz) {
         scale[0] = sx;
         scale[1] = sy;
         scale[2] = sz;
     }
-    public void scale(float sx, float sy, float sz) {
+    public void scale(final float sx, final float sy, final float sz) {
         scale[0] *= sx;
         scale[1] *= sy;
         scale[2] *= sz;
@@ -190,7 +190,7 @@ public abstract class UIShape {
 
     public final int getRenderModes() { return renderModes; }
 
-    public GLRegion getRegion(GL2ES2 gl, RegionRenderer renderer) {
+    public GLRegion getRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         validate(gl, renderer);
         return region;
     }
@@ -204,7 +204,7 @@ public abstract class UIShape {
      * @param renderer
      * @param sampleCount
      */
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
+    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final float r, g, b, a;
         final boolean isPressed = isPressed(), isToggleOn = isToggleOn();
         final boolean modBaseColor = !Region.hasColorChannel( renderModes ) && !Region.hasColorTexture( renderModes );
@@ -271,7 +271,7 @@ public abstract class UIShape {
      * @param gl
      * @param renderer
      */
-    public final void validate(GL2ES2 gl, RegionRenderer renderer) {
+    public final void validate(final GL2ES2 gl, final RegionRenderer renderer) {
         if( isShapeDirty() || null == region ) {
             box.reset();
             if( null == region ) {
@@ -306,7 +306,7 @@ public abstract class UIShape {
             region.setQuality(q);
         }
     }
-    public final void setSharpness(float sharpness) {
+    public final void setSharpness(final float sharpness) {
         this.shapesSharpness = sharpness;
         markShapeDirty();
     }
@@ -314,25 +314,25 @@ public abstract class UIShape {
         return shapesSharpness;
     }
 
-    public final void setColor(float r, float g, float b, float a) {
+    public final void setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor[0] = r;
         this.rgbaColor[1] = g;
         this.rgbaColor[2] = b;
         this.rgbaColor[3] = a;
     }
-    public final void setPressedColorMod(float r, float g, float b, float a) {
+    public final void setPressedColorMod(final float r, final float g, final float b, final float a) {
         this.pressedRGBAModulate[0] = r;
         this.pressedRGBAModulate[1] = g;
         this.pressedRGBAModulate[2] = b;
         this.pressedRGBAModulate[3] = a;
     }
-    public final void setToggleOnColorMod(float r, float g, float b, float a) {
+    public final void setToggleOnColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOnRGBAModulate[0] = r;
         this.toggleOnRGBAModulate[1] = g;
         this.toggleOnRGBAModulate[2] = b;
         this.toggleOnRGBAModulate[3] = a;
     }
-    public final void setToggleOffColorMod(float r, float g, float b, float a) {
+    public final void setToggleOffColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOffRGBAModulate[0] = r;
         this.toggleOffRGBAModulate[1] = g;
         this.toggleOffRGBAModulate[2] = b;
@@ -409,7 +409,7 @@ public abstract class UIShape {
      */
     public static abstract class MouseGestureAdapter extends MouseAdapter implements MouseGestureListener {
         @Override
-        public void gestureDetected(GestureEvent gh) {
+        public void gestureDetected(final GestureEvent gh) {
         }
     }
 
@@ -522,7 +522,7 @@ public abstract class UIShape {
     //
     //
 
-    protected OutlineShape createDebugOutline(OutlineShape shape, AABBox box) {
+    protected OutlineShape createDebugOutline(final OutlineShape shape, final AABBox box) {
         final float tw = box.getWidth();
         final float th = box.getHeight();
 

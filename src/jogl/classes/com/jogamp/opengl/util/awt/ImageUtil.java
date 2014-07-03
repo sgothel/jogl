@@ -50,8 +50,8 @@ public class ImageUtil {
   /** Flips the supplied BufferedImage vertically. This is often a
       necessary conversion step to display a Java2D image correctly
       with OpenGL and vice versa. */
-  public static void flipImageVertically(BufferedImage image) {
-    WritableRaster raster = image.getRaster();
+  public static void flipImageVertically(final BufferedImage image) {
+    final WritableRaster raster = image.getRaster();
     Object scanline1 = null;
     Object scanline2 = null;
 
@@ -73,8 +73,8 @@ public class ImageUtil {
    *
    * @return A instance of <code>BufferedImage</code> with a type compatible with the graphics card.
    */
-  public static BufferedImage createCompatibleImage(int width, int height) {
-    GraphicsConfiguration configuration =
+  public static BufferedImage createCompatibleImage(final int width, final int height) {
+    final GraphicsConfiguration configuration =
       GraphicsEnvironment.getLocalGraphicsEnvironment().
       getDefaultScreenDevice().getDefaultConfiguration();
     return configuration.createCompatibleImage(width, height);
@@ -92,7 +92,7 @@ public class ImageUtil {
    *
    * @return A thumbnail with the requested width or the original picture if thumbWidth = image.getWidth()
    */
-  public static BufferedImage createThumbnail(BufferedImage image, int thumbWidth) {
+  public static BufferedImage createThumbnail(final BufferedImage image, final int thumbWidth) {
     // Thanks to Romain Guy for this utility
     if (thumbWidth > image.getWidth()) {
       throw new IllegalArgumentException("Thumbnail width must be greater than image width");
@@ -102,7 +102,7 @@ public class ImageUtil {
       return image;
     }
 
-    float ratio = (float) image.getWidth() / (float) image.getHeight();
+    final float ratio = (float) image.getWidth() / (float) image.getHeight();
     int width = image.getWidth();
     BufferedImage thumb = image;
 
@@ -112,8 +112,8 @@ public class ImageUtil {
         width = thumbWidth;
       }
 
-      BufferedImage temp = createCompatibleImage(width, (int) (width / ratio));
-      Graphics2D g2 = temp.createGraphics();
+      final BufferedImage temp = createCompatibleImage(width, (int) (width / ratio));
+      final Graphics2D g2 = temp.createGraphics();
       g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                           RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       g2.drawImage(thumb, 0, 0, temp.getWidth(), temp.getHeight(), null);

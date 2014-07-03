@@ -61,7 +61,7 @@ public class Type_Widget {
     buffer = ByteBuffer.allocate( 4 );
   }
 
-  public void setUB0( byte b ) {
+  public void setUB0( final byte b ) {
     buffer.position( 0 );
     buffer.put( b );
   }
@@ -71,7 +71,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setUB1( byte b ) {
+  public void setUB1( final byte b ) {
     buffer.position( 1 );
     buffer.put( b );
   }
@@ -81,7 +81,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setUB2( byte b ) {
+  public void setUB2( final byte b ) {
     buffer.position( 2 );
     buffer.put( b );
   }
@@ -91,7 +91,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setUB3( byte b ) {
+  public void setUB3( final byte b ) {
     buffer.position( 3 );
     buffer.put( b );
   }
@@ -101,7 +101,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setUS0( short s ) {
+  public void setUS0( final short s ) {
     buffer.position( 0 );
     buffer.putShort( s );
   }
@@ -111,7 +111,7 @@ public class Type_Widget {
     return( buffer.getShort() );
   }
 
-  public void setUS1( short s ) {
+  public void setUS1( final short s ) {
     buffer.position( 2 );
     buffer.putShort( s );
   }
@@ -121,7 +121,7 @@ public class Type_Widget {
    return( buffer.getShort() );
   }
 
-  public void setUI( int i ) {
+  public void setUI( final int i ) {
     buffer.position( 0 );
     buffer.putInt( i );
   }
@@ -131,7 +131,7 @@ public class Type_Widget {
     return( buffer.getInt() );
   }
 
-  public void setB0( byte b ) {
+  public void setB0( final byte b ) {
     buffer.position( 0 );
     buffer.put( b );
   }
@@ -141,7 +141,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setB1( byte b ) {
+  public void setB1( final byte b ) {
     buffer.position( 1 );
     buffer.put( b );
   }
@@ -151,7 +151,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setB2( byte b ) {
+  public void setB2( final byte b ) {
     buffer.position( 2 );
     buffer.put( b );
   }
@@ -161,7 +161,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setB3( byte b ) {
+  public void setB3( final byte b ) {
     buffer.position( 3 );
     buffer.put( b );
   }
@@ -171,7 +171,7 @@ public class Type_Widget {
     return( buffer.get() );
   }
 
-  public void setS0( short s ) {
+  public void setS0( final short s ) {
     buffer.position( 0 );
     buffer.putShort( s );
   }
@@ -181,7 +181,7 @@ public class Type_Widget {
     return( buffer.getShort() );
   }
 
-  public void setS1( short s ) {
+  public void setS1( final short s ) {
     buffer.position( 2 );
     buffer.putShort( s );
   }
@@ -191,7 +191,7 @@ public class Type_Widget {
     return( buffer.getShort() );
   }
 
-  public void setI( int i ) {
+  public void setI( final int i ) {
     buffer.position( 0 );
     buffer.putInt( i );
   }
@@ -201,7 +201,7 @@ public class Type_Widget {
     return( buffer.getInt() );
   }
 
-  public void setF( float f ) {
+  public void setF( final float f ) {
     buffer.position( 0 );
     buffer.putFloat( f );
   }
@@ -216,8 +216,8 @@ public class Type_Widget {
     return( buffer );
   }
 
-  public static void main( String args[] ) {
-    Type_Widget t = new Type_Widget();
+  public static void main( final String args[] ) {
+    final Type_Widget t = new Type_Widget();
     t.setI( 1000000 );
 
     System.out.println("int: " + Integer.toHexString( t.getI() ) );

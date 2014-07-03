@@ -41,7 +41,7 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
 
     private static String currentThreadName() { return "["+Thread.currentThread().getName()+", isAWT-EDT "+EventQueue.isDispatchThread()+"]"; }
 
-    private static void invoke(boolean wait, Runnable r) {
+    private static void invoke(final boolean wait, final Runnable r) {
         if(EventQueue.isDispatchThread()) {
             r.run();
         } else {
@@ -51,24 +51,24 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
             } else {
                 EventQueue.invokeLater(r);
             }
-          } catch (InvocationTargetException e) {
+          } catch (final InvocationTargetException e) {
             throw new RuntimeException(e.getTargetException());
-          } catch (InterruptedException e) {
+          } catch (final InterruptedException e) {
             throw new RuntimeException(e);
           }
         }
     }
 
-    private static final String comp2Str(Component c) {
+    private static final String comp2Str(final Component c) {
         return c.getClass().getSimpleName()+"[visible "+c.isVisible()+", showing "+c.isShowing()+", valid "+c.isValid()+
                 ", displayable "+c.isDisplayable()+", "+c.getX()+"/"+c.getY()+" "+c.getWidth()+"x"+c.getHeight()+"]";
     }
 
-    private void println(String msg) {
+    private void println(final String msg) {
         System.err.println(msg);
     }
 
-    private final void checkComponentState(String msg, boolean expIsContained, int expAddNotifyCount, int expRemoveNotifyCount) {
+    private final void checkComponentState(final String msg, final boolean expIsContained, final int expAddNotifyCount, final int expRemoveNotifyCount) {
         final int compCount = getComponentCount();
         final Component c = 1 <= compCount ? getComponent(0) : null;
         final String clazzName = null != c ? c.getName() : "n/a";
@@ -88,8 +88,8 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
     volatile int stopCount = 0;
     volatile int destroyCount = 0;
 
-    private final void checkAppletState(String msg, boolean expIsActive,
-                                        int expInitCount, int expStartCount, int expStopCount, boolean startStopCountEquals, int expDestroyCount) {
+    private final void checkAppletState(final String msg, final boolean expIsActive,
+                                        final int expInitCount, final int expStartCount, final int expStopCount, final boolean startStopCountEquals, final int expDestroyCount) {
         final boolean isActive = this.isActive();
         final String okS = ( expInitCount == initCount &&
                              expIsActive == isActive &&
@@ -144,7 +144,7 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
         }
 
         @Override
-        public void paint(Graphics g) {
+        public void paint(final Graphics g) {
             super.paint(g);
             paintCount++;
             final int width = getWidth();

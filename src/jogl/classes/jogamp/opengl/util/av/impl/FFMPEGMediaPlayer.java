@@ -49,6 +49,7 @@ import com.jogamp.opengl.util.av.AudioSinkFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.util.av.AudioSampleFormat;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
@@ -265,7 +266,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void destroyImpl(GL gl) {
+    protected final void destroyImpl(final GL gl) {
         if (moviePtr != 0) {
             natives.destroyInstance0(moviePtr);
             moviePtr = 0;
@@ -283,7 +284,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     public static final String dev_video_linux = "/dev/video";
 
     @Override
-    protected final void initStreamImpl(int vid, int aid) throws IOException {
+    protected final void initStreamImpl(final int vid, final int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -309,7 +310,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         int rw=-1, rh=-1, rr=-1;
         String sizes = null;
         if( isCameraInput ) {
-            switch(Platform.OS_TYPE) {
+            switch(PlatformPropsImpl.OS_TYPE) {
                 case ANDROID:
                     // ??
                 case FREEBSD:
@@ -351,7 +352,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void initGLImpl(GL gl) throws IOException, GLException {
+    protected final void initGLImpl(final GL gl) throws IOException, GLException {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -406,7 +407,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         if( null != gl && STREAM_ID_NONE != getVID() ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
-            int tt = GL.GL_UNSIGNED_BYTE;
+            final int tt = GL.GL_UNSIGNED_BYTE;
             switch(vBytesPerPixelPerPlane) {
                 case 1:
                     if( gl.isGL3ES3() ) {
@@ -414,22 +415,22 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                         tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
                     } else {
                         // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
-                        tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
+                        tf = GL.GL_ALPHA; tif=GL.GL_ALPHA; singleTexComp = "a";
                     }
                     break;
 
                 case 2: if( vPixelFmt == VideoPixelFormat.YUYV422 ) {
                             // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
                             // Stuffed into RGBA half width texture
-                            tf = GL2ES2.GL_RGBA; tif=GL2ES2.GL_RGBA; break;
+                            tf = GL.GL_RGBA; tif=GL.GL_RGBA; break;
                         } else {
                             tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
                         }
-                case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
+                case 3: tf = GL.GL_RGB;   tif=GL.GL_RGB;   break;
                 case 4: if( vPixelFmt == VideoPixelFormat.BGRA ) {
-                            tf = GL2ES2.GL_BGRA;  tif=GL.GL_RGBA;  break;
+                            tf = GL.GL_BGRA;  tif=GL.GL_RGBA;  break;
                         } else {
-                            tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
+                            tf = GL.GL_RGBA;  tif=GL.GL_RGBA;  break;
                         }
                 default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
             }
@@ -442,7 +443,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
     }
     @Override
-    protected final TextureFrame createTexImage(GL gl, int texName) {
+    protected final TextureFrame createTexImage(final GL gl, final int texName) {
         return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight) );
     }
 
@@ -464,7 +465,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
      */
-    final boolean isAudioFormatSupported(int audioSampleFmt, int audioSampleRate, int audioChannels) {
+    final boolean isAudioFormatSupported(final int audioSampleFmt, final int audioSampleRate, final int audioChannels) {
         final AudioSampleFormat avFmt = AudioSampleFormat.valueOf(audioSampleFmt);
         final AudioFormat audioFormat = avAudioFormat2Local(avFmt, audioSampleRate, audioChannels);
         final boolean res = audioSink.isSupported(audioFormat);
@@ -480,7 +481,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
      */
-    private final AudioFormat avAudioFormat2Local(AudioSampleFormat audioSampleFmt, int audioSampleRate, int audioChannels) {
+    private final AudioFormat avAudioFormat2Local(final AudioSampleFormat audioSampleFmt, final int audioSampleRate, final int audioChannels) {
         final int sampleSize;
         boolean planar = true;
         boolean fixedP = true;
@@ -540,10 +541,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioChannels
      * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
-    void setupFFAttributes(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
-                          int tWd0, int tWd1, int tWd2, int vW, int vH,
-                          int aid, int audioSampleFmt, int audioSampleRate,
-                          int audioChannels, int audioSamplesPerFrameAndChannel) {
+    void setupFFAttributes(final int vid, final int pixFmt, final int planes, final int bitsPerPixel, final int bytesPerPixelPerPlane,
+                          final int tWd0, final int tWd1, final int tWd2, final int vW, final int vH,
+                          final int aid, final int audioSampleFmt, final int audioSampleRate,
+                          final int audioChannels, final int audioSamplesPerFrameAndChannel) {
         // defaults ..
         vPixelFmt = null;
         vPlanes = 0;
@@ -641,8 +642,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param tWd1
      * @param tWd2
      */
-    void updateVidAttributes(boolean isInGLOrientation, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
-                             int tWd0, int tWd1, int tWd2, int vW, int vH) {
+    void updateVidAttributes(final boolean isInGLOrientation, final int pixFmt, final int planes, final int bitsPerPixel, final int bytesPerPixelPerPlane,
+                             final int tWd0, final int tWd1, final int tWd2, final int vW, final int vH) {
     }
 
     /**
@@ -653,7 +654,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * Otherwise the call is delegated to it's super class.
      */
     @Override
-    public final String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException {
+    public final String getTextureLookupFunctionName(final String desiredFuncName) throws IllegalStateException {
         if( State.Uninitialized == getState() ) {
             throw new IllegalStateException("Instance not initialized: "+this);
         }
@@ -785,7 +786,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final synchronized int seekImpl(int msec) {
+    protected final synchronized int seekImpl(final int msec) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -793,18 +794,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected void preNextTextureImpl(GL gl) {
+    protected void preNextTextureImpl(final GL gl) {
         psm.setUnpackAlignment(gl, 1); // RGBA ? 4 : 1
         gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
     }
 
     @Override
-    protected void postNextTextureImpl(GL gl) {
+    protected void postNextTextureImpl(final GL gl) {
         psm.restore(gl);
     }
 
     @Override
-    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -825,7 +826,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         return vPTS;
     }
 
-    final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
+    final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
         setFirstAudioPTS2SCR( audio_pts );
         if( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);

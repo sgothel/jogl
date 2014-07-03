@@ -106,8 +106,8 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
                                          excludes);
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestVersionSemanticsNOUI.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestVersionSemanticsNOUI.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

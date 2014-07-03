@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import com.jogamp.newt.event.KeyAdapter;
@@ -34,9 +34,8 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
+import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LandscapeES2;
 
 import javax.media.opengl.GLCapabilities;
@@ -56,7 +55,7 @@ public class TestLandscapeES2NEWT extends UITestCase {
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException {
         System.err.println("requested: swapInterval "+swapInterval+", "+caps);
         final GLWindow glWindow = GLWindow.create(caps);
         glWindow.setTitle(getSimpleTestName("."));
@@ -68,14 +67,14 @@ public class TestLandscapeES2NEWT extends UITestCase {
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
-        
+
         final Animator animator = useAnimator ? new Animator() : null;
         if( useAnimator ) {
-            animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
-        
-        QuitAdapter quitAdapter = new QuitAdapter();
+
+        final QuitAdapter quitAdapter = new QuitAdapter();
 
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -83,10 +82,10 @@ public class TestLandscapeES2NEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
-                }            
+                }
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
@@ -113,9 +112,9 @@ public class TestLandscapeES2NEWT extends UITestCase {
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
-        
+
         snap.setMakeSnapshot();
-        
+
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
@@ -139,11 +138,11 @@ public class TestLandscapeES2NEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test02GL3() throws InterruptedException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -151,11 +150,11 @@ public class TestLandscapeES2NEWT extends UITestCase {
         final GLProfile glp = GLProfile.get(GLProfile.GL3);
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
-    }    
+    }
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {

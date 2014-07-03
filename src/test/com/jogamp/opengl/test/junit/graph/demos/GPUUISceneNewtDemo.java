@@ -22,7 +22,7 @@ public class GPUUISceneNewtDemo {
 
     static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         int width = 800, height = 400;
         int x = 10, y = 10;
 
@@ -104,7 +104,7 @@ public class GPUUISceneNewtDemo {
             glp = GLProfile.getGL2ES2();
         }
         System.err.println("GLProfile: "+glp);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( SceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
@@ -128,7 +128,7 @@ public class GPUUISceneNewtDemo {
         window.setSurfaceScale(reqSurfacePixelScale);
         final int[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new int[2]);
 
-        GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
+        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
                                                                      new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
 
         window.addGLEventListener(sceneGLListener);
@@ -139,7 +139,7 @@ public class GPUUISceneNewtDemo {
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
         });

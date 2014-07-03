@@ -35,16 +35,14 @@ import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-
 import com.jogamp.opengl.util.Animator;
-
+import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
-
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
@@ -132,7 +130,7 @@ public class TestGearsES2SWT extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -141,7 +139,7 @@ public class TestGearsES2SWT extends UITestCase {
         composite = null;
     }
 
-    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
 
         final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null);
@@ -150,8 +148,8 @@ public class TestGearsES2SWT extends UITestCase {
         final GearsES2 demo = new GearsES2(swapInterval);
         canvas.addGLEventListener(demo);
 
-        Animator animator = new Animator();
-        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator();
+        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.setExclusiveContext(exclusiveContext);
 
         animator.add(canvas);
@@ -254,7 +252,7 @@ public class TestGearsES2SWT extends UITestCase {
         runTestGL(caps);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         mainRun = true;
 
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;

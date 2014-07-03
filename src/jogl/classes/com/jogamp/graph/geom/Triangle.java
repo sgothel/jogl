@@ -93,7 +93,7 @@ public class Triangle {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(final int id) {
         this.id = id;
     }
 
@@ -118,7 +118,7 @@ public class Triangle {
         return boundaryVertices;
     }
 
-    public void setVerticesBoundary(boolean[] boundaryVertices) {
+    public void setVerticesBoundary(final boolean[] boundaryVertices) {
         this.boundaryVertices = boundaryVertices;
     }
 

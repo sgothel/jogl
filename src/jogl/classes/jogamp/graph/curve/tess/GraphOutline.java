@@ -44,9 +44,9 @@ public class GraphOutline {
      * the curve pieces can be identified by onCurve flag
      * of each cp the control polyline is open by default
      */
-    public GraphOutline(Outline ol){
+    public GraphOutline(final Outline ol){
         this.outline = ol;
-        ArrayList<Vertex> vertices = this.outline.getVertices();
+        final ArrayList<Vertex> vertices = this.outline.getVertices();
         for(int i = 0; i< vertices.size(); i++){
             this.controlpoints.add(new GraphVertex(vertices.get(i)));
         }
@@ -64,7 +64,7 @@ public class GraphOutline {
         return outline.getVertices();
     }
 
-    public void addVertex(GraphVertex v) {
+    public void addVertex(final GraphVertex v) {
         controlpoints.add(v);
         outline.addVertex(v.getPoint());
     }

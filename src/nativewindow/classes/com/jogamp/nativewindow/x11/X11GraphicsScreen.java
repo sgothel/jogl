@@ -49,11 +49,11 @@ import jogamp.nativewindow.x11.X11Lib;
 public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneable {
 
     /** Constructs a new X11GraphicsScreen corresponding to the given native screen index. */
-    public X11GraphicsScreen(X11GraphicsDevice device, int screen) {
+    public X11GraphicsScreen(final X11GraphicsDevice device, final int screen) {
         super(device, device.isXineramaEnabled() ? 0 : screen);
     }
 
-    public static AbstractGraphicsScreen createScreenDevice(long display, int screenIdx, boolean owner) {
+    public static AbstractGraphicsScreen createScreenDevice(final long display, final int screenIdx, final boolean owner) {
         if(0==display) throw new NativeWindowException("display is null");
         return new X11GraphicsScreen(new X11GraphicsDevice(display, AbstractGraphicsDevice.DEFAULT_UNIT, owner), screenIdx);
     }

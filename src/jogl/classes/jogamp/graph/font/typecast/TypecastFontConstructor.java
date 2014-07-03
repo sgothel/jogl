@@ -45,14 +45,14 @@ public class TypecastFontConstructor implements FontConstructor  {
 
     @Override
     public Font create(final File ffile) throws IOException {
-        Object o = AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        final Object o = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 OTFontCollection fontset;
                 try {
                     fontset = OTFontCollection.create(ffile);
                     return new TypecastFont(fontset);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     return e;
                 }
             }
@@ -83,7 +83,7 @@ public class TypecastFontConstructor implements FontConstructor  {
                     }
                     f = create(tf);
                     tf.delete();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
                 return f;

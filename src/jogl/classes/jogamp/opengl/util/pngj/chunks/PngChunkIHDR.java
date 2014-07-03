@@ -27,7 +27,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 
 	// http://www.w3.org/TR/PNG/#11IHDR
 	//
-	public PngChunkIHDR(ImageInfo info) {
+	public PngChunkIHDR(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -38,7 +38,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = new ChunkRaw(13, ChunkHelper.b_IHDR, true);
+		final ChunkRaw c = new ChunkRaw(13, ChunkHelper.b_IHDR, true);
 		int offset = 0;
 		PngHelperInternal.writeInt4tobytes(cols, c.data, offset);
 		offset += 4;
@@ -53,10 +53,10 @@ public class PngChunkIHDR extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (c.len != 13)
 			throw new PngjException("Bad IDHR len " + c.len);
-		ByteArrayInputStream st = c.getAsByteStream();
+		final ByteArrayInputStream st = c.getAsByteStream();
 		cols = PngHelperInternal.readInt4(st);
 		rows = PngHelperInternal.readInt4(st);
 		// bit depth: number of bits per channel
@@ -68,8 +68,8 @@ public class PngChunkIHDR extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkIHDR otherx = (PngChunkIHDR) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkIHDR otherx = (PngChunkIHDR) other;
 		cols = otherx.cols;
 		rows = otherx.rows;
 		bitspc = otherx.bitspc;
@@ -83,7 +83,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return cols;
 	}
 
-	public void setCols(int cols) {
+	public void setCols(final int cols) {
 		this.cols = cols;
 	}
 
@@ -91,7 +91,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return rows;
 	}
 
-	public void setRows(int rows) {
+	public void setRows(final int rows) {
 		this.rows = rows;
 	}
 
@@ -99,7 +99,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return bitspc;
 	}
 
-	public void setBitspc(int bitspc) {
+	public void setBitspc(final int bitspc) {
 		this.bitspc = bitspc;
 	}
 
@@ -107,7 +107,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return colormodel;
 	}
 
-	public void setColormodel(int colormodel) {
+	public void setColormodel(final int colormodel) {
 		this.colormodel = colormodel;
 	}
 
@@ -115,7 +115,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return compmeth;
 	}
 
-	public void setCompmeth(int compmeth) {
+	public void setCompmeth(final int compmeth) {
 		this.compmeth = compmeth;
 	}
 
@@ -123,7 +123,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return filmeth;
 	}
 
-	public void setFilmeth(int filmeth) {
+	public void setFilmeth(final int filmeth) {
 		this.filmeth = filmeth;
 	}
 
@@ -131,7 +131,7 @@ public class PngChunkIHDR extends PngChunkSingle {
 		return interlaced;
 	}
 
-	public void setInterlaced(int interlaced) {
+	public void setInterlaced(final int interlaced) {
 		this.interlaced = interlaced;
 	}
 }

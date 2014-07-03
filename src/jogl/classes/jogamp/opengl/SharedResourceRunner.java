@@ -89,17 +89,17 @@ public class SharedResourceRunner implements Runnable {
     String initConnection;
     String releaseConnection;
 
-    private boolean getDeviceTried(String connection) { // synchronized call
+    private boolean getDeviceTried(final String connection) { // synchronized call
         return devicesTried.contains(connection);
     }
-    private void addDeviceTried(String connection) { // synchronized call
+    private void addDeviceTried(final String connection) { // synchronized call
         devicesTried.add(connection);
     }
-    private void removeDeviceTried(String connection) { // synchronized call
+    private void removeDeviceTried(final String connection) { // synchronized call
         devicesTried.remove(connection);
     }
 
-    public SharedResourceRunner(Implementation impl) {
+    public SharedResourceRunner(final Implementation impl) {
         this.impl = impl;
         resetState();
     }
@@ -144,7 +144,7 @@ public class SharedResourceRunner implements Runnable {
                 while (!running) {
                     try {
                         this.wait();
-                    } catch (InterruptedException ex) { }
+                    } catch (final InterruptedException ex) { }
                 }
             }
         }
@@ -164,14 +164,14 @@ public class SharedResourceRunner implements Runnable {
                     while (running) {
                         try {
                             this.wait();
-                        } catch (InterruptedException ex) { }
+                        } catch (final InterruptedException ex) { }
                     }
                 }
             }
         }
     }
 
-    public SharedResourceRunner.Resource getOrCreateShared(AbstractGraphicsDevice device) {
+    public SharedResourceRunner.Resource getOrCreateShared(final AbstractGraphicsDevice device) {
         SharedResourceRunner.Resource sr = null;
         if(null != device) {
             synchronized (this) {
@@ -198,7 +198,7 @@ public class SharedResourceRunner implements Runnable {
         return sr;
     }
 
-    public SharedResourceRunner.Resource releaseShared(AbstractGraphicsDevice device) {
+    public SharedResourceRunner.Resource releaseShared(final AbstractGraphicsDevice device) {
         SharedResourceRunner.Resource sr = null;
         if(null != device) {
             synchronized (this) {
@@ -219,7 +219,7 @@ public class SharedResourceRunner implements Runnable {
         return sr;
     }
 
-    private final void doAndWait(String initConnection, String releaseConnection) {
+    private final void doAndWait(final String initConnection, final String releaseConnection) {
         synchronized (this) {
             // wait until thread becomes ready to init new device,
             // pass the device and release the sync
@@ -230,7 +230,7 @@ public class SharedResourceRunner implements Runnable {
             while (!ready && running) {
                 try {
                     this.wait();
-                } catch (InterruptedException ex) { }
+                } catch (final InterruptedException ex) { }
             }
             if (DEBUG) {
                 System.err.println("SharedResourceRunner.doAndWait() set command: " + initConnection + ", release: "+releaseConnection+" - "+threadName);
@@ -243,7 +243,7 @@ public class SharedResourceRunner implements Runnable {
             while ( running && ( !ready || null != this.initConnection || null != this.releaseConnection ) ) {
                 try {
                     this.wait();
-                } catch (InterruptedException ex) { }
+                } catch (final InterruptedException ex) { }
             }
             if (DEBUG) {
                 System.err.println("SharedResourceRunner.initializeAndWait END init: " + initConnection + ", release: "+releaseConnection+" - "+threadName);
@@ -272,7 +272,7 @@ public class SharedResourceRunner implements Runnable {
                     }
                     notifyAll();
                     this.wait();
-                } catch (InterruptedException ex) {
+                } catch (final InterruptedException ex) {
                     shouldRelease = true;
                     if(DEBUG) {
                         System.err.println("SharedResourceRunner.run(): INTERRUPTED - "+threadName);
@@ -293,7 +293,7 @@ public class SharedResourceRunner implements Runnable {
                         Resource sr = null;
                         try {
                             sr = impl.createSharedResource(initConnection);
-                        } catch (Exception e) {
+                        } catch (final Exception e) {
                             e.printStackTrace();
                         }
                         if (null != sr) {
@@ -304,12 +304,12 @@ public class SharedResourceRunner implements Runnable {
                         if (DEBUG) {
                             System.err.println("SharedResourceRunner.run(): release Shared for: " + releaseConnection + " - " + threadName);
                         }
-                        Resource sr = impl.mapGet(releaseConnection);
+                        final Resource sr = impl.mapGet(releaseConnection);
                         if (null != sr) {
                             try {
                                 impl.releaseSharedResource(sr);
                                 impl.mapPut(releaseConnection, null);
-                            } catch (Exception e) {
+                            } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -338,11 +338,11 @@ public class SharedResourceRunner implements Runnable {
 
     private void releaseSharedResources() { // synchronized call
         devicesTried.clear();
-        Collection<Resource> sharedResources = impl.mapValues();
-        for (Iterator<Resource> iter = sharedResources.iterator(); iter.hasNext();) {
+        final Collection<Resource> sharedResources = impl.mapValues();
+        for (final Iterator<Resource> iter = sharedResources.iterator(); iter.hasNext();) {
             try {
                 impl.releaseSharedResource(iter.next());
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 System.err.println("Caught exception on thread "+getThreadName());
                 t.printStackTrace();
             }

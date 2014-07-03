@@ -50,19 +50,19 @@ public class NativeWindowException extends RuntimeException {
 
   /** Constructs a NativeWindowException object with the specified detail
       message. */
-  public NativeWindowException(String message) {
+  public NativeWindowException(final String message) {
     super(message);
   }
 
   /** Constructs a NativeWindowException object with the specified detail
       message and root cause. */
-  public NativeWindowException(String message, Throwable cause) {
+  public NativeWindowException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
   /** Constructs a NativeWindowException object with the specified root
       cause. */
-  public NativeWindowException(Throwable cause) {
+  public NativeWindowException(final Throwable cause) {
     super(cause);
   }
 }

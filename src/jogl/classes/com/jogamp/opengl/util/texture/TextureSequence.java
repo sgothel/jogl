@@ -114,11 +114,11 @@ public interface TextureSequence {
      * to associated related data.
      */
     public static class TextureFrame extends TimeFrameI {
-        public TextureFrame(Texture t, int pts, int duration) {
+        public TextureFrame(final Texture t, final int pts, final int duration) {
             super(pts, duration);
             texture = t;
         }
-        public TextureFrame(Texture t) {
+        public TextureFrame(final Texture t) {
             texture = t;
         }
 

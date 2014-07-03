@@ -57,7 +57,7 @@ public class NewtBaseActivity extends Activity {
    Activity rootActivity;
    boolean setThemeCalled = false;
 
-   protected void startAnimation(boolean start) {
+   protected void startAnimation(final boolean start) {
      if(null != animator) {
          final boolean res;
          if( start ) {
@@ -95,7 +95,7 @@ public class NewtBaseActivity extends Activity {
        rootActivity = this;
    }
 
-   public void setRootActivity(Activity rootActivity) {
+   public void setRootActivity(final Activity rootActivity) {
        this.rootActivity = rootActivity;
        this.isDelegatedActivity = this != rootActivity;
    }
@@ -194,11 +194,11 @@ public class NewtBaseActivity extends Activity {
    }
    private final GLStateKeeper.Listener glStateKeeperListener = new GLStateKeeper.Listener() {
        @Override
-       public void glStatePreserveNotify(GLStateKeeper glsk) {
+       public void glStatePreserveNotify(final GLStateKeeper glsk) {
            Log.d(MD.TAG, "GLStateKeeper Preserving: 0x"+Integer.toHexString(glsk.hashCode()));
        }
        @Override
-       public void glStateRestored(GLStateKeeper glsk) {
+       public void glStateRestored(final GLStateKeeper glsk) {
            Log.d(MD.TAG, "GLStateKeeper Restored: 0x"+Integer.toHexString(glsk.hashCode()));
            startAnimation(true);
        }
@@ -212,7 +212,7 @@ public class NewtBaseActivity extends Activity {
     * @param androidWindow
     * @param newtWindow
     */
-   public void layoutForNEWTWindow(android.view.Window androidWindow, Window newtWindow) {
+   public void layoutForNEWTWindow(final android.view.Window androidWindow, final Window newtWindow) {
         if(null == androidWindow || null == newtWindow) {
             throw new IllegalArgumentException("Android or NEWT Window null");
         }
@@ -241,7 +241,7 @@ public class NewtBaseActivity extends Activity {
     * @param androidWindow
     * @param newtWindow
     */
-   public void setFullscreenFeature(android.view.Window androidWindow, boolean fullscreen) {
+   public void setFullscreenFeature(final android.view.Window androidWindow, final boolean fullscreen) {
         if(null == androidWindow) {
             throw new IllegalArgumentException("Android or Window null");
         }
@@ -262,7 +262,7 @@ public class NewtBaseActivity extends Activity {
     * Must be called before creating the view and adding any content, i.e. setContentView() !
     * </p>
     */
-   protected void adaptTheme4Transparency(CapabilitiesImmutable caps) {
+   protected void adaptTheme4Transparency(final CapabilitiesImmutable caps) {
         if(!caps.isBackgroundOpaque()) {
             setTransparencyTheme();
         }
@@ -308,7 +308,7 @@ public class NewtBaseActivity extends Activity {
     * @see #setContentView(android.view.Window, Window)
     * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
     */
-   public void setAnimator(GLAnimatorControl animator) {
+   public void setAnimator(final GLAnimatorControl animator) {
        this.animator = animator;
        if(!animator.isStarted()) {
            animator.start();
@@ -326,7 +326,7 @@ public class NewtBaseActivity extends Activity {
    }
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate.0");
        if(!isDelegatedActivity()) {
            super.onCreate(savedInstanceState);

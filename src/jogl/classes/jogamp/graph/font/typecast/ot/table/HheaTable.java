@@ -19,21 +19,21 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class HheaTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private short ascender;
-    private short descender;
-    private short lineGap;
-    private short advanceWidthMax;
-    private short minLeftSideBearing;
-    private short minRightSideBearing;
-    private short xMaxExtent;
-    private short caretSlopeRise;
-    private short caretSlopeRun;
-    private short metricDataFormat;
-    private int numberOfHMetrics;
+    private final DirectoryEntry de;
+    private final int version;
+    private final short ascender;
+    private final short descender;
+    private final short lineGap;
+    private final short advanceWidthMax;
+    private final short minLeftSideBearing;
+    private final short minRightSideBearing;
+    private final short xMaxExtent;
+    private final short caretSlopeRise;
+    private final short caretSlopeRun;
+    private final short metricDataFormat;
+    private final int numberOfHMetrics;
 
-    protected HheaTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected HheaTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readInt();
         ascender = di.readShort();

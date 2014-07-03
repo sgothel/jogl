@@ -43,7 +43,7 @@ public class JoglVersion extends JogampVersion {
 
     protected static volatile JoglVersion jogampCommonVersionInfo;
 
-    protected JoglVersion(String packageName, Manifest mf) {
+    protected JoglVersion(final String packageName, final Manifest mf) {
         super(packageName, mf);
     }
 
@@ -60,17 +60,17 @@ public class JoglVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public StringBuilder toString(GL gl, StringBuilder sb) {
+    public StringBuilder toString(final GL gl, StringBuilder sb) {
         sb = super.toString(sb).append(Platform.getNewline());
         getGLInfo(gl, sb);
         return sb;
     }
 
-    public String toString(GL gl) {
+    public String toString(final GL gl) {
         return toString(gl, null).toString();
     }
 
-    public static StringBuilder getAvailableCapabilitiesInfo(GLDrawableFactory factory, AbstractGraphicsDevice device, StringBuilder sb) {
+    public static StringBuilder getAvailableCapabilitiesInfo(final GLDrawableFactory factory, final AbstractGraphicsDevice device, StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -84,7 +84,7 @@ public class JoglVersion extends JogampVersion {
                     }
                     done = true;
                 }
-            } catch (GLException gle) { /* n/a */ }
+            } catch (final GLException gle) { /* n/a */ }
         }
         if(!done) {
             sb.append("\tnone").append(Platform.getNewline());
@@ -108,7 +108,7 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
-    public static StringBuilder getDefaultOpenGLInfo(AbstractGraphicsDevice device, StringBuilder sb, boolean withCapabilitiesInfo) {
+    public static StringBuilder getDefaultOpenGLInfo(AbstractGraphicsDevice device, StringBuilder sb, final boolean withCapabilitiesInfo) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -127,11 +127,11 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
-    public static StringBuilder getGLInfo(GL gl, StringBuilder sb) {
+    public static StringBuilder getGLInfo(final GL gl, final StringBuilder sb) {
         return getGLInfo(gl, sb, false);
     }
-    public static StringBuilder getGLInfo(GL gl, StringBuilder sb, boolean withCapabilitiesAndExtensionInfo) {
-        AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
+    public static StringBuilder getGLInfo(final GL gl, StringBuilder sb, final boolean withCapabilitiesAndExtensionInfo) {
+        final AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
                                             .getGraphicsConfiguration().getScreen().getDevice();
         if(null==sb) {
             sb = new StringBuilder();
@@ -151,11 +151,11 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
-    public static StringBuilder getGLStrings(GL gl, StringBuilder sb) {
+    public static StringBuilder getGLStrings(final GL gl, final StringBuilder sb) {
         return getGLStrings(gl, sb, true);
     }
 
-    public static StringBuilder getGLStrings(GL gl, StringBuilder sb, boolean withExtensions) {
+    public static StringBuilder getGLStrings(final GL gl, StringBuilder sb, final boolean withExtensions) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -200,7 +200,7 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
-    public StringBuilder getBriefOSGLBuildInfo(GL gl, StringBuilder sb) {
+    public StringBuilder getBriefOSGLBuildInfo(final GL gl, StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -217,7 +217,7 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         // System.err.println(NativeWindowVersion.getInstance());

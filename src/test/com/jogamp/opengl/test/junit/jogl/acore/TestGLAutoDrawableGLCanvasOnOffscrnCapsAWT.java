@@ -67,7 +67,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     static boolean waitForKey = false;
     volatile int szStep = 2;
 
-    static GLCapabilities getCaps(String profile) {
+    static GLCapabilities getCaps(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -86,7 +86,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
                     frame.pack();
                     frame.validate();
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -96,7 +96,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
         void setMakeSnapshot();
     }
 
-    void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         if(reqGLCaps.isOnscreen() && JAWTUtil.isOffscreenLayerRequired()) {
             System.err.println("onscreen layer n/a");
             return;
@@ -114,7 +114,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
         //
         final GLCanvas glad = new GLCanvas(reqGLCaps); // will implicit trigger offscreen layer - if !onscreen && supported
         Assert.assertNotNull(glad);
-        Dimension glc_sz = new Dimension(widthStep*szStep, heightStep*szStep);
+        final Dimension glc_sz = new Dimension(widthStep*szStep, heightStep*szStep);
         glad.setMinimumSize(glc_sz);
         glad.setPreferredSize(glc_sz);
         glad.setSize(glc_sz);
@@ -128,7 +128,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
                     frame.pack();
                     frame.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -179,7 +179,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
         } */
 
         {
-            GLContext context = glad.getContext();
+            final GLContext context = glad.getContext();
             System.out.println("Chosen     GL CTX (2): "+context.getGLVersion());
             Assert.assertNotNull(context);
             Assert.assertTrue(context.isCreated());
@@ -235,7 +235,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
                     frame.remove(glad);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -338,7 +338,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
         doTest(reqGLCaps, new GearsES2(1));
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-wait")) {
                 waitForKey = true;

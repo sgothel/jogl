@@ -88,7 +88,7 @@ public class TextRegionUtil {
      */
     public static void processString(final ShapeVisitor visitor, final AffineTransform transform,
                                      final Font font, final float pixelSize, final CharSequence str,
-                                     final AffineTransform temp1, AffineTransform temp2) {
+                                     final AffineTransform temp1, final AffineTransform temp2) {
         final int charCount = str.length();
 
         // region.setFlipped(true);
@@ -248,7 +248,7 @@ public class TextRegionUtil {
    /**
     * Clear all cached {@link GLRegions}.
     */
-   public void clear(GL2ES2 gl) {
+   public void clear(final GL2ES2 gl) {
        // fluchCache(gl) already called
        final Iterator<GLRegion> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
@@ -269,7 +269,7 @@ public class TextRegionUtil {
     *
     * @see #DEFAULT_CACHE_LIMIT
     */
-   public final void setCacheLimit(int newLimit ) { stringCacheLimit = newLimit; }
+   public final void setCacheLimit(final int newLimit ) { stringCacheLimit = newLimit; }
 
    /**
     * Sets the cache limit, see {@link #setCacheLimit(int)} and validates the cache.
@@ -279,7 +279,7 @@ public class TextRegionUtil {
     * @param gl current GL used to remove cached objects if required
     * @param newLimit new cache size
     */
-   public final void setCacheLimit(GL2ES2 gl, int newLimit ) { stringCacheLimit = newLimit; validateCache(gl, 0); }
+   public final void setCacheLimit(final GL2ES2 gl, final int newLimit ) { stringCacheLimit = newLimit; validateCache(gl, 0); }
 
    /**
     * @return the current cache limit
@@ -291,7 +291,7 @@ public class TextRegionUtil {
     */
    public final int getCacheSize() { return stringCacheArray.size(); }
 
-   protected final void validateCache(GL2ES2 gl, int space) {
+   protected final void validateCache(final GL2ES2 gl, final int space) {
        if ( getCacheLimit() > 0 ) {
            while ( getCacheSize() + space > getCacheLimit() ) {
                removeCachedRegion(gl, 0);
@@ -299,11 +299,11 @@ public class TextRegionUtil {
        }
    }
 
-   protected final GLRegion getCachedRegion(Font font, CharSequence str, float pixelSize, int special) {
+   protected final GLRegion getCachedRegion(final Font font, final CharSequence str, final float pixelSize, final int special) {
        return stringCacheMap.get(getKey(font, str, pixelSize, special));
    }
 
-   protected final void addCachedRegion(GL2ES2 gl, Font font, CharSequence str, float pixelSize, int special, GLRegion glyphString) {
+   protected final void addCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final float pixelSize, final int special, final GLRegion glyphString) {
        if ( 0 != getCacheLimit() ) {
            final String key = getKey(font, str, pixelSize, special);
            final GLRegion oldRegion = stringCacheMap.put(key, glyphString);
@@ -315,7 +315,7 @@ public class TextRegionUtil {
        }
    }
 
-   protected final void removeCachedRegion(GL2ES2 gl, Font font, CharSequence str, int pixelSize, int special) {
+   protected final void removeCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final int pixelSize, final int special) {
        final String key = getKey(font, str, pixelSize, special);
        final GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
@@ -324,7 +324,7 @@ public class TextRegionUtil {
        stringCacheArray.remove(key);
    }
 
-   protected final void removeCachedRegion(GL2ES2 gl, int idx) {
+   protected final void removeCachedRegion(final GL2ES2 gl, final int idx) {
        final String key = stringCacheArray.remove(idx);
        if( null != key ) {
            final GLRegion region = stringCacheMap.remove(key);
@@ -334,7 +334,7 @@ public class TextRegionUtil {
        }
    }
 
-   protected final String getKey(Font font, CharSequence str, float pixelSize, int special) {
+   protected final String getKey(final Font font, final CharSequence str, final float pixelSize, final int special) {
        final StringBuilder sb = new StringBuilder();
        return font.getName(sb, Font.NAME_UNIQUNAME)
               .append(".").append(str.hashCode()).append(".").append(Float.floatToIntBits(pixelSize)).append(special).toString();

@@ -40,7 +40,7 @@ public class Loop {
     private final AABBox box = new AABBox();
     private GraphOutline initialOutline = null;
 
-    public Loop(GraphOutline polyline, VectorUtil.Winding winding){
+    public Loop(final GraphOutline polyline, final VectorUtil.Winding winding){
         initialOutline = polyline;
         this.root = initFromPolyline(initialOutline, winding);
     }
@@ -67,7 +67,7 @@ public class Loop {
         final GraphVertex v2 = next1.getGraphPoint();
         final GraphVertex v3 = next2.getGraphPoint();
 
-        HEdge v3Edge = new HEdge(v3, HEdge.INNER);
+        final HEdge v3Edge = new HEdge(v3, HEdge.INNER);
 
         HEdge.connect(v3Edge, root);
         HEdge.connect(next1, v3Edge);
@@ -94,8 +94,8 @@ public class Loop {
      * from the boundary profile
      * @param reqWinding requested winding of edges (CCW or CW)
      */
-    private HEdge initFromPolyline(GraphOutline outline, VectorUtil.Winding reqWinding){
-        ArrayList<GraphVertex> vertices = outline.getGraphPoint();
+    private HEdge initFromPolyline(final GraphOutline outline, final VectorUtil.Winding reqWinding){
+        final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
         if(vertices.size()<3) {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
@@ -124,10 +124,10 @@ public class Loop {
         }
 
         while(index != max){
-            GraphVertex v1 = vertices.get(index);
+            final GraphVertex v1 = vertices.get(index);
             box.resize(v1.getX(), v1.getY(), v1.getZ());
 
-            HEdge edge = new HEdge(v1, edgeType);
+            final HEdge edge = new HEdge(v1, edgeType);
 
             v1.addEdge(edge);
             if(lastEdge != null) {
@@ -155,15 +155,15 @@ public class Loop {
         return firstEdge;
     }
 
-    public void addConstraintCurve(GraphOutline polyline) {
+    public void addConstraintCurve(final GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
         initFromPolyline(polyline, VectorUtil.Winding.CW);
 
-        GraphVertex v3 = locateClosestVertex(polyline);
-        HEdge v3Edge = v3.findBoundEdge();
-        HEdge v3EdgeP = v3Edge.getPrev();
-        HEdge crossEdge = new HEdge(root.getGraphPoint(), HEdge.INNER);
+        final GraphVertex v3 = locateClosestVertex(polyline);
+        final HEdge v3Edge = v3.findBoundEdge();
+        final HEdge v3EdgeP = v3Edge.getPrev();
+        final HEdge crossEdge = new HEdge(root.getGraphPoint(), HEdge.INNER);
 
         HEdge.connect(root.getPrev(), crossEdge);
         HEdge.connect(crossEdge, v3Edge);
@@ -184,7 +184,7 @@ public class Loop {
      * to search for closestvertices
      * @return the vertex that is closest to the newly set root Hedge.
      */
-    private GraphVertex locateClosestVertex(GraphOutline polyline) {
+    private GraphVertex locateClosestVertex(final GraphOutline polyline) {
         HEdge closestE = null;
         GraphVertex closestV = null;
 
@@ -200,7 +200,7 @@ public class Loop {
                 final GraphVertex cand = vertices.get(pos);
                 final float distance = VectorUtil.distVec3(v.getCoord(), cand.getCoord());
                 if(distance < minDistance){
-                    for (GraphVertex vert:vertices){
+                    for (final GraphVertex vert:vertices){
                         if(vert == v || vert == nextV || vert == cand)
                             continue;
                         inValid = VectorUtil.isInCircleVec2(v.getPoint(), nextV.getPoint(),
@@ -226,19 +226,19 @@ public class Loop {
         return closestV;
     }
 
-    private HEdge findClosestValidNeighbor(HEdge edge, boolean delaunay) {
-        HEdge next = root.getNext();
+    private HEdge findClosestValidNeighbor(final HEdge edge, final boolean delaunay) {
+        final HEdge next = root.getNext();
 
         if(!VectorUtil.ccw(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
                 edge.getGraphPoint().getPoint())){
             return null;
         }
 
-        HEdge candEdge = edge;
+        final HEdge candEdge = edge;
         boolean inValid = false;
 
         if(delaunay){
-            Vertex cand = candEdge.getGraphPoint().getPoint();
+            final Vertex cand = candEdge.getGraphPoint().getPoint();
             HEdge e = candEdge.getNext();
             while (e != candEdge){
                 if(e.getGraphPoint() == root.getGraphPoint()
@@ -269,7 +269,7 @@ public class Loop {
      * @param root and edge of this triangle
      * @return the triangle iff it satisfies, null otherwise
      */
-    private Triangle createTriangle(Vertex v1, Vertex v2, Vertex v3, HEdge rootT){
+    private Triangle createTriangle(final Vertex v1, final Vertex v2, final Vertex v3, final HEdge rootT){
         return new Triangle(v1, v2, v3, checkVerticesBoundary(rootT));
     }
 
@@ -287,7 +287,7 @@ public class Loop {
         return boundary;
     }
 
-    public boolean checkInside(Vertex v) {
+    public boolean checkInside(final Vertex v) {
         if(!box.contains(v.getX(), v.getY(), v.getZ())){
             return false;
         }
@@ -296,8 +296,8 @@ public class Loop {
         HEdge current = root;
         HEdge next = root.getNext();
         do {
-            Vertex v2 = current.getGraphPoint().getPoint();
-            Vertex v1 = next.getGraphPoint().getPoint();
+            final Vertex v2 = current.getGraphPoint().getPoint();
+            final Vertex v1 = next.getGraphPoint().getPoint();
 
             if ( ((v1.getY() > v.getY()) != (v2.getY() > v.getY())) &&
                   (v.getX() < (v2.getX() - v1.getX()) * (v.getY() - v1.getY()) / (v2.getY() - v1.getY()) + v1.getX()) ){

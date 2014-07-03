@@ -60,10 +60,10 @@ import java.io.IOException;
  */
 public abstract class LigatureSubst extends LookupSubtable {
 
-    public static LigatureSubst read(DataInputStream dis, int offset) throws IOException {
+    public static LigatureSubst read(final DataInputStream dis, final int offset) throws IOException {
         dis.reset();
         dis.skipBytes(offset);
-        int format = dis.readUnsignedShort();
+        final int format = dis.readUnsignedShort();
         if (format == 1) {
             return new LigatureSubstFormat1(dis, offset);
         }

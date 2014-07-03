@@ -54,6 +54,7 @@ import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 /**
  * GearsES2.java <BR>
@@ -395,14 +396,14 @@ public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRe
             System.err.println(">> GearsES2 "+sid()+", angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h+", v-flip "+flipVerticalInGLOrientation);
         }
 
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
             pmvMatrix.glScalef(1f, -1f, 1f);
         }
         pmvMatrix.glFrustumf(l, r, b, t, zNear, zFar);
 
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -zViewDist);
         st.useProgram(gl, true);
@@ -421,7 +422,7 @@ public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRe
     public void reshapeEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
                            final EyeParameter eyeParam, final EyePose eyePose) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
         if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
             pmvMatrix.glLoadIdentity();
@@ -431,7 +432,7 @@ public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRe
             pmvMatrix.glLoadMatrixf(mat4Projection, 0);
         }
 
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
         final Quaternion rollPitchYaw = new Quaternion();
         // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians

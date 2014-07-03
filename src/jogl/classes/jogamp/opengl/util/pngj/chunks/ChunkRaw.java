@@ -50,7 +50,7 @@ public class ChunkRaw {
 	 * @param alloc
 	 *            : it true, the data array will be allocced
 	 */
-	public ChunkRaw(int len, byte[] idbytes, boolean alloc) {
+	public ChunkRaw(final int len, final byte[] idbytes, final boolean alloc) {
 		this.len = len;
 		System.arraycopy(idbytes, 0, this.idbytes, 0, 4);
 		if (alloc)
@@ -66,7 +66,7 @@ public class ChunkRaw {
 	 * this is called after setting data, before writing to os
 	 */
 	private int computeCrc() {
-		CRC32 crcengine = PngHelperInternal.getCRC();
+		final CRC32 crcengine = PngHelperInternal.getCRC();
 		crcengine.reset();
 		crcengine.update(idbytes, 0, 4);
 		if (len > 0)
@@ -78,7 +78,7 @@ public class ChunkRaw {
 	 * Computes the CRC and writes to the stream. If error, a
 	 * PngjOutputException is thrown
 	 */
-	public void writeChunk(OutputStream os) {
+	public void writeChunk(final OutputStream os) {
 		if (idbytes.length != 4)
 			throw new PngjOutputException("bad chunkid [" + ChunkHelper.toString(idbytes) + "]");
 		crcval = computeCrc();
@@ -93,11 +93,11 @@ public class ChunkRaw {
 	 * position before: just after chunk id. positon after: after crc Data
 	 * should be already allocated. Checks CRC Return number of byte read.
 	 */
-	public int readChunkData(InputStream is, boolean checkCrc) {
+	public int readChunkData(final InputStream is, final boolean checkCrc) {
 		PngHelperInternal.readBytes(is, data, 0, len);
 		crcval = PngHelperInternal.readInt4(is);
 		if (checkCrc) {
-			int crc = computeCrc();
+			final int crc = computeCrc();
 			if (crc != crcval)
 				throw new PngjBadCrcException("chunk: " + this + " crc calc=" + crc + " read=" + crcval);
 		}

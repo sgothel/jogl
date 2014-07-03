@@ -53,12 +53,12 @@ class BitmapCharRec {
   public float advance;
   public byte[] bitmap;
 
-  public BitmapCharRec(int width,
-                int height,
-                float xorig,
-                float yorig,
-                float advance,
-                byte[] bitmap) {
+  public BitmapCharRec(final int width,
+                final int height,
+                final float xorig,
+                final float yorig,
+                final float advance,
+                final byte[] bitmap) {
     this.width   = width;
     this.height  = height;
     this.xorig   = xorig;

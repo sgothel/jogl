@@ -45,12 +45,12 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 
 public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
-  protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeSurface component) {
+  protected WindowsOnscreenWGLDrawable(final GLDrawableFactory factory, final NativeSurface component) {
     super(factory, component, false);
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new WindowsWGLContext(this, shareWith);
   }
 

@@ -146,7 +146,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glHeight = JOGLNewtAppletBase.str2Int(getParameter("gl_height"), glHeight);
             glNoDefaultKeyListener = JOGLNewtAppletBase.str2Bool(getParameter("gl_nodefaultkeyListener"), glNoDefaultKeyListener);
             appletDebugTestBorder = JOGLNewtAppletBase.str2Bool(getParameter("appletDebugTestBorder"), appletDebugTestBorder);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
         if(null==glEventListenerClazzName) {
@@ -181,7 +181,7 @@ public class JOGLNewtApplet1Run extends Applet {
                                       glTrace);
 
         try {
-            GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
+            final GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
             caps.setAlphaBits(glAlphaBits);
             if(0<glNumMultisampleBuffer) {
                 caps.setSampleBuffers(true);
@@ -205,7 +205,7 @@ public class JOGLNewtApplet1Run extends Applet {
             }
             base.init(glWindow);
             if(base.isValid()) {
-                GLEventListener glEventListener = base.getGLEventListener();
+                final GLEventListener glEventListener = base.getGLEventListener();
 
                 if(glEventListener instanceof MouseListener) {
                     addMouseListener((MouseListener)glEventListener);
@@ -226,7 +226,7 @@ public class JOGLNewtApplet1Run extends Applet {
                         container.validate();
                     } } );
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new RuntimeException(t);
         }
         if(DEBUG) {

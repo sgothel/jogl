@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
@@ -64,20 +65,20 @@ public class LabelButton extends RoundButton {
     }
 
     @Override
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
+    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         if( false ) {
             // Setup poly offset for z-fighting
-            gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+            gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
             gl.glPolygonOffset(0f, 1f);
             super.drawShape(gl, renderer, sampleCount);
-            gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+            gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
         } else {
             super.drawShape(gl, renderer, sampleCount);
         }
     }
 
     @Override
-    protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
+    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
         if(corner == 0.0f) {
             createSharpOutline(shape, DEFAULT_2PASS_LABEL_ZOFFSET);
@@ -133,7 +134,7 @@ public class LabelButton extends RoundButton {
      * @param spacingX spacing in percent on X, default is {@link #DEFAULT_SPACING_X}
      * @param spacingY spacing in percent on Y, default is {@link #DEFAULT_SPACING_Y}
      */
-    public final void setSpacing(float spacingX, float spacingY) {
+    public final void setSpacing(final float spacingX, final float spacingY) {
         if ( spacingX < 0.0f ) {
             this.spacingX = 0.0f;
         } else if ( spacingX > 1.0f ) {
@@ -155,7 +156,7 @@ public class LabelButton extends RoundButton {
         return label.getColor();
     }
 
-    public final void setLabelColor(float r, float g, float b) {
+    public final void setLabelColor(final float r, final float g, final float b) {
         label.setColor(r, g, b, 1.0f);
         markShapeDirty();
     }

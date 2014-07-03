@@ -44,6 +44,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.util.Dimension;
@@ -142,7 +143,7 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -157,7 +158,7 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
     class WaitAction implements Runnable {
         private final long sleepMS;
 
-        WaitAction(long sleepMS) {
+        WaitAction(final long sleepMS) {
             this.sleepMS = sleepMS;
         }
         public void run() {
@@ -165,41 +166,41 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
                 // blocks on linux .. display.sleep();
                 try {
                     Thread.sleep(sleepMS);
-                } catch (InterruptedException e) { }
+                } catch (final InterruptedException e) { }
             }
         }
     }
     final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     final WaitAction generalWaitAction = new WaitAction(10);
 
-    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
-        com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, screenIdx);
+    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
+        final com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
 
         final GearsES2 demo = new GearsES2(1);
         glWindow.addGLEventListener(demo);
 
-        Animator animator = new Animator();
-        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator();
+        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
 
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
-            public void windowResized(WindowEvent e) {
+            public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
-            public void windowMoved(WindowEvent e) {
+            public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
 
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
                 }
@@ -288,7 +289,7 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
         runTestGL(caps);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
 

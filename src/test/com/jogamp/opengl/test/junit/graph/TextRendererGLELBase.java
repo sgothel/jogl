@@ -75,7 +75,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public static Font getFont(final int fontSet, final int fontFamily, final int fontStylebits) {
         try {
             return FontFactory.get(fontSet).get(fontFamily, fontStylebits);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -86,7 +86,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      * @see #setRendererCallbacks(com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)
      */
-    public TextRendererGLELBase(final int renderModes, int[] sampleCount) {
+    public TextRendererGLELBase(final int renderModes, final int[] sampleCount) {
         this.renderModes = renderModes;
         this.vbaaSampleCount = sampleCount;
     }
@@ -97,7 +97,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * </p>
      * @param rs
      */
-    public void setRenderState(RenderState rs) { this.rs = rs; }
+    public void setRenderState(final RenderState rs) { this.rs = rs; }
 
     /**
      * In exclusive mode, impl. uses a pixelScale of 1f and orthogonal PMV on window dimensions
@@ -110,7 +110,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * Must be called before {@link #init(GLAutoDrawable)}.
      * </p>
      */
-    public void setSharedPMVMatrix(PMVMatrix pmv) {
+    public void setSharedPMVMatrix(final PMVMatrix pmv) {
         this.sharedPMVMatrix = pmv;
     }
 
@@ -120,17 +120,17 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * Must be called before {@link #init(GLAutoDrawable)}.
      * </p>
      */
-    public void setRendererCallbacks(RegionRenderer.GLCallback enable, RegionRenderer.GLCallback disable) {
+    public void setRendererCallbacks(final RegionRenderer.GLCallback enable, final RegionRenderer.GLCallback disable) {
         this.enableCallback = enable;
         this.disableCallback = disable;
     }
 
-    public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
+    public void setFlipVerticalInGLOrientation(final boolean v) { flipVerticalInGLOrientation=v; }
     public final RegionRenderer getRenderer() { return renderer; }
     public final TextRegionUtil getTextRenderUtil() { return textRenderUtil; }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         if( null == this.rs ) {
             exclusivePMVMatrix = null == sharedPMVMatrix;
             this.rs = RenderState.createRenderState(SVertex.factory(), sharedPMVMatrix);
@@ -151,7 +151,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             renderer.enable(gl, true);
@@ -170,7 +170,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public abstract void display(GLAutoDrawable drawable);
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             renderer.destroy(gl);
@@ -191,16 +191,16 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @param tz
      * @param cacheRegion
      */
-    public void renderString(GLAutoDrawable drawable,
-                             Font font, float pixelSize, String text,
-                             int column, float tx, float ty, float tz, boolean cacheRegion) {
+    public void renderString(final GLAutoDrawable drawable,
+                             final Font font, final float pixelSize, final String text,
+                             final int column, final float tx, final float ty, final float tz, final boolean cacheRegion) {
         final int row = lastRow + 1;
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, cacheRegion, null);
     }
 
-    public void renderString(GLAutoDrawable drawable,
-                             Font font, float pixelSize, String text,
-                             int column, float tx, float ty, float tz, GLRegion region) {
+    public void renderString(final GLAutoDrawable drawable,
+                             final Font font, final float pixelSize, final String text,
+                             final int column, final float tx, final float ty, final float tz, final GLRegion region) {
         final int row = lastRow + 1;
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, false, region);
     }
@@ -218,24 +218,24 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @param tz
      * @param cacheRegion
      */
-    public void renderString(GLAutoDrawable drawable,
-                             Font font, float pixelSize, String text,
-                             int column, int row,
-                             float tx, float ty, float tz, boolean cacheRegion) {
+    public void renderString(final GLAutoDrawable drawable,
+                             final Font font, final float pixelSize, final String text,
+                             final int column, final int row,
+                             final float tx, final float ty, final float tz, final boolean cacheRegion) {
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, cacheRegion, null);
     }
 
-    public void renderString(GLAutoDrawable drawable,
-                             Font font, float pixelSize, String text,
-                             int column, int row,
-                             float tx, float ty, float tz, GLRegion region) {
+    public void renderString(final GLAutoDrawable drawable,
+                             final Font font, final float pixelSize, final String text,
+                             final int column, final int row,
+                             final float tx, final float ty, final float tz, final GLRegion region) {
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, false, region);
     }
 
-    private void renderStringImpl(GLAutoDrawable drawable,
-                                  Font font, float pixelSize, String text,
-                                  int column, int row,
-                                  float tx, float ty, float tz, boolean cacheRegion, GLRegion region) {
+    private void renderStringImpl(final GLAutoDrawable drawable,
+                                  final Font font, final float pixelSize, final String text,
+                                  final int column, final int row,
+                                  final float tx, final float ty, final float tz, final boolean cacheRegion, final GLRegion region) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 

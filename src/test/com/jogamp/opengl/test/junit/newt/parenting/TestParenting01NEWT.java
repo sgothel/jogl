@@ -67,7 +67,7 @@ public class TestParenting01NEWT extends UITestCase {
         Display display = null;
         Screen screen = null;
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
@@ -84,11 +84,11 @@ public class TestParenting01NEWT extends UITestCase {
 
         glWindow1.setTitle("test01CreateVisibleDestroy");
         glWindow1.setSize(640, 480);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
-        GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
+        final GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
         Assert.assertNotNull(glWindow2);
         Assert.assertEquals(false, glWindow2.isVisible());
         Assert.assertEquals(false, glWindow2.isNativeValid());
@@ -96,7 +96,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertSame(screen,glWindow2.getScreen());
         Assert.assertSame(display,glWindow2.getScreen().getDisplay());
         glWindow2.setSize(320, 240);
-        GLEventListener demo2 = new GearsES2();
+        final GLEventListener demo2 = new GearsES2();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
@@ -150,13 +150,13 @@ public class TestParenting01NEWT extends UITestCase {
 
         glWindow1.resetFPSCounter();
         glWindow2.resetFPSCounter();
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
-        Animator animator2 = new Animator(glWindow2);
+        final Animator animator2 = new Animator(glWindow2);
         animator2.setUpdateFPSFrames(1, null);
         animator2.start();
         Assert.assertEquals(true, animator2.isAnimating());
@@ -305,10 +305,10 @@ public class TestParenting01NEWT extends UITestCase {
         Display display1 = null;
         Screen screen1 = null;
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("test02ReparentTop2Win");
         glWindow1.setSize(640, 480);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         screen1 = glWindow1.getScreen();
@@ -322,9 +322,9 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen1.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
-        GLWindow glWindow2 = GLWindow.create(glCaps);
+        final GLWindow glWindow2 = GLWindow.create(glCaps);
         glWindow2.setSize(320, 240);
-        GLEventListener demo2 = new GearsES2();
+        final GLEventListener demo2 = new GearsES2();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
         Assert.assertSame(screen1, glWindow2.getScreen());
@@ -365,10 +365,10 @@ public class TestParenting01NEWT extends UITestCase {
         System.err.println("Frames for setVisible(true) B1: "+glWindow2.getTotalFPSFrames());
         Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
-        Animator animator2 = new Animator(glWindow2);
+        final Animator animator2 = new Animator(glWindow2);
         animator2.setUpdateFPSFrames(1, null);
         animator2.start();
 
@@ -540,12 +540,12 @@ public class TestParenting01NEWT extends UITestCase {
         Display display2 = null;
         Screen screen2 = null;
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         screen1 = glWindow1.getScreen();
         display1 = screen1.getDisplay();
         glWindow1.setTitle("test03ReparentWin2Top");
         glWindow1.setSize(640, 480);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -557,11 +557,11 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen1.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
-        GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
+        final GLWindow glWindow2 = GLWindow.create(glWindow1, glCaps);
         screen2 = glWindow2.getScreen();
         display2 = screen2.getDisplay();
         glWindow2.setSize(320, 240);
-        GLEventListener demo2 = new GearsES2();
+        final GLEventListener demo2 = new GearsES2();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
 
@@ -593,10 +593,10 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertSame(screen1,glWindow2.getScreen());
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
-        Animator animator2 = new Animator(glWindow2);
+        final Animator animator2 = new Animator(glWindow2);
         animator2.setUpdateFPSFrames(1, null);
         animator2.start();
 
@@ -734,7 +734,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
         if(debug) {
@@ -746,15 +746,15 @@ public class TestParenting01NEWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         boolean asMain = false;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -767,14 +767,14 @@ public class TestParenting01NEWT extends UITestCase {
         if( asMain ) {
             try {
                 TestParenting01NEWT.initClass();
-                TestParenting01NEWT m = new TestParenting01NEWT();
+                final TestParenting01NEWT m = new TestParenting01NEWT();
                 m.test02aReparentTop2WinReparentRecreate();
                 m.test01CreateVisibleDestroy();
-            } catch (Throwable t ) {
+            } catch (final Throwable t ) {
                 t.printStackTrace();
             }
         } else {
-            String tstname = TestParenting01NEWT.class.getName();
+            final String tstname = TestParenting01NEWT.class.getName();
             org.junit.runner.JUnitCore.main(tstname);
         }
     }

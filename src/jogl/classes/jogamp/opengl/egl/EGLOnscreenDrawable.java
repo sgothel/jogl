@@ -44,17 +44,17 @@ import javax.media.opengl.*;
 import javax.media.nativewindow.*;
 
 public class EGLOnscreenDrawable extends EGLDrawable {
-    protected EGLOnscreenDrawable(EGLDrawableFactory factory, NativeSurface component) throws GLException {
+    protected EGLOnscreenDrawable(final EGLDrawableFactory factory, final NativeSurface component) throws GLException {
         super(factory, component);
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public GLContext createContext(final GLContext shareWith) {
         return new EGLContext(this, shareWith);
     }
 
     @Override
-    protected long createSurface(EGLGraphicsConfiguration config, int width, int height, long nativeSurfaceHandle) {
+    protected long createSurface(final EGLGraphicsConfiguration config, final int width, final int height, final long nativeSurfaceHandle) {
         return EGL.eglCreateWindowSurface(config.getScreen().getDevice().getHandle(), config.getNativeConfig(), nativeSurfaceHandle, null);
     }
 }

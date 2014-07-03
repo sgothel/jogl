@@ -65,6 +65,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -77,6 +78,7 @@ import jogamp.opengl.SharedResourceRunner;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
@@ -88,14 +90,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     static {
         Debug.initSingleton();
-        QUERY_EGL_ES_NATIVE_TK = Debug.isPropertyDefined("jogl.debug.EGLDrawableFactory.QueryNativeTK", true);
+        QUERY_EGL_ES_NATIVE_TK = PropertyAccess.isPropertyDefined("jogl.debug.EGLDrawableFactory.QueryNativeTK", true);
     }
 
     private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;
 
-    private static final boolean isANGLE(GLDynamicLookupHelper dl) {
-        if(Platform.OSType.WINDOWS == Platform.OS_TYPE) {
+    private static final boolean isANGLE(final GLDynamicLookupHelper dl) {
+        if(Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE) {
             return dl.isFunctionAvailable("eglQuerySurfacePointerANGLE") ||
                    dl.isFunctionAvailable("glBlitFramebufferANGLE") ||
                    dl.isFunctionAvailable("glRenderbufferStorageMultisampleANGLE");
@@ -104,7 +106,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    private static final boolean includesES1(GLDynamicLookupHelper dl) {
+    private static final boolean includesES1(final GLDynamicLookupHelper dl) {
         return dl.isFunctionAvailable("glLoadIdentity") &&
                dl.isFunctionAvailable("glEnableClientState") &&
                dl.isFunctionAvailable("glColorPointer");
@@ -122,7 +124,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             hasX11 = true;
             try {
                 ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
-            } catch (Exception jre) { /* n/a .. */ }
+            } catch (final Exception jre) { /* n/a .. */ }
         }
 
         // FIXME: Probably need to move EGL from a static model
@@ -136,7 +138,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 GLDynamicLookupHelper tmp=null;
                 try {
                     tmp = new GLDynamicLookupHelper(new EGLES1DynamicLibraryBundleInfo());
-                } catch (GLException gle) {
+                } catch (final GLException gle) {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
@@ -157,7 +159,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 GLDynamicLookupHelper tmp=null;
                 try {
                     tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
-                } catch (GLException gle) {
+                } catch (final GLException gle) {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
@@ -214,9 +216,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             if(DEBUG) {
                 dumpMap();
             }
-            Collection<SharedResource> srl = sharedMap.values();
-            for(Iterator<SharedResource> sri = srl.iterator(); sri.hasNext(); ) {
-                SharedResource sr = sri.next();
+            final Collection<SharedResource> srl = sharedMap.values();
+            for(final Iterator<SharedResource> sri = srl.iterator(); sri.hasNext(); ) {
+                final SharedResource sr = sri.next();
                 if(DEBUG) {
                     System.err.println("EGLDrawableFactory.shutdown: "+sr.device.toString());
                 }
@@ -253,10 +255,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         synchronized(sharedMap) {
             System.err.println("EGLDrawableFactory.map "+sharedMap.size());
             int i=0;
-            Set<String> keys = sharedMap.keySet();
-            for(Iterator<String> keyI = keys.iterator(); keyI.hasNext(); i++) {
-                String key = keyI.next();
-                SharedResource sr = sharedMap.get(key);
+            final Set<String> keys = sharedMap.keySet();
+            for(final Iterator<String> keyI = keys.iterator(); keyI.hasNext(); i++) {
+                final String key = keyI.next();
+                final SharedResource sr = sharedMap.get(key);
                 System.err.println("EGLDrawableFactory.map["+i+"] "+key+" -> "+sr.getDevice()+", "+
                                    "es1   [avail "+sr.wasES1ContextCreated+", pbuffer "+sr.hasPBufferES1+", quirks "+sr.rendererQuirksES1+", ctp "+EGLContext.getGLVersion(1, 0, sr.ctpES1, null)+"], "+
                                    "es2/3 [es2 "+sr.wasES2ContextCreated+", es3 "+sr.wasES3ContextCreated+", [pbuffer "+sr.hasPBufferES3ES2+", quirks "+sr.rendererQuirksES3ES2+", ctp "+EGLContext.getGLVersion(2, 0, sr.ctpES3ES2, null)+"]]");
@@ -287,10 +289,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       private final boolean hasPBufferES1;
       private final boolean hasPBufferES3ES2;
 
-      SharedResource(EGLGraphicsDevice dev,
-                     boolean wasContextES1Created, boolean hasPBufferES1, GLRendererQuirks rendererQuirksES1, int ctpES1,
-                     boolean wasContextES2Created, boolean wasContextES3Created,
-                     boolean hasPBufferES3ES2, GLRendererQuirks rendererQuirksES3ES2, int ctpES3ES2) {
+      SharedResource(final EGLGraphicsDevice dev,
+                     final boolean wasContextES1Created, final boolean hasPBufferES1, final GLRendererQuirks rendererQuirksES1, final int ctpES1,
+                     final boolean wasContextES2Created, final boolean wasContextES3Created,
+                     final boolean hasPBufferES3ES2, final GLRendererQuirks rendererQuirksES3ES2, final int ctpES3ES2) {
           this.device = dev;
           // this.contextES1 = ctxES1;
           this.wasES1ContextCreated = wasContextES1Created;
@@ -340,12 +342,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+    public final boolean getIsDeviceCompatible(final AbstractGraphicsDevice device) {
       // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
       return null != sharedMap ; // null!=eglES2DynamicLookupHelper || null!=eglES1DynamicLookupHelper;
     }
 
-    private static List<GLCapabilitiesImmutable> getAvailableEGLConfigs(EGLGraphicsDevice eglDisplay, GLCapabilitiesImmutable caps) {
+    private static List<GLCapabilitiesImmutable> getAvailableEGLConfigs(final EGLGraphicsDevice eglDisplay, final GLCapabilitiesImmutable caps) {
         final IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
         if(!EGL.eglGetConfigs(eglDisplay.getHandle(), null, 0, numConfigs)) {
             throw new GLException("EGLDrawableFactory.getAvailableEGLConfigs: Get maxConfigs (eglGetConfigs) call failed, error "+EGLContext.toHexString(EGL.eglGetError()));
@@ -368,8 +370,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         System.err.println(prefix+"EGL vendor "+eglVendor+", version "+eglVersion+", clientAPIs "+eglClientAPIs);
     }
 
-    private boolean mapAvailableEGLESConfig(AbstractGraphicsDevice adevice, int[] esProfile,
-                                            boolean[] hasPBuffer, GLRendererQuirks[] rendererQuirks, int[] ctp) {
+    private boolean mapAvailableEGLESConfig(final AbstractGraphicsDevice adevice, final int[] esProfile,
+                                            final boolean[] hasPBuffer, final GLRendererQuirks[] rendererQuirks, final int[] ctp) {
         final String profileString;
         switch( esProfile[0] ) {
             case 3:
@@ -532,7 +534,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 }
                             }
                         }
-                    } catch (Throwable t) {
+                    } catch (final Throwable t) {
                         if (DEBUG) {
                             System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: INFO: context create/makeCurrent failed");
                             t.printStackTrace();
@@ -543,7 +545,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
                 drawable.setRealized(false);
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             if(DEBUG) {
                 System.err.println("Caught exception on thread "+getThreadName());
                 t.printStackTrace();
@@ -565,7 +567,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return success;
     }
 
-    private final boolean needsToCreateSharedResource(String key, SharedResource[] existing) {
+    private final boolean needsToCreateSharedResource(final String key, final SharedResource[] existing) {
         synchronized(sharedMap) {
             final SharedResource sr = sharedMap.get(key);
             if( null == sr ) {
@@ -584,7 +586,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice adevice) {
+    protected final SharedResource getOrCreateSharedResourceImpl(final AbstractGraphicsDevice adevice) {
         if(null == sharedMap) { // null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper
             return null;
         }
@@ -617,16 +619,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    private SharedResource createEGLSharedResourceImpl(AbstractGraphicsDevice adevice) {
+    private SharedResource createEGLSharedResourceImpl(final AbstractGraphicsDevice adevice) {
         final boolean madeCurrentES1;
-        boolean[] hasPBufferES1 = new boolean[] { false };
-        boolean[] hasPBufferES3ES2 = new boolean[] { false };
+        final boolean[] hasPBufferES1 = new boolean[] { false };
+        final boolean[] hasPBufferES3ES2 = new boolean[] { false };
         // EGLContext[] eglCtxES1 = new EGLContext[] { null };
         // EGLContext[] eglCtxES2 = new EGLContext[] { null };
-        GLRendererQuirks[] rendererQuirksES1 = new GLRendererQuirks[] { null };
-        GLRendererQuirks[] rendererQuirksES3ES2 = new GLRendererQuirks[] { null };
-        int[] ctpES1 = new int[] { -1 };
-        int[] ctpES3ES2 = new int[] { -1 };
+        final GLRendererQuirks[] rendererQuirksES1 = new GLRendererQuirks[] { null };
+        final GLRendererQuirks[] rendererQuirksES3ES2 = new GLRendererQuirks[] { null };
+        final int[] ctpES1 = new int[] { -1 };
+        final int[] ctpES3ES2 = new int[] { -1 };
 
 
         if (DEBUG) {
@@ -682,7 +684,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return sr;
     }
 
-    private void handleDontCloseX11DisplayQuirk(GLRendererQuirks quirks) {
+    private void handleDontCloseX11DisplayQuirk(final GLRendererQuirks quirks) {
         if( null != quirks && quirks.exist( GLRendererQuirks.DontCloseX11Display ) ) {
             jogamp.nativewindow.x11.X11Util.markAllDisplaysUnclosable();
         }
@@ -698,7 +700,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
+    public GLDynamicLookupHelper getGLDynamicLookupHelper(final int esProfile) {
         if ( 2==esProfile || 3==esProfile ) {
             return eglES2DynamicLookupHelper;
         } else if (1==esProfile) {
@@ -709,7 +711,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+    protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(final AbstractGraphicsDevice device) {
         if(null == sharedMap) { // null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper
             return new ArrayList<GLCapabilitiesImmutable>(); // null
         }
@@ -717,7 +719,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
+    protected GLDrawableImpl createOnscreenDrawableImpl(final NativeSurface target) {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
         }
@@ -725,12 +727,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
+    protected GLDrawableImpl createOffscreenDrawableImpl(final NativeSurface target) {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
         }
-        AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
-        GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+        final AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
+        final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         if(!caps.isPBuffer()) {
             throw new GLException("Non pbuffer not yet implemented");
         }
@@ -739,16 +741,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
+    public boolean canCreateGLPbuffer(final AbstractGraphicsDevice device, final GLProfile glp) {
         // SharedResource sr = getOrCreateEGLSharedResource(device);
         // return sr.hasES1PBuffer() || sr.hasES2PBuffer();
         return true;
     }
 
     @Override
-    protected ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
-                                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                                    GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
+    protected ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                    final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                                    final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
         final boolean ownDevice;
         final EGLGraphicsDevice device;
         if( createNewDevice || ! (deviceReq instanceof EGLGraphicsDevice) ) {
@@ -770,8 +772,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
-                                                     GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+    public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                     GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
         chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(chosenCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above
         return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new EGLDummyUpstreamSurfaceHook(width, height));
     }
@@ -782,10 +784,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
      * @param useTexture
      * @return the passed {@link MutableSurface} which now has the EGL pbuffer surface set as it's handle
      */
-    protected static MutableSurface createPBufferSurfaceImpl(MutableSurface ms, boolean useTexture) {
+    protected static MutableSurface createPBufferSurfaceImpl(final MutableSurface ms, final boolean useTexture) {
         return null;
     }
-    protected static long createPBufferSurfaceImpl(EGLGraphicsConfiguration config, int width, int height, boolean useTexture) {
+    protected static long createPBufferSurfaceImpl(final EGLGraphicsConfiguration config, final int width, final int height, final boolean useTexture) {
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) config.getScreen().getDevice();
         final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         final int texFormat;
@@ -811,7 +813,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
+    protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
         final EGLGraphicsDevice eglDeviceReq = (EGLGraphicsDevice) deviceReq;
         final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(eglDeviceReq.getNativeDisplayID(), deviceReq.getConnection(), deviceReq.getUnitID());
         device.open();
@@ -822,12 +824,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     @Override
     protected GLContext createExternalGLContextImpl() {
-        AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_EGL);
+        final AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_EGL);
         return new EGLExternalContext(absScreen);
     }
 
     @Override
-    public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
+    public boolean canCreateExternalGLDrawable(final AbstractGraphicsDevice device) {
         return false;
     }
 

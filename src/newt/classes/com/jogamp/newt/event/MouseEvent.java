@@ -124,7 +124,7 @@ public class MouseEvent extends InputEvent
             return types;
         }
 
-        private PointerType(PointerClass pc) {
+        private PointerType(final PointerClass pc) {
             this.pc = pc;
         }
         PointerClass pc;

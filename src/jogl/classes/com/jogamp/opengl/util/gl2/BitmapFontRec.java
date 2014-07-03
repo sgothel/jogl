@@ -51,10 +51,10 @@ class BitmapFontRec {
   public int first;
   public BitmapCharRec[] ch;
 
-  public BitmapFontRec(String name,
-                int num_chars,
-                int first,
-                BitmapCharRec[] ch) {
+  public BitmapFontRec(final String name,
+                final int num_chars,
+                final int first,
+                final BitmapCharRec[] ch) {
     this.name = name;
     this.num_chars = num_chars;
     this.first = first;

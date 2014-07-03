@@ -18,15 +18,15 @@ import java.io.DataInput;
  */
 public class DsigTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private int numSigs;
-    private int flag;
-    private DsigEntry[] dsigEntry;
-    private SignatureBlock[] sigBlocks;
+    private final DirectoryEntry de;
+    private final int version;
+    private final int numSigs;
+    private final int flag;
+    private final DsigEntry[] dsigEntry;
+    private final SignatureBlock[] sigBlocks;
 
     /** Creates new DsigTable */
-    protected DsigTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected DsigTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readInt();
         numSigs = di.readUnsignedShort();
@@ -63,7 +63,7 @@ public class DsigTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder().append("DSIG\n");
+        final StringBuilder sb = new StringBuilder().append("DSIG\n");
         for (int i = 0; i < numSigs; i++) {
             sb.append(sigBlocks[i].toString());
         }

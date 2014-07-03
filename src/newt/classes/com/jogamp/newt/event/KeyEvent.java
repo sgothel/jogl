@@ -377,7 +377,7 @@ public class KeyEvent extends InputEvent
         public short max;
         /** true if valid for keyChar values as well, otherwise only valid for keyCode and keySym due to collision. */
         public final boolean inclKeyChar;
-        private NonPrintableRange(short min, short max, boolean inclKeyChar) {
+        private NonPrintableRange(final short min, final short max, final boolean inclKeyChar) {
             this.min = min;
             this.max = max;
             this.inclKeyChar = inclKeyChar;

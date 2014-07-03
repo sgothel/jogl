@@ -32,10 +32,10 @@ package com.jogamp.newt.event;
 public abstract class KeyAdapter implements KeyListener
 {
  @Override
- public void keyPressed(KeyEvent e) {
+ public void keyPressed(final KeyEvent e) {
  }
  @Override
- public void keyReleased(KeyEvent e) {
+ public void keyReleased(final KeyEvent e) {
  }
 }
 

@@ -59,18 +59,18 @@ import java.io.IOException;
  */
 public class CmapFormat4 extends CmapFormat {
 
-    private int _segCountX2;
-    private int _searchRange;
-    private int _entrySelector;
-    private int _rangeShift;
-    private int[] _endCode;
-    private int[] _startCode;
-    private int[] _idDelta;
-    private int[] _idRangeOffset;
-    private int[] _glyphIdArray;
-    private int _segCount;
+    private final int _segCountX2;
+    private final int _searchRange;
+    private final int _entrySelector;
+    private final int _rangeShift;
+    private final int[] _endCode;
+    private final int[] _startCode;
+    private final int[] _idDelta;
+    private final int[] _idRangeOffset;
+    private final int[] _glyphIdArray;
+    private final int _segCount;
 
-    protected CmapFormat4(DataInput di) throws IOException {
+    protected CmapFormat4(final DataInput di) throws IOException {
         super(di); // 6
         _format = 4;
         _segCountX2 = di.readUnsignedShort(); // +2 (8)
@@ -97,7 +97,7 @@ public class CmapFormat4 extends CmapFormat {
         } // + 2*segCount (8*segCount + 16)
 
         // Whatever remains of this header belongs in glyphIdArray
-        int count = (_length - (8*_segCount + 16)) / 2;
+        final int count = (_length - (8*_segCount + 16)) / 2;
         _glyphIdArray = new int[count];
         for (int i = 0; i < count; i++) {
             _glyphIdArray[i] = di.readUnsignedShort();
@@ -116,7 +116,7 @@ public class CmapFormat4 extends CmapFormat {
     }
 
     @Override
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         if (index < 0 || index >= _segCount) {
             throw new ArrayIndexOutOfBoundsException();
         }
@@ -124,7 +124,7 @@ public class CmapFormat4 extends CmapFormat {
     }
 
     @Override
-    public int mapCharCode(int charCode) {
+    public int mapCharCode(final int charCode) {
         try {
             for (int i = 0; i < _segCount; i++) {
                 if (_endCode[i] >= charCode) {
@@ -139,7 +139,7 @@ public class CmapFormat4 extends CmapFormat {
                     }
                 }
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } catch (final ArrayIndexOutOfBoundsException e) {
             System.err.println("error: Array out of bounds - " + e.getMessage());
         }
         return 0;

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import org.junit.Assert;
@@ -69,13 +69,13 @@ public class TestParenting01cAWT extends UITestCase {
     public void test01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
         int i;
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -92,7 +92,7 @@ public class TestParenting01cAWT extends UITestCase {
         frame1.add(new Button("East"), BorderLayout.EAST);
         frame1.add(new Button("West"), BorderLayout.WEST);
 
-        Container container1 = new Container();
+        final Container container1 = new Container();
         container1.setLayout(new BorderLayout());
         container1.add(new Button("north"), BorderLayout.NORTH);
         container1.add(new Button("south"), BorderLayout.SOUTH);
@@ -130,7 +130,7 @@ public class TestParenting01cAWT extends UITestCase {
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         final boolean wasOnscreen = glWindow1.getChosenCapabilities().isOnscreen();
-        
+
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.remove(newtCanvasAWT);
@@ -155,9 +155,9 @@ public class TestParenting01cAWT extends UITestCase {
 
     @Test
     public void test02AWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -234,10 +234,10 @@ public class TestParenting01cAWT extends UITestCase {
         glWindow1.destroy();
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -247,21 +247,21 @@ public class TestParenting01cAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting01cAWT.class.getName();
+        final String tstname = TestParenting01cAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

@@ -80,7 +80,7 @@ public class WindowDriver extends WindowImpl {
                 _icon_data = PNGIcon.arrayToX11BGRAImages(NewtFactory.getWindowIcons(), data_size, elem_bytesize);
                 _icon_data_size = data_size[0];
                 _icon_elem_bytesize = elem_bytesize[0];
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }
@@ -143,15 +143,15 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void closeNativeImpl() {
         if(0!=windowHandleClose && null!=getScreen() ) {
-            DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             final AbstractGraphicsDevice edtDevice = display.getGraphicsDevice();
             edtDevice.lock();
             try {
                 CloseWindow0(edtDevice.getHandle(), windowHandleClose,
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom() /* , display.getKbdHandle() */); // XKB disabled for now
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
-                    Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
+                    final Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
             } finally {
@@ -172,7 +172,7 @@ public class WindowDriver extends WindowImpl {
      * {@inheritDoc}
      */
     @Override
-    protected boolean isReconfigureFlagSupported(int changeFlags) {
+    protected boolean isReconfigureFlagSupported(final int changeFlags) {
         return true; // all flags!
     }
 
@@ -208,7 +208,7 @@ public class WindowDriver extends WindowImpl {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
-            public Object run(long dpy) {
+            public Object run(final long dpy) {
                 reconfigureWindow0( dpy, getScreenIndex(),
                                     getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
                                     _x, _y, width, height, fflags);
@@ -226,7 +226,7 @@ public class WindowDriver extends WindowImpl {
      * {@inheritDoc}
      */
     @Override
-    protected void focusChanged(boolean defer, boolean focusGained) {
+    protected void focusChanged(final boolean defer, final boolean focusGained) {
         if( isNativeValid() && isFullscreen() && tempFSAlwaysOnTop && hasFocus() != focusGained ) {
             final int flags = getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()) | ( focusGained ? FLAG_IS_ALWAYSONTOP : 0 );
             if(DEBUG_IMPLEMENTATION) {
@@ -235,7 +235,7 @@ public class WindowDriver extends WindowImpl {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
                 @Override
-                public Object run(long dpy) {
+                public Object run(final long dpy) {
                     reconfigureWindow0( dpy, getScreenIndex(),
                                         getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
                                         getX(), getY(), getWidth(), getHeight(), flags);
@@ -246,7 +246,7 @@ public class WindowDriver extends WindowImpl {
         super.focusChanged(defer, focusGained);
     }
 
-    protected void reparentNotify(long newParentWindowHandle) {
+    protected void reparentNotify(final long newParentWindowHandle) {
         if(DEBUG_IMPLEMENTATION) {
             final long p0 = getParentWindowHandle();
             System.err.println("Window.reparentNotify ("+getThreadName()+"): "+toHexString(p0)+" -> "+toHexString(newParentWindowHandle));
@@ -257,7 +257,7 @@ public class WindowDriver extends WindowImpl {
     protected void requestFocusImpl(final boolean force) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
-            public Object run(long dpy) {
+            public Object run(final long dpy) {
                 requestFocus0(dpy, getWindowHandle(), force);
                 return null;
             }
@@ -268,7 +268,7 @@ public class WindowDriver extends WindowImpl {
     protected void setTitleImpl(final String title) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
-            public Object run(long dpy) {
+            public Object run(final long dpy) {
                 setTitle0(dpy, getWindowHandle(), title);
                 return null;
             }
@@ -279,10 +279,10 @@ public class WindowDriver extends WindowImpl {
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
-            public Object run(long dpy) {
+            public Object run(final long dpy) {
                 try {
                     setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.validatedHandle() : 0);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
                 return null;
@@ -294,7 +294,7 @@ public class WindowDriver extends WindowImpl {
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
-            public Boolean run(long dpy) {
+            public Boolean run(final long dpy) {
                 final PointerIconImpl pi = (PointerIconImpl)getPointerIcon();
                 final boolean res;
                 if( pointerVisible && null != pi ) {
@@ -312,7 +312,7 @@ public class WindowDriver extends WindowImpl {
     protected boolean confinePointerImpl(final boolean confine) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
-            public Boolean run(long dpy) {
+            public Boolean run(final long dpy) {
                 return Boolean.valueOf(confinePointer0(dpy, getWindowHandle(), confine));
             }
         }).booleanValue();
@@ -322,7 +322,7 @@ public class WindowDriver extends WindowImpl {
     protected void warpPointerImpl(final int x, final int y) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
-            public Object run(long dpy) {
+            public Object run(final long dpy) {
                 warpPointer0(dpy, getWindowHandle(), x, y);
                 return null;
             }
@@ -333,20 +333,20 @@ public class WindowDriver extends WindowImpl {
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Point>() {
             @Override
-            public Point run(long dpy) {
+            public Point run(final long dpy) {
                 return X11Lib.GetRelativeLocation(dpy, getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
             }
         } );
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop - using event driven insetsChange(..)
     }
 
     @Override
-    protected final void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
-                                int x, int y, short button, float[] rotationXYZ, float rotationScale) {
+    protected final void doMouseEvent(final boolean enqueue, final boolean wait, short eventType, int modifiers,
+                                final int x, final int y, short button, final float[] rotationXYZ, final float rotationScale) {
         switch(eventType) {
             case MouseEvent.EVENT_MOUSE_PRESSED:
                 switch(button) {
@@ -390,10 +390,10 @@ public class WindowDriver extends WindowImpl {
     }
 
     /** Called by native TK */
-    protected final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar0, String keyString) {
+    protected final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar0, final String keyString) {
         // handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
         final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);
-        final boolean isAutoRepeat = 0 != ( KeyEvent.AUTOREPEAT_MASK & modifiers );
+        final boolean isAutoRepeat = 0 != ( InputEvent.AUTOREPEAT_MASK & modifiers );
         final char keyChar =  ( null != keyString ) ? keyString.charAt(0) : keyChar0;
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar0+">/<"+keyChar+">, keyString "+keyString+", mods "+toHexString(modifiers)+
         //                    ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isAutoRepeat+", [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
@@ -412,11 +412,11 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
     @Override
-    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public final void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 
@@ -426,16 +426,16 @@ public class WindowDriver extends WindowImpl {
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
 
-    private final <T> T runWithLockedDisplayDevice(DisplayRunnable<T> action) {
+    private final <T> T runWithLockedDisplayDevice(final DisplayRunnable<T> action) {
         return ((DisplayDriver) getScreen().getDisplay()).runWithLockedDisplayDevice(action);
     }
 
     protected static native boolean initIDs0();
 
-    private long CreateWindow(long parentWindowHandle, long display, int screen_index,
-                              int visualID, long javaObjectAtom, long windowDeleteAtom,
-                              int x, int y, int width, int height, boolean autoPosition, int flags,
-                              int pixelDataSize, Buffer pixels) {
+    private long CreateWindow(final long parentWindowHandle, final long display, final int screen_index,
+                              final int visualID, final long javaObjectAtom, final long windowDeleteAtom,
+                              final int x, final int y, final int width, final int height, final boolean autoPosition, final int flags,
+                              final int pixelDataSize, final Buffer pixels) {
         // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
         if( !Buffers.isDirect(pixels) ) {
             throw new IllegalArgumentException("data buffer is not direct "+pixels);

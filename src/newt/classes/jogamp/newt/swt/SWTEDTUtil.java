@@ -50,7 +50,7 @@ public class SWTEDTUtil implements EDTUtil {
     private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
-    public SWTEDTUtil(final com.jogamp.newt.Display newtDisplay, org.eclipse.swt.widgets.Display swtDisplay) {
+    public SWTEDTUtil(final com.jogamp.newt.Display newtDisplay, final org.eclipse.swt.widgets.Display swtDisplay) {
         this.threadGroup = Thread.currentThread().getThreadGroup();
         this.name=Thread.currentThread().getName()+"-SWTDisplay-"+newtDisplay.getFQName()+"-EDT-";
         this.dispatchMessages = new Runnable() {
@@ -73,7 +73,7 @@ public class SWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public void setPollPeriod(long ms) {
+    public void setPollPeriod(final long ms) {
         pollPeriod = ms;
     }
 
@@ -142,16 +142,16 @@ public class SWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean invokeStop(boolean wait, Runnable task) {
+    public final boolean invokeStop(final boolean wait, final Runnable task) {
         return invokeImpl(wait, task, true);
     }
 
     @Override
-    public final boolean invoke(boolean wait, Runnable task) {
+    public final boolean invoke(final boolean wait, final Runnable task) {
         return invokeImpl(wait, task, false);
     }
 
-    private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
+    private final boolean invokeImpl(boolean wait, final Runnable task, boolean stop) {
         Throwable throwable = null;
         RunnableTask rTask = null;
         final Object rTaskLock = new Object();
@@ -221,7 +221,7 @@ public class SWTEDTUtil implements EDTUtil {
             if( wait ) {
                 try {
                     rTaskLock.wait(); // free lock, allow execution of rTask
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -253,7 +253,7 @@ public class SWTEDTUtil implements EDTUtil {
                 @Override
                 public void run() { }
             });
-        } catch (Exception e) { }
+        } catch (final Exception e) { }
         return true;
     }
 
@@ -267,7 +267,7 @@ public class SWTEDTUtil implements EDTUtil {
                 while( nedt.isRunning ) {
                     try {
                         edtLock.wait();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -283,7 +283,7 @@ public class SWTEDTUtil implements EDTUtil {
         volatile boolean isRunning = false;
         Object sync = new Object();
 
-        public NEDT(ThreadGroup tg, String name) {
+        public NEDT(final ThreadGroup tg, final String name) {
             super(tg, name);
         }
 
@@ -326,13 +326,13 @@ public class SWTEDTUtil implements EDTUtil {
                         if(!shouldStop) {
                             try {
                                 sync.wait(pollPeriod);
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
                     }
                 } while(!shouldStop) ;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // handle errors ..
                 shouldStop = true;
                 if(t instanceof RuntimeException) {

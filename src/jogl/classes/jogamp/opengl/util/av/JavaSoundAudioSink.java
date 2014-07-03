@@ -43,7 +43,7 @@ public class JavaSoundAudioSink implements AudioSink {
         try {
             AudioSystem.getAudioFileTypes();
             ok = true;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
 
         }
         staticAvailable=ok;
@@ -59,7 +59,7 @@ public class JavaSoundAudioSink implements AudioSink {
     public final float getPlaySpeed() { return 1.0f; } // FIXME
 
     @Override
-    public final boolean setPlaySpeed(float rate) {
+    public final boolean setPlaySpeed(final float rate) {
         return false; // FIXME
     }
 
@@ -70,7 +70,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean setVolume(float v) {
+    public final boolean setVolume(final float v) {
         // FIXME
         volume = v;
         return true;
@@ -87,12 +87,12 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean isSupported(AudioSink.AudioFormat format) {
+    public final boolean isSupported(final AudioSink.AudioFormat format) {
         return true;
     }
 
     @Override
-    public boolean init(AudioSink.AudioFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+    public boolean init(final AudioSink.AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         if( !staticAvailable ) {
             return false;
         }
@@ -112,7 +112,7 @@ public class JavaSoundAudioSink implements AudioSink {
             System.out.println("JavaSound audio sink");
             initialized=true;
             chosenFormat = requestedFormat;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             initialized=false;
         }
         return true;
@@ -186,7 +186,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioFrame enqueueData(AudioDataFrame audioDataFrame) {
+    public AudioFrame enqueueData(final AudioDataFrame audioDataFrame) {
         int byteSize = audioDataFrame.getByteSize();
         final ByteBuffer byteBuffer = audioDataFrame.getData();
         final byte[] bytes = new byte[byteSize];
@@ -206,7 +206,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount) {
+    public AudioFrame enqueueData(final int pts, final ByteBuffer bytes, final int byteCount) {
         return enqueueData(new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), bytes, byteCount));
     }
 
@@ -224,7 +224,7 @@ public class JavaSoundAudioSink implements AudioSink {
     public int getQueuedTime() {
         return getQueuedTimeImpl( getQueuedByteCount() );
     }
-    private final int getQueuedTimeImpl(int byteCount) {
+    private final int getQueuedTimeImpl(final int byteCount) {
         final int bytesPerSample = chosenFormat.sampleSize >>> 3; // /8
         return byteCount / ( chosenFormat.channelCount * bytesPerSample * ( chosenFormat.sampleRate / 1000 ) );
     }

@@ -57,7 +57,7 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
    *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
    *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
    */
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle, int initialWidth, int initialHeight, boolean ownsDevice) {
+  public WrappedSurface(final AbstractGraphicsConfiguration cfg, final long handle, final int initialWidth, final int initialHeight, final boolean ownsDevice) {
       super(cfg, new UpstreamSurfaceHookMutableSize(initialWidth, initialHeight), ownsDevice);
       surfaceHandle=handle;
   }
@@ -70,7 +70,7 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
    *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
    *                  otherwise <code>false</code>.
    */
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle, UpstreamSurfaceHook upstream, boolean ownsDevice) {
+  public WrappedSurface(final AbstractGraphicsConfiguration cfg, final long handle, final UpstreamSurfaceHook upstream, final boolean ownsDevice) {
       super(cfg, upstream, ownsDevice);
       surfaceHandle=handle;
   }
@@ -88,7 +88,7 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
   }
 
   @Override
-  public final void setSurfaceHandle(long surfaceHandle) {
+  public final void setSurfaceHandle(final long surfaceHandle) {
     this.surfaceHandle=surfaceHandle;
   }
 

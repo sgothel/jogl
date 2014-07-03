@@ -60,7 +60,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
 
    MouseAdapter showKeyboardMouseListener = new MouseAdapter() {
         @Override
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
            if( e.getPointerCount() == 4 && e.getPressure(0, true) > 0.7f ) {
                ((com.jogamp.newt.Window) e.getSource()).setKeyboardVisible(true);
            }
@@ -68,10 +68,10 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
    };
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
 
-       String[] streamLocs = new String[] {
+       final String[] streamLocs = new String[] {
                System.getProperty("jnlp.media0_url0"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url2") };
@@ -104,11 +104,11 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
            final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
            mPlayer.addEventListener(new GLMediaEventListener() {
                 @Override
-                public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+                public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
                 }
 
                 @Override
-                public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                     System.err.println("MovieCubeActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                     System.err.println("MovieCubeActivity0 State: "+mp);
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
@@ -129,7 +129,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
                 }
             });
            demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
-       } catch (IOException e) {
+       } catch (final IOException e) {
            e.printStackTrace();
        }
 
@@ -138,7 +138,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
 
-   static URI getURI(String path[], int off, boolean checkAvail) {
+   static URI getURI(final String path[], final int off, final boolean checkAvail) {
        URI uri = null;
        for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
@@ -147,7 +147,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
                    if( null != uc ) {
                        try {
                            uri = uc.getURL().toURI();
-                       } catch (URISyntaxException e) {
+                       } catch (final URISyntaxException e) {
                            uri = null;
                        }
                        if( uc instanceof HttpURLConnection ) {
@@ -157,7 +157,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
                } else {
                    try {
                        uri = new URI(path[i]);
-                   } catch (URISyntaxException e) {
+                   } catch (final URISyntaxException e) {
                        uri = null;
                    }
                }

@@ -54,16 +54,16 @@ import javax.media.opengl.GLAutoDrawable;
 class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // For efficient rendering of Swing components, in particular when
     // they overlap one another
-    private List<JComponent> lightweights    = new ArrayList<JComponent>();
-    private Map<RepaintManager,RepaintManager> repaintManagers = new IdentityHashMap<RepaintManager,RepaintManager>();
-    private Map<JComponent,Rectangle>  dirtyRegions    = new IdentityHashMap<JComponent,Rectangle>();
+    private final List<JComponent> lightweights    = new ArrayList<JComponent>();
+    private final Map<RepaintManager,RepaintManager> repaintManagers = new IdentityHashMap<RepaintManager,RepaintManager>();
+    private final Map<JComponent,Rectangle>  dirtyRegions    = new IdentityHashMap<JComponent,Rectangle>();
 
     @Override
-    public void display(ArrayList<GLAutoDrawable> drawables,
-                        boolean ignoreExceptions,
-                        boolean printExceptions) {
+    public void display(final ArrayList<GLAutoDrawable> drawables,
+                        final boolean ignoreExceptions,
+                        final boolean printExceptions) {
         for (int i=0; i<drawables.size(); i++) {
-            GLAutoDrawable drawable = drawables.get(i);
+            final GLAutoDrawable drawable = drawables.get(i);
             if (drawable instanceof JComponent) {
                 // Lightweight components need a more efficient drawing
                 // scheme than simply forcing repainting of each one in
@@ -73,7 +73,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
             } else {
                 try {
                     drawable.display();
-                } catch (RuntimeException e) {
+                } catch (final RuntimeException e) {
                     if (ignoreExceptions) {
                         if (printExceptions) {
                             e.printStackTrace();
@@ -88,7 +88,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
         if (lightweights.size() > 0) {
             try {
                 SwingUtilities.invokeAndWait(drawWithRepaintManagerRunnable);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
             lightweights.clear();
@@ -97,10 +97,10 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
 
     // Uses RepaintManager APIs to implement more efficient redrawing of
     // the Swing widgets we're animating
-    private Runnable drawWithRepaintManagerRunnable = new Runnable() {
+    private final Runnable drawWithRepaintManagerRunnable = new Runnable() {
             @Override
             public void run() {
-                for (Iterator<JComponent> iter = lightweights.iterator(); iter.hasNext(); ) {
+                for (final Iterator<JComponent> iter = lightweights.iterator(); iter.hasNext(); ) {
                     JComponent comp = iter.next();
                     RepaintManager rm = RepaintManager.currentManager(comp);
                     rm.markCompletelyDirty(comp);
@@ -117,13 +117,13 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
 
                     // Walk up the hierarchy trying to find a non-optimizable
                     // ancestor
-                    Rectangle visible = comp.getVisibleRect();
+                    final Rectangle visible = comp.getVisibleRect();
                     int x = visible.x;
                     int y = visible.y;
                     while (comp != null) {
                         x += comp.getX();
                         y += comp.getY();
-                        Component c = comp.getParent();
+                        final Component c = comp.getParent();
                         if ((c == null) || (!(c instanceof JComponent))) {
                             comp = null;
                         } else {
@@ -132,7 +132,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
                                 rm = RepaintManager.currentManager(comp);
                                 repaintManagers.put(rm, rm);
                                 // Need to dirty this region
-                                Rectangle dirty = (Rectangle) dirtyRegions.get(comp);
+                                Rectangle dirty = dirtyRegions.get(comp);
                                 if (dirty == null) {
                                     dirty = new Rectangle(x, y, visible.width, visible.height);
                                     dirtyRegions.put(comp, dirty);
@@ -150,15 +150,15 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
                 }
 
                 // Dirty any needed regions on non-optimizable components
-                for (Iterator<JComponent> iter = dirtyRegions.keySet().iterator(); iter.hasNext(); ) {
-                    JComponent comp = iter.next();
-                    Rectangle  rect = dirtyRegions.get(comp);
-                    RepaintManager rm = RepaintManager.currentManager(comp);
+                for (final Iterator<JComponent> iter = dirtyRegions.keySet().iterator(); iter.hasNext(); ) {
+                    final JComponent comp = iter.next();
+                    final Rectangle  rect = dirtyRegions.get(comp);
+                    final RepaintManager rm = RepaintManager.currentManager(comp);
                     rm.addDirtyRegion(comp, rect.x, rect.y, rect.width, rect.height);
                 }
 
                 // Draw all dirty regions
-                for (Iterator<RepaintManager> iter = repaintManagers.keySet().iterator(); iter.hasNext(); ) {
+                for (final Iterator<RepaintManager> iter = repaintManagers.keySet().iterator(); iter.hasNext(); ) {
                     iter.next().paintDirtyRegions();
                 }
                 dirtyRegions.clear();
@@ -167,7 +167,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
         };
 
     @Override
-    public boolean blockUntilDone(Thread thread) {
+    public boolean blockUntilDone(final Thread thread) {
         return Thread.currentThread() != thread && !EventQueue.isDispatchThread();
     }
 }

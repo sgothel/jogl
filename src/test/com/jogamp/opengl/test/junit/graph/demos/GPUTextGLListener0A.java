@@ -28,6 +28,7 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
@@ -43,28 +44,28 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
         super(RenderState.createRenderState(SVertex.factory()), Region.VBAA_RENDERING_BIT, 4, true, false, false);
     }
 
-    public GPUTextGLListener0A(RenderState rs, int renderModes, int sampleCount, boolean blending, boolean debug, boolean trace) {
+    public GPUTextGLListener0A(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         super(rs, renderModes, sampleCount, blending, debug, trace);
     }
 
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
             attachInputListenerTo(glw);
         }
         super.init(drawable);
 
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final RenderState rs = getRenderer().getRenderState();
 
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_BLEND);
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
     }
 
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
             detachInputListenerFrom(glw);

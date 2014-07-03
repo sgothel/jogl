@@ -79,7 +79,7 @@ import jogamp.graph.font.typecast.ot.table.VheaTable;
  */
 public class OTFont {
 
-    private OTFontCollection _fc;
+    private final OTFontCollection _fc;
     private TableDirectory _tableDirectory = null;
     private Table[] _tables;
     private Os2Table _os2;
@@ -98,17 +98,17 @@ public class OTFont {
     /**
      * Constructor
      */
-    public OTFont(OTFontCollection fc) {
+    public OTFont(final OTFontCollection fc) {
         _fc = fc;
     }
-    public StringBuilder getName(int nameIndex, StringBuilder sb) {
+    public StringBuilder getName(final int nameIndex, StringBuilder sb) {
         if(null == sb) {
             sb = new StringBuilder();
         }
         return _name.getRecordsRecordString(sb, nameIndex);
     }
 
-    public StringBuilder getAllNames(StringBuilder sb, String separator) {
+    public StringBuilder getAllNames(StringBuilder sb, final String separator) {
         if(null != _name) {
             if(null == sb) {
                 sb = new StringBuilder();
@@ -120,7 +120,7 @@ public class OTFont {
         return sb;
     }
 
-    public Table getTable(int tableType) {
+    public Table getTable(final int tableType) {
         for (int i = 0; i < _tables.length; i++) {
             if ((_tables[i] != null) && (_tables[i].getType() == tableType)) {
                 return _tables[i];
@@ -185,7 +185,7 @@ public class OTFont {
         return _maxp.getNumGlyphs();
     }
 
-    public OTGlyph getGlyph(int i) {
+    public OTGlyph getGlyph(final int i) {
 
         final GlyfDescript _glyfDescr = _glyf.getDescription(i);
         return (null != _glyfDescr)
@@ -201,11 +201,11 @@ public class OTFont {
     }
 
     private Table readTable(
-            DataInputStream dis,
-            int tablesOrigin,
-            int tag) throws IOException {
+            final DataInputStream dis,
+            final int tablesOrigin,
+            final int tag) throws IOException {
         dis.reset();
-        DirectoryEntry entry = _tableDirectory.getEntryByTag(tag);
+        final DirectoryEntry entry = _tableDirectory.getEntryByTag(tag);
         if (entry == null) {
             return null;
         }
@@ -225,9 +225,9 @@ public class OTFont {
      * individual font resource data.
      */
     protected void read(
-            DataInputStream dis,
-            int directoryOffset,
-            int tablesOrigin) throws IOException {
+            final DataInputStream dis,
+            final int directoryOffset,
+            final int tablesOrigin) throws IOException {
 
         // Load the table directory
         dis.reset();
@@ -255,7 +255,7 @@ public class OTFont {
 
         // Load all other tables
         for (int i = 0; i < _tableDirectory.getNumTables(); i++) {
-            DirectoryEntry entry = _tableDirectory.getEntry(i);
+            final DirectoryEntry entry = _tableDirectory.getEntry(i);
             if (entry.getTag() == Table.head
                     || entry.getTag() == Table.hhea
                     || entry.getTag() == Table.maxp

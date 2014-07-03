@@ -53,9 +53,12 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ToolkitLock;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.NWJNILibLoader;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -105,16 +108,16 @@ public class JAWTUtil {
    * Returns true if this platform's JAWT implementation supports offscreen layer.
    */
   public static boolean isOffscreenLayerSupported() {
-    return Platform.OS_TYPE == Platform.OSType.MACOS &&
-           Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;
+    return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS &&
+           PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;
   }
 
   /**
    * Returns true if this platform's JAWT implementation requires using offscreen layer.
    */
   public static boolean isOffscreenLayerRequired() {
-    return Platform.OS_TYPE == Platform.OSType.MACOS &&
-           Platform.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
+    return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS &&
+           PlatformPropsImpl.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
   }
 
   /**
@@ -218,14 +221,14 @@ public class JAWTUtil {
    */
   public static int getOSXCALayerQuirks() {
     int res = 0;
-    if( Platform.OS_TYPE == Platform.OSType.MACOS &&
-        Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0 ) {
+    if( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS &&
+        PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0 ) {
 
         /** Knowing impl. all expose the SIZE bug */
         res |= JAWT_OSX_CALAYER_QUIRK_SIZE;
 
-        final int c = Platform.JAVA_VERSION_NUMBER.compareTo(Platform.Version17);
-        if( c < 0 || c == 0 && Platform.JAVA_VERSION_UPDATE < 40 ) {
+        final int c = PlatformPropsImpl.JAVA_VERSION_NUMBER.compareTo(PlatformPropsImpl.Version17);
+        if( c < 0 || c == 0 && PlatformPropsImpl.JAVA_VERSION_UPDATE < 40 ) {
             res |= JAWT_OSX_CALAYER_QUIRK_POSITION;
         } else {
             res |= JAWT_OSX_CALAYER_QUIRK_LAYOUT;
@@ -238,9 +241,9 @@ public class JAWTUtil {
    * @param useOffscreenLayerIfAvailable
    * @return
    */
-  public static JAWT getJAWT(boolean useOffscreenLayerIfAvailable) {
+  public static JAWT getJAWT(final boolean useOffscreenLayerIfAvailable) {
     final int jawt_version_flags = JAWTFactory.JAWT_VERSION_1_4;
-    JAWT jawt = JAWT.create();
+    final JAWT jawt = JAWT.create();
 
     // default queries
     boolean tryOffscreenLayer;
@@ -248,24 +251,24 @@ public class JAWTUtil {
     int jawt_version_flags_offscreen = jawt_version_flags;
 
     if(isOffscreenLayerRequired()) {
-        if(Platform.OS_TYPE == Platform.OSType.MACOS) {
-            if(Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0) {
+        if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
+            if(PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0) {
                 jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
                 tryOffscreenLayer = true;
                 tryOnscreen = false;
             } else {
-                throw new RuntimeException("OSX: Invalid version of Java ("+Platform.JAVA_VERSION_NUMBER+") / OS X ("+Platform.OS_VERSION_NUMBER+")");
+                throw new RuntimeException("OSX: Invalid version of Java ("+PlatformPropsImpl.JAVA_VERSION_NUMBER+") / OS X ("+PlatformPropsImpl.OS_VERSION_NUMBER+")");
             }
         } else {
-            throw new InternalError("offscreen required, but n/a for: "+Platform.OS_TYPE);
+            throw new InternalError("offscreen required, but n/a for: "+PlatformPropsImpl.OS_TYPE);
         }
     } else if(useOffscreenLayerIfAvailable && isOffscreenLayerSupported()) {
-        if(Platform.OS_TYPE == Platform.OSType.MACOS) {
+        if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
             jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
             tryOffscreenLayer = true;
             tryOnscreen = true;
         } else {
-            throw new InternalError("offscreen requested and supported, but n/a for: "+Platform.OS_TYPE);
+            throw new InternalError("offscreen requested and supported, but n/a for: "+PlatformPropsImpl.OS_TYPE);
         }
     } else {
         tryOffscreenLayer = false;
@@ -275,7 +278,7 @@ public class JAWTUtil {
         System.err.println("JAWTUtil.getJAWT(tryOffscreenLayer "+tryOffscreenLayer+", tryOnscreen "+tryOnscreen+")");
     }
 
-    StringBuilder errsb = new StringBuilder();
+    final StringBuilder errsb = new StringBuilder();
     if(tryOffscreenLayer) {
         errsb.append("Offscreen 0x").append(Integer.toHexString(jawt_version_flags_offscreen));
         if( JAWT.getJAWT(jawt, jawt_version_flags_offscreen) ) {
@@ -294,12 +297,12 @@ public class JAWTUtil {
     throw new RuntimeException("Unable to initialize JAWT, trials: "+errsb.toString());
   }
 
-  public static boolean isJAWTUsingOffscreenLayer(JAWT jawt) {
+  public static boolean isJAWTUsingOffscreenLayer(final JAWT jawt) {
       return 0 != ( jawt.getCachedVersion() & JAWTUtil.JAWT_MACOSX_USE_CALAYER );
   }
 
   static {
-    SKIP_AWT_HIDPI = Debug.isPropertyDefined("nativewindow.awt.nohidpi", true);
+    SKIP_AWT_HIDPI = PropertyAccess.isPropertyDefined("nativewindow.awt.nohidpi", true);
 
     if(DEBUG) {
         System.err.println("JAWTUtil initialization (JAWT/JNI/...); SKIP_AWT_HIDPI "+SKIP_AWT_HIDPI);
@@ -321,7 +324,7 @@ public class JAWTUtil {
     } else {
         // Non-headless case
         JAWTJNILibLoader.initSingleton(); // load libjawt.so
-        if(!JAWTJNILibLoader.loadNativeWindow("awt")) { // load libnativewindow_awt.so
+        if(!NWJNILibLoader.loadNativeWindow("awt")) { // load libnativewindow_awt.so
             throw new NativeWindowException("NativeWindow AWT native library load error.");
         }
         jawtLockObject = getJAWT(false); // don't care for offscreen layer here
@@ -333,15 +336,15 @@ public class JAWTUtil {
             java2DClass = Class.forName("jogamp.opengl.awt.Java2D");
             isQueueFlusherThreadTmp = java2DClass.getMethod("isQueueFlusherThread", (Class[])null);
             j2dExistTmp = true;
-        } catch (Exception e) {
+        } catch (final Exception e) {
         }
         isQueueFlusherThread = isQueueFlusherThreadTmp;
         j2dExist = j2dExistTmp;
 
-        PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        final PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
-                PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
+                final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
                 try {
                     final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
                     d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
@@ -349,14 +352,14 @@ public class JAWTUtil {
                     d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
                     d.sunToolkitAWTUnlockMethod.setAccessible(true);
                     d.ok=true;
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
                 }
                 try {
-                    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+                    final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
                     d.getScaleFactorMethod = gd.getClass().getDeclaredMethod("getScaleFactor");
                     d.getScaleFactorMethod.setAccessible(true);
-                } catch (Throwable t) {}
+                } catch (final Throwable t) {}
                 return d;
             }
         });
@@ -370,7 +373,7 @@ public class JAWTUtil {
                 sunToolkitAWTLockMethod.invoke(null, (Object[])null);
                 sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
                 _hasSunToolkitAWTLock = true;
-            } catch (Exception e) {
+            } catch (final Exception e) {
             }
         }
         hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
@@ -412,7 +415,7 @@ public class JAWTUtil {
             EventQueue.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    Map<?,?> _desktophints = (Map<?,?>)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));
+                    final Map<?,?> _desktophints = (Map<?,?>)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));
                     if(null!=_desktophints) {
                         desktophintsBucket.add(_desktophints);
                     }
@@ -420,9 +423,9 @@ public class JAWTUtil {
             });
             desktophints = ( desktophintsBucket.size() > 0 ) ? desktophintsBucket.get(0) : null ;
         }
-    } catch (InterruptedException ex) {
+    } catch (final InterruptedException ex) {
         ex.printStackTrace();
-    } catch (InvocationTargetException ex) {
+    } catch (final InvocationTargetException ex) {
         ex.printStackTrace();
     }
 
@@ -430,7 +433,7 @@ public class JAWTUtil {
         System.err.println("JAWTUtil: Has sun.awt.SunToolkit.awtLock/awtUnlock " + hasSunToolkitAWTLock);
         System.err.println("JAWTUtil: Has Java2D " + j2dExist);
         System.err.println("JAWTUtil: Is headless " + headlessMode);
-        int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
+        final int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
         System.err.println("JAWTUtil: AWT Desktop hints " + hints);
         System.err.println("JAWTUtil: OffscreenLayer Supported: "+isOffscreenLayerSupported()+" - Required "+isOffscreenLayerRequired());
     }
@@ -458,7 +461,7 @@ public class JAWTUtil {
     if(j2dExist) {
         try {
             b = ((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue();
-        } catch (Exception e) {}
+        } catch (final Exception e) {}
     }
     return b;
   }
@@ -484,7 +487,7 @@ public class JAWTUtil {
             if(hasSunToolkitAWTLock) {
                 try {
                     sunToolkitAWTLockMethod.invoke(null, (Object[])null);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                   throw new NativeWindowException("SunToolkit.awtLock failed", e);
                 }
             } else {
@@ -513,7 +516,7 @@ public class JAWTUtil {
             if(hasSunToolkitAWTLock) {
                 try {
                     sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                   throw new NativeWindowException("SunToolkit.awtUnlock failed", e);
                 }
             } else {
@@ -552,7 +555,7 @@ public class JAWTUtil {
                   if (res instanceof Integer) {
                       return ((Integer)res).intValue();
                   }
-              } catch (Throwable t) {}
+              } catch (final Throwable t) {}
           }
       }
       return 1;

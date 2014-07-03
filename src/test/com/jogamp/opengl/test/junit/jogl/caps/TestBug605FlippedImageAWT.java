@@ -39,6 +39,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.opengl.util.awt.Screenshot;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -55,15 +56,15 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug605FlippedImageAWT extends UITestCase {
     class FlippedImageTest implements GLEventListener {
-        public void display(GLAutoDrawable drawable) {
-            GL2 gl = drawable.getGL().getGL2();
+        public void display(final GLAutoDrawable drawable) {
+            final GL2 gl = drawable.getGL().getGL2();
 
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT | GL2.GL_ACCUM_BUFFER_BIT );
 
-            gl.glMatrixMode(GL2.GL_PROJECTION);
+            gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             gl.glLoadIdentity();
-            gl.glMatrixMode(GL2.GL_MODELVIEW);
+            gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             gl.glLoadIdentity();
 
             // red below
@@ -88,28 +89,28 @@ public class TestBug605FlippedImageAWT extends UITestCase {
             final String fname = getSnapshotFilename(0, null, caps, width, height, false, TextureIO.PNG, null);
             try {
                 Screenshot.writeToFile(new File(fname), width, height, false);
-            } catch (GLException e) {
+            } catch (final GLException e) {
                 throw e;
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new GLException(e);
             }
             testFlipped(width, height);
         }
 
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();
             System.err.println("GL_RENDERER: "+gl.glGetString(GL.GL_RENDERER));
             System.err.println("GL_VERSION: "+gl.glGetString(GL.GL_VERSION));
         }
-        public void reshape(GLAutoDrawable glDrawable, int x, int y, int w, int h) {}
-        public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {}
-        public void dispose(GLAutoDrawable drawable) {}
+        public void reshape(final GLAutoDrawable glDrawable, final int x, final int y, final int w, final int h) {}
+        public void displayChanged(final GLAutoDrawable drawable, final boolean modeChanged, final boolean deviceChanged) {}
+        public void dispose(final GLAutoDrawable drawable) {}
     }
 
     static final int green = 0x0000ff00; // above
     static final int red   = 0x00ff0000; // below
 
-    private void testFlipped(int width, int height) {
+    private void testFlipped(final int width, final int height) {
         // Default origin 0/0 is lower left corner, so is the memory layout
         // However AWT origin 0/0 is upper left corner
         final BufferedImage image = Screenshot.readToBufferedImage(width, height);
@@ -129,7 +130,7 @@ public class TestBug605FlippedImageAWT extends UITestCase {
         }
     }
 
-    private void test(GLCapabilitiesImmutable caps) {
+    private void test(final GLCapabilitiesImmutable caps) {
 
         final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLAutoDrawable glad = glFactory.createOffscreenAutoDrawable(null, caps, null, 256, 256);
@@ -181,7 +182,7 @@ public class TestBug605FlippedImageAWT extends UITestCase {
         test(caps);
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         org.junit.runner.JUnitCore.main(TestBug605FlippedImageAWT.class.getName());
     }
 }

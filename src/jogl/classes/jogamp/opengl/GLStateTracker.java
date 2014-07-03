@@ -78,7 +78,7 @@ public class GLStateTracker {
     /**
      * set (client) pixel-store state, deep copy
      */
-    private final void setPixelStateMap(IntIntHashMap pixelStateMap) {
+    private final void setPixelStateMap(final IntIntHashMap pixelStateMap) {
         this.pixelStateMap = (IntIntHashMap) pixelStateMap.clone();
     }
 
@@ -102,7 +102,7 @@ public class GLStateTracker {
     pixelStateMap.clear();
   }
 
-  public final void setEnabled(boolean on) {
+  public final void setEnabled(final boolean on) {
     enabled = on;
   }
 

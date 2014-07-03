@@ -68,7 +68,7 @@ public abstract class MonitorDevice {
     protected Rectangle viewportPU; // in pixel units
     protected Rectangle viewportWU; // in window units
 
-    protected MonitorDevice(Screen screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewportPU, Rectangle viewportWU, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
+    protected MonitorDevice(final Screen screen, final int nativeId, final DimensionImmutable sizeMM, final Rectangle viewportPU, final Rectangle viewportWU, final MonitorMode currentMode, final ArrayHashSet<MonitorMode> supportedModes) {
         this.screen = screen;
         this.nativeId = nativeId;
         this.sizeMM = sizeMM;
@@ -94,10 +94,10 @@ public abstract class MonitorDevice {
      * <br>
      */
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorDevice) {
-            MonitorDevice md = (MonitorDevice)obj;
+            final MonitorDevice md = (MonitorDevice)obj;
             return md.nativeId == nativeId;
         }
         return false;

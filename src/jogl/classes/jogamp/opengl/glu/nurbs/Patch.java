@@ -48,7 +48,7 @@ public class Patch {
    * @param ptb
    * @param patch
    */
-  public Patch(Quilt q, float[] pta, float[] ptb, Patch patch) {
+  public Patch(final Quilt q, final float[] pta, final float[] ptb, final Patch patch) {
     //            System.out.println("TODO patch.constructor");
   }
 }

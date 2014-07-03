@@ -82,7 +82,7 @@ public class TestPixelFormatUtil01NEWT extends UITestCase {
     {
         System.err.println("Test01: "+pathname+basename+".png, srcFmt "+srcFmt+", destMinStrideInBytes "+destMinStrideInBytes+", destIsGLOriented "+destIsGLOriented);
 
-        URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
+        final URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
 
         final PNGPixelRect image1 = PNGPixelRect.read(urlConn.getInputStream(), srcFmt, false /* directBuffer */, destMinStrideInBytes, false /* isGLOriented */);
         System.err.println("PNGPixelRect - Orig: "+image1);
@@ -99,7 +99,7 @@ public class TestPixelFormatUtil01NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPixelFormatUtil01NEWT.class.getName());
     }
 }

@@ -171,7 +171,7 @@ public class GLPixelStorageModes {
      */
     public final void resetPack(final GL gl) {
         // Compared w/ ES2, ES3 and GL3-core spec
-        gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT, 4);                        // es2, es3, gl3
+        gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 4);                        // es2, es3, gl3
         if( gl.isGL2ES3() ) {
             gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, 0);                   // es3, gl3
             gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, 0);                    // es3, gl3
@@ -202,7 +202,7 @@ public class GLPixelStorageModes {
             gl.getGL2().glPushClientAttrib(GL2.GL_CLIENT_PIXEL_STORE_BIT);
         } else {
             // ES1 or ES2 deals with pack/unpack alignment only
-            gl.glGetIntegerv(GL2ES2.GL_PACK_ALIGNMENT,   cachePack, 0);
+            gl.glGetIntegerv(GL.GL_PACK_ALIGNMENT,   cachePack, 0);
             if( gl.isGL2ES3() ) {
                 gl.glGetIntegerv(GL2ES3.GL_PACK_ROW_LENGTH,     cachePack, 1);
                 gl.glGetIntegerv(GL2ES3.GL_PACK_SKIP_ROWS,      cachePack, 2);
@@ -222,7 +222,7 @@ public class GLPixelStorageModes {
         if( gl.isGL2() ) {
             gl.getGL2().glPopClientAttrib();
         } else {
-            gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT, cachePack[0]);
+            gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, cachePack[0]);
             if( gl.isGL2ES3() ) {
                 gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, cachePack[1]);
                 gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, cachePack[2]);
@@ -242,7 +242,7 @@ public class GLPixelStorageModes {
      */
     public final void resetUnpack(final GL gl) {
         // Compared w/ ES2, ES3 and GL3-core spec
-        gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, 4);                      // es2, es3, gl3
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);                      // es2, es3, gl3
         if( gl.isGL2ES3() ) {
             gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, 0);                 // es3, gl3
             gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, 0);                  // es3, gl3
@@ -273,7 +273,7 @@ public class GLPixelStorageModes {
             gl.getGL2().glPushClientAttrib(GL2.GL_CLIENT_PIXEL_STORE_BIT);
         } else {
             // ES1 or ES2 deals with pack/unpack alignment only
-            gl.glGetIntegerv(GL2ES2.GL_UNPACK_ALIGNMENT, cacheUnpack, 0);
+            gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, cacheUnpack, 0);
             if( gl.isGL2ES3() ) {
                 gl.glGetIntegerv(GL2ES2.GL_UNPACK_ROW_LENGTH,   cacheUnpack, 1);
                 gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_ROWS,    cacheUnpack, 2);
@@ -293,7 +293,7 @@ public class GLPixelStorageModes {
         if( gl.isGL2() ) {
             gl.getGL2().glPopClientAttrib();
         } else {
-            gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, cacheUnpack[0]);
+            gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, cacheUnpack[0]);
             if( gl.isGL2ES3() ) {
                 gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, cacheUnpack[1]);
                 gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, cacheUnpack[2]);

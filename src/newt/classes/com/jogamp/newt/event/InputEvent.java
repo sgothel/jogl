@@ -176,7 +176,7 @@ public abstract class InputEvent extends NEWTEvent
   * @param button the button to test
   * @return true if the given button is down
   */
- public final boolean isButtonDown(int button)  {
+ public final boolean isButtonDown(final int button)  {
     return ( modifiers & getButtonMask(button) ) != 0;
  }
 

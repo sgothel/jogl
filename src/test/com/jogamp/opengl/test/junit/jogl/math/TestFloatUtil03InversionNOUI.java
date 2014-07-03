@@ -96,7 +96,7 @@ public class TestFloatUtil03InversionNOUI {
 
     @Test
     public void test02(){
-        float[] p = new float[] { 2.3464675f, 0,          0,        0,
+        final float[] p = new float[] { 2.3464675f, 0,          0,        0,
                                   0,          2.4142134f, 0,        0,
                                   0,          0,         -1.0002f, -1,
                                   0,          0,        -20.002f,   0 };
@@ -105,7 +105,7 @@ public class TestFloatUtil03InversionNOUI {
 
     @Test
     public void test03(){
-        float[] mv = new float[] { 1, 0,    0, 0,
+        final float[] mv = new float[] { 1, 0,    0, 0,
                                    0, 1,    0, 0,
                                    0, 0,    1, 0,
                                    0, 0, -200, 1 } ;
@@ -114,7 +114,7 @@ public class TestFloatUtil03InversionNOUI {
 
     @Test
     public void test04(){
-        float[] p = new float[] { 2.3464675f, 0,          0,        0,
+        final float[] p = new float[] { 2.3464675f, 0,          0,        0,
                                   0,          2.4142134f, 0,        0,
                                   0,          0,         -1.0002f, -1,
                                   0,          0,        -20.002f,   0 };
@@ -124,12 +124,12 @@ public class TestFloatUtil03InversionNOUI {
 
     @Test
     public void test05Perf(){
-        float[] p1 = new float[] { 2.3464675f, 0,          0,        0,
+        final float[] p1 = new float[] { 2.3464675f, 0,          0,        0,
                                    0,          2.4142134f, 0,        0,
                                    0,          0,         -1.0002f, -1,
                                    0,          0,        -20.002f,   0 };
 
-        float[] p2 = new float[]{   26,   59,  143,   71,
+        final float[] p2 = new float[]{   26,   59,  143,   71,
                                     59,  174,  730,  386,
                                    143,  730, 9770, 5370,
                                     71,  386, 5370, 2954 };
@@ -256,7 +256,7 @@ public class TestFloatUtil03InversionNOUI {
         return mres;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestFloatUtil03InversionNOUI.class.getName());
     }
 }

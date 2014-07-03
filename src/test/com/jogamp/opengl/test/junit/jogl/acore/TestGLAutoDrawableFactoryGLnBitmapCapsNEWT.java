@@ -64,7 +64,7 @@ public class TestGLAutoDrawableFactoryGLnBitmapCapsNEWT extends UITestCase {
     static final int heightStep = 600/4;
     volatile int szStep = 2;
 
-    void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
         final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, null);
@@ -178,7 +178,7 @@ public class TestGLAutoDrawableFactoryGLnBitmapCapsNEWT extends UITestCase {
         doTest(reqGLCaps, new Gears(1));
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableFactoryGLnBitmapCapsNEWT.class.getName());
     }
 

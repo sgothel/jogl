@@ -39,15 +39,15 @@ import jogamp.newt.awt.event.AWTNewtEventFactory;
  */
 public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListener
 {
-    public AWTKeyAdapter(com.jogamp.newt.event.KeyListener newtListener, NativeSurfaceHolder nsProxy) {
+    public AWTKeyAdapter(final com.jogamp.newt.event.KeyListener newtListener, final NativeSurfaceHolder nsProxy) {
         super(newtListener, nsProxy);
     }
 
-    public AWTKeyAdapter(com.jogamp.newt.event.KeyListener newtListener, com.jogamp.newt.Window newtProxy) {
+    public AWTKeyAdapter(final com.jogamp.newt.event.KeyListener newtListener, final com.jogamp.newt.Window newtProxy) {
         super(newtListener, newtProxy);
     }
 
-    public AWTKeyAdapter(com.jogamp.newt.Window downstream) {
+    public AWTKeyAdapter(final com.jogamp.newt.Window downstream) {
         super(downstream);
     }
 
@@ -56,19 +56,19 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
     }
 
     @Override
-    public synchronized AWTAdapter addTo(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter addTo(final java.awt.Component awtComponent) {
         awtComponent.addKeyListener(this);
         return this;
     }
 
     @Override
-    public synchronized AWTAdapter removeFrom(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter removeFrom(final java.awt.Component awtComponent) {
         awtComponent.removeKeyListener(this);
         return this;
     }
 
     @Override
-    public synchronized void keyPressed(java.awt.event.KeyEvent e) {
+    public synchronized void keyPressed(final java.awt.event.KeyEvent e) {
         if( !isSetup ) { return; }
         final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, e, nsHolder);
         if( consumeAWTEvent ) {
@@ -80,7 +80,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
     }
 
     @Override
-    public synchronized void keyReleased(java.awt.event.KeyEvent e) {
+    public synchronized void keyReleased(final java.awt.event.KeyEvent e) {
         if( !isSetup ) { return; }
         final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, e, nsHolder);
         if( consumeAWTEvent ) {
@@ -92,7 +92,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
     }
 
     @Override
-    public synchronized void keyTyped(java.awt.event.KeyEvent e) {
+    public synchronized void keyTyped(final java.awt.event.KeyEvent e) {
         if( !isSetup ) { return; }
         if( consumeAWTEvent ) {
             e.consume();

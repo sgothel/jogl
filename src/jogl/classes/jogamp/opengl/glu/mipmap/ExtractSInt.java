@@ -57,7 +57,7 @@ public class ExtractSInt implements ExtractPrimitive {
   }
 
   @Override
-  public double extract( boolean isSwap, ByteBuffer uint ) {
+  public double extract( final boolean isSwap, final ByteBuffer uint ) {
     int i = 0;
     if( isSwap ) {
       i = Mipmap.GLU_SWAP_4_BYTES( uint.getInt() );
@@ -69,9 +69,9 @@ public class ExtractSInt implements ExtractPrimitive {
   }
 
   @Override
-  public void shove( double value, int index, ByteBuffer data ) {
+  public void shove( final double value, final int index, final ByteBuffer data ) {
     assert(0.0 <= value && value < Integer.MAX_VALUE);
-    IntBuffer ib = data.asIntBuffer();
+    final IntBuffer ib = data.asIntBuffer();
     ib.position( index );
     ib.put( (int)value );
   }

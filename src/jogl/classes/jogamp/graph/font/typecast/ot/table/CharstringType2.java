@@ -106,24 +106,24 @@ public class CharstringType2 extends Charstring {
         "-Reserved-"
     };
 
-    private int _index;
-    private String _name;
-    private int[] _data;
-    private int _offset;
-    private int _length;
-    private CffTable.Index _localSubrIndex;
-    private CffTable.Index _globalSubrIndex;
+    private final int _index;
+    private final String _name;
+    private final int[] _data;
+    private final int _offset;
+    private final int _length;
+    private final CffTable.Index _localSubrIndex;
+    private final CffTable.Index _globalSubrIndex;
     private int _ip;
 
     /** Creates a new instance of CharstringType2 */
     protected CharstringType2(
-            int index,
-            String name,
-            int[] data,
-            int offset,
-            int length,
-            CffTable.Index localSubrIndex,
-            CffTable.Index globalSubrIndex) {
+            final int index,
+            final String name,
+            final int[] data,
+            final int offset,
+            final int length,
+            final CffTable.Index localSubrIndex,
+            final CffTable.Index globalSubrIndex) {
         _index = index;
         _name = name;
         _data = data;
@@ -143,7 +143,7 @@ public class CharstringType2 extends Charstring {
         return _name;
     }
 
-    private void disassemble(StringBuilder sb) {
+    private void disassemble(final StringBuilder sb) {
         Number operand = null;
         while (isOperandAtIndex()) {
             operand = nextOperand();
@@ -170,7 +170,7 @@ public class CharstringType2 extends Charstring {
     }
 
     public boolean isOperandAtIndex() {
-        int b0 = _data[_ip];
+        final int b0 = _data[_ip];
         if ((32 <= b0 && b0 <= 255) || b0 == 28) {
             return true;
         }
@@ -178,7 +178,7 @@ public class CharstringType2 extends Charstring {
     }
 
     public Number nextOperand() {
-        int b0 = _data[_ip];
+        final int b0 = _data[_ip];
         if (32 <= b0 && b0 <= 246) {
 
             // 1 byte integer
@@ -187,29 +187,29 @@ public class CharstringType2 extends Charstring {
         } else if (247 <= b0 && b0 <= 250) {
 
             // 2 byte integer
-            int b1 = _data[_ip + 1];
+            final int b1 = _data[_ip + 1];
             _ip += 2;
             return new Integer((b0 - 247) * 256 + b1 + 108);
         } else if (251 <= b0 && b0 <= 254) {
 
             // 2 byte integer
-            int b1 = _data[_ip + 1];
+            final int b1 = _data[_ip + 1];
             _ip += 2;
             return new Integer(-(b0 - 251) * 256 - b1 - 108);
         } else if (b0 == 28) {
 
             // 3 byte integer
-            int b1 = _data[_ip + 1];
-            int b2 = _data[_ip + 2];
+            final int b1 = _data[_ip + 1];
+            final int b2 = _data[_ip + 2];
             _ip += 3;
             return new Integer(b1 << 8 | b2);
         } else if (b0 == 255) {
 
             // 16-bit signed integer with 16 bits of fraction
-            int b1 = (byte) _data[_ip + 1];
-            int b2 = _data[_ip + 2];
-            int b3 = _data[_ip + 3];
-            int b4 = _data[_ip + 4];
+            final int b1 = (byte) _data[_ip + 1];
+            final int b2 = _data[_ip + 2];
+            final int b3 = _data[_ip + 3];
+            final int b4 = _data[_ip + 4];
             _ip += 5;
             return new Float((b1 << 8 | b2) + ((b3 << 8 | b4) / 65536.0));
         } else {
@@ -227,7 +227,7 @@ public class CharstringType2 extends Charstring {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         resetIP();
         while (moreBytes()) {
             disassemble(sb);

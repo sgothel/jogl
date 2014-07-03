@@ -127,11 +127,11 @@ public class TestScreenMode01dNEWT extends UITestCase {
         System.err.println("*** cleanupGL.DONE");
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static GLWindow createWindow(final Screen screen, final GLCapabilities caps, final int width, final int height, final boolean onscreen, final boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
 
-        GLWindow window = GLWindow.create(screen, caps);
+        final GLWindow window = GLWindow.create(screen, caps);
         window.setSize(width, height);
         window.addGLEventListener(new GearsES2());
         Assert.assertNotNull(window);
@@ -139,7 +139,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window) throws InterruptedException {
+    static void destroyWindow(final Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
             Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
@@ -149,15 +149,15 @@ public class TestScreenMode01dNEWT extends UITestCase {
     @Test
     public void test01FullscreenChange01() throws InterruptedException {
         Thread.sleep(waitTimeShort);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
+        final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
-        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Animator animator = new Animator(window);
+        final GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        final Animator animator = new Animator(window);
         animator.start();
 
         final MonitorDevice monitor = window.getMainMonitor();
@@ -200,13 +200,13 @@ public class TestScreenMode01dNEWT extends UITestCase {
     public void test02ScreenModeChange01() throws InterruptedException {
         Thread.sleep(waitTimeShort);
 
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
+        final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        final GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window);
 
         final RectangleImmutable winRect = window.getBounds();
@@ -221,12 +221,12 @@ public class TestScreenMode01dNEWT extends UITestCase {
             return;
         }
 
-        Animator animator = new Animator(window);
+        final Animator animator = new Animator(window);
         animator.start();
 
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         Assert.assertNotNull(mmCurrent);
-        MonitorMode mmOrig = monitor.getOriginalMode();
+        final MonitorMode mmOrig = monitor.getOriginalMode();
         Assert.assertNotNull(mmOrig);
         System.err.println("[0] orig   : "+mmOrig);
         System.err.println("[0] current: "+mmCurrent);
@@ -251,7 +251,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
 
         // set mode
         {
-            MonitorMode sm = monitorModes.get(0);
+            final MonitorMode sm = monitorModes.get(0);
             System.err.println("[0] set current: "+sm);
             final boolean smOk = monitor.setCurrentMode(sm);
             mmCurrent = monitor.getCurrentMode();
@@ -299,19 +299,19 @@ public class TestScreenMode01dNEWT extends UITestCase {
         testScreenModeChangeWithFS01Impl(true) ;
     }
 
-    protected void testScreenModeChangeWithFS01Impl(boolean preFS) throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Animator animator = new Animator(window);
+    protected void testScreenModeChangeWithFS01Impl(final boolean preFS) throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        final Display display = NewtFactory.createDisplay(null); // local display
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        final Animator animator = new Animator(window);
         animator.start();
 
         final RectangleImmutable winRect = window.getBounds();
         final MonitorDevice monitor = screen.getMainMonitor(winRect);
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         Assert.assertNotNull(mmCurrent);
-        MonitorMode mmOrig = monitor.getOriginalMode();
+        final MonitorMode mmOrig = monitor.getOriginalMode();
         Assert.assertNotNull(mmOrig);
         System.err.println("[0] orig   : "+mmOrig);
         System.err.println("[0] current: "+mmCurrent);
@@ -330,7 +330,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
-        MonitorMode monitorMode = monitorModes.get(0);
+        final MonitorMode monitorMode = monitorModes.get(0);
         Assert.assertNotNull(monitorMode);
 
         if(preFS) {
@@ -418,8 +418,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestScreenMode01dNEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestScreenMode01dNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

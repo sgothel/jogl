@@ -100,7 +100,7 @@ public class CDTriangulator2D implements Triangulator {
     }
 
     @Override
-    public final void generate(List<Triangle> sink) {
+    public final void generate(final List<Triangle> sink) {
         final int loopsSize = loops.size();
         for(int i=0;i<loopsSize;i++) {
             final Loop loop = loops.get(i);
@@ -219,7 +219,7 @@ public class CDTriangulator2D implements Triangulator {
         return innerOutline;
     }
 
-    private Loop getContainerLoop(Outline polyline) {
+    private Loop getContainerLoop(final Outline polyline) {
         final ArrayList<Vertex> vertices = polyline.getVertices();
         for(int i=0; i < loops.size(); i++) {
             final Loop loop = loops.get(i);

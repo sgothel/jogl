@@ -18,7 +18,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 	private int red, green, blue;
 	private int paletteIndex;
 
-	public PngChunkBKGD(ImageInfo info) {
+	public PngChunkBKGD(final ImageInfo info) {
 		super(ChunkHelper.bKGD, info);
 	}
 
@@ -46,11 +46,11 @@ public class PngChunkBKGD extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (imgInfo.greyscale) {
 			gray = PngHelperInternal.readInt2fromBytes(c.data, 0);
 		} else if (imgInfo.indexed) {
-			paletteIndex = (int) (c.data[0] & 0xff);
+			paletteIndex = c.data[0] & 0xff;
 		} else {
 			red = PngHelperInternal.readInt2fromBytes(c.data, 0);
 			green = PngHelperInternal.readInt2fromBytes(c.data, 2);
@@ -59,8 +59,8 @@ public class PngChunkBKGD extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkBKGD otherx = (PngChunkBKGD) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkBKGD otherx = (PngChunkBKGD) other;
 		gray = otherx.gray;
 		red = otherx.red;
 		green = otherx.red;
@@ -73,7 +73,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 	 *
 	 * @param gray
 	 */
-	public void setGray(int gray) {
+	public void setGray(final int gray) {
 		if (!imgInfo.greyscale)
 			throw new PngjException("only gray images support this");
 		this.gray = gray;
@@ -89,7 +89,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 	 * Set pallette index
 	 *
 	 */
-	public void setPaletteIndex(int i) {
+	public void setPaletteIndex(final int i) {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed (pallete) images support this");
 		this.paletteIndex = i;
@@ -105,7 +105,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 	 * Set rgb values
 	 *
 	 */
-	public void setRGB(int r, int g, int b) {
+	public void setRGB(final int r, final int g, final int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)
 			throw new PngjException("only rgb or rgba images support this");
 		red = r;

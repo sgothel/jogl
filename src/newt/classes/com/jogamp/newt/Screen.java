@@ -71,10 +71,10 @@ public abstract class Screen {
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Screen) {
-            Screen s = (Screen)obj;
+            final Screen s = (Screen)obj;
             return s.getFQName().equals(getFQName());
         }
         return false;
@@ -268,7 +268,7 @@ public abstract class Screen {
      * @param fromIndex start index, then increasing until found or end of list     *
      * @return
      */
-    public static Screen getFirstScreenOf(Display display, int idx, int fromIndex) {
+    public static Screen getFirstScreenOf(final Display display, final int idx, final int fromIndex) {
         return getScreenOfImpl(display, idx, fromIndex, 1);
     }
 
@@ -279,11 +279,11 @@ public abstract class Screen {
      * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
      * @return
      */
-    public static Screen getLastScreenOf(Display display, int idx, int fromIndex) {
+    public static Screen getLastScreenOf(final Display display, final int idx, final int fromIndex) {
         return getScreenOfImpl(display, idx, fromIndex, -1);
     }
 
-    private static Screen getScreenOfImpl(Display display, int idx, int fromIndex, int incr) {
+    private static Screen getScreenOfImpl(final Display display, final int idx, final int fromIndex, final int incr) {
         synchronized(screenList) {
             int i = fromIndex >= 0 ? fromIndex : screenList.size() - 1 ;
             while( ( incr > 0 ) ? i < screenList.size() : i >= 0 ) {
@@ -307,7 +307,7 @@ public abstract class Screen {
         return null;
     }
 
-    protected static void addScreen2List(Screen screen) {
+    protected static void addScreen2List(final Screen screen) {
         synchronized(screenList) {
             // GC before add
             int i=0;

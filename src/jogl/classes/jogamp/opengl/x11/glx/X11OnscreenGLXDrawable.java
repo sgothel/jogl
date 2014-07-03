@@ -51,7 +51,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   long glXWindow; // GLXWindow, a GLXDrawable representation
   boolean useGLXWindow;
 
-  protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeSurface component, boolean realized) {
+  protected X11OnscreenGLXDrawable(final GLDrawableFactory factory, final NativeSurface component, final boolean realized) {
     super(factory, component, realized);
     glXWindow=0;
     useGLXWindow=false;
@@ -84,10 +84,10 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   @Override
   protected final void createHandle() {
     if(USE_GLXWINDOW) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
+        final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
         if(config.getFBConfig()>=0) {
             useGLXWindow=true;
-            long dpy = getNativeSurface().getDisplayHandle();
+            final long dpy = getNativeSurface().getDisplayHandle();
             if(0!=glXWindow) {
                 GLX.glXDestroyWindow(dpy, glXWindow);
             }
@@ -103,7 +103,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new X11GLXContext(this, shareWith);
   }
 }

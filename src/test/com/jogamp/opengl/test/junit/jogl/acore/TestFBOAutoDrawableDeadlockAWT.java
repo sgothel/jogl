@@ -60,7 +60,7 @@ public class TestFBOAutoDrawableDeadlockAWT extends UITestCase {
     height = 512;
   }
 
-  protected void runTestGL( GLCapabilities caps ) throws InterruptedException, InvocationTargetException {
+  protected void runTestGL( final GLCapabilities caps ) throws InterruptedException, InvocationTargetException {
     final GLOffscreenAutoDrawable fbod = GLDrawableFactory.getFactory(caps.getGLProfile()).createOffscreenAutoDrawable(
         null, caps, new DefaultGLCapabilitiesChooser(), 512, 512);
 
@@ -88,7 +88,7 @@ public class TestFBOAutoDrawableDeadlockAWT extends UITestCase {
                         System.err.println("BB.2");
                         rTask.getSyncObject().wait();
                         System.err.println("BB.3");
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                     System.err.println("BB.X");
@@ -104,20 +104,20 @@ public class TestFBOAutoDrawableDeadlockAWT extends UITestCase {
 
   @Test(timeout = 2000) // 2s timeout
   public void testDeadlock() throws InterruptedException, InvocationTargetException {
-    GLCapabilities caps = new GLCapabilities( glp );
+    final GLCapabilities caps = new GLCapabilities( glp );
     runTestGL( caps );
   }
 
   static long duration = 500; // ms
 
-  public static void main( String args[] ) {
+  public static void main( final String args[] ) {
     for ( int i = 0; i < args.length; i++ ) {
       if ( args[ i ].equals( "-time" ) ) {
         i++;
         try {
           duration = Integer.parseInt( args[ i ] );
         }
-        catch ( Exception ex ) {
+        catch ( final Exception ex ) {
           ex.printStackTrace();
         }
       }

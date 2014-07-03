@@ -96,7 +96,7 @@ public class OVRSBSRendererDualFBO implements GLEventListener {
             final FBObject ssink0 = new FBObject();
             {
                 ssink0.reset(gl, width, height);
-                ssink0.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+                ssink0.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 ssink0.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
             }
             fbos[0].setSamplingSink(ssink0);
@@ -108,16 +108,16 @@ public class OVRSBSRendererDualFBO implements GLEventListener {
             final FBObject ssink1 = new FBObject();
             {
                 ssink1.reset(gl, width, height);
-                ssink1.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+                ssink1.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 ssink1.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
             }
             fbos[1].setSamplingSink(ssink1);
             fbos[1].resetSamplingSink(gl); // validate
             fboTexs[1] = fbos[1].getSamplingSink();
         } else {
-            fboTexs[0] = fbos[0].attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fboTexs[0] = fbos[0].attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             fbos[0].attachRenderbuffer(gl, Type.DEPTH, 24);
-            fboTexs[1] = fbos[1].attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fboTexs[1] = fbos[1].attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             fbos[1].attachRenderbuffer(gl, Type.DEPTH, 24);
         }
         fbos[0].unbind(gl);

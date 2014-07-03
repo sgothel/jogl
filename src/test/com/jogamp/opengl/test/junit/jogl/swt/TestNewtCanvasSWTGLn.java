@@ -128,7 +128,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -141,7 +141,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
     class WaitAction implements Runnable {
         private final long sleepMS;
 
-        WaitAction(long sleepMS) {
+        WaitAction(final long sleepMS) {
             this.sleepMS = sleepMS;
         }
         public void run() {
@@ -149,15 +149,15 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
                 // blocks on linux .. display.sleep();
                 try {
                     Thread.sleep(sleepMS);
-                } catch (InterruptedException e) { }
+                } catch (final InterruptedException e) { }
             }
         }
     }
     final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     final WaitAction generalWaitAction = new WaitAction(10);
 
-    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo,
-                               boolean postAttach, boolean useAnimator ) throws InterruptedException {
+    protected void runTestAGL( final GLCapabilitiesImmutable caps, final GLEventListener demo,
+                               final boolean postAttach, final boolean useAnimator ) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
 
         final Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
@@ -209,13 +209,13 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
             anim = null;
         }
 
-        long lStartTime = System.currentTimeMillis();
-        long lEndTime = lStartTime + duration;
+        final long lStartTime = System.currentTimeMillis();
+        final long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !canvas1.isDisposed() ) {
                 generalWaitAction.run();
             }
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -243,13 +243,13 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
 
     @Test
     public void test_MultisampleAndAlpha() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         caps.setSampleBuffers(true);
         caps.setNumSamples(2);
         runTestAGL( caps, new MultisampleDemoES2(true), false /* postAttach */, false /* animator */);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = MiscUtils.atoi(args[++i],  duration);

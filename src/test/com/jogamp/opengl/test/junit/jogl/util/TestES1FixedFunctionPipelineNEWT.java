@@ -62,8 +62,8 @@ public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL0(GLCapabilities caps, GLEventListener demo) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected void runTestGL0(final GLCapabilities caps, final GLEventListener demo) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle(getSimpleTestName("."));
 
@@ -72,8 +72,8 @@ public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
         snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
 
-        Animator animator = new Animator(glWindow);
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final Animator animator = new Animator(glWindow);
+        final QuitAdapter quitAdapter = new QuitAdapter();
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
@@ -92,7 +92,7 @@ public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
         glWindow.destroy();
     }
 
-    protected void runTestGL(GLCapabilities caps, boolean forceFFPEmu) throws InterruptedException {
+    protected void runTestGL(final GLCapabilities caps, final boolean forceFFPEmu) throws InterruptedException {
         final RedSquareES1 demo01 = new RedSquareES1();
         demo01.setForceFFPEmu(forceFFPEmu, false, false, false);
         runTestGL0(caps, demo01);
@@ -113,40 +113,40 @@ public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
     @Test
     public void test01GL2Normal() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         runTestGL(caps, false);
     }
 
     @Test
     public void test02GL2FFPEmu() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         runTestGL(caps, true);
     }
 
     @Test
     public void test03GL2ES1Normal() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2ES1)) { System.err.println("GL2ES1 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES1));
+        final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES1));
         runTestGL(caps, false);
     }
 
     @Test
     public void test04ES2FFPEmu() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GLES2)) { System.err.println("GLES2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+        final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
         runTestGL(caps, false); // should be FFPEmu implicit
     }
 
     static long duration = 1000; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestES1FixedFunctionPipelineNEWT.class.getName());

@@ -54,7 +54,7 @@ public class SceneUIController implements GLEventListener{
         this(null, sceneDist, zNear, zFar);
     }
 
-    public SceneUIController(RegionRenderer renderer, float sceneDist, float zNear, float zFar) {
+    public SceneUIController(final RegionRenderer renderer, final float sceneDist, final float zNear, final float zFar) {
         this.renderer = renderer;
         this.sceneDist = sceneDist;
         this.zFar = zFar;
@@ -62,11 +62,11 @@ public class SceneUIController implements GLEventListener{
         this.sampleCount[0] = 4;
     }
 
-    public void setRenderer(RegionRenderer renderer) {
+    public void setRenderer(final RegionRenderer renderer) {
         this.renderer = renderer;
     }
 
-    public void attachInputListenerTo(GLWindow window) {
+    public void attachInputListenerTo(final GLWindow window) {
         if(null == sbcMouseListener) {
             sbcMouseListener = new SBCMouseListener();
             window.addMouseListener(sbcMouseListener);
@@ -77,7 +77,7 @@ public class SceneUIController implements GLEventListener{
         }
     }
 
-    public void detachInputListenerFrom(GLWindow window) {
+    public void detachInputListenerFrom(final GLWindow window) {
         if(null != sbcMouseListener) {
             window.removeMouseListener(sbcMouseListener);
             sbcMouseListener = null;
@@ -91,15 +91,15 @@ public class SceneUIController implements GLEventListener{
     public ArrayList<UIShape> getShapes() {
         return shapes;
     }
-    public void addShape(UIShape b) {
+    public void addShape(final UIShape b) {
         shapes.add(b);
     }
-    public void removeShape(UIShape b) {
+    public void removeShape(final UIShape b) {
         shapes.remove(b);
     }
 
     public int getSampleCount() { return sampleCount[0]; }
-    public void setSampleCount(int v) { sampleCount[0]=v; markAllShapesDirty(); }
+    public void setSampleCount(final int v) { sampleCount[0]=v; markAllShapesDirty(); }
 
     public void setAllShapesQuality(final int q) {
         for(int i=0; i<shapes.size(); i++) {
@@ -121,7 +121,7 @@ public class SceneUIController implements GLEventListener{
     public final float[] getScenePlaneOrigin() { return scenePlaneOrigin; }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         System.err.println("SceneUIController: init");
         cDrawable = drawable;
     }
@@ -171,7 +171,7 @@ public class SceneUIController implements GLEventListener{
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -209,7 +209,7 @@ public class SceneUIController implements GLEventListener{
         }
         cDrawable.invoke(false, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
+            public boolean run(final GLAutoDrawable drawable) {
                 shape[0] = pickShapeImpl(glWinX, glWinY, objPos);
                 if( null != shape[0] ) {
                     runnable.run();
@@ -267,7 +267,7 @@ public class SceneUIController implements GLEventListener{
         }
         cDrawable.invoke(false, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
+            public boolean run(final GLAutoDrawable drawable) {
                 if( windowToShapeCoordsImpl(activeShape, glWinX, glWinY, objPos) ) {
                     runnable.run();
                 }
@@ -294,7 +294,7 @@ public class SceneUIController implements GLEventListener{
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         System.err.println("SceneUIController: dispose");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         for(int i=0; i<shapes.size(); i++) {
@@ -306,14 +306,14 @@ public class SceneUIController implements GLEventListener{
 
     public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
                                            final float zNear, final float zFar,
-                                           float orthoX, float orthoY, float orthoDist,
+                                           final float orthoX, final float orthoY, final float orthoDist,
                                            final float[] winZ, final float[] objPos) {
         winZ[0] = FloatUtil.getOrthoWinZ(orthoDist, zNear, zFar);
         pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
 
    @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         viewport[0] = x;
         viewport[1] = y;
         viewport[2] = width;
@@ -448,7 +448,7 @@ public class SceneUIController implements GLEventListener{
         }
 
         @Override
-        public void mouseReleased(MouseEvent e) {
+        public void mouseReleased(final MouseEvent e) {
             // flip to GL window coordinates
             final int glWinX = e.getX();
             final int glWinY = viewport[3] - e.getY() - 1;
@@ -496,7 +496,7 @@ public class SceneUIController implements GLEventListener{
         }
 
         @Override
-        public void mouseMoved(MouseEvent e) {
+        public void mouseMoved(final MouseEvent e) {
             if( -1 == lId || e.getPointerId(0) == lId ) {
                 lx = e.getX();
                 ly = e.getY();
@@ -504,9 +504,9 @@ public class SceneUIController implements GLEventListener{
             }
         }
         @Override
-        public void mouseEntered(MouseEvent e) { }
+        public void mouseEntered(final MouseEvent e) { }
         @Override
-        public void mouseExited(MouseEvent e) {
+        public void mouseExited(final MouseEvent e) {
             release();
             clear();
         }

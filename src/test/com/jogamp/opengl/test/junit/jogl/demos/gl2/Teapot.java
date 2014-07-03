@@ -6,6 +6,8 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.test.junit.jogl.util.texture.PNGTstFiles;
@@ -27,16 +29,16 @@ public class Teapot implements GLEventListener {
     private Texture tex = null;
 
     @Override
-    public void init(GLAutoDrawable drawable) {
-        GL2 gl = drawable.getGL().getGL2();
+    public void init(final GLAutoDrawable drawable) {
+        final GL2 gl = drawable.getGL().getGL2();
         glut = new GLUT();
 
         gl.glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 
         try {
-            URLConnection urlConn = IOUtil.getResource(PNGTstFiles.class, "test-ntscP_3-01-160x90.png");
+            final URLConnection urlConn = IOUtil.getResource(PNGTstFiles.class, "test-ntscP_3-01-160x90.png");
             tex = TextureIO.newTexture(gl, TextureIO.newTextureData(gl.getGLProfile(), urlConn.getInputStream(), false, TextureIO.PNG));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
         tex.bind(gl);
@@ -55,7 +57,7 @@ public class Teapot implements GLEventListener {
         // gl.glTexImage1D(GL2.GL_TEXTURE_1D, 0, 3, stripeImageWidth, 0,
         // GL.GL_RGB, GL.GL_UNSIGNED_BYTE, stripeImageBuf);
 
-        gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+        gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
 
         // gl.glTexGeni(GL2.GL_S, GL2.GL_TEXTURE_GEN_MODE, GL2.GL_OBJECT_LINEAR);
         // gl.glTexGenfv(GL2.GL_S, GL2.GL_OBJECT_PLANE, sgenparams, 0);
@@ -64,15 +66,15 @@ public class Teapot implements GLEventListener {
         gl.glDepthFunc(GL.GL_LESS);
         // gl.glEnable(GL2.GL_TEXTURE_GEN_S);
         // gl.glEnable(GL2.GL_TEXTURE_1D);
-        gl.glEnable(GL2.GL_TEXTURE_2D);
-        gl.glEnable(GL2.GL_CULL_FACE);
-        gl.glEnable(GL2.GL_LIGHTING);
-        gl.glEnable(GL2.GL_LIGHT0);
+        gl.glEnable(GL.GL_TEXTURE_2D);
+        gl.glEnable(GL.GL_CULL_FACE);
+        gl.glEnable(GLLightingFunc.GL_LIGHTING);
+        gl.glEnable(GLLightingFunc.GL_LIGHT0);
         gl.glEnable(GL2.GL_AUTO_NORMAL);
-        gl.glEnable(GL2.GL_NORMALIZE);
+        gl.glEnable(GLLightingFunc.GL_NORMALIZE);
         gl.glFrontFace(GL.GL_CW);
         gl.glCullFace(GL.GL_BACK);
-        gl.glMaterialf(GL.GL_FRONT, GL2.GL_SHININESS, 64.0f);
+        gl.glMaterialf(GL.GL_FRONT, GLLightingFunc.GL_SHININESS, 64.0f);
     }
 
     float angleZ = 0.0f;
@@ -80,11 +82,11 @@ public class Teapot implements GLEventListener {
     public float rotIncr = 0.4f;
 
     @Override
-    public void display(GLAutoDrawable gLDrawable) {
+    public void display(final GLAutoDrawable gLDrawable) {
         final GL2 gl = gLDrawable.getGL().getGL2();
 
         tex.bind(gl);
-        gl.glEnable(GL2.GL_TEXTURE_2D);
+        gl.glEnable(GL.GL_TEXTURE_2D);
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         gl.glPushMatrix();
@@ -102,11 +104,11 @@ public class Teapot implements GLEventListener {
     }
 
     @Override
-    public void reshape(GLAutoDrawable gLDrawable, int x, int y, int w, int h) {
-        GL2 gl = gLDrawable.getGL().getGL2();
+    public void reshape(final GLAutoDrawable gLDrawable, final int x, final int y, final int w, final int h) {
+        final GL2 gl = gLDrawable.getGL().getGL2();
 
         gl.glViewport(0, 0, w, h);
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         if (w <= h) {
             gl.glOrtho(-3.5, 3.5, -3.5 * h / w,
@@ -115,11 +117,11 @@ public class Teapot implements GLEventListener {
             gl.glOrtho(-3.5 * w / h,
                         3.5 * w / h, -3.5, 3.5, -3.5, 3.5);
         }
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
 
     @Override
-    public void dispose(GLAutoDrawable gLDrawable) {
+    public void dispose(final GLAutoDrawable gLDrawable) {
     }
 }

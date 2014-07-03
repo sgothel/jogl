@@ -50,19 +50,19 @@ public class GLException extends RuntimeException {
 
   /** Constructs a GLException object with the specified detail
       message. */
-  public GLException(String message) {
+  public GLException(final String message) {
     super(message);
   }
 
   /** Constructs a GLException object with the specified detail
       message and root cause. */
-  public GLException(String message, Throwable cause) {
+  public GLException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
   /** Constructs a GLException object with the specified root
       cause. */
-  public GLException(Throwable cause) {
+  public GLException(final Throwable cause) {
     super(cause);
   }
 }

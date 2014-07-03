@@ -192,7 +192,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
         return new PNGPixelRect(destFmt, new Dimension(width, height), destStrideInBytes, destIsGLOriented, destPixels, dpiX, dpiY);
     }
 
-    private static final int getPixelLUMToAny(PixelFormat dest_fmt, ByteBuffer d, int dOff, byte lum, byte alpha) {
+    private static final int getPixelLUMToAny(final PixelFormat dest_fmt, final ByteBuffer d, int dOff, final byte lum, final byte alpha) {
         switch(dest_fmt) {
             case LUMINANCE:
                 d.put(dOff++, lum);

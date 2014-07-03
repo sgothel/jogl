@@ -438,7 +438,7 @@ public class Quaternion {
      * @see #rotateByAngleX(float)
      * @see #setFromEuler(float, float, float)
      */
-    public final Quaternion rotateByEuler(final float bankX, final float headingY, float attitudeZ) {
+    public final Quaternion rotateByEuler(final float bankX, final float headingY, final float attitudeZ) {
         if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
             return this;
         } else {
@@ -859,7 +859,7 @@ public class Quaternion {
      * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm">euclideanspace.com-eulerToQuaternion</a>
      * @see #toEuler(float[])
      */
-    public final Quaternion setFromEuler(final float bankX, final float headingY, float attitudeZ) {
+    public final Quaternion setFromEuler(final float bankX, final float headingY, final float attitudeZ) {
         if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
             return setIdentity();
         } else {
@@ -1154,7 +1154,7 @@ public class Quaternion {
      * @param m 3x3 column matrix
      * @return true if representing a rotational matrix, false otherwise
      */
-    public final boolean isRotationMatrix3f(float[] m) {
+    public final boolean isRotationMatrix3f(final float[] m) {
         final float epsilon = 0.01f; // margin to allow for rounding errors
         if (FloatUtil.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
             return false;
@@ -1171,7 +1171,7 @@ public class Quaternion {
         return (FloatUtil.abs(determinant3f(m) - 1) < epsilon);
     }
 
-    private final float determinant3f(float[] m) {
+    private final float determinant3f(final float[] m) {
         return m[0] * m[4] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5]
              - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] - m[6] * m[4] * m[2];
     }

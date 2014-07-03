@@ -76,7 +76,7 @@ public class X11SunJDKReflection {
             x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
             x11GraphicsConfigGetVisualMethod.setAccessible(true);
             initialized = true;
-          } catch (Exception e) {
+          } catch (final Exception e) {
             // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
           }
           return null;
@@ -84,37 +84,37 @@ public class X11SunJDKReflection {
       });
   }
 
-  public static long graphicsDeviceGetDisplay(GraphicsDevice device) {
+  public static long graphicsDeviceGetDisplay(final GraphicsDevice device) {
     if (!initialized) {
       return 0;
     }
 
     try {
       return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device, (Object[])null)).longValue();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return 0;
     }
   }
 
-  public static int graphicsConfigurationGetVisualID(AbstractGraphicsConfiguration config) {
+  public static int graphicsConfigurationGetVisualID(final AbstractGraphicsConfiguration config) {
       try {
           if (config instanceof AWTGraphicsConfiguration) {
               return graphicsConfigurationGetVisualID(((AWTGraphicsConfiguration) config).getAWTGraphicsConfiguration());
           }
           return 0;
-      } catch (Exception e) {
+      } catch (final Exception e) {
           return 0;
       }
   }
 
-  public static int graphicsConfigurationGetVisualID(GraphicsConfiguration config) {
+  public static int graphicsConfigurationGetVisualID(final GraphicsConfiguration config) {
     if (!initialized) {
       return 0;
     }
 
     try {
       return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, (Object[])null)).intValue();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return 0;
     }
   }

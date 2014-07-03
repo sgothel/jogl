@@ -59,12 +59,12 @@ import java.io.IOException;
  */
 public class DirectoryEntry implements Cloneable {
 
-    private int _tag;
-    private int _checksum;
-    private int _offset;
-    private int _length;
+    private final int _tag;
+    private final int _checksum;
+    private final int _offset;
+    private final int _length;
 
-    protected DirectoryEntry(DataInput di) throws IOException {
+    protected DirectoryEntry(final DataInput di) throws IOException {
         _tag = di.readInt();
         _checksum = di.readInt();
         _offset = di.readInt();
@@ -75,7 +75,7 @@ public class DirectoryEntry implements Cloneable {
     public Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             return null;
         }
     }

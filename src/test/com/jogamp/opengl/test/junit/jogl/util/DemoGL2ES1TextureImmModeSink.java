@@ -48,6 +48,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.glu.GLU;
 
 public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDraw01Accessor {
@@ -66,7 +67,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
         this.keepTextureBound = false;
     }
 
-    public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+    public void setForceFFPEmu(final boolean forceFFPEmu, final boolean verboseFFPEmu, final boolean debugFFPEmu, final boolean traceFFPEmu) {
         this.forceFFPEmu = forceFFPEmu;
         this.verboseFFPEmu = verboseFFPEmu;
         this.debugFFPEmu = debugFFPEmu;
@@ -75,7 +76,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
 
 
     @Override
-    public void setKeepTextureBound(boolean v) {
+    public void setKeepTextureBound(final boolean v) {
         this.keepTextureBound = v;
     }
     @Override
@@ -84,7 +85,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         GL _gl = drawable.getGL();
         if(debugFFPEmu) {
             // Debug ..
@@ -94,35 +95,35 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
             // Trace ..
             _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
         }
-        GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
+        final GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
 
-        URLConnection testTextureUrlConn = IOUtil.getResource(PNGTstFiles.class, "test-ntscP_3-01-160x90.png");
+        final URLConnection testTextureUrlConn = IOUtil.getResource(PNGTstFiles.class, "test-ntscP_3-01-160x90.png");
         try {
-            InputStream  testTextureStream = testTextureUrlConn.getInputStream();
+            final InputStream  testTextureStream = testTextureUrlConn.getInputStream();
             textureData = TextureIO.newTextureData(gl.getGLProfile(), testTextureStream , false /* mipmap */, TextureIO.PNG);
             texture = TextureIO.newTexture(gl, textureData);
             if( keepTextureBound && null != texture ) {
                 texture.enable(gl);
                 texture.bind(gl);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
-        gl.glMatrixMode(GL2ES1.GL_PROJECTION);
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
+        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         glu.gluOrtho2D(0, 1, 0, 1);
-        gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
+        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
+    public void dispose(final GLAutoDrawable drawable) {
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
         if(null!=texture) {
             texture.disable(gl);
             texture.destroy(gl);
@@ -133,8 +134,8 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
 
         // draw one quad with the texture
         if(null!=texture) {
@@ -143,7 +144,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
                 texture.bind(gl);
             }
             // gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
-            TextureCoords coords = texture.getImageTexCoords();
+            final TextureCoords coords = texture.getImageTexCoords();
             ims.glBegin(ImmModeSink.GL_QUADS);
             ims.glTexCoord2f(coords.left(), coords.bottom());
             ims.glVertex3f(0, 0, 0);

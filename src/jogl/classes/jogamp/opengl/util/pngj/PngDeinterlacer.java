@@ -20,7 +20,7 @@ class PngDeinterlacer {
 	private short[][] imageShort;
 	private byte[][] imageByte;
 
-	PngDeinterlacer(ImageInfo iminfo) {
+	PngDeinterlacer(final ImageInfo iminfo) {
 		this.imi = iminfo;
 		pass = 0;
 		if (imi.packed) {
@@ -40,14 +40,14 @@ class PngDeinterlacer {
 	}
 
 	/** this refers to the row currRowSubimg */
-	void setRow(int n) {
+	void setRow(final int n) {
 		currRowSubimg = n;
 		currRowReal = n * dY + oY;
 		if (currRowReal < 0 || currRowReal >= imi.rows)
 			throw new PngjExceptionInternal("bad row - this should not happen");
 	}
 
-	void setPass(int p) {
+	void setPass(final int p) {
 		if (this.pass == p)
 			return;
 		pass = p;
@@ -105,7 +105,7 @@ class PngDeinterlacer {
 	}
 
 	// notice that this is a "partial" deinterlace, it will be called several times for the same row!
-	void deinterlaceInt(int[] src, int[] dst, boolean readInPackedFormat) {
+	void deinterlaceInt(final int[] src, final int[] dst, final boolean readInPackedFormat) {
 		if (!(imi.packed && readInPackedFormat))
 			for (int i = 0, j = oXsamples; i < cols * imi.channels; i += imi.channels, j += dXsamples)
 				for (int k = 0; k < imi.channels; k++)
@@ -115,7 +115,7 @@ class PngDeinterlacer {
 	}
 
 	// interlaced+packed = monster; this is very clumsy!
-	private void deinterlaceIntPacked(int[] src, int[] dst) {
+	private void deinterlaceIntPacked(final int[] src, final int[] dst) {
 		int spos, smod, smask; // source byte position, bits to shift to left (01,2,3,4
 		int tpos, tmod, p, d;
 		spos = 0;
@@ -143,7 +143,7 @@ class PngDeinterlacer {
 	}
 
 	// yes, duplication of code is evil, normally
-	void deinterlaceByte(byte[] src, byte[] dst, boolean readInPackedFormat) {
+	void deinterlaceByte(final byte[] src, final byte[] dst, final boolean readInPackedFormat) {
 		if (!(imi.packed && readInPackedFormat))
 			for (int i = 0, j = oXsamples; i < cols * imi.channels; i += imi.channels, j += dXsamples)
 				for (int k = 0; k < imi.channels; k++)
@@ -152,7 +152,7 @@ class PngDeinterlacer {
 			deinterlacePackedByte(src, dst);
 	}
 
-	private void deinterlacePackedByte(byte[] src, byte[] dst) {
+	private void deinterlacePackedByte(final byte[] src, final byte[] dst) {
 		int spos, smod, smask; // source byte position, bits to shift to left (01,2,3,4
 		int tpos, tmod, p, d;
 		// what the heck are you reading here? I told you would not enjoy this. Try Dostoyevsky or Simone Weil instead
@@ -230,7 +230,7 @@ class PngDeinterlacer {
 		return imageInt;
 	}
 
-	void setImageInt(int[][] imageInt) {
+	void setImageInt(final int[][] imageInt) {
 		this.imageInt = imageInt;
 	}
 
@@ -238,7 +238,7 @@ class PngDeinterlacer {
 		return imageShort;
 	}
 
-	void setImageShort(short[][] imageShort) {
+	void setImageShort(final short[][] imageShort) {
 		this.imageShort = imageShort;
 	}
 
@@ -246,20 +246,20 @@ class PngDeinterlacer {
 		return imageByte;
 	}
 
-	void setImageByte(byte[][] imageByte) {
+	void setImageByte(final byte[][] imageByte) {
 		this.imageByte = imageByte;
 	}
 
 	static void test() {
-		Random rand = new Random();
-		PngDeinterlacer ih = new PngDeinterlacer(new ImageInfo(rand.nextInt(35) + 1, rand.nextInt(52) + 1, 8, true));
+		final Random rand = new Random();
+		final PngDeinterlacer ih = new PngDeinterlacer(new ImageInfo(rand.nextInt(35) + 1, rand.nextInt(52) + 1, 8, true));
 		int np = ih.imi.cols * ih.imi.rows;
 		System.out.println(ih.imi);
 		for (int p = 1; p <= 7; p++) {
 			ih.setPass(p);
 			for (int row = 0; row < ih.getRows(); row++) {
 				ih.setRow(row);
-				int b = ih.getCols();
+				final int b = ih.getCols();
 				np -= b;
 				System.out.printf("Read %d pixels. Pass:%d Realline:%d cols=%d dX=%d oX=%d last:%b\n", b, ih.pass,
 						ih.currRowReal, ih.cols, ih.dX, ih.oX, ih.isAtLastRow());
@@ -270,7 +270,7 @@ class PngDeinterlacer {
 			throw new PngjExceptionInternal("wtf??" + ih.imi);
 	}
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		test();
 	}
 

@@ -12,7 +12,7 @@ public class PngChunkIEND extends PngChunkSingle {
 
 	// http://www.w3.org/TR/PNG/#11IEND
 	// this is a dummy placeholder
-	public PngChunkIEND(ImageInfo info) {
+	public PngChunkIEND(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -23,16 +23,16 @@ public class PngChunkIEND extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = new ChunkRaw(0, ChunkHelper.b_IEND, false);
+		final ChunkRaw c = new ChunkRaw(0, ChunkHelper.b_IEND, false);
 		return c;
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		// this is not used
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
+	public void cloneDataFromRead(final PngChunk other) {
 	}
 }

@@ -138,7 +138,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
 
         st.useProgram(gl, false);
 
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {

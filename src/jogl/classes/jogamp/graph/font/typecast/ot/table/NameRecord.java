@@ -59,15 +59,15 @@ import java.io.IOException;
  */
 public class NameRecord {
 
-    private short _platformId;
-    private short _encodingId;
-    private short _languageId;
-    private short _nameId;
-    private short _stringLength;
-    private short _stringOffset;
+    private final short _platformId;
+    private final short _encodingId;
+    private final short _languageId;
+    private final short _nameId;
+    private final short _stringLength;
+    private final short _stringOffset;
     private String _record;
 
-    protected NameRecord(DataInput di) throws IOException {
+    protected NameRecord(final DataInput di) throws IOException {
         _platformId = di.readShort();
         _encodingId = di.readShort();
         _languageId = di.readShort();
@@ -92,13 +92,13 @@ public class NameRecord {
         return _platformId;
     }
 
-    public StringBuilder getRecordString(StringBuilder sb) {
+    public StringBuilder getRecordString(final StringBuilder sb) {
         sb.append(_record);
         return sb;
     }
 
-    protected void loadString(DataInput di) throws IOException {
-        StringBuilder sb = new StringBuilder();
+    protected void loadString(final DataInput di) throws IOException {
+        final StringBuilder sb = new StringBuilder();
         di.skipBytes(_stringOffset);
         if (_platformId == ID.platformUnicode) {
 
@@ -132,7 +132,7 @@ public class NameRecord {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
         sb.append("             Platform ID:       ").append(_platformId)
             .append("\n             Specific ID:       ").append(_encodingId)

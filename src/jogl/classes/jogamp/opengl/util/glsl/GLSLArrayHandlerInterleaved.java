@@ -45,30 +45,30 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
 public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler {
   private final List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
-  public GLSLArrayHandlerInterleaved(GLArrayDataEditable ad) {
+  public GLSLArrayHandlerInterleaved(final GLArrayDataEditable ad) {
     super(ad);
   }
 
   @Override
-  public final void setSubArrayVBOName(int vboName) {
+  public final void setSubArrayVBOName(final int vboName) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).getData().setVBOName(vboName);
       }
   }
 
   @Override
-  public final void addSubHandler(GLArrayHandlerFlat handler) {
+  public final void addSubHandler(final GLArrayHandlerFlat handler) {
       subArrays.add(handler);
   }
 
-  private final void syncSubData(GL gl, Object ext) {
+  private final void syncSubData(final GL gl, final Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).syncData(gl, ext);
       }
   }
 
   @Override
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     if(enable) {
         if(!ad.isVBO()) {
             throw new InternalError("Interleaved handle is not VBO: "+ad);

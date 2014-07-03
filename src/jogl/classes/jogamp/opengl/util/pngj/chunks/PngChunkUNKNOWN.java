@@ -11,11 +11,11 @@ public class PngChunkUNKNOWN extends PngChunkMultiple { // unkown, custom or not
 
 	private byte[] data;
 
-	public PngChunkUNKNOWN(String id, ImageInfo info) {
+	public PngChunkUNKNOWN(final String id, final ImageInfo info) {
 		super(id, info);
 	}
 
-	private PngChunkUNKNOWN(PngChunkUNKNOWN c, ImageInfo info) {
+	private PngChunkUNKNOWN(final PngChunkUNKNOWN c, final ImageInfo info) {
 		super(c.id, info);
 		System.arraycopy(c.data, 0, data, 0, c.data.length);
 	}
@@ -27,13 +27,13 @@ public class PngChunkUNKNOWN extends PngChunkMultiple { // unkown, custom or not
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw p = createEmptyChunk(data.length, false);
+		final ChunkRaw p = createEmptyChunk(data.length, false);
 		p.data = this.data;
 		return p;
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		data = c.data;
 	}
 
@@ -43,14 +43,14 @@ public class PngChunkUNKNOWN extends PngChunkMultiple { // unkown, custom or not
 	}
 
 	/* does not copy! */
-	public void setData(byte[] data) {
+	public void setData(final byte[] data) {
 		this.data = data;
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
+	public void cloneDataFromRead(final PngChunk other) {
 		// THIS SHOULD NOT BE CALLED IF ALREADY CLONED WITH COPY CONSTRUCTOR
-		PngChunkUNKNOWN c = (PngChunkUNKNOWN) other;
+		final PngChunkUNKNOWN c = (PngChunkUNKNOWN) other;
 		data = c.data; // not deep copy
 	}
 }

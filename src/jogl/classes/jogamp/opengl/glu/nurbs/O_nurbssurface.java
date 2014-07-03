@@ -64,13 +64,13 @@ public class O_nurbssurface {
   /**
    * Surface type
    */
-  private int type;
+  private final int type;
 
   /**
    * Makes new O_nurbssurface of type
    * @param type surface type
    */
-  public O_nurbssurface(int type) {
+  public O_nurbssurface(final int type) {
     this.type = type;
     this.owner = null;
     this.next = null;

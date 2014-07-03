@@ -116,7 +116,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         private final jogamp.newt.DisplayImpl newtDisplay;
         private int swtN, newtN ;
 
-        public AsyncExecEDTFeederThread( Display swtDisplay, com.jogamp.newt.Display newtDisplay )
+        public AsyncExecEDTFeederThread( final Display swtDisplay, final com.jogamp.newt.Display newtDisplay )
         {
             super();
             this.swtDisplay = swtDisplay ;
@@ -153,7 +153,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                         newtDisplay.runOnEDTIfAvail(false, newtAsyncAction);
                     }
                     Thread.sleep( 50L ) ;
-                } catch( InterruptedException e ) {
+                } catch( final InterruptedException e ) {
                     break ;
                 }
             }
@@ -203,7 +203,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     display.dispose();
                    }});
             }
-            catch( Throwable throwable ) {
+            catch( final Throwable throwable ) {
                 throwable.printStackTrace();
                 Assume.assumeNoException( throwable );
             }
@@ -213,7 +213,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         }
     }
 
-    private void testImpl(boolean useJOGLGLCanvas, boolean useNewtCanvasSWT, boolean glWindowPreVisible) throws InterruptedException, InvocationTargetException {
+    private void testImpl(final boolean useJOGLGLCanvas, final boolean useNewtCanvasSWT, final boolean glWindowPreVisible) throws InterruptedException, InvocationTargetException {
         resetSWTAndNEWTEDTCounter();
 
         final SWT_DSC dsc = new SWT_DSC();
@@ -235,7 +235,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 newtDisplay = null;
             } else if( useNewtCanvasSWT ) {
                 newtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
-                com.jogamp.newt.Screen screen = NewtFactory.createScreen(newtDisplay, 0);
+                final com.jogamp.newt.Screen screen = NewtFactory.createScreen(newtDisplay, 0);
                 final GLWindow glWindow = GLWindow.create( screen, caps ) ;
                 glWindow.addGLEventListener( new GearsES2() ) ;
                 if( glWindowPreVisible ) {
@@ -250,7 +250,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 throw new InternalError("XXX");
             }
             if(useAnimator) {
-                Animator animator = new Animator(glad);
+                final Animator animator = new Animator(glad);
                 animator.start();
             }
         }
@@ -280,7 +280,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 public void run() {
                     try {
                         Thread.sleep(duration);
-                    } catch (InterruptedException e) {}
+                    } catch (final InterruptedException e) {}
 
                     counterBeforeExit[0] = getSWTCount();
                     counterBeforeExit[1] = getNEWTCount();
@@ -288,7 +288,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     try
                     {
                         asyncExecFeeder.join();
-                    } catch( InterruptedException e ) { }
+                    } catch( final InterruptedException e ) { }
                     shallStop = true;
                     dsc.display.wake();
                 } } );
@@ -304,7 +304,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     Thread.sleep(10);
                 }
             }
-        } catch (Exception e0) {
+        } catch (final Exception e0) {
             e0.printStackTrace();
             Assert.assertTrue("Deadlock @ dispatch: "+e0, false);
         }
@@ -335,7 +335,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, true /* glWindowPreVisible */);
     }
 
-    public static void main( String[] args ) {
+    public static void main( final String[] args ) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = MiscUtils.atoi(args[++i],  duration);

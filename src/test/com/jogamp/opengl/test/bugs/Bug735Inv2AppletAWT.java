@@ -33,7 +33,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  *   - Use GLEventListener
  *   - Add GLEventListener to GLAutoDrawable
  *   - Use GLAutoDrawable.display() instead of GLAutoDrawable.invoke(true, GLRunnable { init / render })
- *   - Removed MANUAL_FRAME_HANDLING, obsolete due to GLAutoDrawable/GLEventListener 
+ *   - Removed MANUAL_FRAME_HANDLING, obsolete due to GLAutoDrawable/GLEventListener
  * </pre>
  * OSX Results:
  * <pre>
@@ -45,7 +45,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public class Bug735Inv2AppletAWT extends Applet implements Runnable {
   static public int AWT  = 0;
   static public int NEWT = 1;
-  
+
   static public int APPLET_WIDTH  = 500;
   static public int APPLET_HEIGHT = 290;
   static public int TARGET_FPS    = 120;
@@ -53,10 +53,10 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
   static public boolean IGNORE_AWT_REPAINT = false;
   static public boolean USE_ECT = false;
   static public int SWAP_INTERVAL = 1;
-  
+
   //////////////////////////////////////////////////////////////////////////////
-  
-  static boolean waitForKey = false;  
+
+  static boolean waitForKey = false;
   static private Frame frame;
   static private Bug735Inv2AppletAWT applet;
   private GLCanvas awtCanvas;
@@ -64,14 +64,14 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
   private GLAutoDrawable glad;
   private NewtCanvasAWT newtCanvas;
   private GLEventListener demo;
-  
+
   private int width;
   private int height;
   private Thread thread;
-  
-  private long frameRatePeriod = 1000000000L / TARGET_FPS;
+
+  private final long frameRatePeriod = 1000000000L / TARGET_FPS;
   private int frameCount;
-  
+
   public void init() {
     setSize(APPLET_WIDTH, APPLET_HEIGHT);
     setPreferredSize(new Dimension(APPLET_WIDTH, APPLET_HEIGHT));
@@ -79,23 +79,23 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
     height = APPLET_HEIGHT;
     initGL();
   }
-  
+
   public void start() {
     initDraw();
     thread = new Thread(this, "Animation Thread");
-    thread.start();    
+    thread.start();
   }
-  
-  public void run() {    
+
+  public void run() {
     int noDelays = 0;
     // Number of frames with a delay of 0 ms before the
     // animation thread yields to other running threads.
     final int NO_DELAYS_PER_YIELD = 15;
     final int TIMEOUT_SECONDS = 2;
-    
+
     long beforeTime = System.nanoTime();
     long overSleepTime = 0L;
-    
+
     frameCount = 1;
     while (Thread.currentThread() == thread) {
       if (frameCount == 1) {
@@ -107,23 +107,23 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
         if( USE_ECT ) {
             glad.setExclusiveContextThread(thread);
         }
-      }      
+      }
       final CountDownLatch latch = new CountDownLatch(1);
       requestDraw(latch);
       try {
         latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
+      } catch (final InterruptedException e) {
         e.printStackTrace();
       }
-            
-      long afterTime = System.nanoTime();
-      long timeDiff = afterTime - beforeTime;
-      long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;      
+
+      final long afterTime = System.nanoTime();
+      final long timeDiff = afterTime - beforeTime;
+      final long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
       if (sleepTime > 0) {  // some time left in this cycle
         try {
           Thread.sleep(sleepTime / 1000000L, (int) (sleepTime % 1000000L));
           noDelays = 0;  // Got some sleep, not delaying anymore
-        } catch (InterruptedException ex) { }
+        } catch (final InterruptedException ex) { }
         overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
       } else {    // sleepTime <= 0; the frame took longer than the period
         overSleepTime = 0L;
@@ -132,40 +132,40 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
           Thread.yield();   // give another thread a chance to run
           noDelays = 0;
         }
-      }      
+      }
       beforeTime = System.nanoTime();
     }
   }
-  
-  public void requestDraw(CountDownLatch latch) {
+
+  public void requestDraw(final CountDownLatch latch) {
     glad.display();
 
     if (latch != null) {
       latch.countDown();
-    }    
+    }
   }
-  
+
   private void initGL() {
-    GLProfile profile = GLProfile.getDefault();
-    GLCapabilities caps = new GLCapabilities(profile);
+    final GLProfile profile = GLProfile.getDefault();
+    final GLCapabilities caps = new GLCapabilities(profile);
     caps.setBackgroundOpaque(true);
     caps.setOnscreen(true);
     caps.setSampleBuffers(false);
-    
+
     if (TOOLKIT == AWT) {
       awtCanvas = new GLCanvas(caps);
       awtCanvas.setBounds(0, 0, applet.width, applet.height);
       awtCanvas.setBackground(new Color(0xFFCCCCCC, true));
-      awtCanvas.setFocusable(true); 
-      
+      awtCanvas.setFocusable(true);
+
       applet.setLayout(new BorderLayout());
       applet.add(awtCanvas, BorderLayout.CENTER);
-      
+
       if (IGNORE_AWT_REPAINT) {
           awtCanvas.setIgnoreRepaint(true);
       }
       glad = awtCanvas;
-    } else if (TOOLKIT == NEWT) {      
+    } else if (TOOLKIT == NEWT) {
       newtWindow = GLWindow.create(caps);
       newtCanvas = new NewtCanvasAWT(newtWindow);
       newtCanvas.setBounds(0, 0, applet.width, applet.height);
@@ -174,17 +174,17 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
 
       applet.setLayout(new BorderLayout());
       applet.add(newtCanvas, BorderLayout.CENTER);
-      
+
       if (IGNORE_AWT_REPAINT) {
         newtCanvas.setIgnoreRepaint(true);
       }
       glad = newtWindow;
     }
-    
+
     demo = new LandscapeES2(SWAP_INTERVAL);
     glad.addGLEventListener(demo);
   }
-  
+
   private void initDraw() {
     if (TOOLKIT == AWT) {
       awtCanvas.setVisible(true);
@@ -193,7 +193,7 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
       if (awtCanvas.getDelegatedDrawable().isRealized()) {
         // Request the focus here as it cannot work when the window is not visible
         awtCanvas.requestFocus();
-      }      
+      }
     } else if (TOOLKIT == NEWT) {
       newtCanvas.setVisible(true);
       // Force the realization
@@ -204,8 +204,8 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
       }
     }
   }
-  
-  static public void main(String[] args) {    
+
+  static public void main(final String[] args) {
     for(int i=0; i<args.length; i++) {
         if(args[i].equals("-vsync")) {
             i++;
@@ -217,56 +217,56 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
         }
     }
     System.err.println("swapInterval "+SWAP_INTERVAL);
-    System.err.println("exclusiveContext "+USE_ECT);    
+    System.err.println("exclusiveContext "+USE_ECT);
     if(waitForKey) {
         UITestCase.waitForKey("Start");
     }
-    
-    GraphicsEnvironment environment = 
+
+    final GraphicsEnvironment environment =
         GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
+    final GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
 
     frame = new Frame(displayDevice.getDefaultConfiguration());
     frame.setBackground(new Color(0xCC, 0xCC, 0xCC));
     frame.setTitle("TestBug735Inv2AppletAWT");
-    
+
     try {
-      Class<?> c = Thread.currentThread().getContextClassLoader().
+      final Class<?> c = Thread.currentThread().getContextClassLoader().
           loadClass(Bug735Inv2AppletAWT.class.getName());
       applet = (Bug735Inv2AppletAWT) c.newInstance();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
-    }    
-    
+    }
+
     frame.setLayout(null);
     frame.add(applet);
     frame.pack();
     frame.setResizable(false);
-    
+
     applet.init();
-    
-    Insets insets = frame.getInsets();
-    int windowW = applet.width + insets.left + insets.right;
-    int windowH = applet.height + insets.top + insets.bottom;
-    frame.setSize(windowW, windowH);    
-    
-    Rectangle screenRect = displayDevice.getDefaultConfiguration().getBounds();    
+
+    final Insets insets = frame.getInsets();
+    final int windowW = applet.width + insets.left + insets.right;
+    final int windowH = applet.height + insets.top + insets.bottom;
+    frame.setSize(windowW, windowH);
+
+    final Rectangle screenRect = displayDevice.getDefaultConfiguration().getBounds();
     frame.setLocation(screenRect.x + (screenRect.width - applet.width) / 2,
-        screenRect.y + (screenRect.height - applet.height) / 2);    
-    
-    int usableWindowH = windowH - insets.top - insets.bottom;
+        screenRect.y + (screenRect.height - applet.height) / 2);
+
+    final int usableWindowH = windowH - insets.top - insets.bottom;
     applet.setBounds((windowW - applet.width)/2,
                      insets.top + (usableWindowH - applet.height)/2,
                      applet.width, applet.height);
-    
+
     // This allows to close the frame.
     frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
+      public void windowClosing(final WindowEvent e) {
         System.exit(0);
       }
     });
-        
+
     frame.setVisible(true);
-    applet.start();    
+    applet.start();
   }
 }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -30,6 +30,8 @@ package com.jogamp.opengl.test.junit.jogl.glsl;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -37,6 +39,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+
 import java.awt.Frame;
 
 import org.junit.Assert;
@@ -70,13 +73,13 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
     @Test
     public void compileShader() throws InterruptedException {
-        GLProfile glp = GLProfile.get(GLProfile.GL2GL3);         
-        GLCapabilities caps = new GLCapabilities(glp);   
+        final GLProfile glp = GLProfile.get(GLProfile.GL2GL3);
+        final GLCapabilities caps = new GLCapabilities(glp);
         // commenting out this line makes it work
         caps.setStencilBits(8);
 
         // commenting in this line also makes it work
-        //caps.setSampleBuffers(true); 
+        //caps.setSampleBuffers(true);
 
         final Frame frame = new Frame("Bug 459 shader compilation test");
         Assert.assertNotNull(frame);
@@ -87,62 +90,62 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
 
         glCanvas.addGLEventListener(new GLEventListener() {
             /* @Override */
-            public void init(GLAutoDrawable drawable) {
-                String code = "void main(void){gl_Position = vec4(0,0,0,1);}";         
+            public void init(final GLAutoDrawable drawable) {
+                final String code = "void main(void){gl_Position = vec4(0,0,0,1);}";
 
-                GL2GL3 gl = drawable.getGL().getGL2GL3();         
-                int id = gl.glCreateShader(GL2GL3.GL_VERTEX_SHADER); 
+                final GL2GL3 gl = drawable.getGL().getGL2GL3();
+                final int id = gl.glCreateShader(GL2ES2.GL_VERTEX_SHADER);
 
                 try {
-                    gl.glShaderSource(id, 1, new String[] { code }, (int[])null, 0); 
-                    gl.glCompileShader(id); 
-    
-                    int[] compiled = new int[1]; 
-                    gl.glGetShaderiv(id, GL2GL3.GL_COMPILE_STATUS, compiled, 0); 
-                    if (compiled[0] == GL2GL3.GL_FALSE) { 
-                        int[] logLength = new int[1]; 
-                        gl.glGetShaderiv(id, GL2GL3.GL_INFO_LOG_LENGTH, logLength, 0); 
-                        
-                        byte[] log = new byte[logLength[0]]; 
-                        gl.glGetShaderInfoLog(id, logLength[0], (int[])null, 0, log, 0); 
-                        
-                        System.err.println("Error compiling the shader: " + new String(log)); 
-                            
-                        gl.glDeleteShader(id); 
-                    } 
+                    gl.glShaderSource(id, 1, new String[] { code }, (int[])null, 0);
+                    gl.glCompileShader(id);
+
+                    final int[] compiled = new int[1];
+                    gl.glGetShaderiv(id, GL2ES2.GL_COMPILE_STATUS, compiled, 0);
+                    if (compiled[0] == GL.GL_FALSE) {
+                        final int[] logLength = new int[1];
+                        gl.glGetShaderiv(id, GL2ES2.GL_INFO_LOG_LENGTH, logLength, 0);
+
+                        final byte[] log = new byte[logLength[0]];
+                        gl.glGetShaderInfoLog(id, logLength[0], (int[])null, 0, log, 0);
+
+                        System.err.println("Error compiling the shader: " + new String(log));
+
+                        gl.glDeleteShader(id);
+                    }
                     else {
-                        System.out.println("Shader compiled: id=" + id); 
+                        System.out.println("Shader compiled: id=" + id);
                     }
                 }
-                catch( GLException e ) {
+                catch( final GLException e ) {
                     glexception = e;
                 }
             }
 
             /* @Override */
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
             }
 
             /* @Override */
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
             }
 
             /* @Override */
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
             }
         });
 
-        Animator animator = new Animator(glCanvas);
+        final Animator animator = new Animator(glCanvas);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.setSize(512, 512);
                     frame.setVisible(true);
                 } } );
-        } catch(Exception ex) {
+        } catch(final Exception ex) {
             throw new RuntimeException(ex);
         }
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         animator.start();
 
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -163,13 +166,13 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
                     frame.remove(glCanvas);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }        
+        }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestShaderCompilationBug459AWT.class.getName());
     }
 }

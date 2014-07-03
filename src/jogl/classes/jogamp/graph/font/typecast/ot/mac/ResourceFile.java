@@ -31,11 +31,11 @@ import java.io.RandomAccessFile;
  */
 public class ResourceFile {
 
-    private ResourceHeader header;
-    private ResourceMap map;
+    private final ResourceHeader header;
+    private final ResourceMap map;
 
     /** Creates new Resource */
-    public ResourceFile(RandomAccessFile raf) throws IOException {
+    public ResourceFile(final RandomAccessFile raf) throws IOException {
 
         // Read header at the beginning of the file
         raf.seek(0);
@@ -50,13 +50,13 @@ public class ResourceFile {
         return map;
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
             //RandomAccessFile raf = new RandomAccessFile("/Library/Fonts/GillSans.dfont", "r");
 
             // Tests loading a font from a resource fork on Mac OS X
-            RandomAccessFile raf = new RandomAccessFile("/Library/Fonts/Georgia/..namedfork/rsrc", "r");
-            ResourceFile resource = new ResourceFile(raf);
+            final RandomAccessFile raf = new RandomAccessFile("/Library/Fonts/Georgia/..namedfork/rsrc", "r");
+            final ResourceFile resource = new ResourceFile(raf);
             for (int i = 0; i < resource.getResourceMap().getResourceTypeCount(); i++) {
                 System.out.println(resource.getResourceMap().getResourceType(i).getTypeAsString());
             }
@@ -70,7 +70,7 @@ public class ResourceFile {
                 reference = type.getReference(i);
                 System.out.println(reference.getName());
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }

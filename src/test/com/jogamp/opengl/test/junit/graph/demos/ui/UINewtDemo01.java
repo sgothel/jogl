@@ -51,9 +51,9 @@ public class UINewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    public static void main(String[] args) {
-        GLProfile glp = GLProfile.getGL2ES2();
-        GLCapabilities caps = new GLCapabilities(glp);
+    public static void main(final String[] args) {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
@@ -63,8 +63,8 @@ public class UINewtDemo01 {
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
-        RenderState rs = RenderState.createRenderState(SVertex.factory());
-        UIGLListener01 uiGLListener = new UIGLListener01 (0, rs, DEBUG, TRACE);
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+        final UIGLListener01 uiGLListener = new UIGLListener01 (0, rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
@@ -74,14 +74,14 @@ public class UINewtDemo01 {
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent arg0) {
+            public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
                     window.destroy();
                 }
             }
         });
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
         });

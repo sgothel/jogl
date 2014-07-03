@@ -70,7 +70,7 @@ public abstract class GraphicsConfigurationFactory {
         public final Class<?> capsType;
         private final int hash32;
 
-        public DeviceCapsType(Class<?> deviceType, Class<?> capsType) {
+        public DeviceCapsType(final Class<?> deviceType, final Class<?> capsType) {
             this.deviceType = deviceType;
             this.capsType = capsType;
 
@@ -86,10 +86,10 @@ public abstract class GraphicsConfigurationFactory {
         }
 
         @Override
-        public final boolean equals(Object obj) {
+        public final boolean equals(final Object obj) {
             if(this == obj)  { return true; }
             if (obj instanceof DeviceCapsType) {
-                DeviceCapsType dct = (DeviceCapsType)obj;
+                final DeviceCapsType dct = (DeviceCapsType)obj;
                 return deviceType == dct.deviceType && capsType == dct.capsType;
             }
             return false;
@@ -135,14 +135,14 @@ public abstract class GraphicsConfigurationFactory {
                 try {
                     ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory",
                                                     "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     throw new RuntimeException(e);
                 }
                 if(NativeWindowFactory.isAWTAvailable()) {
                     try {
                         ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory",
                                                         "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());
-                    } catch (Exception e) { /* n/a */ }
+                    } catch (final Exception e) { /* n/a */ }
                 }
             }
         }
@@ -162,11 +162,11 @@ public abstract class GraphicsConfigurationFactory {
         return Thread.currentThread().getName();
     }
 
-    protected static String toHexString(int val) {
+    protected static String toHexString(final int val) {
         return "0x" + Integer.toHexString(val);
     }
 
-    protected static String toHexString(long val) {
+    protected static String toHexString(final long val) {
         return "0x" + Long.toHexString(val);
     }
 
@@ -181,7 +181,7 @@ public abstract class GraphicsConfigurationFactory {
      *
      * @see #getFactory(Class, Class)
      */
-    public static GraphicsConfigurationFactory getFactory(AbstractGraphicsDevice device, CapabilitiesImmutable caps) {
+    public static GraphicsConfigurationFactory getFactory(final AbstractGraphicsDevice device, final CapabilitiesImmutable caps) {
         if (device == null) {
             throw new IllegalArgumentException("null device");
         }
@@ -216,7 +216,7 @@ public abstract class GraphicsConfigurationFactory {
      * @throws IllegalArgumentException if the deviceType does not implement {@link AbstractGraphicsDevice} or
      *                                  capabilitiesType does not implement {@link CapabilitiesImmutable}
      */
-    public static GraphicsConfigurationFactory getFactory(Class<?> deviceType, Class<?> capabilitiesType)
+    public static GraphicsConfigurationFactory getFactory(final Class<?> deviceType, final Class<?> capabilitiesType)
         throws IllegalArgumentException, NativeWindowException
     {
         if (!(defaultDeviceCapsType.deviceType.isAssignableFrom(deviceType))) {
@@ -242,7 +242,7 @@ public abstract class GraphicsConfigurationFactory {
         for(int j=0; j<deviceTypes.size(); j++) {
             final Class<?> interfaceDevice = deviceTypes.get(j);
             for(int i=0; i<capabilitiesTypes.size(); i++) {
-                Class<?> interfaceCaps = capabilitiesTypes.get(i);
+                final Class<?> interfaceCaps = capabilitiesTypes.get(i);
                 final DeviceCapsType dct = new DeviceCapsType(interfaceDevice, interfaceCaps);
                 final GraphicsConfigurationFactory factory = registeredFactories.get(dct);
                 if (factory != null) {
@@ -260,7 +260,7 @@ public abstract class GraphicsConfigurationFactory {
         }
         return factory;
     }
-    private static ArrayList<Class<?>> getAllAssignableClassesFrom(Class<?> superClassOrInterface, Class<?> fromClass, boolean interfacesOnly) {
+    private static ArrayList<Class<?>> getAllAssignableClassesFrom(final Class<?> superClassOrInterface, final Class<?> fromClass, final boolean interfacesOnly) {
         // Using a todo list avoiding a recursive loop!
         final ArrayList<Class<?>> inspectClasses  = new ArrayList<Class<?>>();
         final ArrayList<Class<?>> resolvedInterfaces = new ArrayList<Class<?>>();
@@ -271,7 +271,7 @@ public abstract class GraphicsConfigurationFactory {
         }
         return resolvedInterfaces;
     }
-    private static void getAllAssignableClassesFrom(Class<?> superClassOrInterface, Class<?> fromClass, boolean interfacesOnly, List<Class<?>> resolvedInterfaces, List<Class<?>> inspectClasses) {
+    private static void getAllAssignableClassesFrom(final Class<?> superClassOrInterface, final Class<?> fromClass, final boolean interfacesOnly, final List<Class<?>> resolvedInterfaces, final List<Class<?>> inspectClasses) {
         final ArrayList<Class<?>> types = new ArrayList<Class<?>>();
         if( superClassOrInterface.isAssignableFrom(fromClass) && !resolvedInterfaces.contains(fromClass)) {
             if( !interfacesOnly || fromClass.isInterface() ) {
@@ -295,10 +295,10 @@ public abstract class GraphicsConfigurationFactory {
         }
     }
     private static void dumpFactories() {
-        Set<DeviceCapsType> dcts = registeredFactories.keySet();
+        final Set<DeviceCapsType> dcts = registeredFactories.keySet();
         int i=0;
-        for(Iterator<DeviceCapsType> iter = dcts.iterator(); iter.hasNext(); ) {
-            DeviceCapsType dct = iter.next();
+        for(final Iterator<DeviceCapsType> iter = dcts.iterator(); iter.hasNext(); ) {
+            final DeviceCapsType dct = iter.next();
             System.err.println("Factory #"+i+": "+dct+" -> "+registeredFactories.get(dct));
             i++;
         }
@@ -323,7 +323,7 @@ public abstract class GraphicsConfigurationFactory {
      * @return the previous registered factory, or null if none
      * @throws IllegalArgumentException if the given class does not implement AbstractGraphicsDevice
      */
-    protected static GraphicsConfigurationFactory registerFactory(Class<?> abstractGraphicsDeviceImplementor, Class<?> capabilitiesType, GraphicsConfigurationFactory factory)
+    protected static GraphicsConfigurationFactory registerFactory(final Class<?> abstractGraphicsDeviceImplementor, final Class<?> capabilitiesType, final GraphicsConfigurationFactory factory)
         throws IllegalArgumentException
     {
         if (!(defaultDeviceCapsType.deviceType.isAssignableFrom(abstractGraphicsDeviceImplementor))) {
@@ -400,9 +400,9 @@ public abstract class GraphicsConfigurationFactory {
      * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setChosenCapabilities(Capabilities caps)
      */
     public final AbstractGraphicsConfiguration
-        chooseGraphicsConfiguration(CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-                                    CapabilitiesChooser chooser,
-                                    AbstractGraphicsScreen screen, int nativeVisualID)
+        chooseGraphicsConfiguration(final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+                                    final CapabilitiesChooser chooser,
+                                    final AbstractGraphicsScreen screen, final int nativeVisualID)
         throws IllegalArgumentException, NativeWindowException {
         if(null==capsChosen) {
             throw new NativeWindowException("Chosen Capabilities are null");
@@ -413,7 +413,7 @@ public abstract class GraphicsConfigurationFactory {
         if(null==screen) {
             throw new NativeWindowException("Screen is null");
         }
-        AbstractGraphicsDevice device =  screen.getDevice();
+        final AbstractGraphicsDevice device =  screen.getDevice();
         if(null==device) {
             throw new NativeWindowException("Screen's Device is null");
         }

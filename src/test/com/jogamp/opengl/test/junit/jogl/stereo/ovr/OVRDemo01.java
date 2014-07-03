@@ -49,6 +49,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 
 /**
  * All distortions, no multisampling, bilinear filtering, manual-swap and using two FBOs (default, good)
@@ -177,7 +178,7 @@ public class OVRDemo01 {
 
         final Animator animator = useAnimator ? new Animator() : null;
         if( useAnimator ) {
-            animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 

@@ -72,7 +72,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
     }
 
     private WindowImpl focusedWindow = null;
-    private EventDeviceManager eventDeviceManager = new EventDeviceManager();
+    private final EventDeviceManager eventDeviceManager = new EventDeviceManager();
 
     /*
       The devices are in /dev/input:
@@ -85,56 +85,56 @@ public class LinuxEventDeviceTracker implements WindowListener {
 
       And so on up to event31.
      */
-    private EventDevicePoller[] eventDevicePollers = new EventDevicePoller[32];
+    private final EventDevicePoller[] eventDevicePollers = new EventDevicePoller[32];
 
     @Override
-    public void windowResized(WindowEvent e) { }
+    public void windowResized(final WindowEvent e) { }
 
     @Override
-    public void windowMoved(WindowEvent e) { }
+    public void windowMoved(final WindowEvent e) { }
 
     @Override
-    public void windowDestroyNotify(WindowEvent e) {
-        Object s = e.getSource();
+    public void windowDestroyNotify(final WindowEvent e) {
+        final Object s = e.getSource();
         if(focusedWindow == s) {
             focusedWindow = null;
         }
     }
 
     @Override
-    public void windowDestroyed(WindowEvent e) { }
+    public void windowDestroyed(final WindowEvent e) { }
 
     @Override
-    public void windowGainedFocus(WindowEvent e) {
-        Object s = e.getSource();
+    public void windowGainedFocus(final WindowEvent e) {
+        final Object s = e.getSource();
         if(s instanceof WindowImpl) {
             focusedWindow = (WindowImpl) s;
         }
     }
 
     @Override
-    public void windowLostFocus(WindowEvent e) {
-        Object s = e.getSource();
+    public void windowLostFocus(final WindowEvent e) {
+        final Object s = e.getSource();
         if(focusedWindow == s) {
             focusedWindow = null;
         }
     }
 
-    public static void main(String[] args ){
+    public static void main(final String[] args ){
         System.setProperty("newt.debug.Window.KeyEvent", "true");
         LinuxEventDeviceTracker.getSingleton();
         try {
             while(true) {
                 Thread.sleep(1000);
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
     @Override
-    public void windowRepaint(WindowUpdateEvent e) { }
+    public void windowRepaint(final WindowUpdateEvent e) { }
 
     class EventDeviceManager implements Runnable {
 
@@ -142,17 +142,17 @@ public class LinuxEventDeviceTracker implements WindowListener {
 
         @Override
         public void run() {
-            File f = new File("/dev/input/");
+            final File f = new File("/dev/input/");
             int number;
             while(!stop){
-                for(String path:f.list()){
+                for(final String path:f.list()){
                     if(path.startsWith("event")) {
-                        String stringNumber = path.substring(5);
+                        final String stringNumber = path.substring(5);
                         number = Integer.parseInt(stringNumber);
                         if(number<32&&number>=0) {
                             if(eventDevicePollers[number]==null){
                                 eventDevicePollers[number] = new EventDevicePoller(number);
-                                Thread t = new Thread(eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
+                                final Thread t = new Thread(eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
                                 t.setDaemon(true);
                                 t.start();
                             } else if(eventDevicePollers[number].stop) {
@@ -163,7 +163,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
                 }
                 try {
                     Thread.sleep(2000);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -174,9 +174,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
     class EventDevicePoller implements Runnable {
 
         private volatile boolean stop = false;
-        private String eventDeviceName;
+        private final String eventDeviceName;
 
-        public EventDevicePoller(int eventDeviceNumber){
+        public EventDevicePoller(final int eventDeviceNumber){
             this.eventDeviceName="/dev/input/event"+eventDeviceNumber;
         }
 
@@ -194,14 +194,14 @@ public class LinuxEventDeviceTracker implements WindowListener {
              *	unsigned int value;
              * };
              */
-            ByteBuffer bb = ByteBuffer.wrap(b);
-            StructAccessor s = new StructAccessor(bb);
+            final ByteBuffer bb = ByteBuffer.wrap(b);
+            final StructAccessor s = new StructAccessor(bb);
             final File f = new File(eventDeviceName);
             f.setReadOnly();
             InputStream fis;
             try {
                 fis = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 stop=true;
                 return;
             }
@@ -224,7 +224,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
                         int read = 0;
                         try {
                             read = fis.read(b, 0, remaining);
-                        } catch (IOException e) {
+                        } catch (final IOException e) {
                             stop = true;
                             break loop;
                         }
@@ -369,13 +369,13 @@ public class LinuxEventDeviceTracker implements WindowListener {
             if(null != fis) {
                 try {
                     fis.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                 }
             }
             stop=true;
         }
 
-        private char NewtVKey2Unicode(short VK, int modifiers) {
+        private char NewtVKey2Unicode(final short VK, final int modifiers) {
             if( KeyEvent.isPrintableKey(VK, true) ) {
                 if((modifiers & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK) {
                     return (char)VK;
@@ -387,7 +387,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
         }
 
         @SuppressWarnings("unused")
-        private char LinuxEVKey2Unicode(short EVKey) {
+        private char LinuxEVKey2Unicode(final short EVKey) {
             // This is the stuff normally mapped by a system keymap
 
             switch(EVKey) {
@@ -443,7 +443,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
             return 0;
         }
 
-        private short LinuxEVKey2NewtVKey(short EVKey) {
+        private short LinuxEVKey2NewtVKey(final short EVKey) {
 
             switch(EVKey) {
             case 1: // ESC

@@ -63,15 +63,15 @@ class TypecastFont implements Font {
 
         // FIXME: Generic attempt to find the best CmapTable,
         // which is assumed to be the one with the most entries (stupid 'eh?)
-        CmapTable cmapTable = font.getCmapTable();
-        CmapFormat[] _cmapFormatP = { null, null, null, null };
+        final CmapTable cmapTable = font.getCmapTable();
+        final CmapFormat[] _cmapFormatP = { null, null, null, null };
         int platform = -1;
         int platformLength = -1;
         int encoding = -1;
         for(int i=0; i<cmapTable.getNumTables(); i++) {
-            CmapIndexEntry cmapIdxEntry = cmapTable.getCmapIndexEntry(i);
-            int pidx = cmapIdxEntry.getPlatformId();
-            CmapFormat cf = cmapIdxEntry.getFormat();
+            final CmapIndexEntry cmapIdxEntry = cmapTable.getCmapIndexEntry(i);
+            final int pidx = cmapIdxEntry.getPlatformId();
+            final CmapFormat cf = cmapIdxEntry.getFormat();
             if(DEBUG) {
                 System.err.println("CmapFormat["+i+"]: platform " + pidx +
                                    ", encoding "+cmapIdxEntry.getEncodingId() + ": "+cf);
@@ -123,7 +123,7 @@ class TypecastFont implements Font {
         {
             int _cmapentries = 0;
             for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
-                CmapFormat.Range range = cmapFormat.getRange(i);
+                final CmapFormat.Range range = cmapFormat.getRange(i);
                 _cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included
             }
             cmapentries = _cmapentries;
@@ -135,7 +135,7 @@ class TypecastFont implements Font {
             System.err.println("num cmap ranges: "+cmapFormat.getRangeCount());
 
             for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
-                CmapFormat.Range range = cmapFormat.getRange(i);
+                final CmapFormat.Range range = cmapFormat.getRange(i);
                 for (int j = range.getStartCode(); j <= range.getEndCode(); ++j) {
                     final int code = cmapFormat.mapCharCode(j);
                     if(code < 15) {
@@ -149,15 +149,15 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public StringBuilder getName(StringBuilder sb, int nameIndex) {
+    public StringBuilder getName(final StringBuilder sb, final int nameIndex) {
         return font.getName(nameIndex, sb);
     }
     @Override
-    public String getName(int nameIndex) {
+    public String getName(final int nameIndex) {
         return getName(null, nameIndex).toString();
     }
     @Override
-    public StringBuilder getAllNames(StringBuilder sb, String separator) {
+    public StringBuilder getAllNames(final StringBuilder sb, final String separator) {
         return font.getAllNames(sb, separator);
     }
     @Override
@@ -168,7 +168,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getAdvanceWidth(int glyphID, float pixelSize) {
+    public float getAdvanceWidth(final int glyphID, final float pixelSize) {
         return font.getHmtxTable().getAdvanceWidth(glyphID) * metrics.getScale(pixelSize);
     }
 
@@ -178,7 +178,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public Glyph getGlyph(char symbol) {
+    public Glyph getGlyph(final char symbol) {
         TypecastGlyph result = (TypecastGlyph) char2Glyph.get(symbol);
         if (null == result) {
             // final short code = (short) char2Code.get(symbol);
@@ -226,12 +226,12 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public final float getPixelSize(float fontSize /* points per inch */, float resolution) {
+    public final float getPixelSize(final float fontSize /* points per inch */, final float resolution) {
         return fontSize * resolution / ( 72f /* points per inch */ );
     }
 
     @Override
-    public float getLineHeight(float pixelSize) {
+    public float getLineHeight(final float pixelSize) {
         final Metrics metrics = getMetrics();
         final float lineGap = metrics.getLineGap(pixelSize) ; // negative value!
         final float ascent = metrics.getAscent(pixelSize) ; // negative value!
@@ -241,7 +241,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getMetricWidth(CharSequence string, float pixelSize) {
+    public float getMetricWidth(final CharSequence string, final float pixelSize) {
         float width = 0;
         final int len = string.length();
         for (int i=0; i< len; i++) {
@@ -257,7 +257,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getMetricHeight(CharSequence string, float pixelSize, final AABBox tmp) {
+    public float getMetricHeight(final CharSequence string, final float pixelSize, final AABBox tmp) {
         int height = 0;
 
         for (int i=0; i<string.length(); i++) {
@@ -272,7 +272,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public AABBox getMetricBounds(CharSequence string, float pixelSize) {
+    public AABBox getMetricBounds(final CharSequence string, final float pixelSize) {
         if (string == null) {
             return new AABBox();
         }
@@ -282,14 +282,14 @@ class TypecastFont implements Font {
         float totalWidth = 0;
         float curLineWidth = 0;
         for (int i=0; i<charCount; i++) {
-            char character = string.charAt(i);
+            final char character = string.charAt(i);
             if (character == '\n') {
                 totalWidth = Math.max(curLineWidth, totalWidth);
                 curLineWidth = 0;
                 totalHeight += lineHeight;
                 continue;
             }
-            Glyph glyph = getGlyph(character);
+            final Glyph glyph = getGlyph(character);
             curLineWidth += glyph.getAdvance(pixelSize, true);
         }
         if (curLineWidth > 0) {
@@ -350,7 +350,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public boolean isPrintableChar( char c ) {
+    public boolean isPrintableChar( final char c ) {
         return FontFactory.isPrintableChar(c);
     }
 

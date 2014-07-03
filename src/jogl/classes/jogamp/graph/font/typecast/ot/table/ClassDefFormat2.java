@@ -18,11 +18,11 @@ import java.io.RandomAccessFile;
  */
 public class ClassDefFormat2 extends ClassDef {
 
-    private int classRangeCount;
-    private RangeRecord[] classRangeRecords;
+    private final int classRangeCount;
+    private final RangeRecord[] classRangeRecords;
 
     /** Creates new ClassDefFormat2 */
-    public ClassDefFormat2(RandomAccessFile raf) throws IOException {
+    public ClassDefFormat2(final RandomAccessFile raf) throws IOException {
         classRangeCount = raf.readUnsignedShort();
         classRangeRecords = new RangeRecord[classRangeCount];
         for (int i = 0; i < classRangeCount; i++) {

@@ -32,10 +32,10 @@ import java.util.LinkedList;
 
 public class NEWTEventFiFo
 {
-    private LinkedList/*<NEWTEvent>*/ events = new LinkedList/*<NEWTEvent>*/();
+    private final LinkedList/*<NEWTEvent>*/ events = new LinkedList/*<NEWTEvent>*/();
 
     /** Add NEWTEvent to tail */
-    public synchronized void put(NEWTEvent event) {
+    public synchronized void put(final NEWTEvent event) {
         events.addLast(event);
         notifyAll();
     }

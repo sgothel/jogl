@@ -13,7 +13,7 @@ public class CompileShaderNVidia extends CompileShader {
     private static final String NVAPSDK;
 
     static {
-        String nvapSDKProp = System.getProperty("NVAPSDK");
+        final String nvapSDKProp = System.getProperty("NVAPSDK");
         if (nvapSDKProp != null) {
             NVAPSDK = nvapSDKProp;
         } else {
@@ -51,7 +51,7 @@ public class CompileShaderNVidia extends CompileShader {
         return "glslf.bat";
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         new CompileShaderNVidia().run(args);
     }
 }

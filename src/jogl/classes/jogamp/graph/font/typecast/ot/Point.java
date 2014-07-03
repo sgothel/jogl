@@ -19,7 +19,7 @@ public class Point {
     public boolean onCurve = true;
     public boolean endOfContour = false;
 
-    public Point(int x, int y, boolean onCurve, boolean endOfContour) {
+    public Point(final int x, final int y, final boolean onCurve, final boolean endOfContour) {
         this.x = x;
         this.y = y;
         this.onCurve = onCurve;

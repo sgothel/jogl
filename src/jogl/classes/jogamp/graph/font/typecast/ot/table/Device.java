@@ -18,13 +18,13 @@ import java.io.RandomAccessFile;
  */
 public class Device extends Object {
 
-    private int startSize;
-    private int endSize;
-    private int deltaFormat;
-    private int[] deltaValues;
+    private final int startSize;
+    private final int endSize;
+    private final int deltaFormat;
+    private final int[] deltaValues;
 
     /** Creates new Device */
-    public Device(RandomAccessFile raf) throws IOException {
+    public Device(final RandomAccessFile raf) throws IOException {
         startSize = raf.readUnsignedShort();
         endSize = raf.readUnsignedShort();
         deltaFormat = raf.readUnsignedShort();

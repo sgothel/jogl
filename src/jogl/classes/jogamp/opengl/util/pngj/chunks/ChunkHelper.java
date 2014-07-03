@@ -68,63 +68,63 @@ public class ChunkHelper {
 	/**
 	 * Converts to bytes using Latin1 (ISO-8859-1)
 	 */
-	public static byte[] toBytes(String x) {
+	public static byte[] toBytes(final String x) {
 		return x.getBytes(PngHelperInternal.charsetLatin1);
 	}
 
 	/**
 	 * Converts to String using Latin1 (ISO-8859-1)
 	 */
-	public static String toString(byte[] x) {
+	public static String toString(final byte[] x) {
 		return new String(x, PngHelperInternal.charsetLatin1);
 	}
 
 	/**
 	 * Converts to String using Latin1 (ISO-8859-1)
 	 */
-	public static String toString(byte[] x, int offset, int len) {
+	public static String toString(final byte[] x, final int offset, final int len) {
 		return new String(x, offset, len, PngHelperInternal.charsetLatin1);
 	}
 
 	/**
 	 * Converts to bytes using UTF-8
 	 */
-	public static byte[] toBytesUTF8(String x) {
+	public static byte[] toBytesUTF8(final String x) {
 		return x.getBytes(PngHelperInternal.charsetUTF8);
 	}
 
 	/**
 	 * Converts to string using UTF-8
 	 */
-	public static String toStringUTF8(byte[] x) {
+	public static String toStringUTF8(final byte[] x) {
 		return new String(x, PngHelperInternal.charsetUTF8);
 	}
 
 	/**
 	 * Converts to string using UTF-8
 	 */
-	public static String toStringUTF8(byte[] x, int offset, int len) {
+	public static String toStringUTF8(final byte[] x, final int offset, final int len) {
 		return new String(x, offset, len, PngHelperInternal.charsetUTF8);
 	}
 
 	/**
 	 * critical chunk : first letter is uppercase
 	 */
-	public static boolean isCritical(String id) {
+	public static boolean isCritical(final String id) {
 		return (Character.isUpperCase(id.charAt(0)));
 	}
 
 	/**
 	 * public chunk: second letter is uppercase
 	 */
-	public static boolean isPublic(String id) { //
+	public static boolean isPublic(final String id) { //
 		return (Character.isUpperCase(id.charAt(1)));
 	}
 
 	/**
 	 * Safe to copy chunk: fourth letter is lower case
 	 */
-	public static boolean isSafeToCopy(String id) {
+	public static boolean isSafeToCopy(final String id) {
 		return (!Character.isUpperCase(id.charAt(3)));
 	}
 
@@ -132,7 +132,7 @@ public class ChunkHelper {
 	 * "Unknown" just means that our chunk factory (even when it has been
 	 * augmented by client code) did not recognize its id
 	 */
-	public static boolean isUnknown(PngChunk c) {
+	public static boolean isUnknown(final PngChunk c) {
 		return c instanceof PngChunkUNKNOWN;
 	}
 
@@ -142,7 +142,7 @@ public class ChunkHelper {
 	 * @param b
 	 * @return -1 if not found
 	 */
-	public static int posNullByte(byte[] b) {
+	public static int posNullByte(final byte[] b) {
 		for (int i = 0; i < b.length; i++)
 			if (b[i] == 0)
 				return i;
@@ -156,10 +156,10 @@ public class ChunkHelper {
 	 * @param behav
 	 * @return true/false
 	 */
-	public static boolean shouldLoad(String id, ChunkLoadBehaviour behav) {
+	public static boolean shouldLoad(final String id, final ChunkLoadBehaviour behav) {
 		if (isCritical(id))
 			return true;
-		boolean kwown = PngChunk.isKnown(id);
+		final boolean kwown = PngChunk.isKnown(id);
 		switch (behav) {
 		case LOAD_CHUNK_ALWAYS:
 			return true;
@@ -173,21 +173,21 @@ public class ChunkHelper {
 		return false; // should not reach here
 	}
 
-	public final static byte[] compressBytes(byte[] ori, boolean compress) {
+	public final static byte[] compressBytes(final byte[] ori, final boolean compress) {
 		return compressBytes(ori, 0, ori.length, compress);
 	}
 
-	public static byte[] compressBytes(byte[] ori, int offset, int len, boolean compress) {
+	public static byte[] compressBytes(final byte[] ori, final int offset, final int len, final boolean compress) {
 		try {
-			ByteArrayInputStream inb = new ByteArrayInputStream(ori, offset, len);
-			InputStream in = compress ? inb : new InflaterInputStream(inb, getInflater());
-			ByteArrayOutputStream outb = new ByteArrayOutputStream();
-			OutputStream out = compress ? new DeflaterOutputStream(outb) : outb;
+			final ByteArrayInputStream inb = new ByteArrayInputStream(ori, offset, len);
+			final InputStream in = compress ? inb : new InflaterInputStream(inb, getInflater());
+			final ByteArrayOutputStream outb = new ByteArrayOutputStream();
+			final OutputStream out = compress ? new DeflaterOutputStream(outb) : outb;
 			shovelInToOut(in, out);
 			in.close();
 			out.close();
 			return outb.toByteArray();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new PngjException(e);
 		}
 	}
@@ -195,7 +195,7 @@ public class ChunkHelper {
 	/**
 	 * Shovels all data from an input stream to an output stream.
 	 */
-	private static void shovelInToOut(InputStream in, OutputStream out) throws IOException {
+	private static void shovelInToOut(final InputStream in, final OutputStream out) throws IOException {
 		synchronized (tmpbuffer) {
 			int len;
 			while ((len = in.read(tmpbuffer)) > 0) {
@@ -204,7 +204,7 @@ public class ChunkHelper {
 		}
 	}
 
-	public static boolean maskMatch(int v, int mask) {
+	public static boolean maskMatch(final int v, final int mask) {
 		return (v & mask) != 0;
 	}
 
@@ -213,9 +213,9 @@ public class ChunkHelper {
 	 *
 	 * See also trimList()
 	 */
-	public static List<PngChunk> filterList(List<PngChunk> target, ChunkPredicate predicateKeep) {
-		List<PngChunk> result = new ArrayList<PngChunk>();
-		for (PngChunk element : target) {
+	public static List<PngChunk> filterList(final List<PngChunk> target, final ChunkPredicate predicateKeep) {
+		final List<PngChunk> result = new ArrayList<PngChunk>();
+		for (final PngChunk element : target) {
 			if (predicateKeep.match(element)) {
 				result.add(element);
 			}
@@ -228,11 +228,11 @@ public class ChunkHelper {
 	 *
 	 * See also filterList
 	 */
-	public static int trimList(List<PngChunk> target, ChunkPredicate predicateRemove) {
-		Iterator<PngChunk> it = target.iterator();
+	public static int trimList(final List<PngChunk> target, final ChunkPredicate predicateRemove) {
+		final Iterator<PngChunk> it = target.iterator();
 		int cont = 0;
 		while (it.hasNext()) {
-			PngChunk c = it.next();
+			final PngChunk c = it.next();
 			if (predicateRemove.match(c)) {
 				it.remove();
 				cont++;
@@ -252,7 +252,7 @@ public class ChunkHelper {
 	 *
 	 * @return true if "equivalent"
 	 */
-	public static final boolean equivalent(PngChunk c1, PngChunk c2) {
+	public static final boolean equivalent(final PngChunk c1, final PngChunk c2) {
 		if (c1 == c2)
 			return true;
 		if (c1 == null || c2 == null || !c1.id.equals(c2.id))
@@ -272,7 +272,7 @@ public class ChunkHelper {
 		return false;
 	}
 
-	public static boolean isText(PngChunk c) {
+	public static boolean isText(final PngChunk c) {
 		return c instanceof PngChunkTextVar;
 	}
 
@@ -281,7 +281,7 @@ public class ChunkHelper {
 	 * individual chunks compression
 	 */
 	public static Inflater getInflater() {
-		Inflater inflater = inflaterProvider.get();
+		final Inflater inflater = inflaterProvider.get();
 		inflater.reset();
 		return inflater;
 	}
@@ -291,7 +291,7 @@ public class ChunkHelper {
 	 * individual chunks decompression
 	 */
 	public static Deflater getDeflater() {
-		Deflater deflater = deflaterProvider.get();
+		final Deflater deflater = deflaterProvider.get();
 		deflater.reset();
 		return deflater;
 	}

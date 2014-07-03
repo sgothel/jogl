@@ -97,9 +97,9 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         }
     }
 
-    private void initShared(boolean onscreen) throws InterruptedException {
+    private void initShared(final boolean onscreen) throws InterruptedException {
         if(onscreen) {
-            GLWindow glWindow = GLWindow.create(caps);
+            final GLWindow glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
             glWindow.setSize(width, height);
             glWindow.setVisible(true);
@@ -129,8 +129,8 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         sharedDrawable = null;
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final boolean useShared, final boolean vsync) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setPosition(x, y);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
@@ -140,7 +140,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
 
         glWindow.setSize(width, height);
 
-        GearsES2 gears = new GearsES2(vsync ? 1 : 0);
+        final GearsES2 gears = new GearsES2(vsync ? 1 : 0);
         if(useShared) {
             gears.setSharedGearsObjects(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -172,16 +172,16 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test01CommonAnimatorSharedOnscreen() throws InterruptedException {
         initShared(true);
-        Animator animator = new Animator();
-        GLWindow f1 = runTestGL(animator, 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
+        final Animator animator = new Animator();
+        final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
                                           f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(animator, f1.getX()+0,
+        final GLWindow f3 = runTestGL(animator, f1.getX()+0,
                                           f1.getY()+height+insets.getTotalHeight(), true, false);
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         animator.stop();
@@ -205,16 +205,16 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test02CommonAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
-        Animator animator = new Animator();
-        GLWindow f1 = runTestGL(animator, 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
+        final Animator animator = new Animator();
+        final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
                                           f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(animator, f1.getX()+0,
+        final GLWindow f3 = runTestGL(animator, f1.getX()+0,
                                           f1.getY()+height+insets.getTotalHeight(), true, false);
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         animator.stop();
@@ -238,19 +238,19 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test03EachWithAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
-        Animator animator1 = new Animator();
-        Animator animator2 = new Animator();
-        Animator animator3 = new Animator();
-        GLWindow f1 = runTestGL(animator1, 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator2, f1.getX()+width+insets.getTotalWidth(),
+        final Animator animator1 = new Animator();
+        final Animator animator2 = new Animator();
+        final Animator animator3 = new Animator();
+        final GLWindow f1 = runTestGL(animator1, 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(animator2, f1.getX()+width+insets.getTotalWidth(),
                                 f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(animator3, f1.getX()+0,
+        final GLWindow f3 = runTestGL(animator3, f1.getX()+0,
                                 f1.getY()+height+insets.getTotalHeight(), true, false);
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         animator1.stop();
@@ -275,13 +275,13 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
 
     static long duration = 1000; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

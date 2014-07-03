@@ -19,7 +19,7 @@ public class PngChunkSBIT extends PngChunkSingle {
 	private int graysb, alphasb;
 	private int redsb, greensb, bluesb;
 
-	public PngChunkSBIT(ImageInfo info) {
+	public PngChunkSBIT(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -36,7 +36,7 @@ public class PngChunkSBIT extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (c.len != getLen())
 			throw new PngjException("bad chunk length " + c);
 		if (imgInfo.greyscale) {
@@ -71,8 +71,8 @@ public class PngChunkSBIT extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkSBIT otherx = (PngChunkSBIT) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkSBIT otherx = (PngChunkSBIT) other;
 		graysb = otherx.graysb;
 		redsb = otherx.redsb;
 		greensb = otherx.greensb;
@@ -80,7 +80,7 @@ public class PngChunkSBIT extends PngChunkSingle {
 		alphasb = otherx.alphasb;
 	}
 
-	public void setGraysb(int gray) {
+	public void setGraysb(final int gray) {
 		if (!imgInfo.greyscale)
 			throw new PngjException("only greyscale images support this");
 		graysb = gray;
@@ -92,7 +92,7 @@ public class PngChunkSBIT extends PngChunkSingle {
 		return graysb;
 	}
 
-	public void setAlphasb(int a) {
+	public void setAlphasb(final int a) {
 		if (!imgInfo.alpha)
 			throw new PngjException("only images with alpha support this");
 		alphasb = a;
@@ -108,7 +108,7 @@ public class PngChunkSBIT extends PngChunkSingle {
 	 * Set rgb values
 	 *
 	 */
-	public void setRGB(int r, int g, int b) {
+	public void setRGB(final int r, final int g, final int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)
 			throw new PngjException("only rgb or rgba images support this");
 		redsb = r;

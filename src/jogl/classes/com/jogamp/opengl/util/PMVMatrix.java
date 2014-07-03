@@ -41,8 +41,9 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.FloatStack;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
@@ -852,19 +853,19 @@ public final class PMVMatrix implements GLMatrixFunc {
         final boolean modT = 0 != ( MODIFIED_TEXTURE & modifiedBits );
 
         sb.append("PMVMatrix[modified[P ").append(modP).append(", Mv ").append(modMv).append(", T ").append(modT);
-        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append(", Frustum ").append(frustumDirty).append("/").append(frustumReq).append("]").append(Platform.NEWLINE);
-        sb.append(", Projection").append(Platform.NEWLINE);
+        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append(", Frustum ").append(frustumDirty).append("/").append(frustumReq).append("]").append(PlatformPropsImpl.NEWLINE);
+        sb.append(", Projection").append(PlatformPropsImpl.NEWLINE);
         matrixToString(sb, f, matrixP);
-        sb.append(", Modelview").append(Platform.NEWLINE);
+        sb.append(", Modelview").append(PlatformPropsImpl.NEWLINE);
         matrixToString(sb, f, matrixMv);
-        sb.append(", Texture").append(Platform.NEWLINE);
+        sb.append(", Texture").append(PlatformPropsImpl.NEWLINE);
         matrixToString(sb, f, matrixTex);
         if( 0 != ( requestMask & DIRTY_INVERSE_MODELVIEW ) ) {
-            sb.append(", Inverse Modelview").append(Platform.NEWLINE);
+            sb.append(", Inverse Modelview").append(PlatformPropsImpl.NEWLINE);
             matrixToString(sb, f, matrixMvi);
         }
         if( 0 != ( requestMask & DIRTY_INVERSE_TRANSPOSED_MODELVIEW ) ) {
-            sb.append(", Inverse Transposed Modelview").append(Platform.NEWLINE);
+            sb.append(", Inverse Transposed Modelview").append(PlatformPropsImpl.NEWLINE);
             matrixToString(sb, f, matrixMvit);
         }
         sb.append("]");

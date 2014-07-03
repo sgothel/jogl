@@ -56,7 +56,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice.open();
     }
 
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 

@@ -43,6 +43,7 @@ package javax.media.opengl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
@@ -142,8 +143,8 @@ public abstract class GLDrawableFactory {
 
     final String nwt = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
-    String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true);
-    ClassLoader cl = GLDrawableFactory.class.getClassLoader();
+    String factoryClassName = PropertyAccess.getProperty("jogl.gldrawablefactory.class.name", true);
+    final ClassLoader cl = GLDrawableFactory.class.getClassLoader();
     if (null == factoryClassName) {
         if ( nwt == NativeWindowFactory.TYPE_X11 ) {
           factoryClassName = "jogamp.opengl.x11.glx.X11GLXDrawableFactory";
@@ -164,7 +165,7 @@ public abstract class GLDrawableFactory {
       }
       try {
           tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
-      } catch (Exception jre) {
+      } catch (final Exception jre) {
           if (DEBUG || GLProfile.DEBUG) {
               System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
               jre.printStackTrace();
@@ -179,7 +180,7 @@ public abstract class GLDrawableFactory {
     if(!disableOpenGLES) {
         try {
             tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
-        } catch (Exception jre) {
+        } catch (final Exception jre) {
             if (DEBUG || GLProfile.DEBUG) {
                 System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - not available");
                 jre.printStackTrace();
@@ -221,7 +222,7 @@ public abstract class GLDrawableFactory {
             try {
                 gldf.resetDisplayGamma();
                 gldf.shutdownImpl();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 System.err.println("GLDrawableFactory.shutdownImpl: Caught "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
                 if( DEBUG ) {
                     t.printStackTrace();
@@ -322,7 +323,7 @@ public abstract class GLDrawableFactory {
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @return true if a shared resource could been created, otherwise false.
    */
-  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
+  protected final boolean createSharedResource(final AbstractGraphicsDevice device) {
       return createSharedResourceImpl(device);
   }
   protected abstract boolean createSharedResourceImpl(AbstractGraphicsDevice device);
@@ -343,7 +344,7 @@ public abstract class GLDrawableFactory {
    * @see #getRendererQuirks(AbstractGraphicsDevice)
    * @see GLRendererQuirks
    */
-  public final boolean hasRendererQuirk(AbstractGraphicsDevice device, int quirk) {
+  public final boolean hasRendererQuirk(final AbstractGraphicsDevice device, final int quirk) {
       final GLRendererQuirks glrq = getRendererQuirks(device);
       return null != glrq ? glrq.exist(quirk) : false;
   }
@@ -385,11 +386,11 @@ public abstract class GLDrawableFactory {
    * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
-  public static GLDrawableFactory getFactory(GLProfile glProfile) throws GLException {
+  public static GLDrawableFactory getFactory(final GLProfile glProfile) throws GLException {
     return getFactoryImpl(glProfile.getImplName());
   }
 
-  protected static GLDrawableFactory getFactoryImpl(String glProfileImplName) throws GLException {
+  protected static GLDrawableFactory getFactoryImpl(final String glProfileImplName) throws GLException {
     if ( GLProfile.usesNativeGLES(glProfileImplName) ) {
         if(null!=eglFactory) {
             return eglFactory;
@@ -400,7 +401,7 @@ public abstract class GLDrawableFactory {
     throw new GLException("No GLDrawableFactory available for profile: "+glProfileImplName);
   }
 
-  protected static GLDrawableFactory getFactoryImpl(AbstractGraphicsDevice device) throws GLException {
+  protected static GLDrawableFactory getFactoryImpl(final AbstractGraphicsDevice device) throws GLException {
     if(null != nativeOSFactory && nativeOSFactory.getIsDeviceCompatible(device)) {
         return nativeOSFactory;
     }

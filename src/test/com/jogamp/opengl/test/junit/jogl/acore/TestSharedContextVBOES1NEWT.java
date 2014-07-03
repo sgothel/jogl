@@ -92,7 +92,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
     }
 
     private void initShared() throws InterruptedException {
-        GLDrawable dummyDrawable = GLDrawableFactory.getFactory(glp).createDummyDrawable(null, true /* createNewDevice */, caps, null);
+        final GLDrawable dummyDrawable = GLDrawableFactory.getFactory(glp).createDummyDrawable(null, true /* createNewDevice */, caps, null);
         dummyDrawable.setRealized(true);
         sharedDrawable = new GLAutoDrawableDelegate(dummyDrawable, null, null, true /*ownDevice*/, null) { };
         Assert.assertNotNull(sharedDrawable);
@@ -114,8 +114,8 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         sharedDrawable.destroy();
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final boolean useShared, final boolean vsync) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setPosition(x, y);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
@@ -125,7 +125,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
 
         glWindow.setSize(width, height);
 
-        GearsES1 gears = new GearsES1(vsync ? 1 : 0);
+        final GearsES1 gears = new GearsES1(vsync ? 1 : 0);
         if(useShared) {
             gears.setSharedGearsObjects(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -153,12 +153,12 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
     @Test
     public void test01() throws InterruptedException {
         initShared();
-        Animator animator = new Animator();
-        GLWindow f1 = runTestGL(animator, 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
+        final Animator animator = new Animator();
+        final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
                                           f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(animator, f1.getX()+0,
+        final GLWindow f3 = runTestGL(animator, f1.getX()+0,
                                           f1.getY()+height+insets.getTotalHeight(), false, true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
@@ -176,13 +176,13 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestSharedContextVBOES1NEWT.class.getName());

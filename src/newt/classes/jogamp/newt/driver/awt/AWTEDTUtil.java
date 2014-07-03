@@ -49,7 +49,7 @@ public class AWTEDTUtil implements EDTUtil {
     private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
-    public AWTEDTUtil(ThreadGroup tg, String name, Runnable dispatchMessages) {
+    public AWTEDTUtil(final ThreadGroup tg, final String name, final Runnable dispatchMessages) {
         this.threadGroup = tg;
         this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
         this.dispatchMessages=dispatchMessages;
@@ -63,7 +63,7 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    final public void setPollPeriod(long ms) {
+    final public void setPollPeriod(final long ms) {
         pollPeriod = ms;
     }
 
@@ -121,16 +121,16 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean invokeStop(boolean wait, Runnable task) {
+    public final boolean invokeStop(final boolean wait, final Runnable task) {
         return invokeImpl(wait, task, true);
     }
 
     @Override
-    public final boolean invoke(boolean wait, Runnable task) {
+    public final boolean invoke(final boolean wait, final Runnable task) {
         return invokeImpl(wait, task, false);
     }
 
-    private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
+    private final boolean invokeImpl(boolean wait, final Runnable task, final boolean stop) {
         Throwable throwable = null;
         RunnableTask rTask = null;
         final Object rTaskLock = new Object();
@@ -187,7 +187,7 @@ public class AWTEDTUtil implements EDTUtil {
             if( wait ) {
                 try {
                     rTaskLock.wait(); // free lock, allow execution of rTask
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -218,7 +218,7 @@ public class AWTEDTUtil implements EDTUtil {
                 @Override
                 public void run() { }
             });
-        } catch (Exception e) { }
+        } catch (final Exception e) { }
         return true;
     }
 
@@ -229,7 +229,7 @@ public class AWTEDTUtil implements EDTUtil {
                 while( nedt.isRunning ) {
                     try {
                         edtLock.wait();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -245,7 +245,7 @@ public class AWTEDTUtil implements EDTUtil {
         volatile boolean isRunning = false;
         Object sync = new Object();
 
-        public NEDT(ThreadGroup tg, String name) {
+        public NEDT(final ThreadGroup tg, final String name) {
             super(tg, name);
         }
 
@@ -284,13 +284,13 @@ public class AWTEDTUtil implements EDTUtil {
                         if(!shouldStop) {
                             try {
                                 sync.wait(pollPeriod);
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
                     }
                 } while(!shouldStop) ;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // handle errors ..
                 shouldStop = true;
                 if(t instanceof RuntimeException) {

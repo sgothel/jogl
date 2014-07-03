@@ -64,7 +64,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        Window dummyWindow = NewtFactory.createWindow(new Capabilities());
+        final Window dummyWindow = NewtFactory.createWindow(new Capabilities());
         dummyWindow.setSize(demoWinSize, demoWinSize);
         dummyWindow.setVisible(true);
         Assert.assertEquals(true, dummyWindow.isVisible());
@@ -85,14 +85,14 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         private final boolean reuse;
         private boolean done = false;
 
-        public JOGLTask(Object postSync, int id, boolean reuse) {
+        public JOGLTask(final Object postSync, final int id, final boolean reuse) {
             this.postSync = postSync;
             this.id = id;
             this.reuse = reuse;
         }
         public void run() {
-            int x = (  id          % num_x ) * ( demoWinSize + insets.getTotalHeight() );
-            int y = ( (id / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() );
+            final int x = (  id          % num_x ) * ( demoWinSize + insets.getTotalHeight() );
+            final int y = ( (id / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() );
 
             System.err.println("JOGLTask "+id+": START: "+x+"/"+y+", reuse "+reuse+" - "+Thread.currentThread().getName());
             final Display display = NewtFactory.createDisplay(null, reuse);
@@ -105,7 +105,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             glWindow.addGLEventListener(new ValidateLockListener());
             glWindow.addGLEventListener(new GearsES2(0));
 
-            Animator animator = new Animator(glWindow);
+            final Animator animator = new Animator(glWindow);
 
             glWindow.setSize(demoWinSize, demoWinSize);
             glWindow.setVisible(true);
@@ -123,7 +123,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
                 try {
                     Thread.sleep(100);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -142,7 +142,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         public boolean done() { return done; }
     }
 
-    protected static boolean done(JOGLTask[] tasks) {
+    protected static boolean done(final JOGLTask[] tasks) {
         for(int i=tasks.length-1; i>=0; i--) {
             if(!tasks[i].done()) {
                 return false;
@@ -150,8 +150,8 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         }
         return true;
     }
-    protected static String doneDump(JOGLTask[] tasks) {
-        StringBuilder sb = new StringBuilder();
+    protected static String doneDump(final JOGLTask[] tasks) {
+        final StringBuilder sb = new StringBuilder();
         sb.append("[");
         for(int i=0; i<tasks.length; i++) {
             if(i>0) {
@@ -163,7 +163,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         return sb.toString();
     }
 
-    protected static boolean isDead(Thread[] threads) {
+    protected static boolean isDead(final Thread[] threads) {
         for(int i=threads.length-1; i>=0; i--) {
             if(threads[i].isAlive()) {
                 return false;
@@ -171,8 +171,8 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         }
         return true;
     }
-    protected static String isAliveDump(Thread[] threads) {
-        StringBuilder sb = new StringBuilder();
+    protected static String isAliveDump(final Thread[] threads) {
+        final StringBuilder sb = new StringBuilder();
         sb.append("[");
         for(int i=0; i<threads.length; i++) {
             if(i>0) {
@@ -184,7 +184,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         return sb.toString();
     }
 
-    protected void runJOGLTasks(int num, boolean reuse) throws InterruptedException {
+    protected void runJOGLTasks(final int num, final boolean reuse) throws InterruptedException {
         System.err.println("InitConcurrentBaseNEWT "+num+" threads, reuse display: "+reuse);
         final String currentThreadName = Thread.currentThread().getName();
         final Object syncDone = new Object();
@@ -205,7 +205,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             while(!done(tasks)) {
                 try {
                     syncDone.wait(500);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 System.err.println(i+": "+doneDump(tasks));

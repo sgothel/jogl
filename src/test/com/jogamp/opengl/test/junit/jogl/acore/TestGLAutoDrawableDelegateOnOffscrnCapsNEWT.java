@@ -76,7 +76,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     static final int heightStep = 600/4;
     volatile int szStep = 2;
 
-    static GLCapabilities getCaps(String profile) {
+    static GLCapabilities getCaps(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -84,7 +84,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
         return new GLCapabilities(GLProfile.get(profile));
     }
 
-    void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
         final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, null);
@@ -140,7 +140,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
 
         final GLContext context = drawable.createContext(null);
         Assert.assertNotNull(context);
-        int res = context.makeCurrent();
+        final int res = context.makeCurrent();
         Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
         context.release();
 
@@ -179,12 +179,12 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
 
         window.addWindowListener(new WindowAdapter() {
                 @Override
-                public void windowRepaint(WindowUpdateEvent e) {
+                public void windowRepaint(final WindowUpdateEvent e) {
                     glad.windowRepaintOp();
                 }
 
                 @Override
-                public void windowResized(WindowEvent e) {
+                public void windowResized(final WindowEvent e) {
                     glad.windowResizedOp(window.getSurfaceWidth(), window.getSurfaceHeight());
                 }
             });
@@ -388,7 +388,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
         doTest(reqGLCaps, new GearsES2(1));
     } */
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableDelegateOnOffscrnCapsNEWT.class.getName());
     }
 

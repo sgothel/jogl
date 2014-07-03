@@ -47,29 +47,29 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
    static String TAG = "NEWTGraphUIActivity";
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - 0");
        super.onCreate(savedInstanceState);
 
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
+       final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
        caps.setAlphaBits(4);
        Log.d(TAG, "req caps: "+caps);
-       GLWindow glWindow = GLWindow.create(caps);
+       final GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
 
        glWindow.addGLEventListener(new GPUUISceneGLListener0A(Region.VBAA_RENDERING_BIT));
        glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
            @Override
-           public void monitorModeChangeNotify(MonitorEvent me) { }
+           public void monitorModeChangeNotify(final MonitorEvent me) { }
            @Override
-           public void monitorModeChanged(MonitorEvent me, boolean success) {
+           public void monitorModeChanged(final MonitorEvent me, final boolean success) {
                System.err.println("MonitorMode Changed (success "+success+"): "+me);
            }
        });
        glWindow.setVisible(true);
-       Animator animator = new Animator(glWindow);
+       final Animator animator = new Animator(glWindow);
 
        animator.setUpdateFPSFrames(60, System.err);
        animator.resetFPSCounter();

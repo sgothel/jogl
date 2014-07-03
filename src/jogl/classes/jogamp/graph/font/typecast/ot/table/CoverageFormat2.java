@@ -60,11 +60,11 @@ import java.io.IOException;
  */
 public class CoverageFormat2 extends Coverage {
 
-    private int _rangeCount;
-    private RangeRecord[] _rangeRecords;
+    private final int _rangeCount;
+    private final RangeRecord[] _rangeRecords;
 
     /** Creates new CoverageFormat2 */
-    protected CoverageFormat2(DataInput di) throws IOException {
+    protected CoverageFormat2(final DataInput di) throws IOException {
         _rangeCount = di.readUnsignedShort();
         _rangeRecords = new RangeRecord[_rangeCount];
         for (int i = 0; i < _rangeCount; i++) {
@@ -78,9 +78,9 @@ public class CoverageFormat2 extends Coverage {
     }
 
     @Override
-    public int findGlyph(int glyphId) {
+    public int findGlyph(final int glyphId) {
         for (int i = 0; i < _rangeCount; i++) {
-            int n = _rangeRecords[i].getCoverageIndex(glyphId);
+            final int n = _rangeRecords[i].getCoverageIndex(glyphId);
             if (n > -1) {
                 return n;
             }

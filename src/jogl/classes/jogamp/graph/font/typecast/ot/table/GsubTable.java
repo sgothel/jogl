@@ -62,24 +62,24 @@ import java.io.IOException;
  */
 public class GsubTable implements Table, LookupSubtableFactory {
 
-    private DirectoryEntry _de;
-    private ScriptList _scriptList;
-    private FeatureList _featureList;
-    private LookupList _lookupList;
+    private final DirectoryEntry _de;
+    private final ScriptList _scriptList;
+    private final FeatureList _featureList;
+    private final LookupList _lookupList;
 
-    protected GsubTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected GsubTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
 
         // Load into a temporary buffer, and create another input stream
-        byte[] buf = new byte[de.getLength()];
+        final byte[] buf = new byte[de.getLength()];
         di.readFully(buf);
-        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buf));
+        final DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buf));
 
         // GSUB Header
-        int version = dis.readInt();
-        int scriptListOffset = dis.readUnsignedShort();
-        int featureListOffset = dis.readUnsignedShort();
-        int lookupListOffset = dis.readUnsignedShort();
+        final int version = dis.readInt();
+        final int scriptListOffset = dis.readUnsignedShort();
+        final int featureListOffset = dis.readUnsignedShort();
+        final int lookupListOffset = dis.readUnsignedShort();
 
         // Script List
         _scriptList = new ScriptList(dis, scriptListOffset);
@@ -101,9 +101,9 @@ public class GsubTable implements Table, LookupSubtableFactory {
      */
     @Override
     public LookupSubtable read(
-            int type,
-            DataInputStream dis,
-            int offset) throws IOException {
+            final int type,
+            final DataInputStream dis,
+            final int offset) throws IOException {
         LookupSubtable s = null;
         switch (type) {
         case 1:
@@ -153,7 +153,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
         return "GSUB";
     }
 
-    public static String lookupTypeAsString(int type) {
+    public static String lookupTypeAsString(final int type) {
         switch (type) {
         case 1:
             return "Single";

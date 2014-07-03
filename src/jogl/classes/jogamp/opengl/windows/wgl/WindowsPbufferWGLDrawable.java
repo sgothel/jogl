@@ -65,7 +65,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                                // needed to destroy pbuffer
   private long buffer; // pbuffer handle
 
-  protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
+  protected WindowsPbufferWGLDrawable(final GLDrawableFactory factory, final NativeSurface target) {
     super(factory, target, false);
   }
 
@@ -79,14 +79,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new WindowsWGLContext(this, shareWith);
   }
 
   protected void destroyPbuffer() {
-    NativeSurface ns = getNativeSurface();
+    final NativeSurface ns = getNativeSurface();
     if(0!=buffer) {
-        WGLExt wglExt = cachedWGLExt;
+        final WGLExt wglExt = cachedWGLExt;
         if (ns.getSurfaceHandle() != 0) {
           // Must release DC and pbuffer
           // NOTE that since the context is not current, glGetError() can
@@ -112,15 +112,15 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   private void createPbuffer() {
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
-    SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
-    NativeSurface sharedSurface = sharedResource.getDrawable().getNativeSurface();
+    final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
+    final SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
+    final NativeSurface sharedSurface = sharedResource.getDrawable().getNativeSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= sharedSurface.lockSurface()) {
       throw new NativeWindowException("Could not lock (sharedSurface): "+this);
     }
     try {
-        long sharedHdc = sharedSurface.getSurfaceHandle();
-        WGLExt wglExt = ((WindowsWGLContext)sharedResource.getContext()).getWGLExt();
+        final long sharedHdc = sharedSurface.getSurfaceHandle();
+        final WGLExt wglExt = ((WindowsWGLContext)sharedResource.getContext()).getWGLExt();
 
         if (DEBUG) {
             System.out.println(getThreadName()+": Pbuffer config: " + config);
@@ -130,7 +130,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
         final IntBuffer iattributes = Buffers.newDirectIntBuffer(2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS);
         final FloatBuffer fattributes = Buffers.newDirectFloatBuffer(1);
-        int[]   floatModeTmp = new int[1];
+        final int[]   floatModeTmp = new int[1];
         int     niattribs   = 0;
 
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
@@ -162,7 +162,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (DEBUG) {
           System.err.println("" + nformats + " suitable pixel formats found");
           for (int i = 0; i < nformats; i++) {
-            WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
+            final WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
                                           sharedHdc, pformats.get(i), winattrPbuffer);
             System.err.println("pixel format " + pformats.get(i) + " (index " + i + "): " + dbgCaps);
           }
@@ -174,7 +174,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
             int whichFormat;
             // Loop is a workaround for bugs in NVidia's recent drivers
             for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
-              int format = pformats.get(whichFormat);
+              final int format = pformats.get(whichFormat);
 
               // Create the p-buffer.
               niattribs = 0;
@@ -196,12 +196,12 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         }
 
         // Get the device context.
-        long tmpHdc = wglExt.wglGetPbufferDCARB(tmpBuffer);
+        final long tmpHdc = wglExt.wglGetPbufferDCARB(tmpBuffer);
         if (tmpHdc == 0) {
           throw new GLException("pbuffer creation error: wglGetPbufferDC() failed");
         }
 
-        NativeSurface ns = getNativeSurface();
+        final NativeSurface ns = getNativeSurface();
         // Set up instance variables
         buffer = tmpBuffer;
         ((MutableSurface)ns).setSurfaceHandle(tmpHdc);
@@ -209,7 +209,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
         // Re-query chosen pixel format
         {
-          WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
+          final WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
                                           sharedHdc, pfdid, winattrPbuffer);
           if(null == newCaps) {
             throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + GLDrawableImpl.toHexString(tmpHdc));

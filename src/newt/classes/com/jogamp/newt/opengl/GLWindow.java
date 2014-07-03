@@ -115,7 +115,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     /**
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
-    protected GLWindow(Window window) {
+    protected GLWindow(final Window window) {
         super(null, null, false /* always handle device lifecycle ourselves */);
         this.window = (WindowImpl) window;
         this.window.setWindowDestroyNotifyAction( new Runnable() {
@@ -125,12 +125,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             } } );
         window.addWindowListener(new WindowAdapter() {
                 @Override
-                public void windowRepaint(WindowUpdateEvent e) {
+                public void windowRepaint(final WindowUpdateEvent e) {
                     defaultWindowRepaintOp();
                 }
 
                 @Override
-                public void windowResized(WindowEvent e) {
+                public void windowResized(final WindowEvent e) {
                     defaultWindowResizedOp(getSurfaceWidth(), getSurfaceHeight());
                 }
 
@@ -152,7 +152,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * </p>
      * The default Display will be reused if already instantiated.
      */
-    public static GLWindow create(GLCapabilitiesImmutable caps) {
+    public static GLWindow create(final GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(caps));
     }
 
@@ -164,7 +164,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * and {@link Screen#removeReference()}.
      * </p>
      */
-    public static GLWindow create(Screen screen, GLCapabilitiesImmutable caps) {
+    public static GLWindow create(final Screen screen, final GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(screen, caps));
     }
 
@@ -175,7 +175,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * and {@link Screen#removeReference()}.
      * </p>
      */
-    public static GLWindow create(Window window) {
+    public static GLWindow create(final Window window) {
         return new GLWindow(window);
     }
 
@@ -192,7 +192,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * and {@link Screen#removeReference()}.
      * </p>
      */
-    public static GLWindow create(NativeWindow parentNativeWindow, GLCapabilitiesImmutable caps) {
+    public static GLWindow create(final NativeWindow parentNativeWindow, final GLCapabilitiesImmutable caps) {
         return new GLWindow(NewtFactory.createWindow(parentNativeWindow, caps));
     }
 
@@ -205,7 +205,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+    public WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
         return window.setDefaultCloseOperation(op);
     }
 
@@ -214,7 +214,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //
 
     @Override
-    public CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
+    public CapabilitiesChooser setCapabilitiesChooser(final CapabilitiesChooser chooser) {
         return window.setCapabilitiesChooser(chooser);
     }
 
@@ -250,7 +250,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void setTitle(String title) {
+    public final void setTitle(final String title) {
         window.setTitle(title);
     }
 
@@ -265,7 +265,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void setPointerVisible(boolean mouseVisible) {
+    public final void setPointerVisible(final boolean mouseVisible) {
         window.setPointerVisible(mouseVisible);
     }
 
@@ -285,17 +285,17 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void confinePointer(boolean grab) {
+    public final void confinePointer(final boolean grab) {
         window.confinePointer(grab);
     }
 
     @Override
-    public final void setUndecorated(boolean value) {
+    public final void setUndecorated(final boolean value) {
         window.setUndecorated(value);
     }
 
     @Override
-    public final void warpPointer(int x, int y) {
+    public final void warpPointer(final int x, final int y) {
         window.warpPointer(x, y);
     }
     @Override
@@ -304,7 +304,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void setAlwaysOnTop(boolean value) {
+    public final void setAlwaysOnTop(final boolean value) {
         window.setAlwaysOnTop(value);
     }
 
@@ -314,12 +314,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void setFocusAction(FocusRunnable focusAction) {
+    public final void setFocusAction(final FocusRunnable focusAction) {
         window.setFocusAction(focusAction);
     }
 
     @Override
-    public void setKeyboardFocusHandler(KeyListener l) {
+    public void setKeyboardFocusHandler(final KeyListener l) {
         window.setKeyboardFocusHandler(l);
     }
 
@@ -329,7 +329,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void requestFocus(boolean wait) {
+    public final void requestFocus(final boolean wait) {
         window.requestFocus(wait);
     }
 
@@ -414,21 +414,21 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void setPosition(int x, int y) {
+    public final void setPosition(final int x, final int y) {
         window.setPosition(x, y);
     }
     @Override
-    public void setTopLevelPosition(int x, int y) {
+    public void setTopLevelPosition(final int x, final int y) {
         window.setTopLevelPosition(x, y);
     }
 
     @Override
-    public final boolean setFullscreen(boolean fullscreen) {
+    public final boolean setFullscreen(final boolean fullscreen) {
         return window.setFullscreen(fullscreen);
     }
 
     @Override
-    public boolean setFullscreen(List<MonitorDevice> monitors) {
+    public boolean setFullscreen(final List<MonitorDevice> monitors) {
         return window.setFullscreen(monitors);
     }
 
@@ -449,17 +449,17 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
+    public final ReparentOperation reparentWindow(final NativeWindow newParent, final int x, final int y, final int hints) {
         return window.reparentWindow(newParent, x, y, hints);
     }
 
     @Override
-    public final boolean removeChild(NativeWindow win) {
+    public final boolean removeChild(final NativeWindow win) {
         return window.removeChild(win);
     }
 
     @Override
-    public final boolean addChild(NativeWindow win) {
+    public final boolean addChild(final NativeWindow win) {
         return window.addChild(win);
     }
 
@@ -473,30 +473,30 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public void setWindowDestroyNotifyAction(Runnable r) {
+    public void setWindowDestroyNotifyAction(final Runnable r) {
         window.setWindowDestroyNotifyAction(r);
     }
 
     @Override
-    public final void setVisible(boolean visible) {
+    public final void setVisible(final boolean visible) {
         window.setVisible(visible);
     }
 
     @Override
-    public void setVisible(boolean wait, boolean visible) {
+    public void setVisible(final boolean wait, final boolean visible) {
         window.setVisible(wait, visible);
     }
 
     @Override
-    public final void setSize(int width, int height) {
+    public final void setSize(final int width, final int height) {
         window.setSize(width, height);
     }
     @Override
-    public final void setSurfaceSize(int pixelWidth, int pixelHeight) {
+    public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
         window.setSurfaceSize(pixelWidth, pixelHeight);
     }
     @Override
-    public void setTopLevelSize(int width, int height) {
+    public void setTopLevelSize(final int width, final int height) {
         window.setTopLevelSize(width, height);
     }
 
@@ -506,7 +506,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public Point getLocationOnScreen(Point storage) {
+    public Point getLocationOnScreen(final Point storage) {
         return window.getLocationOnScreen(storage);
     }
 
@@ -514,7 +514,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
         @Override
-        public void preserveGLStateAtDestroy(boolean value) {
+        public void preserveGLStateAtDestroy(final boolean value) {
             GLWindow.this.preserveGLStateAtDestroy(value);
         }
 
@@ -526,7 +526,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         @Override
         public synchronized void destroyActionInLock() {
             if(Window.DEBUG_IMPLEMENTATION) {
-                String msg = "GLWindow.destroy() "+WindowImpl.getThreadName()+", start";
+                final String msg = "GLWindow.destroy() "+WindowImpl.getThreadName()+", start";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -552,7 +552,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         }
 
         @Override
-        public synchronized void setVisibleActionPost(boolean visible, boolean nativeWindowCreated) {
+        public synchronized void setVisibleActionPost(final boolean visible, final boolean nativeWindowCreated) {
             long t0;
             if(Window.DEBUG_IMPLEMENTATION) {
                 t0 = System.nanoTime();
@@ -624,7 +624,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                             if( anim.isAnimating() && null != animThread ) {
                                 try {
                                     animThread.stop();
-                                } catch(Throwable t) {
+                                } catch(final Throwable t) {
                                     if( DEBUG ) {
                                         System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
                                         t.printStackTrace();
@@ -705,7 +705,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     // NEWTEventConsumer
     //
     @Override
-    public boolean consumeEvent(NEWTEvent event) {
+    public boolean consumeEvent(final NEWTEvent event) {
         return window.consumeEvent(event);
     }
 
@@ -713,27 +713,27 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     // Window completion
     //
     @Override
-    public final void windowRepaint(int x, int y, int width, int height) {
+    public final void windowRepaint(final int x, final int y, final int width, final int height) {
         window.windowRepaint(x, y, width, height);
     }
 
     @Override
-    public final void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+    public final void enqueueEvent(final boolean wait, final com.jogamp.newt.event.NEWTEvent event) {
         window.enqueueEvent(wait, event);
     }
 
     @Override
-    public final void runOnEDTIfAvail(boolean wait, final Runnable task) {
+    public final void runOnEDTIfAvail(final boolean wait, final Runnable task) {
         window.runOnEDTIfAvail(wait, task);
     }
 
     @Override
-    public void sendWindowEvent(int eventType) {
+    public void sendWindowEvent(final int eventType) {
         window.sendWindowEvent(eventType);
     }
 
     @Override
-    public final WindowListener getWindowListener(int index) {
+    public final WindowListener getWindowListener(final int index) {
         return window.getWindowListener(index);
     }
 
@@ -743,22 +743,22 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void removeWindowListener(WindowListener l) {
+    public final void removeWindowListener(final WindowListener l) {
         window.removeWindowListener(l);
     }
 
     @Override
-    public final void addWindowListener(WindowListener l) {
+    public final void addWindowListener(final WindowListener l) {
         window.addWindowListener(l);
     }
 
     @Override
-    public final void addWindowListener(int index, WindowListener l) throws IndexOutOfBoundsException {
+    public final void addWindowListener(final int index, final WindowListener l) throws IndexOutOfBoundsException {
         window.addWindowListener(index, l);
     }
 
     @Override
-    public final void setKeyboardVisible(boolean visible) {
+    public final void setKeyboardVisible(final boolean visible) {
         window.setKeyboardVisible(visible);
     }
 
@@ -768,22 +768,22 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void addKeyListener(KeyListener l) {
+    public final void addKeyListener(final KeyListener l) {
         window.addKeyListener(l);
     }
 
     @Override
-    public final void addKeyListener(int index, KeyListener l) {
+    public final void addKeyListener(final int index, final KeyListener l) {
         window.addKeyListener(index, l);
     }
 
     @Override
-    public final void removeKeyListener(KeyListener l) {
+    public final void removeKeyListener(final KeyListener l) {
         window.removeKeyListener(l);
     }
 
     @Override
-    public final KeyListener getKeyListener(int index) {
+    public final KeyListener getKeyListener(final int index) {
         return window.getKeyListener(index);
     }
 
@@ -793,22 +793,22 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void addMouseListener(MouseListener l) {
+    public final void addMouseListener(final MouseListener l) {
         window.addMouseListener(l);
     }
 
     @Override
-    public final void addMouseListener(int index, MouseListener l) {
+    public final void addMouseListener(final int index, final MouseListener l) {
         window.addMouseListener(index, l);
     }
 
     @Override
-    public final void removeMouseListener(MouseListener l) {
+    public final void removeMouseListener(final MouseListener l) {
         window.removeMouseListener(l);
     }
 
     @Override
-    public final MouseListener getMouseListener(int index) {
+    public final MouseListener getMouseListener(final int index) {
         return window.getMouseListener(index);
     }
 
@@ -818,7 +818,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public void setDefaultGesturesEnabled(boolean enable) {
+    public void setDefaultGesturesEnabled(final boolean enable) {
         window.setDefaultGesturesEnabled(enable);
     }
     @Override
@@ -826,27 +826,27 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         return window.areDefaultGesturesEnabled();
     }
     @Override
-    public final void addGestureHandler(GestureHandler gh) {
+    public final void addGestureHandler(final GestureHandler gh) {
         window.addGestureHandler(gh);
     }
     @Override
-    public final void addGestureHandler(int index, GestureHandler gh) {
+    public final void addGestureHandler(final int index, final GestureHandler gh) {
         window.addGestureHandler(index, gh);
     }
     @Override
-    public final void removeGestureHandler(GestureHandler gh) {
+    public final void removeGestureHandler(final GestureHandler gh) {
         window.removeGestureHandler(gh);
     }
     @Override
-    public final void addGestureListener(GestureHandler.GestureListener gl) {
+    public final void addGestureListener(final GestureHandler.GestureListener gl) {
         window.addGestureListener(-1, gl);
     }
     @Override
-    public final void addGestureListener(int index, GestureHandler.GestureListener gl) {
+    public final void addGestureListener(final int index, final GestureHandler.GestureListener gl) {
         window.addGestureListener(index, gl);
     }
     @Override
-    public final void removeGestureListener(GestureHandler.GestureListener gl) {
+    public final void removeGestureListener(final GestureHandler.GestureListener gl) {
         window.removeGestureListener(gl);
     }
 
@@ -881,22 +881,22 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void removeSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         window.removeSurfaceUpdatedListener(l);
     }
 
     @Override
-    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void addSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         window.addSurfaceUpdatedListener(l);
     }
 
     @Override
-    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+    public final void addSurfaceUpdatedListener(final int index, final SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         window.addSurfaceUpdatedListener(index, l);
     }
 
     @Override
-    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public final void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
         window.surfaceUpdated(updater, ns, when);
     }
 
@@ -930,7 +930,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     /**
      * A most simple JOGL AWT test entry
      */
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         final boolean forceES2;
         final boolean forceES3;
         final boolean forceGL3;
@@ -984,45 +984,45 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );
         System.err.println("Requesting: "+caps);
 
-        GLWindow glWindow = GLWindow.create(caps);
+        final GLWindow glWindow = GLWindow.create(caps);
         glWindow.setSize(128, 128);
 
         glWindow.addGLEventListener(new GLEventListener() {
             @Override
-            public void init(GLAutoDrawable drawable) {
-                GL gl = drawable.getGL();
+            public void init(final GLAutoDrawable drawable) {
+                final GL gl = drawable.getGL();
                 System.err.println(JoglVersion.getGLInfo(gl, null));
                 System.err.println("Requested: "+drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
                 System.err.println("Chosen   : "+drawable.getChosenGLCapabilities());
                 System.err.println("GL impl. class "+gl.getClass().getName());
                 if( gl.isGL4ES3() ) {
-                    GL4ES3 _gl = gl.getGL4ES3();
+                    final GL4ES3 _gl = gl.getGL4ES3();
                     System.err.println("GL4ES3 retrieved, impl. class "+_gl.getClass().getName());
                 }
                 if( gl.isGL3() ) {
-                    GL3 _gl = gl.getGL3();
+                    final GL3 _gl = gl.getGL3();
                     System.err.println("GL3 retrieved, impl. class "+_gl.getClass().getName());
                 }
                 if( gl.isGLES3() ) {
-                    GLES3 _gl = gl.getGLES3();
+                    final GLES3 _gl = gl.getGLES3();
                     System.err.println("GLES3 retrieved, impl. class "+_gl.getClass().getName());
                 }
                 if( gl.isGLES2() ) {
-                    GLES2 _gl = gl.getGLES2();
+                    final GLES2 _gl = gl.getGLES2();
                     System.err.println("GLES2 retrieved, impl. class "+_gl.getClass().getName());
                 }
             }
 
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
             }
 
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
             }
 
             @Override
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
             }
         });
 

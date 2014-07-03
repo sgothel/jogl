@@ -45,6 +45,7 @@ import java.util.List;
 import javax.media.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 
 import jogamp.newt.Debug;
@@ -104,7 +105,7 @@ public class MainThread {
         NativeWindowFactory.initSingleton();
         NEWTJNILibLoader.loadNEWT();
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() ||
-                                Debug.getBooleanProperty("newt.MainThread.force", true);
+                                PropertyAccess.getBooleanProperty("newt.MainThread.force", true);
         osType = Platform.getOSType();
         isMacOSX = osType == Platform.OSType.MACOS;
         rootThreadGroup = getRootThreadGroup();
@@ -125,7 +126,7 @@ public class MainThread {
         return rootGroup;
     }
 
-    private static final Thread[] getAllThreads(int[] count) {
+    private static final Thread[] getAllThreads(final int[] count) {
         int tn;
         Thread[] threads = new Thread[ rootThreadGroup.activeCount() ];
         while ( ( tn = rootThreadGroup.enumerate( threads, true ) ) == threads.length ) {
@@ -135,9 +136,9 @@ public class MainThread {
         return threads;
     }
     private static final List<Thread> getNonDaemonThreads() {
-        List<Thread> res = new ArrayList<Thread>();
-        int[] tn = { 0 };
-        Thread[] threads = getAllThreads(tn);
+        final List<Thread> res = new ArrayList<Thread>();
+        final int[] tn = { 0 };
+        final Thread[] threads = getAllThreads(tn);
         for(int i = tn[0] - 1; i >= 0; i--) {
             final Thread thread = threads[i];
             try {
@@ -145,16 +146,16 @@ public class MainThread {
                     res.add(thread);
                     if(DEBUG) System.err.println("XXX0: "+thread.getName()+", "+thread);
                 }
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 t.printStackTrace();
             }
         }
         return res;
     }
-    private static final int getNonDaemonThreadCount(List<Thread> ignoreThreads) {
+    private static final int getNonDaemonThreadCount(final List<Thread> ignoreThreads) {
         int res = 0;
-        int[] tn = { 0 };
-        Thread[] threads = getAllThreads(tn);
+        final int[] tn = { 0 };
+        final Thread[] threads = getAllThreads(tn);
 
         for(int i = tn[0] - 1; i >= 0; i--) {
             final Thread thread = threads[i];
@@ -163,7 +164,7 @@ public class MainThread {
                     res++;
                     if(DEBUG) System.err.println("MainAction.run(): non daemon thread: "+thread);
                 }
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 t.printStackTrace();
             }
         }
@@ -177,7 +178,7 @@ public class MainThread {
         private final Method mainClassMain;
         private List<Thread> nonDaemonThreadsAtStart;
 
-        public UserApp(String mainClassName, String[] mainClassArgs) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
+        public UserApp(final String mainClassName, final String[] mainClassArgs) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
             super();
             this.mainClassName=mainClassName;
             this.mainClassArgs=mainClassArgs;
@@ -204,10 +205,10 @@ public class MainThread {
             try {
                 if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" invoke "+mainClassName);
                 mainClassMain.invoke(null, new Object[] { mainClassArgs } );
-            } catch (InvocationTargetException ite) {
+            } catch (final InvocationTargetException ite) {
                 ite.getTargetException().printStackTrace();
                 return;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 t.printStackTrace();
                 return;
             }
@@ -219,7 +220,7 @@ public class MainThread {
                     if(DEBUG) System.err.println("MainAction.run(): post user app, non daemon threads alive: "+ndtr);
                     try {
                         Thread.sleep(1000);
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -237,7 +238,7 @@ public class MainThread {
                         if(DEBUG) {
                             System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.X");
                         }
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         e.printStackTrace();
                     }
                 } else {
@@ -253,7 +254,7 @@ public class MainThread {
      * @throws ClassNotFoundException
      * @throws NoSuchMethodException
      * @throws SecurityException */
-    public static void main(String[] args) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
+    public static void main(final String[] args) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
         final Thread cur = Thread.currentThread();
 
         useMainThread = HINT_USE_MAIN_THREAD;
@@ -273,8 +274,8 @@ public class MainThread {
             return;
         }
 
-        String mainClassName=args[0];
-        String[] mainClassArgs=new String[args.length-1];
+        final String mainClassName=args[0];
+        final String[] mainClassArgs=new String[args.length-1];
         if(args.length>1) {
             System.arraycopy(args, 1, mainClassArgs, 0, args.length-1);
         }
@@ -289,7 +290,7 @@ public class MainThread {
         if ( useMainThread ) {
             try {
                 cur.setName(cur.getName()+"-MainThread");
-            } catch (Exception e) {}
+            } catch (final Exception e) {}
 
             // dispatch user's main thread ..
             mainAction.start();
@@ -301,7 +302,7 @@ public class MainThread {
                     }
                     ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "runNSApplication",
                         null, null, MainThread.class.getClassLoader());
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }

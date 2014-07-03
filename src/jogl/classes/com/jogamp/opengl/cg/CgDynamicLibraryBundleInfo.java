@@ -89,12 +89,12 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
 
     /** Tool has none **/
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return 0;
     }
 
     @Override
-    public final boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(final String funcName) {
         return false;
     }
 

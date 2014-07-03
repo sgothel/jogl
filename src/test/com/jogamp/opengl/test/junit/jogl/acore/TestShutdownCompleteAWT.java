@@ -63,7 +63,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
 
         glCanvas.addGLEventListener(new GearsES2(1));
 
-        Animator animator = new Animator(glCanvas);
+        final Animator animator = new Animator(glCanvas);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -103,7 +103,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
         }
     }
 
-    protected void oneLife(boolean glInfo) throws InterruptedException, InvocationTargetException {
+    protected void oneLife(final boolean glInfo) throws InterruptedException, InvocationTargetException {
         final long t0 = Platform.currentTimeMicros();
         GLProfile.initSingleton();
         final long t1 = Platform.currentTimeMicros();
@@ -148,7 +148,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
     static boolean initOnly = false;
     static boolean waitForKey = false;
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-wait")) {
                 waitForKey = true;
@@ -160,7 +160,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
         if(waitForKey) {
             UITestCase.waitForKey("Start");
         }
-        String tstname = TestShutdownCompleteAWT.class.getName();
+        final String tstname = TestShutdownCompleteAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

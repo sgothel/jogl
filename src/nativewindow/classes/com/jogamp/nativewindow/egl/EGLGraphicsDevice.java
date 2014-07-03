@@ -137,7 +137,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         return eglLifecycleCallback;
     }
     @Override
-    protected Object setHandleOwnership(Object newOwnership) {
+    protected Object setHandleOwnership(final Object newOwnership) {
         final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback;
         eglLifecycleCallback = (EGLDisplayLifecycleCallback) newOwnership;
         return oldOwnership;

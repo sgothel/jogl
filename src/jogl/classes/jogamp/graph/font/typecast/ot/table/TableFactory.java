@@ -64,10 +64,10 @@ import jogamp.graph.font.typecast.ot.OTFontCollection;
 public class TableFactory {
 
     public static Table create(
-            OTFontCollection fc,
-            OTFont font,
-            DirectoryEntry de,
-            DataInputStream dis) throws IOException {
+            final OTFontCollection fc,
+            final OTFont font,
+            final DirectoryEntry de,
+            final DataInputStream dis) throws IOException {
         Table t = null;
 
         // First, if we have a font collection, look for the table there

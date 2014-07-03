@@ -32,10 +32,10 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
      */
-    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle,
-                         int initialWinX, int initialWinY, int initialWinWidth, int initialWinHeight,
-                         int initialPixelWidth, int initialPixelHeight,
-                         boolean ownsDevice, long windowHandle) {
+    public WrappedWindow(final AbstractGraphicsConfiguration cfg, final long surfaceHandle,
+                         final int initialWinX, final int initialWinY, final int initialWinWidth, final int initialWinHeight,
+                         final int initialPixelWidth, final int initialPixelHeight,
+                         final boolean ownsDevice, final long windowHandle) {
         this(cfg, surfaceHandle,
              new UpstreamWindowHookMutableSizePos(initialWinX, initialWinY, initialWinWidth, initialWinHeight,
                                                   initialPixelWidth, initialPixelHeight),
@@ -50,7 +50,7 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>.
      */
-    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, UpstreamWindowHookMutableSizePos upstream, boolean ownsDevice, long windowHandle) {
+    public WrappedWindow(final AbstractGraphicsConfiguration cfg, final long surfaceHandle, final UpstreamWindowHookMutableSizePos upstream, final boolean ownsDevice, final long windowHandle) {
         super(cfg, surfaceHandle, upstream, ownsDevice);
         this.windowHandle = windowHandle;
     }
@@ -105,7 +105,7 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
     }
 
     @Override
-    public Point getLocationOnScreen(Point point) {
+    public Point getLocationOnScreen(final Point point) {
         if(null!=point) {
           return point;
         } else {

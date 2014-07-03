@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -61,14 +61,14 @@ import com.jogamp.opengl.util.texture.TextureIO;
 public class TestMultisampleES2NEWT extends UITestCase {
   static long durationPerTest = 60; // ms
 
-  public static void main(String[] args) {
+  public static void main(final String[] args) {
      for(int i=0; i<args.length; i++) {
         if(args[i].equals("-time")) {
             durationPerTest = MiscUtils.atoi(args[++i], 500);
         }
      }
      System.out.println("durationPerTest: "+durationPerTest);
-     String tstname = TestMultisampleES2NEWT.class.getName();
+     final String tstname = TestMultisampleES2NEWT.class.getName();
      org.junit.runner.JUnitCore.main(tstname);
   }
 
@@ -102,16 +102,16 @@ public class TestMultisampleES2NEWT extends UITestCase {
     testMultiSampleAAImpl(true, false, 8);
   }
 
-  private void testMultiSampleAAImpl(boolean useFBO, boolean usePBuffer, int reqSamples) throws InterruptedException {
+  private void testMultiSampleAAImpl(final boolean useFBO, final boolean usePBuffer, final int reqSamples) throws InterruptedException {
     final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
-    GLProfile glp = GLProfile.getGL2ES2();
-    GLCapabilities caps = new GLCapabilities(glp);
-    GLCapabilitiesChooser chooser = new MultisampleChooser01();
+    final GLProfile glp = GLProfile.getGL2ES2();
+    final GLCapabilities caps = new GLCapabilities(glp);
+    final GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
     caps.setAlphaBits(1);
     caps.setFBO(useFBO);
     caps.setPBuffer(usePBuffer);
-    
+
     if(reqSamples>0) {
         caps.setSampleBuffers(true);
         caps.setNumSamples(reqSamples);
@@ -122,12 +122,12 @@ public class TestMultisampleES2NEWT extends UITestCase {
     window.addGLEventListener(new MultisampleDemoES2(reqSamples>0?true:false));
     window.addGLEventListener(new GLEventListener() {
         int displayCount = 0;
-        public void init(GLAutoDrawable drawable) {}
-        public void dispose(GLAutoDrawable drawable) {}
-        public void display(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {}
+        public void display(final GLAutoDrawable drawable) {
             snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
         }
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
     });
     window.setSize(512, 512);
     window.setVisible(true);

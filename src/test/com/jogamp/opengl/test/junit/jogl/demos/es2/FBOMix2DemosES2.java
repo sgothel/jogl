@@ -152,7 +152,7 @@ public class FBOMix2DemosES2 implements GLEventListener {
         System.err.println("**** Init");
         initFBOs(gl, drawable);
 
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
     }
 
     private void initFBOs(final GL gl, final GLAutoDrawable drawable) {

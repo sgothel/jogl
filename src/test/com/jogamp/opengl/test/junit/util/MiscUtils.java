@@ -44,63 +44,63 @@ import javax.media.opengl.GLContext;
 import com.jogamp.common.os.Platform;
 
 public class MiscUtils {
-    public static boolean atob(String str, boolean def) {
+    public static boolean atob(final String str, final boolean def) {
         try {
             return Boolean.parseBoolean(str);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             ex.printStackTrace();
         }
         return def;
     }
 
-    public static int atoi(String str, int def) {
+    public static int atoi(final String str, final int def) {
         try {
             return Integer.parseInt(str);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             ex.printStackTrace();
         }
         return def;
     }
 
-    public static long atol(String str, long def) {
+    public static long atol(final String str, final long def) {
         try {
             return Long.parseLong(str);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             ex.printStackTrace();
         }
         return def;
     }
 
-    public static float atof(String str, float def) {
+    public static float atof(final String str, final float def) {
         try {
             return Float.parseFloat(str);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             ex.printStackTrace();
         }
         return def;
     }
 
-    public static String toHexString(byte hex) {
+    public static String toHexString(final byte hex) {
         return "0x" + Integer.toHexString( hex & 0x000000FF );
     }
 
-    public static String toHexString(short hex) {
+    public static String toHexString(final short hex) {
         return "0x" + Integer.toHexString( hex & 0x0000FFFF );
     }
 
-    public static String toHexString(int hex) {
+    public static String toHexString(final int hex) {
         return "0x" + Integer.toHexString( hex );
     }
 
-    public static String toHexString(long hex) {
+    public static String toHexString(final long hex) {
         return "0x" + Long.toHexString( hex );
     }
 
-    public static void assertFloatBufferEquals(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
+    public static void assertFloatBufferEquals(final String errmsg, final FloatBuffer expected, final FloatBuffer actual, final float delta) {
         if(null == expected && null == actual) {
             return;
         }
-        String msg = null != errmsg ? errmsg + " " : "";
+        final String msg = null != errmsg ? errmsg + " " : "";
         if(null == expected) {
             throw new AssertionError(msg+"; Expected is null, but actual not: "+actual);
         }
@@ -122,14 +122,14 @@ public class MiscUtils {
         }
     }
 
-    public static void assertFloatBufferNotEqual(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
+    public static void assertFloatBufferNotEqual(final String errmsg, final FloatBuffer expected, final FloatBuffer actual, final float delta) {
         if(null == expected || null == actual) {
             return;
         }
         if(expected.remaining() != actual.remaining()) {
             return;
         }
-        String msg = null != errmsg ? errmsg + " " : "";
+        final String msg = null != errmsg ? errmsg + " " : "";
         final int a0 = expected.position();
         final int b0 = actual.position();
         for(int i=0; i<expected.remaining(); i++) {
@@ -143,18 +143,18 @@ public class MiscUtils {
         throw new AssertionError(msg+"; Expected and actual are equal.");
     }
 
-    public static boolean setFieldIfExists(Object instance, String fieldName, Object value) {
+    public static boolean setFieldIfExists(final Object instance, final String fieldName, final Object value) {
         try {
-            Field f = instance.getClass().getField(fieldName);
+            final Field f = instance.getClass().getField(fieldName);
             if(value instanceof Boolean || f.getType().isInstance(value)) {
                 f.set(instance, value);
                 return true;
             } else {
                 System.out.println(instance.getClass()+" '"+fieldName+"' field not assignable with "+value.getClass()+", it's a: "+f.getType());
             }
-        } catch (IllegalAccessException ex) {
+        } catch (final IllegalAccessException ex) {
             throw new RuntimeException(ex);
-        } catch (NoSuchFieldException nsfe) {
+        } catch (final NoSuchFieldException nsfe) {
             // OK - throw new RuntimeException(instance.getClass()+" has no '"+fieldName+"' field", nsfe);
         }
         return false;
@@ -168,14 +168,14 @@ public class MiscUtils {
         final Object sync;
         volatile boolean eos = false;
 
-        public StreamDump(OutputStream out, String prefix, InputStream is, Object sync) {
+        public StreamDump(final OutputStream out, final String prefix, final InputStream is, final Object sync) {
             this.is = is;
             this.outString = null;
             this.outStream = out;
             this.prefix = prefix;
             this.sync = sync;
         }
-        public StreamDump(StringBuilder sb, InputStream is, Object sync) {
+        public StreamDump(final StringBuilder sb, final InputStream is, final Object sync) {
             this.is = is;
             this.outString = sb;
             this.outStream = null;
@@ -203,7 +203,7 @@ public class MiscUtils {
                             outStream.flush();
                         }
                     }
-                } catch (IOException ioe) {
+                } catch (final IOException ioe) {
                     System.err.println("Caught "+ioe.getClass().getName()+": "+ioe.getMessage());
                     ioe.printStackTrace();
                 } finally {
@@ -214,7 +214,7 @@ public class MiscUtils {
         }
     }
 
-    public static void dumpSharedGLContext(GLContext self) {
+    public static void dumpSharedGLContext(final GLContext self) {
       int i = 0, j = 0;
       System.err.println("Myself: hash 0x"+Integer.toHexString(self.hashCode())+", \t(isShared "+self.isShared()+", created "+self.isCreated()+")");
       {

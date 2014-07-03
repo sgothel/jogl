@@ -56,7 +56,7 @@ import jogamp.opengl.GLContextShareSet;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
 
-  private WindowsExternalWGLContext(Drawable drawable, long ctx, WindowsWGLGraphicsConfiguration cfg) {
+  private WindowsExternalWGLContext(final Drawable drawable, final long ctx, final WindowsWGLGraphicsConfiguration cfg) {
     super(drawable, null);
     this.contextHandle = ctx;
     if (DEBUG) {
@@ -69,7 +69,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
-  protected static WindowsExternalWGLContext create(GLDrawableFactory factory, GLProfile glp) {
+  protected static WindowsExternalWGLContext create(final GLDrawableFactory factory, final GLProfile glp) {
     if(DEBUG) {
         System.err.println("WindowsExternalWGLContext 0: werr: " + GDI.GetLastError());
     }
@@ -83,7 +83,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     if (0 == hdc) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current, werr " + GDI.GetLastError());
     }
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
+    final AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
     WindowsWGLGraphicsConfiguration cfg;
     final int pfdID = WGLUtil.GetPixelFormat(hdc);
     if (0 == pfdID) {
@@ -119,12 +119,12 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
 
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends WindowsWGLDrawable {
-    Drawable(GLDrawableFactory factory, NativeSurface comp) {
+    Drawable(final GLDrawableFactory factory, final NativeSurface comp) {
       super(factory, comp, true);
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public GLContext createContext(final GLContext shareWith) {
       throw new GLException("Should not call this");
     }
 
@@ -138,7 +138,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
       throw new GLException("Should not call this");
     }
 
-    public void setSize(int width, int height) {
+    public void setSize(final int width, final int height) {
       throw new GLException("Should not call this");
     }
   }

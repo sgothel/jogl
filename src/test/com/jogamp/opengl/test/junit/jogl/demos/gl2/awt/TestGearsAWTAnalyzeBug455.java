@@ -81,28 +81,28 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
     }
 
     static class Swapper implements GLEventListener {
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             System.err.println("auto-swap: "+drawable.getAutoSwapBufferMode());
         }
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
         }
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             if(!drawable.getAutoSwapBufferMode()) {
-                GL2 gl = drawable.getGL().getGL2();
+                final GL2 gl = drawable.getGL().getGL2();
                 // copy the colored content of the back buffer into the front buffer
                 // gl.glPushAttrib(GL.GL_COLOR_BUFFER_BIT);
                 gl.glReadBuffer(GL.GL_BACK);  // def. in dbl buff mode: GL_BACK
                 gl.glDrawBuffer(GL.GL_FRONT); // def. in dbl buff mode: GL_BACK
-                gl.glCopyPixels(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), GL2.GL_COLOR);
+                gl.glCopyPixels(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), GL2ES3.GL_COLOR);
                 // gl.glPopAttrib();
                 gl.glDrawBuffer(GL.GL_BACK); // def. in dbl buff mode: GL_BACK
             }
         }
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width,
-                int height) {
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width,
+                final int height) {
         }
     }
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
@@ -152,18 +152,18 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // code assumes dbl buffer setup
         runTestGL(caps);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-autoswap")) {
@@ -172,11 +172,11 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
         }
         System.err.println("altSwap "+altSwap);
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsAWTAnalyzeBug455.class.getName());
     }

@@ -271,7 +271,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
             }
         }
     }
-    private void dumpComponents(PixelRectangle image, int x1, int y1, int w, int h) {
+    private void dumpComponents(final PixelRectangle image, int x1, int y1, final int w, final int h) {
         if( x1 + w >= image.getSize().getWidth() ) {
             x1 = image.getSize().getWidth() - w;
         }
@@ -311,7 +311,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
         }
         System.err.println();
     }
-    private void testComponents(PixelRectangle image, int x, int y, byte[] components) {
+    private void testComponents(final PixelRectangle image, final int x, final int y, final byte[] components) {
         dumpComponents(image, x, y, 3, 3);
         final ByteBuffer bb = image.getPixels();
         final int bpp = image.getPixelformat().bytesPerPixel();
@@ -358,7 +358,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPixelFormatUtil00NEWT.class.getName());
     }
 }

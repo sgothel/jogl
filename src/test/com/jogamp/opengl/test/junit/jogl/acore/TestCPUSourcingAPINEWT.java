@@ -36,6 +36,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLBuffers;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
@@ -71,11 +72,11 @@ public class TestCPUSourcingAPINEWT extends UITestCase {
         private int fragID = -1;
         private int progID = -1;
 
-        private static int createShader(final GL2ES2 gl, int type,
+        private static int createShader(final GL2ES2 gl, final int type,
                 final String[] srcLines){
-            int shaderID = gl.glCreateShader(type);
+            final int shaderID = gl.glCreateShader(type);
             assert shaderID > 0;
-            int[] lengths  = new int[srcLines.length];
+            final int[] lengths  = new int[srcLines.length];
             for (int i = 0; i < srcLines.length; i++) {
                 lengths[i] = srcLines[i].length();
             }
@@ -84,7 +85,7 @@ public class TestCPUSourcingAPINEWT extends UITestCase {
             return shaderID;
         }
 
-        private void initShaders(GL2ES2 gl) {
+        private void initShaders(final GL2ES2 gl) {
             final String[] vertSrc = new String[]{
                 "#version 150\n",
                 "in vec4 vPosition;\n",
@@ -118,17 +119,17 @@ public class TestCPUSourcingAPINEWT extends UITestCase {
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
-            gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-            gl.glDisable(GL2ES2.GL_CULL_FACE);
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glDisable(GL.GL_CULL_FACE);
             initShaders(gl);
 
             gl.setSwapInterval(1);
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             gl.glDetachShader(progID, fragID);
             gl.glDetachShader(progID, vertID);
@@ -145,22 +146,22 @@ public class TestCPUSourcingAPINEWT extends UITestCase {
 
             final int stride = 6 * Buffers.SIZEOF_FLOAT;
             // final int cOff   = 3 * Buffers.SIZEOF_FLOAT;
-            gl.glVertexAttribPointer(posLoc,  3, GL2ES2.GL_FLOAT, false, stride, vertexColorDataBuffer);
+            gl.glVertexAttribPointer(posLoc,  3, GL.GL_FLOAT, false, stride, vertexColorDataBuffer);
             vertexColorDataBuffer.position(3); // move to cOff
-            gl.glVertexAttribPointer(colorLoc,3, GL2ES2.GL_FLOAT, false, stride, vertexColorDataBuffer);
+            gl.glVertexAttribPointer(colorLoc,3, GL.GL_FLOAT, false, stride, vertexColorDataBuffer);
             vertexColorDataBuffer.position(0); // rewind cOff
 
-            gl.glDrawElements(GL2ES2.GL_TRIANGLES, 3, GL2ES2.GL_UNSIGNED_SHORT, indicesBuffer);
+            gl.glDrawElements(GL.GL_TRIANGLES, 3, GL.GL_UNSIGNED_SHORT, indicesBuffer);
 
             gl.glDisableVertexAttribArray(posLoc);
             gl.glDisableVertexAttribArray(colorLoc);
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             gl.glClearColor(0x44, 0x44, 0x44, 0);
-            gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             gl.glUseProgram(progID);
 
             // Hard casting is of course invalid!
@@ -171,14 +172,14 @@ public class TestCPUSourcingAPINEWT extends UITestCase {
         }
 
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int w, final int h) {
         }
     }
 
-    private void testImpl(GLProfile profile) throws InterruptedException {
+    private void testImpl(final GLProfile profile) throws InterruptedException {
         final GLCapabilities capabilities = new GLCapabilities(profile);
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
-        GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, capabilities, null, 512, 512);
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
+        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, capabilities, null, 512, 512);
 
         final Demo vaoTest = new Demo();
         glad.addGLEventListener(vaoTest);
@@ -206,14 +207,14 @@ public class TestCPUSourcingAPINEWT extends UITestCase {
         GLException exp = null;
         try {
             testImpl(glp);
-        } catch(GLException gle) {
+        } catch(final GLException gle) {
             exp = gle;
             System.err.println("Expected Exception: "+exp.getMessage());
         }
         Assert.assertNotNull("Excpected GLException missing due to CPU Sourcing w/ GL3 core context", exp);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

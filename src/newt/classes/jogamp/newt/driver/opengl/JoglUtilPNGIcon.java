@@ -41,7 +41,7 @@ import com.jogamp.opengl.util.PNGPixelRect;
 
 public class JoglUtilPNGIcon {
 
-    public static ByteBuffer arrayToX11BGRAImages(IOUtil.ClassResources resources, int[] data_size, int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
+    public static ByteBuffer arrayToX11BGRAImages(final IOUtil.ClassResources resources, final int[] data_size, final int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
         final PNGPixelRect[] images = new PNGPixelRect[resources.resourceCount()];
         data_size[0] = 0;
         for(int i=0; i<resources.resourceCount(); i++) {

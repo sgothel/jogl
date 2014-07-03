@@ -141,7 +141,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         }
     }
 
-    void testGLFBODrawableImpl(GLCapabilities caps, GLEventListener demo) throws InterruptedException {
+    void testGLFBODrawableImpl(final GLCapabilities caps, final GLEventListener demo) throws InterruptedException {
         caps.setFBO(true);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLOffscreenAutoDrawable.FBO glad = (GLOffscreenAutoDrawable.FBO)
@@ -233,24 +233,24 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
 
         if( chosenCaps.getNumSamples() > 0 ) {
             // MSAA
-            FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
-            FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
+            final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
+            final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
             Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront.equals(_fboFront));
             Assert.assertSame(fboFront, _fboFront);
             Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboBack, fboBack.equals(_fboBack));
             Assert.assertSame(fboBack, _fboBack);
         } else if( chosenCaps.getDoubleBuffered() ) {
             // real double buffer
-            FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
-            FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
+            final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
+            final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
             Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack.equals(_fboFront));
             Assert.assertSame(fboBack, _fboFront);
             Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboBack, fboFront.equals(_fboBack));
             Assert.assertSame(fboFront, _fboBack);
         } else {
             // single buffer
-            FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
-            FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
+            final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
+            final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
             Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront.equals(_fboFront));
             Assert.assertSame(fboFront, _fboFront);
             Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack.equals(_fboFront));
@@ -380,7 +380,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         System.out.println("Fin: "+glad);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(final String args[]) throws Exception {
         org.junit.runner.JUnitCore.main(TestFBOAutoDrawableFactoryNEWT.class.getName());
     }
 

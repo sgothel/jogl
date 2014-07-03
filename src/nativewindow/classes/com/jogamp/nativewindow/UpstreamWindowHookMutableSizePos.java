@@ -11,7 +11,7 @@ public class UpstreamWindowHookMutableSizePos extends UpstreamSurfaceHookMutable
      * @param pixWidth initial surface pixel width, FIXME: pixel-dim == window-dim 'for now' ?
      * @param pixHeight initial surface pixel height, FIXME: pixel-dim == window-dim 'for now' ?
      */
-    public UpstreamWindowHookMutableSizePos(int winX, int winY, int winWidth, int winHeight, int pixWidth, int pixHeight) {
+    public UpstreamWindowHookMutableSizePos(final int winX, final int winY, final int winWidth, final int winHeight, final int pixWidth, final int pixHeight) {
         super(pixWidth, pixHeight);
         this.winX= winX;
         this.winY= winY;
@@ -20,12 +20,12 @@ public class UpstreamWindowHookMutableSizePos extends UpstreamSurfaceHookMutable
     }
 
     // @Override
-    public final void setWinPos(int winX, int winY) {
+    public final void setWinPos(final int winX, final int winY) {
         this.winX= winX;
         this.winY= winY;
     }
     // @Override
-    public final void setWinSize(int winWidth, int winHeight) {
+    public final void setWinSize(final int winWidth, final int winHeight) {
         this.winWidth= winWidth;
         this.winHeight= winHeight;
         // FIXME HiDPI: Use pixelScale ?!

@@ -69,7 +69,7 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    public String validateDisplayName(String name, long handle) {
+    public String validateDisplayName(final String name, final long handle) {
         return X11Util.validateDisplayName(name, handle);
     }
 
@@ -81,21 +81,21 @@ public class DisplayDriver extends DisplayImpl {
     @Override
     protected void createNativeImpl() {
         X11Util.setX11ErrorHandler(true, DEBUG ? false : true); // make sure X11 error handler is set
-        long handle = X11Util.openDisplay(name);
+        final long handle = X11Util.openDisplay(name);
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display(Win): "+name);
         }
         aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
         try {
             CompleteDisplay0(aDevice.getHandle());
-        } catch(RuntimeException e) {
+        } catch(final RuntimeException e) {
             closeNativeImpl(aDevice);
             throw e;
         }
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         DisplayRelease0(aDevice.getHandle(), javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
         javaObjectAtom = 0;
         windowDeleteAtom = 0;
@@ -128,12 +128,12 @@ public class DisplayDriver extends DisplayImpl {
     public final PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.RGBA8888; }
 
     @Override
-    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+    protected final long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         return createPointerIcon(getHandle(), pixels, width, height, hotX, hotY);
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+    protected final void destroyPointerIconImpl(final long displayHandle, final long piHandle) {
         destroyPointerIcon0(displayHandle, piHandle);
     }
 
@@ -145,7 +145,7 @@ public class DisplayDriver extends DisplayImpl {
 
     private native void CompleteDisplay0(long handle);
 
-    private void displayCompleted(long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle */) {
+    private void displayCompleted(final long javaObjectAtom, final long windowDeleteAtom /*, long kbdHandle */) {
         this.javaObjectAtom=javaObjectAtom;
         this.windowDeleteAtom=windowDeleteAtom;
         // this.kbdHandle = kbdHandle; // XKB disabled for now
@@ -154,7 +154,7 @@ public class DisplayDriver extends DisplayImpl {
 
     private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom /* , long kbdHandle */); // XKB disabled for now
 
-    private static long createPointerIcon(long display, Buffer pixels, int width, int height, int hotX, int hotY) {
+    private static long createPointerIcon(final long display, final Buffer pixels, final int width, final int height, final int hotX, final int hotY) {
         final boolean pixels_is_direct = Buffers.isDirect(pixels);
         return createPointerIcon0(display,
                                   pixels_is_direct ? pixels : Buffers.getArray(pixels),

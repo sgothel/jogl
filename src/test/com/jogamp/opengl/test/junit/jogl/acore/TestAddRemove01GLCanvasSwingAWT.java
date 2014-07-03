@@ -42,6 +42,7 @@ import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 
@@ -100,7 +101,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
 
                     final JFrame jFrame1 = new JFrame("JFrame #"+num);
                     // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
+                    jFrame1.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
                     jFrame1.getContentPane().add(jPanel[0]);
                     jFrame1.setSize(width, height);
 
@@ -145,7 +146,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
                 } } ) ;
     }
 
-    protected void runTestGL(boolean onscreen, GLCapabilities caps, int addRemoveOpCount)
+    protected void runTestGL(final boolean onscreen, final GLCapabilities caps, final int addRemoveOpCount)
             throws AWTException, InterruptedException, InvocationTargetException
     {
         if(waitForKey) {
@@ -159,7 +160,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             if( !onscreen ) {
                 glc.setShallUseOffscreenLayer(true);
             }
-            Dimension glc_sz = new Dimension(width, height);
+            final Dimension glc_sz = new Dimension(width, height);
             glc.setMinimumSize(glc_sz);
             glc.setPreferredSize(glc_sz);
             glc.setSize(glc_sz);
@@ -203,7 +204,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             System.err.println("No onscreen test requested or platform doesn't support onscreen rendering.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glpGL2ES2);
+        final GLCapabilities caps = new GLCapabilities(glpGL2ES2);
         runTestGL(true, caps, addRemoveCount);
     }
 
@@ -219,7 +220,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             System.err.println("Only PBuffer test is requested.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glpGL2ES2);
+        final GLCapabilities caps = new GLCapabilities(glpGL2ES2);
         if(offscreenPBufferOnly) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
@@ -239,19 +240,19 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             System.err.println("Only FBO test is requested.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glpGL2);
+        final GLCapabilities caps = new GLCapabilities(glpGL2);
         caps.setPBuffer(true);
         caps.setOnscreen(true); // simulate normal behavior ..
         runTestGL(false, caps, addRemoveCount);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     durationPerTest = Long.parseLong(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-loops")) {
                 i++;
                 addRemoveCount = MiscUtils.atoi(args[i], addRemoveCount);

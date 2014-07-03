@@ -42,6 +42,8 @@ package javax.media.nativewindow;
 
 import java.util.List;
 
+import com.jogamp.common.util.PropertyAccess;
+
 import jogamp.nativewindow.Debug;
 
 /** <P> The default implementation of the {@link
@@ -70,7 +72,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
 
   static {
       Debug.initSingleton();
-      DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true);
+      DEBUG = PropertyAccess.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true);
   }
 
   private final static int NO_SCORE = -9999999;
@@ -100,7 +102,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     }
 
     // Create score array
-    int[] scores = new int[availnum];
+    final int[] scores = new int[availnum];
     for (int i = 0; i < availnum; i++) {
       scores[i] = NO_SCORE;
     }
@@ -137,7 +139,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     int scoreClosestToZero = NO_SCORE;
     int chosenIndex = -1;
     for (int i = 0; i < availnum; i++) {
-      int score = scores[i];
+      final int score = scores[i];
       if (score == NO_SCORE) {
         continue;
       }
@@ -161,7 +163,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     return chosenIndex;
   }
 
-  private static int sign(int score) {
+  private static int sign(final int score) {
     if (score < 0) {
       return -1;
     }

@@ -63,7 +63,7 @@ public class Debug extends PropertyAccess {
     verbose = isPropertyDefined("newt.verbose", true);
     debugAll = isPropertyDefined("newt.debug", true);
     if (verbose) {
-       Package p = Package.getPackage("com.jogamp.newt");
+       final Package p = Package.getPackage("com.jogamp.newt");
        System.err.println("NEWT specification version " + p.getSpecificationVersion());
        System.err.println("NEWT implementation version " + p.getImplementationVersion());
        System.err.println("NEWT implementation vendor " + p.getImplementationVendor());
@@ -81,7 +81,7 @@ public class Debug extends PropertyAccess {
     return debugAll;
   }
 
-  public static final boolean debug(String subcomponent) {
+  public static final boolean debug(final String subcomponent) {
     return debugAll() || isPropertyDefined("newt.debug." + subcomponent, true);
   }
 }

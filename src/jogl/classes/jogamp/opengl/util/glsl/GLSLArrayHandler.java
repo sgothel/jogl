@@ -45,22 +45,22 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  */
 public class GLSLArrayHandler extends GLVBOArrayHandler {
 
-  public GLSLArrayHandler(GLArrayDataEditable ad) {
+  public GLSLArrayHandler(final GLArrayDataEditable ad) {
     super(ad);
   }
 
   @Override
-  public final void setSubArrayVBOName(int vboName) {
+  public final void setSubArrayVBOName(final int vboName) {
       throw new UnsupportedOperationException();
   }
 
   @Override
-  public final void addSubHandler(GLArrayHandlerFlat handler) {
+  public final void addSubHandler(final GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
 
   @Override
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
         enableShaderState(glsl, enable, (ShaderState)ext);
@@ -71,7 +71,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
 
   private final int[] tempI = new int[1];
 
-  private final void enableShaderState(GL2ES2 glsl, boolean enable, ShaderState st) {
+  private final void enableShaderState(final GL2ES2 glsl, final boolean enable, final ShaderState st) {
     if(enable) {
         /*
          * This would be the non optimized code path:
@@ -118,7 +118,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
     }
   }
 
-  private final void enableSimple(GL2ES2 glsl, boolean enable) {
+  private final void enableSimple(final GL2ES2 glsl, final boolean enable) {
     final int location = ad.getLocation();
     if( 0 > location ) {
         return;

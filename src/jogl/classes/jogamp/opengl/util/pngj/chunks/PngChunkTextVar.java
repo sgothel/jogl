@@ -21,7 +21,7 @@ public abstract class PngChunkTextVar extends PngChunkMultiple {
 	public final static String KEY_Source = "Source"; // Device used to create the image
 	public final static String KEY_Comment = "Comment"; // Miscellaneous comment
 
-	protected PngChunkTextVar(String id, ImageInfo info) {
+	protected PngChunkTextVar(final String id, final ImageInfo info) {
 		super(id, info);
 	}
 
@@ -51,7 +51,7 @@ public abstract class PngChunkTextVar extends PngChunkMultiple {
 		return val;
 	}
 
-	public void setKeyVal(String key, String val) {
+	public void setKeyVal(final String key, final String val) {
 		this.key = key;
 		this.val = val;
 	}

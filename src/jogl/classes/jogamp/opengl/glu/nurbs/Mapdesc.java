@@ -64,22 +64,22 @@ public class Mapdesc {
   /**
    * Map type
    */
-  private int type;
+  private final int type;
 
   /**
    * Number of homogenous coords
    */
-  private int hcoords;
+  private final int hcoords;
 
   /**
    * Number of inhomogenous coords
    */
-  private int inhcoords;
+  private final int inhcoords;
 
   /**
    * Not used
    */
-  private int mask;
+  private final int mask;
 
   /**
    * Value of N_PIXEL_TOLERANCE property
@@ -144,22 +144,22 @@ public class Mapdesc {
   /**
    * Not used
    */
-  private float[][] bmat;
+  private final float[][] bmat;
 
   /**
    * Sampling matrix
    */
-  private float[][] smat;
+  private final float[][] smat;
 
   /**
    * Not used
    */
-  private float[][] cmat;
+  private final float[][] cmat;
 
   /**
    * Not used
    */
-  private float[] bboxsize;
+  private final float[] bboxsize;
 
   /**
    * Makes new mapdesc
@@ -168,7 +168,7 @@ public class Mapdesc {
    * @param ncoords number of control points coords
    * @param backend backend object
    */
-  public Mapdesc(int type, int rational, int ncoords, Backend backend) {
+  public Mapdesc(final int type, final int rational, final int ncoords, final Backend backend) {
     // DONE
     this.type = type;
     this.isrational = rational;
@@ -210,7 +210,7 @@ public class Mapdesc {
    * Make matrix identity matrix
    * @param arr matrix
    */
-  private void identify(float[][] arr) {
+  private void identify(final float[][] arr) {
     // DONE
     for (int i = 0; i < MAXCOORDS; i++)
       for (int j = 0; j < MAXCOORDS; j++)
@@ -225,7 +225,7 @@ public class Mapdesc {
    * @param tag property tag
    * @return is/is not property
    */
-  public boolean isProperty(int tag) {
+  public boolean isProperty(final int tag) {
     boolean ret;
     switch (tag) {
     case NurbsConsts.N_PIXEL_TOLERANCE:
@@ -347,7 +347,7 @@ public class Mapdesc {
    * @param tag property tag
    * @return property value
    */
-  public float getProperty(int tag) {
+  public float getProperty(final int tag) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO mapdesc.getproperty");
     return 0;
@@ -358,7 +358,7 @@ public class Mapdesc {
    * @param tag property tag
    * @param value desired value
    */
-  public void setProperty(int tag, float value) {
+  public void setProperty(final int tag, float value) {
     // TODO Auto-generated method stub
     switch (tag) {
     case NurbsConsts.N_PIXEL_TOLERANCE:
@@ -412,8 +412,8 @@ public class Mapdesc {
    * @param sp breakpoints
    * @param outstride output number of control points' coordinates
    */
-  public void xformSampling(CArrayOfFloats pts, int order, int stride,
-                            float[] sp, int outstride) {
+  public void xformSampling(final CArrayOfFloats pts, final int order, final int stride,
+                            final float[] sp, final int outstride) {
     // DONE
     xFormMat(smat, pts, order, stride, sp, outstride);
   }
@@ -427,8 +427,8 @@ public class Mapdesc {
    * @param cp breakpoints
    * @param outstride output number of control points' coordinates
    */
-  private void xFormMat(float[][] mat, CArrayOfFloats pts, int order,
-            int stride, float[] cp, int outstride) {
+  private void xFormMat(final float[][] mat, final CArrayOfFloats pts, final int order,
+            final int stride, final float[] cp, final int outstride) {
     // TODO Auto-generated method stub
 
     //        System.out.println("TODO mapdsc.xformmat ; change cp from float[] to carrayoffloats");

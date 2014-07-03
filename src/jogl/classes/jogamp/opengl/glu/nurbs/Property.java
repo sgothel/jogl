@@ -67,7 +67,7 @@ public class Property {
    * @param value
    *            property value
    */
-  public Property(int type, int tag, float value) {
+  public Property(final int type, final int tag, final float value) {
     this.type = type;
     this.tag = tag;
     this.value = value;

@@ -72,7 +72,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
     static final int heightStep = 600/4;
     volatile int szStep = 2;
 
-    static GLCapabilities getCaps(String profile) {
+    static GLCapabilities getCaps(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -91,7 +91,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
                     frame.pack();
                     frame.validate();
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -101,7 +101,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         void setMakeSnapshot();
     }
 
-    void doTest(boolean offscreenLayer, GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(final boolean offscreenLayer, final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
             System.err.println("onscreen layer n/a");
             return;
@@ -124,7 +124,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
 
         final NewtCanvasAWT nca = new NewtCanvasAWT(glad);
         Assert.assertNotNull(nca);
-        Dimension size0 = new Dimension(widthStep*szStep, heightStep*szStep);
+        final Dimension size0 = new Dimension(widthStep*szStep, heightStep*szStep);
         nca.setShallUseOffscreenLayer(offscreenLayer); // trigger offscreen layer - if supported
         nca.setPreferredSize(size0);
         nca.setMinimumSize(size0);
@@ -140,7 +140,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
                     frame.pack();
                     frame.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -191,7 +191,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         } */
 
         {
-            GLContext context = glad.getContext();
+            final GLContext context = glad.getContext();
             System.out.println("Chosen     GL CTX (2): "+context.getGLVersion());
             Assert.assertNotNull(context);
             Assert.assertTrue(context.isCreated());
@@ -247,7 +247,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
                     frame.remove(nca);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -351,7 +351,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         doTest(true, reqGLCaps, new GearsES2(1));
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT.class.getName());
     }
 

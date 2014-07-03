@@ -37,6 +37,8 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.oculusvr.OVR;
@@ -163,7 +165,7 @@ public class OVRDistortion {
                 vboTexCoordsG = null;
                 vboTexCoordsB = null;
             }
-            indices = GLArrayDataServer.createData(1, GL2ES2.GL_SHORT, indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+            indices = GLArrayDataServer.createData(1, GL.GL_SHORT, indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
             // Setup: eyeToSourceUVScale, eyeToSourceUVOffset
             {
@@ -356,7 +358,7 @@ public class OVRDistortion {
         return "OVRDist[caps 0x"+Integer.toHexString(distortionCaps)+", "+
                        ", tex "+textureSize[0]+"x"+textureSize[1]+
                        ", vignette "+useVignette()+", chromatic "+useChromatic()+", timewarp "+useTimewarp()+
-                       ", "+Platform.NEWLINE+"  "+eyes[0]+", "+Platform.NEWLINE+"  "+eyes[1]+"]";
+                       ", "+PlatformPropsImpl.NEWLINE+"  "+eyes[0]+", "+PlatformPropsImpl.NEWLINE+"  "+eyes[1]+"]";
     }
 
     public static OVRDistortion create(final OvrHmdContext hmdCtx, final boolean sbsSingleTexture,
@@ -567,7 +569,7 @@ public class OVRDistortion {
             eye.updateUniform(gl, sp);
             eye.enableVBO(gl, true);
             if( usesDistMesh ) {
-                gl.glDrawElements(GL.GL_TRIANGLES, eye.indexCount, GL2ES2.GL_UNSIGNED_SHORT, 0);
+                gl.glDrawElements(GL.GL_TRIANGLES, eye.indexCount, GL.GL_UNSIGNED_SHORT, 0);
             } else {
                 gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, eye.vertexCount);
             }
@@ -622,7 +624,7 @@ public class OVRDistortion {
         eye.updateUniform(gl, sp);
         eye.enableVBO(gl, true);
         if( usesDistMesh ) {
-            gl.glDrawElements(GL.GL_TRIANGLES, eye.indexCount, GL2ES2.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, eye.indexCount, GL.GL_UNSIGNED_SHORT, 0);
         } else {
             gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, eye.vertexCount);
         }

@@ -20,7 +20,7 @@ public class PngChunkPLTE extends PngChunkSingle {
 	 */
 	private int[] entries;
 
-	public PngChunkPLTE(ImageInfo info) {
+	public PngChunkPLTE(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -31,9 +31,9 @@ public class PngChunkPLTE extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		int len = 3 * nentries;
-		int[] rgb = new int[3];
-		ChunkRaw c = createEmptyChunk(len, true);
+		final int len = 3 * nentries;
+		final int[] rgb = new int[3];
+		final ChunkRaw c = createEmptyChunk(len, true);
 		for (int n = 0, i = 0; n < nentries; n++) {
 			getEntryRgb(n, rgb);
 			c.data[i++] = (byte) rgb[0];
@@ -44,21 +44,21 @@ public class PngChunkPLTE extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
+	public void parseFromRaw(final ChunkRaw chunk) {
 		setNentries(chunk.len / 3);
 		for (int n = 0, i = 0; n < nentries; n++) {
-			setEntry(n, (int) (chunk.data[i++] & 0xff), (int) (chunk.data[i++] & 0xff), (int) (chunk.data[i++] & 0xff));
+			setEntry(n, chunk.data[i++] & 0xff, chunk.data[i++] & 0xff, chunk.data[i++] & 0xff);
 		}
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkPLTE otherx = (PngChunkPLTE) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkPLTE otherx = (PngChunkPLTE) other;
 		this.setNentries(otherx.getNentries());
 		System.arraycopy(otherx.entries, 0, entries, 0, nentries);
 	}
 
-	public void setNentries(int n) {
+	public void setNentries(final int n) {
 		nentries = n;
 		if (nentries < 1 || nentries > 256)
 			throw new PngjException("invalid pallette - nentries=" + nentries);
@@ -71,20 +71,20 @@ public class PngChunkPLTE extends PngChunkSingle {
 		return nentries;
 	}
 
-	public void setEntry(int n, int r, int g, int b) {
+	public void setEntry(final int n, final int r, final int g, final int b) {
 		entries[n] = ((r << 16) | (g << 8) | b);
 	}
 
-	public int getEntry(int n) {
+	public int getEntry(final int n) {
 		return entries[n];
 	}
 
-	public void getEntryRgb(int n, int[] rgb) {
+	public void getEntryRgb(final int n, final int[] rgb) {
 		getEntryRgb(n, rgb, 0);
 	}
 
-	public void getEntryRgb(int n, int[] rgb, int offset) {
-		int v = entries[n];
+	public void getEntryRgb(final int n, final int[] rgb, final int offset) {
+		final int v = entries[n];
 		rgb[offset + 0] = ((v & 0xff0000) >> 16);
 		rgb[offset + 1] = ((v & 0xff00) >> 8);
 		rgb[offset + 2] = (v & 0xff);

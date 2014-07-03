@@ -57,7 +57,7 @@ public class RegisteredClassFactory {
     private int sharedRefCount = 0;
     private final Object sync = new Object();
 
-    private String toHexString(long l) { return "0x"+Long.toHexString(l); }
+    private String toHexString(final long l) { return "0x"+Long.toHexString(l); }
 
     @Override
     public final String toString() { return "RegisteredClassFactory[moduleHandle "+toHexString(hInstance)+", "+classBaseName+
@@ -93,7 +93,7 @@ public class RegisteredClassFactory {
     /** Application handle. */
     public static long getHInstance() { return hInstance; }
 
-    public RegisteredClassFactory(String classBaseName, long wndProc, boolean useDummyDispatchThread, long iconSmallHandle, long iconBigHandle) {
+    public RegisteredClassFactory(final String classBaseName, final long wndProc, final boolean useDummyDispatchThread, final long iconSmallHandle, final long iconBigHandle) {
         this.classBaseName = classBaseName;
         this.wndProc = wndProc;
         this.useDummyDispatchThread = useDummyDispatchThread;

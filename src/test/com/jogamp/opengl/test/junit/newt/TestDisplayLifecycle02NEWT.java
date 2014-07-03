@@ -63,7 +63,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         caps = new GLCapabilities(glp);
     }
 
-    static GLWindow createWindow(GLCapabilities caps, int width, int height)
+    static GLWindow createWindow(final GLCapabilities caps, final int width, final int height)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
@@ -71,10 +71,10 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         //
         // Create native windowing resources .. X11/Win/OSX
         //
-        GLWindow glWindow = GLWindow.create(caps);
+        final GLWindow glWindow = GLWindow.create(caps);
         glWindow.setUpdateFPSFrames(1, null);
 
-        GLEventListener demo = new GearsES2();
+        final GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
@@ -87,9 +87,9 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Window, pending lazy native creation
-        GLWindow window = createWindow(caps, width, height);
-        Screen screen = window.getScreen();
-        Display display = screen.getDisplay();
+        final GLWindow window = createWindow(caps, width, height);
+        final Screen screen = window.getScreen();
+        final Display display = screen.getDisplay();
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
@@ -233,12 +233,12 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Window, pending lazy native creation
-        GLWindow window1 = createWindow(caps, width, height);
+        final GLWindow window1 = createWindow(caps, width, height);
         window1.setPosition(0, 0);
-        Screen screen = window1.getScreen();
-        Display display = screen.getDisplay();
+        final Screen screen = window1.getScreen();
+        final Display display = screen.getDisplay();
 
-        GLWindow window2 = createWindow(caps, width, height);
+        final GLWindow window2 = createWindow(caps, width, height);
         Assert.assertSame(screen, window2.getScreen());
         Assert.assertSame(display, window2.getScreen().getDisplay());
         final RectangleImmutable screenBoundsInWinU = screen.getViewportInWindowUnits();
@@ -359,7 +359,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
         if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
@@ -367,22 +367,22 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
         System.err.println("durationPerTest: "+durationPerTest);
-        String tstname = TestDisplayLifecycle02NEWT.class.getName();
+        final String tstname = TestDisplayLifecycle02NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

@@ -63,7 +63,7 @@ public class NetPbmTextureWriter implements TextureWriter {
      *   magic 7 - PAM binary RGB or RGBA
      * </pre>
      */
-    public NetPbmTextureWriter(int magic) {
+    public NetPbmTextureWriter(final int magic) {
         switch(magic) {
             case 0:
             case 6:
@@ -85,7 +85,7 @@ public class NetPbmTextureWriter implements TextureWriter {
     public String getSuffix() { return (magic==6)?PPM:PAM; }
 
     @Override
-    public boolean write(File file, TextureData data) throws IOException {
+    public boolean write(final File file, final TextureData data) throws IOException {
         boolean res;
         final int magic_old = magic;
 
@@ -107,12 +107,12 @@ public class NetPbmTextureWriter implements TextureWriter {
         return res;
     }
 
-    private boolean writeImpl(File file, TextureData data) throws IOException {
+    private boolean writeImpl(final File file, final TextureData data) throws IOException {
         int pixelFormat = data.getPixelFormat();
         final int pixelType   = data.getPixelType();
         if ((pixelFormat == GL.GL_RGB ||
              pixelFormat == GL.GL_RGBA ||
-             pixelFormat == GL2.GL_BGR ||
+             pixelFormat == GL2GL3.GL_BGR ||
              pixelFormat == GL.GL_BGRA ) &&
             (pixelType == GL.GL_BYTE ||
              pixelType == GL.GL_UNSIGNED_BYTE)) {
@@ -123,13 +123,13 @@ public class NetPbmTextureWriter implements TextureWriter {
             }
             buf.rewind();
 
-            int comps = ( pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA ) ? 4 : 3 ;
+            final int comps = ( pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA ) ? 4 : 3 ;
 
-            if( pixelFormat == GL2.GL_BGR || pixelFormat == GL.GL_BGRA ) {
+            if( pixelFormat == GL2GL3.GL_BGR || pixelFormat == GL.GL_BGRA ) {
                 // Must reverse order of red and blue channels to get correct results
                 for (int i = 0; i < buf.remaining(); i += comps) {
-                    byte red  = buf.get(i + 0);
-                    byte blue = buf.get(i + 2);
+                    final byte red  = buf.get(i + 0);
+                    final byte blue = buf.get(i + 2);
                     buf.put(i + 0, blue);
                     buf.put(i + 2, red);
                 }
@@ -141,9 +141,9 @@ public class NetPbmTextureWriter implements TextureWriter {
                 throw new IOException("NetPbmTextureWriter magic 6 (PPM) doesn't RGBA pixel format, use magic 7 (PAM)");
             }
 
-            FileOutputStream fos = IOUtil.getFileOutputStream(file, true);
+            final FileOutputStream fos = IOUtil.getFileOutputStream(file, true);
 
-            StringBuilder header = new StringBuilder();
+            final StringBuilder header = new StringBuilder();
             header.append("P");
             header.append(magic);
             header.append("\n");
@@ -173,7 +173,7 @@ public class NetPbmTextureWriter implements TextureWriter {
 
             fos.write(header.toString().getBytes());
 
-            FileChannel fosc = fos.getChannel();
+            final FileChannel fosc = fos.getChannel();
             fosc.write(buf);
             fosc.force(true);
             fosc.close();

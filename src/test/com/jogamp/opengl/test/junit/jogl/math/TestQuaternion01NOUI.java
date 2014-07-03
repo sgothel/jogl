@@ -248,7 +248,7 @@ public class TestQuaternion01NOUI {
         final float[] vecHas = new float[3];
         final float[] vecOut2 = new float[4];
         float[] mat1 = new float[4*4];
-        float[] mat2 = new float[4*4];
+        final float[] mat2 = new float[4*4];
         final Quaternion quat = new Quaternion();
 
         //
@@ -401,8 +401,8 @@ public class TestQuaternion01NOUI {
         //
 
         a = FloatUtil.QUARTER_PI;
-        float[] vecExp = new float[3];
-        float[] vecCol = new float[3];
+        final float[] vecExp = new float[3];
+        final float[] vecCol = new float[3];
         mat1 = new float[] { // Column Order
                   FloatUtil.cos(a), FloatUtil.sin(a), 0, 0, //
                  -FloatUtil.sin(a), FloatUtil.cos(a), 0, 0,
@@ -811,7 +811,7 @@ public class TestQuaternion01NOUI {
         Assert.assertEquals(0f, VectorUtil.distVec3(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestQuaternion01NOUI.class.getName());
     }
 }

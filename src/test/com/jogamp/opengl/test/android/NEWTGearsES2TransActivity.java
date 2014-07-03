@@ -48,18 +48,18 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
    static String TAG = "NEWTGearsES2TransActivity";
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - 0");
        super.onCreate(savedInstanceState);
 
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
+       final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
        caps.setBackgroundOpaque(false);
 
        Log.d(TAG, "req caps: "+caps);
-       Screen screen = NewtFactory.createScreen(NewtFactory.createDisplay(null), 0);
+       final Screen screen = NewtFactory.createScreen(NewtFactory.createDisplay(null), 0);
        screen.addReference();
-       GLWindow glWindow = GLWindow.create(screen, caps);
+       final GLWindow glWindow = GLWindow.create(screen, caps);
        glWindow.setSurfaceSize(2*screen.getWidth()/3, 2*screen.getHeight()/3);
        glWindow.setUndecorated(true);
        setContentView(getWindow(), glWindow);
@@ -67,13 +67,13 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
        glWindow.addGLEventListener(new GearsES2(-1));
        glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
            @Override
-           public void monitorModeChangeNotify(MonitorEvent me) { }
+           public void monitorModeChangeNotify(final MonitorEvent me) { }
            @Override
-           public void monitorModeChanged(MonitorEvent me, boolean success) {
+           public void monitorModeChanged(final MonitorEvent me, final boolean success) {
                System.err.println("MonitorMode Changed (success "+success+"): "+me);
            }
        });
-       Animator animator = new Animator(glWindow);
+       final Animator animator = new Animator(glWindow);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
 
        glWindow.setVisible(true);

@@ -52,7 +52,7 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public abstract class EGLDrawable extends GLDrawableImpl {
 
-    protected EGLDrawable(EGLDrawableFactory factory, NativeSurface component) throws GLException {
+    protected EGLDrawable(final EGLDrawableFactory factory, final NativeSurface component) throws GLException {
         super(factory, component, false);
     }
 
@@ -131,7 +131,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
-    protected static boolean isValidEGLSurface(long eglDisplayHandle, long surfaceHandle) {
+    protected static boolean isValidEGLSurface(final long eglDisplayHandle, final long surfaceHandle) {
         if( 0 == surfaceHandle ) {
             return false;
         }
@@ -154,7 +154,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     @Override
-    protected final void swapBuffersImpl(boolean doubleBuffered) {
+    protected final void swapBuffersImpl(final boolean doubleBuffered) {
         if(doubleBuffered) {
             final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) surface.getGraphicsConfiguration().getScreen().getDevice();
             // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()

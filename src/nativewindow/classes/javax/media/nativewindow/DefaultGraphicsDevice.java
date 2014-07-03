@@ -82,7 +82,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     public Object clone() {
         try {
           return super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
           throw new NativeWindowException(e);
         }
     }
@@ -178,7 +178,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * Set the native handle of the underlying native device
      * and return the previous one.
      */
-    protected final long setHandle(long newHandle) {
+    protected final long setHandle(final long newHandle) {
         final long oldHandle = handle;
         handle = newHandle;
         return oldHandle;
@@ -187,7 +187,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     protected Object getHandleOwnership() {
         return null;
     }
-    protected Object setHandleOwnership(Object newOwnership) {
+    protected Object setHandleOwnership(final Object newOwnership) {
         return null;
     }
 
@@ -222,7 +222,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param locker the ToolkitLock, if null, {@link jogamp.nativewindow.NullToolkitLock} is being used
      * @return the previous ToolkitLock instance
      */
-    protected ToolkitLock setToolkitLock(ToolkitLock locker) {
+    protected ToolkitLock setToolkitLock(final ToolkitLock locker) {
         final ToolkitLock _toolkitLock = toolkitLock;
         _toolkitLock.lock();
         try {

@@ -51,18 +51,18 @@ public abstract class GearsObject {
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle);
 
-    private GLArrayDataServer createInterleavedClone(GLArrayDataServer ads) {
+    private GLArrayDataServer createInterleavedClone(final GLArrayDataServer ads) {
       final GLArrayDataServer n = new GLArrayDataServer(ads);
       n.setInterleavedOffset(0);
       return n;
     }
 
-    private void init(GL gl, GLArrayDataServer array) {
+    private void init(final GL gl, final GLArrayDataServer array) {
         array.enableBuffer(gl, true);
         array.enableBuffer(gl, false);
     }
 
-    public void destroy(GL gl) {
+    public void destroy(final GL gl) {
         if(!isShared) {
             // could be already destroyed by shared configuration
             if(null != frontFace) {
@@ -93,7 +93,7 @@ public abstract class GearsObject {
         isShared = false;
     }
 
-    public GearsObject ( GearsObject shared ) {
+    public GearsObject ( final GearsObject shared ) {
         isShared = true;
         validateBuffers = shared.validateBuffers;
         frontFace = createInterleavedClone(shared.frontFace);
@@ -112,21 +112,21 @@ public abstract class GearsObject {
     }
 
     public GearsObject (
-            GL gl,
-            boolean useMappedBuffers,
-            FloatBuffer gearColor,
-            float inner_radius,
-            float outer_radius,
-            float width, int teeth, float tooth_depth, boolean validateBuffers)
+            final GL gl,
+            final boolean useMappedBuffers,
+            final FloatBuffer gearColor,
+            final float inner_radius,
+            final float outer_radius,
+            final float width, final int teeth, final float tooth_depth, final boolean validateBuffers)
     {
         final float dz = width * 0.5f;
         int i;
         float r0, r1, r2;
         float angle, da;
         float u, v, len;
-        float s[] = new float[5];
-        float c[] = new float[5];
-        float normal[] = new float[3];
+        final float s[] = new float[5];
+        final float c[] = new float[5];
+        final float normal[] = new float[3];
         // final int tris_per_tooth = 32;
 
         this.validateBuffers = validateBuffers;
@@ -320,7 +320,7 @@ public abstract class GearsObject {
         return "GearsObj[0x"+Integer.toHexString(hashCode())+", vbo ff "+ffVBO+", fs "+fsVBO+", bf "+bfVBO+", bs "+bsVBO+"]";
     }
 
-    static void vert(GLArrayDataServer array, float x, float y, float z, float n[]) {
+    static void vert(final GLArrayDataServer array, final float x, final float y, final float z, final float n[]) {
         array.putf(x);
         array.putf(y);
         array.putf(z);
@@ -329,7 +329,7 @@ public abstract class GearsObject {
         array.putf(n[2]);
     }
 
-    static void sincos(float x, float sin[], int sinIdx, float cos[], int cosIdx) {
+    static void sincos(final float x, final float sin[], final int sinIdx, final float cos[], final int cosIdx) {
         sin[sinIdx] = (float) Math.sin(x);
         cos[cosIdx] = (float) Math.cos(x);
     }

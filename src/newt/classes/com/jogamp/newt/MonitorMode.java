@@ -115,14 +115,14 @@ public class MonitorMode implements Comparable<MonitorMode> {
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the ascending order. */
     public static final Comparator<MonitorMode> monitorModeComparator = new Comparator<MonitorMode>() {
         @Override
-        public int compare(MonitorMode mm1, MonitorMode mm2) {
+        public int compare(final MonitorMode mm1, final MonitorMode mm2) {
             return mm1.compareTo(mm2);
         } };
 
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the descending order. */
     public static final Comparator<MonitorMode> monitorModeComparatorInv = new Comparator<MonitorMode>() {
         @Override
-        public int compare(MonitorMode mm1, MonitorMode mm2) {
+        public int compare(final MonitorMode mm1, final MonitorMode mm2) {
             return mm2.compareTo(mm1);
         } };
 
@@ -144,7 +144,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         public final float refreshRate;
         public final int hashCode;
 
-        public SizeAndRRate(SurfaceSize surfaceSize, float refreshRate, int flags) {
+        public SizeAndRRate(final SurfaceSize surfaceSize, final float refreshRate, final int flags) {
             if(null==surfaceSize) {
                 throw new IllegalArgumentException("surfaceSize must be set ("+surfaceSize+")");
             }
@@ -158,7 +158,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         private final static String STR_DOUBLESCAN = "DoubleScan";
         private final static String STR_SEP = ", ";
 
-        public static final StringBuilder flags2String(int flags) {
+        public static final StringBuilder flags2String(final int flags) {
             final StringBuilder sb = new StringBuilder();
             boolean sp = false;
             if( 0 != ( flags & FLAG_INTERLACE ) ) {
@@ -232,7 +232,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
          * </ul>
          */
         @Override
-        public final boolean equals(Object obj) {
+        public final boolean equals(final Object obj) {
             if (this == obj) { return true; }
             if (obj instanceof SizeAndRRate) {
                 final SizeAndRRate p = (SizeAndRRate)obj;
@@ -288,7 +288,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
     private final int rotation;
     private final int hashCode;
 
-    public static boolean isRotationValid(int rotation) {
+    public static boolean isRotationValid(final int rotation) {
         return rotation == MonitorMode.ROTATE_0 || rotation == MonitorMode.ROTATE_90 ||
                rotation == MonitorMode.ROTATE_180 || rotation == MonitorMode.ROTATE_270 ;
     }
@@ -297,7 +297,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * @param sizeAndRRate the surface size and refresh rate mode
      * @param rotation the screen rotation, measured counter clockwise (CCW)
      */
-    public MonitorMode(int nativeId, SizeAndRRate sizeAndRRate, int rotation) {
+    public MonitorMode(final int nativeId, final SizeAndRRate sizeAndRRate, final int rotation) {
         if ( !isRotationValid(rotation) ) {
             throw new RuntimeException("invalid rotation: "+rotation);
         }
@@ -317,7 +317,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * @param flags
      * @param rotation
      */
-    public MonitorMode(SurfaceSize surfaceSize, float refreshRate, int flags, int rotation) {
+    public MonitorMode(final SurfaceSize surfaceSize, final float refreshRate, final int flags, final int rotation) {
         this(0, new SizeAndRRate(surfaceSize, refreshRate, flags), rotation);
     }
 
@@ -416,10 +416,10 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * </ul>
      */
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorMode) {
-            MonitorMode sm = (MonitorMode)obj;
+            final MonitorMode sm = (MonitorMode)obj;
             return sm.nativeId == this.nativeId &&
                    sm.sizeAndRRate.equals(sizeAndRRate) &&
                    sm.rotation == this.rotation ;
@@ -447,7 +447,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return hash;
     }
 
-    private final int getRotatedWH(boolean width) {
+    private final int getRotatedWH(final boolean width) {
         final DimensionImmutable d = sizeAndRRate.surfaceSize.getResolution();
         final boolean swap = MonitorMode.ROTATE_90 == rotation || MonitorMode.ROTATE_270 == rotation ;
         if ( (  width &&  swap ) || ( !width && !swap ) ) {

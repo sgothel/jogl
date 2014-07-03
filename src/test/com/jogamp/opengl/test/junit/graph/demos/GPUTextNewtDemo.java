@@ -59,7 +59,7 @@ public class GPUTextNewtDemo {
     static int GraphVBAASamples = 4;
     static int GraphMSAASamples = 0;
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         int width = 800, height = 400;
         int x = 10, y = 10;
         if( 0 != args.length ) {
@@ -100,9 +100,9 @@ public class GPUTextNewtDemo {
         System.err.println("Graph MSAA Samples "+GraphMSAASamples);
         System.err.println("Graph VBAA Samples "+GraphVBAASamples);
 
-        GLProfile glp = GLProfile.getGL2ES2();
+        final GLProfile glp = GLProfile.getGL2ES2();
 
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( SceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
@@ -125,8 +125,8 @@ public class GPUTextNewtDemo {
         window.setSize(width, height);
         window.setTitle("GPU Text Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        RenderState rs = RenderState.createRenderState(SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, rmode, sampleCount, true, DEBUG, TRACE);
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+        final GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, rmode, sampleCount, true, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);
@@ -136,14 +136,14 @@ public class GPUTextNewtDemo {
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent arg0) {
+            public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
                     window.destroy();
                 }
             }
         });
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
         });

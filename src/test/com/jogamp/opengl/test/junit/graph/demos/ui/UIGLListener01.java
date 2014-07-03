@@ -45,7 +45,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 public class UIGLListener01 extends UIListenerBase01 {
 
-    public UIGLListener01 (int renderModes, RenderState rs, boolean debug, boolean trace) {
+    public UIGLListener01 (final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
         super(renderModes, RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         try {
@@ -59,28 +59,28 @@ public class UIGLListener01 extends UIListenerBase01 {
                 button.setSpacing(2.0f);
              */
             System.err.println(button);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             System.err.println("Caught: "+ex.getMessage());
             ex.printStackTrace();
         }
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         super.init(drawable);
 
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
 
         MSAATool.dump(drawable);
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -99,7 +99,7 @@ public class UIGLListener01 extends UIListenerBase01 {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         button.destroy(gl, getRegionRenderer());
         super.dispose(drawable);

@@ -18,13 +18,13 @@ import java.io.IOException;
  */
 public class LtshTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private int numGlyphs;
-    private int[] yPels;
+    private final DirectoryEntry de;
+    private final int version;
+    private final int numGlyphs;
+    private final int[] yPels;
 
     /** Creates new LtshTable */
-    protected LtshTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected LtshTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readUnsignedShort();
         numGlyphs = di.readUnsignedShort();
@@ -45,7 +45,7 @@ public class LtshTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'LTSH' Table - Linear Threshold Table\n-------------------------------------")
             .append("\n 'LTSH' Version:       ").append(version)
             .append("\n Number of Glyphs:     ").append(numGlyphs)

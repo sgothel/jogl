@@ -78,8 +78,8 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
         panel1.setLayout(new BorderLayout());
         panel2.setLayout(new BorderLayout());
 
-        GLProfile profile = GLProfile.get(GLProfile.GL2ES2);
-        GLCapabilities glCapabilities = new GLCapabilities(profile);
+        final GLProfile profile = GLProfile.get(GLProfile.GL2ES2);
+        final GLCapabilities glCapabilities = new GLCapabilities(profile);
         final GLCanvas glCanvas = new GLCanvas(glCapabilities);
         glCanvas.setSize(new java.awt.Dimension(640, 480));
         glCanvas.addGLEventListener(new GearsES2(1));
@@ -93,7 +93,7 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
 
         tabbedPanel.addChangeListener(new javax.swing.event.ChangeListener() {
             @Override
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+            public void stateChanged(final javax.swing.event.ChangeEvent evt) {
                 if (tabbedPanel.getSelectedIndex() == 0) {
                     System.err.println("XXXX Add GLCanvas Panel2("+id(panel2)+" -> Panel1("+id(panel1)+") START");
                     dumpGLCanvasStats(glCanvas);
@@ -174,14 +174,14 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
             } });
     }
 
-    private static String id(Object obj) { return "0x"+Integer.toHexString(obj.hashCode()); }
+    private static String id(final Object obj) { return "0x"+Integer.toHexString(obj.hashCode()); }
 
-    static void dumpGLCanvasStats(GLCanvas glCanvas) {
+    static void dumpGLCanvasStats(final GLCanvas glCanvas) {
         System.err.println("XXXX GLCanvas: comp "+glCanvas+", visible "+glCanvas.isVisible()+", showing "+glCanvas.isShowing()+
                 ", displayable "+glCanvas.isDisplayable()+", "+glCanvas.getSurfaceWidth()+"x"+glCanvas.getSurfaceHeight());
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);

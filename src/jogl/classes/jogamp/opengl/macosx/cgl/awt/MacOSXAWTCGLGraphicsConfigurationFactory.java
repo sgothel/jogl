@@ -65,8 +65,8 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, final int nativeVisualID) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -76,7 +76,7 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
         if(null==absScreen) {
             absScreen = AWTGraphicsScreen.createDefault();
         }
-        AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
+        final AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
         if ( !(capsChosen instanceof GLCapabilitiesImmutable) ) {
@@ -96,14 +96,14 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
             System.err.println("MacOSXAWTCGLGraphicsConfigurationFactory: got "+absScreen);
         }
 
-        MacOSXGraphicsDevice macDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
-        DefaultGraphicsScreen macScreen = new DefaultGraphicsScreen(macDevice, awtScreen.getIndex());
+        final MacOSXGraphicsDevice macDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        final DefaultGraphicsScreen macScreen = new DefaultGraphicsScreen(macDevice, awtScreen.getIndex());
         if(DEBUG) {
             System.err.println("MacOSXAWTCGLGraphicsConfigurationFactory: made "+macScreen);
         }
 
-        GraphicsConfiguration gc = device.getDefaultConfiguration();
-        MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
+        final GraphicsConfiguration gc = device.getDefaultConfiguration();
+        final MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(macDevice, capsChosen).chooseGraphicsConfiguration(capsChosen,
                                                                                            capsRequested,
                                                                                            chooser, macScreen, nativeVisualID);

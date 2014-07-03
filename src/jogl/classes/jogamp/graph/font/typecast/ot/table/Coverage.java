@@ -69,9 +69,9 @@ public abstract class Coverage {
      */
     public abstract int findGlyph(int glyphId);
 
-    protected static Coverage read(DataInput di) throws IOException {
+    protected static Coverage read(final DataInput di) throws IOException {
         Coverage c = null;
-        int format = di.readUnsignedShort();
+        final int format = di.readUnsignedShort();
         if (format == 1) {
             c = new CoverageFormat1(di);
         } else if (format == 2) {

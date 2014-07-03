@@ -54,6 +54,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
 
@@ -122,7 +123,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                         frame.pack();
                     } } );
             }
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -131,7 +132,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
+                    final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
                     comp.setMinimumSize(d);
                     comp.setPreferredSize(d);
                     comp.setSize(d);
@@ -139,7 +140,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                         frame.pack();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -148,13 +149,13 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
+                    final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
                     frame.setSize(d);
                     if( frameLayout ) {
                         frame.validate();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -189,8 +190,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     // public enum ResizeBy { GLWindow, Component, Frame };
     protected void runTestGL(final GLCapabilitiesImmutable caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
-        Display dpy = NewtFactory.createDisplay(null);
-        Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
         glWindow.setSurfaceScale(reqSurfacePixelScale);
@@ -241,7 +242,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 frame.add(newtCanvasAWT, BorderLayout.CENTER);
                 break;
             case DoubleBorderCenterSurrounded:
-                Container c = new Container();
+                final Container c = new Container();
                 c.setLayout(new BorderLayout());
                 c.add(new Button("north"), BorderLayout.NORTH);
                 c.add(new Button("south"), BorderLayout.SOUTH);
@@ -263,25 +264,25 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
 
         frame.addComponentListener(new ComponentListener() {
             @Override
-            public void componentResized(ComponentEvent e) {
+            public void componentResized(final ComponentEvent e) {
                 setTitle(frame, newtCanvasAWT, glWindow, caps);
             }
 
             @Override
-            public void componentMoved(ComponentEvent e) {
+            public void componentMoved(final ComponentEvent e) {
                 setTitle(frame, newtCanvasAWT, glWindow, caps);
             }
 
             @Override
-            public void componentShown(ComponentEvent e) { }
+            public void componentShown(final ComponentEvent e) { }
 
             @Override
-            public void componentHidden(ComponentEvent e) { }
+            public void componentHidden(final ComponentEvent e) { }
         });
 
         final Animator animator = useAnimator ? new Animator() : null;
         if( useAnimator ) {
-            animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 
@@ -292,10 +293,10 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
-            public void windowResized(WindowEvent e) {
+            public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
-            public void windowMoved(WindowEvent e) {
+            public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
@@ -439,11 +440,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         runTestGL(caps, resizeBy, frameLayout);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         int x=0, y=0, w=640, h=480;
         int rw=-1, rh=-1;
         boolean usePos = false;

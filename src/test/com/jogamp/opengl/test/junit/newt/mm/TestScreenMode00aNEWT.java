@@ -130,18 +130,18 @@ public class TestScreenMode00aNEWT extends UITestCase {
 
     @Test
     public void testScreenModeInfo01() throws InterruptedException {
-        Display dpy = NewtFactory.createDisplay(null);
-        Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         screen.addReference();
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,screen.getDisplay().isNativeValid());
         System.err.println("Screen: "+screen.toString());
-        List<MonitorMode> allMonitorModes = screen.getMonitorModes();
+        final List<MonitorMode> allMonitorModes = screen.getMonitorModes();
         Assert.assertTrue(allMonitorModes.size()>0);
         {
             int i=0;
             MonitorMode mmPre = null;
-            for(Iterator<MonitorMode> iMode=allMonitorModes.iterator(); iMode.hasNext(); i++) {
+            for(final Iterator<MonitorMode> iMode=allMonitorModes.iterator(); iMode.hasNext(); i++) {
                 final MonitorMode mm = iMode.next();
                 System.err.println(String.format("All-0[%03d]: %s", i, mm));
                 if( null != mmPre ) {
@@ -154,7 +154,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
         {
             int i=0;
             MonitorMode mmPre = null;
-            for(Iterator<MonitorMode> iMode=allMonitorModes.iterator(); iMode.hasNext(); i++) {
+            for(final Iterator<MonitorMode> iMode=allMonitorModes.iterator(); iMode.hasNext(); i++) {
                 final MonitorMode mm = iMode.next();
                 System.err.println(String.format("All-1[%03d]: %s", i, mm));
                 if( null != mmPre ) {
@@ -164,17 +164,17 @@ public class TestScreenMode00aNEWT extends UITestCase {
             }
         }
 
-        List<MonitorDevice> monitors = screen.getMonitorDevices();
+        final List<MonitorDevice> monitors = screen.getMonitorDevices();
         Assert.assertTrue(monitors.size()>0);
         int j=0;
-        for(Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
-            MonitorDevice monitor = iMonitor.next();
+        for(final Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
+            final MonitorDevice monitor = iMonitor.next();
             System.err.println(j+": "+monitor);
-            List<MonitorMode> modes = monitor.getSupportedModes();
+            final List<MonitorMode> modes = monitor.getSupportedModes();
             Assert.assertTrue(modes.size()>0);
             int i=0;
             MonitorMode mmPre = null;
-            for(Iterator<MonitorMode> iMode=modes.iterator(); iMode.hasNext(); i++) {
+            for(final Iterator<MonitorMode> iMode=modes.iterator(); iMode.hasNext(); i++) {
                 final MonitorMode mm = iMode.next();
                 System.err.println(String.format("[%02d][%03d]: %s", j, i, mm));
                 if( null != mmPre ) {
@@ -184,9 +184,9 @@ public class TestScreenMode00aNEWT extends UITestCase {
             }
             Assert.assertTrue(allMonitorModes.containsAll(modes));
 
-            MonitorMode sm_o = monitor.getOriginalMode();
+            final MonitorMode sm_o = monitor.getOriginalMode();
             Assert.assertNotNull(sm_o);
-            MonitorMode sm_c = monitor.queryCurrentMode();
+            final MonitorMode sm_c = monitor.queryCurrentMode();
             System.err.println("[0] orig   : "+sm_o);
             System.err.println("[0] current: "+sm_c);
             Assert.assertNotNull(sm_c);
@@ -199,20 +199,20 @@ public class TestScreenMode00aNEWT extends UITestCase {
         Assert.assertEquals(false,screen.getDisplay().isNativeValid());
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         try {
             return Integer.parseInt(a);
-        } catch (Exception ex) { throw new RuntimeException(ex); }
+        } catch (final Exception ex) { throw new RuntimeException(ex); }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-screen")) {
                 i++;
                 screenIdx = atoi(args[i]);
             }
         }
-        String tstname = TestScreenMode00aNEWT.class.getName();
+        final String tstname = TestScreenMode00aNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

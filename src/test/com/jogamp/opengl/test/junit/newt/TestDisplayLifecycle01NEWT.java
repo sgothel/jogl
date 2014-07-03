@@ -62,7 +62,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         caps = new GLCapabilities(glp);
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height)
+    static GLWindow createWindow(final Screen screen, final GLCapabilities caps, final int width, final int height)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
@@ -72,7 +72,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         //
         GLWindow glWindow;
         if(null!=screen) {
-            Window window = NewtFactory.createWindow(screen, caps);
+            final Window window = NewtFactory.createWindow(screen, caps);
             Assert.assertNotNull(window);
             glWindow = GLWindow.create(window);
         } else {
@@ -80,7 +80,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
         glWindow.setUpdateFPSFrames(1, null);
 
-        GLEventListener demo = new GearsES2();
+        final GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
@@ -88,7 +88,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         return glWindow;
     }
 
-    private void testDisplayCreate01(Display display, Screen screen) throws InterruptedException {
+    private void testDisplayCreate01(final Display display, final Screen screen) throws InterruptedException {
         // start-state == end-state
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -99,7 +99,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
 
         // Create Window, pending lazy native creation
-        GLWindow window = createWindow(screen, caps, width, height);
+        final GLWindow window = createWindow(screen, caps, width, height);
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -229,15 +229,15 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Display/Screen, pending lazy native creation
-        Display display = NewtFactory.createDisplay(null);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Display display = NewtFactory.createDisplay(null);
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         testDisplayCreate01(display, screen);
         testDisplayCreate01(display, screen);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
         if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
@@ -245,22 +245,22 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
         System.err.println("durationPerTest: "+durationPerTest);
-        String tstname = TestDisplayLifecycle01NEWT.class.getName();
+        final String tstname = TestDisplayLifecycle01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

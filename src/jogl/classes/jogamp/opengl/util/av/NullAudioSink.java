@@ -70,7 +70,7 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean setVolume(float v) {
+    public final boolean setVolume(final float v) {
         // FIXME
         volume = v;
         return true;
@@ -87,7 +87,7 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean isSupported(AudioFormat format) {
+    public final boolean isSupported(final AudioFormat format) {
         /**
          * If we like to emulate constraints ..
          *
@@ -102,7 +102,7 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public boolean init(AudioFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+    public boolean init(final AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         chosenFormat = requestedFormat;
         return true;
     }
@@ -171,12 +171,12 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioFrame enqueueData(AudioDataFrame audioDataFrame) {
+    public AudioFrame enqueueData(final AudioDataFrame audioDataFrame) {
         return enqueueData(audioDataFrame.getPTS(), audioDataFrame.getData(), audioDataFrame.getByteSize());
     }
 
     @Override
-    public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount) {
+    public AudioFrame enqueueData(final int pts, final ByteBuffer bytes, final int byteCount) {
         if( !initialized || null == chosenFormat ) {
             return null;
         }

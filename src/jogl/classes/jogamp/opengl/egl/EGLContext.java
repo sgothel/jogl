@@ -65,13 +65,13 @@ public class EGLContext extends GLContextImpl {
     // EGL extension functions.
     private EGLExtProcAddressTable eglExtProcAddressTable;
 
-    EGLContext(GLDrawableImpl drawable,
-               GLContext shareWith) {
+    EGLContext(final GLDrawableImpl drawable,
+               final GLContext shareWith) {
         super(drawable, shareWith);
     }
 
     @Override
-    protected void resetStates(boolean isInit) {
+    protected void resetStates(final boolean isInit) {
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
         eglExtProcAddressTable = null;
@@ -140,12 +140,12 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
+    protected long createContextARBImpl(final long share, final boolean direct, final int ctp, final int major, final int minor) {
         return 0; // FIXME
     }
 
     @Override
-    protected void destroyContextARBImpl(long _context) {
+    protected void destroyContextARBImpl(final long _context) {
         if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), _context)) {
             final int eglError = EGL.eglGetError();
             if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
@@ -175,7 +175,7 @@ public class EGLContext extends GLContextImpl {
             if( !EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API) ) {
                 throw new GLException("Caught: eglBindAPI to ES failed , error "+toHexString(EGL.eglGetError()));
             }
-        } catch (GLException glex) {
+        } catch (final GLException glex) {
             if (DEBUG) {
                 glex.printStackTrace();
             }
@@ -272,7 +272,7 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected final StringBuilder getPlatformExtensionsStringImpl() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if (!eglQueryStringInitialized) {
           eglQueryStringAvailable = getDrawableImpl().getGLDynamicLookupHelper().isFunctionAvailable("eglQueryString");
           eglQueryStringInitialized = true;
@@ -288,7 +288,7 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected boolean setSwapIntervalImpl(int interval) {
+    protected boolean setSwapIntervalImpl(final int interval) {
         if( hasRendererQuirk(GLRendererQuirks.NoSetSwapInterval) ) {
             return false;
         }
@@ -299,11 +299,11 @@ public class EGLContext extends GLContextImpl {
     // Accessible ..
     //
 
-    /* pp */ void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
+    /* pp */ void mapCurrentAvailableGLVersion(final AbstractGraphicsDevice device) {
         mapStaticGLVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
     }
     /* pp */ int getContextOptions() { return ctxOptions; }
-    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
+    /* pp */ static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final GLCapabilitiesImmutable caps) {
         final GLProfile glp = caps.getGLProfile();
         final int[] reqMajorCTP = new int[2];
         GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
@@ -319,7 +319,7 @@ public class EGLContext extends GLContextImpl {
         }
         mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
     }
-    /* pp */ static void mapStaticGLVersion(AbstractGraphicsDevice device, int major, int minor, int ctp) {
+    /* pp */ static void mapStaticGLVersion(final AbstractGraphicsDevice device, final int major, final int minor, final int ctp) {
         if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
             // ES1, ES2, ES3, ..
             mapStaticGLVersion(device, major /* reqMajor */, major, minor, ctp);
@@ -329,28 +329,28 @@ public class EGLContext extends GLContextImpl {
             }
         }
     }
-    private static void mapStaticGLVersion(AbstractGraphicsDevice device, int reqMajor, int major, int minor, int ctp) {
+    private static void mapStaticGLVersion(final AbstractGraphicsDevice device, final int reqMajor, final int major, final int minor, final int ctp) {
         GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
         if(! ( device instanceof EGLGraphicsDevice ) ) {
             final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
             GLContext.mapAvailableGLVersion(eglDevice, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
         }
     }
-    protected static String getGLVersion(int major, int minor, int ctp, String gl_version) {
+    protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
         return GLContext.getGLVersion(major, minor, ctp, gl_version);
     }
 
-    protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
+    protected static boolean getAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
         return GLContext.getAvailableGLVersionsSet(device);
     }
-    protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
+    protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
         GLContext.setAvailableGLVersionsSet(device);
     }
 
-    protected static String toHexString(int hex) {
+    protected static String toHexString(final int hex) {
         return GLContext.toHexString(hex);
     }
-    protected static String toHexString(long hex) {
+    protected static String toHexString(final long hex) {
         return GLContext.toHexString(hex);
     }
 
@@ -359,17 +359,17 @@ public class EGLContext extends GLContextImpl {
     //
 
     @Override
-    protected void copyImpl(GLContext source, int mask) throws GLException {
+    protected void copyImpl(final GLContext source, final int mask) throws GLException {
         throw new GLException("Not yet implemented");
     }
 
     @Override
-    public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
+    public final ByteBuffer glAllocateMemoryNV(final int size, final float readFrequency, final float writeFrequency, final float priority) {
         throw new GLException("Should not call this");
     }
 
     @Override
-    public final void glFreeMemoryNV(ByteBuffer pointer) {
+    public final void glFreeMemoryNV(final ByteBuffer pointer) {
         throw new GLException("Should not call this");
     }
 }

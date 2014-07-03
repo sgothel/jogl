@@ -77,7 +77,7 @@ public class ImageSequence implements TextureSequence {
     }
 
     public final void addFrame(final GL gl, final Class<?> context, final String imageResourcePath, final String imageSuffix) throws IOException {
-        URLConnection urlConn = IOUtil.getResource(context, imageResourcePath);
+        final URLConnection urlConn = IOUtil.getResource(context, imageResourcePath);
         if(null != urlConn) {
             final TextureData texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, imageSuffix);
             final Texture tex = new Texture(getTextureTarget());
@@ -97,7 +97,7 @@ public class ImageSequence implements TextureSequence {
     public final boolean getManualStepping() { return manualStepping; }
     public final TextureSequence.TextureFrame getFrame(final int idx) { return frames.get(idx); }
 
-    public void destroy(GL gl) throws GLException {
+    public void destroy(final GL gl) throws GLException {
         for(int i=frames.size()-1; i>=0; i--) {
             frames.get(i).getTexture().destroy(gl);
         }
@@ -133,7 +133,7 @@ public class ImageSequence implements TextureSequence {
     }
 
     @Override
-    public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException {
+    public TextureSequence.TextureFrame getNextTexture(final GL gl) throws IllegalStateException {
         if( !manualStepping ) {
             frameIdx = ( frameIdx + 1 ) % frames.size();
         }
@@ -153,7 +153,7 @@ public class ImageSequence implements TextureSequence {
     private String textureLookupFunctionName = "myTexture2D";
 
     @Override
-    public String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException {
+    public String getTextureLookupFunctionName(final String desiredFuncName) throws IllegalStateException {
         if(useBuildInTexLookup) {
             return "texture2D";
         }

@@ -41,7 +41,7 @@ public class Label0 {
     protected final float[] rgbaColor;
     protected final AABBox box;
 
-    public Label0(Font font, String text, float[] rgbaColor) {
+    public Label0(final Font font, final String text, final float[] rgbaColor) {
         this.font = font;
         this.text = text;
         this.rgbaColor = rgbaColor;
@@ -52,20 +52,20 @@ public class Label0 {
 
     public final float[] getColor() { return rgbaColor; }
 
-    public final void setColor(float r, float g, float b, float a) {
+    public final void setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor[0] = r;
         this.rgbaColor[1] = g;
         this.rgbaColor[2] = b;
         this.rgbaColor[3] = a;
     }
 
-    public final void setText(String text) {
+    public final void setText(final String text) {
         this.text = text;
     }
 
     public final Font getFont() { return font; }
 
-    public final void setFont(Font font) {
+    public final void setFont(final Font font) {
         this.font = font;
     }
 
@@ -77,7 +77,7 @@ public class Label0 {
 
     private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
         @Override
-        public void visit(OutlineShape shape, AffineTransform t) {
+        public void visit(final OutlineShape shape, final AffineTransform t) {
             final AffineTransform t1 = t.preConcatenate(tLeft);
             region.addOutlineShape(shape, t1, rgbaColor);
             box.resize(shape.getBounds(), t1, tmpV3);

@@ -75,7 +75,7 @@ public abstract class GLRegion extends Region {
 
     protected final TextureSequence colorTexSeq;
 
-    protected GLRegion(int renderModes, TextureSequence colorTexSeq) {
+    protected GLRegion(final int renderModes, final TextureSequence colorTexSeq) {
         super(renderModes);
         this.colorTexSeq = colorTexSeq;
     }
@@ -103,7 +103,7 @@ public abstract class GLRegion extends Region {
     /**
      * Delete and clear the associated OGL objects.
      */
-    public final void destroy(GL2ES2 gl) {
+    public final void destroy(final GL2ES2 gl) {
         clear(gl);
         destroyImpl(gl);
     }

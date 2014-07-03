@@ -46,7 +46,7 @@ import com.jogamp.newt.event.MouseEvent;
  */
 public class SWTNewtEventFactory {
 
-    public static final short eventTypeSWT2NEWT(int swtType) {
+    public static final short eventTypeSWT2NEWT(final int swtType) {
         switch( swtType ) {
             // case SWT.MouseXXX: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED;
             case SWT.MouseDown: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED;
@@ -63,7 +63,7 @@ public class SWTNewtEventFactory {
         return (short)0;
     }
 
-    public static final int swtModifiers2Newt(int awtMods, boolean mouseHint) {
+    public static final int swtModifiers2Newt(final int awtMods, final boolean mouseHint) {
         int newtMods = 0;
         if ((awtMods & SWT.SHIFT) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
         if ((awtMods & SWT.CTRL) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
@@ -202,7 +202,7 @@ public class SWTNewtEventFactory {
     }
 
 
-    public static final com.jogamp.newt.event.InputEvent createInputEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder) {
+    public static final com.jogamp.newt.event.InputEvent createInputEvent(final org.eclipse.swt.widgets.Event event, final NativeSurfaceHolder sourceHolder) {
         com.jogamp.newt.event.InputEvent res = createMouseEvent(event, sourceHolder);
         if(null == res) {
             res = createKeyEvent(event, sourceHolder);
@@ -210,7 +210,7 @@ public class SWTNewtEventFactory {
         return res;
     }
 
-    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder) {
+    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(final org.eclipse.swt.widgets.Event event, final NativeSurfaceHolder sourceHolder) {
         switch(event.type) {
             case SWT.MouseDown:
             case SWT.MouseUp:
@@ -257,7 +257,7 @@ public class SWTNewtEventFactory {
         return null; // no mapping ..
     }
 
-    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder) {
+    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(final org.eclipse.swt.widgets.Event event, final NativeSurfaceHolder sourceHolder) {
         switch(event.type) {
             case SWT.KeyDown:
             case SWT.KeyUp:
@@ -290,8 +290,8 @@ public class SWTNewtEventFactory {
         dragButtonDown = 0;
     }
 
-    public final boolean dispatchMouseEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder, com.jogamp.newt.event.MouseListener l) {
-        com.jogamp.newt.event.MouseEvent res = createMouseEvent(event, sourceHolder);
+    public final boolean dispatchMouseEvent(final org.eclipse.swt.widgets.Event event, final NativeSurfaceHolder sourceHolder, final com.jogamp.newt.event.MouseListener l) {
+        final com.jogamp.newt.event.MouseEvent res = createMouseEvent(event, sourceHolder);
         if(null != res) {
             if(null != l) {
                 switch(event.type) {
@@ -341,8 +341,8 @@ public class SWTNewtEventFactory {
         return false;
     }
 
-    public final boolean dispatchKeyEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder, com.jogamp.newt.event.KeyListener l) {
-        com.jogamp.newt.event.KeyEvent res = createKeyEvent(event, sourceHolder);
+    public final boolean dispatchKeyEvent(final org.eclipse.swt.widgets.Event event, final NativeSurfaceHolder sourceHolder, final com.jogamp.newt.event.KeyListener l) {
+        final com.jogamp.newt.event.KeyEvent res = createKeyEvent(event, sourceHolder);
         if(null != res) {
             if(null != l) {
                 switch(event.type) {
@@ -372,7 +372,7 @@ public class SWTNewtEventFactory {
       if( null != ml ) {
           final Listener listener = new Listener () {
               @Override
-              public void handleEvent (Event event) {
+              public void handleEvent (final Event event) {
                   dispatchMouseEvent( event, sourceHolder, ml );
               } };
           ctrl.addListener(SWT.MouseDown, listener);
@@ -385,7 +385,7 @@ public class SWTNewtEventFactory {
       if( null != kl ) {
           final Listener listener = new Listener () {
               @Override
-              public void handleEvent (Event event) {
+              public void handleEvent (final Event event) {
                   dispatchKeyEvent( event, sourceHolder, kl );
               } };
           ctrl.addListener(SWT.KeyDown, listener);

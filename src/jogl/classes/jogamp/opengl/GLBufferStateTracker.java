@@ -43,6 +43,7 @@ package jogamp.opengl;
 import javax.media.opengl.*;
 
 import com.jogamp.common.util.IntIntHashMap;
+import com.jogamp.common.util.PropertyAccess;
 
 /**
  * Tracks as closely as possible which OpenGL buffer object is bound
@@ -82,7 +83,7 @@ public class GLBufferStateTracker {
 
   static {
       Debug.initSingleton();
-      DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferStateTracker", true);
+      DEBUG = PropertyAccess.isPropertyDefined("jogl.debug.GLBufferStateTracker", true);
   }
 
   // Maps binding targets to buffer objects. A null value indicates
@@ -104,8 +105,8 @@ public class GLBufferStateTracker {
     setBoundBufferObject(GL.GL_ARRAY_BUFFER,         0);
     setBoundBufferObject(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
     setBoundBufferObject(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
-    setBoundBufferObject(GL2.GL_PIXEL_PACK_BUFFER,   0);
-    setBoundBufferObject(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+    setBoundBufferObject(GL2ES3.GL_PIXEL_PACK_BUFFER,   0);
+    setBoundBufferObject(GL2ES3.GL_PIXEL_UNPACK_BUFFER, 0);
   }
 
 
@@ -136,8 +137,8 @@ public class GLBufferStateTracker {
         case GL4.GL_DRAW_INDIRECT_BUFFER:         return GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;
         case GL4.GL_DISPATCH_INDIRECT_BUFFER:     return GL4.GL_DISPATCH_INDIRECT_BUFFER_BINDING;
         case GL.GL_ELEMENT_ARRAY_BUFFER:          return GL.GL_ELEMENT_ARRAY_BUFFER_BINDING;
-        case GL2.GL_PIXEL_PACK_BUFFER:            return GL2.GL_PIXEL_PACK_BUFFER_BINDING;
-        case GL2.GL_PIXEL_UNPACK_BUFFER:          return GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;
+        case GL2ES3.GL_PIXEL_PACK_BUFFER:            return GL2ES3.GL_PIXEL_PACK_BUFFER_BINDING;
+        case GL2ES3.GL_PIXEL_UNPACK_BUFFER:          return GL2ES3.GL_PIXEL_UNPACK_BUFFER_BINDING;
         // FIXME case GL4.GL_QUERY_BUFFER:              return GL4.GL_QUERY_BUFFER_BINDING;
         case GL4.GL_SHADER_STORAGE_BUFFER:        return GL4.GL_SHADER_STORAGE_BUFFER_BINDING;
         case GL2GL3.GL_TEXTURE_BUFFER:            return GL2GL3.GL_TEXTURE_BINDING_BUFFER;
@@ -159,8 +160,8 @@ public class GLBufferStateTracker {
         case GL4.GL_DRAW_INDIRECT_BUFFER:
         case GL4.GL_DISPATCH_INDIRECT_BUFFER:
         case GL.GL_ELEMENT_ARRAY_BUFFER:
-        case GL2.GL_PIXEL_PACK_BUFFER:
-        case GL2.GL_PIXEL_UNPACK_BUFFER:
+        case GL2ES3.GL_PIXEL_PACK_BUFFER:
+        case GL2ES3.GL_PIXEL_UNPACK_BUFFER:
         // FIXME case GL4.GL_QUERY_BUFFER:
         case GL4.GL_SHADER_STORAGE_BUFFER:
         case GL2GL3.GL_TEXTURE_BUFFER:
@@ -185,7 +186,7 @@ public class GLBufferStateTracker {
    * @param target
    * @param bufferName
    */
-  public final void setBoundBufferObject(int target, int bufferName) {
+  public final void setBoundBufferObject(final int target, final int bufferName) {
     checkTargetName(target);
     final int oldBufferName = bindingMap.put(target, bufferName);
     /***
@@ -215,7 +216,7 @@ public class GLBufferStateTracker {
       specified target (e.g. GL_ARRAY_BUFFER) is currently unknown.
       You must use isBoundBufferObjectKnown() to see whether the
       return value is valid. */
-  public final int getBoundBufferObject(int target, GL caller) {
+  public final int getBoundBufferObject(final int target, final GL caller) {
     int value = bindingMap.get(target);
     if (bindingNotFound == value) {
       // User probably either called glPushClientAttrib /
@@ -263,5 +264,5 @@ public class GLBufferStateTracker {
     }
     bindingMap.clear();
   }
-  private final String toHexString(int i) { return Integer.toHexString(i); }
+  private final String toHexString(final int i) { return Integer.toHexString(i); }
 }

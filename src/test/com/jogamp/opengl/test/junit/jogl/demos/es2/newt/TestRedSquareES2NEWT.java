@@ -73,7 +73,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException {
         System.err.println("requested: vsync "+vsync+", "+caps);
         final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
@@ -96,8 +96,8 @@ public class TestRedSquareES2NEWT extends UITestCase {
         snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
 
-        Animator animator = new Animator(glWindow);
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final Animator animator = new Animator(glWindow);
+        final QuitAdapter quitAdapter = new QuitAdapter();
 
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -105,7 +105,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
                 }
@@ -182,7 +182,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {

@@ -15,7 +15,7 @@ public class PngChunkHIST extends PngChunkSingle {
 
 	private int[] hist = new int[0]; // should have same lenght as palette
 
-	public PngChunkHIST(ImageInfo info) {
+	public PngChunkHIST(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -25,10 +25,10 @@ public class PngChunkHIST extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed images accept a HIST chunk");
-		int nentries = c.data.length / 2;
+		final int nentries = c.data.length / 2;
 		hist = new int[nentries];
 		for (int i = 0; i < hist.length; i++) {
 			hist[i] = PngHelperInternal.readInt2fromBytes(c.data, i * 2);
@@ -48,8 +48,8 @@ public class PngChunkHIST extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkHIST otherx = (PngChunkHIST) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkHIST otherx = (PngChunkHIST) other;
 		hist = new int[otherx.hist.length];
 		System.arraycopy(otherx.hist, 0, hist, 0, otherx.hist.length);
 	}
@@ -58,7 +58,7 @@ public class PngChunkHIST extends PngChunkSingle {
 		return hist;
 	}
 
-	public void setHist(int[] hist) {
+	public void setHist(final int[] hist) {
 		this.hist = hist;
 	}
 

@@ -75,7 +75,7 @@ public class Win32SunJDKReflection {
             win32GraphicsConfigGetVisualMethod = win32GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
             win32GraphicsConfigGetVisualMethod.setAccessible(true);
             initted = true;
-          } catch (Exception e) {
+          } catch (final Exception e) {
             // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
           }
           return null;
@@ -83,37 +83,37 @@ public class Win32SunJDKReflection {
       });
   }
 
-  public static GraphicsConfiguration graphicsConfigurationGet(GraphicsDevice device, int pfdID) {
+  public static GraphicsConfiguration graphicsConfigurationGet(final GraphicsDevice device, final int pfdID) {
     if (!initted) {
       return null;
     }
 
     try {
       return (GraphicsConfiguration) win32GraphicsConfigGetConfigMethod.invoke(null, new Object[] { device, new Integer(pfdID) });
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return null;
     }
   }
 
-  public static int graphicsConfigurationGetPixelFormatID(AbstractGraphicsConfiguration config) {
+  public static int graphicsConfigurationGetPixelFormatID(final AbstractGraphicsConfiguration config) {
       try {
           if (config instanceof AWTGraphicsConfiguration) {
               return graphicsConfigurationGetPixelFormatID(((AWTGraphicsConfiguration) config).getAWTGraphicsConfiguration());
           }
           return 0;
-      } catch (Exception e) {
+      } catch (final Exception e) {
           return 0;
       }
   }
 
-  public static int graphicsConfigurationGetPixelFormatID(GraphicsConfiguration config) {
+  public static int graphicsConfigurationGetPixelFormatID(final GraphicsConfiguration config) {
     if (!initted) {
       return 0;
     }
 
     try {
       return ((Integer) win32GraphicsConfigGetVisualMethod.invoke(config, (Object[])null)).intValue();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return 0;
     }
   }

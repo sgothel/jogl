@@ -54,7 +54,7 @@ public enum AudioSampleFormat {
      * </pre>
      * @throws IllegalArgumentException if the given ordinal is out of range, i.e. not within [ 0 .. SampleFormat.values().length-1 ]
      */
-    public static AudioSampleFormat valueOf(int ordinal) throws IllegalArgumentException {
+    public static AudioSampleFormat valueOf(final int ordinal) throws IllegalArgumentException {
         final AudioSampleFormat[] all = AudioSampleFormat.values();
         if( 0 <= ordinal && ordinal < all.length ) {
             return all[ordinal];

@@ -43,7 +43,7 @@ public class AndroidNewtEventFactory {
     /** API Level 12: {@link android.view.MotionEvent#ACTION_SCROLL} = {@value} */
     private static final int ACTION_SCROLL = 8;
 
-    private static final com.jogamp.newt.event.MouseEvent.PointerType aToolType2PointerType(int aToolType) {
+    private static final com.jogamp.newt.event.MouseEvent.PointerType aToolType2PointerType(final int aToolType) {
         switch( aToolType ) {
             case MotionEvent.TOOL_TYPE_FINGER:
                 return com.jogamp.newt.event.MouseEvent.PointerType.TouchScreen;
@@ -57,7 +57,7 @@ public class AndroidNewtEventFactory {
         }
     }
 
-    private static final short aMotionEventType2Newt(int aType) {
+    private static final short aMotionEventType2Newt(final int aType) {
         switch( aType ) {
             case android.view.MotionEvent.ACTION_DOWN:
             case android.view.MotionEvent.ACTION_POINTER_DOWN:
@@ -79,7 +79,7 @@ public class AndroidNewtEventFactory {
         return (short)0;
     }
 
-    private static final short aAccessibilityEventType2Newt(int aType) {
+    private static final short aAccessibilityEventType2Newt(final int aType) {
         switch( aType ) {
             case android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED:
                 return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS;
@@ -87,7 +87,7 @@ public class AndroidNewtEventFactory {
         return (short)0;
     }
 
-    private static final short aKeyEventType2NewtEventType(int androidKeyAction) {
+    private static final short aKeyEventType2NewtEventType(final int androidKeyAction) {
         switch(androidKeyAction) {
             case android.view.KeyEvent.ACTION_DOWN:
             case android.view.KeyEvent.ACTION_MULTIPLE:
@@ -98,7 +98,7 @@ public class AndroidNewtEventFactory {
         return (short)0;
     }
 
-    private static final short aKeyCode2NewtKeyCode(int androidKeyCode, boolean inclSysKeys) {
+    private static final short aKeyCode2NewtKeyCode(final int androidKeyCode, final boolean inclSysKeys) {
         if(android.view.KeyEvent.KEYCODE_0 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_9) {
             return (short) ( com.jogamp.newt.event.KeyEvent.VK_0 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_0 ) );
         }
@@ -156,7 +156,7 @@ public class AndroidNewtEventFactory {
         return com.jogamp.newt.event.KeyEvent.VK_UNDEFINED;
     }
 
-    private static final int aKeyModifiers2Newt(int androidMods) {
+    private static final int aKeyModifiers2Newt(final int androidMods) {
         int newtMods = 0;
         if ((androidMods & android.view.KeyEvent.META_SYM_ON)   != 0)   newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
         if ((androidMods & android.view.KeyEvent.META_SHIFT_ON) != 0)   newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
@@ -165,7 +165,7 @@ public class AndroidNewtEventFactory {
         return newtMods;
     }
 
-    public static com.jogamp.newt.event.WindowEvent createWindowEvent(android.view.accessibility.AccessibilityEvent event, com.jogamp.newt.Window newtSource) {
+    public static com.jogamp.newt.event.WindowEvent createWindowEvent(final android.view.accessibility.AccessibilityEvent event, final com.jogamp.newt.Window newtSource) {
         final int aType = event.getEventType();
         final short nType = aAccessibilityEventType2Newt(aType);
 
@@ -176,7 +176,7 @@ public class AndroidNewtEventFactory {
     }
 
 
-    public static com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent aEvent, com.jogamp.newt.Window newtSource, boolean inclSysKeys) {
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(final android.view.KeyEvent aEvent, final com.jogamp.newt.Window newtSource, final boolean inclSysKeys) {
         final com.jogamp.newt.event.KeyEvent res;
         final short newtType = aKeyEventType2NewtEventType(aEvent.getAction());
         if( (short)0 != newtType) {
@@ -191,7 +191,7 @@ public class AndroidNewtEventFactory {
         return res;
     }
 
-    public static com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent aEvent, short newtType, com.jogamp.newt.Window newtSource, boolean inclSysKeys) {
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(final android.view.KeyEvent aEvent, final short newtType, final com.jogamp.newt.Window newtSource, final boolean inclSysKeys) {
         final short newtKeyCode = aKeyCode2NewtKeyCode(aEvent.getKeyCode(), inclSysKeys);
         final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
         if(DEBUG_KEY_EVENT) {
@@ -200,7 +200,7 @@ public class AndroidNewtEventFactory {
         return res;
     }
 
-    public static com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent aEvent, short newtKeyCode, short newtType, com.jogamp.newt.Window newtSource) {
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(final android.view.KeyEvent aEvent, final short newtKeyCode, final short newtType, final com.jogamp.newt.Window newtSource) {
         final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
         if(DEBUG_KEY_EVENT) {
             System.err.println("createKeyEvent2: newtType "+NEWTEvent.toHexString(newtType)+", "+aEvent+" -> "+res);
@@ -208,7 +208,7 @@ public class AndroidNewtEventFactory {
         return res;
     }
 
-    private static com.jogamp.newt.event.KeyEvent createKeyEventImpl(android.view.KeyEvent aEvent, short newtType, short newtKeyCode, com.jogamp.newt.Window newtSource) {
+    private static com.jogamp.newt.event.KeyEvent createKeyEventImpl(final android.view.KeyEvent aEvent, final short newtType, final short newtKeyCode, final com.jogamp.newt.Window newtSource) {
         if( (short)0 != newtType && com.jogamp.newt.event.KeyEvent.VK_UNDEFINED != newtKeyCode ) {
             final Object src = null==newtSource ? null : newtSource;
             final long unixTime = System.currentTimeMillis() + ( aEvent.getEventTime() - android.os.SystemClock.uptimeMillis() );
@@ -243,7 +243,7 @@ public class AndroidNewtEventFactory {
     }
 
     private final int touchSlop;
-    public AndroidNewtEventFactory(android.content.Context context, android.os.Handler handler) {
+    public AndroidNewtEventFactory(final android.content.Context context, final android.os.Handler handler) {
         final android.view.ViewConfiguration configuration = android.view.ViewConfiguration.get(context);
         touchSlop = configuration.getScaledTouchSlop();
         final int doubleTapSlop = configuration.getScaledDoubleTapSlop();
@@ -253,7 +253,7 @@ public class AndroidNewtEventFactory {
         }
     }
 
-    private static void collectPointerData(MotionEvent e, int count, final int[] x, final int[] y, final float[] pressure,
+    private static void collectPointerData(final MotionEvent e, final int count, final int[] x, final int[] y, final float[] pressure,
                                            final short[] pointerIds, final MouseEvent.PointerType[] pointerTypes) {
         for(int i=0; i < count; i++) {
             x[i] = (int)e.getX(i);
@@ -270,8 +270,8 @@ public class AndroidNewtEventFactory {
         }
     }
 
-    public boolean sendPointerEvent(boolean enqueue, boolean wait, boolean setFocusOnDown, boolean isOnTouchEvent,
-                                    android.view.MotionEvent event, jogamp.newt.driver.android.WindowDriver newtSource) {
+    public boolean sendPointerEvent(final boolean enqueue, final boolean wait, final boolean setFocusOnDown, final boolean isOnTouchEvent,
+                                    final android.view.MotionEvent event, final jogamp.newt.driver.android.WindowDriver newtSource) {
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("createMouseEvent: isOnTouchEvent "+isOnTouchEvent+", "+event);
         }

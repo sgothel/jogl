@@ -52,7 +52,7 @@ public class TestWindows01NEWT extends UITestCase {
         height = 256;
     }
 
-    static Window createWindow(Capabilities caps, int x, int y, int width, int height, boolean onscreen, boolean undecorated) throws InterruptedException {
+    static Window createWindow(final Capabilities caps, final int x, final int y, final int width, final int height, final boolean onscreen, final boolean undecorated) throws InterruptedException {
         final boolean userPos = x>=0 && y>=0 ; // user has specified a position
 
         Assert.assertNotNull(caps);
@@ -62,10 +62,10 @@ public class TestWindows01NEWT extends UITestCase {
         //
         // Create native windowing resources .. X11/Win/OSX
         //
-        Window window = NewtFactory.createWindow(caps);
+        final Window window = NewtFactory.createWindow(caps);
         Assert.assertNotNull(window);
-        Screen screen = window.getScreen();
-        Display display = screen.getDisplay();
+        final Screen screen = window.getScreen();
+        final Display display = screen.getDisplay();
         window.setUndecorated(onscreen && undecorated);
         if(userPos) {
             window.setPosition(x, y);
@@ -92,7 +92,7 @@ public class TestWindows01NEWT extends UITestCase {
             Assert.assertEquals(y, window.getY());
         } */
 
-        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getChosenCapabilities();
+        final CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(chosenCapabilities);
         Assert.assertTrue(chosenCapabilities.getGreenBits()>=5);
         Assert.assertTrue(chosenCapabilities.getBlueBits()>=5);
@@ -102,12 +102,12 @@ public class TestWindows01NEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window, boolean last) {
+    static void destroyWindow(final Window window, final boolean last) {
         if(null==window) {
             return;
         }
-        Screen screen = window.getScreen();
-        Display display = screen.getDisplay();
+        final Screen screen = window.getScreen();
+        final Display display = screen.getDisplay();
         window.destroy();
         // System.err.println("************* Destroyed: "+window);
         if(last) {
@@ -124,29 +124,29 @@ public class TestWindows01NEWT extends UITestCase {
 
     @Test
     public void testWindowDecorSimpleWMPos() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        final Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
 
-        Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        final Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
         destroyWindow(window, true);
     }
 
 
     @Test
     public void testWindowDecorSimpleUserPos() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        final Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
 
-        Window window = createWindow(caps, 100, 100, width, height, true /* onscreen */, false /* undecorated */);
+        final Window window = createWindow(caps, 100, 100, width, height, true /* onscreen */, false /* undecorated */);
         destroyWindow(window, true);
     }
 
     @Test
     public void testWindowNativeRecreate01Simple() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        final Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
 
-        Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        final Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
         destroyWindow(window, true);
 
         window.setVisible(true);
@@ -160,27 +160,27 @@ public class TestWindows01NEWT extends UITestCase {
 
     @Test
     public void testWindowDecorDestroyWinTwiceA() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        final Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
 
-        Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        final Window window = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
         destroyWindow(window, true);
         destroyWindow(window, true);
     }
 
     @Test
     public void testWindowDecorTwoWin() throws InterruptedException {
-        Capabilities caps = new Capabilities();
+        final Capabilities caps = new Capabilities();
         Assert.assertNotNull(caps);
 
-        Window window1 = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
-        Window window2 = createWindow(caps, 100, 100, width, height, true /* onscreen */, false /* undecorated */);
+        final Window window1 = createWindow(caps, -1, -1, width, height, true /* onscreen */, false /* undecorated */);
+        final Window window2 = createWindow(caps, 100, 100, width, height, true /* onscreen */, false /* undecorated */);
         destroyWindow(window2, false);
         destroyWindow(window1, true);
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestWindows01NEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestWindows01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

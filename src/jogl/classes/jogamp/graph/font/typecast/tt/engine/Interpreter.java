@@ -33,16 +33,16 @@ import jogamp.graph.font.typecast.ot.Point;
 public class Interpreter {
 
     private Parser parser = null;
-    private GraphicsState gs = new GraphicsState();
-    private Point[][] zone = new Point[2][];
+    private final GraphicsState gs = new GraphicsState();
+    private final Point[][] zone = new Point[2][];
     private int[] stack = null;
     private int[] store = null;
-    private int[] cvt = new int[256];
+    private final int[] cvt = new int[256];
     private int[] functionMap = null;
     private int stackIndex = 0;
     private boolean inFuncDef = false;
 
-    public Interpreter(int stackMax, int storeMax, int funcMax) {
+    public Interpreter(final int stackMax, final int storeMax, final int funcMax) {
         zone[0] = new Point[256];
         zone[1] = new Point[256];
         stack = new int[stackMax];
@@ -54,7 +54,7 @@ public class Interpreter {
      * ABSolute value
      */
     private void _abs() {
-        int n = pop();
+        final int n = pop();
         if (n >= 0) {
             push(n);
         } else {
@@ -66,8 +66,8 @@ public class Interpreter {
      * ADD
      */
     private void _add() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push(n2 + n1);
     }
 
@@ -92,8 +92,8 @@ public class Interpreter {
      * logical AND
      */
     private void _and() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push(((e1 != 0) && (e2 != 0)) ? 1 : 0);
     }
 
@@ -108,7 +108,7 @@ public class Interpreter {
      * CEILING
      */
     private void _ceiling() {
-        int n = pop();
+        final int n = pop();
         if (n >= 0) {
             push((n & 0xffc0) + (((n & 0x3f) != 0) ? 0x40 : 0));
         } else {
@@ -138,7 +138,7 @@ public class Interpreter {
      * DELTA exception C1
      */
     private void _deltac1() {
-        int n = pop();
+        final int n = pop();
         for (int i = 0; i < n; i++) {
             pop();    // pn
             pop();    // argn
@@ -149,7 +149,7 @@ public class Interpreter {
      * DELTA exception C2
      */
     private void _deltac2() {
-        int n = pop();
+        final int n = pop();
         for (int i = 0; i < n; i++) {
             pop();    // pn
             pop();    // argn
@@ -160,7 +160,7 @@ public class Interpreter {
      * DELTA exception C3
      */
     private void _deltac3() {
-        int n = pop();
+        final int n = pop();
         for (int i = 0; i < n; i++) {
             pop();    // pn
             pop();    // argn
@@ -171,7 +171,7 @@ public class Interpreter {
      * DELTA exception P1
      */
     private void _deltap1() {
-        int n = pop();
+        final int n = pop();
         for (int i = 0; i < n; i++) {
             pop();    // pn
             pop();    // argn
@@ -182,7 +182,7 @@ public class Interpreter {
      * DELTA exception P2
      */
     private void _deltap2() {
-        int n = pop();
+        final int n = pop();
         for (int i = 0; i < n; i++) {
             pop();    // pn
             pop();    // argn
@@ -193,7 +193,7 @@ public class Interpreter {
      * DELTA exception P3
      */
     private void _deltap3() {
-        int n = pop();
+        final int n = pop();
         for (int i = 0; i < n; i++) {
             pop();    // pn
             pop();    // argn
@@ -211,8 +211,8 @@ public class Interpreter {
      * DIVide
      */
     private void _div() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push((n2 / n1) >> 6);
     }
 
@@ -220,7 +220,7 @@ public class Interpreter {
      * DUPlicate top stack element
      */
     private void _dup() {
-        int n = pop();
+        final int n = pop();
         push(n);
         push(n);
     }
@@ -228,7 +228,7 @@ public class Interpreter {
     /**
      * ELSE
      */
-    private int _else(int instructionIndex) {
+    private int _else(final int instructionIndex) {
         return parser.handleElse(instructionIndex);
     }
 
@@ -236,8 +236,8 @@ public class Interpreter {
      * EQual
      */
     private void _eq() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push((e1 == e2) ? 1 : 0);
     }
 
@@ -249,7 +249,7 @@ public class Interpreter {
     /**
      * Function DEFinition
      */
-    private void _fdef(int instructionIndex) {
+    private void _fdef(final int instructionIndex) {
         functionMap[pop()] = instructionIndex;
         inFuncDef = true;
     }
@@ -275,7 +275,7 @@ public class Interpreter {
      */
     private void _flippt() {
         while(gs.loop-- > 0) {
-            int index = pop();
+            final int index = pop();
             zone[gs.zp0][index].onCurve = !zone[gs.zp0][index].onCurve;
         }
         gs.loop = 1;
@@ -285,8 +285,8 @@ public class Interpreter {
      * FLIP RanGe OFF
      */
     private void _fliprgoff() {
-        int end = pop();
-        int start = pop();
+        final int end = pop();
+        final int start = pop();
         for (int i = start; i <= end; i++) {
             zone[1][i].onCurve = false;
         }
@@ -296,8 +296,8 @@ public class Interpreter {
      * FLIP RanGe ON
      */
     private void _fliprgon() {
-        int end = pop();
-        int start = pop();
+        final int end = pop();
+        final int start = pop();
         for (int i = start; i <= end; i++) {
             zone[1][i].onCurve = true;
         }
@@ -307,7 +307,7 @@ public class Interpreter {
      * FLOOR
      */
     private void _floor() {
-        int n = pop();
+        final int n = pop();
         if (n >= 0) {
             push(n & 0xffc0);
         } else {
@@ -315,7 +315,7 @@ public class Interpreter {
         }
     }
 
-    private void _gc(short param) {
+    private void _gc(final short param) {
         pop();
         push(0);
     }
@@ -345,8 +345,8 @@ public class Interpreter {
      * Greater Than
      */
     private void _gt() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push((e1 > e2) ? 1 : 0);
     }
 
@@ -354,8 +354,8 @@ public class Interpreter {
      * Greater Than or EQual
      */
     private void _gteq() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push((e1 >= e2) ? 1 : 0);
     }
 
@@ -370,7 +370,7 @@ public class Interpreter {
     /**
      * IF test
      */
-    private int _if(int instructionIndex) {
+    private int _if(final int instructionIndex) {
         return parser.handleIf(pop() != 0, instructionIndex);
     }
 
@@ -425,8 +425,8 @@ public class Interpreter {
      * will be used in glyph instructions.
      */
     private void _instctrl() {
-        int s = pop();
-        int v = pop();
+        final int s = pop();
+        final int v = pop();
         if (s == 1) {
             gs.instruction_control |= v;
         } else if (s == 2) {
@@ -446,7 +446,7 @@ public class Interpreter {
         pop();
     }
 
-    private void _iup(short param) {
+    private void _iup(final short param) {
     }
 
     /**
@@ -460,8 +460,8 @@ public class Interpreter {
      * Jump Relative On False
      */
     private int _jrof(int instructionIndex) {
-        boolean test = pop() != 0;
-        int offset = pop();
+        final boolean test = pop() != 0;
+        final int offset = pop();
         if (!test) {
             instructionIndex += offset - 1;
         }
@@ -472,8 +472,8 @@ public class Interpreter {
      * Jump Relative On True
      */
     private int _jrot(int instructionIndex) {
-        boolean test = pop() != 0;
-        int offset = pop();
+        final boolean test = pop() != 0;
+        final int offset = pop();
         if (test) {
             instructionIndex += offset - 1;
         }
@@ -484,8 +484,8 @@ public class Interpreter {
      * LOOP and CALL function
      */
     private void _loopcall() {
-        int index = pop();
-        int count = pop();
+        final int index = pop();
+        final int count = pop();
         for (int i = 0; i < count; i++) {
             execute(functionMap[i]);
         }
@@ -495,8 +495,8 @@ public class Interpreter {
      * Less Than
      */
     private void _lt() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push((e1 < e2) ? 1 : 0);
     }
 
@@ -504,8 +504,8 @@ public class Interpreter {
      * Less Than or EQual
      */
     private void _lteq() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push((e1 <= e2) ? 1 : 0);
     }
 
@@ -513,26 +513,26 @@ public class Interpreter {
      * MAXimum of top two stack elements
      */
     private void _max() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push((n1 > n2) ? n1 : n2);
     }
 
-    private void _md(short param) {
+    private void _md(final short param) {
         pop();
         pop();
         push(0);
     }
 
-    private void _mdap(short param) {
+    private void _mdap(final short param) {
         pop();
     }
 
-    private void _mdrp(short param) {
+    private void _mdrp(final short param) {
         pop();
     }
 
-    private void _miap(short param) {
+    private void _miap(final short param) {
         pop();
         pop();
     }
@@ -540,8 +540,8 @@ public class Interpreter {
      * MINimum of top two stack elements
      */
     private void _min() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push((n1 < n2) ? n1 : n2);
     }
 
@@ -550,15 +550,15 @@ public class Interpreter {
      */
     private void _mindex() {
         // Move the indexed element to stackIndex, and shift the others down
-        int k = pop();
-        int e = stack[stackIndex - k];
+        final int k = pop();
+        final int e = stack[stackIndex - k];
         for (int i = stackIndex - k; i < stackIndex - 1; i++) {
             stack[i] = stack[i+1];
         }
         stack[stackIndex - 1] = e;
     }
 
-    private void _mirp(short param) {
+    private void _mirp(final short param) {
         pop();
         pop();
     }
@@ -571,7 +571,7 @@ public class Interpreter {
         push(0);
     }
 
-    private void _msirp(short param) {
+    private void _msirp(final short param) {
         pop();
         pop();
     }
@@ -580,8 +580,8 @@ public class Interpreter {
      * MULtiply
      */
     private void _mul() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push((n1 * n2) >> 6);
     }
 
@@ -596,8 +596,8 @@ public class Interpreter {
      * Not EQual
      */
     private void _neq() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push((e1 != e2) ? 1 : 0);
     }
 
@@ -608,7 +608,7 @@ public class Interpreter {
         push((pop() != 0) ? 0 : 1);
     }
 
-    private void _nround(short param) {
+    private void _nround(final short param) {
         pop();
         push(0);
     }
@@ -622,8 +622,8 @@ public class Interpreter {
      * logical OR
      */
     private void _or() {
-        int e2 = pop();
-        int e1 = pop();
+        final int e2 = pop();
+        final int e1 = pop();
         push(((e1 != 0) || (e2 != 0)) ? 1 : 0);
     }
 
@@ -633,7 +633,7 @@ public class Interpreter {
      * PUSH Bytes
      * PUSH Words
      */
-    private void _push(int[] data) {
+    private void _push(final int[] data) {
         for (int j = 0; j < data.length; j++) {
             push(data[j]);
         }
@@ -664,15 +664,15 @@ public class Interpreter {
      * ROLL the top three stack elements
      */
     private void _roll() {
-        int a = pop();
-        int b = pop();
-        int c = pop();
+        final int a = pop();
+        final int b = pop();
+        final int c = pop();
         push(b);
         push(a);
         push(c);
     }
 
-    private void _round(short param) {
+    private void _round(final short param) {
         pop();
         push(0);
     }
@@ -907,7 +907,7 @@ public class Interpreter {
     /**
      * Set Dual Projection_Vector To Line
      */
-    private void _sdpvtl(short param) {
+    private void _sdpvtl(final short param) {
         pop();
         pop();
     }
@@ -930,7 +930,7 @@ public class Interpreter {
     /*
      * Set Freedom_Vector to Coordinate Axis
      */
-    private void _sfvtca(short param) {
+    private void _sfvtca(final short param) {
         if (param == 1) {
             gs.freedom_vector[0] = 0x4000;
             gs.freedom_vector[1] = 0x0000;
@@ -943,7 +943,7 @@ public class Interpreter {
     /*
      * Set Freedom_Vector To Line
      */
-    private void _sfvtl(short param) {
+    private void _sfvtl(final short param) {
         pop();
         pop();
         if (param == 1) {
@@ -963,7 +963,7 @@ public class Interpreter {
         gs.freedom_vector[1] = gs.projection_vector[1];
     }
 
-    private void _shc(short param) {
+    private void _shc(final short param) {
         pop();
     }
 
@@ -972,7 +972,7 @@ public class Interpreter {
      *
      * USES: loop
      */
-    private void _shp(short param) {
+    private void _shp(final short param) {
         while(gs.loop-- > 0) {
             pop();
             if(param == 0) {
@@ -995,7 +995,7 @@ public class Interpreter {
         gs.loop = 1;
     }
 
-    private void _shz(short param) {
+    private void _shz(final short param) {
         pop();
     }
 
@@ -1024,7 +1024,7 @@ public class Interpreter {
     /*
      * Set Projection_Vector To Coordinate Axis
      */
-    private void _spvtca(short param) {
+    private void _spvtca(final short param) {
         if (param == 1) {
             gs.projection_vector[0] = 0x4000;
             gs.projection_vector[1] = 0x0000;
@@ -1037,14 +1037,14 @@ public class Interpreter {
     /**
      * Set Projection_Vector To Line
      */
-    private void _spvtl(short param) {
+    private void _spvtl(final short param) {
 
         // We'll get a copy of the line and normalize it -
         // divide the x- and y-coords by the vector's dot product.
-        Point p1 = zone[gs.zp2][pop()];
-        Point p2 = zone[gs.zp1][pop()];
-        int x = p2.x - p1.x;
-        int y = p2.y - p1.y;
+        final Point p1 = zone[gs.zp2][pop()];
+        final Point p2 = zone[gs.zp1][pop()];
+        final int x = p2.x - p1.x;
+        final int y = p2.y - p1.y;
         if(param == 1) {
             gs.projection_vector[0] = 0x0000;
             gs.projection_vector[1] = 0x0000;
@@ -1097,15 +1097,15 @@ public class Interpreter {
      * SUBtract
      */
     private void _sub() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push(n2 - n1);
     }
 
     /**
      * Set freedom and projection Vectors To Coordinate Axis
      */
-    private void _svtca(short param) {
+    private void _svtca(final short param) {
         if (param == 1) {
             gs.projection_vector[0] = 0x4000;
             gs.projection_vector[1] = 0x0000;
@@ -1123,8 +1123,8 @@ public class Interpreter {
      * SWAP the top two elements on the stack
      */
     private void _swap() {
-        int n1 = pop();
-        int n2 = pop();
+        final int n1 = pop();
+        final int n2 = pop();
         push(n1);
         push(n2);
     }
@@ -1165,7 +1165,7 @@ public class Interpreter {
      * Write Control Value Table in FUnits
      */
     private void _wcvtf() {
-        int value = pop();
+        final int value = pop();
         // Conversion of value goes here
         cvt[pop()] = value;
     }
@@ -1174,7 +1174,7 @@ public class Interpreter {
      * Write Control Value Table in Pixel units
      */
     private void _wcvtp() {
-        int value = pop();
+        final int value = pop();
         // Conversion of value goes here
         cvt[pop()] = value;
     }
@@ -1188,7 +1188,7 @@ public class Interpreter {
 
     public void execute(int ip) {
         while (ip < ((ip & 0xffff0000) | parser.getISLength(ip >> 16))) {
-            short opcode = parser.getOpcode(ip);
+            final short opcode = parser.getOpcode(ip);
             if (inFuncDef) {
 
                 // We're within a function definition, so don't execute the code
@@ -1332,7 +1332,7 @@ public class Interpreter {
         return stack[--stackIndex];
     }
 
-    private void push(int i) {
+    private void push(final int i) {
         stack[stackIndex++] = i;
     }
 
@@ -1351,7 +1351,7 @@ public class Interpreter {
         }
     }
 
-    public void setParser(Parser p) {
+    public void setParser(final Parser p) {
         parser = p;
     }
 }

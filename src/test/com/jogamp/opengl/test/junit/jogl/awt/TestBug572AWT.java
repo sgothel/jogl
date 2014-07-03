@@ -58,7 +58,7 @@ public class TestBug572AWT extends UITestCase {
      static class Cleanup implements Runnable {
         Window window;
 
-        public Cleanup(Window w) {
+        public Cleanup(final Window w) {
             window = w;
         }
 
@@ -67,7 +67,7 @@ public class TestBug572AWT extends UITestCase {
             window.setVisible(false);
             try {
                 window.removeAll();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 Assume.assumeNoException(t);
                 t.printStackTrace();
             }
@@ -95,7 +95,7 @@ public class TestBug572AWT extends UITestCase {
                     window.setSize(512, 512);
                     window.validate();
                 } else {
-                    Dimension size = new Dimension(512, 512);
+                    final Dimension size = new Dimension(512, 512);
                     glCanvas.setPreferredSize(size);
                     glCanvas.setMinimumSize(size);
                     window.pack();
@@ -164,7 +164,7 @@ public class TestBug572AWT extends UITestCase {
         testRealizeGLCanvas(false, false);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestBug572AWT.class.getName());
     }
 }

@@ -81,13 +81,13 @@ public class TestGearsAWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
-        Dimension glc_sz = new Dimension(width, height);
+        final Dimension glc_sz = new Dimension(width, height);
         glCanvas.setMinimumSize(glc_sz);
         glCanvas.setPreferredSize(glc_sz);
         glCanvas.setSize(glc_sz);
@@ -133,7 +133,7 @@ public class TestGearsAWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         if( msaaCount > 0 ) {
             caps.setSampleBuffers(true);
             caps.setNumSamples(msaaCount);
@@ -143,28 +143,28 @@ public class TestGearsAWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-msaa")) {
                 i++;
                 try {
                     msaaCount = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             }
         }
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
     }

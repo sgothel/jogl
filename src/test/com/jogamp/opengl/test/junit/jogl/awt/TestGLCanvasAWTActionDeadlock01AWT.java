@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import javax.media.opengl.GLAutoDrawable;
@@ -61,9 +61,9 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * BUG on OSX/CALayer w/ Java6: 
+ * BUG on OSX/CALayer w/ Java6:
  * If frame.setTitle() is issued right after initialization the call hangs in
- * <pre> 
+ * <pre>
  * at apple.awt.CWindow._setTitle(Native Method)
  *  at apple.awt.CWindow.setTitle(CWindow.java:765) [1.6.0_37, build 1.6.0_37-b06-434-11M3909]
  * </pre>
@@ -75,7 +75,7 @@ import org.junit.runners.MethodSorters;
  * e.g. setResizable*().
  * </p>
  * <p>
- * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) ! 
+ * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) !
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -86,30 +86,30 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
 
     GLEventListener gle1 = null;
     GLEventListener gle2 = null;
-    
+
     @Test
     public void test00NoAnimator() throws InterruptedException, InvocationTargetException {
         testImpl(null, 0, false);
     }
-    
+
     @Test
     public void test01Animator() throws InterruptedException, InvocationTargetException {
         testImpl(new Animator(), 0, false);
     }
-    
+
     @Test
     public void test02FPSAnimator() throws InterruptedException, InvocationTargetException {
         testImpl(new FPSAnimator(30), 0, false);
     }
-    
+
     @Test
     public void test02FPSAnimator_RestartOnAWTEDT() throws InterruptedException, InvocationTargetException {
         testImpl(new FPSAnimator(30), 200, false);
     }
-    
+
     /** May crash due to invalid thread usage, i.e. non AWT-EDT
-     * @throws InvocationTargetException 
-     * @throws InterruptedException 
+     * @throws InvocationTargetException
+     * @throws InterruptedException
     @Test
     public void test02FPSAnimator_RestartOnCurrentThread() throws InterruptedException {
         testImpl(new FPSAnimator(30), 200, true);
@@ -125,50 +125,50 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
                 frame.setTitle(msg);
             } } );
     }
-    
-    void testImpl(final AnimatorBase animator, int restartPeriod, boolean restartOnCurrentThread) throws InterruptedException, InvocationTargetException {
+
+    void testImpl(final AnimatorBase animator, final int restartPeriod, final boolean restartOnCurrentThread) throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("Frame 1");
         final Applet applet1 = new Applet() {
-            private static final long serialVersionUID = 1L;            
+            private static final long serialVersionUID = 1L;
         };
-        
+
         final VersionNumber version170 = new VersionNumber(1, 7, 0);
-        final boolean osxCALayerAWTModBug = Platform.OSType.MACOS == Platform.getOSType() && 
+        final boolean osxCALayerAWTModBug = Platform.OSType.MACOS == Platform.getOSType() &&
                                             0 > Platform.getJavaVersionNumber().compareTo(version170);
         System.err.println("OSX CALayer AWT-Mod Bug "+osxCALayerAWTModBug);
         System.err.println("OSType "+Platform.getOSType());
         System.err.println("Java Version "+Platform.getJavaVersionNumber());
-        
+
         Assert.assertNotNull(frame1);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame1.setLayout(null);
                 frame1.pack();
                 {
-                    Insets insets = frame1.getInsets();
-                    int w = width + insets.left + insets.right;
-                    int h = height + insets.top + insets.bottom;
+                    final Insets insets = frame1.getInsets();
+                    final int w = width + insets.left + insets.right;
+                    final int h = height + insets.top + insets.bottom;
                     frame1.setSize(w, h);
-                    
-                    int usableH = h - insets.top - insets.bottom;
-                    applet1.setBounds((w - width)/2, insets.top + (usableH - height)/2, width, height);      
+
+                    final int usableH = h - insets.top - insets.bottom;
+                    applet1.setBounds((w - width)/2, insets.top + (usableH - height)/2, width, height);
                 }
                 frame1.setLocation(0, 0);
                 frame1.setTitle("Generic Title");
                 frame1.add(applet1);
             }});
-                        
+
         frame1.addWindowListener(new WindowAdapter() {
-          public void windowClosing(WindowEvent e) {
+          public void windowClosing(final WindowEvent e) {
               dispose(frame1, applet1);
           }
-        });    
-        
+        });
+
         gle1 = new GLEventListener() {
             boolean justInitialized = true;
-            
+
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 justInitialized = true;
                 if( !osxCALayerAWTModBug ) {
                     System.err.println("*Init*: CT "+Thread.currentThread().getName());
@@ -178,13 +178,13 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
             }
 
             @Override
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
                 System.err.println("*Dispose*: CT "+Thread.currentThread().getName());
                 setFrameTitle(frame1, "DISPOSE");
             }
 
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 if( !osxCALayerAWTModBug || !justInitialized ) {
                     System.err.println("*Display*: CT "+Thread.currentThread().getName());
                     setFrameTitle(frame1, "f "+frameCount+", fps "+( null != animator ? animator.getLastFPS() : 0));
@@ -195,19 +195,19 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
             }
 
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 if( !osxCALayerAWTModBug || !justInitialized ) {
                     System.err.println("*Reshape*: CT "+Thread.currentThread().getName());
                     setFrameTitle(frame1, "RESHAPE");
                 }
-            }            
-        };        
+            }
+        };
         gle2 = new GearsES2();
 
         GLCanvas glCanvas = createGLCanvas();
         glCanvas.addGLEventListener(gle1);
         glCanvas.addGLEventListener(gle2);
-        
+
         if(null != animator) {
             System.err.println("About to start Animator: CT "+Thread.currentThread().getName());
             animator.setUpdateFPSFrames(60, System.err);
@@ -216,7 +216,7 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         }
 
         attachGLCanvas(applet1, glCanvas, false);
-        
+
         System.err.println("About to setVisible.0 CT "+Thread.currentThread().getName());
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -225,12 +225,12 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
                     frame1.setVisible(true);
                     System.err.println("About to setVisible.1.X CT "+Thread.currentThread().getName());
                 }});
-        } catch (Throwable t) { 
+        } catch (final Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
         System.err.println("About to setVisible.X CT "+Thread.currentThread().getName());
-        
+
         final long sleep = 0 < restartPeriod ? restartPeriod : 100;
         long togo = durationPerTest;
         while( 0 < togo ) {
@@ -240,23 +240,23 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
             if(0 < restartPeriod) {
                 glCanvas = restart(applet1, glCanvas, restartOnCurrentThread);
             }
-            
+
             Thread.sleep(sleep);
-            
+
             togo -= sleep;
         }
-        
+
         dispose(frame1, applet1);
         if(null != animator) {
             animator.stop();
         }
-        
-        gle1 = null;                
+
+        gle1 = null;
         gle2 = null;
     }
-    
+
     int frameCount = 0;
-    
+
     GLCanvas createGLCanvas() {
         System.err.println("*** createGLCanvas.0");
         final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
@@ -268,7 +268,7 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         Assert.assertNotNull(glCanvas);
         System.err.println("*** createGLCanvas.X");
         frameCount = 0;
-        return glCanvas;        
+        return glCanvas;
     }
 
     void dispose(final Frame frame, final Applet applet) {
@@ -278,27 +278,27 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
                     frame.remove(applet);
                     frame.dispose();
                 }});
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
     }
-    
-    GLCanvas restart(final Applet applet, GLCanvas glCanvas, boolean restartOnCurrentThread) throws InterruptedException {
+
+    GLCanvas restart(final Applet applet, GLCanvas glCanvas, final boolean restartOnCurrentThread) throws InterruptedException {
         glCanvas.disposeGLEventListener(gle1, true);
         glCanvas.disposeGLEventListener(gle2, true);
         detachGLCanvas(applet, glCanvas, restartOnCurrentThread);
-                    
+
         glCanvas = createGLCanvas();
-        
+
         attachGLCanvas(applet, glCanvas, restartOnCurrentThread);
         glCanvas.addGLEventListener(gle1);
         glCanvas.addGLEventListener(gle2);
-        
+
         return glCanvas;
     }
-    
-    void attachGLCanvas(final Applet applet, final GLCanvas glCanvas, boolean restartOnCurrentThread) {
+
+    void attachGLCanvas(final Applet applet, final GLCanvas glCanvas, final boolean restartOnCurrentThread) {
         System.err.println("*** attachGLCanvas.0 on-current-thread "+restartOnCurrentThread+", currentThread "+Thread.currentThread().getName());
         if( restartOnCurrentThread ) {
             applet.setLayout(new BorderLayout());
@@ -312,15 +312,15 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
                         applet.add(glCanvas, BorderLayout.CENTER);
                         applet.validate();
                     }});
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 t.printStackTrace();
                 Assume.assumeNoException(t);
             }
         }
         System.err.println("*** attachGLCanvas.X");
     }
-    
-    void detachGLCanvas(final Applet applet, final GLCanvas glCanvas, boolean restartOnCurrentThread) {
+
+    void detachGLCanvas(final Applet applet, final GLCanvas glCanvas, final boolean restartOnCurrentThread) {
         System.err.println("*** detachGLCanvas.0 on-current-thread "+restartOnCurrentThread+", currentThread "+Thread.currentThread().getName());
         if( restartOnCurrentThread ) {
             applet.remove(glCanvas);
@@ -329,18 +329,18 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
             try {
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
-                        applet.remove(glCanvas);                        
+                        applet.remove(glCanvas);
                         applet.validate();
                     }});
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 t.printStackTrace();
                 Assume.assumeNoException(t);
             }
         }
         System.err.println("*** detachGLCanvas.X");
     }
-    
-    public static void main(String args[]) {
+
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);

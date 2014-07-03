@@ -33,6 +33,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
@@ -47,18 +48,18 @@ class DemoGL2ES1ImmModeSink implements GLEventListener {
     private boolean forceFFPEmu = false;
     final ImmModeSink ims;
     final GLU glu;
-    
-    DemoGL2ES1ImmModeSink(boolean useVBO) {
-        ims = ImmModeSink.createFixed(3*3, 
+
+    DemoGL2ES1ImmModeSink(final boolean useVBO) {
+        ims = ImmModeSink.createFixed(3*3,
                                       3, GL.GL_FLOAT, // vertex
                                       3, GL.GL_FLOAT, // color
                                       0, GL.GL_FLOAT, // normal
-                                      0, GL.GL_FLOAT, // texCoords 
+                                      0, GL.GL_FLOAT, // texCoords
                                       useVBO ? GL.GL_STATIC_DRAW : 0);
         glu = new GLUgl2es1();
     }
-    
-    public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+
+    public void setForceFFPEmu(final boolean forceFFPEmu, final boolean verboseFFPEmu, final boolean debugFFPEmu, final boolean traceFFPEmu) {
         this.forceFFPEmu = forceFFPEmu;
         this.verboseFFPEmu = verboseFFPEmu;
         this.debugFFPEmu = debugFFPEmu;
@@ -66,7 +67,7 @@ class DemoGL2ES1ImmModeSink implements GLEventListener {
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         GL _gl = drawable.getGL();
         if(debugFFPEmu) {
             // Debug ..
@@ -76,31 +77,31 @@ class DemoGL2ES1ImmModeSink implements GLEventListener {
             // Trace ..
             _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
         }
-        GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
-        
+        final GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
+
         System.err.println("GL_VENDOR   "+gl.glGetString(GL.GL_VENDOR));
         System.err.println("GL_RENDERER "+gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION  "+gl.glGetString(GL.GL_VERSION));
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
-        
-        gl.glMatrixMode( GL2ES1.GL_PROJECTION );
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
+
+        gl.glMatrixMode( GLMatrixFunc.GL_PROJECTION );
         gl.glLoadIdentity();
 
         // coordinate system origin at lower left with width and height same as the window
         glu.gluOrtho2D( 0.0f, width, 0.0f, height );
 
-        gl.glMatrixMode( GL2ES1.GL_MODELVIEW );
+        gl.glMatrixMode( GLMatrixFunc.GL_MODELVIEW );
         gl.glLoadIdentity();
     }
-    
+
     @Override
-    public void display(GLAutoDrawable drawable) {
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
-        
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
+
         gl.glClear( GL.GL_COLOR_BUFFER_BIT );
 
         // draw a triangle filling the window
@@ -115,6 +116,6 @@ class DemoGL2ES1ImmModeSink implements GLEventListener {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
-    }        
+    public void dispose(final GLAutoDrawable drawable) {
+    }
 }

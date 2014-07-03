@@ -98,7 +98,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
 
-    private static int getDefaultScreenImpl(long dpy) {
+    private static int getDefaultScreenImpl(final long dpy) {
         return X11Lib.DefaultScreen(dpy);
     }
 
@@ -176,7 +176,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         return Boolean.valueOf(handleOwner);
     }
     @Override
-    protected Object setHandleOwnership(Object newOwnership) {
+    protected Object setHandleOwnership(final Object newOwnership) {
         final Boolean oldOwnership = Boolean.valueOf(handleOwner);
         handleOwner = ((Boolean) newOwnership).booleanValue();
         return oldOwnership;

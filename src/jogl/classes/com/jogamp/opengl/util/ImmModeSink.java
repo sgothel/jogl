@@ -18,6 +18,7 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
@@ -54,9 +55,9 @@ public class ImmModeSink {
 
   static {
       Debug.initSingleton();
-      DEBUG_BEGIN_END = Debug.isPropertyDefined("jogl.debug.ImmModeSink.BeginEnd", true);
-      DEBUG_DRAW = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Draw", true);
-      DEBUG_BUFFER = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Buffer", true);
+      DEBUG_BEGIN_END = PropertyAccess.isPropertyDefined("jogl.debug.ImmModeSink.BeginEnd", true);
+      DEBUG_DRAW = PropertyAccess.isPropertyDefined("jogl.debug.ImmModeSink.Draw", true);
+      DEBUG_BUFFER = PropertyAccess.isPropertyDefined("jogl.debug.ImmModeSink.Buffer", true);
   }
 
   public static final int GL_QUADS      = 0x0007; // Needs data manipulation on ES1/ES2
@@ -81,12 +82,12 @@ public class ImmModeSink {
    * @param glBufferUsage VBO <code>usage</code> parameter for {@link GL#glBufferData(int, long, Buffer, int)}, e.g. {@link GL#GL_STATIC_DRAW},
    *                      set to <code>0</code> for no VBO usage
    */
-  public static ImmModeSink createFixed(int initialElementCount,
-                                        int vComps, int vDataType,
-                                        int cComps, int cDataType,
-                                        int nComps, int nDataType,
-                                        int tComps, int tDataType,
-                                        int glBufferUsage) {
+  public static ImmModeSink createFixed(final int initialElementCount,
+                                        final int vComps, final int vDataType,
+                                        final int cComps, final int cDataType,
+                                        final int nComps, final int nDataType,
+                                        final int tComps, final int tDataType,
+                                        final int glBufferUsage) {
     return new ImmModeSink(initialElementCount,
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType,
                            false, glBufferUsage, null, 0);
@@ -114,12 +115,12 @@ public class ImmModeSink {
    * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
    * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
    */
-  public static ImmModeSink createGLSL(int initialElementCount,
-                                       int vComps, int vDataType,
-                                       int cComps, int cDataType,
-                                       int nComps, int nDataType,
-                                       int tComps, int tDataType,
-                                       int glBufferUsage, ShaderState st) {
+  public static ImmModeSink createGLSL(final int initialElementCount,
+                                       final int vComps, final int vDataType,
+                                       final int cComps, final int cDataType,
+                                       final int nComps, final int nDataType,
+                                       final int tComps, final int tDataType,
+                                       final int glBufferUsage, final ShaderState st) {
     return new ImmModeSink(initialElementCount,
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType,
                            true, glBufferUsage, st, 0);
@@ -147,18 +148,18 @@ public class ImmModeSink {
    * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
    * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
    */
-  public static ImmModeSink createGLSL(int initialElementCount,
-                                       int vComps, int vDataType,
-                                       int cComps, int cDataType,
-                                       int nComps, int nDataType,
-                                       int tComps, int tDataType,
-                                       int glBufferUsage, int shaderProgram) {
+  public static ImmModeSink createGLSL(final int initialElementCount,
+                                       final int vComps, final int vDataType,
+                                       final int cComps, final int cDataType,
+                                       final int nComps, final int nDataType,
+                                       final int tComps, final int tDataType,
+                                       final int glBufferUsage, final int shaderProgram) {
     return new ImmModeSink(initialElementCount,
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType,
                            true, glBufferUsage, null, shaderProgram);
   }
 
-  public void destroy(GL gl) {
+  public void destroy(final GL gl) {
     destroyList(gl);
 
     vboSet.destroy(gl);
@@ -168,16 +169,16 @@ public class ImmModeSink {
     reset(null);
   }
 
-  public void reset(GL gl) {
+  public void reset(final GL gl) {
     destroyList(gl);
     vboSet.reset(gl);
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ImmModeSink[");
+    final StringBuilder sb = new StringBuilder("ImmModeSink[");
     sb.append(",\n\tVBO list: "+vboSetList.size()+" [");
-    for(Iterator<VBOSet> i=vboSetList.iterator(); i.hasNext() ; ) {
+    for(final Iterator<VBOSet> i=vboSetList.iterator(); i.hasNext() ; ) {
         sb.append("\n\t");
         sb.append( i.next() );
     }
@@ -191,7 +192,7 @@ public class ImmModeSink {
     return sb.toString();
   }
 
-  public void draw(GL gl, boolean disableBufferAfterDraw) {
+  public void draw(final GL gl, final boolean disableBufferAfterDraw) {
     if(DEBUG_DRAW) {
         System.err.println("ImmModeSink.draw(disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
     }
@@ -201,7 +202,7 @@ public class ImmModeSink {
     }
   }
 
-  public void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw) {
+  public void draw(final GL gl, final Buffer indices, final boolean disableBufferAfterDraw) {
     if(DEBUG_DRAW) {
         System.err.println("ImmModeSink.draw(disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
     }
@@ -228,19 +229,19 @@ public class ImmModeSink {
     vboSet.checkSeal(false);
   }
 
-  public final void glEnd(GL gl) {
+  public final void glEnd(final GL gl) {
       glEnd(gl, null, true);
   }
 
-  public void glEnd(GL gl, boolean immediateDraw) {
+  public void glEnd(final GL gl, final boolean immediateDraw) {
       glEnd(gl, null, immediateDraw);
   }
 
-  public final void glEnd(GL gl, Buffer indices) {
+  public final void glEnd(final GL gl, final Buffer indices) {
       glEnd(gl, indices, true);
   }
 
-  private void glEnd(GL gl, Buffer indices, boolean immediateDraw) {
+  private void glEnd(final GL gl, final Buffer indices, final boolean immediateDraw) {
     if(DEBUG_BEGIN_END) {
         System.err.println("ImmModeSink START glEnd(immediate: "+immediateDraw+")");
     }
@@ -259,117 +260,117 @@ public class ImmModeSink {
     }
   }
 
-  public void glVertexv(Buffer v) {
+  public void glVertexv(final Buffer v) {
     vboSet.glVertexv(v);
   }
-  public void glNormalv(Buffer v) {
+  public void glNormalv(final Buffer v) {
     vboSet.glNormalv(v);
   }
-  public void glColorv(Buffer v) {
+  public void glColorv(final Buffer v) {
     vboSet.glColorv(v);
   }
-  public void glTexCoordv(Buffer v) {
+  public void glTexCoordv(final Buffer v) {
     vboSet.glTexCoordv(v);
   }
 
-  public final void glVertex2f(float x, float y) {
+  public final void glVertex2f(final float x, final float y) {
     vboSet.glVertex2f(x,y);
   }
 
-  public final void glVertex3f(float x, float y, float z) {
+  public final void glVertex3f(final float x, final float y, final float z) {
     vboSet.glVertex3f(x,y,z);
   }
 
-  public final void glNormal3f(float x, float y, float z) {
+  public final void glNormal3f(final float x, final float y, final float z) {
     vboSet.glNormal3f(x,y,z);
   }
 
-  public final void glColor3f(float x, float y, float z) {
+  public final void glColor3f(final float x, final float y, final float z) {
     vboSet.glColor3f(x,y,z);
   }
 
-  public final void glColor4f(float x, float y, float z, float a) {
+  public final void glColor4f(final float x, final float y, final float z, final float a) {
     vboSet.glColor4f(x,y,z, a);
   }
 
-  public final void glTexCoord2f(float x, float y) {
+  public final void glTexCoord2f(final float x, final float y) {
     vboSet.glTexCoord2f(x,y);
   }
 
-  public final void glTexCoord3f(float x, float y, float z) {
+  public final void glTexCoord3f(final float x, final float y, final float z) {
     vboSet.glTexCoord3f(x,y,z);
   }
 
-  public final void glVertex2s(short x, short y) {
+  public final void glVertex2s(final short x, final short y) {
     vboSet.glVertex2s(x,y);
   }
 
-  public final void glVertex3s(short x, short y, short z) {
+  public final void glVertex3s(final short x, final short y, final short z) {
     vboSet.glVertex3s(x,y,z);
   }
 
-  public final void glNormal3s(short x, short y, short z) {
+  public final void glNormal3s(final short x, final short y, final short z) {
     vboSet.glNormal3s(x,y,z);
   }
 
-  public final void glColor3s(short x, short y, short z) {
+  public final void glColor3s(final short x, final short y, final short z) {
     vboSet.glColor3s(x,y,z);
   }
 
-  public final void glColor4s(short x, short y, short z, short a) {
+  public final void glColor4s(final short x, final short y, final short z, final short a) {
     vboSet.glColor4s(x,y,z,a);
   }
 
-  public final void glTexCoord2s(short x, short y) {
+  public final void glTexCoord2s(final short x, final short y) {
     vboSet.glTexCoord2s(x,y);
   }
 
-  public final void glTexCoord3s(short x, short y, short z) {
+  public final void glTexCoord3s(final short x, final short y, final short z) {
     vboSet.glTexCoord3s(x,y,z);
   }
 
-  public final void glVertex2b(byte x, byte y) {
+  public final void glVertex2b(final byte x, final byte y) {
     vboSet.glVertex2b(x,y);
   }
 
-  public final void glVertex3b(byte x, byte y, byte z) {
+  public final void glVertex3b(final byte x, final byte y, final byte z) {
     vboSet.glVertex3b(x,y,z);
   }
 
-  public final void glNormal3b(byte x, byte y, byte z) {
+  public final void glNormal3b(final byte x, final byte y, final byte z) {
     vboSet.glNormal3b(x,y,z);
   }
 
-  public final void glColor3b(byte x, byte y, byte z) {
+  public final void glColor3b(final byte x, final byte y, final byte z) {
     vboSet.glColor3b(x,y,z);
   }
 
-  public final void glColor3ub(byte x, byte y, byte z) {
+  public final void glColor3ub(final byte x, final byte y, final byte z) {
     vboSet.glColor3ub(x,y,z);
   }
 
-  public final void glColor4b(byte x, byte y, byte z, byte a) {
+  public final void glColor4b(final byte x, final byte y, final byte z, final byte a) {
     vboSet.glColor4b(x,y,z,a);
   }
 
-  public final void glColor4ub(byte x, byte y, byte z, byte a) {
+  public final void glColor4ub(final byte x, final byte y, final byte z, final byte a) {
     vboSet.glColor4ub(x,y,z,a);
   }
 
-  public final void glTexCoord2b(byte x, byte y) {
+  public final void glTexCoord2b(final byte x, final byte y) {
     vboSet.glTexCoord2b(x,y);
   }
 
-  public final void glTexCoord3b(byte x, byte y, byte z) {
+  public final void glTexCoord3b(final byte x, final byte y, final byte z) {
     vboSet.glTexCoord3b(x,y,z);
   }
 
-  protected ImmModeSink(int initialElementCount,
-                        int vComps, int vDataType,
-                        int cComps, int cDataType,
-                        int nComps, int nDataType,
-                        int tComps, int tDataType,
-                        boolean useGLSL, int glBufferUsage, ShaderState st, int shaderProgram) {
+  protected ImmModeSink(final int initialElementCount,
+                        final int vComps, final int vDataType,
+                        final int cComps, final int cDataType,
+                        final int nComps, final int nDataType,
+                        final int tComps, final int tDataType,
+                        final boolean useGLSL, final int glBufferUsage, final ShaderState st, final int shaderProgram) {
     vboSet = new VBOSet(initialElementCount,
                         vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType,
                         useGLSL, glBufferUsage, st, shaderProgram);
@@ -390,9 +391,9 @@ public class ImmModeSink {
    * @see #createFixed(int, int, int, int, int, int, int, int, int, int)
    * @see #createGLSL(int, int, int, int, int, int, int, int, int, int, ShaderState)
    */
-  public void setResizeElementCount(int v) { vboSet.setResizeElementCount(v); }
+  public void setResizeElementCount(final int v) { vboSet.setResizeElementCount(v); }
 
-  private void destroyList(GL gl) {
+  private void destroyList(final GL gl) {
     for(int i=0; i<vboSetList.size(); i++) {
         vboSetList.get(i).destroy(gl);
     }
@@ -403,12 +404,12 @@ public class ImmModeSink {
   private final ArrayList<VBOSet> vboSetList;
 
   protected static class VBOSet {
-    protected VBOSet (int initialElementCount,
-                      int vComps, int vDataType,
-                      int cComps, int cDataType,
-                      int nComps, int nDataType,
-                      int tComps, int tDataType,
-                      boolean useGLSL, int glBufferUsage, ShaderState st, int shaderProgram) {
+    protected VBOSet (final int initialElementCount,
+                      final int vComps, final int vDataType,
+                      final int cComps, final int cDataType,
+                      final int nComps, final int nDataType,
+                      final int tComps, final int tDataType,
+                      final boolean useGLSL, final int glBufferUsage, final ShaderState st, final int shaderProgram) {
         // final ..
         this.glBufferUsage=glBufferUsage;
         this.initialElementCount=initialElementCount;
@@ -465,17 +466,17 @@ public class ImmModeSink {
     }
 
     protected int getResizeElementCount() { return resizeElementCount; }
-    protected void setResizeElementCount(int v) { resizeElementCount=v; }
+    protected void setResizeElementCount(final int v) { resizeElementCount=v; }
 
     protected boolean getUseVBO() { return useVBO; }
 
-    protected final VBOSet regenerate(GL gl) {
+    protected final VBOSet regenerate(final GL gl) {
         return new VBOSet(initialElementCount, vComps,
                           vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType,
                           useGLSL, glBufferUsage, shaderState, shaderProgram);
     }
 
-    protected void checkSeal(boolean test) throws GLException {
+    protected void checkSeal(final boolean test) throws GLException {
         if(0==mode) {
                 throw new GLException("No mode set yet, call glBegin(mode) first:\n\t"+this);
         }
@@ -490,7 +491,7 @@ public class ImmModeSink {
 
     private boolean usingShaderProgram = false;
 
-    protected void useShaderProgram(GL2ES2 gl, boolean force) {
+    protected void useShaderProgram(final GL2ES2 gl, final boolean force) {
         if( force || !usingShaderProgram ) {
             if(null != shaderState) {
                 shaderState.useProgram(gl, true);
@@ -501,7 +502,7 @@ public class ImmModeSink {
         }
     }
 
-    protected void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw, int i)
+    protected void draw(final GL gl, final Buffer indices, final boolean disableBufferAfterDraw, final int i)
     {
         enableBuffer(gl, true);
 
@@ -544,17 +545,17 @@ public class ImmModeSink {
                     if( GL.GL_UNSIGNED_BYTE == type ) {
                         final ByteBuffer b = (ByteBuffer) indices;
                         for (int j = 0; j < idxLen; j++) {
-                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(idx0+j)), 4);
+                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, 0x000000ff & b.get(idx0+j), 4);
                         }
                     } else if( GL.GL_UNSIGNED_SHORT == type ){
                         final ShortBuffer b = (ShortBuffer) indices;
                         for (int j = 0; j < idxLen; j++) {
-                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(idx0+j)), 4);
+                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, 0x0000ffff & b.get(idx0+j), 4);
                         }
                     } else {
                         final IntBuffer b = (IntBuffer) indices;
                         for (int j = 0; j < idxLen; j++) {
-                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0xffffffff & b.get(idx0+j)), 4);
+                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, 0xffffffff & b.get(idx0+j), 4);
                         }
                     }
                 } else {
@@ -573,24 +574,24 @@ public class ImmModeSink {
         }
     }
 
-    public void glVertexv(Buffer v) {
+    public void glVertexv(final Buffer v) {
         checkSeal(false);
         Buffers.put(vertexArray, v);
     }
-    public void glNormalv(Buffer v) {
+    public void glNormalv(final Buffer v) {
         checkSeal(false);
         Buffers.put(normalArray, v);
     }
-    public void glColorv(Buffer v) {
+    public void glColorv(final Buffer v) {
         checkSeal(false);
         Buffers.put(colorArray, v);
     }
-    public void glTexCoordv(Buffer v) {
+    public void glTexCoordv(final Buffer v) {
         checkSeal(false);
         Buffers.put(textCoordArray, v);
     }
 
-    public void glVertex2b(byte x, byte y) {
+    public void glVertex2b(final byte x, final byte y) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0)
@@ -599,7 +600,7 @@ public class ImmModeSink {
             Buffers.putNb(vertexArray, vDataTypeSigned, y, true);
         countAndPadding(VERTEX, vComps-2);
     }
-    public void glVertex3b(byte x, byte y, byte z) {
+    public void glVertex3b(final byte x, final byte y, final byte z) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0)
@@ -610,7 +611,7 @@ public class ImmModeSink {
             Buffers.putNb(vertexArray, vDataTypeSigned, z, true);
         countAndPadding(VERTEX, vComps-3);
     }
-    public void glVertex2s(short x, short y) {
+    public void glVertex2s(final short x, final short y) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0)
@@ -619,7 +620,7 @@ public class ImmModeSink {
             Buffers.putNs(vertexArray, vDataTypeSigned, y, true);
         countAndPadding(VERTEX, vComps-2);
     }
-    public void glVertex3s(short x, short y, short z) {
+    public void glVertex3s(final short x, final short y, final short z) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0)
@@ -630,7 +631,7 @@ public class ImmModeSink {
             Buffers.putNs(vertexArray, vDataTypeSigned, z, true);
         countAndPadding(VERTEX, vComps-3);
     }
-    public void glVertex2f(float x, float y) {
+    public void glVertex2f(final float x, final float y) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0)
@@ -639,7 +640,7 @@ public class ImmModeSink {
             Buffers.putNf(vertexArray, vDataTypeSigned, y);
         countAndPadding(VERTEX, vComps-2);
     }
-    public void glVertex3f(float x, float y, float z) {
+    public void glVertex3f(final float x, final float y, final float z) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0)
@@ -651,7 +652,7 @@ public class ImmModeSink {
         countAndPadding(VERTEX, vComps-3);
     }
 
-    public void glNormal3b(byte x, byte y, byte z) {
+    public void glNormal3b(final byte x, final byte y, final byte z) {
         checkSeal(false);
         growBuffer(NORMAL);
         if(nComps>0)
@@ -662,7 +663,7 @@ public class ImmModeSink {
             Buffers.putNb(normalArray, nDataTypeSigned, z, true);
         countAndPadding(NORMAL, nComps-3);
     }
-    public void glNormal3s(short x, short y, short z) {
+    public void glNormal3s(final short x, final short y, final short z) {
         checkSeal(false);
         growBuffer(NORMAL);
         if(nComps>0)
@@ -673,7 +674,7 @@ public class ImmModeSink {
             Buffers.putNs(normalArray, nDataTypeSigned, z, true);
         countAndPadding(NORMAL, nComps-3);
     }
-    public void glNormal3f(float x, float y, float z) {
+    public void glNormal3f(final float x, final float y, final float z) {
         checkSeal(false);
         growBuffer(NORMAL);
         if(nComps>0)
@@ -685,7 +686,7 @@ public class ImmModeSink {
         countAndPadding(NORMAL, nComps-3);
     }
 
-    public void glColor3b(byte r, byte g, byte b) {
+    public void glColor3b(final byte r, final byte g, final byte b) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -696,7 +697,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, b, true);
         countAndPadding(COLOR, cComps-3);
     }
-    public void glColor3ub(byte r, byte g, byte b) {
+    public void glColor3ub(final byte r, final byte g, final byte b) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -707,7 +708,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, b, false);
         countAndPadding(COLOR, cComps-3);
     }
-    public void glColor4b(byte r, byte g, byte b, byte a) {
+    public void glColor4b(final byte r, final byte g, final byte b, final byte a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -720,7 +721,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, a, true);
         countAndPadding(COLOR, cComps-4);
     }
-    public void glColor4ub(byte r, byte g, byte b, byte a) {
+    public void glColor4ub(final byte r, final byte g, final byte b, final byte a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -733,7 +734,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, a, false);
         countAndPadding(COLOR, cComps-4);
     }
-    public void glColor3s(short r, short g, short b) {
+    public void glColor3s(final short r, final short g, final short b) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -744,7 +745,7 @@ public class ImmModeSink {
             Buffers.putNs(colorArray, cDataTypeSigned, b, true);
         countAndPadding(COLOR, cComps-3);
     }
-    public void glColor4s(short r, short g, short b, short a) {
+    public void glColor4s(final short r, final short g, final short b, final short a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -757,7 +758,7 @@ public class ImmModeSink {
             Buffers.putNs(colorArray, cDataTypeSigned, a, true);
         countAndPadding(COLOR, cComps-4);
     }
-    public void glColor3f(float r, float g, float b) {
+    public void glColor3f(final float r, final float g, final float b) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -768,7 +769,7 @@ public class ImmModeSink {
             Buffers.putNf(colorArray, cDataTypeSigned, b);
         countAndPadding(COLOR, cComps-3);
     }
-    public void glColor4f(float r, float g, float b, float a) {
+    public void glColor4f(final float r, final float g, final float b, final float a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0)
@@ -782,7 +783,7 @@ public class ImmModeSink {
         countAndPadding(COLOR, cComps-4);
     }
 
-    public void glTexCoord2b(byte x, byte y) {
+    public void glTexCoord2b(final byte x, final byte y) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0)
@@ -791,7 +792,7 @@ public class ImmModeSink {
             Buffers.putNb(textCoordArray, tDataTypeSigned, y, true);
         countAndPadding(TEXTCOORD, tComps-2);
     }
-    public void glTexCoord3b(byte x, byte y, byte z) {
+    public void glTexCoord3b(final byte x, final byte y, final byte z) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0)
@@ -802,7 +803,7 @@ public class ImmModeSink {
             Buffers.putNb(textCoordArray, tDataTypeSigned, z, true);
         countAndPadding(TEXTCOORD, tComps-3);
     }
-    public void glTexCoord2s(short x, short y) {
+    public void glTexCoord2s(final short x, final short y) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0)
@@ -811,7 +812,7 @@ public class ImmModeSink {
             Buffers.putNs(textCoordArray, tDataTypeSigned, y, true);
         countAndPadding(TEXTCOORD, tComps-2);
     }
-    public void glTexCoord3s(short x, short y, short z) {
+    public void glTexCoord3s(final short x, final short y, final short z) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0)
@@ -822,7 +823,7 @@ public class ImmModeSink {
             Buffers.putNs(textCoordArray, tDataTypeSigned, z, true);
         countAndPadding(TEXTCOORD, tComps-3);
     }
-    public void glTexCoord2f(float x, float y) {
+    public void glTexCoord2f(final float x, final float y) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0)
@@ -831,7 +832,7 @@ public class ImmModeSink {
             Buffers.putNf(textCoordArray, tDataTypeSigned, y);
         countAndPadding(TEXTCOORD, tComps-2);
     }
-    public void glTexCoord3f(float x, float y, float z) {
+    public void glTexCoord3f(final float x, final float y, final float z) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0)
@@ -858,7 +859,7 @@ public class ImmModeSink {
         }
     }
 
-    public void setShaderProgram(int program) {
+    public void setShaderProgram(final int program) {
         if(null == shaderState && 0 == program) {
             throw new IllegalArgumentException("Not allowed to zero shader program if no ShaderState is set");
         }
@@ -871,7 +872,7 @@ public class ImmModeSink {
      * @return true if all locations for all used arrays are found (min 1 array), otherwise false.
      *         Also sets 'glslLocationSet' to the return value!
      */
-    private boolean resetGLSLArrayLocation(GL2ES2 gl) {
+    private boolean resetGLSLArrayLocation(final GL2ES2 gl) {
         int iA = 0;
         int iL = 0;
 
@@ -903,7 +904,7 @@ public class ImmModeSink {
         return glslLocationSet;
     }
 
-    public void destroy(GL gl) {
+    public void destroy(final GL gl) {
         reset(gl);
 
         vCount=0; cCount=0; nCount=0; tCount=0;
@@ -912,7 +913,7 @@ public class ImmModeSink {
         buffer=null;
     }
 
-    public void reset(GL gl) {
+    public void reset(final GL gl) {
         enableBuffer(gl, false);
         reset();
     }
@@ -935,16 +936,16 @@ public class ImmModeSink {
         this.tElems=0;
     }
 
-    public void seal(GL glObj, boolean seal)
+    public void seal(final GL glObj, final boolean seal)
     {
         seal(seal);
         if(sealedGL==seal) return;
         sealedGL = seal;
-        GL gl = glObj.getGL();
+        final GL gl = glObj.getGL();
         if(seal) {
             if(useVBO) {
                 if(0 == vboName) {
-                    int[] tmp = new int[1];
+                    final int[] tmp = new int[1];
                     gl.glGenBuffers(1, tmp, 0);
                     vboName = tmp[0];
                 }
@@ -967,7 +968,7 @@ public class ImmModeSink {
         }
     }
 
-    public void seal(boolean seal)
+    public void seal(final boolean seal)
     {
         if(sealed==seal) return;
         sealed = seal;
@@ -977,7 +978,7 @@ public class ImmModeSink {
         }
     }
 
-  public void enableBuffer(GL gl, boolean enable) {
+  public void enableBuffer(final GL gl, final boolean enable) {
     if( bufferEnabled != enable && vElems>0 ) {
         if(enable) {
             checkSeal(true);
@@ -996,7 +997,7 @@ public class ImmModeSink {
     }
   }
 
-  private final void writeBuffer(GL gl) {
+  private final void writeBuffer(final GL gl) {
     final int vBytes  = vElems * vCompsBytes;
     final int cBytes  = cElems * cCompsBytes;
     final int nBytes  = nElems * nCompsBytes;
@@ -1021,8 +1022,8 @@ public class ImmModeSink {
     }
   }
 
-  private void enableBufferFixed(GL gl, boolean enable) {
-    GL2ES1 glf = gl.getGL2ES1();
+  private void enableBufferFixed(final GL gl, final boolean enable) {
+    final GL2ES1 glf = gl.getGL2ES1();
 
     final boolean useV = vComps>0 && vElems>0 ;
     final boolean useC = cComps>0 && cElems>0 ;
@@ -1089,8 +1090,8 @@ public class ImmModeSink {
     }
   }
 
-  private void enableBufferGLSLShaderState(GL gl, boolean enable) {
-    GL2ES2 glsl = gl.getGL2ES2();
+  private void enableBufferGLSLShaderState(final GL gl, final boolean enable) {
+    final GL2ES2 glsl = gl.getGL2ES2();
 
     final boolean useV = vComps>0 && vElems>0 ;
     final boolean useC = cComps>0 && cElems>0 ;
@@ -1157,8 +1158,8 @@ public class ImmModeSink {
     }
   }
 
-  private void enableBufferGLSLSimple(GL gl, boolean enable) {
-    GL2ES2 glsl = gl.getGL2ES2();
+  private void enableBufferGLSLSimple(final GL gl, final boolean enable) {
+    final GL2ES2 glsl = gl.getGL2ES2();
 
     final boolean useV = vComps>0 && vElems>0 ;
     final boolean useC = cComps>0 && cElems>0 ;
@@ -1267,7 +1268,7 @@ public class ImmModeSink {
         return "[v "+vElems+"/"+vCount+", c "+cElems+"/"+cCount+", n "+nElems+"/"+nCount+", t "+tElems+"/"+tCount+"]";
     }
 
-    protected boolean fitElementInBuffer(int type) {
+    protected boolean fitElementInBuffer(final int type) {
         final int addElems = 1;
         switch (type) {
             case VERTEX:
@@ -1283,7 +1284,7 @@ public class ImmModeSink {
         }
     }
 
-    protected boolean reallocateBuffer(int addElems) {
+    protected boolean reallocateBuffer(final int addElems) {
         final int vAdd = addElems - ( vCount - vElems );
         final int cAdd = addElems - ( cCount - cElems );
         final int nAdd = addElems - ( nCount - nElems );
@@ -1381,7 +1382,7 @@ public class ImmModeSink {
     }
 
     /** grow buffer by initialElementCount if there is no space for one more element in the designated buffer */
-    protected final boolean growBuffer(int type) {
+    protected final boolean growBuffer(final int type) {
         if( null !=buffer && !sealed ) {
             if( !fitElementInBuffer(type) ) {
                 // save olde values ..
@@ -1422,7 +1423,7 @@ public class ImmModeSink {
      * @param type
      * @param fill
      */
-    private void countAndPadding(int type, int fill) {
+    private void countAndPadding(final int type, int fill) {
         if ( sealed ) return;
 
         final Buffer dest;

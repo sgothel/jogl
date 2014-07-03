@@ -52,7 +52,7 @@ public class GLSLTextureRaster  {
     private GLUniformData activeTexUniform;
     private GLArrayDataServer interleavedVBO;
 
-    public GLSLTextureRaster(int textureUnit, boolean textureVertFlipped) {
+    public GLSLTextureRaster(final int textureUnit, final boolean textureVertFlipped) {
         this.textureVertFlipped = textureVertFlipped;
         this.textureUnit = textureUnit;
     }
@@ -63,7 +63,7 @@ public class GLSLTextureRaster  {
     static final String shaderSrcPath = "../../shader";
     static final String shaderBinPath = "../../shader/bin";
 
-    public void init(GL2ES2 gl) {
+    public void init(final GL2ES2 gl) {
         // Create & Compile the shader objects
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
                                                   shaderSrcPath, shaderBinPath, shaderBasename, true);
@@ -83,9 +83,9 @@ public class GLSLTextureRaster  {
 
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         if( pmvMatrixUniform.setLocation(gl, sp.program()) < 0 ) {
@@ -128,7 +128,7 @@ public class GLSLTextureRaster  {
         sp.useProgram(gl, false);
     }
 
-    public void reshape(GL2ES2 gl, int x, int y, int width, int height) {
+    public void reshape(final GL2ES2 gl, final int x, final int y, final int width, final int height) {
         if(null != sp) {
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmvMatrix.glLoadIdentity();
@@ -143,7 +143,7 @@ public class GLSLTextureRaster  {
         }
     }
 
-    public void dispose(GL2ES2 gl) {
+    public void dispose(final GL2ES2 gl) {
         if(null != pmvMatrixUniform) {
             pmvMatrixUniform = null;
         }
@@ -158,7 +158,7 @@ public class GLSLTextureRaster  {
         }
     }
 
-    public void display(GL2ES2 gl) {
+    public void display(final GL2ES2 gl) {
         if(null != sp) {
             sp.useProgram(gl, true);
             interleavedVBO.enableBuffer(gl, true);

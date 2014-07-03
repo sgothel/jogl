@@ -42,29 +42,29 @@ package com.jogamp.opengl.util.packrect;
 import java.util.*;
 
 public class Level {
-  private int width;
+  private final int width;
   private int height;
-  private int yPos;
-  private LevelSet holder;
+  private final int yPos;
+  private final LevelSet holder;
 
-  private List<Rect> rects = new ArrayList<Rect>();
+  private final List<Rect> rects = new ArrayList<Rect>();
   private List<Rect> freeList;
   private int nextAddX;
 
   static class RectXComparator implements Comparator<Rect> {
     @Override
-    public int compare(Rect r1, Rect r2) {
+    public int compare(final Rect r1, final Rect r2) {
       return r1.x() - r2.x();
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
       return this == obj;
     }
   }
   private static final Comparator<Rect> rectXComparator = new RectXComparator();
 
-  public Level(int width, int height, int yPos, LevelSet holder) {
+  public Level(final int width, final int height, final int yPos, final LevelSet holder) {
     this.width = width;
     this.height = height;
     this.yPos = yPos;
@@ -80,7 +80,7 @@ public class Level {
       in the RectanglePacker and allocation from the free list. More
       disruptive changes like compaction of the level must be
       requested explicitly. */
-  public boolean add(Rect rect) {
+  public boolean add(final Rect rect) {
     if (rect.h() > height) {
       // See whether it's worth trying to expand vertically
       if (nextAddX + rect.w() > width) {
@@ -108,8 +108,8 @@ public class Level {
     // See whether we can add from the free list
     if (freeList != null) {
       Rect candidate = null;
-      for (Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
-        Rect cur = iter.next();
+      for (final Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
+        final Rect cur = iter.next();
         if (cur.canContain(rect)) {
           candidate = cur;
           break;
@@ -139,7 +139,7 @@ public class Level {
   }
 
   /** Removes the given Rect from this Level. */
-  public boolean remove(Rect rect) {
+  public boolean remove(final Rect rect) {
     if (!rects.remove(rect))
       return false;
 
@@ -165,14 +165,14 @@ public class Level {
 
   /** Indicates whether this Level could satisfy an allocation request
       if it were compacted. */
-  public boolean couldAllocateIfCompacted(Rect rect) {
+  public boolean couldAllocateIfCompacted(final Rect rect) {
     if (rect.h() > height)
       return false;
     if (freeList == null)
       return false;
     int freeListWidth = 0;
-    for (Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
-      Rect cur = iter.next();
+    for (final Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
+      final Rect cur = iter.next();
       freeListWidth += cur.w();
     }
     // Add on the remaining space at the end
@@ -180,12 +180,12 @@ public class Level {
     return (freeListWidth >= rect.w());
   }
 
-  public void compact(Object backingStore, BackingStoreManager manager) {
+  public void compact(final Object backingStore, final BackingStoreManager manager) {
     Collections.sort(rects, rectXComparator);
     int nextCompactionDest = 0;
     manager.beginMovement(backingStore, backingStore);
-    for (Iterator<Rect> iter = rects.iterator(); iter.hasNext(); ) {
-      Rect cur = iter.next();
+    for (final Iterator<Rect> iter = rects.iterator(); iter.hasNext(); ) {
+      final Rect cur = iter.next();
       if (cur.x() != nextCompactionDest) {
         manager.move(backingStore, cur,
                      backingStore, new Rect(nextCompactionDest, cur.y(), cur.w(), cur.h(), null));
@@ -203,9 +203,9 @@ public class Level {
   }
 
   /** Visits all Rects contained in this Level. */
-  public void visit(RectVisitor visitor) {
-    for (Iterator<Rect> iter = rects.iterator(); iter.hasNext(); ) {
-      Rect rect = iter.next();
+  public void visit(final RectVisitor visitor) {
+    for (final Iterator<Rect> iter = rects.iterator(); iter.hasNext(); ) {
+      final Rect rect = iter.next();
       visitor.visit(rect);
     }
   }
@@ -216,8 +216,8 @@ public class Level {
       original Rects. */
   public void updateRectangleReferences() {
     for (int i = 0; i < rects.size(); i++) {
-      Rect cur = rects.get(i);
-      Rect next = cur.getNextLocation();
+      final Rect cur = rects.get(i);
+      final Rect next = cur.getNextLocation();
       next.setPosition(cur.x(), cur.y());
       if (cur.w() != next.w() || cur.h() != next.h())
         throw new RuntimeException("Unexpected disparity in rectangle sizes during updateRectangleReferences");
@@ -235,8 +235,8 @@ public class Level {
     Collections.sort(freeList, rectXComparator);
     int i = 0;
     while (i < freeList.size() - 1) {
-      Rect r1 = freeList.get(i);
-      Rect r2 = freeList.get(i+1);
+      final Rect r1 = freeList.get(i);
+      final Rect r2 = freeList.get(i+1);
       if (r1.maxX() + 1 == r2.x()) {
         // Coalesce r1 and r2 into one block
         freeList.remove(i+1);
@@ -246,7 +246,7 @@ public class Level {
       }
     }
     // See whether the last block bumps up against the addition point
-    Rect last = freeList.get(freeList.size() - 1);
+    final Rect last = freeList.get(freeList.size() - 1);
     if (last.maxX() + 1 == nextAddX) {
       nextAddX -= last.w();
       freeList.remove(freeList.size() - 1);
@@ -262,8 +262,8 @@ public class Level {
 
   public void dumpFreeSpace() {
     int freeListWidth = 0;
-    for (Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
-      Rect cur = iter.next();
+    for (final Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
+      final Rect cur = iter.next();
       System.err.println(" Free rectangle at " + cur);
       freeListWidth += cur.w();
     }

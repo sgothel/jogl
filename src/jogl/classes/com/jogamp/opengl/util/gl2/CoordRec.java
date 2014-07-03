@@ -49,7 +49,7 @@ class CoordRec {
   public float x;
   public float y;
 
-  public CoordRec(float x, float y) {
+  public CoordRec(final float x, final float y) {
     this.x = x;
     this.y = y;
   }

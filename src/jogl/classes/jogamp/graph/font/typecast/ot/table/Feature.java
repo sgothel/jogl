@@ -60,12 +60,12 @@ import java.io.IOException;
  */
 public class Feature {
 
-    private int _featureParams;
-    private int _lookupCount;
-    private int[] _lookupListIndex;
+    private final int _featureParams;
+    private final int _lookupCount;
+    private final int[] _lookupListIndex;
 
     /** Creates new Feature */
-    protected Feature(DataInput di) throws IOException {
+    protected Feature(final DataInput di) throws IOException {
         _featureParams = di.readUnsignedShort();
         _lookupCount = di.readUnsignedShort();
         _lookupListIndex = new int[_lookupCount];
@@ -78,7 +78,7 @@ public class Feature {
         return _lookupCount;
     }
 
-    public int getLookupListIndex(int i) {
+    public int getLookupListIndex(final int i) {
         return _lookupListIndex[i];
     }
 

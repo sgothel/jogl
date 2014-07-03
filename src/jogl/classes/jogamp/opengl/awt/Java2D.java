@@ -59,6 +59,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.os.Platform;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.Debug;
 
 
@@ -128,7 +129,7 @@ public class Java2D {
             // OpenGL graphics configuration
             final GraphicsConfiguration cfg;
             final String cfgName;
-            final boolean java2dOGLDisabledByOS = Platform.OS_TYPE == Platform.OSType.MACOS;
+            final boolean java2dOGLDisabledByOS = PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS;
             final boolean java2dOGLDisabledByProp;
             {
                 boolean enabled = true;
@@ -160,7 +161,7 @@ public class Java2D {
             if (isOGLPipelineActive) {
               try {
                 // Try to get methods we need to integrate
-                Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
+                final Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
                 invokeWithOGLContextCurrentMethod = utils.getDeclaredMethod("invokeWithOGLContextCurrent",
                                                                             new Class[] {
                                                                               Graphics.class,
@@ -208,7 +209,7 @@ public class Java2D {
                                                                           Graphics.class
                                                                         });
                       getOGLSurfaceTypeMethod.setAccessible(true);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                       fbObjectSupportInitialized = false;
                       if (DEBUG) {
                         e.printStackTrace();
@@ -223,7 +224,7 @@ public class Java2D {
                                                                           Graphics.class
                                                                         });
                       getOGLTextureTypeMethod.setAccessible(true);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                       if (DEBUG) {
                         e.printStackTrace();
                         System.err.println("Info: GL_ARB_texture_rectangle FBO support disabled");
@@ -236,7 +237,7 @@ public class Java2D {
                     Class<?> cglSurfaceData = null;
                     try {
                       cglSurfaceData = Class.forName("sun.java2d.opengl.CGLSurfaceData");
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                       if (DEBUG) {
                         e.printStackTrace();
                         System.err.println("Info: Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
@@ -268,7 +269,7 @@ public class Java2D {
                       destroyOGLContextMethod.setAccessible(true);
                     }
                 }
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 caught = e;
                 if (DEBUG) {
                   System.err.println("Info: Disabling Java2D/JOGL integration");
@@ -277,9 +278,9 @@ public class Java2D {
                 isOGLPipelineResourceCompatible = false;
               }
             }
-          } catch (HeadlessException e) {
+          } catch (final HeadlessException e) {
             // The AWT is running in headless mode, so the Java 2D / JOGL bridge is clearly disabled
-          } catch (Error e) {
+          } catch (final Error e) {
             // issued on OSX Java7: java.lang.Error: Could not find class: sun.awt.HeadlessGraphicsEnvironment
             caught = e;
           }
@@ -312,9 +313,9 @@ public class Java2D {
 
     try {
       return ((Boolean) isQueueFlusherThreadMethod.invoke(null, (Object[])null)).booleanValue();
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -322,7 +323,7 @@ public class Java2D {
   /** Makes current the OpenGL context associated with the passed
       Graphics object and runs the given Runnable on the Queue
       Flushing Thread in one atomic action. */
-  public static void invokeWithOGLContextCurrent(Graphics g, Runnable r) throws GLException {
+  public static void invokeWithOGLContextCurrent(final Graphics g, final Runnable r) throws GLException {
     checkActive();
 
     try {
@@ -341,9 +342,9 @@ public class Java2D {
       } finally {
         AWTUtil.unlockToolkit();
       }
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -356,7 +357,7 @@ public class Java2D {
       JOGL must share textures and display lists with it. Returns
       false if the passed GraphicsConfiguration was not an OpenGL
       GraphicsConfiguration. */
-  public static boolean invokeWithOGLSharedContextCurrent(GraphicsConfiguration g, Runnable r) throws GLException {
+  public static boolean invokeWithOGLSharedContextCurrent(final GraphicsConfiguration g, final Runnable r) throws GLException {
     checkCompatible();
 
     try {
@@ -366,9 +367,9 @@ public class Java2D {
       } finally {
         AWTUtil.unlockToolkit();
       }
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -379,18 +380,18 @@ public class Java2D {
       call glViewport() with the returned rectangle's bounds in order
       to get correct rendering results. Should only be called from the
       Queue Flusher Thread. */
-  public static Rectangle getOGLViewport(Graphics g,
-                                         int componentWidth,
-                                         int componentHeight) {
+  public static Rectangle getOGLViewport(final Graphics g,
+                                         final int componentWidth,
+                                         final int componentHeight) {
     checkCompatible();
 
     try {
       return (Rectangle) getOGLViewportMethod.invoke(null, new Object[] {g,
                                                                          new Integer(componentWidth),
                                                                          new Integer(componentHeight)});
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -401,14 +402,14 @@ public class Java2D {
       method should be called and the resulting rectangle's bounds
       passed to a call to glScissor(). Should only be called from the
       Queue Flusher Thread. */
-  public static Rectangle getOGLScissorBox(Graphics g) {
+  public static Rectangle getOGLScissorBox(final Graphics g) {
     checkCompatible();
 
     try {
       return (Rectangle) getOGLScissorBoxMethod.invoke(null, new Object[] {g});
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -419,14 +420,14 @@ public class Java2D {
       changed and a new external GLDrawable and GLContext should be
       created (and the old ones destroyed). Should only be called from
       the Queue Flusher Thread.*/
-  public static Object getOGLSurfaceIdentifier(Graphics g) {
+  public static Object getOGLSurfaceIdentifier(final Graphics g) {
     checkCompatible();
 
     try {
       return getOGLSurfaceIdentifierMethod.invoke(null, new Object[] {g});
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -434,7 +435,7 @@ public class Java2D {
   /** Returns the underlying surface type for the given Graphics
       object. This indicates, in particular, whether Java2D is
       currently rendering into a pbuffer or FBO. */
-  public static int getOGLSurfaceType(Graphics g) {
+  public static int getOGLSurfaceType(final Graphics g) {
     checkCompatible();
 
     try {
@@ -445,9 +446,9 @@ public class Java2D {
       }
 
       return ((Integer) getOGLSurfaceTypeMethod.invoke(null, new Object[] { g })).intValue();
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -455,7 +456,7 @@ public class Java2D {
   /** Returns the underlying texture target of the given Graphics
       object assuming it is rendering to an FBO. Returns either
       GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB. */
-  public static int getOGLTextureType(Graphics g) {
+  public static int getOGLTextureType(final Graphics g) {
     checkCompatible();
 
     if (getOGLTextureTypeMethod == null) {
@@ -464,9 +465,9 @@ public class Java2D {
 
     try {
       return ((Integer) getOGLTextureTypeMethod.invoke(null, new Object[] { g })).intValue();
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -477,7 +478,7 @@ public class Java2D {
       used for rendering. FIXME: may need to alter the API in the
       future to indicate which GraphicsDevice the source context is
       associated with. */
-  public static GLContext filterShareContext(GLContext shareContext) {
+  public static GLContext filterShareContext(final GLContext shareContext) {
     if (isHeadless)
       return shareContext;
 
@@ -495,7 +496,7 @@ public class Java2D {
       context", with which all contexts created by JOGL must share
       textures and display lists when the FBO option is enabled for
       the Java2D/OpenGL pipeline. */
-  public static GLContext getShareContext(GraphicsDevice device) {
+  public static GLContext getShareContext(final GraphicsDevice device) {
     initFBOShareContext(device);
     // FIXME: for full generality probably need to have multiple of
     // these, one per GraphicsConfiguration seen?
@@ -509,41 +510,41 @@ public class Java2D {
   /** (Mac OS X-specific) Creates a new OpenGL context on the surface
       associated with the given Graphics object, sharing textures and
       display lists with the specified (CGLContextObj) share context. */
-  public static long createOGLContextOnSurface(Graphics g, long shareCtx) {
+  public static long createOGLContextOnSurface(final Graphics g, final long shareCtx) {
     checkCompatible();
 
     try {
       return ((Long) createOGLContextOnSurfaceMethod.invoke(null, new Object[] { g, new Long(shareCtx) })).longValue();
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
 
   /** (Mac OS X-specific) Makes the given OpenGL context current on
       the surface associated with the given Graphics object. */
-  public static boolean makeOGLContextCurrentOnSurface(Graphics g, long ctx) {
+  public static boolean makeOGLContextCurrentOnSurface(final Graphics g, final long ctx) {
     checkCompatible();
 
     try {
       return ((Boolean) makeOGLContextCurrentOnSurfaceMethod.invoke(null, new Object[] { g, new Long(ctx) })).booleanValue();
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
 
   /** (Mac OS X-specific) Destroys the given OpenGL context. */
-  public static void destroyOGLContext(long ctx) {
+  public static void destroyOGLContext(final long ctx) {
     checkCompatible();
 
     try {
       destroyOGLContextMethod.invoke(null, new Object[] { new Long(ctx) });
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
@@ -565,15 +566,15 @@ public class Java2D {
   }
 
   private static int getOGLUtilitiesIntField(final String name) {
-    Integer i = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+    final Integer i = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
         @Override
         public Integer run() {
           try {
-            Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
-            Field f = utils.getField(name);
+            final Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
+            final Field f = utils.getField(name);
             f.setAccessible(true);
             return (Integer) f.get(null);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             if (DEBUG) {
               e.printStackTrace();
             }

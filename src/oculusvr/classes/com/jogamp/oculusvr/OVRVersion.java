@@ -45,7 +45,7 @@ public class OVRVersion extends JogampVersion {
 
     protected static volatile OVRVersion jogampCommonVersionInfo;
 
-    protected OVRVersion(String packageName, Manifest mf) {
+    protected OVRVersion(final String packageName, final Manifest mf) {
         super(packageName, mf);
     }
 
@@ -95,11 +95,11 @@ public class OVRVersion extends JogampVersion {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        ovrHmdDesc hmdDesc = ovrHmdDesc.create();
+        final ovrHmdDesc hmdDesc = ovrHmdDesc.create();
         OVR.ovrHmd_GetDesc(ovrHmdCtx, hmdDesc);
         getAvailableCapabilitiesInfo(hmdDesc, ovrHmdIndex, sb);
 
-        ovrSensorDesc sensorDesc = ovrSensorDesc.create();
+        final ovrSensorDesc sensorDesc = ovrSensorDesc.create();
         if( OVR.ovrHmd_GetSensorDesc(ovrHmdCtx, sensorDesc) ) {
             sb.append("\thmd."+ovrHmdIndex+".sensor.productId:\t0x"+Integer.toHexString(sensorDesc.getProductId())).append(Platform.getNewline());
             sb.append("\thmd."+ovrHmdIndex+".sensor.vendorId:\t0x"+Integer.toHexString(sensorDesc.getVendorId())).append(Platform.getNewline());
@@ -116,7 +116,7 @@ public class OVRVersion extends JogampVersion {
      * @param sb
      * @return
      */
-    public static StringBuilder getAvailableCapabilitiesInfo(ovrHmdDesc hmdDesc, final int ovrHmdIndex, StringBuilder sb) {
+    public static StringBuilder getAvailableCapabilitiesInfo(final ovrHmdDesc hmdDesc, final int ovrHmdIndex, StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -129,7 +129,7 @@ public class OVRVersion extends JogampVersion {
         sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+hmdDesc.getSensorCaps()).append(Platform.getNewline());
         final ovrSizei resolution = hmdDesc.getResolution();
         sb.append("\thmd."+ovrHmdIndex+".resolution:\t"+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
-        ovrVector2i winPos = hmdDesc.getWindowsPos();
+        final ovrVector2i winPos = hmdDesc.getWindowsPos();
         sb.append("\thmd."+ovrHmdIndex+".winPos:\t"+winPos.getX()+" / "+winPos.getY()).append(Platform.getNewline());
         return sb;
     }
@@ -144,7 +144,7 @@ public class OVRVersion extends JogampVersion {
         return sb;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         // System.err.println(NativeWindowVersion.getInstance());

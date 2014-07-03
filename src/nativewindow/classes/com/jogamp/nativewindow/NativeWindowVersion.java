@@ -38,7 +38,7 @@ public class NativeWindowVersion extends JogampVersion {
 
     protected static volatile NativeWindowVersion jogampCommonVersionInfo;
 
-    protected NativeWindowVersion(String packageName, Manifest mf) {
+    protected NativeWindowVersion(final String packageName, final Manifest mf) {
         super(packageName, mf);
     }
 
@@ -56,7 +56,7 @@ public class NativeWindowVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(NativeWindowVersion.getInstance());

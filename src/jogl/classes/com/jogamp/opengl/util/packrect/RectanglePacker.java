@@ -48,34 +48,34 @@ import java.util.*;
     backing store, when necessary. */
 
 public class RectanglePacker {
-  private BackingStoreManager manager;
+  private final BackingStoreManager manager;
   private Object backingStore;
   private LevelSet levels;
-  private float EXPANSION_FACTOR = 0.5f;
-  private float SHRINK_FACTOR = 0.3f;
+  private final float EXPANSION_FACTOR = 0.5f;
+  private final float SHRINK_FACTOR = 0.3f;
 
-  private int initialWidth;
-  private int initialHeight;
+  private final int initialWidth;
+  private final int initialHeight;
 
   private int maxWidth  = -1;
   private int maxHeight = -1;
 
   static class RectHComparator implements Comparator<Rect> {
     @Override
-    public int compare(Rect r1, Rect r2) {
+    public int compare(final Rect r1, final Rect r2) {
       return r2.h() - r1.h();
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
       return this == obj;
     }
   }
   private static final Comparator<Rect> rectHComparator = new RectHComparator();
 
-  public RectanglePacker(BackingStoreManager manager,
-                         int initialWidth,
-                         int initialHeight) {
+  public RectanglePacker(final BackingStoreManager manager,
+                         final int initialWidth,
+                         final int initialHeight) {
     this.manager = manager;
     levels = new LevelSet(initialWidth, initialHeight);
     this.initialWidth = initialWidth;
@@ -95,7 +95,7 @@ public class RectanglePacker {
       necessary. Setting up a maximum width and height introduces the
       possibility that additions will fail; these are handled with the
       BackingStoreManager's allocationFailed notification. */
-  public void setMaxSize(int maxWidth, int maxHeight) {
+  public void setMaxSize(final int maxWidth, final int maxHeight) {
     this.maxWidth  = maxWidth;
     this.maxHeight = maxHeight;
   }
@@ -107,7 +107,7 @@ public class RectanglePacker {
       BackingStoreManager#preExpand BackingStoreManager.preExpand}
       does not clear enough space for the incoming rectangle, then
       this method will throw a RuntimeException. */
-  public void add(Rect rect) throws RuntimeException {
+  public void add(final Rect rect) throws RuntimeException {
     // Allocate backing store if we don't have any yet
     if (backingStore == null)
       backingStore = manager.allocateBackingStore(levels.w(), levels.h());
@@ -143,12 +143,12 @@ public class RectanglePacker {
   }
 
   /** Removes the given rectangle from this RectanglePacker. */
-  public void remove(Rect rect) {
+  public void remove(final Rect rect) {
     levels.remove(rect);
   }
 
   /** Visits all Rects contained in this RectanglePacker. */
-  public void visit(RectVisitor visitor) {
+  public void visit(final RectVisitor visitor) {
     levels.visit(visitor);
   }
 
@@ -168,7 +168,7 @@ public class RectanglePacker {
   }
 
   // The "cause" rect may be null
-  private void compactImpl(Rect cause) {
+  private void compactImpl(final Rect cause) {
     // Have to either expand, compact or both. Need to figure out what
     // direction to go. Prefer to expand vertically. Expand
     // horizontally only if rectangle being added is too wide. FIXME:
@@ -205,12 +205,12 @@ public class RectanglePacker {
       nextLevelSet = new LevelSet(newWidth, newHeight);
 
       // Make copies of all existing rectangles
-      List<Rect> newRects = new ArrayList<Rect>();
-      for (Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
-        Level level = i1.next();
-        for (Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
-          Rect cur = i2.next();
-          Rect newRect = new Rect(0, 0, cur.w(), cur.h(), null);
+      final List<Rect> newRects = new ArrayList<Rect>();
+      for (final Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
+        final Level level = i1.next();
+        for (final Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
+          final Rect cur = i2.next();
+          final Rect newRect = new Rect(0, 0, cur.w(), cur.h(), null);
           cur.setNextLocation(newRect);
           // Hook up the reverse mapping too for easier replacement
           newRect.setNextLocation(cur);
@@ -222,7 +222,7 @@ public class RectanglePacker {
       Collections.sort(newRects, rectHComparator);
       // Try putting all of these rectangles into the new level set
       done = true;
-      for (Iterator<Rect> iter = newRects.iterator(); iter.hasNext(); ) {
+      for (final Iterator<Rect> iter = newRects.iterator(); iter.hasNext(); ) {
         if (!nextLevelSet.add(iter.next())) {
           done = false;
           break;
@@ -268,13 +268,13 @@ public class RectanglePacker {
     // new locations of rectangles on the backing store. Allocate a
     // new backing store, move the contents over and deallocate the
     // old one.
-    Object newBackingStore = manager.allocateBackingStore(nextLevelSet.w(),
+    final Object newBackingStore = manager.allocateBackingStore(nextLevelSet.w(),
                                                           nextLevelSet.h());
     manager.beginMovement(backingStore, newBackingStore);
-    for (Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
-      Level level = i1.next();
-      for (Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
-        Rect cur = i2.next();
+    for (final Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
+      final Level level = i1.next();
+      for (final Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
+        final Rect cur = i2.next();
         manager.move(backingStore, cur,
                      newBackingStore, cur.getNextLocation());
       }

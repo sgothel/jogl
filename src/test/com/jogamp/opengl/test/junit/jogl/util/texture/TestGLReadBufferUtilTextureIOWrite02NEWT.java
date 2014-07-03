@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import com.jogamp.newt.opengl.GLWindow;
@@ -66,7 +66,7 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         height = 64;
     }
 
-    private void testWritePNGWithResizeImpl(boolean offscreen) throws InterruptedException {
+    private void testWritePNGWithResizeImpl(final boolean offscreen) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         final GLCapabilities caps2 = offscreen ? WindowUtilNEWT.fixCaps(caps, false, true, false) : caps;
         final GLWindow glWindow = GLWindow.create(caps2);
@@ -76,13 +76,13 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         glWindow.addGLEventListener(new GearsES2(1));
         glWindow.addGLEventListener(new GLEventListener() {
             int i=0, dw_old=0, c=0;
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 System.err.println("XXX: init");
             }
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
                 System.err.println("XXX: dispose");
             }
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 final int dw = drawable.getSurfaceWidth();
                 final int dh = drawable.getSurfaceHeight();
                 final boolean sz_changed = dw_old != dw && dw <= 512;
@@ -93,35 +93,35 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
                 } else {
                     snap = false;
                 }
-                
+
                 if(snap) {
                     System.err.println("XXX: ["+dw_old+"], "+dw+"x"+dh+", sz_changed "+sz_changed+", snap "+snap);
                     c=0;
                     snapshot(i++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                     dw_old = dw;
-                    new Thread() { 
+                    new Thread() {
                         @Override
                         public void run() {
-                            glWindow.setSize(2*dw, 2*dh);                            
+                            glWindow.setSize(2*dw, 2*dh);
                         } }.start();
                 }
             }
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
-        Animator animator = new Animator(glWindow);
+        final Animator animator = new Animator(glWindow);
         animator.setUpdateFPSFrames(60, null);
-        
+
         glWindow.setVisible(true);
         animator.start();
-        
+
         while(animator.getTotalFPSFrames() < 50) {
             Thread.sleep(60);
         }
-        
+
         animator.stop();
-        glWindow.destroy();        
+        glWindow.destroy();
     }
-    
+
     @Test
     public void testOnscreenWritePNGWithResize() throws InterruptedException {
         testWritePNGWithResizeImpl(false);
@@ -132,7 +132,7 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         testWritePNGWithResizeImpl(true);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestGLReadBufferUtilTextureIOWrite02NEWT.class.getName());
     }
 }

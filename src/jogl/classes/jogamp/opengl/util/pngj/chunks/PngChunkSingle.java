@@ -8,7 +8,7 @@ import jogamp.opengl.util.pngj.ImageInfo;
  */
 public abstract class PngChunkSingle extends PngChunk {
 
-	protected PngChunkSingle(String id, ImageInfo imgInfo) {
+	protected PngChunkSingle(final String id, final ImageInfo imgInfo) {
 		super(id, imgInfo);
 	}
 
@@ -26,14 +26,14 @@ public abstract class PngChunkSingle extends PngChunk {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PngChunkSingle other = (PngChunkSingle) obj;
+		final PngChunkSingle other = (PngChunkSingle) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;

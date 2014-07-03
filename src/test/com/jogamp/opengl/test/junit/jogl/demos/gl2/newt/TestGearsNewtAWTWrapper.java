@@ -69,19 +69,19 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException {
-        Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
-        Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
-        Window nWindow = NewtFactory.createWindow(nScreen, caps);
+    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException {
+        final Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
+        final Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
+        final Window nWindow = NewtFactory.createWindow(nScreen, caps);
 
-        GLWindow glWindow = GLWindow.create(nWindow);
+        final GLWindow glWindow = GLWindow.create(nWindow);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NewtAWTWrapper Test");
 
         glWindow.addGLEventListener(new GearsES2(1));
 
-        Animator animator = useAnimator ? new Animator(glWindow) : null;
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final Animator animator = useAnimator ? new Animator(glWindow) : null;
+        final QuitAdapter quitAdapter = new QuitAdapter();
 
         glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -136,11 +136,11 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

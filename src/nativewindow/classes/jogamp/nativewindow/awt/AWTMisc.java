@@ -95,7 +95,7 @@ public class AWTMisc {
      * @param topLevelOnly if true only returns insets of top-level components, i.e. Window and JRootPanel,
      * otherwise for JComponent as well.
      */
-    public static Insets getInsets(Component c, boolean topLevelOnly) {
+    public static Insets getInsets(final Component c, final boolean topLevelOnly) {
         if( c instanceof Window ) {
             return ((Window)c).getInsets();
         }
@@ -119,7 +119,7 @@ public class AWTMisc {
         public void run(Component c);
     }
 
-    public static int performAction(Container c, Class<?> cType, ComponentAction action) {
+    public static int performAction(final Container c, final Class<?> cType, final ComponentAction action) {
         int count = 0;
         final int cc = c.getComponentCount();
         for(int i=0; i<cc; i++) {
@@ -147,7 +147,7 @@ public class AWTMisc {
      * @param forward if true, returns the next focus component, otherwise the previous one.
      * @return
      */
-    public static Component getNextFocus(Component comp, boolean forward) {
+    public static Component getNextFocus(Component comp, final boolean forward) {
         Container focusContainer = comp.getFocusCycleRootAncestor();
         while ( focusContainer != null &&
                 ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
@@ -182,7 +182,7 @@ public class AWTMisc {
                 final Toolkit toolkit = Toolkit.getDefaultToolkit();
                 final BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
                 _nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
-            } catch (Exception he) {
+            } catch (final Exception he) {
                 if( JAWTUtil.DEBUG ) {
                     System.err.println("Caught exception: "+he.getMessage());
                     he.printStackTrace();
@@ -194,7 +194,7 @@ public class AWTMisc {
 
     public static synchronized Cursor getNullCursor() { return nulCursor; }
 
-    public static synchronized Cursor getCursor(PixelRectangle pixelrect, Point hotSpot) {
+    public static synchronized Cursor getCursor(final PixelRectangle pixelrect, final Point hotSpot) {
         // 31 * x == (x << 5) - x
         int hash = 31 + pixelrect.hashCode();
         hash = ((hash << 5) - hash) + hotSpot.hashCode();
@@ -207,12 +207,12 @@ public class AWTMisc {
         }
         return cursor;
     }
-    private static synchronized Cursor createCursor(PixelRectangle pixelrect, Point hotSpot) {
+    private static synchronized Cursor createCursor(final PixelRectangle pixelrect, final Point hotSpot) {
         final int width = pixelrect.getSize().getWidth();
         final int height = pixelrect.getSize().getHeight();
         final BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); // PixelFormat.BGRA8888
         final PixelFormatUtil.PixelSink32 imgSink = new PixelFormatUtil.PixelSink32() {
-            public void store(int x, int y, int pixel) {
+            public void store(final int x, final int y, final int pixel) {
                 img.setRGB(x, y, pixel);
             }
             @Override
@@ -233,7 +233,7 @@ public class AWTMisc {
         return toolkit.createCustomCursor(img, hotSpot, pixelrect.toString());
     }
 
-    public static WindowClosingProtocol.WindowClosingMode AWT2NWClosingOperation(int awtClosingOperation) {
+    public static WindowClosingProtocol.WindowClosingMode AWT2NWClosingOperation(final int awtClosingOperation) {
         switch (awtClosingOperation) {
             case WindowConstants.DISPOSE_ON_CLOSE:
             case WindowConstants.EXIT_ON_CLOSE:
@@ -246,7 +246,7 @@ public class AWTMisc {
         }
     }
 
-    public static WindowClosingProtocol.WindowClosingMode getNWClosingOperation(Component c) {
+    public static WindowClosingProtocol.WindowClosingMode getNWClosingOperation(final Component c) {
         final JFrame jf = getJFrame(c);
         final int op = (null != jf) ? jf.getDefaultCloseOperation() : WindowConstants.DO_NOTHING_ON_CLOSE ;
         return AWT2NWClosingOperation(op);

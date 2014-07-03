@@ -51,19 +51,19 @@ public class TestTextureSequence01AWT extends UITestCase {
         final ImageSequence texSource = new ImageSequence(0, useBuildInTexLookup);
         glc.addGLEventListener(new GLEventListener() {
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 try {
                     texSource.addFrame(drawable.getGL(), TestTextureSequence01AWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
             @Override
-            public void dispose(GLAutoDrawable drawable) { }
+            public void dispose(final GLAutoDrawable drawable) { }
             @Override
-            public void display(GLAutoDrawable drawable) { }
+            public void display(final GLAutoDrawable drawable) { }
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
         glc.addGLEventListener(new TextureSequenceCubeES2(texSource, false, -2.3f, 0f, 0f));
 
@@ -77,7 +77,7 @@ public class TestTextureSequence01AWT extends UITestCase {
                     frame.setSize(width, height);
                     frame.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -100,7 +100,7 @@ public class TestTextureSequence01AWT extends UITestCase {
                     frame.remove(glc);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -111,7 +111,7 @@ public class TestTextureSequence01AWT extends UITestCase {
         testImpl();
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

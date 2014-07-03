@@ -48,6 +48,7 @@ import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.ScreenImpl;
 
 import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
@@ -59,7 +60,7 @@ public class ScreenDriver extends ScreenImpl {
 
     static {
         Debug.initSingleton();
-        DEBUG_TEST_RANDR13_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+        DEBUG_TEST_RANDR13_DISABLED = PropertyAccess.isPropertyDefined("newt.test.Screen.disableRandR13", true);
 
         DisplayDriver.initSingleton();
     }
@@ -73,9 +74,9 @@ public class ScreenDriver extends ScreenImpl {
     @Override
     protected void createNativeImpl() {
         // validate screen index
-        Long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
+        final Long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
             @Override
-            public Long run(long dpy) {
+            public Long run(final long dpy) {
                 return new Long(GetScreen0(dpy, screen_idx));
             } } );
         if (handle.longValue() == 0) {
@@ -85,7 +86,7 @@ public class ScreenDriver extends ScreenImpl {
         final long dpy = x11dev.getHandle();
         aScreen = new X11GraphicsScreen(x11dev, screen_idx);
         {
-            int v[] = getRandRVersion0(dpy);
+            final int v[] = getRandRVersion0(dpy);
             randrVersion = new VersionNumber(v[0], v[1], 0);
         }
         {
@@ -169,7 +170,7 @@ public class ScreenDriver extends ScreenImpl {
         final AbstractGraphicsDevice device = getDisplay().getGraphicsDevice();
         device.lock();
         try {
-            int[] viewportProps = rAndR.getMonitorDeviceViewport(device.getHandle(), this, monitor.getId());
+            final int[] viewportProps = rAndR.getMonitorDeviceViewport(device.getHandle(), this, monitor.getId());
             viewportPU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
             viewportWU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]); // equal window-units and pixel-units
             return true;
@@ -184,7 +185,7 @@ public class ScreenDriver extends ScreenImpl {
 
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<MonitorMode>() {
             @Override
-            public MonitorMode run(long dpy) {
+            public MonitorMode run(final long dpy) {
                 final int[] currentModeProps = rAndR.getCurrentMonitorModeProps(dpy, ScreenDriver.this, monitor.getId());
                 return MonitorModeProps.streamInMonitorMode(null, null, currentModeProps, 0);
             } } );
@@ -195,9 +196,9 @@ public class ScreenDriver extends ScreenImpl {
         if( null == rAndR ) { return false; }
 
         final long t0 = System.currentTimeMillis();
-        boolean done = runWithOptTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+        final boolean done = runWithOptTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
-            public Boolean run(long dpy) {
+            public Boolean run(final long dpy) {
                 return Boolean.valueOf( rAndR.setCurrentMonitorMode(dpy, ScreenDriver.this, monitor, mode) );
             }
         }).booleanValue();
@@ -211,7 +212,7 @@ public class ScreenDriver extends ScreenImpl {
 
     private final DisplayImpl.DisplayRunnable<Boolean> xineramaEnabledQueryWithTemp = new DisplayImpl.DisplayRunnable<Boolean>() {
         @Override
-        public Boolean run(long dpy) {
+        public Boolean run(final long dpy) {
             return new Boolean(X11Util.XineramaIsEnabled(dpy));
         } };
 
@@ -227,7 +228,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, Rectangle viewportInWindowUnits) {
+    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
         final RectangleImmutable ov = DEBUG ? (RectangleImmutable) getViewport().cloneMutable() : null;
         /**
         if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 && getMonitorDevices().size()>0 ) {
@@ -243,7 +244,7 @@ public class ScreenDriver extends ScreenImpl {
         } else */ {
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
                 @Override
-                public Object run(long dpy) {
+                public Object run(final long dpy) {
                     viewport.set(0, 0, getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
                     return null;
                 } } );

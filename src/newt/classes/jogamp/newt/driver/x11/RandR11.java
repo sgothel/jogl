@@ -35,6 +35,7 @@ import jogamp.newt.ScreenImpl;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
+import com.jogamp.newt.Screen;
 
 class RandR11 implements RandR {
     private static final boolean DEBUG = ScreenDriver.DEBUG;
@@ -59,7 +60,7 @@ class RandR11 implements RandR {
     private int[] idx_rate = null, idx_res = null;
 
     @Override
-    public boolean beginInitialQuery(long dpy, ScreenDriver screen) {
+    public boolean beginInitialQuery(final long dpy, final ScreenDriver screen) {
         // initialize iterators and static data
         final int screen_idx = screen.getIndex();
         resolutionCount = getNumScreenResolutions0(dpy, screen_idx);
@@ -96,7 +97,7 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public void endInitialQuery(long dpy, ScreenDriver screen) {
+    public void endInitialQuery(final long dpy, final ScreenDriver screen) {
         idx_rate=null;
         idx_res=null;
         nrates=null;
@@ -153,7 +154,7 @@ class RandR11 implements RandR {
             }
         }
 
-        int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
+        final int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = res[0]; // width
@@ -210,14 +211,14 @@ class RandR11 implements RandR {
             return null;
         }
         final int screen_idx = screen.getIndex();
-        long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
+        final long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
         if(0 == screenConfigHandle) {
             return null;
         }
         int[] res;
         final int nres_idx;
         try {
-            int resNumber = getNumScreenResolutions0(dpy, screen_idx);
+            final int resNumber = getNumScreenResolutions0(dpy, screen_idx);
             if(0==resNumber) {
                 return null;
             }
@@ -239,7 +240,7 @@ class RandR11 implements RandR {
         } finally {
              freeScreenConfiguration0(screenConfigHandle);
         }
-        int[] props = new int[4];
+        final int[] props = new int[4];
         int i = 0;
         props[i++] = 0;
         props[i++] = 0;
@@ -255,7 +256,7 @@ class RandR11 implements RandR {
             return null;
         }
         final int screen_idx = screen.getIndex();
-        long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
+        final long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
         if(0 == screenConfigHandle) {
             return null;
         }
@@ -263,7 +264,7 @@ class RandR11 implements RandR {
         int rate, rot;
         final int nres_idx;
         try {
-            int resNumber = getNumScreenResolutions0(dpy, screen_idx);
+            final int resNumber = getNumScreenResolutions0(dpy, screen_idx);
             if(0==resNumber) {
                 return null;
             }
@@ -293,7 +294,7 @@ class RandR11 implements RandR {
         } finally {
              freeScreenConfiguration0(screenConfigHandle);
         }
-        int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
+        final int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = res[0]; // width
@@ -310,11 +311,11 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode) {
+    public boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, final MonitorDevice monitor, final MonitorMode mode) {
         final long t0 = System.currentTimeMillis();
         boolean done = false;
         final int screen_idx = screen.getIndex();
-        long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
+        final long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
         if(0 == screenConfigHandle) {
             return Boolean.valueOf(done);
         }
@@ -327,10 +328,10 @@ class RandR11 implements RandR {
             final int r = mode.getRotation();
 
             if( setCurrentScreenModeStart0(dpy, screen_idx, screenConfigHandle, resId, f, r) ) {
-                while(!done && System.currentTimeMillis()-t0 < ScreenImpl.SCREEN_MODE_CHANGE_TIMEOUT) {
+                while(!done && System.currentTimeMillis()-t0 < Screen.SCREEN_MODE_CHANGE_TIMEOUT) {
                     done = setCurrentScreenModePollEnd0(dpy, screen_idx, resId, f, r);
                     if(!done) {
-                        try { Thread.sleep(10); } catch (InterruptedException e) { }
+                        try { Thread.sleep(10); } catch (final InterruptedException e) { }
                     }
                 }
             }
@@ -341,7 +342,7 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public final void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport) {
+    public final void updateScreenViewport(final long dpy, final ScreenDriver screen, final RectangleImmutable viewport) {
         // nop
     }
 

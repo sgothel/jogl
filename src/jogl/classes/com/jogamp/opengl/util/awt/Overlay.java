@@ -49,13 +49,13 @@ import javax.media.opengl.*;
     efficiency. */
 
 public class Overlay {
-  private GLDrawable drawable;
+  private final GLDrawable drawable;
   private TextureRenderer renderer;
   private boolean contentsLost;
 
   /** Creates a new Java 2D overlay on top of the specified
       GLDrawable. */
-  public Overlay(GLDrawable drawable) {
+  public Overlay(final GLDrawable drawable) {
     this.drawable = drawable;
   }
 
@@ -103,7 +103,7 @@ public class Overlay {
       @param height the height of the region to update
 
       @throws GLException If an OpenGL context is not current when this method is called */
-  public void markDirty(int x, int y, int width, int height) {
+  public void markDirty(final int x, final int y, final int width, final int height) {
     renderer.markDirty(x, y, width, height);
   }
 
@@ -159,7 +159,7 @@ public class Overlay {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void draw(int x, int y, int width, int height) throws GLException {
+  public void draw(final int x, final int y, final int width, final int height) throws GLException {
     draw(x, y, x, y, width, height);
   }
 
@@ -184,9 +184,9 @@ public class Overlay {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void draw(int screenx, int screeny,
-                   int overlayx, int overlayy,
-                   int width, int height) throws GLException {
+  public void draw(final int screenx, final int screeny,
+                   final int overlayx, final int overlayy,
+                   final int width, final int height) throws GLException {
     renderer.drawOrthoRect(screenx, screeny,
                            overlayx, overlayy,
                            width, height);

@@ -21,12 +21,12 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
-    public X11DummyUpstreamSurfaceHook(int width, int height) {
+    public X11DummyUpstreamSurfaceHook(final int width, final int height) {
         super(width, height);
     }
 
     @Override
-    public final void create(ProxySurface s) {
+    public final void create(final ProxySurface s) {
         final X11GraphicsConfiguration cfg = (X11GraphicsConfiguration) s.getGraphicsConfiguration();
         final X11GraphicsScreen screen = (X11GraphicsScreen) cfg.getScreen();
         final X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
@@ -51,7 +51,7 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     }
 
     @Override
-    public final void destroy(ProxySurface s) {
+    public final void destroy(final ProxySurface s) {
         if( s.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
             final X11GraphicsDevice device = (X11GraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
             if( 0 == s.getSurfaceHandle() ) {

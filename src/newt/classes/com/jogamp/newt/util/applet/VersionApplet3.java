@@ -25,8 +25,8 @@ import com.jogamp.opengl.JoglVersion;
 
 public class VersionApplet3 implements Applet3 {
 
-    public static void main(String[] args) {
-        VersionApplet3 va = new VersionApplet3();
+    public static void main(final String[] args) {
+        final VersionApplet3 va = new VersionApplet3();
 
         final NativeWindowDownstream nwc = va.createNativeWindow(null, new NativeWindowUpstream() {
             @Override
@@ -50,7 +50,7 @@ public class VersionApplet3 implements Applet3 {
                 return 0; // default
             }
             @Override
-            public void notifySurfaceUpdated(NativeWindowDownstream swappedWin) {
+            public void notifySurfaceUpdated(final NativeWindowDownstream swappedWin) {
                 // NOP
             }
             @Override
@@ -80,14 +80,14 @@ public class VersionApplet3 implements Applet3 {
 
         return new NativeWindowDownstream() {
             @Override
-            public void setVisible(boolean v) {
+            public void setVisible(final boolean v) {
                 if( null != canvas ) {
                     canvas.setVisible(v);
                 }
             }
 
             @Override
-            public void setSize(int width, int height) {
+            public void setSize(final int width, final int height) {
                 if( null != canvas ) {
                     canvas.setSize(width, height);
                 }
@@ -129,7 +129,7 @@ public class VersionApplet3 implements Applet3 {
             }
 
             @Override
-            public void notifyPositionChanged(NativeWindowUpstream nw) {
+            public void notifyPositionChanged(final NativeWindowUpstream nw) {
                 if( null != canvas ) {
                     canvas.setPosition(nw.getX(), nw.getY());
                 }
@@ -138,7 +138,7 @@ public class VersionApplet3 implements Applet3 {
     }
 
     @Override
-    public void init(Applet3Context ctx) {
+    public void init(final Applet3Context ctx) {
         System.err.println("VersionApplet: init() - begin");
         canvas.addGLEventListener(new GLInfo());
         System.err.println("VersionApplet: init() - end");
@@ -164,8 +164,8 @@ public class VersionApplet3 implements Applet3 {
         s = JoglVersion.getInstance().toString();
         System.err.println(s);
 
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(canvas.getGLProfile());
-        List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(canvas.getGLProfile());
+        final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
         for(int i=0; i<availCaps.size(); i++) {
             s = availCaps.get(i).toString();
             System.err.println(s);
@@ -208,19 +208,19 @@ public class VersionApplet3 implements Applet3 {
 
     class GLInfo implements GLEventListener {
         @Override
-        public void init(GLAutoDrawable drawable) {
-            GL gl = drawable.getGL();
-            String s = JoglVersion.getGLInfo(gl, null).toString();
+        public void init(final GLAutoDrawable drawable) {
+            final GL gl = drawable.getGL();
+            final String s = JoglVersion.getGLInfo(gl, null).toString();
             System.err.println(s);
         }
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         }
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
         }
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
         }
     }
 }

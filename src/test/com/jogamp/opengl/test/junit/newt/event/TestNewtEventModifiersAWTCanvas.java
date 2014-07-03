@@ -97,8 +97,8 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static void main(String args[]) throws Exception {
-        String testName = TestNewtEventModifiersAWTCanvas.class.getName() ;
+    public static void main(final String args[]) throws Exception {
+        final String testName = TestNewtEventModifiersAWTCanvas.class.getName() ;
         org.junit.runner.JUnitCore.main( testName ) ;
     }
 

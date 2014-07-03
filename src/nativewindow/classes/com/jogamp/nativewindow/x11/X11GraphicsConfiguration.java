@@ -48,9 +48,9 @@ import jogamp.nativewindow.x11.XVisualInfo;
 public class X11GraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     private XVisualInfo info;
 
-    public X11GraphicsConfiguration(X11GraphicsScreen screen,
-                                    CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-                                    XVisualInfo info) {
+    public X11GraphicsConfiguration(final X11GraphicsScreen screen,
+                                    final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+                                    final XVisualInfo info) {
         super(screen, capsChosen, capsRequested);
         this.info = info;
     }
@@ -64,7 +64,7 @@ public class X11GraphicsConfiguration extends MutableGraphicsConfiguration imple
         return info;
     }
 
-    final protected void setXVisualInfo(XVisualInfo info) {
+    final protected void setXVisualInfo(final XVisualInfo info) {
         this.info = info;
     }
 

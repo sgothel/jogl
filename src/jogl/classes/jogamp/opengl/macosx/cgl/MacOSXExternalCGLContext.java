@@ -56,7 +56,7 @@ import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
 
-  private MacOSXExternalCGLContext(Drawable drawable, boolean isNSContext, long handle) {
+  private MacOSXExternalCGLContext(final Drawable drawable, final boolean isNSContext, final long handle) {
     super(drawable, null);
     setOpenGLMode(isNSContext ? GLBackendType.NSOPENGL : GLBackendType.CGL );
     this.contextHandle = handle;
@@ -67,13 +67,13 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
-  protected static MacOSXExternalCGLContext create(GLDrawableFactory factory) {
+  protected static MacOSXExternalCGLContext create(final GLDrawableFactory factory) {
     long pixelFormat = 0;
     long currentDrawable = 0;
     long contextHandle = CGL.getCurrentContext(); // Check: MacOSX 10.3 ..
-    boolean isNSContext = 0 != contextHandle;
+    final boolean isNSContext = 0 != contextHandle;
     if( isNSContext ) {
-        long ctx = CGL.getCGLContext(contextHandle);
+        final long ctx = CGL.getCGLContext(contextHandle);
         if (ctx == 0) {
           throw new GLException("Error: NULL Context (CGL) of Context (NS) 0x" +Long.toHexString(contextHandle));
         }
@@ -100,19 +100,19 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     if (0 == pixelFormat) {
       throw new GLException("Error: current pixelformat of current Context 0x"+Long.toHexString(contextHandle)+" is null");
     }
-    GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(pixelFormat);
+    final GLCapabilitiesImmutable caps = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(pixelFormat);
     if(DEBUG) {
         System.err.println("MacOSXExternalCGLContext Create "+caps);
     }
 
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
-    MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps);
+    final AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
+    final MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps);
 
     if(0 == currentDrawable) {
         // set a fake marker stating a valid drawable
         currentDrawable = 1;
     }
-    WrappedSurface ns = new WrappedSurface(cfg, currentDrawable, 64, 64, true);
+    final WrappedSurface ns = new WrappedSurface(cfg, currentDrawable, 64, 64, true);
     return new MacOSXExternalCGLContext(new Drawable(factory, ns), isNSContext, contextHandle);
   }
 
@@ -135,12 +135,12 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
 
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends MacOSXCGLDrawable {
-    Drawable(GLDrawableFactory factory, NativeSurface comp) {
+    Drawable(final GLDrawableFactory factory, final NativeSurface comp) {
       super(factory, comp, true);
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public GLContext createContext(final GLContext shareWith) {
       throw new GLException("Should not call this");
     }
 
@@ -154,7 +154,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
       throw new GLException("Should not call this");
     }
 
-    public void setSize(int width, int height) {
+    public void setSize(final int width, final int height) {
       throw new GLException("Should not call this");
     }
   }

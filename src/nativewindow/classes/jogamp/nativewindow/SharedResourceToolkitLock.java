@@ -58,7 +58,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
     /**
      * @return number of unclosed EGL Displays.<br>
      */
-    public static int shutdown(boolean verbose) {
+    public static int shutdown(final boolean verbose) {
         if(DEBUG || verbose || handle2Lock.size() > 0 ) {
             System.err.println("SharedResourceToolkitLock: Shutdown (open: "+handle2Lock.size()+")");
             if(DEBUG) {
@@ -74,13 +74,13 @@ public class SharedResourceToolkitLock implements ToolkitLock {
     public static void dumpOpenDisplayConnections() {
         System.err.println("SharedResourceToolkitLock: Open ResourceToolkitLock's: "+handle2Lock.size());
         int i=0;
-        for(Iterator<LongObjectHashMap.Entry> iter = handle2Lock.iterator(); iter.hasNext(); i++) {
+        for(final Iterator<LongObjectHashMap.Entry> iter = handle2Lock.iterator(); iter.hasNext(); i++) {
             final LongObjectHashMap.Entry e = iter.next();
             System.err.println("SharedResourceToolkitLock: Open["+i+"]: "+e.value);
         }
     }
 
-    public static final SharedResourceToolkitLock get(long handle) {
+    public static final SharedResourceToolkitLock get(final long handle) {
         SharedResourceToolkitLock res;
         synchronized(handle2Lock) {
             res = (SharedResourceToolkitLock) handle2Lock.get(handle);
@@ -101,7 +101,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
     private final long handle;
     private volatile int refCount;
 
-    private SharedResourceToolkitLock(long handle) {
+    private SharedResourceToolkitLock(final long handle) {
         this.lock = LockFactory.createRecursiveLock();
         this.handle = handle;
         this.refCount = 0;

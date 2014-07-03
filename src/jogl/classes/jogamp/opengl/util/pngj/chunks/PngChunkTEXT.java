@@ -12,7 +12,7 @@ import jogamp.opengl.util.pngj.PngjException;
 public class PngChunkTEXT extends PngChunkTextVar {
 	public final static String ID = ChunkHelper.tEXt;
 
-	public PngChunkTEXT(ImageInfo info) {
+	public PngChunkTEXT(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -20,14 +20,14 @@ public class PngChunkTEXT extends PngChunkTextVar {
 	public ChunkRaw createRawChunk() {
 		if (key.isEmpty())
 			throw new PngjException("Text chunk key must be non empty");
-		byte[] b = (key + "\0" + val).getBytes(PngHelperInternal.charsetLatin1);
-		ChunkRaw chunk = createEmptyChunk(b.length, false);
+		final byte[] b = (key + "\0" + val).getBytes(PngHelperInternal.charsetLatin1);
+		final ChunkRaw chunk = createEmptyChunk(b.length, false);
 		chunk.data = b;
 		return chunk;
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		int i;
 		for (i = 0; i < c.data.length; i++)
 			if (c.data[i] == 0)
@@ -38,8 +38,8 @@ public class PngChunkTEXT extends PngChunkTextVar {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkTEXT otherx = (PngChunkTEXT) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkTEXT otherx = (PngChunkTEXT) other;
 		key = otherx.key;
 		val = otherx.val;
 	}

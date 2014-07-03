@@ -48,7 +48,10 @@ import java.awt.Rectangle;
 import java.awt.image.*;
 
 import javax.media.opengl.*;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.glu.gl2.*;
+
 import com.jogamp.opengl.util.texture.*;
 import com.jogamp.opengl.util.texture.awt.*;
 
@@ -70,10 +73,10 @@ public class TextureRenderer {
   // appropriate threads, which would be somewhat unfortunate.
 
   // Whether we have an alpha channel in the (RGB/A) backing store
-  private boolean alpha;
+  private final boolean alpha;
 
   // Whether we're using only a GL_INTENSITY backing store
-  private boolean intensity;
+  private final boolean intensity;
 
   // Whether we're attempting to use automatic mipmap generation support
   private boolean mipmap;
@@ -91,7 +94,7 @@ public class TextureRenderer {
   private boolean mustReallocateTexture;
   private Rectangle dirtyRegion;
 
-  private GLUgl2 glu = new GLUgl2();
+  private final GLUgl2 glu = new GLUgl2();
 
   // Current color
   private float r = 1.0f;
@@ -108,7 +111,7 @@ public class TextureRenderer {
       @param height the height of the texture to render into
       @param alpha whether to allocate an alpha channel for the texture
   */
-  public TextureRenderer(int width, int height, boolean alpha) {
+  public TextureRenderer(final int width, final int height, final boolean alpha) {
     this(width, height, alpha, false);
   }
 
@@ -123,13 +126,13 @@ public class TextureRenderer {
       @param alpha whether to allocate an alpha channel for the texture
       @param mipmap whether to attempt use of automatic mipmap generation
   */
-  public TextureRenderer(int width, int height, boolean alpha, boolean mipmap) {
+  public TextureRenderer(final int width, final int height, final boolean alpha, final boolean mipmap) {
     this(width, height, alpha, false, mipmap);
   }
 
   // Internal constructor to avoid confusion since alpha only makes
   // sense when intensity is not set
-  private TextureRenderer(int width, int height, boolean alpha, boolean intensity, boolean mipmap) {
+  private TextureRenderer(final int width, final int height, final boolean alpha, final boolean intensity, final boolean mipmap) {
     this.alpha = alpha;
     this.intensity = intensity;
     this.mipmap = mipmap;
@@ -140,7 +143,7 @@ public class TextureRenderer {
       which acts only as an alpha channel. No mipmap support is
       requested. Internally, this associates a GL_INTENSITY OpenGL
       texture with the backing store. */
-  public static TextureRenderer createAlphaOnlyRenderer(int width, int height) {
+  public static TextureRenderer createAlphaOnlyRenderer(final int width, final int height) {
     return createAlphaOnlyRenderer(width, height, false);
   }
 
@@ -150,7 +153,7 @@ public class TextureRenderer {
       better smoothing when rendering the TextureRenderer's contents
       at a distance. Internally, this associates a GL_INTENSITY OpenGL
       texture with the backing store. */
-  public static TextureRenderer createAlphaOnlyRenderer(int width, int height, boolean mipmap) {
+  public static TextureRenderer createAlphaOnlyRenderer(final int width, final int height, final boolean mipmap) {
     return new TextureRenderer(width, height, false, true, mipmap);
   }
 
@@ -205,7 +208,7 @@ public class TextureRenderer {
       @param height the new height of the backing store of this renderer
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setSize(int width, int height) throws GLException {
+  public void setSize(final int width, final int height) throws GLException {
     init(width, height);
   }
 
@@ -216,7 +219,7 @@ public class TextureRenderer {
       @param d the new size of the backing store of this renderer
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setSize(Dimension d) throws GLException {
+  public void setSize(final Dimension d) throws GLException {
     setSize(d.width, d.height);
   }
 
@@ -228,7 +231,7 @@ public class TextureRenderer {
 
       @param smoothing whether smoothing is enabled for the OpenGL texture
   */
-  public void setSmoothing(boolean smoothing) {
+  public void setSmoothing(final boolean smoothing) {
     this.smoothing = smoothing;
     smoothingChanged = true;
   }
@@ -275,8 +278,8 @@ public class TextureRenderer {
       @param width the width of the region to update
       @param height the height of the region to update
   */
-  public void markDirty(int x, int y, int width, int height) {
-    Rectangle curRegion = new Rectangle(x, y, width, height);
+  public void markDirty(final int x, final int y, final int width, final int height) {
+    final Rectangle curRegion = new Rectangle(x, y, width, height);
     if (dirtyRegion == null) {
       dirtyRegion = curRegion;
     } else {
@@ -333,7 +336,7 @@ public class TextureRenderer {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void beginOrthoRendering(int width, int height) throws GLException {
+  public void beginOrthoRendering(final int width, final int height) throws GLException {
     beginOrthoRendering(width, height, true);
   }
 
@@ -355,7 +358,7 @@ public class TextureRenderer {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void beginOrthoRendering(int width, int height, boolean disableDepthTest) throws GLException {
+  public void beginOrthoRendering(final int width, final int height, final boolean disableDepthTest) throws GLException {
     beginRendering(true, width, height, disableDepthTest);
   }
 
@@ -399,8 +402,8 @@ public class TextureRenderer {
         transparent, 1.0f = completely opaque
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setColor(float r, float g, float b, float a) throws GLException {
-    GL2 gl = GLContext.getCurrentGL().getGL2();
+  public void setColor(final float r, final float g, final float b, final float a) throws GLException {
+    final GL2 gl = GLContext.getCurrentGL().getGL2();
     this.r = r * a;
     this.g = g * a;
     this.b = b * a;
@@ -417,7 +420,7 @@ public class TextureRenderer {
       @param color the new color to use for rendering
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void setColor(Color color) throws GLException {
+  public void setColor(final Color color) throws GLException {
     // Get color's RGBA components as floats in the range [0,1].
     if (compArray == null) {
       compArray = new float[4];
@@ -440,7 +443,7 @@ public class TextureRenderer {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void drawOrthoRect(int screenx, int screeny) throws GLException {
+  public void drawOrthoRect(final int screenx, final int screeny) throws GLException {
     drawOrthoRect(screenx, screeny, 0, 0, getWidth(), getHeight());
   }
 
@@ -462,9 +465,9 @@ public class TextureRenderer {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void drawOrthoRect(int screenx, int screeny,
-                            int texturex, int texturey,
-                            int width, int height) throws GLException {
+  public void drawOrthoRect(final int screenx, final int screeny,
+                            final int texturex, final int texturey,
+                            final int width, final int height) throws GLException {
     draw3DRect(screenx, screeny, 0, texturex, texturey, width, height, 1);
   }
 
@@ -493,16 +496,16 @@ public class TextureRenderer {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  public void draw3DRect(float x, float y, float z,
-                         int texturex, int texturey,
-                         int width, int height,
-                         float scaleFactor) throws GLException {
-    GL2 gl = GLContext.getCurrentGL().getGL2();
-    Texture texture = getTexture();
-    TextureCoords coords = texture.getSubImageTexCoords(texturex, texturey,
+  public void draw3DRect(final float x, final float y, final float z,
+                         final int texturex, final int texturey,
+                         final int width, final int height,
+                         final float scaleFactor) throws GLException {
+    final GL2 gl = GLContext.getCurrentGL().getGL2();
+    final Texture texture = getTexture();
+    final TextureCoords coords = texture.getSubImageTexCoords(texturex, texturey,
                                                         texturex + width,
                                                         texturey + height);
-    gl.glBegin(GL2.GL_QUADS);
+    gl.glBegin(GL2GL3.GL_QUADS);
     gl.glTexCoord2f(coords.left(), coords.bottom());
     gl.glVertex3f(x, y, z);
     gl.glTexCoord2f(coords.right(), coords.bottom());
@@ -550,70 +553,70 @@ public class TextureRenderer {
   // Internals only below this point
   //
 
-  private void beginRendering(boolean ortho, int width, int height, boolean disableDepthTestForOrtho) {
-    GL2 gl = GLContext.getCurrentGL().getGL2();
-    int attribBits =
-      GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_COLOR_BUFFER_BIT |
-      (ortho ? (GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_TRANSFORM_BIT) : 0);
+  private void beginRendering(final boolean ortho, final int width, final int height, final boolean disableDepthTestForOrtho) {
+    final GL2 gl = GLContext.getCurrentGL().getGL2();
+    final int attribBits =
+      GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL.GL_COLOR_BUFFER_BIT |
+      (ortho ? (GL.GL_DEPTH_BUFFER_BIT | GL2.GL_TRANSFORM_BIT) : 0);
     gl.glPushAttrib(attribBits);
-    gl.glDisable(GL2.GL_LIGHTING);
+    gl.glDisable(GLLightingFunc.GL_LIGHTING);
     if (ortho) {
       if (disableDepthTestForOrtho) {
-        gl.glDisable(GL2.GL_DEPTH_TEST);
+        gl.glDisable(GL.GL_DEPTH_TEST);
       }
-      gl.glDisable(GL2.GL_CULL_FACE);
-      gl.glMatrixMode(GL2.GL_PROJECTION);
+      gl.glDisable(GL.GL_CULL_FACE);
+      gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
       gl.glPushMatrix();
       gl.glLoadIdentity();
       glu.gluOrtho2D(0, width, 0, height);
-      gl.glMatrixMode(GL2.GL_MODELVIEW);
+      gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
       gl.glPushMatrix();
       gl.glLoadIdentity();
-      gl.glMatrixMode(GL2.GL_TEXTURE);
+      gl.glMatrixMode(GL.GL_TEXTURE);
       gl.glPushMatrix();
       gl.glLoadIdentity();
     }
-    gl.glEnable(GL2.GL_BLEND);
-    gl.glBlendFunc(GL2.GL_ONE, GL2.GL_ONE_MINUS_SRC_ALPHA);
-    Texture texture = getTexture();
+    gl.glEnable(GL.GL_BLEND);
+    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+    final Texture texture = getTexture();
     texture.enable(gl);
     texture.bind(gl);
-    gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
+    gl.glTexEnvi(GL2ES1.GL_TEXTURE_ENV, GL2ES1.GL_TEXTURE_ENV_MODE, GL2ES1.GL_MODULATE);
     // Change polygon color to last saved
     gl.glColor4f(r, g, b, a);
     if (smoothingChanged) {
       smoothingChanged = false;
       if (smoothing) {
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR);
+        texture.setTexParameteri(gl, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         if (mipmap) {
-          texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR_MIPMAP_LINEAR);
+          texture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
         } else {
-          texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
+          texture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
         }
       } else {
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+        texture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        texture.setTexParameteri(gl, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
       }
     }
   }
 
-  private void endRendering(boolean ortho) {
-    GL2 gl = GLContext.getCurrentGL().getGL2();
-    Texture texture = getTexture();
+  private void endRendering(final boolean ortho) {
+    final GL2 gl = GLContext.getCurrentGL().getGL2();
+    final Texture texture = getTexture();
     texture.disable(gl);
     if (ortho) {
-      gl.glMatrixMode(GL2.GL_PROJECTION);
+      gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
       gl.glPopMatrix();
-      gl.glMatrixMode(GL2.GL_MODELVIEW);
+      gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
       gl.glPopMatrix();
-      gl.glMatrixMode(GL2.GL_TEXTURE);
+      gl.glMatrixMode(GL.GL_TEXTURE);
       gl.glPopMatrix();
     }
     gl.glPopAttrib();
   }
 
-  private void init(int width, int height) {
-    GL2 gl = GLContext.getCurrentGL().getGL2();
+  private void init(final int width, final int height) {
+    final GL2 gl = GLContext.getCurrentGL().getGL2();
     // Discard previous BufferedImage if any
     if (image != null) {
       image.flush();
@@ -621,8 +624,8 @@ public class TextureRenderer {
     }
 
     // Infer the internal format if not an intensity texture
-    int internalFormat = (intensity ? GL2.GL_INTENSITY : 0);
-    int imageType =
+    final int internalFormat = (intensity ? GL2.GL_INTENSITY : 0);
+    final int imageType =
       (intensity ? BufferedImage.TYPE_BYTE_GRAY :
        (alpha ?  BufferedImage.TYPE_INT_ARGB_PRE : BufferedImage.TYPE_INT_RGB));
     image = new BufferedImage(width, height, imageType);
@@ -650,9 +653,9 @@ public class TextureRenderer {
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
-  private void sync(int x, int y, int width, int height) throws GLException {
+  private void sync(final int x, final int y, final int width, final int height) throws GLException {
     // Force allocation if necessary
-    boolean canSkipUpdate = ensureTexture();
+    final boolean canSkipUpdate = ensureTexture();
 
     if (!canSkipUpdate) {
       // Update specified region.
@@ -667,7 +670,7 @@ public class TextureRenderer {
 
   // Returns true if the texture was newly allocated, false if not
   private boolean ensureTexture() {
-    GL gl = GLContext.getCurrentGL();
+    final GL gl = GLContext.getCurrentGL();
     if (mustReallocateTexture) {
       if (texture != null) {
         texture.destroy(gl);
@@ -688,8 +691,8 @@ public class TextureRenderer {
 
       if (!smoothing) {
         // The TextureIO classes default to GL_LINEAR filtering
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_NEAREST);
-        texture.setTexParameteri(gl, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_NEAREST);
+        texture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        texture.setTexParameteri(gl, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
       }
       return true;
     }

@@ -54,11 +54,11 @@ import javax.media.opengl.GLProfile;
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG;
 
-  protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
+  protected GLDrawableImpl(final GLDrawableFactory factory, final NativeSurface comp, final boolean realized) {
       this(factory, comp, (GLCapabilitiesImmutable) comp.getGraphicsConfiguration().getRequestedCapabilities(), realized);
   }
 
-  protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, GLCapabilitiesImmutable requestedCapabilities, boolean realized) {
+  protected GLDrawableImpl(final GLDrawableFactory factory, final NativeSurface comp, final GLCapabilitiesImmutable requestedCapabilities, final boolean realized) {
       this.factory = factory;
       this.surface = comp;
       this.realized = realized;
@@ -120,7 +120,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
    */
   protected abstract void swapBuffersImpl(boolean doubleBuffered);
 
-  public final static String toHexString(long hex) {
+  public final static String toHexString(final long hex) {
     return "0x" + Long.toHexString(hex);
   }
 
@@ -170,14 +170,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   @Override
-  public final void setRealized(boolean realizedArg) {
+  public final void setRealized(final boolean realizedArg) {
     if ( realized != realizedArg ) { // volatile: OK (locked below)
         final boolean isProxySurface = surface instanceof ProxySurface;
         if(DEBUG) {
             System.err.println(getThreadName() + ": setRealized: drawable "+getClass().getSimpleName()+", surface "+surface.getClass().getSimpleName()+", isProxySurface "+isProxySurface+": "+realized+" -> "+realizedArg);
             Thread.dumpStack();
         }
-        AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
+        final AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {
             if(isProxySurface) {
                 ((ProxySurface)surface).createNotify();
@@ -238,7 +238,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * @param ctx the just bounded or unbounded context
    * @param bound if <code>true</code> create an association, otherwise remove it
    */
-  protected void associateContext(GLContext ctx, boolean bound) { }
+  protected void associateContext(final GLContext ctx, final boolean bound) { }
 
   /**
    * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>makeCurrent</code>, <code>release</code>.
@@ -253,14 +253,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * </p>
    * @see #associateContext(GLContext, boolean)
    */
-  protected void contextMadeCurrent(GLContext glc, boolean current) { }
+  protected void contextMadeCurrent(final GLContext glc, final boolean current) { }
 
   /** Callback for special implementations, allowing GLContext to fetch a custom default render framebuffer. Defaults to zero.*/
   protected int getDefaultDrawFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read framebuffer. Defaults to zero. */
   protected int getDefaultReadFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read buffer of current framebuffer. */
-  protected int getDefaultReadBuffer(GL gl, boolean hasDedicatedDrawableRead) {
+  protected int getDefaultReadBuffer(final GL gl, final boolean hasDedicatedDrawableRead) {
       if( gl.isGLES() || hasDedicatedDrawableRead || getChosenGLCapabilities().getDoubleBuffered() ) {
           // Note-1: Neither ES1 nor ES2 supports selecting the read buffer via glReadBuffer
           // Note-2: ES3 only supports GL_BACK, GL_NONE or GL_COLOR_ATTACHMENT0+i

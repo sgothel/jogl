@@ -106,7 +106,7 @@ public class TestSharedContextListAWT extends UITestCase {
         frame.setLocation(x, y);
         frame.setSize(width, height);
 
-        Gears gears = new Gears(vsync ? 1 : 0);
+        final Gears gears = new Gears(vsync ? 1 : 0);
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -129,11 +129,11 @@ public class TestSharedContextListAWT extends UITestCase {
         final Frame f1 = new Frame();
         final Frame f2 = new Frame();
         final Frame f3 = new Frame();
-        Animator animator = new Animator();
+        final Animator animator = new Animator();
 
         final GLCanvas glc1 = runTestGL(f1, animator, 0,     0,      true, false);
-        int x0 = f1.getX();
-        int y0 = f1.getY();
+        final int x0 = f1.getX();
+        final int y0 = f1.getY();
 
         final GLCanvas glc2 = runTestGL(f2, animator,
                                         x0+width,
@@ -166,11 +166,11 @@ public class TestSharedContextListAWT extends UITestCase {
                         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc2, false));
                         f3.dispose();
                         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc3, false));
-                    } catch (Throwable t) {
+                    } catch (final Throwable t) {
                         throw new RuntimeException(t);
                     }
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -180,13 +180,13 @@ public class TestSharedContextListAWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestSharedContextListAWT.class.getName());

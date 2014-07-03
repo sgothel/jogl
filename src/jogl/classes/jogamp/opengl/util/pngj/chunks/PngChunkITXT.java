@@ -21,7 +21,7 @@ public class PngChunkITXT extends PngChunkTextVar {
 	private String translatedTag = "";
 
 	// http://www.w3.org/TR/PNG/#11iTXt
-	public PngChunkITXT(ImageInfo info) {
+	public PngChunkITXT(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -30,7 +30,7 @@ public class PngChunkITXT extends PngChunkTextVar {
 		if (key.isEmpty())
 			throw new PngjException("Text chunk key must be non empty");
 		try {
-			ByteArrayOutputStream ba = new ByteArrayOutputStream();
+			final ByteArrayOutputStream ba = new ByteArrayOutputStream();
 			ba.write(ChunkHelper.toBytes(key));
 			ba.write(0); // separator
 			ba.write(compressed ? 1 : 0);
@@ -44,19 +44,19 @@ public class PngChunkITXT extends PngChunkTextVar {
 				textbytes = ChunkHelper.compressBytes(textbytes, true);
 			}
 			ba.write(textbytes);
-			byte[] b = ba.toByteArray();
-			ChunkRaw chunk = createEmptyChunk(b.length, false);
+			final byte[] b = ba.toByteArray();
+			final ChunkRaw chunk = createEmptyChunk(b.length, false);
 			chunk.data = b;
 			return chunk;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new PngjException(e);
 		}
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		int nullsFound = 0;
-		int[] nullsIdx = new int[3];
+		final int[] nullsIdx = new int[3];
 		for (int i = 0; i < c.data.length; i++) {
 			if (c.data[i] != 0)
 				continue;
@@ -80,7 +80,7 @@ public class PngChunkITXT extends PngChunkTextVar {
 				PngHelperInternal.charsetUTF8);
 		i = nullsIdx[2] + 1;
 		if (compressed) {
-			byte[] bytes = ChunkHelper.compressBytes(c.data, i, c.data.length - i, false);
+			final byte[] bytes = ChunkHelper.compressBytes(c.data, i, c.data.length - i, false);
 			val = ChunkHelper.toStringUTF8(bytes);
 		} else {
 			val = ChunkHelper.toStringUTF8(c.data, i, c.data.length - i);
@@ -88,8 +88,8 @@ public class PngChunkITXT extends PngChunkTextVar {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkITXT otherx = (PngChunkITXT) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkITXT otherx = (PngChunkITXT) other;
 		key = otherx.key;
 		val = otherx.val;
 		compressed = otherx.compressed;
@@ -101,7 +101,7 @@ public class PngChunkITXT extends PngChunkTextVar {
 		return compressed;
 	}
 
-	public void setCompressed(boolean compressed) {
+	public void setCompressed(final boolean compressed) {
 		this.compressed = compressed;
 	}
 
@@ -109,7 +109,7 @@ public class PngChunkITXT extends PngChunkTextVar {
 		return langTag;
 	}
 
-	public void setLangtag(String langtag) {
+	public void setLangtag(final String langtag) {
 		this.langTag = langtag;
 	}
 
@@ -117,7 +117,7 @@ public class PngChunkITXT extends PngChunkTextVar {
 		return translatedTag;
 	}
 
-	public void setTranslatedTag(String translatedTag) {
+	public void setTranslatedTag(final String translatedTag) {
 		this.translatedTag = translatedTag;
 	}
 }

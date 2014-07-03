@@ -36,7 +36,7 @@ import java.io.*;
 
 public class Audio {
     private static Audio instance = null;
-    private Mixer mixer;
+    private final Mixer mixer;
 
     public synchronized static Audio getInstance() {
         if (instance == null) {
@@ -53,9 +53,9 @@ public class Audio {
         return mixer;
     }
 
-    public Track newTrack(File file) throws IOException
+    public Track newTrack(final File file) throws IOException
     {
-        Track res = new Track(file);
+        final Track res = new Track(file);
         mixer.add(res);
         return res;
     }

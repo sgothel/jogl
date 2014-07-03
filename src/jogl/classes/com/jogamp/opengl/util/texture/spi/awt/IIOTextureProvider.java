@@ -55,12 +55,12 @@ public class IIOTextureProvider implements TextureProvider {
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
     @Override
-    public TextureData newTextureData(GLProfile glp, File file,
-                                      int internalFormat,
-                                      int pixelFormat,
-                                      boolean mipmap,
-                                      String fileSuffix) throws IOException {
-        BufferedImage img = ImageIO.read(file);
+    public TextureData newTextureData(final GLProfile glp, final File file,
+                                      final int internalFormat,
+                                      final int pixelFormat,
+                                      final boolean mipmap,
+                                      final String fileSuffix) throws IOException {
+        final BufferedImage img = ImageIO.read(file);
         if (img == null) {
             return null;
         }
@@ -72,12 +72,12 @@ public class IIOTextureProvider implements TextureProvider {
     }
 
     @Override
-    public TextureData newTextureData(GLProfile glp, InputStream stream,
-                                      int internalFormat,
-                                      int pixelFormat,
-                                      boolean mipmap,
-                                      String fileSuffix) throws IOException {
-        BufferedImage img = ImageIO.read(stream);
+    public TextureData newTextureData(final GLProfile glp, final InputStream stream,
+                                      final int internalFormat,
+                                      final int pixelFormat,
+                                      final boolean mipmap,
+                                      final String fileSuffix) throws IOException {
+        final BufferedImage img = ImageIO.read(stream);
         if (img == null) {
             return null;
         }
@@ -89,12 +89,12 @@ public class IIOTextureProvider implements TextureProvider {
     }
 
     @Override
-    public TextureData newTextureData(GLProfile glp, URL url,
-                                      int internalFormat,
-                                      int pixelFormat,
-                                      boolean mipmap,
-                                      String fileSuffix) throws IOException {
-        InputStream stream = url.openStream();
+    public TextureData newTextureData(final GLProfile glp, final URL url,
+                                      final int internalFormat,
+                                      final int pixelFormat,
+                                      final boolean mipmap,
+                                      final String fileSuffix) throws IOException {
+        final InputStream stream = url.openStream();
         try {
             return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
         } finally {

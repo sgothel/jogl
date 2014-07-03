@@ -65,7 +65,7 @@ public class SVertex implements Vertex {
         }
 
         @Override
-        public SVertex create(float[] coordsBuffer, int offset, int length, boolean onCurve) {
+        public SVertex create(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
             return new SVertex(coordsBuffer, offset, length, onCurve);
         }
     }
@@ -100,14 +100,14 @@ public class SVertex implements Vertex {
     }
 
     @Override
-    public final void setCoord(float x, float y, float z) {
+    public final void setCoord(final float x, final float y, final float z) {
         coord[0] = x;
         coord[1] = y;
         coord[2] = z;
     }
 
     @Override
-    public final void setCoord(float[] coordsBuffer, int offset, int length) {
+    public final void setCoord(final float[] coordsBuffer, final int offset, final int length) {
         System.arraycopy(coordsBuffer, offset, coord, 0, length);
     }
 
@@ -122,17 +122,17 @@ public class SVertex implements Vertex {
     }
 
     @Override
-    public final void setX(float x) {
+    public final void setX(final float x) {
         this.coord[0] = x;
     }
 
     @Override
-    public final void setY(float y) {
+    public final void setY(final float y) {
         this.coord[1] = y;
     }
 
     @Override
-    public final void setZ(float z) {
+    public final void setZ(final float z) {
         this.coord[2] = z;
     }
 
@@ -157,7 +157,7 @@ public class SVertex implements Vertex {
     }
 
     @Override
-    public final void setOnCurve(boolean onCurve) {
+    public final void setOnCurve(final boolean onCurve) {
         this.onCurve = onCurve;
     }
 
@@ -167,12 +167,12 @@ public class SVertex implements Vertex {
     }
 
     @Override
-    public final void setId(int id){
+    public final void setId(final int id){
         this.id = id;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if( obj == this) {
             return true;
         }
@@ -192,14 +192,14 @@ public class SVertex implements Vertex {
     }
 
     @Override
-    public final void setTexCoord(float s, float t, float p) {
+    public final void setTexCoord(final float s, final float t, final float p) {
         texCoord[0] = s;
         texCoord[1] = t;
         texCoord[2] = p;
     }
 
     @Override
-    public final void setTexCoord(float[] texCoordsBuffer, int offset, int length) {
+    public final void setTexCoord(final float[] texCoordsBuffer, final int offset, final int length) {
         System.arraycopy(texCoordsBuffer, offset, texCoord, 0, length);
     }
 

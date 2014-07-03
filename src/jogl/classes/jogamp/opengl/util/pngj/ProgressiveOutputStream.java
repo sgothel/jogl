@@ -11,7 +11,7 @@ abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 	private final int size;
 	private long countFlushed = 0;
 
-	public ProgressiveOutputStream(int size) {
+	public ProgressiveOutputStream(final int size) {
 		this.size = size;
 	}
 
@@ -28,19 +28,19 @@ abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 	}
 
 	@Override
-	public final void write(byte[] b, int off, int len) {
+	public final void write(final byte[] b, final int off, final int len) {
 		super.write(b, off, len);
 		checkFlushBuffer(false);
 	}
 
 	@Override
-	public final void write(byte[] b) throws IOException {
+	public final void write(final byte[] b) throws IOException {
 		super.write(b);
 		checkFlushBuffer(false);
 	}
 
 	@Override
-	public final void write(int arg0) {
+	public final void write(final int arg0) {
 		super.write(arg0);
 		checkFlushBuffer(false);
 	}
@@ -54,7 +54,7 @@ abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 	 * if it's time to flush data (or if forced==true) calls abstract method
 	 * flushBuffer() and cleans those bytes from own buffer
 	 */
-	private final void checkFlushBuffer(boolean forced) {
+	private final void checkFlushBuffer(final boolean forced) {
 		while (forced || count >= size) {
 			int nb = size;
 			if (nb > count)
@@ -63,7 +63,7 @@ abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 				return;
 			flushBuffer(buf, nb);
 			countFlushed += nb;
-			int bytesleft = count - nb;
+			final int bytesleft = count - nb;
 			count = bytesleft;
 			if (bytesleft > 0)
 				System.arraycopy(buf, nb, buf, 0, bytesleft);

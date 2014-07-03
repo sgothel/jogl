@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -45,12 +45,12 @@ import com.jogamp.opengl.util.Animator;
 
 /**
  * Tests recursive GLContext behavior.
- * 
+ *
  * <p>
- * Issues {@link GLAutoDrawable#display()} of another {@link GLAutoDrawable} 
+ * Issues {@link GLAutoDrawable#display()} of another {@link GLAutoDrawable}
  * from within {@link GLEventListener#display(GLAutoDrawable)}.
  * </p>
- *   
+ *
  * <https://jogamp.org/bugzilla/show_bug.cgi?id=669>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -60,26 +60,26 @@ public class TestBug669RecursiveGLContext02NEWT extends UITestCase {
   public void test01_Plain() {
       test01Impl(false);
   }
-  
+
   @Test(timeout=5000)
   public void test01_Anim() {
       test01Impl(true);
   }
-  
-  private void test01Impl(boolean anim) {      
+
+  private void test01Impl(final boolean anim) {
     final String profile = GLProfile.GL2ES2;
     if(!GLProfile.isAvailable(profile)) { System.err.println(profile+" n/a"); return; }
-        
+
     final GLProfile pro = GLProfile.get(profile);
     final GLCapabilities caps = new GLCapabilities(pro);
-    
+
     final GLWindow window2 = GLWindow.create(caps); // display() triggered by window's GLEventListener!
     window2.setPosition(0, 0);
     window2.setSize(200, 200);
     window2.addGLEventListener(new RedSquareES2());
-    
+
     final GLWindow window1 = GLWindow.create(caps);
-    
+
     final Animator animator1 = new Animator();
     final Animator animator2 = new Animator();
     if(anim) {
@@ -112,11 +112,11 @@ public class TestBug669RecursiveGLContext02NEWT extends UITestCase {
         if(anim) {
             try {
                 Thread.sleep(500);
-            } catch(InterruptedException ie) {}
+            } catch(final InterruptedException ie) {}
         }
     } finally {
         animator1.stop();
-        
+
         final int win1Frames = window1.getTotalFPSFrames();
         final int win2Frames = window2.getTotalFPSFrames();
         System.err.println("Window1: frames "+win1Frames);
@@ -126,10 +126,10 @@ public class TestBug669RecursiveGLContext02NEWT extends UITestCase {
         window2.destroy();
     }
   }
-  
-  public static void main(String args[]) {
+
+  public static void main(final String args[]) {
       org.junit.runner.JUnitCore.main(TestBug669RecursiveGLContext02NEWT.class.getName());
   }
-  
+
 }
 

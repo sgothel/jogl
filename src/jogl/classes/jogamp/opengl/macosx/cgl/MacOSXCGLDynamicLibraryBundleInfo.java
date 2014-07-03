@@ -56,7 +56,7 @@ public final class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLib
     }
 
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return 0;
         /** OSX manual says: NSImage use is discouraged
             return CGL.getProcAddress(glFuncName); // manual implementation

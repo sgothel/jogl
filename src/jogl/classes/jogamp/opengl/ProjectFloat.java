@@ -158,7 +158,7 @@ public class ProjectFloat {
    * @param bottom
    * @param top
    */
-  public void gluOrtho2D(GLMatrixFunc gl, float left, float right, float bottom, float top) {
+  public void gluOrtho2D(final GLMatrixFunc gl, final float left, final float right, final float bottom, final float top) {
     gl.glOrthof(left, right, bottom, top, -1, 1);
   }
 
@@ -170,7 +170,7 @@ public class ProjectFloat {
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(GLMatrixFunc gl, float fovy, float aspect, float zNear, float zFar) {
+  public void gluPerspective(final GLMatrixFunc gl, final float fovy, final float aspect, final float zNear, final float zFar) {
     gl.glMultMatrixf(FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy / 2 * (float) Math.PI / 180, aspect, zNear, zFar), 0);
   }
 
@@ -187,10 +187,10 @@ public class ProjectFloat {
    * @param upy
    * @param upz
    */
-  public void gluLookAt(GLMatrixFunc gl,
-                        float eyex, float eyey, float eyez,
-                        float centerx, float centery, float centerz,
-                        float upx, float upy, float upz) {
+  public void gluLookAt(final GLMatrixFunc gl,
+                        final float eyex, final float eyey, final float eyez,
+                        final float centerx, final float centery, final float centerz,
+                        final float upx, final float upy, final float upz) {
     mat4Tmp2[0+0] = eyex;
     mat4Tmp2[1+0] = eyey;
     mat4Tmp2[2+0] = eyez;
@@ -235,11 +235,11 @@ public class ProjectFloat {
   /**
    * Map object coordinates to window coordinates.
    */
-  public boolean gluProject(float objx, float objy, float objz,
-                            FloatBuffer modelMatrix,
-                            FloatBuffer projMatrix,
-                            int[] viewport, int viewport_offset,
-                            float[] win_pos, int win_pos_offset ) {
+  public boolean gluProject(final float objx, final float objy, final float objz,
+                            final FloatBuffer modelMatrix,
+                            final FloatBuffer projMatrix,
+                            final int[] viewport, final int viewport_offset,
+                            final float[] win_pos, final int win_pos_offset ) {
     final float[] in = this.mat4Tmp1;
     final float[] out = this.mat4Tmp2;
 
@@ -283,11 +283,11 @@ public class ProjectFloat {
    *
    * @return
    */
-  public boolean gluProject(float objx, float objy, float objz,
-                            FloatBuffer modelMatrix,
-                            FloatBuffer projMatrix,
-                            IntBuffer viewport,
-                            FloatBuffer win_pos) {
+  public boolean gluProject(final float objx, final float objy, final float objz,
+                            final FloatBuffer modelMatrix,
+                            final FloatBuffer projMatrix,
+                            final IntBuffer viewport,
+                            final FloatBuffer win_pos) {
 
     final float[] in = this.mat4Tmp1;
     final float[] out = this.mat4Tmp2;
@@ -337,11 +337,11 @@ public class ProjectFloat {
    * @param obj_pos_offset
    * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public boolean gluUnProject(float winx, float winy, float winz,
-                              float[] modelMatrix, int modelMatrix_offset,
-                              float[] projMatrix, int projMatrix_offset,
-                              int[] viewport, int viewport_offset,
-                              float[] obj_pos, int obj_pos_offset) {
+  public boolean gluUnProject(final float winx, final float winy, final float winz,
+                              final float[] modelMatrix, final int modelMatrix_offset,
+                              final float[] projMatrix, final int projMatrix_offset,
+                              final int[] viewport, final int viewport_offset,
+                              final float[] obj_pos, final int obj_pos_offset) {
     return FloatUtil.mapWinToObjCoords(winx, winy, winz,
                                    modelMatrix, modelMatrix_offset,
                                    projMatrix, projMatrix_offset,
@@ -422,11 +422,11 @@ public class ProjectFloat {
    *
    * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
-  public boolean gluUnProject(float winx, float winy, float winz,
-                              FloatBuffer modelMatrix,
-                              FloatBuffer projMatrix,
-                              IntBuffer viewport,
-                              FloatBuffer obj_pos) {
+  public boolean gluUnProject(final float winx, final float winy, final float winz,
+                              final FloatBuffer modelMatrix,
+                              final FloatBuffer projMatrix,
+                              final IntBuffer viewport,
+                              final FloatBuffer obj_pos) {
     final int vPos = viewport.position();
     final int oPos = obj_pos.position();
 
@@ -580,7 +580,7 @@ public class ProjectFloat {
    */
   public void gluPickMatrix(final GLMatrixFunc gl,
                             final float x, final float y,
-                            float deltaX, final float deltaY,
+                            final float deltaX, final float deltaY,
                             final IntBuffer viewport) {
     if (deltaX <= 0 || deltaY <= 0) {
       return;

@@ -133,13 +133,13 @@ public class TestGLJPanelResize01AWT extends UITestCase {
                     // frame[0].pack();
                     frame[0].setVisible(true);
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
         try {
             Thread.sleep(duration);
-        } catch (InterruptedException e1) {
+        } catch (final InterruptedException e1) {
             e1.printStackTrace();
         }
         try {
@@ -147,7 +147,7 @@ public class TestGLJPanelResize01AWT extends UITestCase {
                     public void run() {
                         frame[0].dispose();
                     } } );
-        } catch (Exception e1) {
+        } catch (final Exception e1) {
             e1.printStackTrace();
         }
     }
@@ -184,7 +184,7 @@ public class TestGLJPanelResize01AWT extends UITestCase {
 
     static long duration = 600; // ms
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         boolean useSwingDoubleBuffer=false, manual=false;
 
         for(int i=0; i<args.length; i++) {
@@ -199,7 +199,7 @@ public class TestGLJPanelResize01AWT extends UITestCase {
         }
         if( manual ) {
             GLProfile.initSingleton();
-            TestGLJPanelResize01AWT demo = new TestGLJPanelResize01AWT();
+            final TestGLJPanelResize01AWT demo = new TestGLJPanelResize01AWT();
             demo.test(new GLCapabilities(null), esize01, useSwingDoubleBuffer);
         } else {
             org.junit.runner.JUnitCore.main(TestGLJPanelResize01AWT.class.getName());

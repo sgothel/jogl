@@ -51,7 +51,7 @@ public class RandomTileRenderer extends TileRendererBase {
     }
 
     @Override
-    public final int getParam(int pname) {
+    public final int getParam(final int pname) {
         switch (pname) {
         case TR_IMAGE_WIDTH:
             return imageSize.getWidth();
@@ -75,7 +75,7 @@ public class RandomTileRenderer extends TileRendererBase {
      *
      * @throws IllegalArgumentException is tile x/y are < 0 or tile size is <= 0x0
      */
-    public void setTileRect(int tX, int tY, int tWidth, int tHeight) throws IllegalStateException, IllegalArgumentException {
+    public void setTileRect(final int tX, final int tY, final int tWidth, final int tHeight) throws IllegalStateException, IllegalArgumentException {
         if( 0 > tX || 0 > tY ) {
             throw new IllegalArgumentException("Tile pos must be >= 0/0");
         }
@@ -120,7 +120,7 @@ public class RandomTileRenderer extends TileRendererBase {
      *         {@link #setTileRect(int, int, int, int) tile-rect} has not been set.
      */
     @Override
-    public final void beginTile(GL gl) throws IllegalStateException, GLException {
+    public final void beginTile(final GL gl) throws IllegalStateException, GLException {
         if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
             throw new IllegalStateException("Image size has not been set");
         }
@@ -143,7 +143,7 @@ public class RandomTileRenderer extends TileRendererBase {
     }
 
     @Override
-    public void endTile( GL gl ) throws IllegalStateException, GLException {
+    public void endTile( final GL gl ) throws IllegalStateException, GLException {
         if( !beginCalled ) {
             throw new IllegalStateException("beginTile(..) has not been called");
         }
@@ -229,7 +229,7 @@ public class RandomTileRenderer extends TileRendererBase {
      * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachAutoDrawable(GLAutoDrawable) attached}
      *                               or imageSize is not set
      */
-    public void display(int tX, int tY, int tWidth, int tHeight) throws IllegalStateException {
+    public void display(final int tX, final int tY, final int tWidth, final int tHeight) throws IllegalStateException {
         setTileRect(tX, tY, tWidth, tHeight);
         display();
     }

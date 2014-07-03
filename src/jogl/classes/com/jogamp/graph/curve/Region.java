@@ -115,15 +115,15 @@ public abstract class Region {
     protected final AABBox box = new AABBox();
     protected Frustum frustum = null;
 
-    public static boolean isVBAA(int renderModes) {
+    public static boolean isVBAA(final int renderModes) {
         return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
 
-    public static boolean isMSAA(int renderModes) {
+    public static boolean isMSAA(final int renderModes) {
         return 0 != (renderModes & Region.MSAA_RENDERING_BIT);
     }
 
-    public static boolean isTwoPass(int renderModes) {
+    public static boolean isTwoPass(final int renderModes) {
         return 0 != ( renderModes & ( Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT) );
     }
 
@@ -132,7 +132,7 @@ public abstract class Region {
      * i.e. the bit {@link #VARWEIGHT_RENDERING_BIT} is set,
      * otherwise false.
      */
-    public static boolean hasVariableWeight(int renderModes) {
+    public static boolean hasVariableWeight(final int renderModes) {
         return 0 != (renderModes & Region.VARWEIGHT_RENDERING_BIT);
     }
 
@@ -141,7 +141,7 @@ public abstract class Region {
      * i.e. the bit {@link #COLORCHANNEL_RENDERING_BIT} is set,
      * otherwise false.
      */
-    public static boolean hasColorChannel(int renderModes) {
+    public static boolean hasColorChannel(final int renderModes) {
         return 0 != (renderModes & Region.COLORCHANNEL_RENDERING_BIT);
     }
 
@@ -150,11 +150,11 @@ public abstract class Region {
      * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
      * otherwise false.
      */
-    public static boolean hasColorTexture(int renderModes) {
+    public static boolean hasColorTexture(final int renderModes) {
         return 0 != (renderModes & Region.COLORTEXTURE_RENDERING_BIT);
     }
 
-    public static String getRenderModeString(int renderModes) {
+    public static String getRenderModeString(final int renderModes) {
         final String curveS = hasVariableWeight(renderModes) ? "-curve" : "";
         final String cChanS = hasColorChannel(renderModes) ? "-cols" : "";
         final String cTexS = hasColorTexture(renderModes) ? "-ctex" : "";
@@ -167,7 +167,7 @@ public abstract class Region {
         }
     }
 
-    protected Region(int regionRenderModes) {
+    protected Region(final int regionRenderModes) {
         this.renderModes = regionRenderModes;
         this.quality = MAX_QUALITY;
     }
@@ -187,7 +187,7 @@ public abstract class Region {
     public final int getQuality() { return quality; }
 
     /** See {@link #MAX_QUALITY} */
-    public final void setQuality(int q) { quality=q; }
+    public final void setQuality(final int q) { quality=q; }
 
     protected void clearImpl() {
         dirty = DIRTY_SHAPE | DIRTY_STATE;
@@ -241,13 +241,13 @@ public abstract class Region {
     /**
      * Set {@link Frustum} culling for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}.
      */
-    public final void setFrustum(Frustum frustum) {
+    public final void setFrustum(final Frustum frustum) {
         this.frustum = frustum;
     }
 
     final float[] coordsEx = new float[3];
 
-    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, float[] rgba) {
+    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
         if( null != transform ) {
             final float[] coordsIn = vertIn.getCoord();
             transform.transform(coordsIn, coordsEx);
@@ -261,7 +261,7 @@ public abstract class Region {
         numVertices++;
     }
 
-    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, float[] rgba) {
+    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
         pushIndex(numVertices);
         pushNewVertexImpl(vertIn, transform, rgba);
     }
@@ -308,7 +308,7 @@ public abstract class Region {
 
         final int idxOffset = numVertices;
         int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
-        int vertsDupCountV = 0, vertsDupCountT = 0, vertsKnownMovedT = 0;
+        final int vertsDupCountV = 0, vertsDupCountT = 0, vertsKnownMovedT = 0;
         if( vertsIn.size() >= 3 ) {
             if(DEBUG_INSTANCE) {
                 System.err.println("Region.addOutlineShape(): Processing Vertices");
@@ -399,7 +399,7 @@ public abstract class Region {
     /**
      * See {@link #markShapeDirty()} and {@link #markStateDirty()}.
      */
-    protected final void clearDirtyBits(int v) {
+    protected final void clearDirtyBits(final int v) {
         dirty &= ~v;
     }
     protected final int getDirtyBits() { return dirty; }

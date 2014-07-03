@@ -44,7 +44,7 @@ public class Splinespec {
   /**
    * Dimension
    */
-  private int dim;
+  private final int dim;
 
   /**
    * Knot vector specs
@@ -60,7 +60,7 @@ public class Splinespec {
    * Makes new Splinespec with given dimension
    * @param i dimension
    */
-  public Splinespec(int i) {
+  public Splinespec(final int i) {
     // DONE
     this.dim = i;
   }
@@ -69,7 +69,7 @@ public class Splinespec {
    * Initializes knotspec according to knotvector
    * @param knotvector basic knotvector
    */
-  public void kspecinit(Knotvector knotvector) {
+  public void kspecinit(final Knotvector knotvector) {
     // DONE
     this.kspec = new Knotspec();
     kspec.inkbegin = new CArrayOfFloats(knotvector.knotlist, 0);
@@ -85,10 +85,10 @@ public class Splinespec {
    * @param sknotvector knotvector in u dir
    * @param tknotvector knotvector in v dir
    */
-  public void kspecinit(Knotvector sknotvector, Knotvector tknotvector) {
+  public void kspecinit(final Knotvector sknotvector, final Knotvector tknotvector) {
     // DONE
     this.kspec = new Knotspec();
-    Knotspec tkspec = new Knotspec();
+    final Knotspec tkspec = new Knotspec();
 
     kspec.inkbegin = new CArrayOfFloats(sknotvector.knotlist, 0);
     kspec.inkend = new CArrayOfFloats(sknotvector.knotlist,
@@ -121,7 +121,7 @@ public class Splinespec {
    * Prepares for conversion
    * @param ncoords number of coords
    */
-  public void layout(int ncoords) {
+  public void layout(final int ncoords) {
     // DONE
     int stride = ncoords;
     for (Knotspec knotspec = kspec; knotspec != null; knotspec = knotspec.next) {
@@ -143,9 +143,9 @@ public class Splinespec {
    * Prepares quilt for conversion
    * @param quilt quilt to work with
    */
-  public void setupquilt(Quilt quilt) {
+  public void setupquilt(final Quilt quilt) {
     // DONE
-    CArrayOfQuiltspecs qspec = new CArrayOfQuiltspecs(quilt.qspec);
+    final CArrayOfQuiltspecs qspec = new CArrayOfQuiltspecs(quilt.qspec);
     quilt.eqspec = new CArrayOfQuiltspecs(qspec.getArray(), dim);
     for (Knotspec knotspec = kspec; knotspec != null;) {
       qspec.get().stride = knotspec.poststride;
@@ -159,8 +159,8 @@ public class Splinespec {
       qspec.get().bdry[1] = (knotspec.kright.getPointer() == knotspec.klast
                              .getPointer()) ? 1 : 0;
       qspec.get().breakpoints = new float[qspec.get().width + 1];
-      CArrayOfFloats k = new CArrayOfFloats(qspec.get().breakpoints, 0);
-      for (CArrayOfBreakpts bk = new CArrayOfBreakpts(knotspec.bbegin); bk
+      final CArrayOfFloats k = new CArrayOfFloats(qspec.get().breakpoints, 0);
+      for (final CArrayOfBreakpts bk = new CArrayOfBreakpts(knotspec.bbegin); bk
              .getPointer() <= knotspec.bend.getPointer(); bk.pp()) {
         k.set(bk.get().value);
         k.pp();
@@ -177,7 +177,7 @@ public class Splinespec {
    * Copies array of control points to output array
    * @param ctlarray control points array
    */
-  public void copy(CArrayOfFloats ctlarray) {
+  public void copy(final CArrayOfFloats ctlarray) {
     // DONE
     kspec.copy(ctlarray, outcpts);
 

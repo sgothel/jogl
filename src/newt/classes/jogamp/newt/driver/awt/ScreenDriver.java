@@ -54,7 +54,7 @@ public class ScreenDriver extends ScreenImpl {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
     }
 
-    protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {
+    protected void setAWTGraphicsScreen(final AWTGraphicsScreen s) {
         aScreen = s;
     }
 
@@ -70,11 +70,11 @@ public class ScreenDriver extends ScreenImpl {
     protected void closeNativeImpl() { }
 
     @Override
-    protected int validateScreenIndex(int idx) {
+    protected int validateScreenIndex(final int idx) {
         return idx; // pass through ...
     }
 
-    private static MonitorMode getModeProps(Cache cache, DisplayMode mode) {
+    private static MonitorMode getModeProps(final Cache cache, final DisplayMode mode) {
         int rate = mode.getRefreshRate();
         if( DisplayMode.REFRESH_RATE_UNKNOWN == rate ) {
             rate = ScreenImpl.default_sm_rate;
@@ -83,7 +83,7 @@ public class ScreenDriver extends ScreenImpl {
         if( DisplayMode.BIT_DEPTH_MULTI == bpp ) {
             bpp= ScreenImpl.default_sm_bpp;
         }
-        int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
+        final int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = mode.getWidth();
@@ -97,7 +97,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected void collectNativeMonitorModesAndDevicesImpl(Cache cache) {
+    protected void collectNativeMonitorModesAndDevicesImpl(final Cache cache) {
         final GraphicsDevice awtGD = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice();
         final DisplayMode[] awtModes = awtGD.getDisplayModes();
         for(int i=0; i<awtModes.length; i++) {
@@ -123,12 +123,12 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {
+    protected MonitorMode queryCurrentMonitorModeImpl(final MonitorDevice monitor) {
         return null;
     }
 
     @Override
-    protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode) {
+    protected boolean setCurrentMonitorModeImpl(final MonitorDevice monitor, final MonitorMode mode) {
         return false;
     }
 

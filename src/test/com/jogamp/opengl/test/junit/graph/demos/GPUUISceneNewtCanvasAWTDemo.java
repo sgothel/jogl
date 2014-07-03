@@ -36,18 +36,18 @@ public class GPUUISceneNewtCanvasAWTDemo {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
+                    final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
                     comp.setMinimumSize(d);
                     comp.setPreferredSize(d);
                     comp.setSize(d);
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
     }
 
-    public static void main(String[] args) throws InterruptedException, InvocationTargetException {
+    public static void main(final String[] args) throws InterruptedException, InvocationTargetException {
         int width = 800, height = 400;
         int x = 10, y = 10;
 
@@ -129,7 +129,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
             glp = GLProfile.getGL2ES2();
         }
         System.err.println("GLProfile: "+glp);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( SceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
@@ -153,7 +153,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
         window.setSurfaceScale(reqSurfacePixelScale);
         final int[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new int[2]);
 
-        GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
+        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
                                                                      new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
 
         window.addGLEventListener(sceneGLListener);
@@ -164,7 +164,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
         });

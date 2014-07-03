@@ -162,7 +162,7 @@ public class LandscapeES2 implements GLEventListener {
         timeUni.setData((System.currentTimeMillis() - millisOffset) / 1000.0f);
         shaderState.uniform(gl, timeUni);
         vertices.enableBuffer(gl, true);
-        gl.glDrawArrays(GL2ES2.GL_TRIANGLE_STRIP, 0, 4);
+        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         vertices.enableBuffer(gl, false);
 
         shaderState.useProgram(gl, false);

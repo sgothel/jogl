@@ -120,7 +120,7 @@ public interface AWTPrintLifecycle {
          * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
          * @return the context
          */
-        public static Context setupPrint(Container c, double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
+        public static Context setupPrint(final Container c, final double scaleMatX, final double scaleMatY, final int numSamples, final int tileWidth, final int tileHeight) {
             final Context t = new Context(c, scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight);
             t.setupPrint(c);
             return t;
@@ -150,16 +150,16 @@ public interface AWTPrintLifecycle {
 
         private final AWTMisc.ComponentAction setupAction = new AWTMisc.ComponentAction() {
             @Override
-            public void run(Component c) {
+            public void run(final Component c) {
                 ((AWTPrintLifecycle)c).setupPrint(scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight);
             } };
         private final AWTMisc.ComponentAction releaseAction = new AWTMisc.ComponentAction() {
             @Override
-            public void run(Component c) {
+            public void run(final Component c) {
                 ((AWTPrintLifecycle)c).releasePrint();
             } };
 
-        private Context(Container c, double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
+        private Context(final Container c, final double scaleMatX, final double scaleMatY, final int numSamples, final int tileWidth, final int tileHeight) {
             this.cont = c;
             this.scaleMatX = scaleMatX;
             this.scaleMatY = scaleMatY;
@@ -168,7 +168,7 @@ public interface AWTPrintLifecycle {
             this.tileHeight = tileHeight;
             this.count = 0;
         }
-        private void setupPrint(Container c) {
+        private void setupPrint(final Container c) {
             count = AWTMisc.performAction(c, AWTPrintLifecycle.class, setupAction);
         }
     }

@@ -54,10 +54,10 @@ import javax.media.nativewindow.util.Dimension;
 public class ManualScreenMode03aNEWT extends UITestCase {
     static int waitTime = 7000; // 1 sec
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static GLWindow createWindow(final Screen screen, final GLCapabilities caps, final int width, final int height, final boolean onscreen, final boolean undecorated) {
         caps.setOnscreen(onscreen);
 
-        GLWindow window = GLWindow.create(screen, caps);
+        final GLWindow window = GLWindow.create(screen, caps);
         window.setSize(width, height);
         window.addGLEventListener(new GearsES2());
         window.setVisible(true);
@@ -65,21 +65,21 @@ public class ManualScreenMode03aNEWT extends UITestCase {
     }
 
     public void run() {
-        int width  = 640;
-        int height = 480;
-        GLProfile glp = GLProfile.getDefault();
-        GLCapabilities caps = new GLCapabilities(glp);
-        Display display = NewtFactory.createDisplay(null); // local display
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
+        final int width  = 640;
+        final int height = 480;
+        final GLProfile glp = GLProfile.getDefault();
+        final GLCapabilities caps = new GLCapabilities(glp);
+        final Display display = NewtFactory.createDisplay(null); // local display
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
 
-        Animator animator = new Animator(window);
+        final Animator animator = new Animator(window);
         animator.start();
 
-        MonitorDevice monitor = window.getMainMonitor();
+        final MonitorDevice monitor = window.getMainMonitor();
 
-        MonitorMode mmCurrent = monitor.queryCurrentMode();
-        MonitorMode mmOrig = monitor.getOriginalMode();
+        final MonitorMode mmCurrent = monitor.queryCurrentMode();
+        final MonitorMode mmOrig = monitor.getOriginalMode();
         System.err.println("[0] orig   : "+mmOrig);
         System.err.println("[0] current: "+mmCurrent);
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
@@ -93,21 +93,21 @@ public class ManualScreenMode03aNEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
         monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
-        MonitorMode mm = monitorModes.get(0);
+        final MonitorMode mm = monitorModes.get(0);
         System.err.println("[0] set current: "+mm);
         monitor.setCurrentMode(mm);
 
         System.err.print("[0] post setting .. wait <");
         try {
             Thread.sleep(waitTime);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
         }
         System.err.println("done>");
         System.exit(0);
     }
 
-    public static void main(String args[]) throws IOException {
-        ManualScreenMode03aNEWT t = new ManualScreenMode03aNEWT();
+    public static void main(final String args[]) throws IOException {
+        final ManualScreenMode03aNEWT t = new ManualScreenMode03aNEWT();
         t.run();
     }
 }

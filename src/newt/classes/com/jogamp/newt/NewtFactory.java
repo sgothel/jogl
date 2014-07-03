@@ -46,6 +46,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.PropertyAccess;
 
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
@@ -66,7 +67,7 @@ public class NewtFactory {
                 NativeWindowFactory.initSingleton(); // last resort ..
                 {
                     /** See API Doc in {@link Window} ! */
-                    final String[] paths = Debug.getProperty("newt.window.icons", true, "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png").split("\\s");
+                    final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png").split("\\s");
                     if( paths.length < 2 ) {
                         throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));
                     }
@@ -95,9 +96,9 @@ public class NewtFactory {
      * Shall reference at least two PNG icons, from lower (16x16) to higher (>= 32x32) resolution.
      * </p>
      */
-    public static void setWindowIcons(IOUtil.ClassResources cres) { defaultWindowIcons = cres; }
+    public static void setWindowIcons(final IOUtil.ClassResources cres) { defaultWindowIcons = cres; }
 
-    public static Class<?> getCustomClass(String packageName, String classBaseName) {
+    public static Class<?> getCustomClass(final String packageName, final String classBaseName) {
         Class<?> clazz = null;
         if(packageName!=null && classBaseName!=null) {
             final String clazzName;
@@ -108,7 +109,7 @@ public class NewtFactory {
             }
             try {
                 clazz = Class.forName(clazzName);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Warning: Failed to find class <"+clazzName+">: "+t.getMessage());
                     t.printStackTrace();
@@ -125,7 +126,7 @@ public class NewtFactory {
      * The default is enabled.<br>
      * The EventDispatchThread is thread local to the Display instance.<br>
      */
-    public static synchronized void setUseEDT(boolean onoff) {
+    public static synchronized void setUseEDT(final boolean onoff) {
         useEDT = onoff;
     }
 
@@ -144,7 +145,7 @@ public class NewtFactory {
      *        see {@link AbstractGraphicsDevice#getConnection()}. Use <code>null</code> for default.
      * @return the new or reused Display instance
      */
-    public static Display createDisplay(String name) {
+    public static Display createDisplay(final String name) {
         return createDisplay(name, true);
     }
 
@@ -162,7 +163,7 @@ public class NewtFactory {
      * @param reuse attempt to reuse an existing Display with same <code>name</code> if set true, otherwise create a new instance.
      * @return the new or reused Display instance
      */
-    public static Display createDisplay(String name, boolean reuse) {
+    public static Display createDisplay(final String name, final boolean reuse) {
       return DisplayImpl.create(NativeWindowFactory.getNativeWindowType(true), name, 0, reuse);
     }
 
@@ -179,7 +180,7 @@ public class NewtFactory {
      *        see {@link AbstractGraphicsDevice#getConnection()}. Use <code>null</code> for default.
      * @return the new or reused Display instance
      */
-    public static Display createDisplay(String type, String name) {
+    public static Display createDisplay(final String type, final String name) {
         return createDisplay(type, name, true);
     }
 
@@ -198,7 +199,7 @@ public class NewtFactory {
      * @param reuse attempt to reuse an existing Display with same <code>name</code> if set true, otherwise create a new instance.
      * @return the new or reused Display instance
      */
-    public static Display createDisplay(String type, String name, boolean reuse) {
+    public static Display createDisplay(final String type, final String name, final boolean reuse) {
       return DisplayImpl.create(type, name, 0, reuse);
     }
 
@@ -212,7 +213,7 @@ public class NewtFactory {
      * and {@link Display#removeReference()}.
      * </p>
      */
-    public static Screen createScreen(Display display, int index) {
+    public static Screen createScreen(final Display display, final int index) {
       return ScreenImpl.create(display, index);
     }
 
@@ -229,7 +230,7 @@ public class NewtFactory {
      * and {@link Screen#removeReference()}.
      * </p>
      */
-    public static Window createWindow(CapabilitiesImmutable caps) {
+    public static Window createWindow(final CapabilitiesImmutable caps) {
         return createWindowImpl(NativeWindowFactory.getNativeWindowType(true), caps);
     }
 
@@ -243,7 +244,7 @@ public class NewtFactory {
      * and {@link Screen#removeReference()}.
      * </p>
      */
-    public static Window createWindow(Screen screen, CapabilitiesImmutable caps) {
+    public static Window createWindow(final Screen screen, final CapabilitiesImmutable caps) {
         return WindowImpl.create(null, 0, screen, caps);
     }
 
@@ -269,7 +270,7 @@ public class NewtFactory {
      *
      * @param parentWindowObject either a NativeWindow instance
      */
-    public static Window createWindow(NativeWindow parentWindow, CapabilitiesImmutable caps) {
+    public static Window createWindow(final NativeWindow parentWindow, final CapabilitiesImmutable caps) {
         final String type = NativeWindowFactory.getNativeWindowType(true);
         if( null == parentWindow ) {
             return createWindowImpl(type, caps);
@@ -283,14 +284,14 @@ public class NewtFactory {
             screen = newtParentWindow.getScreen();
         } else {
             // create a Display/Screen compatible to the NativeWindow
-            AbstractGraphicsConfiguration parentConfig = parentWindow.getGraphicsConfiguration();
+            final AbstractGraphicsConfiguration parentConfig = parentWindow.getGraphicsConfiguration();
             if(null!=parentConfig) {
-                AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
-                AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
-                Display display = NewtFactory.createDisplay(type, parentDevice.getHandle(), true);
+                final AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
+                final AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
+                final Display display = NewtFactory.createDisplay(type, parentDevice.getHandle(), true);
                 screen  = NewtFactory.createScreen(display, parentScreen.getIndex());
             } else {
-                Display display = NewtFactory.createDisplay(type, null, true); // local display
+                final Display display = NewtFactory.createDisplay(type, null, true); // local display
                 screen  = NewtFactory.createScreen(display, 0); // screen 0
             }
         }
@@ -304,9 +305,9 @@ public class NewtFactory {
         return win;
     }
 
-    private static Window createWindowImpl(String type, CapabilitiesImmutable caps) {
-        Display display = NewtFactory.createDisplay(type, null, true); // local display
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+    private static Window createWindowImpl(final String type, final CapabilitiesImmutable caps) {
+        final Display display = NewtFactory.createDisplay(type, null, true); // local display
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         return WindowImpl.create(null, 0, screen, caps);
     }
 
@@ -319,10 +320,10 @@ public class NewtFactory {
      * @param caps the desired capabilities
      * @return
      */
-    public static Window createWindow(String displayConnection, int screenIdx, long parentWindowHandle, CapabilitiesImmutable caps) {
+    public static Window createWindow(final String displayConnection, final int screenIdx, final long parentWindowHandle, final CapabilitiesImmutable caps) {
         final String type = NativeWindowFactory.getNativeWindowType(true);
-        Display display = NewtFactory.createDisplay(type, displayConnection, true);
-        Screen screen  = NewtFactory.createScreen(display, screenIdx);
+        final Display display = NewtFactory.createDisplay(type, displayConnection, true);
+        final Screen screen  = NewtFactory.createScreen(display, screenIdx);
         return WindowImpl.create(null, parentWindowHandle, screen, caps);
     }
 
@@ -333,26 +334,26 @@ public class NewtFactory {
      *
      * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
      */
-    public static Window createWindow(Object[] cstrArguments, Screen screen, CapabilitiesImmutable caps) {
+    public static Window createWindow(final Object[] cstrArguments, final Screen screen, final CapabilitiesImmutable caps) {
         return WindowImpl.create(cstrArguments, screen, caps);
     }
 
     /**
      * Instantiate a Display entity using the native handle.
      */
-    public static Display createDisplay(String type, long handle, boolean reuse) {
+    public static Display createDisplay(final String type, final long handle, final boolean reuse) {
       return DisplayImpl.create(type, null, handle, reuse);
     }
 
-    public static boolean isScreenCompatible(NativeWindow parent, Screen childScreen) {
+    public static boolean isScreenCompatible(final NativeWindow parent, final Screen childScreen) {
       // Get parent's NativeWindow details
-      AbstractGraphicsConfiguration parentConfig = parent.getGraphicsConfiguration();
-      AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
-      AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
+      final AbstractGraphicsConfiguration parentConfig = parent.getGraphicsConfiguration();
+      final AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
+      final AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
 
-      DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
-      String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
-      String childDisplayName = childDisplay.getName();
+      final DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
+      final String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
+      final String childDisplayName = childDisplay.getName();
       if( ! parentDisplayName.equals( childDisplayName ) ) {
         return false;
       }
@@ -363,23 +364,23 @@ public class NewtFactory {
       return true;
     }
 
-    public static Screen createCompatibleScreen(NativeWindow parent) {
+    public static Screen createCompatibleScreen(final NativeWindow parent) {
       return createCompatibleScreen(parent, null);
     }
 
-    public static Screen createCompatibleScreen(NativeWindow parent, Screen childScreen) {
+    public static Screen createCompatibleScreen(final NativeWindow parent, final Screen childScreen) {
       // Get parent's NativeWindow details
-      AbstractGraphicsConfiguration parentConfig = parent.getGraphicsConfiguration();
-      AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
-      AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
+      final AbstractGraphicsConfiguration parentConfig = parent.getGraphicsConfiguration();
+      final AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
+      final AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
 
       if(null != childScreen) {
         // check if child Display/Screen is compatible already
-        DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
-        String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
-        String childDisplayName = childDisplay.getName();
-        boolean displayEqual = parentDisplayName.equals( childDisplayName );
-        boolean screenEqual = parentScreen.getIndex() == childScreen.getIndex();
+        final DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
+        final String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
+        final String childDisplayName = childDisplay.getName();
+        final boolean displayEqual = parentDisplayName.equals( childDisplayName );
+        final boolean screenEqual = parentScreen.getIndex() == childScreen.getIndex();
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("NewtFactory.createCompatibleScreen: Display: "+
                 parentDisplayName+" =? "+childDisplayName+" : "+displayEqual+"; Screen: "+
@@ -393,7 +394,7 @@ public class NewtFactory {
 
       // Prep NEWT's Display and Screen according to the parent
       final String type = NativeWindowFactory.getNativeWindowType(true);
-      Display display = NewtFactory.createDisplay(type, parentDevice.getHandle(), true);
+      final Display display = NewtFactory.createDisplay(type, parentDevice.getHandle(), true);
       return NewtFactory.createScreen(display, parentScreen.getIndex());
     }
 }

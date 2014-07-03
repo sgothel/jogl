@@ -52,12 +52,12 @@ class TypecastHMetrics implements Metrics {
         // vheaTable = this.fontImpl.font.getVheaTable();
         unitsPerEM_Inv = 1.0f / ( headTable.getUnitsPerEm() );
 
-        int maxWidth = headTable.getXMax() - headTable.getXMin();
-        int maxHeight = headTable.getYMax() - headTable.getYMin();
-        float lowx= headTable.getXMin();
-        float lowy = -(headTable.getYMin()+maxHeight);
-        float highx = lowx + maxWidth;
-        float highy = lowy + maxHeight;
+        final int maxWidth = headTable.getXMax() - headTable.getXMin();
+        final int maxHeight = headTable.getYMax() - headTable.getYMin();
+        final float lowx= headTable.getXMin();
+        final float lowy = -(headTable.getYMin()+maxHeight);
+        final float highx = lowx + maxWidth;
+        final float highy = lowy + maxHeight;
         bbox = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
     }
 

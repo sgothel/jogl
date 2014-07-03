@@ -124,7 +124,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     /**
      * @param renderModes
      */
-    public GPUUISceneGLListener0A(int renderModes) {
+    public GPUUISceneGLListener0A(final int renderModes) {
       this(renderModes, false, false);
     }
 
@@ -133,7 +133,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @param debug
      * @param trace
      */
-    public GPUUISceneGLListener0A(int renderModes, boolean debug, boolean trace) {
+    public GPUUISceneGLListener0A(final int renderModes, final boolean debug, final boolean trace) {
         this(0f, renderModes, debug, trace);
     }
 
@@ -142,11 +142,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @param debug
      * @param trace
      */
-    public GPUUISceneGLListener0A(final float noAADPIThreshold, boolean debug, boolean trace) {
+    public GPUUISceneGLListener0A(final float noAADPIThreshold, final boolean debug, final boolean trace) {
         this(noAADPIThreshold, 0, debug, trace);
     }
 
-    private GPUUISceneGLListener0A(final float noAADPIThreshold, int renderModes, boolean debug, boolean trace) {
+    private GPUUISceneGLListener0A(final float noAADPIThreshold, final int renderModes, final boolean debug, final boolean trace) {
         this.noAADPIThreshold = noAADPIThreshold;
         this.rs = RenderState.createRenderState(SVertex.factory());
         this.debug = debug;
@@ -156,7 +156,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         try {
             font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             System.err.println("Caught: "+ioe.getMessage());
             ioe.printStackTrace();
         }
@@ -170,13 +170,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.get(i).getRotation().rotateByEuler( angdeg );
         }
     }
-    private void translateButtons(float tx, float ty, float tz) {
+    private void translateButtons(final float tx, final float ty, final float tz) {
         for(int i=0; i<buttons.size(); i++) {
             buttons.get(i).translate(tx, ty, tz);
         }
     }
 
-    private void setButtonsSpacing(float dx, float dy) {
+    private void setButtonsSpacing(final float dx, final float dy) {
         for(int i=0; i<buttons.size(); i++) {
             final RoundButton b = buttons.get(i);
             if( b instanceof LabelButton ) {
@@ -188,7 +188,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
     }
 
-    private void setButtonsCorner(float dc) {
+    private void setButtonsCorner(final float dc) {
         for(int i=0; i<buttons.size(); i++) {
             final float c = buttons.get(i).getCorner()+dc;
             System.err.println("Corner: "+c);
@@ -224,7 +224,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.translate(xStartLeft,yStartTop-diffY*buttons.size(), 0f);
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 if( null != labels[currentText] ) {
                     labels[currentText].setEnabled(false);
                 }
@@ -243,7 +243,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.setToggle(fpsLabel.isEnabled());
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 final GLAnimatorControl a = cDrawable.getAnimator();
                 if( null != a ) {
                     a.resetFPSCounter();
@@ -259,11 +259,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.setToggle(gl.getSwapInterval()>0);
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 cDrawable.invoke(false, new GLRunnable() {
                     @Override
-                    public boolean run(GLAutoDrawable drawable) {
-                        GL gl = drawable.getGL();
+                    public boolean run(final GLAutoDrawable drawable) {
+                        final GL gl = drawable.getGL();
                         gl.setSwapInterval(gl.getSwapInterval()<=0?1:0);
                         final GLAnimatorControl a = drawable.getAnimator();
                         if( null != a ) {
@@ -280,7 +280,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.translate(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 final Object attachment = e.getAttachment();
                 if( attachment instanceof UIShape.PointerEventInfo ) {
                     final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -292,7 +292,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 }
             }
             @Override
-            public void mouseWheelMoved(MouseEvent e) {
+            public void mouseWheelMoved(final MouseEvent e) {
                 rotateButtons(new float[] { 0f,  e.getRotation()[1], 0f});
             } } );
         buttons.add(button);
@@ -302,7 +302,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     final Object attachment = e.getAttachment();
                     if( attachment instanceof UIShape.PointerEventInfo ) {
                         final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -328,7 +328,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     final Object attachment = e.getAttachment();
                     if( attachment instanceof UIShape.PointerEventInfo ) {
                         final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -359,7 +359,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.setPressedColorMod(1.1f, 0.0f, 0.0f, 1.0f);
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 new Thread() {
                     public void run() {
                         if( null != cDrawable ) {
@@ -376,13 +376,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         // second column to the left
         {
-            int j = 1; // column
+            final int j = 1; // column
             int k = 0; // row
             button = new LabelButton(SVertex.factory(), renderModes, font, "y flip", buttonXSize, buttonYSize);
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     rotateButtons(new float[] { 0f, 180f, 0f});
                 } } );
             button.addMouseListener(dragZoomRotateListener);
@@ -393,7 +393,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     rotateButtons(new float[] { 180f, 0f, 0f});
                 } } );
             button.addMouseListener(dragZoomRotateListener);
@@ -404,7 +404,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     final Object attachment = e.getAttachment();
                     if( attachment instanceof UIShape.PointerEventInfo ) {
                         final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -431,7 +431,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     final Object attachment = e.getAttachment();
                     if( attachment instanceof UIShape.PointerEventInfo ) {
                         final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -445,7 +445,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     }
                 }
                 @Override
-                public void mouseWheelMoved(MouseEvent e) {
+                public void mouseWheelMoved(final MouseEvent e) {
                     setButtonsSpacing(e.getRotation()[0]/100f, e.getRotation()[1]/200f);
                 } } );
             buttons.add(button);
@@ -455,7 +455,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     final Object attachment = e.getAttachment();
                     if( attachment instanceof UIShape.PointerEventInfo ) {
                         final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -470,7 +470,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
                 }
                 @Override
-                public void mouseWheelMoved(MouseEvent e) {
+                public void mouseWheelMoved(final MouseEvent e) {
                     setButtonsCorner(e.getRotation()[1]/20f);
                 } } );
             buttons.add(button);
@@ -480,7 +480,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     resetButtons();
                 } } );
             button.addMouseListener(dragZoomRotateListener);
@@ -491,10 +491,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.translate(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     cDrawable.invoke(false, new GLRunnable() {
                         @Override
-                        public boolean run(GLAutoDrawable drawable) {
+                        public boolean run(final GLAutoDrawable drawable) {
                             printScreen(drawable.getGL());
                             return true;
                         }
@@ -535,14 +535,14 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             mPlayerButton.addMouseListener(dragZoomRotateListener);
             mPlayerButton.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     mPlayer.setAudioVolume( mPlayerButton.isToggleOn() ? 1f : 0f );
                 } } );
             buttons.add(mPlayerButton);
             try {
                 final URI streamLoc = new URI("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
                 mPlayer.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
-            } catch (URISyntaxException e1) {
+            } catch (final URISyntaxException e1) {
                 e1.printStackTrace();
             }
         }
@@ -553,7 +553,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             try {
                 imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-released-145x53.png", TextureIO.PNG);
                 imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-pressed-145x53.png", TextureIO.PNG);
-            } catch (IOException e2) {
+            } catch (final IOException e2) {
                 e2.printStackTrace();
             }
             imgSeq.setManualStepping(true);
@@ -561,12 +561,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             imgButton.addMouseListener(dragZoomRotateListener);
             imgButton.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mousePressed(MouseEvent e) {
+                public void mousePressed(final MouseEvent e) {
                     imgButton.setCurrentIdx(1);
                     System.err.println("XXX: "+imgButton);
                 }
                 @Override
-                public void mouseReleased(MouseEvent e) {
+                public void mouseReleased(final MouseEvent e) {
                     imgButton.setCurrentIdx(0);
                 } } );
             buttons.add(imgButton);
@@ -585,15 +585,15 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             } else {
                 glel = new GLEventListener() {
                     @Override
-                    public void init(GLAutoDrawable drawable) {
+                    public void init(final GLAutoDrawable drawable) {
                     }
 
                     @Override
-                    public void dispose(GLAutoDrawable drawable) {
+                    public void dispose(final GLAutoDrawable drawable) {
                     }
 
                     @Override
-                    public void display(GLAutoDrawable drawable) {
+                    public void display(final GLAutoDrawable drawable) {
                         final GL2ES2 gl = drawable.getGL().getGL2ES2();
                         gl.glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
                         // gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -601,7 +601,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     }
 
                     @Override
-                    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+                    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                     }
 
                 };
@@ -617,7 +617,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             glelButton.addMouseListener(dragZoomRotateListener);
             glelButton.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     glelButton.setAnimate( glelButton.isToggleOn() );
                 } } );
             buttons.add(glelButton);
@@ -666,7 +666,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     final boolean enableOthers = true;
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
             final Window upWin = (Window)upObj;
@@ -707,7 +707,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         try {
             font = FontFactory.get(fontSet).getDefault();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             System.err.println("Caught: "+ioe.getMessage());
             ioe.printStackTrace();
         }
@@ -717,8 +717,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         // renderer = RegionRenderer.create(rs, null, null);
 
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_BLEND);
 
         renderer.init(gl, renderModes);
 
@@ -772,7 +772,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             System.err.println("GPUUISceneGLListener0A: dispose (1)");
             final GLWindow glw = (GLWindow) drawable;
@@ -783,7 +783,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         sceneUIController.dispose(drawable); // disposes all registered UIShapes
 
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.destroy(gl);
         screenshot.dispose(gl);
     }
@@ -803,7 +803,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         // System.err.println("GPUUISceneGLListener0A: display");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -856,7 +856,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     float lastWidth = 0f, lastHeight = 0f;
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         System.err.println("GPUUISceneGLListener0A: reshape");
 
         //
@@ -897,14 +897,14 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         lastHeight = height;
    }
 
-    public void attachInputListenerTo(GLWindow window) {
+    public void attachInputListenerTo(final GLWindow window) {
         if ( !ioAttached ) {
             ioAttached = true;
             sceneUIController.attachInputListenerTo(window);
         }
     }
 
-    public void detachInputListenerFrom(GLWindow window) {
+    public void detachInputListenerFrom(final GLWindow window) {
         if ( ioAttached ) {
             ioAttached = false;
             sceneUIController.detachInputListenerFrom(window);
@@ -920,18 +920,18 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         boolean dragFirst = false;
 
         @Override
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
             dragFirst = true;
         }
 
         @Override
-        public void mouseReleased(MouseEvent e) {
+        public void mouseReleased(final MouseEvent e) {
             dragFirst = false;
             actionText = null;
         }
 
         @Override
-        public void mouseDragged(MouseEvent e) {
+        public void mouseDragged(final MouseEvent e) {
             final Object attachment = e.getAttachment();
             if( attachment instanceof UIShape.PointerEventInfo ) {
                 final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -956,7 +956,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
 
         @Override
-        public void mouseWheelMoved(MouseEvent e) {
+        public void mouseWheelMoved(final MouseEvent e) {
             final Object attachment = e.getAttachment();
             if( attachment instanceof UIShape.PointerEventInfo ) {
                 final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;
@@ -979,7 +979,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             }
         }
         @Override
-        public void gestureDetected(GestureEvent e) {
+        public void gestureDetected(final GestureEvent e) {
             final Object attachment = e.getAttachment();
             if( attachment instanceof UIShape.PointerEventInfo ) {
                 final UIShape.PointerEventInfo shapeEvent = (UIShape.PointerEventInfo)attachment;

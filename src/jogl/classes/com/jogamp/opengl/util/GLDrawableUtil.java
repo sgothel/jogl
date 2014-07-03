@@ -47,19 +47,19 @@ import jogamp.opengl.Debug;
 public class GLDrawableUtil {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
-  public static final boolean isAnimatorStartedOnOtherThread(GLAnimatorControl animatorCtrl) {
+  public static final boolean isAnimatorStartedOnOtherThread(final GLAnimatorControl animatorCtrl) {
     return ( null != animatorCtrl ) ? animatorCtrl.isStarted() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
-  public static final boolean isAnimatorStarted(GLAnimatorControl animatorCtrl) {
+  public static final boolean isAnimatorStarted(final GLAnimatorControl animatorCtrl) {
     return ( null != animatorCtrl ) ? animatorCtrl.isStarted() : false ;
   }
 
-  public static final boolean isAnimatorAnimatingOnOtherThread(GLAnimatorControl animatorCtrl) {
+  public static final boolean isAnimatorAnimatingOnOtherThread(final GLAnimatorControl animatorCtrl) {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
-  public static final boolean isAnimatorAnimating(GLAnimatorControl animatorCtrl) {
+  public static final boolean isAnimatorAnimating(final GLAnimatorControl animatorCtrl) {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() : false ;
   }
 
@@ -79,7 +79,7 @@ public class GLDrawableUtil {
    * @param listener
    * @param preserveInitState
    */
-  public static final void moveGLEventListener(GLAutoDrawable src, GLAutoDrawable dest, GLEventListener listener, boolean preserveInitState) {
+  public static final void moveGLEventListener(final GLAutoDrawable src, final GLAutoDrawable dest, final GLEventListener listener, final boolean preserveInitState) {
     final boolean initialized = src.getGLEventListenerInitState(listener);
     src.removeGLEventListener(listener);
     dest.addGLEventListener(listener);
@@ -105,7 +105,7 @@ public class GLDrawableUtil {
    * @param listener
    * @param preserveInitState
    */
-  public static final void moveAllGLEventListener(GLAutoDrawable src, GLAutoDrawable dest, boolean preserveInitState) {
+  public static final void moveAllGLEventListener(final GLAutoDrawable src, final GLAutoDrawable dest, final boolean preserveInitState) {
     for(int count = src.getGLEventListenerCount(); 0<count; count--) {
         final GLEventListener listener = src.getGLEventListener(0);
         moveGLEventListener(src, dest, listener, preserveInitState);
@@ -127,7 +127,7 @@ public class GLDrawableUtil {
    * @param b
    * @throws GLException if the {@link AbstractGraphicsDevice} are incompatible w/ each other.
    */
-  public static final void swapGLContextAndAllGLEventListener(GLAutoDrawable a, GLAutoDrawable b) {
+  public static final void swapGLContextAndAllGLEventListener(final GLAutoDrawable a, final GLAutoDrawable b) {
     final GLEventListenerState gllsA = GLEventListenerState.moveFrom(a);
     final GLEventListenerState gllsB = GLEventListenerState.moveFrom(b);
 
@@ -149,7 +149,7 @@ public class GLDrawableUtil {
    * @param src
    * @param dest
    */
-  public static final void swapGLContext(GLAutoDrawable src, GLAutoDrawable dest) {
+  public static final void swapGLContext(final GLAutoDrawable src, final GLAutoDrawable dest) {
     final GLAnimatorControl aAnim = src.getAnimator();
     final GLAnimatorControl bAnim = dest.getAnimator();
     final boolean aIsPaused = isAnimatorAnimatingOnOtherThread(aAnim) && aAnim.pause();

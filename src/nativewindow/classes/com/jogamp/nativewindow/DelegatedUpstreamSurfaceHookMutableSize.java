@@ -11,20 +11,20 @@ public class DelegatedUpstreamSurfaceHookMutableSize extends UpstreamSurfaceHook
      * @param width initial width
      * @param height initial height
      */
-    public DelegatedUpstreamSurfaceHookMutableSize(UpstreamSurfaceHook upstream, int width, int height) {
+    public DelegatedUpstreamSurfaceHookMutableSize(final UpstreamSurfaceHook upstream, final int width, final int height) {
         super(width, height);
         this.upstream = upstream;
     }
 
     @Override
-    public final void create(ProxySurface s) {
+    public final void create(final ProxySurface s) {
         if(null != upstream) {
             upstream.create(s);
         }
     }
 
     @Override
-    public final void destroy(ProxySurface s) {
+    public final void destroy(final ProxySurface s) {
         if(null != upstream) {
             upstream.destroy(s);
         }

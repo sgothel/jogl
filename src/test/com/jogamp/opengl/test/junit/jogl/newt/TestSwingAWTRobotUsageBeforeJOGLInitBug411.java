@@ -85,7 +85,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
     boolean modLightBrighter = true;
 
-    Color modLight(Color c) {
+    Color modLight(final Color c) {
         Color c2;
         if(modLightBrighter) {
             c2 = c.brighter();
@@ -99,18 +99,18 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     }
 
     class SwingGLAction implements GLEventListener {
-        public void init(GLAutoDrawable glad) {
+        public void init(final GLAutoDrawable glad) {
         }
 
-        public void dispose(GLAutoDrawable glad) {
+        public void dispose(final GLAutoDrawable glad) {
         }
 
-        public void display(GLAutoDrawable glad) {
+        public void display(final GLAutoDrawable glad) {
             colorPanel.setBackground(modLight(colorPanel.getBackground()));
             colorPanel.repaint();
         }
 
-        public void reshape(GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
+        public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         }
     }
 
@@ -127,21 +127,21 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         button = new JButton("Click me");
         button.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 System.err.println("Test: "+e);
             }
         });
         panel.add(button, BorderLayout.NORTH);
 
         colorPanel = new JPanel();
-        Dimension size = new Dimension(400,100);
+        final Dimension size = new Dimension(400,100);
         colorPanel.setPreferredSize(size);
         colorPanel.setBorder(border);
         panel.add(colorPanel, BorderLayout.SOUTH);
 
         frame = new JFrame("PRE JOGL");
         frame.addWindowListener( new WindowAdapter() {
-            public void windowClosing(WindowEvent ev) {
+            public void windowClosing(final WindowEvent ev) {
                 windowClosing=true;
             }
         });
@@ -199,10 +199,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.release(): End");
     }
 
-    protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable)
+    protected void runTestGL(final Canvas canvas, final GLAutoDrawable drawable)
         throws AWTException, InterruptedException, InvocationTargetException {
 
-        Dimension size = new Dimension(400,400);
+        final Dimension size = new Dimension(400,400);
         canvas.setPreferredSize(size);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -232,7 +232,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         colorPanel.setBackground(Color.blue);
         drawable.addGLEventListener(new SwingGLAction());
 
-        Point p0 = canvas.getLocationOnScreen();
+        final Point p0 = canvas.getLocationOnScreen();
         p0.translate(10,10);
         robot.mouseMove( (int) ( p0.getX() + .5 ) ,
                          (int) ( p0.getY() + .5 ) );
@@ -262,23 +262,23 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     public void test01NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): Start");
 
-        GLProfile glp = GLProfile.getGL2ES2();
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
 
-        GLWindow win0 = GLWindow.create(caps);
+        final GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, true));
 
-        Screen screen = win0.getScreen();
+        final Screen screen = win0.getScreen();
         final RectangleImmutable screenBoundsInWinU = screen.getViewportInWindowUnits();
         win0.setPosition(screenBoundsInWinU.getX()-150, 0);
         win0.addGLEventListener(new GearsES2());
-        Animator anim = new Animator(win0);
+        final Animator anim = new Animator(win0);
         anim.start();
 
-        GLWindow win1 = GLWindow.create(caps);
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(win1);
+        final GLWindow win1 = GLWindow.create(caps);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(win1);
         anim.add(win1);
         runTestGL(newtCanvasAWT, win1);
 
@@ -301,10 +301,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     @Test
     public void test02GLCanvas() throws AWTException, InterruptedException, InvocationTargetException {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): Start");
-        GLProfile glp = GLProfile.getGL2ES2();
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
 
-        Animator anim = new Animator();
+        final Animator anim = new Animator();
         anim.start();
 
         /**
@@ -320,7 +320,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         anim.add(win0);
          */
 
-        GLCanvas glCanvas = new GLCanvas(caps);
+        final GLCanvas glCanvas = new GLCanvas(caps);
         anim.add(glCanvas);
         runTestGL(glCanvas, glCanvas);
 
@@ -335,15 +335,15 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): End");
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);

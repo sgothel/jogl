@@ -44,12 +44,12 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
     List<EventObject> queue = new ArrayList<EventObject>();
     boolean verbose = true;
 
-    public NEWTMouseAdapter(String prefix) {
+    public NEWTMouseAdapter(final String prefix) {
         this.prefix = prefix;
         reset();
     }
 
-    public synchronized void setVerbose(boolean v) { verbose = v; }
+    public synchronized void setVerbose(final boolean v) { verbose = v; }
 
     public synchronized boolean isPressed() {
         return pressed;
@@ -78,7 +78,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         queue.clear();
     }
 
-    public synchronized void mousePressed(MouseEvent e) {
+    public synchronized void mousePressed(final MouseEvent e) {
         pressed = true;
         queue.add(e);
         if( verbose ) {
@@ -86,7 +86,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         }
     }
 
-    public synchronized void mouseReleased(MouseEvent e) {
+    public synchronized void mouseReleased(final MouseEvent e) {
         pressed = false;
         queue.add(e);
         if( verbose ) {
@@ -94,7 +94,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         }
     }
 
-    public synchronized void mouseClicked(MouseEvent e) {
+    public synchronized void mouseClicked(final MouseEvent e) {
         mouseClicked+=e.getClickCount();
         if(e.isConsumed()) {
             consumed++;

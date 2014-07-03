@@ -92,7 +92,7 @@ public class ImageInfo {
 	/**
 	 * Short constructor: assumes truecolor (RGB/RGBA)
 	 */
-	public ImageInfo(int cols, int rows, int bitdepth, boolean alpha) {
+	public ImageInfo(final int cols, final int rows, final int bitdepth, final boolean alpha) {
 		this(cols, rows, bitdepth, alpha, false, false);
 	}
 
@@ -113,7 +113,7 @@ public class ImageInfo {
 	 * @param indexed
 	 *            Flag: has palette
 	 */
-	public ImageInfo(int cols, int rows, int bitdepth, boolean alpha, boolean grayscale, boolean indexed) {
+	public ImageInfo(final int cols, final int rows, final int bitdepth, final boolean alpha, final boolean grayscale, final boolean indexed) {
 		this.cols = cols;
 		this.rows = rows;
 		this.alpha = alpha;
@@ -176,14 +176,14 @@ public class ImageInfo {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ImageInfo other = (ImageInfo) obj;
+		final ImageInfo other = (ImageInfo) obj;
 		if (alpha != other.alpha)
 			return false;
 		if (bitDepth != other.bitDepth)

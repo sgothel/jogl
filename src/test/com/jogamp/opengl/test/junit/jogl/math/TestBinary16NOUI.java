@@ -701,7 +701,7 @@ public final class TestBinary16NOUI extends UITestCase  /* due to hardship on ma
     Assert.assertEquals(r, -1.0, 0.0);
   }
 
-  public static void main(String args[]) {
+  public static void main(final String args[]) {
       for(int i=0; i<args.length; i++) {
         if(args[i].equals("-stepping")) {
             stepping = MiscUtils.atoi(args[++i], stepping);

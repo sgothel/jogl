@@ -33,7 +33,7 @@ public class Point implements Cloneable, PointImmutable {
     int x;
     int y;
 
-    public Point(int x, int y) {
+    public Point(final int x, final int y) {
         this.x=x;
         this.y=y;
     }
@@ -51,7 +51,7 @@ public class Point implements Cloneable, PointImmutable {
     public Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (final CloneNotSupportedException ex) {
             throw new InternalError();
         }
     }
@@ -70,10 +70,10 @@ public class Point implements Cloneable, PointImmutable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Point) {
-            Point p = (Point)obj;
+            final Point p = (Point)obj;
             return y == p.y && x == p.x;
         }
         return false;
@@ -102,9 +102,9 @@ public class Point implements Cloneable, PointImmutable {
         return x + " / " + y;
     }
 
-    public final void set(int x, int y) { this.x = x; this.y = y; }
-    public final void setX(int x) { this.x = x; }
-    public final void setY(int y) { this.y = y; }
+    public final void set(final int x, final int y) { this.x = x; this.y = y; }
+    public final void setX(final int x) { this.x = x; }
+    public final void setY(final int y) { this.y = y; }
 
     /**
      * Translate this instance's x- and y-components,
@@ -112,7 +112,7 @@ public class Point implements Cloneable, PointImmutable {
      * @param pd delta point
      * @return this instance for scaling
      */
-    public final Point translate(Point pd) {
+    public final Point translate(final Point pd) {
         x += pd.x ;
         y += pd.y ;
         return this;
@@ -125,7 +125,7 @@ public class Point implements Cloneable, PointImmutable {
      * @param dy delta for y
      * @return this instance for scaling
      */
-    public final Point translate(int dx, int dy) {
+    public final Point translate(final int dx, final int dy) {
         x += dx ;
         y += dy ;
         return this;
@@ -138,7 +138,7 @@ public class Point implements Cloneable, PointImmutable {
      * @param sy scale factor for y
      * @return this instance for scaling
      */
-    public final Point scale(int sx, int sy) {
+    public final Point scale(final int sx, final int sy) {
         x *= sx ;
         y *= sy ;
         return this;
@@ -151,7 +151,7 @@ public class Point implements Cloneable, PointImmutable {
      * @param sy inverse scale factor for y
      * @return this instance for scaling
      */
-    public final Point scaleInv(int sx, int sy) {
+    public final Point scaleInv(final int sx, final int sy) {
         x /= sx ;
         y /= sy ;
         return this;

@@ -62,7 +62,7 @@ public class SurfaceScaleUtils {
      * @param DEBUG_PREFIX if set, dumps debug info on stderr using this prefix
      * @return true if pixelScale has changed, otherwise false
      */
-    public static boolean computePixelScale(int[] result, final int[] prePixelScale, final int[] reqPixelScale, final int[] newPixelScaleRaw, final String DEBUG_PREFIX) {
+    public static boolean computePixelScale(final int[] result, final int[] prePixelScale, final int[] reqPixelScale, final int[] newPixelScaleRaw, final String DEBUG_PREFIX) {
         final int newPixelScaleSafeX = 0 < newPixelScaleRaw[0] ? newPixelScaleRaw[0] : ScalableSurface.IDENTITY_PIXELSCALE;
         final int newPixelScaleSafeY = 0 < newPixelScaleRaw[1] ? newPixelScaleRaw[1] : ScalableSurface.IDENTITY_PIXELSCALE;
         final boolean useHiDPI = ScalableSurface.IDENTITY_PIXELSCALE != reqPixelScale[0] || ScalableSurface.IDENTITY_PIXELSCALE != reqPixelScale[1];

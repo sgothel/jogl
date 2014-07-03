@@ -168,7 +168,7 @@ public class Threading {
         current thread is the OpenGL thread and either execute the
         Runnable directly or perform the work inside it.
      **/
-    public static final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
+    public static final void invokeOnOpenGLThread(final boolean wait, final Runnable r) throws GLException {
         ThreadingImpl.invokeOnOpenGLThread(wait, r);
     }
 
@@ -185,7 +185,7 @@ public class Threading {
      * @param lock optional lock object to be tested
      * @throws GLException
      */
-    public static final void invoke(boolean wait, Runnable r, Object lock) throws GLException {
+    public static final void invoke(final boolean wait, final Runnable r, final Object lock) throws GLException {
         if ( isSingleThreaded() && !isOpenGLThread() &&
              ( null == lock || !Thread.holdsLock(lock) ) ) {
             invokeOnOpenGLThread(wait, r);

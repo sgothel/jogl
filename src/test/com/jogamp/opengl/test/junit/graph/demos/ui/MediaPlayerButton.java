@@ -73,12 +73,12 @@ public class MediaPlayerButton extends TextureSeqButton {
 
     private final GLMediaEventListener defGLMediaEventListener = new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
                 // texButton.markStateDirty();
             }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                 final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
                 if( verbose ) {
                     System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
@@ -107,12 +107,12 @@ public class MediaPlayerButton extends TextureSeqButton {
 
 
     @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         ((GLMediaPlayer)texSeq).destroy(gl);
     }
 
     @Override
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
+    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
         if( GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
             try {
@@ -120,7 +120,7 @@ public class MediaPlayerButton extends TextureSeqButton {
                 mPlayer.setAudioVolume( 0f );
                 mPlayer.play();
                 markStateDirty();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }

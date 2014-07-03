@@ -54,7 +54,7 @@ public class ImageSeqButton extends TextureSeqButton {
     }
 
     @Override
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
+    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         super.drawShape(gl, renderer, sampleCount);
         if( !((ImageSequence)texSeq).getManualStepping() ) {
             markStateDirty(); // keep on going

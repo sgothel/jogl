@@ -47,11 +47,13 @@ import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 
 import jogamp.nativewindow.Debug;
@@ -70,10 +72,10 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
 
   static {
       Debug.initSingleton();
-      DEBUG_CALAYER_POS_CRITICAL = Debug.isPropertyDefined("nativewindow.debug.JAWT.OSXCALayerPos", true /* jnlpAlias */);
+      DEBUG_CALAYER_POS_CRITICAL = PropertyAccess.isPropertyDefined("nativewindow.debug.JAWT.OSXCALayerPos", true /* jnlpAlias */);
   }
 
-  public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+  public MacOSXJAWTWindow(final Object comp, final AbstractGraphicsConfiguration config) {
     super(comp, config);
     if(DEBUG) {
         dumpInfo();
@@ -170,7 +172,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  protected void layoutSurfaceLayerImpl(long layerHandle, boolean visible) {
+  protected void layoutSurfaceLayerImpl(final long layerHandle, final boolean visible) {
       final int caLayerQuirks = JAWTUtil.getOSXCALayerQuirks();
       // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
       // Determine p0: components location on screen w/o insets.
@@ -223,7 +225,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  public void setSurfaceHandle(long surfaceHandle) {
+  public void setSurfaceHandle(final long surfaceHandle) {
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new java.lang.UnsupportedOperationException("Not using CALAYER");
       }
@@ -242,14 +244,14 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
 
   @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
-    int ret = NativeWindow.LOCK_SURFACE_NOT_READY;
+    int ret = NativeSurface.LOCK_SURFACE_NOT_READY;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       unlockSurfaceImpl();
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
+      return NativeSurface.LOCK_SURFACE_NOT_READY;
     }
-    int res = ds.Lock();
+    final int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
       unlockSurfaceImpl();
@@ -261,7 +263,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     // conditions can cause this code to be triggered -- should test
     // more)
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
-      ret = NativeWindow.LOCK_SURFACE_CHANGED;
+      ret = NativeSurface.LOCK_SURFACE_CHANGED;
     }
     if (firstLock) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -276,7 +278,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     }
     if (dsi == null) {
       unlockSurfaceImpl();
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
+      return NativeSurface.LOCK_SURFACE_NOT_READY;
     }
     updateLockedData(dsi.getBounds());
     if (DEBUG && firstLock ) {
@@ -287,16 +289,16 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
         macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo(getJAWT());
         if (macosxdsi == null) {
           unlockSurfaceImpl();
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
+          return NativeSurface.LOCK_SURFACE_NOT_READY;
         }
         drawable = macosxdsi.getCocoaViewRef();
 
         if (drawable == 0) {
           unlockSurfaceImpl();
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
+          return NativeSurface.LOCK_SURFACE_NOT_READY;
         } else {
           windowHandle = OSXUtil.GetNSWindow(drawable);
-          ret = NativeWindow.LOCK_SUCCESS;
+          ret = NativeSurface.LOCK_SUCCESS;
         }
     } else {
         /**
@@ -337,7 +339,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                             } else {
                                 try {
                                     SetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
-                                } catch(Exception e) {
+                                } catch(final Exception e) {
                                     errMsg = "Could not set JAWT rootSurfaceLayerHandle "+toHexString(rootSurfaceLayer)+", cause: "+e.getMessage();
                                 }
                             }
@@ -360,7 +362,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
             unlockSurfaceImpl();
             throw new NativeWindowException(errMsg+": "+this);
         }
-        ret = NativeWindow.LOCK_SUCCESS;
+        ret = NativeSurface.LOCK_SUCCESS;
     }
 
     return ret;

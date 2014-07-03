@@ -52,11 +52,11 @@ class StrokeFontRec {
   public float top;
   public float bottom;
 
-  public StrokeFontRec(String name,
-                int num_chars,
-                StrokeCharRec[] ch,
-                float top,
-                float bottom) {
+  public StrokeFontRec(final String name,
+                final int num_chars,
+                final StrokeCharRec[] ch,
+                final float top,
+                final float bottom) {
     this.name = name;
     this.num_chars = num_chars;
     this.ch = ch;

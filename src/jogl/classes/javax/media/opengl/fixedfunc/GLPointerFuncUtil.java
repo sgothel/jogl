@@ -39,7 +39,7 @@ public class GLPointerFuncUtil {
      * @param glArrayIndex the fixed function array index
      * @return default fixed function array name
      */
-    public static String getPredefinedArrayIndexName(int glArrayIndex) {
+    public static String getPredefinedArrayIndexName(final int glArrayIndex) {
         return getPredefinedArrayIndexName(glArrayIndex, -1);
     }
 
@@ -48,7 +48,7 @@ public class GLPointerFuncUtil {
      * @param multiTexCoordIndex index for multiTexCoordIndex
      * @return default fixed function array name
      */
-    public static String getPredefinedArrayIndexName(int glArrayIndex, int multiTexCoordIndex) {
+    public static String getPredefinedArrayIndexName(final int glArrayIndex, final int multiTexCoordIndex) {
         switch(glArrayIndex) {
             case GLPointerFunc.GL_VERTEX_ARRAY:
                 return mgl_Vertex;

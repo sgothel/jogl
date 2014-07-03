@@ -61,12 +61,12 @@ import java.util.Arrays;
  */
 public class CmapTable implements Table {
 
-    private DirectoryEntry _de;
-    private int _version;
-    private int _numTables;
-    private CmapIndexEntry[] _entries;
+    private final DirectoryEntry _de;
+    private final int _version;
+    private final int _numTables;
+    private final CmapIndexEntry[] _entries;
 
-    protected CmapTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected CmapTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _version = di.readUnsignedShort();
         _numTables = di.readUnsignedShort();
@@ -98,7 +98,7 @@ public class CmapTable implements Table {
                 // Something is amiss
                 throw new IOException();
             }
-            int formatType = di.readUnsignedShort();
+            final int formatType = di.readUnsignedShort();
             lastFormat = CmapFormat.create(formatType, di);
             lastOffset = _entries[i].getOffset();
             _entries[i].setFormat(lastFormat);
@@ -114,11 +114,11 @@ public class CmapTable implements Table {
         return _numTables;
     }
 
-    public CmapIndexEntry getCmapIndexEntry(int i) {
+    public CmapIndexEntry getCmapIndexEntry(final int i) {
         return _entries[i];
     }
 
-    public CmapFormat getCmapFormat(short platformId, short encodingId) {
+    public CmapFormat getCmapFormat(final short platformId, final short encodingId) {
 
         // Find the requested format
         for (int i = 0; i < _numTables; i++) {
@@ -137,7 +137,7 @@ public class CmapTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder().append("cmap\n");
+        final StringBuilder sb = new StringBuilder().append("cmap\n");
 
         // Get each of the index entries
         for (int i = 0; i < _numTables; i++) {

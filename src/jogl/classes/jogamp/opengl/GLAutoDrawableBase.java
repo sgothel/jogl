@@ -100,7 +100,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
      *                   the drawable is created w/ it's own new instance, e.g. offscreen drawables,
      *                   and no further lifecycle handling is applied.
      */
-    public GLAutoDrawableBase(GLDrawableImpl drawable, GLContextImpl context, boolean ownsDevice) {
+    public GLAutoDrawableBase(final GLDrawableImpl drawable, final GLContextImpl context, final boolean ownsDevice) {
         this.drawable = drawable;
         this.context = context;
         this.preserveGLELSAtDestroy = false;
@@ -114,12 +114,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
+    public final void setSharedContext(final GLContext sharedContext) throws IllegalStateException {
         helper.setSharedContext(this.context, sharedContext);
     }
 
     @Override
-    public final void setSharedAutoDrawable(GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+    public final void setSharedAutoDrawable(final GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
         helper.setSharedAutoDrawable(this, sharedAutoDrawable);
     }
 
@@ -127,14 +127,14 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     protected abstract RecursiveLock getLock();
 
     @Override
-    public final GLStateKeeper.Listener setGLStateKeeperListener(Listener l) {
+    public final GLStateKeeper.Listener setGLStateKeeperListener(final Listener l) {
         final GLStateKeeper.Listener pre = glStateKeeperListener;
         glStateKeeperListener = l;
         return pre;
     }
 
     @Override
-    public final boolean preserveGLStateAtDestroy(boolean value) {
+    public final boolean preserveGLStateAtDestroy(final boolean value) {
         final boolean res = isGLStatePreservationSupported() ? true : false;
         if( res ) {
             if( DEBUG ) {
@@ -363,7 +363,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
                 // so we can continue with the destruction.
                 try {
                     helper.disposeGL(this, context, true);
-                } catch (GLException gle) {
+                } catch (final GLException gle) {
                     gle.printStackTrace();
                 }
             }
@@ -451,7 +451,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         }
     }
 
-    protected final GLEventListener defaultDisposeGLEventListener(GLEventListener listener, boolean remove) {
+    protected final GLEventListener defaultDisposeGLEventListener(final GLEventListener listener, final boolean remove) {
         final RecursiveLock _lock = getLock();
         _lock.lock();
         try {
@@ -472,7 +472,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
+    public final GLContext setContext(final GLContext newCtx, final boolean destroyPrevCtx) {
         final RecursiveLock lock = getLock();
         lock.lock();
         try {
@@ -495,7 +495,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final GL setGL(GL gl) {
+    public final GL setGL(final GL gl) {
         final GLContext _context = context;
         if (_context != null) {
             _context.setGL(gl);
@@ -505,12 +505,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final void addGLEventListener(GLEventListener listener) {
+    public final void addGLEventListener(final GLEventListener listener) {
         helper.addGLEventListener(listener);
     }
 
     @Override
-    public final void addGLEventListener(int index, GLEventListener listener) throws IndexOutOfBoundsException {
+    public final void addGLEventListener(final int index, final GLEventListener listener) throws IndexOutOfBoundsException {
         helper.addGLEventListener(index, listener);
     }
 
@@ -520,7 +520,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+    public GLEventListener getGLEventListener(final int index) throws IndexOutOfBoundsException {
         return helper.getGLEventListener(index);
     }
 
@@ -530,27 +530,27 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public boolean getGLEventListenerInitState(GLEventListener listener) {
+    public boolean getGLEventListenerInitState(final GLEventListener listener) {
         return helper.getGLEventListenerInitState(listener);
     }
 
     @Override
-    public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+    public void setGLEventListenerInitState(final GLEventListener listener, final boolean initialized) {
         helper.setGLEventListenerInitState(listener, initialized);
     }
 
     @Override
-    public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+    public GLEventListener disposeGLEventListener(final GLEventListener listener, final boolean remove) {
         return defaultDisposeGLEventListener(listener, remove);
     }
 
     @Override
-    public final GLEventListener removeGLEventListener(GLEventListener listener) {
+    public final GLEventListener removeGLEventListener(final GLEventListener listener) {
         return helper.removeGLEventListener(listener);
     }
 
     @Override
-    public final void setAnimator(GLAnimatorControl animatorControl)
+    public final void setAnimator(final GLAnimatorControl animatorControl)
             throws GLException {
         helper.setAnimator(animatorControl);
     }
@@ -561,7 +561,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final Thread setExclusiveContextThread(Thread t) throws GLException {
+    public final Thread setExclusiveContextThread(final Thread t) throws GLException {
         return helper.setExclusiveContextThread(t, context);
     }
 
@@ -571,7 +571,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final boolean invoke(boolean wait, GLRunnable glRunnable) {
+    public final boolean invoke(final boolean wait, final GLRunnable glRunnable) {
         return helper.invoke(this, wait, glRunnable);
     }
 
@@ -581,7 +581,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final void setAutoSwapBufferMode(boolean enable) {
+    public final void setAutoSwapBufferMode(final boolean enable) {
         helper.setAutoSwapBufferMode(enable);
     }
 
@@ -591,7 +591,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final void setContextCreationFlags(int flags) {
+    public final void setContextCreationFlags(final int flags) {
         additionalCtxCreationFlags = flags;
         final GLContext _context = context;
         if(null != _context) {
@@ -609,7 +609,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     //
 
     @Override
-    public final void setUpdateFPSFrames(int frames, PrintStream out) {
+    public final void setUpdateFPSFrames(final int frames, final PrintStream out) {
         fpsCounter.setUpdateFPSFrames(frames, out);
     }
 
@@ -679,7 +679,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final void setRealized(boolean realized) {
+    public final void setRealized(final boolean realized) {
         final RecursiveLock _lock = getLock();
         _lock.lock();
         try {

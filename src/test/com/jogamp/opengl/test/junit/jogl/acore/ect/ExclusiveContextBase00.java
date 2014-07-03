@@ -74,7 +74,7 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
 
     @BeforeClass
     public static void initClass00() {
-        Window dummyWindow = NewtFactory.createWindow(new Capabilities());
+        final Window dummyWindow = NewtFactory.createWindow(new Capabilities());
         dummyWindow.setSize(demoWinSize, demoWinSize);
         dummyWindow.setVisible(true);
         Assert.assertEquals(true, dummyWindow.isVisible());
@@ -100,7 +100,7 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
     protected abstract void setGLAutoDrawableVisible(GLAutoDrawable[] glads);
     protected abstract void destroyGLAutoDrawableVisible(GLAutoDrawable glad);
 
-    protected void runTestGL(GLCapabilitiesImmutable caps, int drawableCount, boolean exclusive, boolean preAdd, boolean shortenTest) throws InterruptedException {
+    protected void runTestGL(final GLCapabilitiesImmutable caps, final int drawableCount, final boolean exclusive, final boolean preAdd, final boolean shortenTest) throws InterruptedException {
         final boolean useAWTRenderThread = isAWTTestCase();
         if( useAWTRenderThread && exclusive ) {
             if( testExclusiveWithAWT ) {
@@ -117,7 +117,7 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
         final Thread awtRenderThread = getAWTRenderThread();
         final AnimatorBase animator = createAnimator();
         if( !useAWTRenderThread ) {
-            animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
         }
         final GLAutoDrawable[] drawables = new GLAutoDrawable[drawableCount];
         for(int i=0; i<drawableCount; i++) {

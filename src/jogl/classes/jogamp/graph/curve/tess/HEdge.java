@@ -43,12 +43,12 @@ public class HEdge {
     private int type = BOUNDARY;
     private Triangle triangle = null;
 
-    public HEdge(GraphVertex vert, int type) {
+    public HEdge(final GraphVertex vert, final int type) {
         this.vert = vert;
         this.type = type;
     }
 
-    public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type) {
+    public HEdge(final GraphVertex vert, final HEdge prev, final HEdge next, final HEdge sibling, final int type) {
         this.vert = vert;
         this.prev = prev;
         this.next = next;
@@ -56,7 +56,7 @@ public class HEdge {
         this.type = type;
     }
 
-    public HEdge(GraphVertex vert, HEdge prev, HEdge next, HEdge sibling, int type, Triangle triangle) {
+    public HEdge(final GraphVertex vert, final HEdge prev, final HEdge next, final HEdge sibling, final int type, final Triangle triangle) {
         this.vert = vert;
         this.prev = prev;
         this.next = next;
@@ -69,7 +69,7 @@ public class HEdge {
         return vert;
     }
 
-    public void setVert(GraphVertex vert) {
+    public void setVert(final GraphVertex vert) {
         this.vert = vert;
     }
 
@@ -77,7 +77,7 @@ public class HEdge {
         return prev;
     }
 
-    public void setPrev(HEdge prev) {
+    public void setPrev(final HEdge prev) {
         this.prev = prev;
     }
 
@@ -85,7 +85,7 @@ public class HEdge {
         return next;
     }
 
-    public void setNext(HEdge next) {
+    public void setNext(final HEdge next) {
         this.next = next;
     }
 
@@ -93,7 +93,7 @@ public class HEdge {
         return sibling;
     }
 
-    public void setSibling(HEdge sibling) {
+    public void setSibling(final HEdge sibling) {
         this.sibling = sibling;
     }
 
@@ -101,7 +101,7 @@ public class HEdge {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(final int type) {
         this.type = type;
     }
 
@@ -109,16 +109,16 @@ public class HEdge {
         return triangle;
     }
 
-    public void setTriangle(Triangle triangle) {
+    public void setTriangle(final Triangle triangle) {
         this.triangle = triangle;
     }
 
-    public static <T extends Vertex> void connect(HEdge first, HEdge next){
+    public static <T extends Vertex> void connect(final HEdge first, final HEdge next){
         first.setNext(next);
         next.setPrev(first);
     }
 
-    public static <T extends Vertex> void makeSiblings(HEdge first, HEdge second){
+    public static <T extends Vertex> void makeSiblings(final HEdge first, final HEdge second){
         first.setSibling(second);
         second.setSibling(first);
     }

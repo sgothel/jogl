@@ -14,7 +14,7 @@ public class GLUniformData {
      * Number of objects is 1
      *
      */
-    public GLUniformData(String name, int val) {
+    public GLUniformData(final String name, final int val) {
         initScalar(name, 1, new Integer(val));
     }
 
@@ -24,7 +24,7 @@ public class GLUniformData {
      * Number of objects is 1
      *
      */
-    public GLUniformData(String name, float val) {
+    public GLUniformData(final String name, final float val) {
         initScalar(name, 1, new Float(val));
     }
 
@@ -35,7 +35,7 @@ public class GLUniformData {
      *
      * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
-    public GLUniformData(String name, int components, IntBuffer data) {
+    public GLUniformData(final String name, final int components, final IntBuffer data) {
         initBuffer(name, components, data);
     }
 
@@ -46,19 +46,19 @@ public class GLUniformData {
      *
      * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
-    public GLUniformData(String name, int components, FloatBuffer data) {
+    public GLUniformData(final String name, final int components, final FloatBuffer data) {
         initBuffer(name, components, data);
     }
 
-    private GLUniformData(int components, String name) {
+    private GLUniformData(final int components, final String name) {
         initBuffer(name, components, null);
     }
 
-    public static GLUniformData creatEmptyVector(String name, int components) {
+    public static GLUniformData creatEmptyVector(final String name, final int components) {
         return new GLUniformData(components, name);
     }
 
-    public static GLUniformData creatEmptyMatrix(String name, int rows, int columns) {
+    public static GLUniformData creatEmptyMatrix(final String name, final int rows, final int columns) {
         return new GLUniformData(name, rows, columns, null);
     }
 
@@ -70,7 +70,7 @@ public class GLUniformData {
      * @param rows the matrix rows
      * @param column the matrix column
      */
-    public GLUniformData(String name, int rows, int columns, FloatBuffer data) {
+    public GLUniformData(final String name, final int rows, final int columns, final FloatBuffer data) {
         initBuffer(name, rows, columns, data);
     }
 
@@ -114,7 +114,7 @@ public class GLUniformData {
         return toString(null).toString();
     }
 
-    private void initBuffer(String name, int rows, int columns, Buffer buffer) {
+    private void initBuffer(final String name, final int rows, final int columns, final Buffer buffer) {
         if( 2>rows || rows>4 || 2>columns || columns>4 ) {
             throw new GLException("rowsXcolumns must be within [2..4]X[2..4], is: "+rows+"X"+columns);
         }
@@ -125,7 +125,7 @@ public class GLUniformData {
         this.location=-1;
         initBuffer(buffer);
     }
-    private void initScalar(String name, int components, Object data) {
+    private void initScalar(final String name, final int components, final Object data) {
         if( 1>components || components>4 ) {
             throw new GLException("components must be within [1..4], is: "+components);
         }
@@ -136,7 +136,7 @@ public class GLUniformData {
         this.location=-1;
         initScalar(data);
     }
-    private void initBuffer(String name, int components, Buffer buffer) {
+    private void initBuffer(final String name, final int components, final Buffer buffer) {
         if( 1>components || components>4 ) {
             throw new GLException("components must be within [1..4], is: "+components);
         }
@@ -148,7 +148,7 @@ public class GLUniformData {
         initBuffer(buffer);
     }
 
-    private void initScalar(Object data) {
+    private void initScalar(final Object data) {
         if(data instanceof Buffer) {
             initBuffer((Buffer)data);
         } else if( null != data ) {
@@ -185,7 +185,7 @@ public class GLUniformData {
      * Sets the given location of the shader uniform.
      * @return the given location
      */
-    public int setLocation(int location) { this.location=location; return location; }
+    public int setLocation(final int location) { this.location=location; return location; }
 
     /**
      * Retrieves the location of the shader uniform from the linked shader program.
@@ -197,7 +197,7 @@ public class GLUniformData {
      * @return &ge;0 denotes a valid uniform location as found and used in the given shader program.
      *         &lt;0 denotes an invalid location, i.e. not found or used in the given shader program.
      */
-    public int setLocation(GL2ES2 gl, int program) {
+    public int setLocation(final GL2ES2 gl, final int program) {
         location = gl.glGetUniformLocation(program, name);
         return location;
     }

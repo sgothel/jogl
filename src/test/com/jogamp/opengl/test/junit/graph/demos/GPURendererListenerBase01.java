@@ -93,7 +93,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
 
-    public GPURendererListenerBase01(RegionRenderer renderer, int renderModes, boolean debug, boolean trace) {
+    public GPURendererListenerBase01(final RegionRenderer renderer, final int renderModes, final boolean debug, final boolean trace) {
         this.renderer = renderer;
         this.renderModes = renderModes;
         this.debug = debug;
@@ -111,7 +111,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
 
-    public void setMatrix(float xtrans, float ytrans, float zTran, float angle, int sampleCount) {
+    public void setMatrix(final float xtrans, final float ytrans, final float zTran, final float angle, final int sampleCount) {
         this.xTran = xtrans;
         this.yTran = ytrans;
         this.zTran = zTran;
@@ -120,7 +120,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         autoDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(debug) {
@@ -138,14 +138,14 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
                                            final float zNear, final float zFar,
-                                           float orthoX, float orthoY, float orthoDist,
+                                           final float orthoX, final float orthoY, final float orthoDist,
                                            final float[] winZ, final float[] objPos) {
         winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
         pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
         final PMVMatrix pmv = renderer.getMatrix();
         renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -179,9 +179,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         autoDrawable = null;
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null != region) {
             region.destroy(gl);
         }
@@ -189,22 +189,22 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         renderer.destroy(gl);
     }
 
-    public void zoom(int v){
+    public void zoom(final int v){
         zTran += v;
         dumpMatrix();
     }
 
-    public void move(float x, float y){
+    public void move(final float x, final float y){
         xTran += x;
         yTran += y;
         dumpMatrix();
     }
-    public void rotate(float delta){
+    public void rotate(final float delta){
         ang += delta;
         ang %= 360.0f;
         dumpMatrix();
     }
-    public void editGlobalWeight(float delta) {
+    public void editGlobalWeight(final float delta) {
         if( !RenderState.isWeightValid(weight+delta) ) {
             return;
         }
@@ -217,23 +217,23 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     /** Attach the input listener to the window */
-    public void attachInputListenerTo(GLWindow window) {
+    public void attachInputListenerTo(final GLWindow window) {
         if ( null == keyAction ) {
             keyAction = new KeyAction();
             window.addKeyListener(keyAction);
         }
     }
 
-    public void detachInputListenerFrom(GLWindow window) {
+    public void detachInputListenerFrom(final GLWindow window) {
         if ( null == keyAction ) {
             return;
         }
         window.removeKeyListener(keyAction);
     }
 
-    public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
+    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-S%02d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), sampleCount[0], objName);
 
         final String filename = dir + tech + sw +".png";
@@ -244,7 +244,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     int screenshot_num = 0;
 
-    public void setIgnoreInput(boolean v) {
+    public void setIgnoreInput(final boolean v) {
         ignoreInput = v;
     }
     public boolean getIgnoreInput() {
@@ -253,7 +253,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     public class KeyAction implements KeyListener {
         @Override
-        public void keyPressed(KeyEvent arg0) {
+        public void keyPressed(final KeyEvent arg0) {
             if(ignoreInput) {
                 return;
             }
@@ -300,8 +300,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
                         @Override
-                        public boolean run(GLAutoDrawable drawable) {
-                            GL gl = drawable.getGL();
+                        public boolean run(final GLAutoDrawable drawable) {
+                            final GL gl = drawable.getGL();
                             int i = gl.getSwapInterval();
                             i = i==0 ? 1 : 0;
                             gl.setSwapInterval(i);
@@ -323,15 +323,15 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                     if(null != autoDrawable) {
                         autoDrawable.invoke(false, new GLRunnable() {
                             @Override
-                            public boolean run(GLAutoDrawable drawable) {
+                            public boolean run(final GLAutoDrawable drawable) {
                                 try {
                                     final String modeS = Region.getRenderModeString(renderModes);
                                     final String type = modeS + ( Region.hasVariableWeight(renderModes) ? "-vc" : "-uc" ) ;
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
-                                } catch (GLException e) {
+                                } catch (final GLException e) {
                                     e.printStackTrace();
-                                } catch (IOException e) {
+                                } catch (final IOException e) {
                                     e.printStackTrace();
                                 }
                                 return true;
@@ -341,6 +341,6 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
             }
         }
         @Override
-        public void keyReleased(KeyEvent arg0) {}
+        public void keyReleased(final KeyEvent arg0) {}
     }
 }

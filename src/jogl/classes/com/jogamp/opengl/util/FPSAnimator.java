@@ -65,13 +65,13 @@ public class FPSAnimator extends AnimatorBase {
     private volatile boolean shouldStop; // MainTask trigger
 
     @Override
-    protected String getBaseName(String prefix) {
+    protected String getBaseName(final String prefix) {
         return "FPS" + prefix + "Animator" ;
     }
 
     /** Creates an FPSAnimator with a given target frames-per-second
     value. Equivalent to <code>FPSAnimator(null, fps)</code>. */
-    public FPSAnimator(int fps) {
+    public FPSAnimator(final int fps) {
         this(null, fps);
     }
 
@@ -79,21 +79,21 @@ public class FPSAnimator extends AnimatorBase {
     value and a flag indicating whether to use fixed-rate
     scheduling. Equivalent to <code>FPSAnimator(null, fps,
     scheduleAtFixedRate)</code>. */
-    public FPSAnimator(int fps, boolean scheduleAtFixedRate) {
+    public FPSAnimator(final int fps, final boolean scheduleAtFixedRate) {
         this(null, fps, scheduleAtFixedRate);
     }
 
     /** Creates an FPSAnimator with a given target frames-per-second
     value and an initial drawable to animate. Equivalent to
     <code>FPSAnimator(null, fps, false)</code>. */
-    public FPSAnimator(GLAutoDrawable drawable, int fps) {
+    public FPSAnimator(final GLAutoDrawable drawable, final int fps) {
         this(drawable, fps, false);
     }
 
     /** Creates an FPSAnimator with a given target frames-per-second
     value, an initial drawable to animate, and a flag indicating
     whether to use fixed-rate scheduling. */
-    public FPSAnimator(GLAutoDrawable drawable, int fps, boolean scheduleAtFixedRate) {
+    public FPSAnimator(final GLAutoDrawable drawable, final int fps, final boolean scheduleAtFixedRate) {
         super();
         this.fps = fps;
         if (drawable != null) {
@@ -106,7 +106,7 @@ public class FPSAnimator extends AnimatorBase {
      * @param fps
      * @throws GLException if the animator has already been started
      */
-    public final synchronized void setFPS(int fps) throws GLException {
+    public final synchronized void setFPS(final int fps) throws GLException {
         if ( isStarted() ) {
             throw new GLException("Animator already started.");
         }
@@ -122,7 +122,7 @@ public class FPSAnimator extends AnimatorBase {
         public MainTask() {
         }
 
-        public void start(Timer timer) {
+        public void start(final Timer timer) {
             fpsCounter.resetFPSCounter();
             shouldRun = true;
             shouldStop = false;

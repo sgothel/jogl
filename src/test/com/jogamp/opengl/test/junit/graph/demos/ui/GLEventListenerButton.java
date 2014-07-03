@@ -72,7 +72,7 @@ public class GLEventListenerButton extends TextureSeqButton {
         this.fboHeight = fboHeight;
     }
 
-    public final void setAnimate(boolean v) { animateGLEL = v; }
+    public final void setAnimate(final boolean v) { animateGLEL = v; }
     public final boolean getAnimate() { return animateGLEL; }
 
     public final void setFBOSize(final int fboWidth, final int fboHeight) {
@@ -83,7 +83,7 @@ public class GLEventListenerButton extends TextureSeqButton {
     public final GLOffscreenAutoDrawable.FBO getFBOAutoDrawable() { return fboGLAD; }
 
     @Override
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
+    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         if( null == fboGLAD ) {
             final ImageSequence imgSeq = (ImageSequence)texSeq;
 

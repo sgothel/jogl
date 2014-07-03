@@ -36,7 +36,7 @@ public class GraphVertex {
     private ArrayList<HEdge> edges = null;
     private boolean boundaryContained = false;
 
-    public GraphVertex(Vertex point) {
+    public GraphVertex(final Vertex point) {
         this.point = point;
     }
 
@@ -59,7 +59,7 @@ public class GraphVertex {
         return point.getCoord();
     }
 
-    public void setPoint(Vertex point) {
+    public void setPoint(final Vertex point) {
         this.point = point;
     }
 
@@ -67,17 +67,17 @@ public class GraphVertex {
         return edges;
     }
 
-    public void setEdges(ArrayList<HEdge> edges) {
+    public void setEdges(final ArrayList<HEdge> edges) {
         this.edges = edges;
     }
 
-    public void addEdge(HEdge edge){
+    public void addEdge(final HEdge edge){
         if(edges == null){
             edges = new ArrayList<HEdge>();
         }
         edges.add(edge);
     }
-    public void removeEdge(HEdge edge){
+    public void removeEdge(final HEdge edge){
         if(edges == null)
             return;
         edges.remove(edge);
@@ -85,9 +85,9 @@ public class GraphVertex {
             edges = null;
         }
     }
-    public HEdge findNextEdge(GraphVertex nextVert){
+    public HEdge findNextEdge(final GraphVertex nextVert){
         for(int i=0; i<edges.size(); i++) {
-            HEdge e = edges.get(i);
+            final HEdge e = edges.get(i);
             if(e.getNext().getGraphPoint() == nextVert){
                 return e;
             }
@@ -96,16 +96,16 @@ public class GraphVertex {
     }
     public HEdge findBoundEdge(){
         for(int i=0; i<edges.size(); i++) {
-            HEdge e = edges.get(i);
+            final HEdge e = edges.get(i);
             if((e.getType() == HEdge.BOUNDARY) || (e.getType() == HEdge.HOLE)){
                 return e;
             }
         }
         return null;
     }
-    public HEdge findPrevEdge(GraphVertex prevVert){
+    public HEdge findPrevEdge(final GraphVertex prevVert){
         for(int i=0; i<edges.size(); i++) {
-            HEdge e = edges.get(i);
+            final HEdge e = edges.get(i);
             if(e.getPrev().getGraphPoint() == prevVert){
                 return e;
             }
@@ -117,7 +117,7 @@ public class GraphVertex {
         return boundaryContained;
     }
 
-    public void setBoundaryContained(boolean boundaryContained) {
+    public void setBoundaryContained(final boolean boundaryContained) {
         this.boundaryContained = boundaryContained;
     }
 

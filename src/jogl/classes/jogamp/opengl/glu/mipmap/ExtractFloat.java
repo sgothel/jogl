@@ -57,7 +57,7 @@ public class ExtractFloat implements ExtractPrimitive {
   }
 
   @Override
-  public double extract( boolean isSwap, ByteBuffer data ) {
+  public double extract( final boolean isSwap, final ByteBuffer data ) {
     float f = 0;
     if( isSwap ) {
       f = Mipmap.GLU_SWAP_4_BYTES( data.getInt() );
@@ -69,7 +69,7 @@ public class ExtractFloat implements ExtractPrimitive {
   }
 
   @Override
-  public void shove( double value, int index, ByteBuffer data ) {
+  public void shove( final double value, final int index, final ByteBuffer data ) {
     assert(0.0 <= value && value < 1.0);
     data.asFloatBuffer().put( index, (float)value );
   }

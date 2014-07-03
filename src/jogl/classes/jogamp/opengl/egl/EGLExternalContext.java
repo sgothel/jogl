@@ -43,7 +43,7 @@ import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
 
-    public EGLExternalContext(AbstractGraphicsScreen screen) {
+    public EGLExternalContext(final AbstractGraphicsScreen screen) {
         super(null, null);
         GLContextShareSet.contextCreated(this);
         if( !setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_ES, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION

@@ -53,8 +53,8 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
 
-    MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen,
-                                   GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested) {
+    MacOSXCGLGraphicsConfiguration(final AbstractGraphicsScreen screen,
+                                   final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested) {
         super(screen, capsChosen, capsRequested);
     }
 
@@ -63,8 +63,8 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return super.clone();
     }
 
-    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(MacOSXCGLDrawableFactory factory, AbstractGraphicsDevice device) {
-        MacOSXCGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
+    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(final MacOSXCGLDrawableFactory factory, final AbstractGraphicsDevice device) {
+        final MacOSXCGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }
@@ -88,7 +88,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         CGL.NSOpenGLPFASampleBuffers,
         CGL.NSOpenGLPFASamples });
 
-    static IntBuffer GLCapabilities2NSAttribList(AbstractGraphicsDevice device, IntBuffer attrToken, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+    static IntBuffer GLCapabilities2NSAttribList(final AbstractGraphicsDevice device, final IntBuffer attrToken, final GLCapabilitiesImmutable caps, final int ctp, final int major, final int minor) {
         final int len = attrToken.remaining();
         final int off = attrToken.position();
         final IntBuffer ivalues = Buffers.newDirectIntBuffer(len);
@@ -155,7 +155,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return ivalues;
     }
 
-    static long GLCapabilities2NSPixelFormat(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+    static long GLCapabilities2NSPixelFormat(final AbstractGraphicsDevice device, final GLCapabilitiesImmutable caps, final int ctp, final int major, final int minor) {
         final IntBuffer attrToken = cglInternalAttributeToken.duplicate();
         if ( !MacOSXCGLContext.isLionOrLater ) {
             // no OpenGLProfile
@@ -165,11 +165,11 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return CGL.createPixelFormat(attrToken, attrToken.remaining(), ivalues);
     }
 
-    static GLCapabilities NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
+    static GLCapabilities NSPixelFormat2GLCapabilities(final GLProfile glp, final long pixelFormat) {
         return PixelFormat2GLCapabilities(glp, pixelFormat, true);
     }
 
-    static long GLCapabilities2CGLPixelFormat(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+    static long GLCapabilities2CGLPixelFormat(final AbstractGraphicsDevice device, final GLCapabilitiesImmutable caps, final int ctp, final int major, final int minor) {
       // Set up pixel format attributes
       final IntBuffer attrs = Buffers.newDirectIntBuffer(256);
       int i = 0;
@@ -214,20 +214,20 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
       }
 
       // Use attribute array to select pixel format
-      PointerBuffer fmt = PointerBuffer.allocateDirect(1);
-      IntBuffer numScreens = Buffers.newDirectIntBuffer(1);
-      int res = CGL.CGLChoosePixelFormat(attrs, fmt, numScreens);
+      final PointerBuffer fmt = PointerBuffer.allocateDirect(1);
+      final IntBuffer numScreens = Buffers.newDirectIntBuffer(1);
+      final int res = CGL.CGLChoosePixelFormat(attrs, fmt, numScreens);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while choosing pixel format");
       }
       return fmt.get(0);
     }
 
-    static GLCapabilities CGLPixelFormat2GLCapabilities(long pixelFormat) {
+    static GLCapabilities CGLPixelFormat2GLCapabilities(final long pixelFormat) {
         return PixelFormat2GLCapabilities(null, pixelFormat, false);
     }
 
-    private static GLCapabilities PixelFormat2GLCapabilities(GLProfile glp, long pixelFormat, boolean nsUsage) {
+    private static GLCapabilities PixelFormat2GLCapabilities(GLProfile glp, final long pixelFormat, final boolean nsUsage) {
         final IntBuffer attrToken = cglInternalAttributeToken.duplicate();
         final int off;
         if ( !MacOSXCGLContext.isLionOrLater ) {

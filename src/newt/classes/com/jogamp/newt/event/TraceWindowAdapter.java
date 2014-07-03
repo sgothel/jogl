@@ -36,42 +36,42 @@ public class TraceWindowAdapter implements WindowListener {
         this.downstream = null;
     }
 
-    public TraceWindowAdapter(WindowListener downstream) {
+    public TraceWindowAdapter(final WindowListener downstream) {
         this.downstream = downstream;
     }
 
     @Override
-    public void windowResized(WindowEvent e) {
+    public void windowResized(final WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowResized(e); }
     }
     @Override
-    public void windowMoved(WindowEvent e) {
+    public void windowMoved(final WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowMoved(e); }
     }
     @Override
-    public void windowDestroyNotify(WindowEvent e) {
+    public void windowDestroyNotify(final WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowDestroyNotify(e); }
     }
     @Override
-    public void windowDestroyed(WindowEvent e) {
+    public void windowDestroyed(final WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowDestroyed(e); }
     }
     @Override
-    public void windowGainedFocus(WindowEvent e) {
+    public void windowGainedFocus(final WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowGainedFocus(e); }
     }
     @Override
-    public void windowLostFocus(WindowEvent e) {
+    public void windowLostFocus(final WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowLostFocus(e); }
     }
     @Override
-    public void windowRepaint(WindowUpdateEvent e) {
+    public void windowRepaint(final WindowUpdateEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowRepaint(e); }
     }

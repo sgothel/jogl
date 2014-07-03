@@ -68,7 +68,7 @@ public class AABBox {
      * Create an AABBox copying all values from the given one
      * @param src the box value to be used for the new instance
      */
-    public AABBox(AABBox src) {
+    public AABBox(final AABBox src) {
         copy(src);
     }
 
@@ -147,7 +147,7 @@ public class AABBox {
      * @param src source AABBox
      * @return this AABBox for chaining
      */
-    public final AABBox copy(AABBox src) {
+    public final AABBox copy(final AABBox src) {
         System.arraycopy(src.low, 0, low, 0, 3);
         System.arraycopy(src.high, 0, high, 0, 3);
         System.arraycopy(src.center, 0, center, 0, 3);
@@ -196,8 +196,8 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox resize(final AABBox newBox) {
-        float[] newLow = newBox.getLow();
-        float[] newHigh = newBox.getHigh();
+        final float[] newLow = newBox.getLow();
+        final float[] newHigh = newBox.getHigh();
 
         /** test low */
         if (newLow[0] < low[0])
@@ -662,7 +662,7 @@ public class AABBox {
     }
 
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if( obj == this ) {
             return true;
         }

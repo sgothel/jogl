@@ -38,7 +38,7 @@ import com.jogamp.newt.Screen;
 
 public class MonitorDeviceImpl extends MonitorDevice {
 
-    public MonitorDeviceImpl(ScreenImpl screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewportPU, Rectangle viewportWU, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
+    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId, final DimensionImmutable sizeMM, final Rectangle viewportPU, final Rectangle viewportWU, final MonitorMode currentMode, final ArrayHashSet<MonitorMode> supportedModes) {
         super(screen, nativeId, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
     }
 
@@ -73,7 +73,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
     }
 
     @Override
-    public final boolean setCurrentMode(MonitorMode mode) {
+    public final boolean setCurrentMode(final MonitorMode mode) {
         if(Screen.DEBUG) {
             System.err.println("Screen.setCurrentMode.0: "+this+" -> "+mode);
         }
@@ -132,7 +132,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
         }
     }
 
-    private final void setCurrentModeValue(MonitorMode currentMode) {
+    private final void setCurrentModeValue(final MonitorMode currentMode) {
         this.currentMode = currentMode;
     }
 

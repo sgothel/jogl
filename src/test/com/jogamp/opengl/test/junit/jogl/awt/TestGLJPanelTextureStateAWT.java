@@ -81,7 +81,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                         frame.validate();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -135,7 +135,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             int tX, tY, tW, tH;
             int shot = 0;
 
-            void setupTex(GL gl) {
+            void setupTex(final GL gl) {
                 // Note: FBObject uses diff defaults, i.e.: GL_NEAREST and GL_CLAMP_TO_EDGE
                 if( keepTextureBound ) {
                     gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -146,9 +146,9 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             }
 
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 // Initialize w/ arbitrary values !
-                GL2ES2 gl = drawable.getGL().getGL2ES2();
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
                 gl.glActiveTexture(GL.GL_TEXTURE0 + 1);
                 gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -168,13 +168,13 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             }
 
             @Override
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
                 gle0.dispose(drawable);
                 gle1.dispose(drawable);
             }
             @Override
-            public void display(GLAutoDrawable drawable) {
-                GL2ES2 gl = drawable.getGL().getGL2ES2();
+            public void display(final GLAutoDrawable drawable) {
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
                 gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -218,7 +218,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             }
             final int border = 5;
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 gle0X = x + border;
                 gle0Y = y;
                 gle0W = width/2 - 2*border;
@@ -237,7 +237,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                 tH = height;
                 // System.err.println("Total "+tX+"/"+tY+" "+tW+"x"+tH);
 
-                GL2ES2 gl = drawable.getGL().getGL2ES2();
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
                 gl.glViewport(gle0X, gle0Y, gle0W, gle0H);
                 gle0.reshape(drawable, 0, 0, gle0W, gle0H); // don't 'skip' about gle0X/gle0Y
 
@@ -259,7 +259,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                     frame.pack();
                     frame.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -283,7 +283,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                     frame.remove(glc);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -303,7 +303,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
         testImpl(true /* keepTextureBound */, 1 /* texUnit */);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

@@ -38,6 +38,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -345,7 +347,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
 
         final FloatBuffer glMv = FloatBuffer.allocate(16);
         {
-            GL2ES1 gl = dc.glc.getGL().getGL2ES1();
+            final GL2ES1 gl = dc.glc.getGL().getGL2ES1();
             gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             gl.glLoadIdentity();
             gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -356,8 +358,8 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         }
         // System.err.println(PMVMatrix.matrixToString(null, "%10.5f", glMv, pmvMv).toString());
 
-        MiscUtils.assertFloatBufferEquals("Arrays not equal, expected"+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", glMv).toString()+
-                ", actual"+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMv).toString(),
+        MiscUtils.assertFloatBufferEquals("Arrays not equal, expected"+PlatformPropsImpl.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", glMv).toString()+
+                ", actual"+PlatformPropsImpl.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMv).toString(),
                 glMv, pmvMv, epsilon);
 
         // System.err.println("pmvMvi:  "+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMvi));
@@ -384,7 +386,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
 
         final FloatBuffer glMv = FloatBuffer.allocate(16);
         {
-            GL2ES1 gl = dc.glc.getGL().getGL2ES1();
+            final GL2ES1 gl = dc.glc.getGL().getGL2ES1();
             gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             gl.glLoadIdentity();
             gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -396,8 +398,8 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         }
         // System.err.println(PMVMatrix.matrixToString(null, "%10.5f", glMv, pmvMv).toString());
 
-        MiscUtils.assertFloatBufferEquals("Arrays not equal, expected"+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", glMv).toString()+
-                ", actual"+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMv).toString(),
+        MiscUtils.assertFloatBufferEquals("Arrays not equal, expected"+PlatformPropsImpl.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", glMv).toString()+
+                ", actual"+PlatformPropsImpl.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMv).toString(),
                 glMv, pmvMv, epsilon);
 
         // System.err.println("pmvMvi:  "+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMvi));
@@ -410,7 +412,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
     public static void setup() throws Throwable {
         try {
             dc = createOffscreenDrawableAndCurrentFFPContext();
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             setTestSupported(false);
             throw t;
         }
@@ -422,7 +424,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
     }
 
     static class DrawableContext {
-        DrawableContext(GLDrawable d, GLContext glc) {
+        DrawableContext(final GLDrawable d, final GLContext glc) {
             this.d = d;
             this.glc = glc;
         }
@@ -431,19 +433,19 @@ public class TestPMVMatrix01NEWT extends UITestCase {
     }
 
     private static DrawableContext createOffscreenDrawableAndCurrentFFPContext() throws Throwable {
-        GLProfile glp = GLProfile.getMaxFixedFunc(true);
-        GLCapabilities glCaps = new GLCapabilities(glp);
+        final GLProfile glp = GLProfile.getMaxFixedFunc(true);
+        final GLCapabilities glCaps = new GLCapabilities(glp);
         glCaps.setOnscreen(false);
         glCaps.setPBuffer(true);
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        GLDrawable d = factory.createOffscreenDrawable(null, glCaps, null, 64, 64);
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        final GLDrawable d = factory.createOffscreenDrawable(null, glCaps, null, 64, 64);
         d.setRealized(true);
         GLContext glc = null;
         try {
             glc = d.createContext(null);
             Assert.assertTrue("Context could not be made current", GLContext.CONTEXT_NOT_CURRENT < glc.makeCurrent());
             return new DrawableContext(d, glc);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             if(null != glc) {
                 glc.destroy();
             }
@@ -452,7 +454,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         }
     }
 
-    private static void destroyDrawableContext(DrawableContext dc) {
+    private static void destroyDrawableContext(final DrawableContext dc) {
         if(null != dc.glc) {
             dc.glc.destroy();
             dc.glc = null;
@@ -463,7 +465,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPMVMatrix01NEWT.class.getName());
     }
 }

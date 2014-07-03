@@ -69,7 +69,7 @@ public class AffineTransform implements Cloneable {
         setToIdentity();
     }
 
-    public AffineTransform(AffineTransform t) {
+    public AffineTransform(final AffineTransform t) {
         this.type = t.type;
         this.m00 = t.m00;
         this.m10 = t.m10;
@@ -79,7 +79,7 @@ public class AffineTransform implements Cloneable {
         this.m12 = t.m12;
     }
 
-    public AffineTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
+    public AffineTransform(final float m00, final float m10, final float m01, final float m11, final float m02, final float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -89,7 +89,7 @@ public class AffineTransform implements Cloneable {
         this.m12 = m12;
     }
 
-    public AffineTransform(float[] matrix) {
+    public AffineTransform(final float[] matrix) {
         this.type = TYPE_UNKNOWN;
         m00 = matrix[0];
         m10 = matrix[1];
@@ -144,8 +144,8 @@ public class AffineTransform implements Cloneable {
             type |= TYPE_FLIP;
         }
 
-        float dx = m00 * m00 + m10 * m10;
-        float dy = m01 * m01 + m11 * m11;
+        final float dx = m00 * m00 + m10 * m10;
+        final float dy = m01 * m01 + m11 * m11;
         if (dx != dy) {
             type |= TYPE_GENERAL_SCALE;
         } else
@@ -193,7 +193,7 @@ public class AffineTransform implements Cloneable {
         return getType() == TYPE_IDENTITY;
     }
 
-    public final void getMatrix(float[] matrix) {
+    public final void getMatrix(final float[] matrix) {
         matrix[0] = m00;
         matrix[1] = m10;
         matrix[2] = m01;
@@ -208,7 +208,7 @@ public class AffineTransform implements Cloneable {
         return m00 * m11 - m01 * m10;
     }
 
-    public final AffineTransform setTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
+    public final AffineTransform setTransform(final float m00, final float m10, final float m01, final float m11, final float m02, final float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -219,7 +219,7 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform setTransform(AffineTransform t) {
+    public final AffineTransform setTransform(final AffineTransform t) {
         type = t.type;
         setTransform(t.m00, t.m10, t.m01, t.m11, t.m02, t.m12);
         return this;
@@ -232,7 +232,7 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform setToTranslation(float mx, float my) {
+    public final AffineTransform setToTranslation(final float mx, final float my) {
         m00 = m11 = 1.0f;
         m01 = m10 = 0.0f;
         m02 = mx;
@@ -245,7 +245,7 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform setToScale(float scx, float scy) {
+    public final AffineTransform setToScale(final float scx, final float scy) {
         m00 = scx;
         m11 = scy;
         m10 = m01 = m02 = m12 = 0.0f;
@@ -257,7 +257,7 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform setToShear(float shx, float shy) {
+    public final AffineTransform setToShear(final float shx, final float shy) {
         m00 = m11 = 1.0f;
         m02 = m12 = 0.0f;
         m01 = shx;
@@ -270,7 +270,7 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform setToRotation(float angle) {
+    public final AffineTransform setToRotation(final float angle) {
         float sin = FloatUtil.sin(angle);
         float cos = FloatUtil.cos(angle);
         if (FloatUtil.abs(cos) < ZERO) {
@@ -289,7 +289,7 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform setToRotation(float angle, float px, float py) {
+    public final AffineTransform setToRotation(final float angle, final float px, final float py) {
         setToRotation(angle);
         m02 = px * (1.0f - m00) + py * m10;
         m12 = py * (1.0f - m00) - px * m10;
@@ -297,23 +297,23 @@ public class AffineTransform implements Cloneable {
         return this;
     }
 
-    public final AffineTransform translate(float mx, float my, AffineTransform tmp) {
+    public final AffineTransform translate(final float mx, final float my, final AffineTransform tmp) {
         return concatenate(tmp.setToTranslation(mx, my));
     }
 
-    public final AffineTransform scale(float scx, float scy, AffineTransform tmp) {
+    public final AffineTransform scale(final float scx, final float scy, final AffineTransform tmp) {
         return concatenate(tmp.setToScale(scx, scy));
     }
 
-    public final AffineTransform shear(float shx, float shy, AffineTransform tmp) {
+    public final AffineTransform shear(final float shx, final float shy, final AffineTransform tmp) {
         return concatenate(tmp.setToShear(shx, shy));
     }
 
-    public final AffineTransform rotate(float angle, AffineTransform tmp) {
+    public final AffineTransform rotate(final float angle, final AffineTransform tmp) {
         return concatenate(tmp.setToRotation(angle));
     }
 
-    public final AffineTransform rotate(float angle, float px, float py, AffineTransform tmp) {
+    public final AffineTransform rotate(final float angle, final float px, final float py, final AffineTransform tmp) {
         return concatenate(tmp.setToRotation(angle, px, py));
     }
 
@@ -345,7 +345,7 @@ public class AffineTransform implements Cloneable {
      * @param tR the right-argument of the matrix multiplication
      * @return this transform for chaining
      */
-    public final AffineTransform concatenate(AffineTransform tR) {
+    public final AffineTransform concatenate(final AffineTransform tR) {
         // setTransform(multiply(this, tR));
         type = TYPE_UNKNOWN;
         setTransform(
@@ -369,7 +369,7 @@ public class AffineTransform implements Cloneable {
      * @param tL the left-argument of the matrix multiplication
      * @return this transform for chaining
      */
-    public final AffineTransform preConcatenate(AffineTransform tL) {
+    public final AffineTransform preConcatenate(final AffineTransform tL) {
         // setTransform(multiply(tL, this));
         type = TYPE_UNKNOWN;
         setTransform(
@@ -383,7 +383,7 @@ public class AffineTransform implements Cloneable {
     }
 
     public final AffineTransform createInverse() throws NoninvertibleTransformException {
-        float det = getDeterminant();
+        final float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
@@ -425,8 +425,8 @@ public class AffineTransform implements Cloneable {
 
     public final void transform(final Vertex[] src, int srcOff, final Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
-            Vertex srcPoint = src[srcOff++];
-            Vertex dstPoint = dst[dstOff];
+            final Vertex srcPoint = src[srcOff++];
+            final Vertex dstPoint = dst[dstOff];
             if (dstPoint == null) {
                 throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
@@ -489,8 +489,8 @@ public class AffineTransform implements Cloneable {
 
     public final void deltaTransform(final float[] src, int srcOff, final float[] dst, int dstOff, int length) {
         while (--length >= 0) {
-            float x = src[srcOff++];
-            float y = src[srcOff++];
+            final float x = src[srcOff++];
+            final float y = src[srcOff++];
             dst[dstOff++] = x * m00 + y * m01;
             dst[dstOff++] = x * m10 + y * m11;
         }
@@ -504,7 +504,7 @@ public class AffineTransform implements Cloneable {
      * @throws NoninvertibleTransformException
      */
     public final Vertex inverseTransform(final Vertex src, final Vertex dst) throws NoninvertibleTransformException {
-        float det = getDeterminant();
+        final float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
@@ -517,28 +517,28 @@ public class AffineTransform implements Cloneable {
     public final void inverseTransform(final float[] src, int srcOff, final float[] dst, int dstOff, int length)
         throws NoninvertibleTransformException
     {
-        float det = getDeterminant();
+        final float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
 
         while (--length >= 0) {
-            float x = src[srcOff++] - m02;
-            float y = src[srcOff++] - m12;
+            final float x = src[srcOff++] - m02;
+            final float y = src[srcOff++] - m12;
             dst[dstOff++] = (x * m11 - y * m01) / det;
             dst[dstOff++] = (y * m00 - x * m10) / det;
         }
     }
 
-    public final Path2D createTransformedShape(Path2D src) {
+    public final Path2D createTransformedShape(final Path2D src) {
         if (src == null) {
             return null;
         }
         if (src instanceof Path2D) {
             return src.createTransformedShape(this);
         }
-        PathIterator path = src.iterator(this);
-        Path2D dst = new Path2D(path.getWindingRule());
+        final PathIterator path = src.iterator(this);
+        final Path2D dst = new Path2D(path.getWindingRule());
         dst.append(path, false);
         return dst;
     }
@@ -555,7 +555,7 @@ public class AffineTransform implements Cloneable {
     public final AffineTransform clone() {
         try {
             return (AffineTransform) super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new InternalError();
         }
     }
@@ -573,12 +573,12 @@ public class AffineTransform implements Cloneable {
     } */
 
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (obj == this) {
             return true;
         }
         if (obj instanceof AffineTransform) {
-            AffineTransform t = (AffineTransform)obj;
+            final AffineTransform t = (AffineTransform)obj;
             return
                 m00 == t.m00 && m01 == t.m01 &&
                 m02 == t.m02 && m10 == t.m10 &&

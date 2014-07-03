@@ -18,13 +18,13 @@ import java.io.IOException;
  */
 public class KernTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private int nTables;
-    private KernSubtable[] tables;
+    private final DirectoryEntry de;
+    private final int version;
+    private final int nTables;
+    private final KernSubtable[] tables;
 
     /** Creates new KernTable */
-    protected KernTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected KernTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readUnsignedShort();
         nTables = di.readUnsignedShort();
@@ -38,7 +38,7 @@ public class KernTable implements Table {
         return nTables;
     }
 
-    public KernSubtable getSubtable(int i) {
+    public KernSubtable getSubtable(final int i) {
         return tables[i];
     }
 

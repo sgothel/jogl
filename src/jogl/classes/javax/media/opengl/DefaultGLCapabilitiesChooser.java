@@ -41,8 +41,12 @@
 package javax.media.opengl;
 
 import javax.media.nativewindow.NativeWindowException;
+
 import java.util.List;
+
 import javax.media.nativewindow.CapabilitiesImmutable;
+
+import com.jogamp.common.util.PropertyAccess;
 
 import jogamp.opengl.Debug;
 
@@ -89,7 +93,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
 
   static {
       Debug.initSingleton();
-      DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
+      DEBUG = PropertyAccess.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
   }
 
   private final static int NO_SCORE = -9999999;
@@ -142,7 +146,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     }
 
     // Create score array
-    int[] scores = new int[availnum];
+    final int[] scores = new int[availnum];
 
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;
@@ -218,13 +222,13 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     boolean gotHW = false;
     int maxAbsoluteHWScore = 0;
     for (int i = 0; i < availnum; i++) {
-      int score = scores[i];
+      final int score = scores[i];
       if (score == NO_SCORE) {
         continue;
       }
       final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur.getHardwareAccelerated()) {
-        int absScore = Math.abs(score);
+        final int absScore = Math.abs(score);
         if (!gotHW ||
             (absScore > maxAbsoluteHWScore)) {
           gotHW = true;
@@ -265,7 +269,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     int scoreClosestToZero = NO_SCORE;
     int chosenIndex = -1;
     for (int i = 0; i < availnum; i++) {
-      int score = scores[i];
+      final int score = scores[i];
       if (score == NO_SCORE) {
         continue;
       }
@@ -289,7 +293,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     return chosenIndex;
   }
 
-  private static int sign(int score) {
+  private static int sign(final int score) {
     if (score < 0) {
       return -1;
     }

@@ -66,16 +66,16 @@ public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
         }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
-        String tstname = TestInitConcurrent01NEWT.class.getName();
+        final String tstname = TestInitConcurrent01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

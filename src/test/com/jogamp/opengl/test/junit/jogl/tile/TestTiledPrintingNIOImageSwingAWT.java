@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.tile;
 
 import java.awt.BorderLayout;
@@ -80,7 +80,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
     static boolean allow600dpi = false;
     static GLProfile glp;
     static int width, height;
-    
+
     @BeforeClass
     public static void initClass() {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
@@ -98,7 +98,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
     @AfterClass
     public static void releaseClass() {
     }
-    
+
     protected void printOffscreenToFile(final BufferedImage image, final Frame frame, final GLCapabilities caps, final int num, final String detail) {
         final Insets frameInsets = frame.getInsets();
         final int frameWidth = frame.getWidth();
@@ -108,17 +108,17 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
         final double scaleComp72;
         // Note: Frame size contains the frame border (i.e. insets)!
         {
-            final double sx = (double)imageWidth / frameWidth; 
+            final double sx = (double)imageWidth / frameWidth;
             final double sy = (double)imageHeight / frameHeight;
             scaleComp72 = Math.min(sx, sy);
         }
         System.err.println("PRINT DPI: scaleComp72 "+scaleComp72+", image-size "+imageWidth+"x"+imageHeight+", frame[border "+frameInsets+", size "+frameWidth+"x"+frameHeight+"]");
-        
+
         System.err.println("XXX: image "+image);
         System.err.println("XXX: cm "+image.getColorModel());
         System.err.println("XXX: raster "+image.getRaster());
         System.err.println("XXX: dataBuffer "+image.getRaster().getDataBuffer());
-        
+
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
             public void run() {
                 final Graphics2D g2d = (Graphics2D) image.getGraphics();
@@ -126,7 +126,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                 g2d.scale(scaleComp72, scaleComp72);
                 // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                
+
                 // frame.paintAll(g2d);
                 final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, 1.0/scaleComp72, 1.0/scaleComp72, 0, -1, -1);
                 try {
@@ -137,20 +137,20 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                 // to file
                 final String fname = getSnapshotFilename(num, detail, caps, image.getWidth(), image.getHeight(), false, TextureIO.PNG, null);
                 System.err.println("XXX file "+fname);
-                final File fout = new File(fname); 
+                final File fout = new File(fname);
                 try {
                     ImageIO.write(image, "png", fout);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             } });
     }
-    
+
     protected void runTestGL(final GLCapabilities caps, final boolean layered) throws InterruptedException, InvocationTargetException {
         final int layerStepX = width/6, layerStepY = height/6;
         final Dimension glc_sz = new Dimension(layered ? width - 2*layerStepX : width/2, layered ? height - 2*layerStepY : height);
         final GLJPanel glJPanel1 = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel1);        
+        Assert.assertNotNull(glJPanel1);
         glJPanel1.setMinimumSize(glc_sz);
         glJPanel1.setPreferredSize(glc_sz);
         if( layered ) {
@@ -159,9 +159,9 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
             glJPanel1.setBounds(0, 0, glc_sz.width, glc_sz.height);
         }
         glJPanel1.addGLEventListener(new Gears());
-        
+
         final GLJPanel glJPanel2 = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel2);        
+        Assert.assertNotNull(glJPanel2);
         glJPanel2.setMinimumSize(glc_sz);
         glJPanel2.setPreferredSize(glc_sz);
         if( layered ) {
@@ -171,7 +171,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
         }
         glJPanel2.addGLEventListener(new RedSquareES2());
         // glJPanel2.addGLEventListener(new Gears());
-        
+
         final JComponent demoPanel;
         if( layered ) {
             glJPanel1.setOpaque(true);
@@ -192,14 +192,14 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
             demoPanel.add(glJPanel1);
             demoPanel.add(glJPanel2);
         }
-        
+
         final JFrame frame = new JFrame("Swing Print");
         Assert.assertNotNull(frame);
-        
+
         final Button print72DPIButton = new Button("72dpi"); // dummy
         final Button print300DPIButton = new Button("300dpi"); // dummy
         final Button print600DPIButton = new Button("600dpi"); // dummy
-            
+
         final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
         printPanel.add(print300DPIButton);
@@ -210,7 +210,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
         eastPanel.add(new Label("East"));
         final JPanel westPanel = new JPanel();
         westPanel.add(new Label("West"));
-        
+
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     final Container fcont = frame.getContentPane();
@@ -224,11 +224,11 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                     frame.pack();
                     frame.setVisible(true);
                 } } ) ;
-        
+
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
-        
+
         // paint offscreen: array 72dpi ARGB
         {
             final BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -241,29 +241,29 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
         }
         // paint offscreen: NIO 150dpi ARGB
         {
-            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 );
             final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_ARGB, null /* location */, null /* properties */);
             printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_argb");
         }
         // paint offscreen: NIO 150dpi ARGB_PRE
         {
-            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 );
             final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_ARGB_PRE, null /* location */, null /* properties */);
             printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_argbp");
         }
         // paint offscreen: NIO 150dpi RGB
         {
-            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 );
             final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_RGB, null /* location */, null /* properties */);
             printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_rgb");
         }
         // paint offscreen: NIO 150dpi BGR
         {
-            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 );
             final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_BGR, null /* location */, null /* properties */);
             printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_bgr");
         }
-        
+
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel1);
         Assert.assertNotNull(glJPanel2);
@@ -283,25 +283,25 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
 
     @Test
     public void test01_Offscreen_aa0() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false);
     }
-    
+
     @Test
     public void test01_Offscreen_aa0_layered() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, true);
     }
-    
+
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-600dpi")) {
                 allow600dpi = true;
             } else if(args[i].equals("-wait")) {
@@ -309,11 +309,11 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
             }
         }
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestTiledPrintingNIOImageSwingAWT.class.getName());
     }

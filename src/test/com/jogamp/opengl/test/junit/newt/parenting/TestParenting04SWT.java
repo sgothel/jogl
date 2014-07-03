@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.io.IOException;
@@ -74,7 +74,7 @@ public class TestParenting04SWT extends UITestCase {
     Composite composite1 = null;
     Composite composite2 = null;
     com.jogamp.newt.Display swtNewtDisplay = null;
-    
+
     @BeforeClass
     public static void initClass() {
         width  = 400;
@@ -85,17 +85,17 @@ public class TestParenting04SWT extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invoke(true, new Runnable() {
-            public void run() {        
+            public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
-                
+
                 shell1 = new Shell( display );
                 Assert.assertNotNull( shell1 );
                 shell1.setLayout( new FillLayout() );
                 composite1 = new Composite( shell1, SWT.NONE );
                 composite1.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite1 );
-                
+
                 shell2 = new Shell( display );
                 Assert.assertNotNull( shell2 );
                 shell2.setLayout( new FillLayout() );
@@ -105,7 +105,7 @@ public class TestParenting04SWT extends UITestCase {
             }});
         swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
     }
-    
+
     @After
     public void release() {
         Assert.assertNotNull( display );
@@ -123,7 +123,7 @@ public class TestParenting04SWT extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -134,37 +134,37 @@ public class TestParenting04SWT extends UITestCase {
         composite1 = null;
         composite2 = null;
     }
-    
+
     @Test
     public void test01WinHopFrame2FrameDirectHop() throws InterruptedException, InvocationTargetException {
         // Will produce some artifacts .. resizing etc
         winHopFrame2Frame(false);
     }
-    
+
     @Test
     public void test02WinHopFrame2FrameDetachFirst() throws InterruptedException, InvocationTargetException {
-        // Note: detaching first setNEWTChild(null) is much cleaner visually 
+        // Note: detaching first setNEWTChild(null) is much cleaner visually
         winHopFrame2Frame(true);
     }
-    
+
     protected void winHopFrame2Frame(final boolean detachFirst) throws InterruptedException, InvocationTargetException {
-        com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
-        
+        final com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
+
         final GLWindow glWindow1 = GLWindow.create(screen, glCaps);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        Animator anim1 = new Animator(glWindow1);
-        
+        final Animator anim1 = new Animator(glWindow1);
+
         final GLWindow glWindow2 = GLWindow.create(screen, glCaps);
-        GLEventListener demo2 = new GearsES2();
+        final GLEventListener demo2 = new GearsES2();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);
-        Animator anim2 = new Animator(glWindow2);
+        final Animator anim2 = new Animator(glWindow2);
 
         final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( composite1, 0, glWindow1 );
         final NewtCanvasSWT canvas2 = NewtCanvasSWT.create( composite2, 0, glWindow2 );
-    
+
         SWTAccessor.invoke(true, new Runnable() {
            public void run() {
               shell1.setText( getSimpleTestName(".")+"-Win1" );
@@ -176,13 +176,13 @@ public class TestParenting04SWT extends UITestCase {
               shell2.setLocation(width + 50, 0);
               shell2.open();
            }
-        });        
+        });
         Assert.assertEquals(canvas1.getNativeWindow(),glWindow1.getParent());
         Assert.assertEquals(canvas2.getNativeWindow(),glWindow2.getParent());
 
         anim1.start();
         anim2.start();
-        
+
         int state;
         for(state=0; state<3; state++) {
             for(int i=0; i*10<durationPerTest; i++) {
@@ -198,7 +198,7 @@ public class TestParenting04SWT extends UITestCase {
                            // 1 -> 2
                            if(detachFirst) {
                                canvas1.setNEWTChild(null);
-                               canvas2.setNEWTChild(null);                               
+                               canvas2.setNEWTChild(null);
                            } else {
                                canvas2.setNEWTChild(null);  // free g2 of w2
                            }
@@ -212,7 +212,7 @@ public class TestParenting04SWT extends UITestCase {
                            // 2 -> 1
                            if(detachFirst) {
                                canvas1.setNEWTChild(null);
-                               canvas2.setNEWTChild(null);                               
+                               canvas2.setNEWTChild(null);
                            } else {
                                canvas2.setNEWTChild(null);
                            }
@@ -226,13 +226,13 @@ public class TestParenting04SWT extends UITestCase {
         canvas1.dispose();
         canvas2.dispose();
         Assert.assertEquals(false, glWindow1.isNativeValid());
-        Assert.assertEquals(false, glWindow2.isNativeValid());        
+        Assert.assertEquals(false, glWindow2.isNativeValid());
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -242,21 +242,21 @@ public class TestParenting04SWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting04SWT.class.getName();
+        final String tstname = TestParenting04SWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

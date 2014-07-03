@@ -72,13 +72,13 @@ public abstract class GLReadBuffer00Base extends UITestCase {
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             regionFPS.destroy(drawable.getGL().getGL2ES2());
             super.dispose(drawable);
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {

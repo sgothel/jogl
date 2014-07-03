@@ -46,10 +46,14 @@ package jogamp.opengl.glu.mipmap;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.GLException;
+
 import java.nio.*;
+
 import com.jogamp.common.nio.Buffers;
 
 /**
@@ -108,7 +112,7 @@ public class Mipmap {
     return( s );
   }
 
-  public static int GLU_SWAP_4_BYTES( int i ) {
+  public static int GLU_SWAP_4_BYTES( final int i ) {
     int t = i << 24;
     t |= 0x00FF0000 & ( i << 8 );
     t |= 0x0000FF00 & ( i >>> 8 );
@@ -116,17 +120,17 @@ public class Mipmap {
     return( t );
   }
 
-  public static float GLU_SWAP_4_BYTES( float f ) {
-    int i = Float.floatToRawIntBits( f );
-    float temp = Float.intBitsToFloat( i );
+  public static float GLU_SWAP_4_BYTES( final float f ) {
+    final int i = Float.floatToRawIntBits( f );
+    final float temp = Float.intBitsToFloat( i );
     return( temp );
   }
 
-  public static int checkMipmapArgs( int internalFormat, int format, int type ) {
+  public static int checkMipmapArgs( final int internalFormat, final int format, final int type ) {
     if( !legalFormat( format ) || !legalType( type ) ) {
       return( GLU.GLU_INVALID_ENUM );
     }
-    if( format == GL2GL3.GL_STENCIL_INDEX ) {
+    if( format == GL2ES2.GL_STENCIL_INDEX ) {
       return( GLU.GLU_INVALID_ENUM );
     }
     if( !isLegalFormatForPackedPixelType( format, type ) ) {
@@ -135,19 +139,19 @@ public class Mipmap {
     return( 0 );
   }
 
-  public static boolean legalFormat( int format ) {
+  public static boolean legalFormat( final int format ) {
     switch( format ) {
       case( GL2.GL_COLOR_INDEX ):
-      case( GL2GL3.GL_STENCIL_INDEX ):
-      case( GL2GL3.GL_DEPTH_COMPONENT ):
-      case( GL2GL3.GL_RED ):
-      case( GL2GL3.GL_GREEN ):
-      case( GL2GL3.GL_BLUE ):
-      case( GL2GL3.GL_ALPHA ):
-      case( GL2GL3.GL_RGB ):
-      case( GL2GL3.GL_RGBA ):
-      case( GL2GL3.GL_LUMINANCE ):
-      case( GL2GL3.GL_LUMINANCE_ALPHA ):
+      case( GL2ES2.GL_STENCIL_INDEX ):
+      case( GL2ES2.GL_DEPTH_COMPONENT ):
+      case( GL2ES2.GL_RED ):
+      case( GL2ES3.GL_GREEN ):
+      case( GL2ES3.GL_BLUE ):
+      case( GL.GL_ALPHA ):
+      case( GL.GL_RGB ):
+      case( GL.GL_RGBA ):
+      case( GL.GL_LUMINANCE ):
+      case( GL.GL_LUMINANCE_ALPHA ):
       case( GL2GL3.GL_BGR ):
       case( GL.GL_BGRA ):
         return( true );
@@ -156,55 +160,55 @@ public class Mipmap {
     }
   }
 
-  public static boolean legalType( int type ) {
+  public static boolean legalType( final int type ) {
     switch( type ) {
       case( GL2.GL_BITMAP ):
-      case( GL2GL3.GL_BYTE ):
-      case( GL2GL3.GL_UNSIGNED_BYTE ):
-      case( GL2GL3.GL_SHORT ):
-      case( GL2GL3.GL_UNSIGNED_SHORT ):
-      case( GL2GL3.GL_INT ):
-      case( GL2GL3.GL_UNSIGNED_INT ):
-      case( GL2GL3.GL_FLOAT ):
+      case( GL.GL_BYTE ):
+      case( GL.GL_UNSIGNED_BYTE ):
+      case( GL.GL_SHORT ):
+      case( GL.GL_UNSIGNED_SHORT ):
+      case( GL2ES2.GL_INT ):
+      case( GL.GL_UNSIGNED_INT ):
+      case( GL.GL_FLOAT ):
       case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
       case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
-      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
       case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
-      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
       case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-      case( GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
       case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
       case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
       case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
-      case( GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ):
-      case( GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
         return( true );
       default:
         return( false );
     }
   }
 
-  public static boolean isTypePackedPixel( int type ) {
+  public static boolean isTypePackedPixel( final int type ) {
     assert( legalType( type ) );
 
     if( type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ||
         type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ||
+        type == GL.GL_UNSIGNED_SHORT_5_6_5 ||
         type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
+        type == GL.GL_UNSIGNED_SHORT_4_4_4_4 ||
         type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ||
+        type == GL.GL_UNSIGNED_SHORT_5_5_5_1 ||
         type == GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
         type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ||
         type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
-        type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
-        type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) {
+        type == GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ||
+        type == GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ) {
           return( true );
     }
     return( false );
   }
 
-  public static boolean isLegalFormatForPackedPixelType( int format, int type ) {
+  public static boolean isLegalFormatForPackedPixelType( final int format, final int type ) {
     // if not a packed pixel type then return true
     if( isTypePackedPixel( type ) ) {
       return( true );
@@ -212,29 +216,29 @@ public class Mipmap {
 
     // 3_3_2/2_3_3_REV & 5_6_5/5_6_5_REV are only compatible with RGB
     if( (type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 || type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 || type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV )
-        & format != GL2GL3.GL_RGB ) {
+        type == GL.GL_UNSIGNED_SHORT_5_6_5 || type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV )
+        & format != GL.GL_RGB ) {
           return( false );
     }
 
     // 4_4_4_4/4_4_4_4_REV & 5_5_5_1/1_5_5_5_REV & 8_8_8_8/8_8_8_8_REV &
     // 10_10_10_2/2_10_10_10_REV are only campatible with RGBA, BGRA & ARGB_EXT
-    if( ( type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
+    if( ( type == GL.GL_UNSIGNED_SHORT_4_4_4_4 ||
           type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
-          type == GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ||
+          type == GL.GL_UNSIGNED_SHORT_5_5_5_1 ||
           type == GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
           type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ||
           type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
-          type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
-          type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) &&
+          type == GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ||
+          type == GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ) &&
           (format != GL.GL_RGBA && format != GL.GL_BGRA) ) {
             return( false );
     }
     return( true );
   }
 
-  public static boolean isLegalLevels( int userLevel, int baseLevel, int maxLevel,
-                                            int totalLevels ) {
+  public static boolean isLegalLevels( final int userLevel, final int baseLevel, final int maxLevel,
+                                            final int totalLevels ) {
     if( (baseLevel < 0) || (baseLevel < userLevel) || (maxLevel < baseLevel) ||
                                                   (totalLevels < maxLevel) ) {
       return( false );
@@ -249,13 +253,13 @@ public class Mipmap {
    * advertise the texture extension.
    * Note that proxy textures are implemented but not according to spec in IMPACT*
    */
-  public static void closestFit( GL gl, int target, int width, int height, int internalFormat,
-                                int format, int type, int[] newWidth, int[] newHeight ) {
+  public static void closestFit( final GL gl, final int target, final int width, final int height, final int internalFormat,
+                                final int format, final int type, final int[] newWidth, final int[] newHeight ) {
     // Use proxy textures if OpenGL version >= 1.1
     if( Double.parseDouble( gl.glGetString( GL.GL_VERSION ).trim().substring( 0, 3 ) ) >= 1.1 ) {
       int widthPowerOf2 = nearestPower( width );
       int heightPowerOf2 = nearestPower( height );
-      int[] proxyWidth = new int[1];
+      final int[] proxyWidth = new int[1];
       boolean noProxyTextures = false;
 
       // Some drivers (in particular, ATI's) seem to set a GL error
@@ -265,24 +269,24 @@ public class Mipmap {
       try {
         do {
           // compute level 1 width & height, clamping each at 1
-          int widthAtLevelOne = ( ( width > 1 ) ? (widthPowerOf2 >> 1) : widthPowerOf2 );
-          int heightAtLevelOne = ( ( height > 1 ) ? (heightPowerOf2 >> 1) : heightPowerOf2 );
+          final int widthAtLevelOne = ( ( width > 1 ) ? (widthPowerOf2 >> 1) : widthPowerOf2 );
+          final int heightAtLevelOne = ( ( height > 1 ) ? (heightPowerOf2 >> 1) : heightPowerOf2 );
           int proxyTarget;
 
           assert( widthAtLevelOne > 0 );
           assert( heightAtLevelOne > 0 );
 
           // does width x height at level 1 & all their mipmaps fit?
-          if( target == GL2GL3.GL_TEXTURE_2D || target == GL2GL3.GL_PROXY_TEXTURE_2D ) {
+          if( target == GL.GL_TEXTURE_2D || target == GL2GL3.GL_PROXY_TEXTURE_2D ) {
             proxyTarget = GL2GL3.GL_PROXY_TEXTURE_2D;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
-          } else if( (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_X) ||
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) ||
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) ||
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) ||
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) ||
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ) {
+          } else if( (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X) ||
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) ||
+                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) ||
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) ||
+                     (target == GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) ||
+                     (target == GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ) {
             proxyTarget = GL2GL3.GL_PROXY_TEXTURE_CUBE_MAP;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
@@ -313,7 +317,7 @@ public class Mipmap {
           }
           // else it does fit
         } while( proxyWidth[0] == 0 );
-      } catch (GLException e) {
+      } catch (final GLException e) {
         noProxyTextures = true;
       }
       // loop must terminate
@@ -324,8 +328,8 @@ public class Mipmap {
         return;
       }
     }
-    int[] maxsize = new int[1];
-    gl.glGetIntegerv( GL2GL3.GL_MAX_TEXTURE_SIZE, maxsize , 0);
+    final int[] maxsize = new int[1];
+    gl.glGetIntegerv( GL.GL_MAX_TEXTURE_SIZE, maxsize , 0);
     // clamp user's texture sizes to maximum sizes, if necessary
     newWidth[0] = nearestPower( width );
     if( newWidth[0] > maxsize[0] ) {
@@ -337,26 +341,26 @@ public class Mipmap {
     }
   }
 
-  public static void closestFit3D( GL gl, int target, int width, int height, int depth,
-          int internalFormat, int format, int type, int[] newWidth, int[] newHeight,
-          int[] newDepth ) {
+  public static void closestFit3D( final GL gl, final int target, final int width, final int height, final int depth,
+          final int internalFormat, final int format, final int type, final int[] newWidth, final int[] newHeight,
+          final int[] newDepth ) {
     int widthPowerOf2 = nearestPower( width );
     int heightPowerOf2 = nearestPower( height );
     int depthPowerOf2 = nearestPower( depth );
-    int[] proxyWidth = new int[1];
+    final int[] proxyWidth = new int[1];
 
     do {
       // compute level 1 width & height & depth, clamping each at 1
-      int widthAtLevelOne = (widthPowerOf2 > 1) ? widthPowerOf2 >> 1 : widthPowerOf2;
-      int heightAtLevelOne = (heightPowerOf2 > 1) ? heightPowerOf2 >> 1 : heightPowerOf2;
-      int depthAtLevelOne = (depthPowerOf2 > 1) ? depthPowerOf2 >> 1 : depthPowerOf2;
+      final int widthAtLevelOne = (widthPowerOf2 > 1) ? widthPowerOf2 >> 1 : widthPowerOf2;
+      final int heightAtLevelOne = (heightPowerOf2 > 1) ? heightPowerOf2 >> 1 : heightPowerOf2;
+      final int depthAtLevelOne = (depthPowerOf2 > 1) ? depthPowerOf2 >> 1 : depthPowerOf2;
       int proxyTarget = 0;
       assert( widthAtLevelOne > 0 );
       assert( heightAtLevelOne > 0 );
       assert( depthAtLevelOne > 0 );
 
       // does width x height x depth at level 1 & all their mipmaps fit?
-      if( target == GL2GL3.GL_TEXTURE_3D || target == GL2GL3.GL_PROXY_TEXTURE_3D ) {
+      if( target == GL2ES2.GL_TEXTURE_3D || target == GL2GL3.GL_PROXY_TEXTURE_3D ) {
         proxyTarget = GL2GL3.GL_PROXY_TEXTURE_3D;
         gl.getGL2GL3().glTexImage3D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                 heightAtLevelOne, depthAtLevelOne, 0, format, type, null );
@@ -385,31 +389,31 @@ public class Mipmap {
     newDepth[0] = depthPowerOf2;
   }
 
-  public static int elements_per_group( int format, int type ) {
+  public static int elements_per_group( final int format, final int type ) {
     // Return the number of elements per grtoup of a specified gromat
 
     // If the type is packedpixels then answer is 1
     if( type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ||
         type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ||
+        type == GL.GL_UNSIGNED_SHORT_5_6_5 ||
         type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
+        type == GL.GL_UNSIGNED_SHORT_4_4_4_4 ||
         type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ||
-        type == GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ||
+        type == GL.GL_UNSIGNED_SHORT_5_5_5_1 ||
         type == GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ||
         type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ||
         type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
-        type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
-        type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) {
+        type == GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ||
+        type == GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ) {
           return( 1 );
     }
 
     // Types are not packed pixels so get elements per group
     switch( format ) {
-      case( GL2GL3.GL_RGB ):
+      case( GL.GL_RGB ):
       case( GL2GL3.GL_BGR ):
         return( 3 );
-      case( GL2GL3.GL_LUMINANCE_ALPHA ):
+      case( GL.GL_LUMINANCE_ALPHA ):
         return( 2 );
       case( GL.GL_RGBA ):
       case( GL.GL_BGRA ):
@@ -419,45 +423,45 @@ public class Mipmap {
     }
   }
 
-  public static int bytes_per_element( int type ) {
+  public static int bytes_per_element( final int type ) {
     // return the number of bytes per element, based on the element type
 
     switch( type ) {
       case( GL2.GL_BITMAP ):
-      case( GL2GL3.GL_BYTE ):
-      case( GL2GL3.GL_UNSIGNED_BYTE ):
+      case( GL.GL_BYTE ):
+      case( GL.GL_UNSIGNED_BYTE ):
       case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
       case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
         return( 1 );
-      case( GL2GL3.GL_SHORT ):
-      case( GL2GL3.GL_UNSIGNED_SHORT ):
-      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL.GL_SHORT ):
+      case( GL.GL_UNSIGNED_SHORT ):
+      case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
       case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
-      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
       case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-      case( GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
       case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
         return( 2 );
-      case( GL2GL3.GL_INT ):
-      case( GL2GL3.GL_UNSIGNED_INT ):
+      case( GL2ES2.GL_INT ):
+      case( GL.GL_UNSIGNED_INT ):
       case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
       case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
-      case( GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ):
-      case( GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ):
-      case( GL2GL3.GL_FLOAT ):
+      case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL.GL_FLOAT ):
         return( 4 );
       default:
         return( 4 );
     }
   }
 
-  public static boolean is_index( int format ) {
-    return( format == GL2.GL_COLOR_INDEX || format == GL2GL3.GL_STENCIL_INDEX );
+  public static boolean is_index( final int format ) {
+    return( format == GL2.GL_COLOR_INDEX || format == GL2ES2.GL_STENCIL_INDEX );
   }
 
   /* Compute memory required for internal packed array of data of given type and format. */
 
-  public static int image_size( int width, int height, int format, int type ) {
+  public static int image_size( final int width, final int height, final int format, final int type ) {
     int bytes_per_row;
     int components;
 
@@ -472,9 +476,9 @@ public class Mipmap {
     return( bytes_per_row * height * components );
   }
 
-  public static int imageSize3D( int width, int height, int depth, int format, int type ) {
-    int components = elements_per_group( format, type );
-    int bytes_per_row = bytes_per_element( type ) * width;
+  public static int imageSize3D( final int width, final int height, final int depth, final int format, final int type ) {
+    final int components = elements_per_group( format, type );
+    final int bytes_per_row = bytes_per_element( type ) * width;
 
     assert( width > 0 && height > 0 && depth > 0 );
     assert( type != GL2.GL_BITMAP );
@@ -482,28 +486,28 @@ public class Mipmap {
     return( bytes_per_row * height * depth * components );
   }
 
-  public static void retrieveStoreModes( GL gl, PixelStorageModes psm ) {
-    int[] a = new int[1];
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ALIGNMENT, a, 0);
+  public static void retrieveStoreModes( final GL gl, final PixelStorageModes psm ) {
+    final int[] a = new int[1];
+    gl.glGetIntegerv( GL.GL_UNPACK_ALIGNMENT, a, 0);
     psm.setUnpackAlignment( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2ES2.GL_UNPACK_ROW_LENGTH, a, 0);
     psm.setUnpackRowLength( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2ES2.GL_UNPACK_SKIP_ROWS, a, 0);
     psm.setUnpackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_PIXELS, a, 0);
+    gl.glGetIntegerv( GL2ES2.GL_UNPACK_SKIP_PIXELS, a, 0);
     psm.setUnpackSkipPixels( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_LSB_FIRST, a, 0);
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
 
-    gl.glGetIntegerv( GL2GL3.GL_PACK_ALIGNMENT, a, 0);
+    gl.glGetIntegerv( GL.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_PACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_PACK_ROW_LENGTH, a, 0);
     psm.setPackRowLength( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_PACK_SKIP_ROWS, a, 0);
     psm.setPackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_PIXELS, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_PACK_SKIP_PIXELS, a, 0);
     psm.setPackSkipPixels( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_PACK_LSB_FIRST, a, 0);
     psm.setPackLsbFirst( ( a[0] == 1 ) );
@@ -511,32 +515,32 @@ public class Mipmap {
     psm.setPackSwapBytes( ( a[0] == 1 ) );
   }
 
-  public static void retrieveStoreModes3D( GL gl, PixelStorageModes psm ) {
-    int[] a = new int[1];
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ALIGNMENT, a, 0);
+  public static void retrieveStoreModes3D( final GL gl, final PixelStorageModes psm ) {
+    final int[] a = new int[1];
+    gl.glGetIntegerv( GL.GL_UNPACK_ALIGNMENT, a, 0);
     psm.setUnpackAlignment( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2ES2.GL_UNPACK_ROW_LENGTH, a, 0);
     psm.setUnpackRowLength( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2ES2.GL_UNPACK_SKIP_ROWS, a, 0);
     psm.setUnpackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_PIXELS, a, 0);
+    gl.glGetIntegerv( GL2ES2.GL_UNPACK_SKIP_PIXELS, a, 0);
     psm.setUnpackSkipPixels( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_LSB_FIRST, a, 0);
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_SKIP_IMAGES, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_UNPACK_SKIP_IMAGES, a, 0);
     psm.setUnpackSkipImages( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_UNPACK_IMAGE_HEIGHT, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, a, 0);
     psm.setUnpackImageHeight( a[0] );
 
-    gl.glGetIntegerv( GL2GL3.GL_PACK_ALIGNMENT, a, 0);
+    gl.glGetIntegerv( GL.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_PACK_ROW_LENGTH, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_PACK_ROW_LENGTH, a, 0);
     psm.setPackRowLength( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_ROWS, a, 0);
+    gl.glGetIntegerv( GL2ES3.GL_PACK_SKIP_ROWS, a, 0);
     psm.setPackSkipRows( a[0] );
-    gl.glGetIntegerv( GL2GL3.GL_PACK_SKIP_PIXELS, a, 0 );
+    gl.glGetIntegerv( GL2ES3.GL_PACK_SKIP_PIXELS, a, 0 );
     psm.setPackSkipPixels( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_PACK_LSB_FIRST, a, 0 );
     psm.setPackLsbFirst( ( a[0] == 1 ) );
@@ -548,17 +552,17 @@ public class Mipmap {
     psm.setPackImageHeight( a[0] );
   }
 
-  public static int gluScaleImage( GL gl, int format, int widthin, int heightin,
-          int typein, ByteBuffer datain, int widthout, int heightout,
-          int typeout, ByteBuffer dataout ) {
-    int datainPos = datain.position();
-    int dataoutPos = dataout.position();
+  public static int gluScaleImage( final GL gl, final int format, final int widthin, final int heightin,
+          final int typein, final ByteBuffer datain, final int widthout, final int heightout,
+          final int typeout, final ByteBuffer dataout ) {
+    final int datainPos = datain.position();
+    final int dataoutPos = dataout.position();
     try {
 
       int components;
       ByteBuffer beforeimage;
       ByteBuffer afterimage;
-      PixelStorageModes psm = new PixelStorageModes();
+      final PixelStorageModes psm = new PixelStorageModes();
 
       if( (widthin == 0)  || (heightin == 0) || (widthout == 0) || (heightout == 0) ) {
         return( 0 );
@@ -575,8 +579,8 @@ public class Mipmap {
       if( !isLegalFormatForPackedPixelType( format, typeout ) ) {
         return( GLU.GLU_INVALID_OPERATION );
       }
-      beforeimage = Buffers.newDirectByteBuffer( image_size( widthin, heightin, format, GL2GL3.GL_UNSIGNED_SHORT ) );
-      afterimage = Buffers.newDirectByteBuffer( image_size( widthout, heightout, format, GL2GL3.GL_UNSIGNED_SHORT ) );
+      beforeimage = Buffers.newDirectByteBuffer( image_size( widthin, heightin, format, GL.GL_UNSIGNED_SHORT ) );
+      afterimage = Buffers.newDirectByteBuffer( image_size( widthout, heightout, format, GL.GL_UNSIGNED_SHORT ) );
       if( beforeimage == null || afterimage == null ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }
@@ -594,15 +598,15 @@ public class Mipmap {
     }
   }
 
-  public static int gluBuild1DMipmapLevels( GL gl, int target, int internalFormat,
-                          int width, int format, int type, int userLevel, int baseLevel,
-                          int maxLevel, ByteBuffer data ) {
-    int dataPos = data.position();
+  public static int gluBuild1DMipmapLevels( final GL gl, final int target, final int internalFormat,
+                          final int width, final int format, final int type, final int userLevel, final int baseLevel,
+                          final int maxLevel, final ByteBuffer data ) {
+    final int dataPos = data.position();
     try {
 
       int levels;
 
-      int rc = checkMipmapArgs( internalFormat, format, type );
+      final int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
@@ -625,16 +629,16 @@ public class Mipmap {
     }
   }
 
-  public static int gluBuild1DMipmaps( GL gl, int target, int internalFormat, int width,
-              int format, int type, ByteBuffer data ) {
-    int dataPos = data.position();
+  public static int gluBuild1DMipmaps( final GL gl, final int target, final int internalFormat, final int width,
+              final int format, final int type, final ByteBuffer data ) {
+    final int dataPos = data.position();
 
     try {
-      int[] widthPowerOf2 = new int[1];
+      final int[] widthPowerOf2 = new int[1];
       int levels;
-      int[] dummy = new int[1];
+      final int[] dummy = new int[1];
 
-      int rc = checkMipmapArgs( internalFormat, format, type );
+      final int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
@@ -654,14 +658,14 @@ public class Mipmap {
   }
 
 
-  public static int gluBuild2DMipmapLevels( GL gl, int target, int internalFormat,
-          int width, int height, int format, int type, int userLevel,
-          int baseLevel, int maxLevel, Object data ) {
+  public static int gluBuild2DMipmapLevels( final GL gl, final int target, final int internalFormat,
+          final int width, final int height, final int format, final int type, final int userLevel,
+          final int baseLevel, final int maxLevel, final Object data ) {
     int dataPos = 0;
 
     int level, levels;
 
-    int rc = checkMipmapArgs( internalFormat, format, type );
+    final int rc = checkMipmapArgs( internalFormat, format, type );
     if( rc != 0 ) {
       return( rc );
     }
@@ -687,23 +691,23 @@ public class Mipmap {
         buffer = (ByteBuffer)data;
         dataPos = buffer.position();
     } else if( data instanceof byte[] ) {
-      byte[] array = (byte[])data;
+      final byte[] array = (byte[])data;
       buffer = ByteBuffer.allocateDirect(array.length);
       buffer.put(array);
     } else if( data instanceof short[] ) {
-        short[] array = (short[])data;
+        final short[] array = (short[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 2 );
-        ShortBuffer sb = buffer.asShortBuffer();
+        final ShortBuffer sb = buffer.asShortBuffer();
         sb.put( array );
     } else if( data instanceof int[] ) {
-        int[] array = (int[])data;
+        final int[] array = (int[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        IntBuffer ib = buffer.asIntBuffer();
+        final IntBuffer ib = buffer.asIntBuffer();
         ib.put( array );
     } else if( data instanceof float[] ) {
-        float[] array = (float[])data;
+        final float[] array = (float[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        FloatBuffer fb = buffer.asFloatBuffer();
+        final FloatBuffer fb = buffer.asFloatBuffer();
         fb.put( array );
     }
 
@@ -717,15 +721,15 @@ public class Mipmap {
   }
 
 
-  public static int gluBuild2DMipmaps( GL gl, int target, int internalFormat,
-          int width, int height, int format, int type, Object data ) {
+  public static int gluBuild2DMipmaps( final GL gl, final int target, final int internalFormat,
+          final int width, final int height, final int format, final int type, final Object data ) {
     int dataPos = 0;
 
-    int[] widthPowerOf2 = new int[1];
-    int[] heightPowerOf2 = new int[1];
+    final int[] widthPowerOf2 = new int[1];
+    final int[] heightPowerOf2 = new int[1];
     int level, levels;
 
-    int rc = checkMipmapArgs( internalFormat, format, type );
+    final int rc = checkMipmapArgs( internalFormat, format, type );
     if( rc != 0 ) {
       return( rc );
     }
@@ -749,23 +753,23 @@ public class Mipmap {
         buffer = (ByteBuffer)data;
         dataPos = buffer.position();
     } else if( data instanceof byte[] ) {
-      byte[] array = (byte[])data;
+      final byte[] array = (byte[])data;
       buffer = ByteBuffer.allocateDirect(array.length);
       buffer.put(array);
     } else if( data instanceof short[] ) {
-        short[] array = (short[])data;
+        final short[] array = (short[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 2 );
-        ShortBuffer sb = buffer.asShortBuffer();
+        final ShortBuffer sb = buffer.asShortBuffer();
         sb.put( array );
     } else if( data instanceof int[] ) {
-        int[] array = (int[])data;
+        final int[] array = (int[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        IntBuffer ib = buffer.asIntBuffer();
+        final IntBuffer ib = buffer.asIntBuffer();
         ib.put( array );
     } else if( data instanceof float[] ) {
-        float[] array = (float[])data;
+        final float[] array = (float[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 4 );
-        FloatBuffer fb = buffer.asFloatBuffer();
+        final FloatBuffer fb = buffer.asFloatBuffer();
         fb.put( array );
     }
 
@@ -779,17 +783,17 @@ public class Mipmap {
   }
 
 
-  public static int gluBuild3DMipmaps( GL gl, int target, int internalFormat,
-          int width, int height, int depth, int format, int type, ByteBuffer data ) {
-    int dataPos = data.position();
+  public static int gluBuild3DMipmaps( final GL gl, final int target, final int internalFormat,
+          final int width, final int height, final int depth, final int format, final int type, final ByteBuffer data ) {
+    final int dataPos = data.position();
     try {
 
-      int[] widthPowerOf2 = new int[1];
-      int[] heightPowerOf2 = new int[1];
-      int[] depthPowerOf2 = new int[1];
+      final int[] widthPowerOf2 = new int[1];
+      final int[] heightPowerOf2 = new int[1];
+      final int[] depthPowerOf2 = new int[1];
       int level, levels;
 
-      int rc = checkMipmapArgs( internalFormat, format, type );
+      final int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
@@ -823,14 +827,14 @@ public class Mipmap {
     }
   }
 
-  public static int gluBuild3DMipmapLevels( GL gl, int target, int internalFormat,
-          int width, int height, int depth, int format, int type, int userLevel,
-          int baseLevel, int maxLevel, ByteBuffer data ) {
-    int dataPos = data.position();
+  public static int gluBuild3DMipmapLevels( final GL gl, final int target, final int internalFormat,
+          final int width, final int height, final int depth, final int format, final int type, final int userLevel,
+          final int baseLevel, final int maxLevel, final ByteBuffer data ) {
+    final int dataPos = data.position();
     try {
       int level, levels;
 
-      int rc = checkMipmapArgs( internalFormat, format, type );
+      final int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }

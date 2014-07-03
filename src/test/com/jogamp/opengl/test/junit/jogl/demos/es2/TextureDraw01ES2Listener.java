@@ -65,18 +65,18 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
      * @param td
      * @param textureUnit of range [0..]
      */
-    public TextureDraw01ES2Listener(TextureData td, int textureUnit) {
+    public TextureDraw01ES2Listener(final TextureData td, final int textureUnit) {
         this.textureData = td;
         this.textureUnit = textureUnit;
         this.keepTextureBound = false;
     }
 
-    public void setClearColor(float[] clearColor) {
+    public void setClearColor(final float[] clearColor) {
         this.clearColor = clearColor;
     }
 
     @Override
-    public void setKeepTextureBound(boolean v) {
+    public void setKeepTextureBound(final boolean v) {
         this.keepTextureBound = v;
     }
     @Override
@@ -101,17 +101,17 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
 
     static final String shaderBasename = "texture01_xxx";
 
-    private void initShader(GL2ES2 gl, boolean use_program) {
+    private void initShader(final GL2ES2 gl, final boolean use_program) {
         // Create & Compile the shader objects
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
                                             "shader", "shader/bin", shaderBasename, true);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
                                             "shader", "shader/bin", shaderBasename, true);
         rsVp.defaultShaderCustomization(gl, true, true);
         rsFp.defaultShaderCustomization(gl, true, true);
 
         // Create & Link the shader program
-        ShaderProgram sp = new ShaderProgram();
+        final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
         if(!sp.link(gl, System.err)) {
@@ -124,19 +124,19 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     }
 
     @Override
-    public void init(GLAutoDrawable glad) {
+    public void init(final GLAutoDrawable glad) {
         if(null!=textureData) {
             this.texture = TextureIO.newTexture(glad.getGL(), textureData);
         }
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
 
         initShader(gl, true);
 
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
 
@@ -158,7 +158,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
             //interleavedVBO.addGLSLSubArray("mgl_Normal",        3, GL.GL_ARRAY_BUFFER);
             interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
 
-            FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
+            final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
 
             for(int i=0; i<4; i++) {
                 ib.put(s_quadVertices,  i*3, 3);
@@ -173,7 +173,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
 
         // OpenGL Render Settings
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
 
         if( keepTextureBound && null != texture  ) {
             gl.glActiveTexture(GL.GL_TEXTURE0 + textureUnit);
@@ -184,8 +184,8 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         // Clear background to white
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -204,8 +204,8 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void dispose(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null!=texture) {
             texture.disable(gl);
             texture.destroy(gl);
@@ -221,8 +221,8 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 

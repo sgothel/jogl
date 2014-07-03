@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
@@ -87,9 +87,9 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         sharedDrawable = null;
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
-        
+    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final boolean useShared, final boolean vsync) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
+
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
         if(useShared) {
@@ -98,7 +98,7 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 
         glWindow.setSize(width, height);
 
-        Gears gears = new Gears(vsync ? 1 : 0);
+        final Gears gears = new Gears(vsync ? 1 : 0);
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -111,31 +111,31 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
         glWindow.setPosition(x, y);
-        
+
         return glWindow;
     }
 
     @Test(timeout=10000)
     public void test01() throws InterruptedException {
         initShared();
-        
+
         final GLWindow f1 = runTestGL(new Animator(), 0, 0, true, false);
         final InsetsImmutable insets = f1.getInsets();
-        final GLWindow f2 = runTestGL(new Animator(), f1.getX()+width+insets.getTotalWidth(), 
+        final GLWindow f2 = runTestGL(new Animator(), f1.getX()+width+insets.getTotalWidth(),
                                       f1.getY()+0, true, false);
-        final GLWindow f3 = runTestGL(new Animator(), f1.getX()+0, 
+        final GLWindow f3 = runTestGL(new Animator(), f1.getX()+0,
                                       f1.getY()+height+insets.getTotalHeight(), true, false);
 
         try {
 			Thread.sleep(duration);
-		} catch(Exception e) {
+		} catch(final Exception e) {
 			e.printStackTrace();
 		}
 
         f1.destroy();
         f2.destroy();
         f3.destroy();
-        
+
         // f1.getAnimator().stop();
         // f2.getAnimator().stop();
         // f3.getAnimator().stop();
@@ -145,19 +145,19 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 
     static long duration = 2000; // ms
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); */         
+        System.err.println(stdin.readLine()); */
         org.junit.runner.JUnitCore.main(TestSharedContextListNEWT2.class.getName());
     }
 }

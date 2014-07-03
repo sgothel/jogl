@@ -75,7 +75,7 @@ public class EGLDisplayUtil {
          * </p>
          */
         static EGLDisplayRef getOrCreateOpened(final long eglDisplay, final IntBuffer major, final IntBuffer minor) {
-            EGLDisplayRef o = (EGLDisplayRef) openEGLDisplays.get(eglDisplay);
+            final EGLDisplayRef o = (EGLDisplayRef) openEGLDisplays.get(eglDisplay);
             if( null == o ) {
                 if( EGL.eglInitialize(eglDisplay, major, minor) ) {
                     final EGLDisplayRef n = new EGLDisplayRef(eglDisplay);
@@ -123,7 +123,7 @@ public class EGLDisplayUtil {
             return o;
         }
 
-        private EGLDisplayRef(long eglDisplay) {
+        private EGLDisplayRef(final long eglDisplay) {
             this.eglDisplay = eglDisplay;
             this.initRefCount = 0;
             this.createdStack = DEBUG ? new Throwable() : null;
@@ -144,7 +144,7 @@ public class EGLDisplayUtil {
     /**
      * @return number of unclosed EGL Displays.<br>
      */
-    public static int shutdown(boolean verbose) {
+    public static int shutdown(final boolean verbose) {
         if(DEBUG || verbose || openEGLDisplays.size() > 0 ) {
             System.err.println("EGLDisplayUtil.EGLDisplays: Shutdown (open: "+openEGLDisplays.size()+")");
             if(DEBUG) {
@@ -160,7 +160,7 @@ public class EGLDisplayUtil {
     public static void dumpOpenDisplayConnections() {
         System.err.println("EGLDisplayUtil: Open EGL Display Connections: "+openEGLDisplays.size());
         int i=0;
-        for(Iterator<LongObjectHashMap.Entry> iter = openEGLDisplays.iterator(); iter.hasNext(); i++) {
+        for(final Iterator<LongObjectHashMap.Entry> iter = openEGLDisplays.iterator(); iter.hasNext(); i++) {
             final LongObjectHashMap.Entry e = iter.next();
             final EGLDisplayRef v = (EGLDisplayRef) e.value;
             System.err.println("EGLDisplayUtil: Open["+i+"]: 0x"+Long.toHexString(e.key)+": "+v);
@@ -170,9 +170,9 @@ public class EGLDisplayUtil {
         }
     }
 
-    /* pp */ static synchronized void setSingletonEGLDisplayOnly(boolean v) { useSingletonEGLDisplay = v; }
+    /* pp */ static synchronized void setSingletonEGLDisplayOnly(final boolean v) { useSingletonEGLDisplay = v; }
 
-    private static synchronized long eglGetDisplay(long nativeDisplay_id)  {
+    private static synchronized long eglGetDisplay(final long nativeDisplay_id)  {
         if( useSingletonEGLDisplay && null != singletonEGLDisplay ) {
             if(DEBUG) {
                 System.err.println("EGLDisplayUtil.eglGetDisplay.s: eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
@@ -198,7 +198,7 @@ public class EGLDisplayUtil {
      *
      * @see EGL#eglInitialize(long, IntBuffer, IntBuffer)
      */
-    private static synchronized boolean eglInitialize(long eglDisplay, IntBuffer major, IntBuffer minor)  {
+    private static synchronized boolean eglInitialize(final long eglDisplay, final IntBuffer major, final IntBuffer minor)  {
         if( EGL.EGL_NO_DISPLAY == eglDisplay) {
             return false;
         }
@@ -222,7 +222,7 @@ public class EGLDisplayUtil {
      * @see #eglGetDisplay(long)
      * @see #eglInitialize(long, IntBuffer, IntBuffer)
      */
-    private static synchronized int eglGetDisplayAndInitialize(long nativeDisplayID, long[] eglDisplay, int[] eglErr, IntBuffer major, IntBuffer minor) {
+    private static synchronized int eglGetDisplayAndInitialize(final long nativeDisplayID, final long[] eglDisplay, final int[] eglErr, final IntBuffer major, final IntBuffer minor) {
         eglDisplay[0] = EGL.EGL_NO_DISPLAY;
         final long _eglDisplay = eglGetDisplay( nativeDisplayID );
         if ( EGL.EGL_NO_DISPLAY == _eglDisplay ) {
@@ -247,7 +247,7 @@ public class EGLDisplayUtil {
      * @return the initialized EGL display ID
      * @throws GLException if not successful
      */
-    private static synchronized long eglGetDisplayAndInitialize(long[] nativeDisplayID) {
+    private static synchronized long eglGetDisplayAndInitialize(final long[] nativeDisplayID) {
         final long[] eglDisplay = new long[1];
         final int[] eglError = new int[1];
         int eglRes = EGLDisplayUtil.eglGetDisplayAndInitialize(nativeDisplayID[0], eglDisplay, eglError, null, null);
@@ -271,7 +271,7 @@ public class EGLDisplayUtil {
      * @param eglDisplay the EGL display handle
      * @return true if the eglDisplay is valid and it's reference counter becomes zero and {@link EGL#eglTerminate(long)} was successful, otherwise false
      */
-    private static synchronized boolean eglTerminate(long eglDisplay)  {
+    private static synchronized boolean eglTerminate(final long eglDisplay)  {
         if( EGL.EGL_NO_DISPLAY == eglDisplay) {
             return false;
         }
@@ -286,11 +286,11 @@ public class EGLDisplayUtil {
 
     private static final EGLGraphicsDevice.EGLDisplayLifecycleCallback eglLifecycleCallback = new EGLGraphicsDevice.EGLDisplayLifecycleCallback() {
         @Override
-        public long eglGetAndInitDisplay(long[] nativeDisplayID) {
+        public long eglGetAndInitDisplay(final long[] nativeDisplayID) {
             return eglGetDisplayAndInitialize(nativeDisplayID);
         }
         @Override
-        public void eglTerminate(long eglDisplayHandle) {
+        public void eglTerminate(final long eglDisplayHandle) {
             EGLDisplayUtil.eglTerminate(eglDisplayHandle);
         }
     };
@@ -309,7 +309,7 @@ public class EGLDisplayUtil {
      * @param unitID
      * @return an uninitialized {@link EGLGraphicsDevice}
      */
-    public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(long nativeDisplayID, String connection, int unitID)  {
+    public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(final long nativeDisplayID, final String connection, final int unitID)  {
         return new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, connection, unitID, eglLifecycleCallback);
     }
 
@@ -325,7 +325,7 @@ public class EGLDisplayUtil {
      * @param surface
      * @return an uninitialized EGLGraphicsDevice
      */
-    public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(NativeSurface surface)  {
+    public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(final NativeSurface surface)  {
         final long nativeDisplayID;
         if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {
             nativeDisplayID = surface.getSurfaceHandle(); // don't even ask ..

@@ -87,7 +87,7 @@ public class Outline implements Comparable<Outline> {
      * @param vertex Vertex to be added
      * @throws NullPointerException if the  {@link Vertex} element is null
      */
-    public final void addVertex(Vertex vertex) throws NullPointerException {
+    public final void addVertex(final Vertex vertex) throws NullPointerException {
         addVertex(vertices.size(), vertex);
     }
 
@@ -98,7 +98,7 @@ public class Outline implements Comparable<Outline> {
      * @throws NullPointerException if the  {@link Vertex} element is null
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getVertexNumber())
      */
-    public final void addVertex(int position, Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
+    public final void addVertex(final int position, final Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
         if (null == vertex) {
             throw new NullPointerException("vertex is null");
         }
@@ -116,7 +116,7 @@ public class Outline implements Comparable<Outline> {
      * @throws NullPointerException if the  {@link Outline} element is null
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getVertexNumber())
      */
-    public final void setVertex(int position, Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
+    public final void setVertex(final int position, final Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
         if (null == vertex) {
             throw new NullPointerException("vertex is null");
         }
@@ -124,11 +124,11 @@ public class Outline implements Comparable<Outline> {
         dirtyBBox = true;
     }
 
-    public final Vertex getVertex(int index){
+    public final Vertex getVertex(final int index){
         return vertices.get(index);
     }
 
-    public int getVertexIndex(Vertex vertex){
+    public int getVertexIndex(final Vertex vertex){
         return vertices.indexOf(vertex);
     }
 
@@ -138,7 +138,7 @@ public class Outline implements Comparable<Outline> {
      * @param position of the to be removed Vertex
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getVertexNumber())
      */
-    public final Vertex removeVertex(int position) throws IndexOutOfBoundsException {
+    public final Vertex removeVertex(final int position) throws IndexOutOfBoundsException {
         dirtyBBox = true;
         return vertices.remove(position);
     }
@@ -164,7 +164,7 @@ public class Outline implements Comparable<Outline> {
      *
      * @param vertices the new outline loop/strip
      */
-    public final void setVertices(ArrayList<Vertex> vertices) {
+    public final void setVertices(final ArrayList<Vertex> vertices) {
         this.vertices = vertices;
         validateBoundingBox();
     }
@@ -184,7 +184,7 @@ public class Outline implements Comparable<Outline> {
      *                  otherwise a clone of the last vertex will be prepended.
      * @return true if closing performed, otherwise false for NOP
      */
-    public final boolean setClosed(boolean closeTail) {
+    public final boolean setClosed(final boolean closeTail) {
         this.closed = true;
         if( !isEmpty() ) {
             final Vertex first = vertices.get(0);
@@ -253,7 +253,7 @@ public class Outline implements Comparable<Outline> {
      * @return true if {@code obj} is an Outline, not null, equals bounds and equal vertices in the same order
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if( obj == this) {
             return true;
         }

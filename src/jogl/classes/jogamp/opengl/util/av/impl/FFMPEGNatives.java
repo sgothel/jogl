@@ -33,7 +33,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
     private static final Object mutex_avcodec_openclose_jni = new Object();
 
-    final boolean initSymbols0(long[] symbols, int count) {
+    final boolean initSymbols0(final long[] symbols, final int count) {
         return initSymbols0(mutex_avcodec_openclose_jni, symbols, count);
     }
     abstract boolean initSymbols0(Object mutex_avcodec_openclose, long[] symbols, int count);

@@ -80,7 +80,7 @@ class TessMono {
  * to the fan is a simple orientation test.  By making the fan as large
  * as possible, we restore the invariant (check it yourself).
  */
-    static boolean __gl_meshTessellateMonoRegion(GLUface face, boolean avoidDegenerateTris) {
+    static boolean __gl_meshTessellateMonoRegion(final GLUface face, final boolean avoidDegenerateTris) {
         GLUhalfEdge up, lo;
 
         /* All edges are oriented CCW around the boundary of the region.
@@ -135,7 +135,7 @@ class TessMono {
                  */
                 while (lo.Lnext != up && (Geom.EdgeGoesLeft(lo.Lnext)
                         || Geom.EdgeSign(lo.Org, lo.Sym.Org, lo.Lnext.Sym.Org) <= 0)) {
-                    GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(lo.Lnext, lo);
+                    final GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(lo.Lnext, lo);
                     mustConnect = false;
                     if (tempHalfEdge == null) return false;
                     lo = tempHalfEdge.Sym;
@@ -145,7 +145,7 @@ class TessMono {
                 /* lo.Org is on the left.  We can make CCW triangles from up.Sym.Org. */
                 while (lo.Lnext != up && (Geom.EdgeGoesRight(up.Onext.Sym)
                         || Geom.EdgeSign(up.Sym.Org, up.Org, up.Onext.Sym.Org) >= 0)) {
-                    GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(up, up.Onext.Sym);
+                    final GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(up, up.Onext.Sym);
                     mustConnect = false;
                     if (tempHalfEdge == null) return false;
                     up = tempHalfEdge.Sym;
@@ -159,7 +159,7 @@ class TessMono {
          */
         assert (lo.Lnext != up);
         while (lo.Lnext.Lnext != up) {
-            GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(lo.Lnext, lo);
+            final GLUhalfEdge tempHalfEdge = Mesh.__gl_meshConnect(lo.Lnext, lo);
             if (tempHalfEdge == null) return false;
             lo = tempHalfEdge.Sym;
         }
@@ -172,7 +172,7 @@ class TessMono {
  * the mesh which is marked "inside" the polygon.  Each such region
  * must be monotone.
  */
-    public static boolean __gl_meshTessellateInterior(GLUmesh mesh, boolean avoidDegenerateTris) {
+    public static boolean __gl_meshTessellateInterior(final GLUmesh mesh, final boolean avoidDegenerateTris) {
         GLUface f, next;
 
         /*LINTED*/
@@ -193,7 +193,7 @@ class TessMono {
  * on NULL faces are not allowed, the main purpose is to clean up the
  * mesh so that exterior loops are not represented in the data structure.
  */
-    public static void __gl_meshDiscardExterior(GLUmesh mesh) {
+    public static void __gl_meshDiscardExterior(final GLUmesh mesh) {
         GLUface f, next;
 
         /*LINTED*/
@@ -216,7 +216,7 @@ class TessMono {
  * If keepOnlyBoundary is TRUE, it also deletes all edges which do not
  * separate an interior region from an exterior one.
  */
-    public static boolean __gl_meshSetWindingNumber(GLUmesh mesh, int value, boolean keepOnlyBoundary) {
+    public static boolean __gl_meshSetWindingNumber(final GLUmesh mesh, final int value, final boolean keepOnlyBoundary) {
         GLUhalfEdge e, eNext;
 
         for (e = mesh.eHead.next; e != mesh.eHead; e = eNext) {

@@ -44,6 +44,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.opengl.util.ImmModeSink;
 
@@ -52,59 +53,59 @@ public class MultisampleDemoES1 implements GLEventListener {
     boolean multisample;
     ImmModeSink immModeSink;
 
-    public MultisampleDemoES1(boolean multisample) {
+    public MultisampleDemoES1(final boolean multisample) {
         this.multisample = multisample;
     }
 
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         System.err.println();
         System.err.println("Requested: " + drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
         System.err.println();
         System.err.println("Chosen   : " + drawable.getChosenGLCapabilities());
         System.err.println();
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
         }
         gl.glClearColor(0, 0, 0, 0);
         //      gl.glEnable(GL.GL_DEPTH_TEST);
         //      gl.glDepthFunc(GL.GL_LESS);
-        gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
+        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         gl.glLoadIdentity();
-        gl.glMatrixMode(GL2ES1.GL_PROJECTION);
+        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         gl.glOrtho(-1, 1, -1, 1, -1, 1);
         if (multisample) {
             gl.glDisable(GL.GL_MULTISAMPLE);
         }
-        immModeSink = ImmModeSink.createFixed(40, 
+        immModeSink = ImmModeSink.createFixed(40,
                                               3, GL.GL_FLOAT, // vertex
                                               0, GL.GL_FLOAT, // color
                                               0, GL.GL_FLOAT, // normal
-                                              0, GL.GL_FLOAT, // texCoords 
+                                              0, GL.GL_FLOAT, // texCoords
                                               GL.GL_STATIC_DRAW);
         final int numSteps = 20;
         final double increment = Math.PI / numSteps;
         final double radius = 1;
         immModeSink.glBegin(GL.GL_LINES);
         for (int i = numSteps - 1; i >= 0; i--) {
-            immModeSink.glVertex3f((float) (radius * Math.cos(i * increment)), 
-                                   (float) (radius * Math.sin(i * increment)), 
+            immModeSink.glVertex3f((float) (radius * Math.cos(i * increment)),
+                                   (float) (radius * Math.sin(i * increment)),
                                    0f);
-            immModeSink.glVertex3f((float) (-1.0 * radius * Math.cos(i * increment)), 
-                                   (float) (-1.0 * radius * Math.sin(i * increment)), 
+            immModeSink.glVertex3f((float) (-1.0 * radius * Math.cos(i * increment)),
+                                   (float) (-1.0 * radius * Math.sin(i * increment)),
                                    0f);
         }
         immModeSink.glEnd(gl, false);
     }
 
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         immModeSink.destroy(drawable.getGL());
         immModeSink = null;
     }
 
-    public void display(GLAutoDrawable drawable) {
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES1 gl = drawable.getGL().getGL2ES1();
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
         }
@@ -116,9 +117,9 @@ public class MultisampleDemoES1 implements GLEventListener {
     }
 
     // Unused routines
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     }
 
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
+    public void displayChanged(final GLAutoDrawable drawable, final boolean modeChanged, final boolean deviceChanged) {
     }
 }

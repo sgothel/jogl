@@ -231,7 +231,7 @@ public class MacKeyUtil {
     private static final char NSModeSwitchFunctionKey     = 0xF747;
     */
 
-    static short validateKeyCode(short keyCode, char keyChar) {
+    static short validateKeyCode(final short keyCode, final char keyChar) {
         // OS X Virtual Keycodes
         switch(keyCode) {
             //

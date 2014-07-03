@@ -74,7 +74,7 @@ import org.junit.runners.MethodSorters;
 public class TestTiledRendering2NEWT extends UITestCase {
     static long duration = 500; // ms
 
-    static GLProfile getGLProfile(String profile) {
+    static GLProfile getGLProfile(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -92,7 +92,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
 
     @Test
     public void test001_off_gl2___aa0() throws IOException {
-        GLProfile glp = getGLProfile(GLProfile.GL2);
+        final GLProfile glp = getGLProfile(GLProfile.GL2);
         if( null == glp ) {
             return;
         }
@@ -100,7 +100,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test002_off_gl2___aa8() throws IOException {
-        GLProfile glp = getGLProfile(GLProfile.GL2);
+        final GLProfile glp = getGLProfile(GLProfile.GL2);
         if( null == glp ) {
             return;
         }
@@ -108,7 +108,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test011_off_gl2es3_aa0() throws IOException {
-        GLProfile glp = getGL2ES3();
+        final GLProfile glp = getGL2ES3();
         if( null == glp ) {
             return;
         }
@@ -116,7 +116,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test012_off_gl2es3_aa8() throws IOException {
-        GLProfile glp = getGL2ES3();
+        final GLProfile glp = getGL2ES3();
         if( null == glp ) {
             return;
         }
@@ -124,7 +124,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test101_on__gl2___aa0() throws IOException {
-        GLProfile glp = getGLProfile(GLProfile.GL2);
+        final GLProfile glp = getGLProfile(GLProfile.GL2);
         if( null == glp ) {
             return;
         }
@@ -132,7 +132,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test102_on__gl2___aa8() throws IOException {
-        GLProfile glp = getGLProfile(GLProfile.GL2);
+        final GLProfile glp = getGLProfile(GLProfile.GL2);
         if( null == glp ) {
             return;
         }
@@ -140,7 +140,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test111_on__gl2es3_aa0() throws IOException {
-        GLProfile glp = getGL2ES3();
+        final GLProfile glp = getGL2ES3();
         if( null == glp ) {
             return;
         }
@@ -148,15 +148,15 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }
     @Test
     public void test112_on__gl2es3_aa8() throws IOException {
-        GLProfile glp = getGL2ES3();
+        final GLProfile glp = getGL2ES3();
         if( null == glp ) {
             return;
         }
         doTest(true, new GearsES2(), glp, 8);
     }
 
-    void doTest(boolean onscreen, final GLEventListener demo, GLProfile glp, final int msaaCount) throws IOException {
-        GLCapabilities caps = new GLCapabilities(glp);
+    void doTest(final boolean onscreen, final GLEventListener demo, final GLProfile glp, final int msaaCount) throws IOException {
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(onscreen);
         if( msaaCount > 0 ) {
             caps.setSampleBuffers(true);
@@ -195,10 +195,10 @@ public class TestTiledRendering2NEWT extends UITestCase {
 
         final GLEventListener preTileGLEL = new GLEventListener() {
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 final GL gl = drawable.getGL();
-                GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
-                GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
+                final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
+                final GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
                 renderer.setImageBuffer(pixelBuffer);
                 if( drawable.isGLOriented() ) {
                     flipVertically[0] = false;
@@ -207,11 +207,11 @@ public class TestTiledRendering2NEWT extends UITestCase {
                 }
             }
             @Override
-            public void dispose(GLAutoDrawable drawable) {}
+            public void dispose(final GLAutoDrawable drawable) {}
             @Override
-            public void display(GLAutoDrawable drawable) {}
+            public void display(final GLAutoDrawable drawable) {}
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
         };
         renderer.setGLEventListener(preTileGLEL, null);
 
@@ -225,7 +225,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
         // .. even though we close the demo, this is for documentation!
         glad.invoke(true, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
+            public boolean run(final GLAutoDrawable drawable) {
                 drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 demo.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 return false;
@@ -249,13 +249,13 @@ public class TestTiledRendering2NEWT extends UITestCase {
         glad.destroy();
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestTiledRendering2NEWT.class.getName());

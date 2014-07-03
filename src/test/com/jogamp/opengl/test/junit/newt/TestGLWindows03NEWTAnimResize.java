@@ -63,7 +63,7 @@ public class TestGLWindows03NEWTAnimResize extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static void test(GLCapabilitiesImmutable caps, boolean undecorated) throws InterruptedException {
+    static void test(final GLCapabilitiesImmutable caps, final boolean undecorated) throws InterruptedException {
         Assert.assertNotNull(caps);
 
         //
@@ -75,7 +75,7 @@ public class TestGLWindows03NEWTAnimResize extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setUndecorated(undecorated);
 
-        GLEventListener demo = new GearsES2(1);
+        final GLEventListener demo = new GearsES2(1);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
         Assert.assertEquals(false,glWindow.isNativeValid());
@@ -94,7 +94,7 @@ public class TestGLWindows03NEWTAnimResize extends UITestCase {
         int step_i = 0;
         for(int i=0; i<durationPerTest; i+=50) {
             Thread.sleep(50);
-            int j = (int) ( i / (durationPerTest/step) ) + 1;
+            final int j = (int) ( i / (durationPerTest/step) ) + 1;
             if(j>step_i) {
                 final int w = width/step * j;
                 final int h = height/step * j;
@@ -113,25 +113,25 @@ public class TestGLWindows03NEWTAnimResize extends UITestCase {
 
     @Test
     public void test01WindowDecor() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         test(caps, false /* undecorated */);
     }
 
     @Test
     public void test02WindowUndecor() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         test(caps, true /* undecorated */);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
             }
         }
-        String tstname = TestGLWindows03NEWTAnimResize.class.getName();
+        final String tstname = TestGLWindows03NEWTAnimResize.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

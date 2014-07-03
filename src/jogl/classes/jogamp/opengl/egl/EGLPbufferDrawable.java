@@ -46,17 +46,17 @@ import javax.media.opengl.GLContext;
 public class EGLPbufferDrawable extends EGLDrawable {
     protected static final boolean useTexture = false; // No yet ..
 
-    protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeSurface target) {
+    protected EGLPbufferDrawable(final EGLDrawableFactory factory, final NativeSurface target) {
         super(factory, target);
     }
 
     @Override
-    protected long createSurface(EGLGraphicsConfiguration config, int width, int height, long nativeSurfaceHandle) {
+    protected long createSurface(final EGLGraphicsConfiguration config, final int width, final int height, final long nativeSurfaceHandle) {
         return EGLDrawableFactory.createPBufferSurfaceImpl(config, width, height, false);
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public GLContext createContext(final GLContext shareWith) {
         return new EGLContext(this, shareWith);
     }
 }

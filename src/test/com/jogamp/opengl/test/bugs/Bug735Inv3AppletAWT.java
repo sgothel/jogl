@@ -32,7 +32,7 @@ import com.jogamp.opengl.util.AnimatorBase;
  *   - Use GLEventListener
  *   - Add GLEventListener to GLAutoDrawable
  *   - Use GLAutoDrawable.display() instead of GLAutoDrawable.invoke(true, GLRunnable { init / render })
- *   - Removed MANUAL_FRAME_HANDLING, obsolete due to GLAutoDrawable/GLEventListener 
+ *   - Removed MANUAL_FRAME_HANDLING, obsolete due to GLAutoDrawable/GLEventListener
  *   - Use Animator
  *   - Remove applet, component sizes, use frame based size via validate
  *   - Run frame validation/visibility on AWT-EDT
@@ -48,17 +48,17 @@ import com.jogamp.opengl.util.AnimatorBase;
 public class Bug735Inv3AppletAWT extends Applet {
   static public int AWT  = 0;
   static public int NEWT = 1;
-  
+
   static public int APPLET_WIDTH  = 500;
   static public int APPLET_HEIGHT = 290;
   static public int TOOLKIT       = NEWT;
   static public boolean IGNORE_AWT_REPAINT = false;
   static public boolean USE_ECT = false;
   static public int SWAP_INTERVAL = 1;
-  
+
   //////////////////////////////////////////////////////////////////////////////
-  
-  static boolean waitForKey = false;  
+
+  static boolean waitForKey = false;
   static private Frame frame;
   static private Bug735Inv3AppletAWT applet;
   private GLCanvas awtCanvas;
@@ -67,10 +67,10 @@ public class Bug735Inv3AppletAWT extends Applet {
   private NewtCanvasAWT newtCanvas;
   private GLEventListener demo;
   private AnimatorBase animator;
-  
+
   private int width;
   private int height;
-  
+
   public void init() {
     setSize(APPLET_WIDTH, APPLET_HEIGHT);
     // JAU setPreferredSize(new Dimension(APPLET_WIDTH, APPLET_HEIGHT));
@@ -78,34 +78,34 @@ public class Bug735Inv3AppletAWT extends Applet {
     height = APPLET_HEIGHT;
     initGL();
   }
-  
+
   public void start() {
     initDraw();
     animator.start();
     animator.setUpdateFPSFrames(60, System.err);
   }
-  
+
   private void initGL() {
-    GLProfile profile = GLProfile.getDefault();
-    GLCapabilities caps = new GLCapabilities(profile);
+    final GLProfile profile = GLProfile.getDefault();
+    final GLCapabilities caps = new GLCapabilities(profile);
     caps.setBackgroundOpaque(true);
     caps.setOnscreen(true);
     caps.setSampleBuffers(false);
-    
+
     if (TOOLKIT == AWT) {
       awtCanvas = new GLCanvas(caps);
       // JAU awtCanvas.setBounds(0, 0, applet.width, applet.height);
       awtCanvas.setBackground(new Color(0xFFCCCCCC, true));
-      awtCanvas.setFocusable(true); 
-      
+      awtCanvas.setFocusable(true);
+
       applet.setLayout(new BorderLayout());
       applet.add(awtCanvas, BorderLayout.CENTER);
-      
+
       if (IGNORE_AWT_REPAINT) {
           awtCanvas.setIgnoreRepaint(true);
       }
       glad = awtCanvas;
-    } else if (TOOLKIT == NEWT) {      
+    } else if (TOOLKIT == NEWT) {
       newtWindow = GLWindow.create(caps);
       newtCanvas = new NewtCanvasAWT(newtWindow);
       // JAU newtCanvas.setBounds(0, 0, applet.width, applet.height);
@@ -114,27 +114,27 @@ public class Bug735Inv3AppletAWT extends Applet {
 
       applet.setLayout(new BorderLayout());
       applet.add(newtCanvas, BorderLayout.CENTER);
-      
+
       if (IGNORE_AWT_REPAINT) {
         newtCanvas.setIgnoreRepaint(true);
       }
       glad = newtWindow;
     }
-    
+
     demo = new LandscapeES2(SWAP_INTERVAL);
     // demo = new GearsES2(SWAP_INTERVAL);
     glad.addGLEventListener(demo);
     animator = new Animator(glad);
     animator.setExclusiveContext(USE_ECT);
   }
-  
+
   private void initDraw() {
     if (TOOLKIT == AWT) {
       // JAU awtCanvas.setVisible(true);
       if (awtCanvas.getDelegatedDrawable().isRealized()) {
         // Request the focus here as it cannot work when the window is not visible
         awtCanvas.requestFocus();
-      }      
+      }
     } else if (TOOLKIT == NEWT) {
       // JAU newtCanvas.setVisible(true);
       // Force the realization
@@ -143,10 +143,10 @@ public class Bug735Inv3AppletAWT extends Applet {
         // Request the focus here as it cannot work when the window is not visible
         newtCanvas.requestFocus();
       }
-    }    
+    }
   }
-  
-  static public void main(String[] args) {    
+
+  static public void main(final String[] args) {
     for(int i=0; i<args.length; i++) {
         if(args[i].equals("-vsync")) {
             i++;
@@ -158,61 +158,61 @@ public class Bug735Inv3AppletAWT extends Applet {
         }
     }
     System.err.println("swapInterval "+SWAP_INTERVAL);
-    System.err.println("exclusiveContext "+USE_ECT);    
+    System.err.println("exclusiveContext "+USE_ECT);
     if(waitForKey) {
         UITestCase.waitForKey("Start");
     }
-    
-    final GraphicsEnvironment environment = 
+
+    final GraphicsEnvironment environment =
         GraphicsEnvironment.getLocalGraphicsEnvironment();
     final GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
 
     frame = new Frame(displayDevice.getDefaultConfiguration());
     frame.setBackground(new Color(0xCC, 0xCC, 0xCC));
     frame.setTitle("TestBug735Inv3AppletAWT");
-    
+
     // This allows to close the frame.
     frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
+      public void windowClosing(final WindowEvent e) {
         System.exit(0);
       }
     });
-        
+
     try {
-      Class<?> c = Thread.currentThread().getContextClassLoader().
+      final Class<?> c = Thread.currentThread().getContextClassLoader().
           loadClass(Bug735Inv3AppletAWT.class.getName());
       applet = (Bug735Inv3AppletAWT) c.newInstance();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
-    }    
-    
+    }
+
     // JAU frame.setLayout(null);
     frame.add(applet);
-    
+
     applet.init();
-    
-    Insets insets = frame.getInsets();
+
+    final Insets insets = frame.getInsets();
     final int windowW = applet.width + insets.left + insets.right;
     final int windowH = applet.height + insets.top + insets.bottom;
-    
+
     try {
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.setSize(windowW, windowH);
                frame.validate();
                // JAU frame.pack();
-                Rectangle screenRect = displayDevice.getDefaultConfiguration().getBounds();    
+                final Rectangle screenRect = displayDevice.getDefaultConfiguration().getBounds();
                 frame.setLocation(screenRect.x + (screenRect.width - applet.width) / 2,
-                    screenRect.y + (screenRect.height - applet.height) / 2);    
-                
+                    screenRect.y + (screenRect.height - applet.height) / 2);
+
                frame.setResizable(false);
-               frame.setVisible(true);               
+               frame.setVisible(true);
            }
         });
-    } catch (Exception e) {
+    } catch (final Exception e) {
         e.printStackTrace();
-    }        
-    
-    applet.start();    
+    }
+
+    applet.start();
   }
 }

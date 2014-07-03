@@ -48,7 +48,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
     static final int width = 640;
     static final int height = 480;
 
-    protected GLWindow createGLWindow(final GLCapabilities caps, int x, int y, GearsES2 gears) throws InterruptedException {
+    protected GLWindow createGLWindow(final GLCapabilities caps, final int x, final int y, final GearsES2 gears) throws InterruptedException {
         final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.addGLEventListener(gears);
@@ -58,7 +58,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
         return glWindow;
     }
 
-    static void pauseAnimator(Animator animator, boolean pause) {
+    static void pauseAnimator(final Animator animator, final boolean pause) {
         if(pause) {
             animator.pause();
             Assert.assertEquals(true, animator.isStarted());
@@ -71,7 +71,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
             Assert.assertEquals(true, animator.isAnimating());
         }
     }
-    static void stopAnimator(Animator animator) {
+    static void stopAnimator(final Animator animator) {
         animator.stop();
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isPaused());
@@ -125,7 +125,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -133,7 +133,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -141,7 +141,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -208,7 +208,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -218,7 +218,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -228,7 +228,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -249,13 +249,13 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
     static long duration = 3*500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

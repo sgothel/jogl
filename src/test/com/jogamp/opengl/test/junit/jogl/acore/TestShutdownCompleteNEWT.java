@@ -51,18 +51,18 @@ public class TestShutdownCompleteNEWT extends UITestCase {
 
     static long duration = 300; // ms
 
-    protected void runTestGL(boolean onscreen) throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+    protected void runTestGL(final boolean onscreen) throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         caps.setOnscreen(onscreen);
         caps.setPBuffer(!onscreen);
 
-        GLWindow glWindow = GLWindow.create(caps);
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
         glWindow.addGLEventListener(new GearsES2());
 
-        Animator animator = new Animator(glWindow);
+        final Animator animator = new Animator(glWindow);
 
         glWindow.setSize(256, 256);
         glWindow.setVisible(true);
@@ -88,7 +88,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         }
     }
 
-    protected void oneLife(boolean glInfo) throws InterruptedException {
+    protected void oneLife(final boolean glInfo) throws InterruptedException {
         if(waitForEach) {
             UITestCase.waitForKey("Start One Life");
         }
@@ -137,7 +137,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
     static boolean waitForEach = false;
     static boolean waitForKey = false;
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-wait")) {
                 waitForKey = true;
@@ -153,7 +153,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
             UITestCase.waitForKey("Start");
         }
 
-        String tstname = TestShutdownCompleteNEWT.class.getName();
+        final String tstname = TestShutdownCompleteNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

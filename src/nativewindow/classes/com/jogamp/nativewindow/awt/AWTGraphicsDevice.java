@@ -56,7 +56,7 @@ public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
   }
 
   public static AWTGraphicsDevice createDefault() {
-    GraphicsDevice awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    final GraphicsDevice awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     return new AWTGraphicsDevice(awtDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
   }
 

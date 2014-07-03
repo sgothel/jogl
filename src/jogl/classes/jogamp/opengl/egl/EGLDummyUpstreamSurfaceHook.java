@@ -17,12 +17,12 @@ public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
-    public EGLDummyUpstreamSurfaceHook(int width, int height) {
+    public EGLDummyUpstreamSurfaceHook(final int width, final int height) {
         super(width, height);
     }
 
     @Override
-    public final void create(ProxySurface s) {
+    public final void create(final ProxySurface s) {
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
         eglDevice.lock();
         try {
@@ -41,7 +41,7 @@ public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     }
 
     @Override
-    public final void destroy(ProxySurface s) {
+    public final void destroy(final ProxySurface s) {
         if( s.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
             final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
             if( EGL.EGL_NO_SURFACE == s.getSurfaceHandle() ) {

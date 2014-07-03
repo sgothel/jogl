@@ -60,12 +60,12 @@ import java.io.IOException;
  */
 public class Ligature {
 
-    private int _ligGlyph;
-    private int _compCount;
-    private int[] _components;
+    private final int _ligGlyph;
+    private final int _compCount;
+    private final int[] _components;
 
     /** Creates new Ligature */
-    public Ligature(DataInput di) throws IOException {
+    public Ligature(final DataInput di) throws IOException {
         _ligGlyph = di.readUnsignedShort();
         _compCount = di.readUnsignedShort();
         _components = new int[_compCount - 1];
@@ -78,7 +78,7 @@ public class Ligature {
         return _compCount;
     }
 
-    public int getGlyphId(int i) {
+    public int getGlyphId(final int i) {
         return (i == 0) ? _ligGlyph : _components[i-1];
     }
 

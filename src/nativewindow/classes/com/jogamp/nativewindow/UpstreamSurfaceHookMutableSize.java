@@ -11,31 +11,31 @@ public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.Mutab
      * @param width initial width
      * @param height initial height
      */
-    public UpstreamSurfaceHookMutableSize(int width, int height) {
+    public UpstreamSurfaceHookMutableSize(final int width, final int height) {
         this.pixWidth = width;
         this.pixHeight = height;
     }
 
     @Override
-    public final void setSurfaceSize(int width, int height) {
+    public final void setSurfaceSize(final int width, final int height) {
         this.pixWidth = width;
         this.pixHeight = height;
     }
 
     @Override
-    public final int getSurfaceWidth(ProxySurface s) {
+    public final int getSurfaceWidth(final ProxySurface s) {
         return pixWidth;
     }
 
     @Override
-    public final int getSurfaceHeight(ProxySurface s) {
+    public final int getSurfaceHeight(final ProxySurface s) {
         return pixHeight;
     }
     @Override
-    public void create(ProxySurface s) { /* nop */ }
+    public void create(final ProxySurface s) { /* nop */ }
 
     @Override
-    public void destroy(ProxySurface s) { /* nop */ }
+    public void destroy(final ProxySurface s) { /* nop */ }
 
     @Override
     public String toString() {

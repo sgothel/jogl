@@ -145,7 +145,7 @@ public class TileRenderer extends TileRendererBase {
     private int offsetY;
 
     @Override
-    protected StringBuilder tileDetails(StringBuilder sb) {
+    protected StringBuilder tileDetails(final StringBuilder sb) {
         sb.append("# "+currentTile+": ["+currentColumn+"]["+currentRow+"] / "+columns+"x"+rows+", ")
         .append("rowOrder "+rowOrder+", offset/size "+offsetX+"/"+offsetY+" "+tileSize.getWidth()+"x"+tileSize.getHeight()+" brd "+tileBorder+", ");
         return super.tileDetails(sb);
@@ -165,7 +165,7 @@ public class TileRenderer extends TileRendererBase {
      * </p>
      */
     @Override
-    public final void setImageSize(int width, int height) {
+    public final void setImageSize(final int width, final int height) {
         super.setImageSize(width, height);
         reset();
     }
@@ -184,7 +184,7 @@ public class TileRenderer extends TileRendererBase {
      * @param height The image-clipping.height
      * @see #getClippedImageSize()
      */
-    public final void clipImageSize(int width, int height) {
+    public final void clipImageSize(final int width, final int height) {
         if( null == imageClippingDim ) {
             imageClippingDim = new Dimension(width, height);
         } else {
@@ -236,7 +236,7 @@ public class TileRenderer extends TileRendererBase {
      *           to avoid artifacts when rendering lines or points with
      *           thickness > 1.
      */
-    public final void setTileSize(int width, int height, int border) {
+    public final void setTileSize(final int width, final int height, final int border) {
         if( 0 > border ) {
             throw new IllegalArgumentException("Tile border must be >= 0");
         }
@@ -255,7 +255,7 @@ public class TileRenderer extends TileRendererBase {
      * @see #TR_TILE_X_OFFSET
      * @see #TR_TILE_Y_OFFSET
      **/
-    public void setTileOffset(int xoff, int yoff) {
+    public void setTileOffset(final int xoff, final int yoff) {
         offsetX = xoff;
         offsetY = yoff;
     }
@@ -299,7 +299,7 @@ public class TileRenderer extends TileRendererBase {
     /* pp */ final int getCurrentTile() { return currentTile; }
 
     @Override
-    public final int getParam(int pname) {
+    public final int getParam(final int pname) {
         switch (pname) {
         case TR_IMAGE_WIDTH:
             return imageSize.getWidth();
@@ -349,7 +349,7 @@ public class TileRenderer extends TileRendererBase {
      *
      * @param order The row traversal order, must be either {@link #TR_TOP_TO_BOTTOM} or {@link #TR_BOTTOM_TO_TOP}.
      */
-    public final void setRowOrder(int order) {
+    public final void setRowOrder(final int order) {
         if (order == TR_TOP_TO_BOTTOM || order == TR_BOTTOM_TO_TOP) {
             rowOrder = order;
         } else {
@@ -388,7 +388,7 @@ public class TileRenderer extends TileRendererBase {
      *         {@link #eot() end-of-tiling} has been reached.
      */
     @Override
-    public final void beginTile( GL gl ) throws IllegalStateException, GLException {
+    public final void beginTile( final GL gl ) throws IllegalStateException, GLException {
         if( !isSetup() ) {
             throw new IllegalStateException("Image size has not been set: "+this);
         }
@@ -408,7 +408,7 @@ public class TileRenderer extends TileRendererBase {
         assert ( currentRow < rows );
         assert ( currentColumn < columns );
 
-        int border = tileBorder;
+        final int border = tileBorder;
 
         final DimensionImmutable clippedImageSize = getClippedImageSize();
         int tH, tW;
@@ -446,7 +446,7 @@ public class TileRenderer extends TileRendererBase {
     }
 
     @Override
-    public void endTile( GL gl ) throws IllegalStateException, GLException {
+    public void endTile( final GL gl ) throws IllegalStateException, GLException {
         if( !beginCalled ) {
             throw new IllegalStateException("beginTile(..) has not been called");
         }

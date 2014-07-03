@@ -80,7 +80,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     * @param glp GLProfile, or null for the default GLProfile
     * @throws GLException if no profile is given and no default profile is available for the default device.
     */
-  public GLCapabilities(GLProfile glp) throws GLException {
+  public GLCapabilities(final GLProfile glp) throws GLException {
       glProfile = (null!=glp)?glp:GLProfile.getDefault(GLProfile.getDefaultDevice());
   }
 
@@ -93,7 +93,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new GLException(e);
     }
   }
@@ -103,7 +103,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * from <code>source</code> into this instance.
    * @return this instance
    */
-  public GLCapabilities copyFrom(GLCapabilitiesImmutable source) {
+  public GLCapabilities copyFrom(final GLCapabilitiesImmutable source) {
     super.copyFrom(source);
     glProfile = source.getGLProfile();
     isPBuffer = source.isPBuffer();
@@ -145,12 +145,12 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if(this == obj)  { return true; }
     if(!(obj instanceof GLCapabilitiesImmutable)) {
         return false;
     }
-    GLCapabilitiesImmutable other = (GLCapabilitiesImmutable)obj;
+    final GLCapabilitiesImmutable other = (GLCapabilitiesImmutable)obj;
     boolean res = super.equals(obj) &&
                   other.getGLProfile()==glProfile &&
                   other.isPBuffer()==isPBuffer &&
@@ -176,7 +176,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   @Override
   public int compareTo(final CapabilitiesImmutable o) {
     if ( ! ( o instanceof GLCapabilitiesImmutable ) ) {
-        Class<?> c = (null != o) ? o.getClass() : null ;
+        final Class<?> c = (null != o) ? o.getClass() : null ;
         throw new ClassCastException("Not a GLCapabilitiesImmutable object, but " + c);
     }
     final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) o;
@@ -235,7 +235,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Sets the GL profile you desire */
-  public void setGLProfile(GLProfile profile) {
+  public void setGLProfile(final GLProfile profile) {
     glProfile=profile;
   }
 
@@ -256,7 +256,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * Requesting offscreen pbuffer mode disables the offscreen auto selection.
    * </p>
    */
-  public void setPBuffer(boolean enable) {
+  public void setPBuffer(final boolean enable) {
     if(enable) {
       setOnscreen(false);
     }
@@ -280,7 +280,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * Requesting offscreen FBO mode disables the offscreen auto selection.
    * </p>
    */
-  public void setFBO(boolean enable) {
+  public void setFBO(final boolean enable) {
     if(enable) {
       setOnscreen(false);
     }
@@ -293,7 +293,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Enables or disables double buffering. */
-  public void setDoubleBuffered(boolean enable) {
+  public void setDoubleBuffered(final boolean enable) {
     doubleBuffered = enable;
   }
 
@@ -303,7 +303,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Enables or disables stereo viewing. */
-  public void setStereo(boolean enable) {
+  public void setStereo(final boolean enable) {
     stereo = enable;
   }
 
@@ -313,7 +313,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Enables or disables hardware acceleration. */
-  public void setHardwareAccelerated(boolean enable) {
+  public void setHardwareAccelerated(final boolean enable) {
     hardwareAccelerated = enable;
   }
 
@@ -323,7 +323,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Sets the number of bits requested for the depth buffer. */
-  public void setDepthBits(int depthBits) {
+  public void setDepthBits(final int depthBits) {
     this.depthBits = depthBits;
   }
 
@@ -333,7 +333,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /** Sets the number of bits requested for the stencil buffer. */
-  public void setStencilBits(int stencilBits) {
+  public void setStencilBits(final int stencilBits) {
     this.stencilBits = stencilBits;
   }
 
@@ -346,7 +346,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
       red component. On some systems only the accumulation buffer
       depth, which is the sum of the red, green, and blue bits, is
       considered. */
-  public void setAccumRedBits(int accumRedBits) {
+  public void setAccumRedBits(final int accumRedBits) {
     this.accumRedBits = accumRedBits;
   }
 
@@ -359,7 +359,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
       green component. On some systems only the accumulation buffer
       depth, which is the sum of the red, green, and blue bits, is
       considered. */
-  public void setAccumGreenBits(int accumGreenBits) {
+  public void setAccumGreenBits(final int accumGreenBits) {
     this.accumGreenBits = accumGreenBits;
   }
 
@@ -372,7 +372,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
       blue component. On some systems only the accumulation buffer
       depth, which is the sum of the red, green, and blue bits, is
       considered. */
-  public void setAccumBlueBits(int accumBlueBits) {
+  public void setAccumBlueBits(final int accumBlueBits) {
     this.accumBlueBits = accumBlueBits;
   }
 
@@ -385,7 +385,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
       component. On some systems only the accumulation buffer depth,
       which is the sum of the red, green, and blue bits, is
       considered. */
-  public void setAccumAlphaBits(int accumAlphaBits) {
+  public void setAccumAlphaBits(final int accumAlphaBits) {
     this.accumAlphaBits = accumAlphaBits;
   }
 
@@ -393,7 +393,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * Sets the desired extension for full-scene antialiasing
    * (FSAA), default is {@link #DEFAULT_SAMPLE_EXTENSION}.
    */
-  public void setSampleExtension(String se) {
+  public void setSampleExtension(final String se) {
       sampleExtension = se;
   }
 
@@ -410,7 +410,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * If enabled this method also invokes {@link #setAlphaBits(int) setAlphaBits(1)}
    * if {@link #getAlphaBits()} == 0.<br>
    */
-  public void setSampleBuffers(boolean enable) {
+  public void setSampleBuffers(final boolean enable) {
     sampleBuffers = enable;
     if(sampleBuffers && getAlphaBits()==0) {
         setAlphaBits(1);
@@ -427,7 +427,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * to be allocated. Defaults to 2.
    * @see #getNumSamples()
    */
-  public void setNumSamples(int numSamples) {
+  public void setNumSamples(final int numSamples) {
     this.numSamples = numSamples;
   }
 
@@ -503,7 +503,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
       object. */
   @Override
   public String toString() {
-    StringBuilder msg = new StringBuilder();
+    final StringBuilder msg = new StringBuilder();
     msg.append("GLCaps[");
     toString(msg);
     msg.append("]");

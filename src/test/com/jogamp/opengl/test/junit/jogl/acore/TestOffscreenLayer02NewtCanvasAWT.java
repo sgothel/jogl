@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.awt.BorderLayout;
@@ -80,31 +80,31 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         preferredGLSize = new Dimension(400,200);
     }
 
-    private void setupFrameAndShow(final Frame f, java.awt.Component comp) throws InterruptedException, InvocationTargetException {
-        Container c = new Container();
+    private void setupFrameAndShow(final Frame f, final java.awt.Component comp) throws InterruptedException, InvocationTargetException {
+        final Container c = new Container();
         c.setLayout(new BorderLayout());
         c.add(new Button("north"), BorderLayout.NORTH);
         c.add(new Button("south"), BorderLayout.SOUTH);
         c.add(new Button("east"), BorderLayout.EAST);
         c.add(new Button("west"), BorderLayout.WEST);
         c.add(comp, BorderLayout.CENTER);
-        
+
         f.setLayout(new BorderLayout());
         f.add(new Button("NORTH"), BorderLayout.NORTH);
         f.add(new Button("SOUTH"), BorderLayout.SOUTH);
         f.add(new Button("EAST"), BorderLayout.EAST);
         f.add(new Button("WEST"), BorderLayout.WEST);
         f.add(c, BorderLayout.CENTER);
-        
+
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 f.pack();
                 f.validate();
                 f.setVisible(true);
-            }});        
+            }});
     }
-    
-    private void end(GLAnimatorControl actrl, final Frame f, Window w) throws InterruptedException, InvocationTargetException {
+
+    private void end(final GLAnimatorControl actrl, final Frame f, final Window w) throws InterruptedException, InvocationTargetException {
         actrl.stop();
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -114,12 +114,12 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
             w.destroy();
         }
     }
-    
+
     @Test
-    public void test01_GLDefault() throws InterruptedException, InvocationTargetException {        
+    public void test01_GLDefault() throws InterruptedException, InvocationTargetException {
         testOffscreenLayerNewtCanvas_Impl(null);
     }
-    
+
     @Test
     public void test02_GL3() throws InterruptedException, InvocationTargetException {
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
@@ -128,15 +128,15 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         }
         testOffscreenLayerNewtCanvas_Impl(GLProfile.get(GLProfile.GL3));
     }
-    
-    private void testOffscreenLayerNewtCanvas_Impl(GLProfile glp) throws InterruptedException, InvocationTargetException {
+
+    private void testOffscreenLayerNewtCanvas_Impl(final GLProfile glp) throws InterruptedException, InvocationTargetException {
         if(!JAWTUtil.isOffscreenLayerSupported()) {
             System.err.println("offscreen layer n/a");
             return;
-        }        
+        }
         final Frame frame1 = new Frame("AWT Parent Frame");
-        
-        GLCapabilities caps = new GLCapabilities(glp);
+
+        final GLCapabilities caps = new GLCapabilities(glp);
         if(singleBuffer) {
             caps.setDoubleBuffered(false);
         }
@@ -148,30 +148,30 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // get native NEWT Window, not OffscreenWindow
         }
-        GLWindow glWindow1 = GLWindow.create(caps);
-        
+        final GLWindow glWindow1 = GLWindow.create(caps);
+
         final NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setShallUseOffscreenLayer(true); // trigger offscreen layer - if supported
         newtCanvasAWT1.setPreferredSize(preferredGLSize);
         newtCanvasAWT1.setMinimumSize(preferredGLSize);
         newtCanvasAWT1.setSize(preferredGLSize);
-        
-        GearsES2 demo1 = new GearsES2(swapInterval);
+
+        final GearsES2 demo1 = new GearsES2(swapInterval);
         if(noAnimation) {
             demo1.setDoRotation(false);
         }
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
-        
+
         frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, newtCanvasAWT1);
         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true));
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
         Assert.assertEquals(true, newtCanvasAWT1.isOffscreenLayerSurfaceEnabled());
-        
-        GLAnimatorControl animator1 = new Animator(glWindow1);
+
+        final GLAnimatorControl animator1 = new Animator(glWindow1);
         if(!noAnimation) {
             animator1.start();
         }
@@ -183,20 +183,20 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
                 frame1.setSize(frameSize1);
                 frame1.pack();
                 frame1.validate();
-            }});        
-        
+            }});
+
         Thread.sleep(durationPerTest/2);
-        
+
         end(animator1, frame1, glWindow1);
         if( waitForKey ) {
             UITestCase.waitForKey("Continue");
         }
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -206,15 +206,15 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -236,7 +236,7 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         if(waitForKey) {
             UITestCase.waitForKey("Start");
         }
-        String tstname = TestOffscreenLayer02NewtCanvasAWT.class.getName();
+        final String tstname = TestOffscreenLayer02NewtCanvasAWT.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

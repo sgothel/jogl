@@ -53,11 +53,11 @@ public abstract class RoundButton extends UIShape {
     }
 
     @Override
-    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
     @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
     public final float getWidth() { return width; }
@@ -66,7 +66,7 @@ public abstract class RoundButton extends UIShape {
 
     public final float getCorner() { return corner; }
 
-    public void setDimension(float width, float height) {
+    public void setDimension(final float width, final float height) {
         this.width = width;
         this.height = height;
         markShapeDirty();
@@ -115,7 +115,7 @@ public abstract class RoundButton extends UIShape {
     }
 
     /** Set corner size, default is {@link #DEFAULT_CORNER} */
-    public void setCorner(float corner) {
+    public void setCorner(final float corner) {
         if(corner > 1.0f){
             this.corner = 1.0f;
         }

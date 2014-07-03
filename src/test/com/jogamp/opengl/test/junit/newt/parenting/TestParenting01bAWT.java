@@ -77,10 +77,10 @@ public class TestParenting01bAWT extends UITestCase {
         testAWTWinHopFrame2FrameImpl(0);
     }
 
-    public void testAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException, InvocationTargetException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+    public void testAWTWinHopFrame2FrameImpl(final int fps) throws InterruptedException, InvocationTargetException {
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -173,10 +173,10 @@ public class TestParenting01bAWT extends UITestCase {
         glWindow1.destroy();
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -186,15 +186,15 @@ public class TestParenting01bAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -202,7 +202,7 @@ public class TestParenting01bAWT extends UITestCase {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting01bAWT.class.getName();
+        final String tstname = TestParenting01bAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

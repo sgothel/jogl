@@ -8,7 +8,7 @@ import jogamp.opengl.util.pngj.PngjException;
  */
 public class PngChunkSkipped extends PngChunk {
 
-	public PngChunkSkipped(String id, ImageInfo info, int clen) {
+	public PngChunkSkipped(final String id, final ImageInfo info, final int clen) {
 		super(id, info);
 		this.length = clen;
 	}
@@ -24,12 +24,12 @@ public class PngChunkSkipped extends PngChunk {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		throw new PngjException("Non supported for a skipped chunk");
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
+	public void cloneDataFromRead(final PngChunk other) {
 		throw new PngjException("Non supported for a skipped chunk");
 	}
 

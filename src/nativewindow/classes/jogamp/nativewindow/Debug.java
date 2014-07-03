@@ -63,7 +63,7 @@ public class Debug extends PropertyAccess {
     verbose = isPropertyDefined("nativewindow.verbose", true);
     debugAll = isPropertyDefined("nativewindow.debug", true);
     if (verbose) {
-       Package p = Package.getPackage("javax.media.nativewindow");
+       final Package p = Package.getPackage("javax.media.nativewindow");
        System.err.println("NativeWindow specification version " + p.getSpecificationVersion());
        System.err.println("NativeWindow implementation version " + p.getImplementationVersion());
        System.err.println("NativeWindow implementation vendor " + p.getImplementationVendor());
@@ -81,7 +81,7 @@ public class Debug extends PropertyAccess {
     return debugAll;
   }
 
-  public static final boolean debug(String subcomponent) {
+  public static final boolean debug(final String subcomponent) {
     return debugAll() || isPropertyDefined("nativewindow.debug." + subcomponent, true);
   }
 }

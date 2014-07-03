@@ -70,8 +70,8 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, final int nativeVisualID) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -84,7 +84,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: creating default device: "+absScreen);
             }
         }
-        AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
+        final AWTGraphicsScreen awtScreen = (AWTGraphicsScreen) absScreen;
         device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
         if ( !(capsChosen instanceof GLCapabilitiesImmutable) ) {
@@ -104,10 +104,10 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
             System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: got "+absScreen);
         }
 
-        WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
-        DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
-        GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice, capsChosen);
-        WindowsWGLGraphicsConfiguration winConfig = (WindowsWGLGraphicsConfiguration)
+        final WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        final DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
+        final GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice, capsChosen);
+        final WindowsWGLGraphicsConfiguration winConfig = (WindowsWGLGraphicsConfiguration)
                                                        configFactory.chooseGraphicsConfiguration(capsChosen,
                                                                                                  capsRequested,
                                                                                                  chooser, winScreen, nativeVisualID);
@@ -115,7 +115,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+winScreen);
         }
 
-        GLDrawableFactory drawableFactory = GLDrawableFactory.getFactory(((GLCapabilitiesImmutable)capsChosen).getGLProfile());
+        final GLDrawableFactory drawableFactory = GLDrawableFactory.getFactory(((GLCapabilitiesImmutable)capsChosen).getGLProfile());
         GraphicsConfiguration chosenGC = null;
 
         if ( drawableFactory instanceof WindowsWGLDrawableFactory ) {
@@ -133,7 +133,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                         System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found new AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
                     }
                 }
-            } catch (GLException gle0) {
+            } catch (final GLException gle0) {
                 if(DEBUG) {
                     gle0.printStackTrace();
                 }
@@ -150,11 +150,11 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 //
 
                 // collect all available PFD IDs
-                GraphicsConfiguration[] configs = device.getConfigurations();
-                int[] pfdIDs = new int[configs.length];
-                ArrayHashSet<Integer> pfdIDOSet = new ArrayHashSet<Integer>();
+                final GraphicsConfiguration[] configs = device.getConfigurations();
+                final int[] pfdIDs = new int[configs.length];
+                final ArrayHashSet<Integer> pfdIDOSet = new ArrayHashSet<Integer>();
                 for (int i = 0; i < configs.length; i++) {
-                    GraphicsConfiguration gc = configs[i];
+                    final GraphicsConfiguration gc = configs[i];
                     pfdIDs[i] = Win32SunJDKReflection.graphicsConfigurationGetPixelFormatID(gc);
                     pfdIDOSet.add(new Integer(pfdIDs[i]));
                     if(DEBUG) {
@@ -165,7 +165,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                     System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: PFD IDs: "+pfdIDs.length+", unique: "+pfdIDOSet.size());
                 }
                 winConfig.preselectGraphicsConfiguration(drawableFactory, pfdIDs);
-                int gcIdx = pfdIDOSet.indexOf(new Integer(winConfig.getPixelFormatID()));
+                final int gcIdx = pfdIDOSet.indexOf(new Integer(winConfig.getPixelFormatID()));
                 if( 0 > gcIdx ) {
                     chosenGC = configs[gcIdx];
                     if(DEBUG) {

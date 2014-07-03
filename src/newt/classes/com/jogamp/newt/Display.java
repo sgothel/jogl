@@ -55,10 +55,10 @@ public abstract class Display {
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Display) {
-            Display d = (Display)obj;
+            final Display d = (Display)obj;
             return d.getFQName().equals(getFQName());
         }
         return false;
@@ -353,7 +353,7 @@ public abstract class Display {
     protected static final ArrayList<WeakReference<Display>> displayList = new ArrayList<WeakReference<Display>>();
     protected static int displaysActive = 0;
 
-    public static void dumpDisplayList(String prefix) {
+    public static void dumpDisplayList(final String prefix) {
         synchronized(displayList) {
             System.err.println(prefix+" DisplayList[] entries: "+displayList.size()+" - "+getThreadName());
             final Iterator<WeakReference<Display>> ri = displayList.iterator();
@@ -372,7 +372,7 @@ public abstract class Display {
      * @paran shared if true, only shared instances are found, otherwise also exclusive
      * @return
      */
-    public static Display getFirstDisplayOf(String type, String name, int fromIndex, boolean shared) {
+    public static Display getFirstDisplayOf(final String type, final String name, final int fromIndex, final boolean shared) {
         return getDisplayOfImpl(type, name, fromIndex, 1, shared);
     }
 
@@ -384,11 +384,11 @@ public abstract class Display {
      * @paran shared if true, only shared instances are found, otherwise also exclusive
      * @return
      */
-    public static Display getLastDisplayOf(String type, String name, int fromIndex, boolean shared) {
+    public static Display getLastDisplayOf(final String type, final String name, final int fromIndex, final boolean shared) {
         return getDisplayOfImpl(type, name, fromIndex, -1, shared);
     }
 
-    private static Display getDisplayOfImpl(String type, String name, final int fromIndex, final int incr, boolean shared) {
+    private static Display getDisplayOfImpl(final String type, final String name, final int fromIndex, final int incr, final boolean shared) {
         synchronized(displayList) {
             int i = fromIndex >= 0 ? fromIndex : displayList.size() - 1 ;
             while( ( incr > 0 ) ? i < displayList.size() : i >= 0 ) {
@@ -414,7 +414,7 @@ public abstract class Display {
         return null;
     }
 
-    protected static void addDisplay2List(Display display) {
+    protected static void addDisplay2List(final Display display) {
         synchronized(displayList) {
             // GC before add
             int i=0;
@@ -458,15 +458,15 @@ public abstract class Display {
         return Thread.currentThread().getName();
     }
 
-    public static String toHexString(int hex) {
+    public static String toHexString(final int hex) {
         return "0x" + Integer.toHexString(hex);
     }
 
-    public static String toHexString(long hex) {
+    public static String toHexString(final long hex) {
         return "0x" + Long.toHexString(hex);
     }
 
-    public static int hashCodeNullSafe(Object o) {
+    public static int hashCodeNullSafe(final Object o) {
         return ( null != o ) ? o.hashCode() : 0;
     }
 }

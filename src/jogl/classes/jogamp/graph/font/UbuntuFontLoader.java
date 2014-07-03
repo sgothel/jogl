@@ -76,7 +76,7 @@ public class UbuntuFontLoader implements FontSet {
     private UbuntuFontLoader() {
     }
 
-    static boolean is(int bits, int bit) {
+    static boolean is(final int bits, final int bit) {
         return 0 != ( bits & bit ) ;
     }
 
@@ -86,7 +86,7 @@ public class UbuntuFontLoader implements FontSet {
     }
 
     @Override
-    public Font get(int family, int style) throws IOException {
+    public Font get(final int family, final int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -132,7 +132,7 @@ public class UbuntuFontLoader implements FontSet {
     private static boolean attemptedJARLoading = false;
     private static boolean useTempJarCache = false;
 
-    private synchronized Font abspath(String fname, int family, int style) throws IOException {
+    private synchronized Font abspath(final String fname, final int family, final int style) throws IOException {
         final String err = "Problem loading font "+fname+", stream "+relFontPath+fname;
         final Exception[] privErr = { null };
         try {
@@ -150,7 +150,7 @@ public class UbuntuFontLoader implements FontSet {
                         public Object run() {
                             try {
                                 TempJarCache.addResources(UbuntuFontLoader.class, uri);
-                            } catch (Exception e) { privErr[0] = e; }
+                            } catch (final Exception e) { privErr[0] = e; }
                             return null;
                         } } );
                     if( null == privErr[0] ) {
@@ -162,7 +162,7 @@ public class UbuntuFontLoader implements FontSet {
                     }
                 }
             }
-        } catch(Exception e) {
+        } catch(final Exception e) {
             throw new IOException(err, e);
         }
         if( null != privErr[0] ) {
@@ -182,7 +182,7 @@ public class UbuntuFontLoader implements FontSet {
                     try {
                         final URI uri = TempJarCache.getResource(absFontPath+fname);
                         privConn[0] = null != uri ? uri.toURL().openConnection() : null;
-                    } catch (Exception e) { privErr[0] = e; }
+                    } catch (final Exception e) { privErr[0] = e; }
                     return null;
                 } } );
             if( null != privErr[0] ) {

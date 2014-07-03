@@ -60,13 +60,13 @@ import java.io.IOException;
  */
 public class SingleSubstFormat2 extends SingleSubst {
 
-    private int _coverageOffset;
-    private int _glyphCount;
-    private int[] _substitutes;
-    private Coverage _coverage;
+    private final int _coverageOffset;
+    private final int _glyphCount;
+    private final int[] _substitutes;
+    private final Coverage _coverage;
 
     /** Creates new SingleSubstFormat2 */
-    protected SingleSubstFormat2(DataInputStream dis, int offset) throws IOException {
+    protected SingleSubstFormat2(final DataInputStream dis, final int offset) throws IOException {
         _coverageOffset = dis.readUnsignedShort();
         _glyphCount = dis.readUnsignedShort();
         _substitutes = new int[_glyphCount];
@@ -84,8 +84,8 @@ public class SingleSubstFormat2 extends SingleSubst {
     }
 
     @Override
-    public int substitute(int glyphId) {
-        int i = _coverage.findGlyph(glyphId);
+    public int substitute(final int glyphId) {
+        final int i = _coverage.findGlyph(glyphId);
         if (i > -1) {
             return _substitutes[i];
         }

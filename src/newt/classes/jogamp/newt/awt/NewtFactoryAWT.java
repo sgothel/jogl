@@ -55,7 +55,7 @@ public class NewtFactoryAWT extends NewtFactory {
    *
    * @param awtCompObject must be of type java.awt.Component
    */
-  public static JAWTWindow getNativeWindow(Object awtCompObject, CapabilitiesImmutable capsRequested) {
+  public static JAWTWindow getNativeWindow(final Object awtCompObject, final CapabilitiesImmutable capsRequested) {
       if(null==awtCompObject) {
         throw new NativeWindowException("Null AWT Component");
       }
@@ -65,9 +65,9 @@ public class NewtFactoryAWT extends NewtFactory {
       return getNativeWindow( (java.awt.Component) awtCompObject, capsRequested );
   }
 
-  public static JAWTWindow getNativeWindow(java.awt.Component awtComp, CapabilitiesImmutable capsRequested) {
-      AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
-      NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
+  public static JAWTWindow getNativeWindow(final java.awt.Component awtComp, final CapabilitiesImmutable capsRequested) {
+      final AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
+      final NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(! ( nw instanceof JAWTWindow ) ) {
           throw new NativeWindowException("Not an AWT NativeWindow: "+nw);
       }
@@ -77,7 +77,7 @@ public class NewtFactoryAWT extends NewtFactory {
       return (JAWTWindow)nw;
   }
 
-  public static void destroyNativeWindow(JAWTWindow jawtWindow) {
+  public static void destroyNativeWindow(final JAWTWindow jawtWindow) {
       final AbstractGraphicsConfiguration config = jawtWindow.getGraphicsConfiguration();
       jawtWindow.destroy();
       config.getScreen().getDevice().close();

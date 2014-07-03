@@ -2,6 +2,8 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import java.util.Arrays;
 
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
 import jogamp.opengl.ProjectFloat;
 
 import com.jogamp.opengl.math.FloatUtil;
@@ -49,7 +51,7 @@ public class TestPMVMatrix03NOUI {
         FloatUtil.mapObjToWinCoords(0f, 0f, 0f, mat4PMv, viewport, 0, winB01, 0, vec4Tmp1, vec4Tmp2);
         System.err.println("B.0.1 - Project 0,0 -->" + Arrays.toString(winB01));
 
-        m.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        m.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         m.glOrthof(0, 10, 0, 10, 1, -1);
         System.err.println("MATRIX - Ortho 0,0,10,10 - Locate the origin in the bottom left and scale");
         System.err.println(m);
@@ -74,12 +76,12 @@ public class TestPMVMatrix03NOUI {
         ////////////////////
         /////////////////////
 
-        float[] winC00 = new float[4];
-        float[] winC01 = new float[4];
-        float[] winC10 = new float[4];
-        float[] winC11 = new float[4];
-        float[] projMatrixC = new float[16];
-        float[] modelMatrixC = new float[16];
+        final float[] winC00 = new float[4];
+        final float[] winC01 = new float[4];
+        final float[] winC10 = new float[4];
+        final float[] winC11 = new float[4];
+        final float[] projMatrixC = new float[16];
+        final float[] modelMatrixC = new float[16];
         FloatUtil.makeIdentity(projMatrixC);
         FloatUtil.makeIdentity(modelMatrixC);
         final ProjectFloat projectFloat = new ProjectFloat();
@@ -131,7 +133,7 @@ public class TestPMVMatrix03NOUI {
         final float ty=-1.0f*(top+bottom)/dy;
         final float tz=-1.0f*(zFar+zNear)/dz;
 
-        float[] matrixOrtho = new float[16];
+        final float[] matrixOrtho = new float[16];
         FloatUtil.makeIdentity(matrixOrtho);
         matrixOrtho[0+4*0] =  2.0f/dx;
         matrixOrtho[1+4*1] =  2.0f/dy;
@@ -143,7 +145,7 @@ public class TestPMVMatrix03NOUI {
         FloatUtil.multMatrix(m, 0, matrixOrtho, 0);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPMVMatrix03NOUI.class.getName());
     }
 }

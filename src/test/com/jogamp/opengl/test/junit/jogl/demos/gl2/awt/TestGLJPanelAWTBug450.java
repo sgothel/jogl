@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -38,6 +38,7 @@ import javax.media.opengl.glu.gl2.GLUgl2;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.lang.reflect.InvocationTargetException;
@@ -56,7 +57,7 @@ import org.junit.runners.MethodSorters;
 /**
  * Test for bug 450, which causes the right part of the frame to be black
  * for all x >= height.
- * 
+ *
  * Draws the Gears demo in a window that's twice as wide than it is tall,
  * and checks to see if a particular pixel in the right half of the frame
  * is colored.
@@ -86,7 +87,7 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps)
+    protected void runTestGL(final GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
@@ -95,26 +96,26 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
 
         final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
-        RedSquareES2 demo = new RedSquareES2();
+        final RedSquareES2 demo = new RedSquareES2();
         demo.setAspect((float)width/(float)height);
         demo.setDoRotation(false);
         glJPanel.addGLEventListener(demo);
         glJPanel.addGLEventListener(new GLEventListener() {
             int f = 0;
             @Override
-            public void init(GLAutoDrawable drawable) {
-                // drawable.getGL().glClearColor(0, 0, 1, 1);                
+            public void init(final GLAutoDrawable drawable) {
+                // drawable.getGL().glClearColor(0, 0, 1, 1);
             }
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 // look at one pixel at the bottom of the frame, just right of
                 // the center line, and make sure it's not black
-                GL2 gl = GLUgl2.getCurrentGL2();
-                ByteBuffer bytebuffer = ByteBuffer.allocateDirect( 3 );
-                gl.glReadPixels( r_x, r_y, 1, 1, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, bytebuffer );
-                byte byte0 = bytebuffer.get( 0 );
-                byte byte1 = bytebuffer.get( 1 );
-                byte byte2 = bytebuffer.get( 2 );
+                final GL2 gl = GLUgl2.getCurrentGL2();
+                final ByteBuffer bytebuffer = ByteBuffer.allocateDirect( 3 );
+                gl.glReadPixels( r_x, r_y, 1, 1, GL2GL3.GL_BGR, GL.GL_UNSIGNED_BYTE, bytebuffer );
+                final byte byte0 = bytebuffer.get( 0 );
+                final byte byte1 = bytebuffer.get( 1 );
+                final byte byte2 = bytebuffer.get( 2 );
                 if( (byte0 == 0) && (byte1 == 0) && (byte2 == 0) ) {
                     failed = true;
                 }
@@ -125,12 +126,12 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
                 f++;
             }
             @Override
-            public void dispose(GLAutoDrawable drawable) {}
+            public void dispose(final GLAutoDrawable drawable) {}
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
 
-        FPSAnimator animator = new FPSAnimator(glJPanel, 60);
+        final FPSAnimator animator = new FPSAnimator(glJPanel, 60);
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -139,7 +140,7 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
                     frame.setVisible(true);
                 } } ) ;
 
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
 
@@ -169,19 +170,19 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
     public void test01()
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         runTestGL(caps);
     }
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestGLJPanelAWTBug450.class.getName());

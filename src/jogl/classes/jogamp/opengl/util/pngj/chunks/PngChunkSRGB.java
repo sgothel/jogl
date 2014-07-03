@@ -21,7 +21,7 @@ public class PngChunkSRGB extends PngChunkSingle {
 
 	private int intent;
 
-	public PngChunkSRGB(ImageInfo info) {
+	public PngChunkSRGB(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -31,7 +31,7 @@ public class PngChunkSRGB extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (c.len != 1)
 			throw new PngjException("bad chunk length " + c);
 		intent = PngHelperInternal.readInt1fromByte(c.data, 0);
@@ -46,8 +46,8 @@ public class PngChunkSRGB extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkSRGB otherx = (PngChunkSRGB) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkSRGB otherx = (PngChunkSRGB) other;
 		intent = otherx.intent;
 	}
 
@@ -55,7 +55,7 @@ public class PngChunkSRGB extends PngChunkSingle {
 		return intent;
 	}
 
-	public void setIntent(int intent) {
+	public void setIntent(final int intent) {
 		this.intent = intent;
 	}
 }

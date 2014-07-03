@@ -151,7 +151,7 @@ public final class Binary16
    * the interval of double precision values is far larger than that of the
    * <code>binary16</code> type.
    * </p>
-   * 
+   *
    * @see #unpackDouble(char)
    */
 
@@ -224,7 +224,7 @@ public final class Binary16
    * the interval of single precision values is far larger than that of the
    * <code>binary16</code> type.
    * </p>
-   * 
+   *
    * @see #unpackFloat(char)
    */
 
@@ -280,7 +280,7 @@ public final class Binary16
    * range <code>[-15, 16]</code> - values outside of this range will be
    * truncated.
    * </p>
-   * 
+   *
    * @see #unpackGetExponentUnbiased(char)
    */
 
@@ -298,7 +298,7 @@ public final class Binary16
    * Encode the significand <code>s</code>. Values should be in the range
    * <code>[0, 1023]</code>. Values outside of this range will be truncated.
    * </p>
-   * 
+   *
    * @see #unpackGetSignificand(char)
    */
 
@@ -315,7 +315,7 @@ public final class Binary16
    * <code>[0, 1]</code>, with <code>0</code> ironically denoting a positive
    * value. Values outside of this range will be truncated.
    * </p>
-   * 
+   *
    * @see #unpackGetSign(char)
    */
 
@@ -369,7 +369,7 @@ public final class Binary16
    * <code>k</code>, and the decoded significand <code>s</code> of
    * <code>k</code>.</li>
    * </ul>
-   * 
+   *
    * @see #packDouble(double)
    */
 
@@ -405,7 +405,7 @@ public final class Binary16
 
     /**
      * 1. Bias the exponent.
-     * 
+     *
      * 2. Shift the result left to the position at which it will appear in the
      * resulting value.
      */
@@ -443,7 +443,7 @@ public final class Binary16
    * <code>k</code>, and the decoded significand <code>s</code> of
    * <code>k</code>.</li>
    * </ul>
-   * 
+   *
    * @see #packFloat(float)
    */
 
@@ -479,7 +479,7 @@ public final class Binary16
 
     /**
      * 1. Bias the exponent.
-     * 
+     *
      * 2. Shift the result left to the position at which it will appear in the
      * resulting value.
      */
@@ -522,7 +522,7 @@ public final class Binary16
    * <code>16</code> iff the input is {@link #POSITIVE_INFINITY},
    * {@link #NEGATIVE_INFINITY}, or <code>NaN</code>.</li>
    * </ul>
-   * 
+   *
    * @see #packSetExponentUnbiasedUnchecked(int)
    */
 
@@ -537,7 +537,7 @@ public final class Binary16
   /**
    * Retrieve the sign bit of the given packed <code>binary16</code> value, as
    * an integer in the range <code>[0, 1]</code>.
-   * 
+   *
    * @see Binary16#packSetSignUnchecked(int)
    */
 
@@ -552,7 +552,7 @@ public final class Binary16
    * Return the significand of the given packed <code>binary16</code> value as
    * an integer in the range <code>[0, 1023]</code>.
    * </p>
-   * 
+   *
    * @see Binary16#packSetSignificandUnchecked(int)
    */
 

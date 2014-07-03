@@ -37,7 +37,7 @@ public class FixedFuncUtil {
      * @see ShaderSelectionMode#COLOR_TEXTURE
      * @see ShaderSelectionMode#COLOR_TEXTURE_LIGHT_PER_VERTEX
      */
-    public static final GL2ES1 wrapFixedFuncEmul(GL gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix, boolean force, boolean verbose) {
+    public static final GL2ES1 wrapFixedFuncEmul(final GL gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix, final boolean force, final boolean verbose) {
         if(gl.isGL2ES2() && ( !gl.isGL2ES1() || force ) ) {
             final GL2ES2 es2 = gl.getGL2ES2();
             final FixedFuncHook hook = new FixedFuncHook(es2, mode, pmvMatrix);
@@ -66,7 +66,7 @@ public class FixedFuncUtil {
      * @see ShaderSelectionMode#COLOR_TEXTURE
      * @see ShaderSelectionMode#COLOR_TEXTURE_LIGHT_PER_VERTEX
      */
-    public static final GL2ES1 wrapFixedFuncEmul(GL gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix) {
+    public static final GL2ES1 wrapFixedFuncEmul(final GL gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
         return wrapFixedFuncEmul(gl, mode, null, false, false);
     }
 
@@ -90,7 +90,7 @@ public class FixedFuncUtil {
      * @see javax.media.opengl.fixedfunc.GLPointerFunc#glNormalPointer
      * @see javax.media.opengl.fixedfunc.GLPointerFunc#glTexCoordPointer
      */
-    public static String getPredefinedArrayIndexName(int glArrayIndex) {
+    public static String getPredefinedArrayIndexName(final int glArrayIndex) {
         return GLPointerFuncUtil.getPredefinedArrayIndexName(glArrayIndex);
     }
 

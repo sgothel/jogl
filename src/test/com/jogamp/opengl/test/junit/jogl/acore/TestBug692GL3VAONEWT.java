@@ -33,6 +33,8 @@ import java.nio.ShortBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GL3bc;
 import javax.media.opengl.GLAutoDrawable;
@@ -83,7 +85,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
         public enum Mode {
             CPU_SRC {
                 @Override
-                void display(GL3VAODemo t, GL3bc gl) {
+                void display(final GL3VAODemo t, final GL3bc gl) {
                     t.displayCPUSourcing(gl);
                 }
             },
@@ -91,7 +93,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             /** Traditional one without using VAO */
             VBO_ONLY {
                 @Override
-                void display(GL3VAODemo t, GL3bc gl) {
+                void display(final GL3VAODemo t, final GL3bc gl) {
                     t.displayVBOOnly(gl);
                 }
             },
@@ -99,7 +101,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             /** Using VAOs throws [incorrectly as of JOGL 2.0rc11] a GLException */
             VBO_VAO {
                 @Override
-                void display(GL3VAODemo t, GL3bc gl) {
+                void display(final GL3VAODemo t, final GL3bc gl) {
                     t.displayVBOVAO(gl);
                 }
             };
@@ -111,7 +113,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
         private Mode currentMode;
         private int currentModeIdx;
 
-        public GL3VAODemo(Mode[] modes) {
+        public GL3VAODemo(final Mode[] modes) {
             allModes = modes;
             currentMode = allModes[0];
             currentModeIdx = 0;
@@ -136,11 +138,11 @@ public class TestBug692GL3VAONEWT extends UITestCase {
 
         private int vao  = -1;
 
-        private static int createShader(final GL3 gl, int type,
+        private static int createShader(final GL3 gl, final int type,
                 final String[] srcLines){
-            int shaderID = gl.glCreateShader(type);
+            final int shaderID = gl.glCreateShader(type);
             assert shaderID > 0;
-            int[] lengths  = new int[srcLines.length];
+            final int[] lengths  = new int[srcLines.length];
             for (int i = 0; i < srcLines.length; i++) {
                 lengths[i] = srcLines[i].length();
             }
@@ -149,28 +151,28 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             return shaderID;
         }
 
-        private void initBuffers(GL3 gl) {
+        private void initBuffers(final GL3 gl) {
             // IDs for 2 buffers
-            int[] buffArray = new int[2];
+            final int[] buffArray = new int[2];
             gl.glGenBuffers(buffArray.length, buffArray, 0);
             vbo = buffArray[0];
             assert vbo > 0;
 
             // Bind buffer and upload data
-            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vbo);
-            gl.glBufferData(GL3.GL_ARRAY_BUFFER, vertexColorData.length * Buffers.SIZEOF_FLOAT,
-                            vertexColorDataBuffer, GL3.GL_STATIC_DRAW);
-            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo);
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, vertexColorData.length * Buffers.SIZEOF_FLOAT,
+                            vertexColorDataBuffer, GL.GL_STATIC_DRAW);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
 
             // Buffer with the 3 indices required for one triangle
             ibo = buffArray[1];
             assert ibo > 0;
-            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, ibo);
-            gl.glBufferData(GL3.GL_ELEMENT_ARRAY_BUFFER,indices.length*Buffers.SIZEOF_SHORT,
-                            indicesBuffer, GL3.GL_STATIC_DRAW);
-            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, ibo);
+            gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,indices.length*Buffers.SIZEOF_SHORT,
+                            indicesBuffer, GL.GL_STATIC_DRAW);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
         }
-        private void initShaders(GL3 gl) {
+        private void initShaders(final GL3 gl) {
             final String[] vertSrc = new String[]{
                 "#version 150\n",
                 "in vec4 vPosition;\n",
@@ -181,7 +183,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
                 "    gl_Position = vPosition;\n",
                 "}\n"
             };
-            vertID = createShader(gl, GL3.GL_VERTEX_SHADER, vertSrc);
+            vertID = createShader(gl, GL2ES2.GL_VERTEX_SHADER, vertSrc);
 
             final String[] fragSrc = new String[]{
                 "#version 150\n",
@@ -190,7 +192,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
                 "    gl_FragColor = pColor;\n",
                 "}\n"
             };
-            fragID = createShader(gl, GL3.GL_FRAGMENT_SHADER, fragSrc);
+            fragID = createShader(gl, GL2ES2.GL_FRAGMENT_SHADER, fragSrc);
 
             // We're done with the compiler
             gl.glReleaseShaderCompiler();
@@ -203,10 +205,10 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             gl.glValidateProgram(progID);
         }
 
-        private int initVAO(GL3 gl) {
-            int[] buff = new int[1];
+        private int initVAO(final GL3 gl) {
+            final int[] buff = new int[1];
             gl.glGenVertexArrays(1, buff, 0);
-            int vao = buff[0];
+            final int vao = buff[0];
             Assert.assertTrue("Invalid VAO: "+vao, vao > 0);
 
 
@@ -216,29 +218,29 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             gl.glUseProgram(0);
 
             gl.glBindVertexArray(vao);
-            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vbo);
-            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, ibo);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, ibo);
 
             gl.glEnableVertexAttribArray(posLoc);
             gl.glEnableVertexAttribArray(colorLoc);
 
             final int stride = 6 * Buffers.SIZEOF_FLOAT;
             final int cOff   = 3 * Buffers.SIZEOF_FLOAT;
-            gl.glVertexAttribPointer(posLoc,  3, GL3.GL_FLOAT, false, stride, 0L);
-            gl.glVertexAttribPointer(colorLoc,3, GL3.GL_FLOAT, false, stride, cOff);
+            gl.glVertexAttribPointer(posLoc,  3, GL.GL_FLOAT, false, stride, 0L);
+            gl.glVertexAttribPointer(colorLoc,3, GL.GL_FLOAT, false, stride, cOff);
 
             gl.glBindVertexArray(0);
             // See class documentation above!
-            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
-            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
             return vao;
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             final GL3 gl = drawable.getGL().getGL3();
-            gl.glEnable(GL3.GL_DEPTH_TEST);
-            gl.glDisable(GL3.GL_CULL_FACE);
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glDisable(GL.GL_CULL_FACE);
             initBuffers(gl);
             initShaders(gl);
 
@@ -248,7 +250,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             final GL3 gl = drawable.getGL().getGL3();
             gl.glDeleteBuffers(2, new int[]{vbo, ibo}, 0);
             gl.glDetachShader(progID, fragID);
@@ -266,12 +268,12 @@ public class TestBug692GL3VAONEWT extends UITestCase {
 
             final int stride = 6 * Buffers.SIZEOF_FLOAT;
             // final int cOff   = 3 * Buffers.SIZEOF_FLOAT;
-            gl.glVertexAttribPointer(posLoc,  3, GL3.GL_FLOAT, false, stride, vertexColorDataBuffer);
+            gl.glVertexAttribPointer(posLoc,  3, GL.GL_FLOAT, false, stride, vertexColorDataBuffer);
             vertexColorDataBuffer.position(3); // move to cOff
-            gl.glVertexAttribPointer(colorLoc,3, GL3.GL_FLOAT, false, stride, vertexColorDataBuffer);
+            gl.glVertexAttribPointer(colorLoc,3, GL.GL_FLOAT, false, stride, vertexColorDataBuffer);
             vertexColorDataBuffer.position(0); // rewind cOff
 
-            gl.glDrawElements(GL3.GL_TRIANGLES, 3, GL3.GL_UNSIGNED_SHORT, indicesBuffer);
+            gl.glDrawElements(GL.GL_TRIANGLES, 3, GL.GL_UNSIGNED_SHORT, indicesBuffer);
 
             gl.glDisableVertexAttribArray(posLoc);
             gl.glDisableVertexAttribArray(colorLoc);
@@ -283,36 +285,36 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             gl.glEnableVertexAttribArray(posLoc);
             gl.glEnableVertexAttribArray(colorLoc);
 
-            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vbo);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo);
             final int stride = 6 * Buffers.SIZEOF_FLOAT;
             final int cOff   = 3 * Buffers.SIZEOF_FLOAT;
-            gl.glVertexAttribPointer(posLoc,  3, GL3.GL_FLOAT, false, stride, 0L);
-            gl.glVertexAttribPointer(colorLoc,3, GL3.GL_FLOAT, false, stride, cOff);
-            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, ibo);
-            gl.glDrawElements(GL3.GL_TRIANGLES, 3, GL3.GL_UNSIGNED_SHORT, 0L);
+            gl.glVertexAttribPointer(posLoc,  3, GL.GL_FLOAT, false, stride, 0L);
+            gl.glVertexAttribPointer(colorLoc,3, GL.GL_FLOAT, false, stride, cOff);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, ibo);
+            gl.glDrawElements(GL.GL_TRIANGLES, 3, GL.GL_UNSIGNED_SHORT, 0L);
 
             gl.glDisableVertexAttribArray(posLoc);
             gl.glDisableVertexAttribArray(colorLoc);
-            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
-            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
         }
 
         private void displayVBOVAO(final GL3 gl) {
             try {
                 gl.glBindVertexArray(vao);
-                gl.glDrawElements(GL3.GL_TRIANGLES, 3, GL3.GL_UNSIGNED_SHORT, 0L);
+                gl.glDrawElements(GL.GL_TRIANGLES, 3, GL.GL_UNSIGNED_SHORT, 0L);
                 gl.glBindVertexArray(0);
-            } catch (GLException ex) {
+            } catch (final GLException ex) {
                 Logger.getLogger(TestBug692GL3VAONEWT.class.getName()).log(Level.SEVERE,null,ex);
             }
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final GL3bc gl = drawable.getGL().getGL3bc();
-            float color = ((float) currentMode.ordinal() + 1) / (Mode.values().length + 2);
+            final float color = ((float) currentMode.ordinal() + 1) / (Mode.values().length + 2);
             gl.glClearColor(color, color, color, 0);
-            gl.glClear(GL3.GL_COLOR_BUFFER_BIT | GL3.GL_DEPTH_BUFFER_BIT);
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             gl.glUseProgram(progID);
             final Mode newMode;
             {
@@ -328,18 +330,18 @@ public class TestBug692GL3VAONEWT extends UITestCase {
         }
 
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int w, final int h) {
         }
     }
 
-    private void testImpl(GLProfile profile, GL3VAODemo.Mode[] modes) throws InterruptedException {
+    private void testImpl(final GLProfile profile, final GL3VAODemo.Mode[] modes) throws InterruptedException {
         final GLCapabilities capabilities = new GLCapabilities(profile);
         final GLWindow glWindow = GLWindow.create(capabilities);
         glWindow.setSize(512, 512);
 
-        Animator anim = new Animator(glWindow);
+        final Animator anim = new Animator(glWindow);
 
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
@@ -365,7 +367,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -375,7 +377,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_ONLY };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_ONLY };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -385,7 +387,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_VAO };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_VAO };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -395,7 +397,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_ONLY };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_ONLY };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -405,7 +407,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_VAO };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_VAO };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -415,7 +417,7 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_ONLY, GL3VAODemo.Mode.VBO_VAO };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_ONLY, GL3VAODemo.Mode.VBO_VAO };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -425,17 +427,17 @@ public class TestBug692GL3VAONEWT extends UITestCase {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_ONLY, GL3VAODemo.Mode.VBO_VAO };
+        final GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_ONLY, GL3VAODemo.Mode.VBO_VAO };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = MiscUtils.atoi(args[++i], (int)duration);
             }
         }
-        String tstname = TestBug692GL3VAONEWT.class.getName();
+        final String tstname = TestBug692GL3VAONEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

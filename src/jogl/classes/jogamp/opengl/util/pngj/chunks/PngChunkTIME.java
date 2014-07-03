@@ -17,7 +17,7 @@ public class PngChunkTIME extends PngChunkSingle {
 	// http://www.w3.org/TR/PNG/#11tIME
 	private int year, mon, day, hour, min, sec;
 
-	public PngChunkTIME(ImageInfo info) {
+	public PngChunkTIME(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -28,7 +28,7 @@ public class PngChunkTIME extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = createEmptyChunk(7, true);
+		final ChunkRaw c = createEmptyChunk(7, true);
 		PngHelperInternal.writeInt2tobytes(year, c.data, 0);
 		c.data[2] = (byte) mon;
 		c.data[3] = (byte) day;
@@ -39,7 +39,7 @@ public class PngChunkTIME extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
+	public void parseFromRaw(final ChunkRaw chunk) {
 		if (chunk.len != 7)
 			throw new PngjException("bad chunk " + chunk);
 		year = PngHelperInternal.readInt2fromBytes(chunk.data, 0);
@@ -51,8 +51,8 @@ public class PngChunkTIME extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkTIME x = (PngChunkTIME) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkTIME x = (PngChunkTIME) other;
 		year = x.year;
 		mon = x.mon;
 		day = x.day;
@@ -61,8 +61,8 @@ public class PngChunkTIME extends PngChunkSingle {
 		sec = x.sec;
 	}
 
-	public void setNow(int secsAgo) {
-		Calendar d = Calendar.getInstance();
+	public void setNow(final int secsAgo) {
+		final Calendar d = Calendar.getInstance();
 		d.setTimeInMillis(System.currentTimeMillis() - 1000 * (long) secsAgo);
 		year = d.get(Calendar.YEAR);
 		mon = d.get(Calendar.MONTH) + 1;
@@ -72,7 +72,7 @@ public class PngChunkTIME extends PngChunkSingle {
 		sec = d.get(Calendar.SECOND);
 	}
 
-	public void setYMDHMS(int yearx, int monx, int dayx, int hourx, int minx, int secx) {
+	public void setYMDHMS(final int yearx, final int monx, final int dayx, final int hourx, final int minx, final int secx) {
 		year = yearx;
 		mon = monx;
 		day = dayx;

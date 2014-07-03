@@ -94,10 +94,10 @@ public class TestScreenMode01aNEWT extends UITestCase {
         Thread.sleep(waitTimeShort);
     }
 
-    static Window createWindow(Screen screen, GLCapabilities caps, String name, int x, int y, int width, int height) {
+    static Window createWindow(final Screen screen, final GLCapabilities caps, final String name, final int x, final int y, final int width, final int height) {
         Assert.assertNotNull(caps);
 
-        GLWindow window = GLWindow.create(screen, caps);
+        final GLWindow window = GLWindow.create(screen, caps);
         // Window window = NewtFactory.createWindow(screen, caps);
         window.setTitle(name);
         window.setPosition(x, y);
@@ -108,7 +108,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window) throws InterruptedException {
+    static void destroyWindow(final Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
             Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
@@ -184,12 +184,12 @@ public class TestScreenMode01aNEWT extends UITestCase {
 
         // set mode
         {
-            MonitorMode mm = monitorModes.get(0);
+            final MonitorMode mm = monitorModes.get(0);
             System.err.println("[1] set current: "+mm);
             final boolean smOk = monitor.setCurrentMode(mm);
-            MonitorMode mmCachedCurrent = monitor.getCurrentMode();
-            MonitorMode mmQueriedCurrent = monitor.queryCurrentMode();
-            boolean mmCurrentEquals = mmQueriedCurrent.equals(mmCachedCurrent);
+            final MonitorMode mmCachedCurrent = monitor.getCurrentMode();
+            final MonitorMode mmQueriedCurrent = monitor.queryCurrentMode();
+            final boolean mmCurrentEquals = mmQueriedCurrent.equals(mmCachedCurrent);
             System.err.println("[1] changeOK             : "+smOk);
             System.err.println("[1] has current cached   : "+mmCachedCurrent);
             System.err.println("[1] has current queried  : "+mmQueriedCurrent+", equal "+mmCurrentEquals);
@@ -228,7 +228,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
         validateScreenModeReset(mmOrig, 0);
     }
 
-    void validateScreenModeReset(final MonitorMode mmOrig, int mmIdx) {
+    void validateScreenModeReset(final MonitorMode mmOrig, final int mmIdx) {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -247,7 +247,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -261,7 +261,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
             }
         }
         System.err.println("Desired mode w/ resolution "+mm_width+"x"+mm_height);
-        String tstname = TestScreenMode01aNEWT.class.getName();
+        final String tstname = TestScreenMode01aNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

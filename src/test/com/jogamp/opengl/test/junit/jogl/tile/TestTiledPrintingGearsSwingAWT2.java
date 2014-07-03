@@ -96,7 +96,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps, final boolean addLayout, boolean layered, boolean skipGLOrientationVerticalFlip, boolean useAnim) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps, final boolean addLayout, final boolean layered, final boolean skipGLOrientationVerticalFlip, final boolean useAnim) throws InterruptedException, InvocationTargetException {
         final Dimension glc_sz = new Dimension(width, height);
         final GLJPanel glJPanel1 = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel1);
@@ -146,15 +146,15 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         Assert.assertNotNull(frame);
 
         final ActionListener print72DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 doPrintManual(frame, 72, 0, -1, -1);
             } };
         final ActionListener print150DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 doPrintManual(frame, 150, -1, -1, -1);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 doPrintManual(frame, 300, -1, -1, -1);
             } };
         final Button print72DPIButton = new Button("72dpi");
@@ -253,25 +253,25 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
 
     @Test
     public void test001_flip1_norm_layout0_layered0() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test002_flip1_norm_layout1_layered0() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, true /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test003_flip1_norm_layout0_layered1() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test004_flip1_norm_layout1_layered1() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, true /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
@@ -280,7 +280,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, false /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
@@ -290,7 +290,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, true /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
@@ -300,7 +300,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, false /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
@@ -310,32 +310,32 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, true /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test101_flip1_norm_layout0_layered0() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test102_flip1_norm_layout1_layered0() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, true /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test103_flip1_norm_layout0_layered1() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     @Test
     public void test104_flip1_norm_layout1_layered1() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, true /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
@@ -344,7 +344,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, false /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
@@ -354,7 +354,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, true /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
@@ -364,7 +364,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, false /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
@@ -374,14 +374,14 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
         runTestGL(caps, true /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -397,11 +397,11 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
             }
         }
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestTiledPrintingGearsSwingAWT2.class.getName());
     }

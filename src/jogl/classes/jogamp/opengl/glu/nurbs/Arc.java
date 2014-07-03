@@ -68,7 +68,7 @@ public class Arc {
   /**
    * Corresponding berizer type arc
    */
-  private BezierArc bezierArc;
+  private final BezierArc bezierArc;
 
   /**
    * Makes new arc at specified side
@@ -76,7 +76,7 @@ public class Arc {
    * @param side
    *            which side doeas this arc form
    */
-  public Arc(int side) {
+  public Arc(final int side) {
     bezierArc = null;
     pwlArc = null;
     type = 0;
@@ -90,7 +90,7 @@ public class Arc {
    * @param side
    *            arc side
    */
-  private void setside(int side) {
+  private void setside(final int side) {
     // DONE
     clearside();
     type |= side << 8;
@@ -152,7 +152,7 @@ public class Arc {
    *            arc to be append
    * @return this
    */
-  public Arc append(Arc jarc) {
+  public Arc append(final Arc jarc) {
     // DONE
     if (jarc != null) {
       next = jarc.next;

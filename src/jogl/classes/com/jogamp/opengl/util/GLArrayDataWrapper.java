@@ -66,11 +66,11 @@ public class GLArrayDataWrapper implements GLArrayData {
    *
    * @throws GLException
    */
-  public static GLArrayDataWrapper createFixed(int index, int comps, int dataType, boolean normalized, int stride,
-                                               Buffer buffer, int vboName, long vboOffset, int vboUsage, int vboTarget)
+  public static GLArrayDataWrapper createFixed(final int index, final int comps, final int dataType, final boolean normalized, final int stride,
+                                               final Buffer buffer, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget)
     throws GLException
   {
-      GLArrayDataWrapper adc = new GLArrayDataWrapper();
+      final GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, buffer, 0 /* mappedElementCount */,
                false, vboName, vboOffset, vboUsage, vboTarget);
       return adc;
@@ -93,11 +93,11 @@ public class GLArrayDataWrapper implements GLArrayData {
    *
    * @throws GLException
    */
-  public static GLArrayDataWrapper createFixed(int index, int comps, int dataType, boolean normalized, int stride,
-                                               int mappedElementCount, int vboName, long vboOffset, int vboUsage, int vboTarget)
+  public static GLArrayDataWrapper createFixed(final int index, final int comps, final int dataType, final boolean normalized, final int stride,
+                                               final int mappedElementCount, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget)
     throws GLException
   {
-      GLArrayDataWrapper adc = new GLArrayDataWrapper();
+      final GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(null, index, comps, dataType, normalized, stride, null, mappedElementCount,
                false, vboName, vboOffset, vboUsage, vboTarget);
       return adc;
@@ -119,11 +119,11 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @return the new create instance
    * @throws GLException
    */
-  public static GLArrayDataWrapper createGLSL(String name, int comps, int dataType, boolean normalized, int stride,
-                                             Buffer buffer, int vboName, long vboOffset, int vboUsage, int vboTarget)
+  public static GLArrayDataWrapper createGLSL(final String name, final int comps, final int dataType, final boolean normalized, final int stride,
+                                             final Buffer buffer, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget)
     throws GLException
   {
-      GLArrayDataWrapper adc = new GLArrayDataWrapper();
+      final GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, 0  /* mappedElementCount */,
               true, vboName, vboOffset, vboUsage, vboTarget);
       return adc;
@@ -145,11 +145,11 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @return the new create instance
    * @throws GLException
    */
-  public static GLArrayDataWrapper createGLSL(String name, int comps, int dataType, boolean normalized, int stride,
-                                              int mappedElementCount, int vboName, long vboOffset, int vboUsage, int vboTarget)
+  public static GLArrayDataWrapper createGLSL(final String name, final int comps, final int dataType, final boolean normalized, final int stride,
+                                              final int mappedElementCount, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget)
     throws GLException
   {
-      GLArrayDataWrapper adc = new GLArrayDataWrapper();
+      final GLArrayDataWrapper adc = new GLArrayDataWrapper();
       adc.init(name, -1, comps, dataType, normalized, stride, null, mappedElementCount,
               true, vboName, vboOffset, vboUsage, vboTarget);
       return adc;
@@ -163,7 +163,7 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @param throwException whether to throw an exception if this instance has invalid parameter or not
    * @return true if this instance has invalid parameter, otherwise false
    */
-  public final boolean validate(GLProfile glp, boolean throwException) {
+  public final boolean validate(final GLProfile glp, final boolean throwException) {
     if(!alive) {
         if(throwException) {
             throw new GLException("Instance !alive "+this);
@@ -180,7 +180,7 @@ public class GLArrayDataWrapper implements GLArrayData {
   }
 
   @Override
-  public void associate(Object obj, boolean enable) {
+  public void associate(final Object obj, final boolean enable) {
       // nop
   }
 
@@ -198,16 +198,16 @@ public class GLArrayDataWrapper implements GLArrayData {
   public final int getLocation() { return location; }
 
   @Override
-  public final int setLocation(int v) { location = v; return location; }
+  public final int setLocation(final int v) { location = v; return location; }
 
   @Override
-  public final int setLocation(GL2ES2 gl, int program) {
+  public final int setLocation(final GL2ES2 gl, final int program) {
       location = gl.glGetAttribLocation(program, name);
       return location;
   }
 
   @Override
-  public final int setLocation(GL2ES2 gl, int program, int location) {
+  public final int setLocation(final GL2ES2 gl, final int program, final int location) {
       this.location = location;
       gl.glBindAttribLocation(program, location, name);
       return location;
@@ -275,7 +275,7 @@ public class GLArrayDataWrapper implements GLArrayData {
   public final Class<?> getBufferClass() { return componentClazz; }
 
   @Override
-  public void destroy(GL gl) {
+  public void destroy(final GL gl) {
     buffer = null;
     vboName=0;
     vboEnabled=false;
@@ -305,7 +305,7 @@ public class GLArrayDataWrapper implements GLArrayData {
                        "]";
   }
 
-  public static final Class<?> getBufferClass(int dataType) {
+  public static final Class<?> getBufferClass(final int dataType) {
     switch(dataType) {
         case GL.GL_BYTE:
         case GL.GL_UNSIGNED_BYTE:
@@ -314,7 +314,7 @@ public class GLArrayDataWrapper implements GLArrayData {
         case GL.GL_UNSIGNED_SHORT:
             return ShortBuffer.class;
         case GL.GL_UNSIGNED_INT:
-        case GL2ES1.GL_FIXED:
+        case GL.GL_FIXED:
         case GL2ES2.GL_INT:
             return IntBuffer.class;
         case GL.GL_FLOAT:
@@ -325,7 +325,7 @@ public class GLArrayDataWrapper implements GLArrayData {
   }
 
   @Override
-  public void setName(String newName) {
+  public void setName(final String newName) {
     location = -1;
     name = newName;
   }
@@ -335,7 +335,7 @@ public class GLArrayDataWrapper implements GLArrayData {
    * Only possible if a VBO buffer name is defined.
    * @see #setVBOName(int)
    */
-  public void setVBOEnabled(boolean vboEnabled) {
+  public void setVBOEnabled(final boolean vboEnabled) {
     this.vboEnabled=vboEnabled;
   }
 
@@ -345,7 +345,7 @@ public class GLArrayDataWrapper implements GLArrayData {
    *
    * @see #setVBOEnabled(boolean)
    */
-  public void    setVBOName(int vboName) {
+  public void    setVBOName(final int vboName) {
     this.vboName=vboName;
     setVBOEnabled(0!=vboName);
   }
@@ -353,20 +353,20 @@ public class GLArrayDataWrapper implements GLArrayData {
  /**
   * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
   */
-  public void setVBOUsage(int vboUsage) {
+  public void setVBOUsage(final int vboUsage) {
       this.vboUsage = vboUsage;
   }
 
   /**
    * @param vboTarget either {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    */
-  public void setVBOTarget(int vboTarget) {
+  public void setVBOTarget(final int vboTarget) {
       this.vboTarget = vboTarget;
   }
 
-  protected void init(String name, int index, int componentsPerElement, int componentType,
-                      boolean normalized, int stride, Buffer data, int mappedElementCount,
-                      boolean isVertexAttribute, int vboName, long vboOffset, int vboUsage, int vboTarget)
+  protected void init(final String name, final int index, final int componentsPerElement, final int componentType,
+                      final boolean normalized, final int stride, final Buffer data, final int mappedElementCount,
+                      final boolean isVertexAttribute, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget)
     throws GLException
   {
     if( 0<mappedElementCount && null != data ) {
@@ -452,7 +452,7 @@ public class GLArrayDataWrapper implements GLArrayData {
    * All other values are simply copied.
    * </p>
    */
-  public GLArrayDataWrapper(GLArrayDataWrapper src) {
+  public GLArrayDataWrapper(final GLArrayDataWrapper src) {
     this.alive = src.alive;
     this.index = src.index;
     this.location = src.location;

@@ -17,7 +17,7 @@ public class PngChunkOFFS extends PngChunkSingle {
 	private long posY;
 	private int units; // 0: pixel 1:micrometer
 
-	public PngChunkOFFS(ImageInfo info) {
+	public PngChunkOFFS(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -28,7 +28,7 @@ public class PngChunkOFFS extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = createEmptyChunk(9, true);
+		final ChunkRaw c = createEmptyChunk(9, true);
 		PngHelperInternal.writeInt4tobytes((int) posX, c.data, 0);
 		PngHelperInternal.writeInt4tobytes((int) posY, c.data, 4);
 		c.data[8] = (byte) units;
@@ -36,7 +36,7 @@ public class PngChunkOFFS extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
+	public void parseFromRaw(final ChunkRaw chunk) {
 		if (chunk.len != 9)
 			throw new PngjException("bad chunk length " + chunk);
 		posX = PngHelperInternal.readInt4fromBytes(chunk.data, 0);
@@ -49,8 +49,8 @@ public class PngChunkOFFS extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkOFFS otherx = (PngChunkOFFS) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkOFFS otherx = (PngChunkOFFS) other;
 		this.posX = otherx.posX;
 		this.posY = otherx.posY;
 		this.units = otherx.units;
@@ -66,7 +66,7 @@ public class PngChunkOFFS extends PngChunkSingle {
 	/**
 	 * 0: pixel, 1:micrometer
 	 */
-	public void setUnits(int units) {
+	public void setUnits(final int units) {
 		this.units = units;
 	}
 
@@ -74,7 +74,7 @@ public class PngChunkOFFS extends PngChunkSingle {
 		return posX;
 	}
 
-	public void setPosX(long posX) {
+	public void setPosX(final long posX) {
 		this.posX = posX;
 	}
 
@@ -82,7 +82,7 @@ public class PngChunkOFFS extends PngChunkSingle {
 		return posY;
 	}
 
-	public void setPosY(long posY) {
+	public void setPosY(final long posY) {
 		this.posY = posY;
 	}
 

@@ -211,7 +211,7 @@ public class TypecastGlyph implements Font.Glyph {
     @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
-        int hash = 31 + font.getName(Font.NAME_UNIQUNAME).hashCode();
+        final int hash = 31 + font.getName(Font.NAME_UNIQUNAME).hashCode();
         return ((hash << 5) - hash) + id;
     }
 }

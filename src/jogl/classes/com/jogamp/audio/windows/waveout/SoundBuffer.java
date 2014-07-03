@@ -35,16 +35,16 @@ package com.jogamp.audio.windows.waveout;
 import java.io.*;
 
 class SoundBuffer {
-    private byte[] data;
-    private boolean needsByteSwap;
+    private final byte[] data;
+    private final boolean needsByteSwap;
     private int numBytes;
-    private int bytesPerSample;
+    private final int bytesPerSample;
     private int numSamples;
     private boolean playing;
     private boolean empty;
 
     // Note: needsByteSwap argument makes assumptions about the format
-    SoundBuffer(int size, int bytesPerSample, boolean needsByteSwap) {
+    SoundBuffer(final int size, final int bytesPerSample, final boolean needsByteSwap) {
         this.bytesPerSample = bytesPerSample;
         this.needsByteSwap = needsByteSwap;
         data = new byte[size * bytesPerSample];
@@ -55,7 +55,7 @@ class SoundBuffer {
         return playing;
     }
 
-    void playing(boolean playing) {
+    void playing(final boolean playing) {
         this.playing = playing;
     }
 
@@ -63,11 +63,11 @@ class SoundBuffer {
         return empty;
     }
 
-    void empty(boolean empty) {
+    void empty(final boolean empty) {
         this.empty = empty;
     }
 
-    void fill(InputStream input) throws IOException {
+    void fill(final InputStream input) throws IOException {
         synchronized(this) {
             if (playing) {
                 throw new IllegalStateException("Can not fill a buffer that is playing");
@@ -75,7 +75,7 @@ class SoundBuffer {
         }
 
         empty(true);
-        int num = input.read(data);
+        final int num = input.read(data);
         if (num > 0) {
             numBytes = num;
             numSamples = numBytes / bytesPerSample;
@@ -96,8 +96,8 @@ class SoundBuffer {
     // This is called by the mixer and must be extremely fast
     // FIXME: may want to reconsider use of floating point at this point
     // FIXME: assumes all sounds are of the same format to avoid normalization
-    float getSample(int sample) {
-        int startByte = sample * bytesPerSample;
+    float getSample(final int sample) {
+        final int startByte = sample * bytesPerSample;
         // FIXME: assumes no more than 4 bytes per sample
         int res = 0;
         if (needsByteSwap) {
@@ -106,7 +106,7 @@ class SoundBuffer {
                 res |= (data[i] & 0xff);
             }
         } else {
-            int endByte = startByte + bytesPerSample - 1;
+            final int endByte = startByte + bytesPerSample - 1;
             for (int i = startByte; i <= endByte; i++) {
                 res <<= 8;
                 res |= (data[i] & 0xff);
@@ -119,6 +119,6 @@ class SoundBuffer {
             res = (byte) res;
         }
 
-        return (float) res;
+        return res;
     }
 }

@@ -41,9 +41,9 @@ public class BaseTable implements Table {
 
     private class BaseCoordFormat1 extends BaseCoord {
 
-        private short _coordinate;
+        private final short _coordinate;
 
-        protected BaseCoordFormat1(DataInput di) throws IOException {
+        protected BaseCoordFormat1(final DataInput di) throws IOException {
             _coordinate = di.readShort();
         }
 
@@ -61,11 +61,11 @@ public class BaseTable implements Table {
 
     private class BaseCoordFormat2 extends BaseCoord {
 
-        private short _coordinate;
-        private int _referenceGlyph;
-        private int _baseCoordPoint;
+        private final short _coordinate;
+        private final int _referenceGlyph;
+        private final int _baseCoordPoint;
 
-        protected BaseCoordFormat2(DataInput di) throws IOException {
+        protected BaseCoordFormat2(final DataInput di) throws IOException {
             _coordinate = di.readShort();
             _referenceGlyph = di.readUnsignedShort();
             _baseCoordPoint = di.readUnsignedShort();
@@ -85,10 +85,10 @@ public class BaseTable implements Table {
 
     private class BaseCoordFormat3 extends BaseCoord {
 
-        private short _coordinate;
-        private int _deviceTableOffset;
+        private final short _coordinate;
+        private final int _deviceTableOffset;
 
-        protected BaseCoordFormat3(DataInput di) throws IOException {
+        protected BaseCoordFormat3(final DataInput di) throws IOException {
             _coordinate = di.readShort();
             _deviceTableOffset = di.readUnsignedShort();
         }
@@ -107,11 +107,11 @@ public class BaseTable implements Table {
 
     private class FeatMinMaxRecord {
 
-        private int _tag;
-        private int _minCoordOffset;
-        private int _maxCoordOffset;
+        private final int _tag;
+        private final int _minCoordOffset;
+        private final int _maxCoordOffset;
 
-        protected FeatMinMaxRecord(DataInput di) throws IOException {
+        protected FeatMinMaxRecord(final DataInput di) throws IOException {
             _tag = di.readInt();
             _minCoordOffset = di.readUnsignedShort();
             _maxCoordOffset = di.readUnsignedShort();
@@ -120,13 +120,13 @@ public class BaseTable implements Table {
 
     private class MinMax {
 
-        private int _minCoordOffset;
-        private int _maxCoordOffset;
-        private int _featMinMaxCount;
-        private FeatMinMaxRecord[] _featMinMaxRecord;
+        private final int _minCoordOffset;
+        private final int _maxCoordOffset;
+        private final int _featMinMaxCount;
+        private final FeatMinMaxRecord[] _featMinMaxRecord;
 
-        protected MinMax(int minMaxOffset) throws IOException {
-            DataInput di = getDataInputForOffset(minMaxOffset);
+        protected MinMax(final int minMaxOffset) throws IOException {
+            final DataInput di = getDataInputForOffset(minMaxOffset);
             _minCoordOffset = di.readUnsignedShort();
             _maxCoordOffset = di.readUnsignedShort();
             _featMinMaxCount = di.readUnsignedShort();
@@ -139,13 +139,13 @@ public class BaseTable implements Table {
 
     private class BaseValues {
 
-        private int _defaultIndex;
-        private int _baseCoordCount;
-        private int[] _baseCoordOffset;
-        private BaseCoord[] _baseCoords;
+        private final int _defaultIndex;
+        private final int _baseCoordCount;
+        private final int[] _baseCoordOffset;
+        private final BaseCoord[] _baseCoords;
 
-        protected BaseValues(int baseValuesOffset) throws IOException {
-            DataInput di = getDataInputForOffset(baseValuesOffset);
+        protected BaseValues(final int baseValuesOffset) throws IOException {
+            final DataInput di = getDataInputForOffset(baseValuesOffset);
             _defaultIndex = di.readUnsignedShort();
             _baseCoordCount = di.readUnsignedShort();
             _baseCoordOffset = new int[_baseCoordCount];
@@ -154,7 +154,7 @@ public class BaseTable implements Table {
             }
             _baseCoords = new BaseCoord[_baseCoordCount];
             for (int i = 0; i < _baseCoordCount; ++i) {
-                int format = di.readUnsignedShort();
+                final int format = di.readUnsignedShort();
                 switch (format) {
                     case 1:
                         _baseCoords[i] = new BaseCoordFormat1(di);
@@ -172,10 +172,10 @@ public class BaseTable implements Table {
 
     private class BaseLangSysRecord {
 
-        private int _baseLangSysTag;
-        private int _minMaxOffset;
+        private final int _baseLangSysTag;
+        private final int _minMaxOffset;
 
-        protected BaseLangSysRecord(DataInput di) throws IOException {
+        protected BaseLangSysRecord(final DataInput di) throws IOException {
             _baseLangSysTag = di.readInt();
             _minMaxOffset = di.readUnsignedShort();
         }
@@ -191,17 +191,17 @@ public class BaseTable implements Table {
 
     private class BaseScript {
 
-        private int _thisOffset;
-        private int _baseValuesOffset;
-        private int _defaultMinMaxOffset;
-        private int _baseLangSysCount;
-        private BaseLangSysRecord[] _baseLangSysRecord;
+        private final int _thisOffset;
+        private final int _baseValuesOffset;
+        private final int _defaultMinMaxOffset;
+        private final int _baseLangSysCount;
+        private final BaseLangSysRecord[] _baseLangSysRecord;
         private BaseValues _baseValues;
         private MinMax[] _minMax;
 
-        protected BaseScript(int baseScriptOffset) throws IOException {
+        protected BaseScript(final int baseScriptOffset) throws IOException {
             _thisOffset = baseScriptOffset;
-            DataInput di = getDataInputForOffset(baseScriptOffset);
+            final DataInput di = getDataInputForOffset(baseScriptOffset);
             _baseValuesOffset = di.readUnsignedShort();
             _defaultMinMaxOffset = di.readUnsignedShort();
             _baseLangSysCount = di.readUnsignedShort();
@@ -219,7 +219,7 @@ public class BaseTable implements Table {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder()
+            final StringBuilder sb = new StringBuilder()
                 .append("\nBaseScript BaseScriptT").append(Integer.toHexString(_thisOffset))
                 .append("\nBaseValuesT").append(Integer.toHexString(_thisOffset + _baseValuesOffset))
                 .append("\nMinMaxT").append(Integer.toHexString(_thisOffset + _defaultMinMaxOffset))
@@ -241,10 +241,10 @@ public class BaseTable implements Table {
 
     private class BaseScriptRecord {
 
-        private int _baseScriptTag;
-        private int _baseScriptOffset;
+        private final int _baseScriptTag;
+        private final int _baseScriptOffset;
 
-        protected BaseScriptRecord(DataInput di) throws IOException {
+        protected BaseScriptRecord(final DataInput di) throws IOException {
             _baseScriptTag = di.readInt();
             _baseScriptOffset = di.readUnsignedShort();
         }
@@ -260,14 +260,14 @@ public class BaseTable implements Table {
 
     private class BaseScriptList {
 
-        private int _thisOffset;
-        private int _baseScriptCount;
-        private BaseScriptRecord[] _baseScriptRecord;
-        private BaseScript[] _baseScripts;
+        private final int _thisOffset;
+        private final int _baseScriptCount;
+        private final BaseScriptRecord[] _baseScriptRecord;
+        private final BaseScript[] _baseScripts;
 
-        protected BaseScriptList(int baseScriptListOffset) throws IOException {
+        protected BaseScriptList(final int baseScriptListOffset) throws IOException {
             _thisOffset = baseScriptListOffset;
-            DataInput di = getDataInputForOffset(baseScriptListOffset);
+            final DataInput di = getDataInputForOffset(baseScriptListOffset);
             _baseScriptCount = di.readUnsignedShort();
             _baseScriptRecord = new BaseScriptRecord[_baseScriptCount];
             for (int i = 0; i < _baseScriptCount; ++i) {
@@ -282,7 +282,7 @@ public class BaseTable implements Table {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder()
+            final StringBuilder sb = new StringBuilder()
                 .append("\nBaseScriptList BaseScriptListT").append(Integer.toHexString(_thisOffset))
                 .append("\n").append(Integer.toHexString(_baseScriptCount));
             for (int i = 0; i < _baseScriptCount; ++i) {
@@ -299,13 +299,13 @@ public class BaseTable implements Table {
 
     private class BaseTagList {
 
-        private int _thisOffset;
-        private int _baseTagCount;
-        private int[] _baselineTag;
+        private final int _thisOffset;
+        private final int _baseTagCount;
+        private final int[] _baselineTag;
 
-        protected BaseTagList(int baseTagListOffset) throws IOException {
+        protected BaseTagList(final int baseTagListOffset) throws IOException {
             _thisOffset = baseTagListOffset;
-            DataInput di = getDataInputForOffset(baseTagListOffset);
+            final DataInput di = getDataInputForOffset(baseTagListOffset);
             _baseTagCount = di.readUnsignedShort();
             _baselineTag = new int[_baseTagCount];
             for (int i = 0; i < _baseTagCount; ++i) {
@@ -315,7 +315,7 @@ public class BaseTable implements Table {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder()
+            final StringBuilder sb = new StringBuilder()
                 .append("\nBaseTagList BaseTagListT").append(Integer.toHexString(_thisOffset))
                 .append("\n").append(Integer.toHexString(_baseTagCount));
             for (int i = 0; i < _baseTagCount; ++i) {
@@ -327,15 +327,15 @@ public class BaseTable implements Table {
 
     private class Axis {
 
-        private int _thisOffset;
-        private int _baseTagListOffset;
-        private int _baseScriptListOffset;
+        private final int _thisOffset;
+        private final int _baseTagListOffset;
+        private final int _baseScriptListOffset;
         private BaseTagList _baseTagList;
         private BaseScriptList _baseScriptList;
 
-        protected Axis(int axisOffset) throws IOException {
+        protected Axis(final int axisOffset) throws IOException {
             _thisOffset = axisOffset;
-            DataInput di = getDataInputForOffset(axisOffset);
+            final DataInput di = getDataInputForOffset(axisOffset);
             _baseTagListOffset = di.readUnsignedShort();
             _baseScriptListOffset = di.readUnsignedShort();
             if (_baseTagListOffset != 0) {
@@ -359,22 +359,22 @@ public class BaseTable implements Table {
         }
     }
 
-    private DirectoryEntry _de;
-    private int _version;
-    private int _horizAxisOffset;
-    private int _vertAxisOffset;
+    private final DirectoryEntry _de;
+    private final int _version;
+    private final int _horizAxisOffset;
+    private final int _vertAxisOffset;
     private Axis _horizAxis;
     private Axis _vertAxis;
     private byte[] _buf;
 
     /** Creates a new instance of BaseTable */
-    protected BaseTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected BaseTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
 
         // Load entire table into a buffer, and create another input stream
         _buf = new byte[de.getLength()];
         di.readFully(_buf);
-        DataInput di2 = getDataInputForOffset(0);
+        final DataInput di2 = getDataInputForOffset(0);
 
         _version = di2.readInt();
         _horizAxisOffset = di2.readUnsignedShort();
@@ -390,7 +390,7 @@ public class BaseTable implements Table {
         _buf = null;
     }
 
-    private DataInput getDataInputForOffset(int offset) {
+    private DataInput getDataInputForOffset(final int offset) {
         return new DataInputStream(new ByteArrayInputStream(
                 _buf, offset,
                 _de.getLength() - offset));
@@ -404,8 +404,8 @@ public class BaseTable implements Table {
 //        return String.format("%1$8x", value);
 //    }
 
-    static protected String tagAsString(int tag) {
-        char[] c = new char[4];
+    static protected String tagAsString(final int tag) {
+        final char[] c = new char[4];
         c[0] = (char)((tag >> 24) & 0xff);
         c[1] = (char)((tag >> 16) & 0xff);
         c[2] = (char)((tag >> 8) & 0xff);
@@ -420,7 +420,7 @@ public class BaseTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder()
+        final StringBuilder sb = new StringBuilder()
             .append("; 'BASE' Table - Baseline\n;-------------------------------------\n\n")
             .append("BASEHeader BASEHeaderT").append(Integer.toHexString(0))
             .append("\n").append(Integer.toHexString(_version))

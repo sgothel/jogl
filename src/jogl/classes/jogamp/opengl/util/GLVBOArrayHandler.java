@@ -41,12 +41,12 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
 public abstract class GLVBOArrayHandler implements GLArrayHandler {
   protected GLArrayDataEditable ad;
 
-  public GLVBOArrayHandler(GLArrayDataEditable ad) {
+  public GLVBOArrayHandler(final GLArrayDataEditable ad) {
     this.ad = ad;
   }
 
   @Override
-  public final boolean bindBuffer(GL gl, boolean bind) {
+  public final boolean bindBuffer(final GL gl, final boolean bind) {
     if( !ad.isVBO() ) {
         return false;
     }

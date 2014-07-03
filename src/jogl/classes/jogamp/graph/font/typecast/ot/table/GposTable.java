@@ -30,16 +30,16 @@ import java.io.IOException;
  */
 public class GposTable implements Table {
 
-    private DirectoryEntry _de;
+    private final DirectoryEntry _de;
 
-    protected GposTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected GposTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
 
         // GPOS Header
-        int version = di.readInt();
-        int scriptList = di.readInt();
-        int featureList = di.readInt();
-        int lookupList = di.readInt();
+        final int version = di.readInt();
+        final int scriptList = di.readInt();
+        final int featureList = di.readInt();
+        final int lookupList = di.readInt();
     }
 
     /** Get the table type, as a table directory value.

@@ -117,12 +117,12 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
         glad.addGLEventListener(new GLEventListener() {
             boolean shot = false;
 
-            @Override public void init(GLAutoDrawable drawable) {
+            @Override public void init(final GLAutoDrawable drawable) {
                 System.err.println("Chosen Caps: " + drawable.getChosenGLCapabilities());
                 System.err.println("GL ctx: " + drawable.getGL().getContext());
             }
 
-            @Override public void display(GLAutoDrawable drawable) {
+            @Override public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
@@ -130,13 +130,13 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
                 }
             }
 
-            @Override public void dispose(GLAutoDrawable drawable) { }
-            @Override public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            @Override public void dispose(final GLAutoDrawable drawable) { }
+            @Override public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
 
-        Animator animator = new Animator(glad);
+        final Animator animator = new Animator(glad);
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         glad.addKeyListener(quitAdapter);
         glad.addWindowListener(quitAdapter);
         glad.setVisible(true);
@@ -192,7 +192,7 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
     }
 
     static String _fname = null;
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

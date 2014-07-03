@@ -42,14 +42,14 @@ import javax.media.opengl.GLAutoDrawable;
 
 class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
     @Override
-    public void display(ArrayList<GLAutoDrawable> drawables,
-                        boolean ignoreExceptions,
-                        boolean printExceptions) {
+    public void display(final ArrayList<GLAutoDrawable> drawables,
+                        final boolean ignoreExceptions,
+                        final boolean printExceptions) {
         for (int i=0; i<drawables.size(); i++) {
-            GLAutoDrawable drawable = drawables.get(i);
+            final GLAutoDrawable drawable = drawables.get(i);
             try {
                 drawable.display();
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 if (ignoreExceptions) {
                     if (printExceptions) {
                         e.printStackTrace();
@@ -62,7 +62,7 @@ class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
     }
 
     @Override
-    public boolean blockUntilDone(Thread thread) {
+    public boolean blockUntilDone(final Thread thread) {
         return Thread.currentThread() != thread;
     }
 }

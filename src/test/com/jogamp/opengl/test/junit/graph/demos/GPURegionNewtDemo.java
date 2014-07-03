@@ -58,7 +58,7 @@ public class GPURegionNewtDemo {
     static int GraphMSAASamples = 0;
     static boolean GraphUseWeight = true;
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         int width = 800, height = 400;
         int x = 10, y = 10;
         if( 0 != args.length ) {
@@ -103,8 +103,8 @@ public class GPURegionNewtDemo {
         System.err.println("Graph VBAA Samples "+GraphVBAASamples);
         System.err.println("Graph Weight Mode "+GraphUseWeight);
 
-        GLProfile glp = GLProfile.getGL2ES2();
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( SceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
@@ -127,8 +127,8 @@ public class GPURegionNewtDemo {
         window.setSize(width, height);
         window.setTitle("GPU Curve Region Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        RenderState rs = RenderState.createRenderState(SVertex.factory());
-        GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, rmode, sampleCount, DEBUG, TRACE);
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+        final GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, rmode, sampleCount, DEBUG, TRACE);
         regionGLListener.attachInputListenerTo(window);
         window.addGLEventListener(regionGLListener);
         window.setVisible(true);
@@ -139,14 +139,14 @@ public class GPURegionNewtDemo {
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent arg0) {
+            public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
                     window.destroy();
                 }
             }
         });
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
         });

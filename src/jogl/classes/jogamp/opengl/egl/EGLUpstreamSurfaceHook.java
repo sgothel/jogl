@@ -25,7 +25,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     private final NativeSurface upstreamSurface;
     private final UpstreamSurfaceHook.MutableSize upstreamSurfaceHookMutableSize;
 
-    public EGLUpstreamSurfaceHook(NativeSurface upstream) {
+    public EGLUpstreamSurfaceHook(final NativeSurface upstream) {
         upstreamSurface = upstream;
         if(upstreamSurface instanceof ProxySurface) {
             final UpstreamSurfaceHook ush = ((ProxySurface)upstreamSurface).getUpstreamSurfaceHook();
@@ -52,14 +52,14 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     public final NativeSurface getUpstreamSurface() { return upstreamSurface; }
 
     @Override
-    public final void setSurfaceSize(int width, int height) {
+    public final void setSurfaceSize(final int width, final int height) {
         if(null != upstreamSurfaceHookMutableSize) {
             upstreamSurfaceHookMutableSize.setSurfaceSize(width, height);
         }
     }
 
     @Override
-    public final void create(ProxySurface surface) {
+    public final void create(final ProxySurface surface) {
         final String dbgPrefix;
         if(DEBUG) {
             dbgPrefix = getThreadName() + ": EGLUpstreamSurfaceHook.create( up "+upstreamSurface.getClass().getSimpleName()+" -> this "+surface.getClass().getSimpleName()+" ): ";
@@ -84,7 +84,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
         }
     }
 
-    private final void evalUpstreamSurface(String dbgPrefix, ProxySurface surface) {
+    private final void evalUpstreamSurface(final String dbgPrefix, final ProxySurface surface) {
         //
         // evaluate nature of upstreamSurface, may create EGL instances if required
         //
@@ -195,7 +195,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     }
 
     @Override
-    public final void destroy(ProxySurface surface) {
+    public final void destroy(final ProxySurface surface) {
         if(EGLDrawableFactory.DEBUG) {
             System.err.println("EGLUpstreamSurfaceHook.destroy("+surface.getClass().getSimpleName()+"): "+this);
         }
@@ -206,12 +206,12 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     }
 
     @Override
-    public final int getSurfaceWidth(ProxySurface s) {
+    public final int getSurfaceWidth(final ProxySurface s) {
         return upstreamSurface.getSurfaceWidth();
     }
 
     @Override
-    public final int getSurfaceHeight(ProxySurface s) {
+    public final int getSurfaceHeight(final ProxySurface s) {
         return upstreamSurface.getSurfaceHeight();
     }
 

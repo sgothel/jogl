@@ -56,7 +56,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     protected Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (final CloneNotSupportedException ex) {
             throw new InternalError();
         }
     }
@@ -154,7 +154,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
      * @param sy scale factor for y
      * @return this instance for scaling
      */
-    public final Rectangle scale(int sx, int sy) {
+    public final Rectangle scale(final int sx, final int sy) {
         x *= sx ;
         y *= sy ;
         width *= sx ;
@@ -169,7 +169,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
      * @param sy inverse scale factor for y
      * @return this instance for scaling
      */
-    public final Rectangle scaleInv(int sx, int sy) {
+    public final Rectangle scaleInv(final int sx, final int sy) {
         x /= sx ;
         y /= sy ;
         width /= sx ;
@@ -203,10 +203,10 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Rectangle) {
-            Rectangle rect = (Rectangle)obj;
+            final Rectangle rect = (Rectangle)obj;
             return (y == rect.y) && (x == rect.x) &&
                    (height == rect.height) && (width == rect.width);
         }
@@ -215,11 +215,11 @@ public class Rectangle implements Cloneable, RectangleImmutable {
 
     @Override
     public int hashCode() {
-        int sum1 = x + height;
-        int sum2 = width + y;
-        int val1 = sum1 * (sum1 + 1)/2 + x;
-        int val2 = sum2 * (sum2 + 1)/2 + y;
-        int sum3 = val1 + val2;
+        final int sum1 = x + height;
+        final int sum2 = width + y;
+        final int val1 = sum1 * (sum1 + 1)/2 + x;
+        final int val2 = sum2 * (sum2 + 1)/2 + y;
+        final int sum3 = val1 + val2;
         return sum3 * (sum3 + 1)/2 + val2;
     }
 

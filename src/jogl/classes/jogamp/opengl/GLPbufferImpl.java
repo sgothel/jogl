@@ -50,7 +50,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 @SuppressWarnings("deprecation")
 public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
 
-  public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContextImpl pbufferContext) {
+  public GLPbufferImpl(final GLDrawableImpl pbufferDrawable, final GLContextImpl pbufferContext) {
     super(pbufferDrawable, pbufferContext, true); // drawable := pbufferDrawable, context := pbufferContext
   }
 

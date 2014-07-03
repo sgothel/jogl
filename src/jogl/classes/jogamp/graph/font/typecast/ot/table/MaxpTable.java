@@ -19,8 +19,8 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class MaxpTable implements Table {
 
-    private DirectoryEntry de;
-    private int versionNumber;
+    private final DirectoryEntry de;
+    private final int versionNumber;
     private int numGlyphs;
     private int maxPoints;
     private int maxContours;
@@ -36,7 +36,7 @@ public class MaxpTable implements Table {
     private int maxComponentElements;
     private int maxComponentDepth;
 
-    protected MaxpTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected MaxpTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         versionNumber = di.readInt();
 
@@ -128,7 +128,7 @@ public class MaxpTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'maxp' Table - Maximum Profile\n------------------------------")
             .append("\n        'maxp' version:         ").append(Fixed.floatValue(versionNumber))
             .append("\n        numGlyphs:              ").append(numGlyphs);

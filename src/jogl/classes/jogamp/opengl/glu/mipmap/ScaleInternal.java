@@ -56,16 +56,16 @@ import com.jogamp.common.nio.Buffers;
  */
 public class ScaleInternal {
 
-  public static final float UINT_MAX = (float)(0x00000000FFFFFFFF);
+  public static final float UINT_MAX = (0x00000000FFFFFFFF);
 
-  public static void scale_internal( int components, int widthin, int heightin,
-          ShortBuffer datain, int widthout, int heightout, ShortBuffer dataout ) {
+  public static void scale_internal( final int components, final int widthin, final int heightin,
+          final ShortBuffer datain, final int widthout, final int heightout, final ShortBuffer dataout ) {
     float x, lowx, highx, convx, halfconvx;
     float y, lowy, highy, convy, halfconvy;
     float xpercent, ypercent;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, yint, xint, xindex, yindex;
     int temp;
@@ -147,14 +147,16 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_ubyte( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              ByteBuffer dataout, int element_size, int ysize, int group_size ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_ubyte( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final ByteBuffer dataout, final int element_size, final int ysize, final int group_size ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -356,7 +358,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -372,15 +374,17 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_byte( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              ByteBuffer dataout, int element_size, int ysize,
-                              int group_size ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_byte( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final ByteBuffer dataout, final int element_size, final int ysize,
+                              final int group_size ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -581,7 +585,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -597,15 +601,17 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_ushort( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              ShortBuffer dataout, int element_size, int ysize,
-                              int group_size, boolean myswap_bytes ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_ushort( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final ShortBuffer dataout, final int element_size, final int ysize,
+                              final int group_size, final boolean myswap_bytes ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -673,7 +679,7 @@ public class ScaleInternal {
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
             if( myswap_bytes ) {
-              totals[k] += ( 0x0000FFFF & ((int)Mipmap.GLU_SWAP_2_BYTES( datain.getShort() ))) * percent;
+              totals[k] += ( 0x0000FFFF & (Mipmap.GLU_SWAP_2_BYTES( datain.getShort() ))) * percent;
             } else {
               totals[k] += ( 0x0000FFFF & datain.getShort() ) * percent;
             }
@@ -684,7 +690,7 @@ public class ScaleInternal {
             for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
               datain.position( temp_index );
               if( myswap_bytes ) {
-                totals[k] += ( 0x0000FFFF & ((int)Mipmap.GLU_SWAP_2_BYTES( datain.getShort() ))) * y_percent;
+                totals[k] += ( 0x0000FFFF & (Mipmap.GLU_SWAP_2_BYTES( datain.getShort() ))) * y_percent;
               } else {
                 totals[k] += ( 0x0000FFFF & datain.getShort()) * y_percent;
               }
@@ -869,7 +875,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -885,15 +891,17 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_short( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              ShortBuffer dataout, int element_size, int ysize,
-                              int group_size, boolean myswap_bytes ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_short( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final ShortBuffer dataout, final int element_size, final int ysize,
+                              final int group_size, final boolean myswap_bytes ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -1173,7 +1181,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -1189,15 +1197,17 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_uint( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              IntBuffer dataout, int element_size, int ysize,
-                              int group_size, boolean myswap_bytes ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_uint( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final IntBuffer dataout, final int element_size, final int ysize,
+                              final int group_size, final boolean myswap_bytes ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -1416,9 +1426,9 @@ public class ScaleInternal {
           percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
-            long tempInt0 = ( 0xFFFFFFFFL & datain.getInt( temp_index ) );
+            final long tempInt0 = ( 0xFFFFFFFFL & datain.getInt( temp_index ) );
             datain.position( temp_index );
-            long tempInt1 = ( 0xFFFFFFFFL & datain.getInt() );
+            final long tempInt1 = ( 0xFFFFFFFFL & datain.getInt() );
             datain.position( temp_index );
             if( myswap_bytes ) {
               totals[k] += (0x00000000FFFFFFFF & Mipmap.GLU_SWAP_4_BYTES( datain.getInt())) * percent;
@@ -1468,7 +1478,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -1484,15 +1494,17 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_int( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              IntBuffer dataout, int element_size, int ysize,
-                              int group_size, boolean myswap_bytes ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_int( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final IntBuffer dataout, final int element_size, final int ysize,
+                              final int group_size, final boolean myswap_bytes ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -1772,7 +1784,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -1788,15 +1800,17 @@ public class ScaleInternal {
     }
   }
 
-  public static void scale_internal_float( int components, int widthin, int heightin,
-                              ByteBuffer datain, int widthout, int heightout,
-                              FloatBuffer dataout, int element_size, int ysize,
-                              int group_size, boolean myswap_bytes ) {
-    float x, convx;
-    float y, convy;
+  public static void scale_internal_float( final int components, final int widthin, final int heightin,
+                              final ByteBuffer datain, final int widthout, final int heightout,
+                              final FloatBuffer dataout, final int element_size, final int ysize,
+                              final int group_size, final boolean myswap_bytes ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
     // Max components in a format is 4, so...
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float area;
     int i, j, k, xindex;
 
@@ -2076,7 +2090,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthin - 1) {
-          int delta = (highx_int - widthin + 1);
+          final int delta = (highx_int - widthin + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -2092,25 +2106,27 @@ public class ScaleInternal {
     }
   }
 
-  public static void scaleInternalPackedPixel( int components, Extract extract,
-              int widthIn, int heightIn, ByteBuffer dataIn, int widthOut,
-              int heightOut, ByteBuffer dataOut, int pixelSizeInBytes,
-              int rowSizeInBytes, boolean isSwap ) {
-    float x, convx;
-    float y, convy;
+  public static void scaleInternalPackedPixel( final int components, final Extract extract,
+              final int widthIn, final int heightIn, final ByteBuffer dataIn, final int widthOut,
+              final int heightOut, final ByteBuffer dataOut, final int pixelSizeInBytes,
+              final int rowSizeInBytes, final boolean isSwap ) {
+    final float x;
+    float convx;
+    final float y;
+    float convy;
     float percent;
 
     // max components in a format is 4, so
-    float[] totals = new float[4];
-    float[] extractTotals = new float[4];
-    float[] extractMoreTotals = new float[4];
-    float[] shoveTotals = new float[4];
+    final float[] totals = new float[4];
+    final float[] extractTotals = new float[4];
+    final float[] extractMoreTotals = new float[4];
+    final float[] shoveTotals = new float[4];
 
     float area;
     int i, j, k, xindex;
 
     int temp, temp0;
-    int temp_index;
+    final int temp_index;
     int outIndex = 0;
 
     int lowx_int, highx_int, lowy_int, highy_int;
@@ -2309,7 +2325,7 @@ public class ScaleInternal {
 
         // Clamp to make sure we don't run off the right edge
         if (highx_int > widthIn - 1) {
-          int delta = (highx_int - widthIn + 1);
+          final int delta = (highx_int - widthIn + 1);
           lowx_int -= delta;
           highx_int -= delta;
         }
@@ -2326,16 +2342,16 @@ public class ScaleInternal {
     assert( outIndex == ( widthOut * heightOut - 1) );
   }
 
-  public static void scaleInternal3D( int components, int widthIn, int heightIn,
-          int depthIn, ShortBuffer dataIn, int widthOut, int heightOut,
-          int depthOut, ShortBuffer dataOut ) {
+  public static void scaleInternal3D( final int components, final int widthIn, final int heightIn,
+          final int depthIn, final ShortBuffer dataIn, final int widthOut, final int heightOut,
+          final int depthOut, final ShortBuffer dataOut ) {
     float x, lowx, highx, convx, halfconvx;
     float y, lowy, highy, convy, halfconvy;
     float z, lowz, highz, convz, halfconvz;
     float xpercent, ypercent, zpercent;
     float percent;
     // max compnents in a format is 4
-    float[] totals = new float[4];
+    final float[] totals = new float[4];
     float volume;
     int i, j, d, k, zint, yint, xint, xindex, yindex, zindex;
     int temp;
@@ -2442,12 +2458,12 @@ public class ScaleInternal {
     }
   }
 
-  public static int gluScaleImage3D( GL gl, int format, int widthIn, int heightIn,
-          int depthIn, int typeIn, ByteBuffer dataIn, int widthOut, int heightOut,
-          int depthOut, int typeOut, ByteBuffer dataOut ) {
+  public static int gluScaleImage3D( final GL gl, final int format, final int widthIn, final int heightIn,
+          final int depthIn, final int typeIn, final ByteBuffer dataIn, final int widthOut, final int heightOut,
+          final int depthOut, final int typeOut, final ByteBuffer dataOut ) {
     int components;
     ShortBuffer beforeImage, afterImage;
-    PixelStorageModes psm = new PixelStorageModes();
+    final PixelStorageModes psm = new PixelStorageModes();
 
     if( widthIn == 0 || heightIn == 0 || depthIn == 0 ||
             widthOut == 0 || heightOut == 0 || depthOut == 0 ) {
@@ -2475,10 +2491,10 @@ public class ScaleInternal {
 
     try {
         beforeImage = Buffers.newDirectByteBuffer( Mipmap.imageSize3D( widthIn,
-                heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
+                heightIn, depthIn, format, GL.GL_UNSIGNED_SHORT ) ).asShortBuffer();
         afterImage = Buffers.newDirectByteBuffer( Mipmap.imageSize3D( widthIn,
-                heightIn, depthIn, format, GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
-    } catch( OutOfMemoryError err ) {
+                heightIn, depthIn, format, GL.GL_UNSIGNED_SHORT ) ).asShortBuffer();
+    } catch( final OutOfMemoryError err ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
     Mipmap.retrieveStoreModes3D( gl, psm );

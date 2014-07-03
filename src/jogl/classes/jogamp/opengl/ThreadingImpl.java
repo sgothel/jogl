@@ -43,6 +43,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 
 /** Implementation of the {@link javax.media.opengl.Threading} class. */
@@ -53,7 +54,7 @@ public class ThreadingImpl {
 
         public final int id;
 
-        Mode(int id){
+        Mode(final int id){
             this.id = id;
         }
     }
@@ -76,10 +77,10 @@ public class ThreadingImpl {
                     public ToolkitThreadingPlugin run() {
                         final String singleThreadProp;
                         {
-                            final String w = Debug.getProperty("jogl.1thread", true);
+                            final String w = PropertyAccess.getProperty("jogl.1thread", true);
                             singleThreadProp = null != w ? w.toLowerCase() : null;
                         }
-                        ClassLoader cl = ThreadingImpl.class.getClassLoader();
+                        final ClassLoader cl = ThreadingImpl.class.getClassLoader();
                         // Default to using the AWT thread on all platforms except
                         // Windows. On OS X there is instability apparently due to
                         // using the JAWT on non-AWT threads. On X11 platforms there
@@ -121,7 +122,7 @@ public class ThreadingImpl {
                             Exception error=null;
                             try {
                                 threadingPlugin = (ToolkitThreadingPlugin) ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
-                            } catch (JogampRuntimeException jre) { error = jre; }
+                            } catch (final JogampRuntimeException jre) { error = jre; }
                             if( Mode.ST_AWT == mode && null==threadingPlugin ) {
                                 throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
                             }
@@ -201,7 +202,7 @@ public class ThreadingImpl {
         false). It is up to the end user to check to see whether the
         current thread is the OpenGL thread and either execute the
         Runnable directly or perform the work inside it. */
-    public static final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
+    public static final void invokeOnOpenGLThread(final boolean wait, final Runnable r) throws GLException {
         if(null!=threadingPlugin) {
             threadingPlugin.invokeOnOpenGLThread(wait, r);
             return;
@@ -217,13 +218,13 @@ public class ThreadingImpl {
         }
     }
 
-    public static final void invokeOnWorkerThread(boolean wait, Runnable r) throws GLException {
+    public static final void invokeOnWorkerThread(final boolean wait, final Runnable r) throws GLException {
         GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
         try {
             GLWorkerThread.invoke(wait, r);
-        } catch (InvocationTargetException e) {
+        } catch (final InvocationTargetException e) {
             throw new GLException(e.getTargetException());
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new GLException(e);
         }
     }

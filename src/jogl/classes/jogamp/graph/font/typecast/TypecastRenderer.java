@@ -45,23 +45,23 @@ import com.jogamp.graph.geom.Vertex.Factory;
 public class TypecastRenderer {
     private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
 
-    private static void addShapeMoveTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1) {
+    private static void addShapeMoveTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1) {
         if( DEBUG ) { System.err.println("Shape.MoveTo: "+p1); }
         shape.closeLastOutline(false);
         shape.addEmptyOutline();
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
     }
-    private static void addShapeLineTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1) {
+    private static void addShapeLineTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1) {
         if( DEBUG ) { System.err.println("Shape.LineTo: "+p1); }
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
     }
-    private static void addShapeQuadTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2) {
+    private static void addShapeQuadTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1, final Point p2) {
         if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", "+p2); }
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2.x,  p2.y, 0, p2.onCurve));
     }
-    private static void addShapeQuadTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1,
-                                       float p2x, float p2y, boolean p2OnCurve) {
+    private static void addShapeQuadTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1,
+                                       final float p2x, final float p2y, final boolean p2OnCurve) {
         if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", p2 "+p2x+", "+p2y+", onCurve "+p2OnCurve); }
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2x,    p2y, 0, p2OnCurve));
@@ -73,7 +73,7 @@ public class TypecastRenderer {
         shape.addVertex(0, vertexFactory.create(p3.x,  p3.y, 0, p3.onCurve));
     } */
 
-    public static OutlineShape buildShape(char symbol, OTGlyph glyph, Factory<? extends Vertex> vertexFactory) {
+    public static OutlineShape buildShape(final char symbol, final OTGlyph glyph, final Factory<? extends Vertex> vertexFactory) {
         //
         // See Typecast: GlyphPathFactory.addContourToPath(..)
         //
@@ -108,7 +108,7 @@ public class TypecastRenderer {
         }
     } */
 
-    private static void buildShapeImpl(final OutlineShape shape, char symbol, OTGlyph glyph, Factory<? extends Vertex> vertexFactory) {
+    private static void buildShapeImpl(final OutlineShape shape, final char symbol, final OTGlyph glyph, final Factory<? extends Vertex> vertexFactory) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
         int startIndex = 0;
@@ -217,7 +217,7 @@ public class TypecastRenderer {
         }
     }
 
-    private static float midValue(float a, float b) {
+    private static float midValue(final float a, final float b) {
         return a + (b - a)/2f;
     }
 }

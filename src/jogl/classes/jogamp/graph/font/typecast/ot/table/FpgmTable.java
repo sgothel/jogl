@@ -19,9 +19,9 @@ import jogamp.graph.font.typecast.ot.Disassembler;
  */
 public class FpgmTable extends Program implements Table {
 
-    private DirectoryEntry de;
+    private final DirectoryEntry de;
 
-    protected FpgmTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected FpgmTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         readInstructions(di, de.getLength());
     }

@@ -105,7 +105,7 @@ public class TestGearsES2AWT extends UITestCase {
                 public void run() {
                     awtEDT = Thread.currentThread();
                 } } );
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             Assert.assertNull(e);
         }
@@ -126,7 +126,7 @@ public class TestGearsES2AWT extends UITestCase {
                         frame.pack();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -140,7 +140,7 @@ public class TestGearsES2AWT extends UITestCase {
                         frame.validate();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -163,7 +163,7 @@ public class TestGearsES2AWT extends UITestCase {
         frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());
     }
 
-    protected void runTestGL(final GLCapabilities caps, final ResizeBy resizeBy, FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("GearsES2 AWT Test");
         Assert.assertNotNull(frame);
 
@@ -197,7 +197,7 @@ public class TestGearsES2AWT extends UITestCase {
                 frame.add(glCanvas, BorderLayout.CENTER);
                 break;
             case DoubleBorderCenterSurrounded:
-                Container c = new Container();
+                final Container c = new Container();
                 c.setLayout(new BorderLayout());
                 c.add(new Button("north"), BorderLayout.NORTH);
                 c.add(new Button("south"), BorderLayout.SOUTH);
@@ -217,20 +217,20 @@ public class TestGearsES2AWT extends UITestCase {
 
         frame.addComponentListener(new ComponentListener() {
             @Override
-            public void componentResized(ComponentEvent e) {
+            public void componentResized(final ComponentEvent e) {
                 setTitle(frame, glCanvas, caps);
             }
 
             @Override
-            public void componentMoved(ComponentEvent e) {
+            public void componentMoved(final ComponentEvent e) {
                 setTitle(frame, glCanvas, caps);
             }
 
             @Override
-            public void componentShown(ComponentEvent e) { }
+            public void componentShown(final ComponentEvent e) { }
 
             @Override
-            public void componentHidden(ComponentEvent e) { }
+            public void componentHidden(final ComponentEvent e) { }
         });
 
         final GearsES2 demo = new GearsES2(swapInterval);
@@ -414,11 +414,11 @@ public class TestGearsES2AWT extends UITestCase {
         reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         runTestGL(caps, resizeBy, frameLayout);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         boolean waitForKey = false;
         int rw=-1, rh=-1;
 
@@ -507,11 +507,11 @@ public class TestGearsES2AWT extends UITestCase {
         System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
 
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsES2AWT.class.getName());
     }

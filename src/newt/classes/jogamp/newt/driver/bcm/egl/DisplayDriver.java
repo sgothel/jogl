@@ -70,7 +70,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
             DestroyDisplay(aDevice.getHandle());
         }

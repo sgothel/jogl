@@ -94,7 +94,7 @@ public class Glue {
   public Glue() {
   }
 
-  public static String __gluNURBSErrorString( int errno ) {
+  public static String __gluNURBSErrorString( final int errno ) {
     return( __gluNurbsErrors[ errno ] );
   }
 
@@ -108,7 +108,7 @@ public class Glue {
     "need combine callback"
   };
 
-  public static String __gluTessErrorString( int errno ) {
+  public static String __gluTessErrorString( final int errno ) {
     return( __gluTessErrors[ errno ] );
   }
 }

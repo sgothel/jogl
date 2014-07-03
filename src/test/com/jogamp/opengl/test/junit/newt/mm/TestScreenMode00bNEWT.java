@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
@@ -55,15 +55,15 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 /**
  * Queries the current MonitorMode 50 times,
- * stressing a possible race condition. 
+ * stressing a possible race condition.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode00bNEWT extends UITestCase {
     static int width, height;
-    
+
     static int waitTimeShort = 4; //1 sec
     static int waitTimeLong = 6; //6 sec
-        
+
     @BeforeClass
     public static void initClass() {
         setResetXRandRIfX11AfterClass();
@@ -74,45 +74,45 @@ public class TestScreenMode00bNEWT extends UITestCase {
 
     @Test
     public void testScreenModeInfo01() throws InterruptedException {
-        Display display = NewtFactory.createDisplay(null);
-        Screen screen = NewtFactory.createScreen(display, 0);
+        final Display display = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(display, 0);
         // screen.addReference();
-        
+
         // put some load on the screen/display context ..
-        GLCapabilitiesImmutable caps = new GLCapabilities(null); 
-        GLWindow window = GLWindow.create(screen, caps);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(null);
+        final GLWindow window = GLWindow.create(screen, caps);
         window.addGLEventListener(new GearsES2());
         window.setSize(256, 256);
         window.setVisible(true);
-        Animator anim = new Animator(window);
+        final Animator anim = new Animator(window);
         anim.start();
 
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,display.isNativeValid());
-        
-        List<MonitorMode> screenModes = screen.getMonitorModes();
+
+        final List<MonitorMode> screenModes = screen.getMonitorModes();
         Assert.assertTrue(screenModes.size()>0);
         int i=0;
-        for(Iterator<MonitorMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
+        for(final Iterator<MonitorMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
             System.err.println(i+": "+iter.next());
         }
-        MonitorDevice monitor = window.getMainMonitor();
-        MonitorMode mm_o = monitor.getOriginalMode();
-        
-        Assert.assertNotNull(mm_o);            
+        final MonitorDevice monitor = window.getMainMonitor();
+        final MonitorMode mm_o = monitor.getOriginalMode();
+
+        Assert.assertNotNull(mm_o);
         MonitorMode mm_c = monitor.queryCurrentMode();
         Assert.assertNotNull(mm_c);
         System.err.println("orig: "+mm_o);
         System.err.println("curr: "+mm_c);
-        
+
         for(i=0; i<50; i++) {
             mm_c = monitor.queryCurrentMode();
             Assert.assertNotNull(mm_c);
             System.err.print("."+i);
         }
         System.err.println("!");
-        
+
         // screen.removeReference();
         anim.stop();
         window.destroy();
@@ -124,8 +124,8 @@ public class TestScreenMode00bNEWT extends UITestCase {
         Assert.assertEquals(false,display.isNativeValid());
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestScreenMode00bNEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestScreenMode00bNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

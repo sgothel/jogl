@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.io.IOException;
@@ -58,16 +58,16 @@ public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawable
 
     static int loops = 10;
     static long duration2 = 100; // ms
-    
+
     /**
      * Interesting artifact w/ ATI proprietary driver is that the
      * bug causing the quirk {@link GLRendererQuirks#DontCloseX11Display}
      * also causes an XCB crash when reusing the X11 display connection
      * from AWT -> NEWT. Pre-allocating the X11 Display and keeping it referenced
-     * to avoid such re-usage worksaround this problem.  
+     * to avoid such re-usage worksaround this problem.
      */
     public static boolean fixedNewtDisplay = true;
-    
+
     @Test(timeout=180000) // TO 3 min
     public void test11GLWindow2GLCanvasOnScrnGL2ES2() throws InterruptedException {
         final GLCapabilities caps = getCaps(GLProfile.GL2ES2);
@@ -80,14 +80,14 @@ public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawable
             return;
         }
 
-        
-        GLADType gladType1 = GLADType.GLWindow;
-        GLADType gladType2 = GLADType.GLCanvasOnscreen;
-        
-        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
+
+        final GLADType gladType1 = GLADType.GLWindow;
+        final GLADType gladType2 = GLADType.GLCanvasOnscreen;
+
+        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();
         final Animator animator = new Animator();
         animator.start();
-        
+
         final Display dpy;
         final Screen screen;
         if( fixedNewtDisplay ) {
@@ -97,43 +97,43 @@ public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawable
         } else {
             dpy = null;
             screen = null;
-        }        
-        
+        }
+
         duration = duration2;
-        
-        for(int i=0; i<loops; i++) {        
+
+        for(int i=0; i<loops; i++) {
             final GLEventListenerState glels[] = new GLEventListenerState[1];
             final GLEventListenerCounter glelTracker = new GLEventListenerCounter();
-            
+
             // - create glad1 w/o context
             // - create context using glad1 and assign it to glad1
             {
                 System.err.println("Test "+i+"/"+loops+".1: GLAD-1 "+gladType1+", preserving.");
-                testGLADOneLifecycle(screen, caps, gladType1, width, height, 
+                testGLADOneLifecycle(screen, caps, gladType1, width, height,
                                      glelTracker, snapshotGLEventListener,
-                                     null, 
-                                     glels, animator); 
+                                     null,
+                                     glels, animator);
                 System.err.println("Test "+i+"/"+loops+".1: done");
             }
-            
+
             // - create glad2 w/ survived context
             {
                 System.err.println("Test "+i+"/"+loops+".2: GLAD-1 "+gladType2+", restoring.");
-                testGLADOneLifecycle(screen, caps, gladType2, width+100, height+100, 
+                testGLADOneLifecycle(screen, caps, gladType2, width+100, height+100,
                                      glelTracker, snapshotGLEventListener,
-                                     glels[0], 
+                                     glels[0],
                                      null, null);
                 System.err.println("Test "+i+"/"+loops+".2: done.");
             }
         }
         animator.stop();
-        
+
         if( fixedNewtDisplay ) {
             screen.removeReference();
         }
     }
-    
-    public static void main(String args[]) throws IOException {
+
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -148,7 +148,7 @@ public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawable
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); */         
+        System.err.println(stdin.readLine()); */
         org.junit.runner.JUnitCore.main(TestBug722GLContextDrawableSwitchNewt2AWT.class.getName());
     }
 }

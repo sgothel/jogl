@@ -83,7 +83,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         doTest(8);
     }
 
-    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {
+    void doTest(final int msaaCount) throws IOException, InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
         caps.setDoubleBuffered(true);
         if( msaaCount > 0 ) {
@@ -115,10 +115,10 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
 
         final GLEventListener preTileGLEL = new GLEventListener() {
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 final GL gl = drawable.getGL();
-                GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
-                GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
+                final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
+                final GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
                 renderer.setImageBuffer(pixelBuffer);
                 if( drawable.isGLOriented() ) {
                     flipVertically[0] = false;
@@ -127,11 +127,11 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
                 }
             }
             @Override
-            public void dispose(GLAutoDrawable drawable) {}
+            public void dispose(final GLAutoDrawable drawable) {}
             @Override
-            public void display(GLAutoDrawable drawable) {}
+            public void display(final GLAutoDrawable drawable) {}
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
         };
         renderer.setGLEventListener(preTileGLEL, null);
 
@@ -152,7 +152,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         // .. even though we close the demo, this is for documentation!
         glad.invoke(true, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
+            public boolean run(final GLAutoDrawable drawable) {
                 drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 gears.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 return false;
@@ -179,13 +179,13 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         TextureIO.write(textureData, file);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestRandomTiledRendering2GL2NEWT.class.getName());

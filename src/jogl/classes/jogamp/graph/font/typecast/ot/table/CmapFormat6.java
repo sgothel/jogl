@@ -64,7 +64,7 @@ public class CmapFormat6 extends CmapFormat {
     private short _entryCount;
     private short[] _glyphIdArray;
 
-    protected CmapFormat6(DataInput di) throws IOException {
+    protected CmapFormat6(final DataInput di) throws IOException {
         super(di);
         _format = 6;
 
@@ -79,12 +79,12 @@ public class CmapFormat6 extends CmapFormat {
     }
 
     @Override
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }
 
     @Override
-    public int mapCharCode(int charCode) {
+    public int mapCharCode(final int charCode) {
         return 0;
     }
 }

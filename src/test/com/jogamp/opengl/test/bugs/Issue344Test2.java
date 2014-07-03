@@ -6,7 +6,7 @@ public class Issue344Test2 extends Issue344Base {
         return "\u201Cabcdefghijklmnopqrstuvwxyz\u201D";
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         new Issue344Test2().run(args);
     }
 }

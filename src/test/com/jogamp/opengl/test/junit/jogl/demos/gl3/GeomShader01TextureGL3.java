@@ -78,12 +78,12 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
     static final String shaderBasename = "texture01_xxx";
     static final String[] geomShaderBaseNames = new String[] { "passthrough01_xxx", "flipXYZ01_xxx" };
 
-    public GeomShader01TextureGL3(int geomShader) {
+    public GeomShader01TextureGL3(final int geomShader) {
         this.geomShader = geomShader;
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         {
             final GL gl = drawable.getGL();
             System.err.println("Init - START - useGeomShader "+geomShader+" -> "+geomShaderBaseNames[geomShader]);
@@ -130,9 +130,9 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
 
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
@@ -148,7 +148,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
 
         try {
             texture = createTestTexture(gl);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
         if(null == texture) {
@@ -160,7 +160,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         //   TL, TR, BR
         {
             int i=0;
-            TextureCoords tc = texture.getImageTexCoords();
+            final TextureCoords tc = texture.getImageTexCoords();
             s_triTexCoords[i++] = tc.left();  s_triTexCoords[i++] = tc.top();
             s_triTexCoords[i++] = tc.left();  s_triTexCoords[i++] = tc.bottom();
             s_triTexCoords[i++] = tc.right(); s_triTexCoords[i++] = tc.bottom();
@@ -175,7 +175,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             interleavedVBO.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
             interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
 
-            FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
+            final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
 
             for(int i=0; i<6; i++) {
                 ib.put(s_triVertices,  i*2, 2);
@@ -192,7 +192,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         st.useProgram(gl, false);
     }
 
-    private Texture createTestTexture(GL3 gl) throws IOException  {
+    private Texture createTestTexture(final GL3 gl) throws IOException  {
         final URLConnection urlConn = IOUtil.getResource(this.getClass(), "../../util/texture/test-ntscN_3-01-160x90.png");
         if(null == urlConn) { return null; }
         final InputStream istream = urlConn.getInputStream();
@@ -204,7 +204,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         final GL3 gl = drawable.getGL().getGL3();
         if(null!=texture) {
             texture.disable(gl);
@@ -220,8 +220,8 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL3 gl = drawable.getGL().getGL3();
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        final GL3 gl = drawable.getGL().getGL3();
 
         gl.setSwapInterval(1);
 
@@ -243,7 +243,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
     }
 
     @Override
-    public void display(GLAutoDrawable drawable)  {
+    public void display(final GLAutoDrawable drawable)  {
         final GL3 gl = drawable.getGL().getGL3();
 
         gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);

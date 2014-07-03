@@ -70,18 +70,18 @@ public class TGAWriter {
    * @throws IOException if an I/O error occurred while writing the
    *   file
    */
-  public void open(File file,
-                   int width,
-                   int height,
-                   boolean alpha) throws IOException {
-    RandomAccessFile out = new RandomAccessFile(file, "rw");
+  public void open(final File file,
+                   final int width,
+                   final int height,
+                   final boolean alpha) throws IOException {
+    final RandomAccessFile out = new RandomAccessFile(file, "rw");
     ch = out.getChannel();
-    int pixelSize = (alpha ? 32 : 24);
-    int numChannels = (alpha ? 4 : 3);
+    final int pixelSize = (alpha ? 32 : 24);
+    final int numChannels = (alpha ? 4 : 3);
 
-    int fileLength = TARGA_HEADER_SIZE + width * height * numChannels;
+    final int fileLength = TARGA_HEADER_SIZE + width * height * numChannels;
     out.setLength(fileLength);
-    MappedByteBuffer image = ch.map(FileChannel.MapMode.READ_WRITE, 0, fileLength);
+    final MappedByteBuffer image = ch.map(FileChannel.MapMode.READ_WRITE, 0, fileLength);
 
     // write the TARGA header
     image.put(0, (byte) 0).put(1, (byte) 0);

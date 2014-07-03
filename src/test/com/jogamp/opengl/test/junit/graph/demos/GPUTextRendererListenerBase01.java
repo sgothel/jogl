@@ -111,7 +111,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     StringBuilder userString = new StringBuilder();
     boolean userInput = false;
-    public GPUTextRendererListenerBase01(RenderState rs, int renderModes, int sampleCount, boolean blending, boolean debug, boolean trace) {
+    public GPUTextRendererListenerBase01(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         // NOTE_ALPHA_BLENDING: We use alpha-blending
         super(RegionRenderer.create(rs, blending ? RegionRenderer.defaultBlendEnable : null,
                                     blending ? RegionRenderer.defaultBlendDisable : null),
@@ -125,7 +125,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             dumpFontNames();
 
             this.fontName = font.toString();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             System.err.println("Caught: "+ioe.getMessage());
             ioe.printStackTrace();
         }
@@ -161,7 +161,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         super.init(drawable);
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
@@ -175,7 +175,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
         super.reshape(drawable, xstart, ystart, width, height);
         final float dist = 100f;
         nearPlaneX0 = nearPlane1Box.getMinX() * dist;
@@ -191,17 +191,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     float nearPlaneX0, nearPlaneY0, nearPlaneZ0, nearPlaneSx, nearPlaneSy, nearPlaneS;
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         regionFPS.destroy(drawable.getGL().getGL2ES2());
         regionBottom.destroy(drawable.getGL().getGL2ES2());
         super.dispose(drawable);
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         final int width = drawable.getSurfaceWidth();
         final int height = drawable.getSurfaceHeight();
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -301,12 +301,12 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
     final boolean bottomTextUseFrustum = true;
 
-    public void fontBottomIncr(int v) {
+    public void fontBottomIncr(final int v) {
         fontSizeBottom = Math.abs((fontSizeBottom + v) % fontSizeModulo) ;
         dumpMatrix(true);
     }
 
-    public void fontHeadIncr(int v) {
+    public void fontHeadIncr(final int v) {
         fontSizeHead = Math.abs((fontSizeHead + v) % fontSizeModulo) ;
         if(null != headtext) {
             headbox = font.getMetricBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
@@ -315,8 +315,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public boolean nextFontSet() {
         try {
-            int set = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
-            Font _font = FontFactory.get(set).getDefault();
+            final int set = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
+            final Font _font = FontFactory.get(set).getDefault();
             if(null != _font) {
                 fontSet = set;
                 font = _font;
@@ -325,15 +325,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 dumpFontNames();
                 return true;
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             System.err.println("Caught: "+ex.getMessage());
         }
         return false;
     }
 
-    public boolean setFontSet(int set, int family, int stylebits) {
+    public boolean setFontSet(final int set, final int family, final int stylebits) {
         try {
-            Font _font = FontFactory.get(set).get(family, stylebits);
+            final Font _font = FontFactory.get(set).get(family, stylebits);
             if(null != _font) {
                 fontSet = set;
                 font = _font;
@@ -342,7 +342,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 dumpFontNames();
                 return true;
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             System.err.println("Caught: "+ex.getMessage());
         }
         return false;
@@ -350,7 +350,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public boolean isUserInputMode() { return userInput; }
 
-    void dumpMatrix(boolean bbox) {
+    void dumpMatrix(final boolean bbox) {
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeBottom);
         if(bbox) {
             System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * font.getPixelSize(fontSizeBottom, dpiH)));
@@ -360,7 +360,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     KeyAction keyAction = null;
 
     @Override
-    public void attachInputListenerTo(GLWindow window) {
+    public void attachInputListenerTo(final GLWindow window) {
         if ( null == keyAction ) {
             keyAction = new KeyAction();
             window.addKeyListener(keyAction);
@@ -369,7 +369,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
 
     @Override
-    public void detachInputListenerFrom(GLWindow window) {
+    public void detachInputListenerFrom(final GLWindow window) {
         super.detachInputListenerFrom(window);
         if ( null == keyAction ) {
             return;
@@ -377,7 +377,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         window.removeKeyListener(keyAction);
     }
 
-    public void printScreen(GLAutoDrawable drawable, String dir, String tech, boolean exportAlpha) throws GLException, IOException {
+    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final boolean exportAlpha) throws GLException, IOException {
         final String fn = font.getFullFamilyName(null).toString();
         printScreen(drawable, dir, tech, fn.replace(' ', '_'), exportAlpha);
     }
@@ -386,7 +386,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public class KeyAction implements KeyListener {
         @Override
-        public void keyPressed(KeyEvent e) {
+        public void keyPressed(final KeyEvent e) {
             if(userInput) {
                 return;
             }
@@ -421,7 +421,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         }
 
         @Override
-        public void keyReleased(KeyEvent e) {
+        public void keyReleased(final KeyEvent e) {
             if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                 return;
             }

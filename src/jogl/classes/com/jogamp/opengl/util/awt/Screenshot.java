@@ -88,9 +88,9 @@ public class Screenshot {
    * @throws IOException if an I/O error occurred while writing the
    *   file
    */
-  public static void writeToTargaFile(File file,
-                                      int width,
-                                      int height) throws GLException, IOException {
+  public static void writeToTargaFile(final File file,
+                                      final int width,
+                                      final int height) throws GLException, IOException {
     writeToTargaFile(file, width, height, false);
   }
 
@@ -115,10 +115,10 @@ public class Screenshot {
    * @throws IOException if an I/O error occurred while writing the
    *   file
    */
-  public static void writeToTargaFile(File file,
-                                      int width,
-                                      int height,
-                                      boolean alpha) throws GLException, IOException {
+  public static void writeToTargaFile(final File file,
+                                      final int width,
+                                      final int height,
+                                      final boolean alpha) throws GLException, IOException {
     writeToTargaFile(file, 0, 0, width, height, alpha);
   }
 
@@ -145,27 +145,27 @@ public class Screenshot {
    * @throws IOException if an I/O error occurred while writing the
    *   file
    */
-  public static void writeToTargaFile(File file,
-                                      int x,
-                                      int y,
-                                      int width,
-                                      int height,
-                                      boolean alpha) throws GLException, IOException {
+  public static void writeToTargaFile(final File file,
+                                      final int x,
+                                      final int y,
+                                      final int width,
+                                      final int height,
+                                      final boolean alpha) throws GLException, IOException {
     if (alpha) {
       checkExtABGR();
     }
 
-    TGAWriter writer = new TGAWriter();
+    final TGAWriter writer = new TGAWriter();
     writer.open(file, width, height, alpha);
-    ByteBuffer bgr = writer.getImageData();
+    final ByteBuffer bgr = writer.getImageData();
 
-    GL gl = GLContext.getCurrentGL();
+    final GL gl = GLContext.getCurrentGL();
 
     // Set up pixel storage modes
-    GLPixelStorageModes psm = new GLPixelStorageModes();
+    final GLPixelStorageModes psm = new GLPixelStorageModes();
     psm.setPackAlignment(gl, 1);
 
-    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
+    final int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
 
     // read the BGR values into the image buffer
     gl.glReadPixels(x, y, width, height, readbackType,
@@ -198,8 +198,8 @@ public class Screenshot {
    * @throws GLException if an OpenGL context was not current or
    *   another OpenGL-related error occurred
    */
-  public static BufferedImage readToBufferedImage(int width,
-                                                  int height) throws GLException {
+  public static BufferedImage readToBufferedImage(final int width,
+                                                  final int height) throws GLException {
     return readToBufferedImage(width, height, false);
   }
 
@@ -223,9 +223,9 @@ public class Screenshot {
    * @throws GLException if an OpenGL context was not current or
    *   another OpenGL-related error occurred
    */
-  public static BufferedImage readToBufferedImage(int width,
-                                                  int height,
-                                                  boolean alpha) throws GLException {
+  public static BufferedImage readToBufferedImage(final int width,
+                                                  final int height,
+                                                  final boolean alpha) throws GLException {
     return readToBufferedImage(0, 0, width, height, alpha);
   }
 
@@ -251,26 +251,26 @@ public class Screenshot {
    * @throws GLException if an OpenGL context was not current or
    *   another OpenGL-related error occurred
    */
-  public static BufferedImage readToBufferedImage(int x,
-                                                  int y,
-                                                  int width,
-                                                  int height,
-                                                  boolean alpha) throws GLException {
-    int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
-    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
+  public static BufferedImage readToBufferedImage(final int x,
+                                                  final int y,
+                                                  final int width,
+                                                  final int height,
+                                                  final boolean alpha) throws GLException {
+    final int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
+    final int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
 
     if (alpha) {
       checkExtABGR();
     }
 
     // Allocate necessary storage
-    BufferedImage image = new BufferedImage(width, height, bufImgType);
+    final BufferedImage image = new BufferedImage(width, height, bufImgType);
 
-    GLContext glc = GLContext.getCurrent();
-    GL gl = glc.getGL();
+    final GLContext glc = GLContext.getCurrent();
+    final GL gl = glc.getGL();
 
     // Set up pixel storage modes
-    GLPixelStorageModes psm = new GLPixelStorageModes();
+    final GLPixelStorageModes psm = new GLPixelStorageModes();
     psm.setPackAlignment(gl, 1);
 
     // read the BGR values into the image
@@ -313,9 +313,9 @@ public class Screenshot {
    *   not be written to disk due to the requested file format being
    *   unsupported by ImageIO
    */
-  public static void writeToFile(File file,
-                                 int width,
-                                 int height) throws IOException, GLException {
+  public static void writeToFile(final File file,
+                                 final int width,
+                                 final int height) throws IOException, GLException {
     writeToFile(file, width, height, false);
   }
 
@@ -348,10 +348,10 @@ public class Screenshot {
    *   not be written to disk due to the requested file format being
    *   unsupported by ImageIO
    */
-  public static void writeToFile(File file,
-                                 int width,
-                                 int height,
-                                 boolean alpha) throws IOException, GLException {
+  public static void writeToFile(final File file,
+                                 final int width,
+                                 final int height,
+                                 final boolean alpha) throws IOException, GLException {
     writeToFile(file, 0, 0, width, height, alpha);
   }
 
@@ -386,26 +386,26 @@ public class Screenshot {
    *   not be written to disk due to the requested file format being
    *   unsupported by ImageIO
    */
-  public static void writeToFile(File file,
-                                 int x,
-                                 int y,
-                                 int width,
-                                 int height,
+  public static void writeToFile(final File file,
+                                 final int x,
+                                 final int y,
+                                 final int width,
+                                 final int height,
                                  boolean alpha) throws IOException, GLException {
-    String fileSuffix = IOUtil.getFileSuffix(file);
+    final String fileSuffix = IOUtil.getFileSuffix(file);
     if (alpha && (fileSuffix.equals("jpg") || fileSuffix.equals("jpeg"))) {
       // JPEGs can't deal properly with alpha channels
       alpha = false;
     }
 
-    BufferedImage image = readToBufferedImage(x, y, width, height, alpha);
+    final BufferedImage image = readToBufferedImage(x, y, width, height, alpha);
     if (!ImageIO.write(image, fileSuffix, file)) {
       throw new IOException("Unsupported file format " + fileSuffix);
     }
   }
 
   private static void checkExtABGR() {
-    GL gl = GLContext.getCurrentGL();
+    final GL gl = GLContext.getCurrentGL();
 
     if (!gl.isExtensionAvailable(GLExtensions.EXT_abgr)) {
       throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");

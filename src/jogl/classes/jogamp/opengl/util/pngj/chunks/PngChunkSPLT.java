@@ -21,7 +21,7 @@ public class PngChunkSPLT extends PngChunkMultiple {
 	private int sampledepth; // 8/16
 	private int[] palette; // 5 elements per entry
 
-	public PngChunkSPLT(ImageInfo info) {
+	public PngChunkSPLT(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -33,11 +33,11 @@ public class PngChunkSPLT extends PngChunkMultiple {
 	@Override
 	public ChunkRaw createRawChunk() {
 		try {
-			ByteArrayOutputStream ba = new ByteArrayOutputStream();
+			final ByteArrayOutputStream ba = new ByteArrayOutputStream();
 			ba.write(palName.getBytes(PngHelperInternal.charsetLatin1));
 			ba.write(0); // separator
 			ba.write((byte) sampledepth);
-			int nentries = getNentries();
+			final int nentries = getNentries();
 			for (int n = 0; n < nentries; n++) {
 				for (int i = 0; i < 4; i++) {
 					if (sampledepth == 8)
@@ -47,17 +47,17 @@ public class PngChunkSPLT extends PngChunkMultiple {
 				}
 				PngHelperInternal.writeInt2(ba, palette[n * 5 + 4]);
 			}
-			byte[] b = ba.toByteArray();
-			ChunkRaw chunk = createEmptyChunk(b.length, false);
+			final byte[] b = ba.toByteArray();
+			final ChunkRaw chunk = createEmptyChunk(b.length, false);
 			chunk.data = b;
 			return chunk;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new PngjException(e);
 		}
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		int t = -1;
 		for (int i = 0; i < c.data.length; i++) { // look for first zero
 			if (c.data[i] == 0) {
@@ -70,7 +70,7 @@ public class PngChunkSPLT extends PngChunkMultiple {
 		palName = new String(c.data, 0, t, PngHelperInternal.charsetLatin1);
 		sampledepth = PngHelperInternal.readInt1fromByte(c.data, t + 1);
 		t += 2;
-		int nentries = (c.data.length - t) / (sampledepth == 8 ? 6 : 10);
+		final int nentries = (c.data.length - t) / (sampledepth == 8 ? 6 : 10);
 		palette = new int[nentries * 5];
 		int r, g, b, a, f, ne;
 		ne = 0;
@@ -101,8 +101,8 @@ public class PngChunkSPLT extends PngChunkMultiple {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkSPLT otherx = (PngChunkSPLT) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkSPLT otherx = (PngChunkSPLT) other;
 		palName = otherx.palName;
 		sampledepth = otherx.sampledepth;
 		palette = new int[otherx.palette.length];
@@ -117,7 +117,7 @@ public class PngChunkSPLT extends PngChunkMultiple {
 		return palName;
 	}
 
-	public void setPalName(String palName) {
+	public void setPalName(final String palName) {
 		this.palName = palName;
 	}
 
@@ -125,7 +125,7 @@ public class PngChunkSPLT extends PngChunkMultiple {
 		return sampledepth;
 	}
 
-	public void setSampledepth(int sampledepth) {
+	public void setSampledepth(final int sampledepth) {
 		this.sampledepth = sampledepth;
 	}
 
@@ -133,7 +133,7 @@ public class PngChunkSPLT extends PngChunkMultiple {
 		return palette;
 	}
 
-	public void setPalette(int[] palette) {
+	public void setPalette(final int[] palette) {
 		this.palette = palette;
 	}
 

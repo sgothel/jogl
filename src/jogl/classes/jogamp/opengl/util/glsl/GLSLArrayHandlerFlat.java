@@ -41,9 +41,9 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * separately and interleaves many arrays.
  */
 public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
-  private GLArrayDataWrapper ad;
+  private final GLArrayDataWrapper ad;
 
-  public GLSLArrayHandlerFlat(GLArrayDataWrapper ad) {
+  public GLSLArrayHandlerFlat(final GLArrayDataWrapper ad) {
     this.ad = ad;
   }
 
@@ -53,7 +53,7 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
   }
 
   @Override
-  public final void syncData(GL gl, Object ext) {
+  public final void syncData(final GL gl, final Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
         ((ShaderState)ext).vertexAttribPointer(glsl, ad);
@@ -80,7 +80,7 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
   }
 
   @Override
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
         final ShaderState st = (ShaderState)ext;

@@ -46,13 +46,13 @@ import javax.media.opengl.GLDrawableFactory;
 
 public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
-  public MacOSXOffscreenCGLDrawable(GLDrawableFactory factory,
-                                    NativeSurface target) {
+  public MacOSXOffscreenCGLDrawable(final GLDrawableFactory factory,
+                                    final NativeSurface target) {
     super(factory, target);
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new MacOSXCGLContext(this, shareWith);
   }
 }

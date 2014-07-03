@@ -18,14 +18,14 @@ import java.io.IOException;
  */
 public class KernSubtableFormat0 extends KernSubtable {
 
-    private int nPairs;
-    private int searchRange;
-    private int entrySelector;
-    private int rangeShift;
-    private KerningPair[] kerningPairs;
+    private final int nPairs;
+    private final int searchRange;
+    private final int entrySelector;
+    private final int rangeShift;
+    private final KerningPair[] kerningPairs;
 
     /** Creates new KernSubtableFormat0 */
-    protected KernSubtableFormat0(DataInput di) throws IOException {
+    protected KernSubtableFormat0(final DataInput di) throws IOException {
         nPairs = di.readUnsignedShort();
         searchRange = di.readUnsignedShort();
         entrySelector = di.readUnsignedShort();
@@ -42,7 +42,7 @@ public class KernSubtableFormat0 extends KernSubtable {
     }
 
     @Override
-    public KerningPair getKerningPair(int i) {
+    public KerningPair getKerningPair(final int i) {
         return kerningPairs[i];
     }
 

@@ -47,7 +47,7 @@ public class TestGLProfile00NEWT extends UITestCase {
     public void testInitSingleton() throws InterruptedException {
         GLProfile.initSingleton();
         System.err.println("Desktop");
-        GLDrawableFactory desktopFactory = GLDrawableFactory.getDesktopFactory();
+        final GLDrawableFactory desktopFactory = GLDrawableFactory.getDesktopFactory();
         if( null != desktopFactory ) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(desktopFactory.getDefaultDevice(), null, false));
             System.err.println(Platform.getNewline()+Platform.getNewline()+Platform.getNewline());
@@ -56,7 +56,7 @@ public class TestGLProfile00NEWT extends UITestCase {
         }
 
         System.err.println("EGL");
-        GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
+        final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
         if( null != eglFactory ) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(eglFactory.getDefaultDevice(), null, false));
         } else {
@@ -64,8 +64,8 @@ public class TestGLProfile00NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestGLProfile00NEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestGLProfile00NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

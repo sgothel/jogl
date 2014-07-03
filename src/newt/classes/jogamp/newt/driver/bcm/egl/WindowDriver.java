@@ -82,9 +82,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected void requestFocusImpl(boolean reparented) { }
+    protected void requestFocusImpl(final boolean reparented) { }
 
-    protected void setSizeImpl(int width, int height) {
+    protected void setSizeImpl(final int width, final int height) {
         if(0!=getWindowHandle()) {
             // n/a in BroadcomEGL
             System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
@@ -94,7 +94,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         if(0!=getWindowHandle()) {
             if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
                 if( 0 != ( FLAG_IS_FULLSCREEN & flags) ) {
@@ -123,12 +123,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         return new Point(x,y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop ..
     }
 
@@ -148,11 +148,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     private        native void SwapWindow(long eglDisplayHandle, long eglWindowHandle);
 
 
-    private long realizeWindow(boolean chromaKey, int width, int height) {
+    private long realizeWindow(final boolean chromaKey, final int width, final int height) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("BCEGL Window.realizeWindow() with: chroma "+chromaKey+", "+width+"x"+height+", "+getGraphicsConfiguration());
         }
-        long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
+        final long handle = CreateWindow(getDisplayHandle(), chromaKey, width, height);
         if (0 == handle) {
             throw new NativeWindowException("Error native Window Handle is null");
         }
@@ -160,9 +160,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         return handle;
     }
 
-    private void windowCreated(int cfgID, int width, int height) {
+    private void windowCreated(final int cfgID, final int width, final int height) {
         defineSize(width, height);
-        GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) getGraphicsConfiguration().getRequestedCapabilities();
+        final GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) getGraphicsConfiguration().getRequestedCapabilities();
         final AbstractGraphicsConfiguration cfg = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
         if (null == cfg) {
             throw new NativeWindowException("Error creating EGLGraphicsConfiguration from id: "+cfgID+", "+this);

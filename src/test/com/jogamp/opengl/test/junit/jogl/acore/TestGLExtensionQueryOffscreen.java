@@ -48,8 +48,8 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLExtensionQueryOffscreen {
 
-    public static void main(String[] args) {
-        TestGLExtensionQueryOffscreen instance = new TestGLExtensionQueryOffscreen();
+    public static void main(final String[] args) {
+        final TestGLExtensionQueryOffscreen instance = new TestGLExtensionQueryOffscreen();
         instance.testJogl2ExtensionCheck1();
         instance.testJogl2ExtensionCheck2();
     }
@@ -59,8 +59,8 @@ public class TestGLExtensionQueryOffscreen {
      */
     @Test
     public void testJogl2ExtensionCheck1() {
-        GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getDesktopFactory();
-        GLContext sharedContext = factory.getOrCreateSharedContext(null);
+        final GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getDesktopFactory();
+        final GLContext sharedContext = factory.getOrCreateSharedContext(null);
         sharedContext.makeCurrent();
         String extensions;
         try {
@@ -68,8 +68,8 @@ public class TestGLExtensionQueryOffscreen {
         } finally {
             sharedContext.release();
         }
-        String[] tabExtensions = extensions.split(" ");
-        SortedSet<String> setExtensions = new TreeSet<String>();
+        final String[] tabExtensions = extensions.split(" ");
+        final SortedSet<String> setExtensions = new TreeSet<String>();
         Collections.addAll(setExtensions, tabExtensions);
         System.out.println("SharedContext: "+sharedContext);
         System.out.println("SharedContext: "+setExtensions);
@@ -89,8 +89,8 @@ public class TestGLExtensionQueryOffscreen {
         } finally {
             context.release();
         }
-        String[] tabExtensions = extensions.split(" ");
-        SortedSet<String> setExtensions = new TreeSet<String>();
+        final String[] tabExtensions = extensions.split(" ");
+        final SortedSet<String> setExtensions = new TreeSet<String>();
         Collections.addAll(setExtensions, tabExtensions);
         System.out.println("DefaultContext: "+context);
         System.out.println("DefaultContext: "+setExtensions);

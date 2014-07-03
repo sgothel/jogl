@@ -139,7 +139,7 @@ public class TestBug816OSXCALayerPos04aAWT extends UITestCase {
         return GLProfile.getMaxProgrammableCore(true);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

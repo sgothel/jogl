@@ -79,7 +79,7 @@ public class OTGlyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public OTGlyph(GlyphDescription gd, short lsb, int advance) {
+    public OTGlyph(final GlyphDescription gd, final short lsb, final int advance) {
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         describe(gd);
@@ -91,11 +91,11 @@ public class OTGlyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public OTGlyph(Charstring cs, short lsb, int advance) {
+    public OTGlyph(final Charstring cs, final short lsb, final int advance) {
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         if (cs instanceof CharstringType2) {
-            T2Interpreter t2i = new T2Interpreter();
+            final T2Interpreter t2i = new T2Interpreter();
             _points = t2i.execute((CharstringType2) cs);
         } else {
             //throw unsupported charstring type
@@ -118,7 +118,7 @@ public class OTGlyph {
         return _leftSideBearing;
     }
 
-    public Point getPoint(int i) {
+    public Point getPoint(final int i) {
         return _points[i];
     }
 
@@ -129,7 +129,7 @@ public class OTGlyph {
     /**
      * @param factor a 16.16 fixed value
      */
-    public void scale(int factor) {
+    public void scale(final int factor) {
         for (int i = 0; i < _points.length; i++) {
             //points[i].x = ( points[i].x * factor ) >> 6;
             //points[i].y = ( points[i].y * factor ) >> 6;
@@ -143,11 +143,11 @@ public class OTGlyph {
     /**
      * Set the points of a glyph from the GlyphDescription
      */
-    private void describe(GlyphDescription gd) {
+    private void describe(final GlyphDescription gd) {
         int endPtIndex = 0;
         _points = new Point[gd.getPointCount() /* + 2 */ ];
         for (int i = 0; i < gd.getPointCount(); i++) {
-            boolean endPt = gd.getEndPtOfContours(endPtIndex) == i;
+            final boolean endPt = gd.getEndPtOfContours(endPtIndex) == i;
             if (endPt) {
                 endPtIndex++;
             }

@@ -48,14 +48,14 @@ package com.jogamp.opengl.util.texture;
 
 public class TextureCoords {
     // These represent the lower-left point
-    private float left;
-    private float bottom;
+    private final float left;
+    private final float bottom;
     // These represent the upper-right point
-    private float right;
-    private float top;
+    private final float right;
+    private final float top;
 
-    public TextureCoords(float left, float bottom,
-                         float right, float top) {
+    public TextureCoords(final float left, final float bottom,
+                         final float right, final float top) {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
@@ -70,7 +70,7 @@ public class TextureCoords {
      *   right  top
      * </pre>
      */
-    public float[] getST_LB_RB_LT_RT(float[] d, int d_off, float ss, float ts) {
+    public float[] getST_LB_RB_LT_RT(final float[] d, final int d_off, final float ss, final float ts) {
         d[0+d_off] = left  *ss;  d[1+d_off] = bottom*ts;
         d[2+d_off] = right *ss;  d[3+d_off] = bottom*ts;
         d[4+d_off] = left  *ss;  d[5+d_off] = top   *ts;

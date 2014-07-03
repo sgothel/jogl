@@ -50,18 +50,18 @@ public class CgException extends RuntimeException {
   }
 
   /** Constructs a CgException object with the specified detail message. */
-  public CgException(String message) {
+  public CgException(final String message) {
     super(message);
   }
 
   /** Constructs a CgException object with the specified detail message and
       root cause. */
-  public CgException(String message, Throwable cause) {
+  public CgException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
   /** Constructs a CgException object with the specified root cause. */
-  public CgException(Throwable cause) {
+  public CgException(final Throwable cause) {
     super(cause);
   }
 }

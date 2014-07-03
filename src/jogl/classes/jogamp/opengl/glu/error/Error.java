@@ -76,7 +76,7 @@ public class Error {
   public Error() {
   }
 
-  public static String gluErrorString( int errorCode ) {
+  public static String gluErrorString( final int errorCode ) {
     if( errorCode == 0 ) {
       return( "no error" );
     }

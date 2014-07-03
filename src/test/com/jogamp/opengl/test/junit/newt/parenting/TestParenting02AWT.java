@@ -85,7 +85,7 @@ public class TestParenting02AWT extends UITestCase {
     }
 
     public void runNewtChildOnAWTParent(final boolean useLayout, final boolean deferredPeer) throws InterruptedException, InvocationTargetException {
-        NEWTEventFiFo eventFifo = new NEWTEventFiFo();
+        final NEWTEventFiFo eventFifo = new NEWTEventFiFo();
 
         // setup NEWT GLWindow ..
         final GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
@@ -194,7 +194,7 @@ public class TestParenting02AWT extends UITestCase {
         }
 
         long duration = durationPerTest;
-        long step = 20;
+        final long step = 20;
         NEWTEvent event;
         boolean shouldQuit = false;
 
@@ -204,9 +204,9 @@ public class TestParenting02AWT extends UITestCase {
             duration -= step;
 
             while( null != ( event = eventFifo.get() ) ) {
-                Window source = (Window) event.getSource();
+                final Window source = (Window) event.getSource();
                 if(event instanceof KeyEvent) {
-                    KeyEvent keyEvent = (KeyEvent) event;
+                    final KeyEvent keyEvent = (KeyEvent) event;
                     switch(keyEvent.getKeyChar()) {
                         case 'q':
                             shouldQuit = true;
@@ -237,10 +237,10 @@ public class TestParenting02AWT extends UITestCase {
             } } );
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -250,15 +250,15 @@ public class TestParenting02AWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         verbose = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -267,7 +267,7 @@ public class TestParenting02AWT extends UITestCase {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting02AWT.class.getName();
+        final String tstname = TestParenting02AWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {

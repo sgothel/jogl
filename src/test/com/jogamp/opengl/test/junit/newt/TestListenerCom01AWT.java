@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.Assert;
@@ -64,19 +64,19 @@ public class TestListenerCom01AWT extends UITestCase {
     @Test
     public void testListenerStringPassingAndOrder() throws InterruptedException, InvocationTargetException {
         // setup NEWT GLWindow ..
-        GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
+        final GLWindow glWindow = GLWindow.create(new GLCapabilities(null));
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("NEWT - CHILD");
 
         System.out.println("durationPerTest "+durationPerTest);
 
-        GLEventListener demo = new GearsES2();
+        final GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow, false);
         glWindow.addGLEventListener(demo);
 
-        WindowEventCom1 wl1 = new WindowEventCom1();
-        WindowEventCom2 wl2 = new WindowEventCom2();
-        WindowEventCom3 wl3 = new WindowEventCom3();
+        final WindowEventCom1 wl1 = new WindowEventCom1();
+        final WindowEventCom2 wl2 = new WindowEventCom2();
+        final WindowEventCom3 wl3 = new WindowEventCom3();
 
         // TraceWindowAdapter wlT = new TraceWindowAdapter();
         // glWindow.addWindowListener(0, wlT);
@@ -91,7 +91,7 @@ public class TestListenerCom01AWT extends UITestCase {
         Assert.assertEquals(wl3, glWindow.getWindowListener(2));
 
         // attach NEWT GLWindow to AWT Canvas
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         final Frame frame = new Frame("AWT Parent Frame");
         frame.add(newtCanvasAWT);
         frame.setSize(width, height);
@@ -100,8 +100,8 @@ public class TestListenerCom01AWT extends UITestCase {
                 frame.setVisible(true);
             }});
 
-        Animator animator1 = new Animator(glWindow);
-        animator1.setUpdateFPSFrames(1, null);        
+        final Animator animator1 = new Animator(glWindow);
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
@@ -118,10 +118,10 @@ public class TestListenerCom01AWT extends UITestCase {
         glWindow.destroy();
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -131,22 +131,22 @@ public class TestListenerCom01AWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         verbose = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        String tstname = TestListenerCom01AWT.class.getName();
+        final String tstname = TestListenerCom01AWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

@@ -57,18 +57,18 @@ public class Extract233rev implements Extract {
   }
 
   @Override
-  public void extract( boolean isSwap, ByteBuffer packedPixel, float[] extractComponents ) {
+  public void extract( final boolean isSwap, final ByteBuffer packedPixel, final float[] extractComponents ) {
     // 11100000 == 0xe0
     // 00011100 == 0x1c
     // 00000011 == 0x03
-    byte ubyte = packedPixel.get();
-    extractComponents[0] = (float)((ubyte & 0x07) ) / 7.0f;
-    extractComponents[1] = (float)((ubyte & 0x38) >> 3) / 7.0f;
-    extractComponents[2] = (float)((ubyte & 0xC0) >> 6) / 3.0f;
+    final byte ubyte = packedPixel.get();
+    extractComponents[0] = ((ubyte & 0x07) ) / 7.0f;
+    extractComponents[1] = ((ubyte & 0x38) >> 3) / 7.0f;
+    extractComponents[2] = ((ubyte & 0xC0) >> 6) / 3.0f;
   }
 
   @Override
-  public void shove( float[] shoveComponents, int index, ByteBuffer packedPixel ) {
+  public void shove( final float[] shoveComponents, final int index, final ByteBuffer packedPixel ) {
     // 11100000 == 0xE0
     // 00011100 == 0x1C
     // 00000011 == 0x03

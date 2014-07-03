@@ -100,7 +100,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                         frame.validate();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -142,20 +142,20 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
 
         frame.addComponentListener(new ComponentListener() {
             @Override
-            public void componentResized(ComponentEvent e) {
+            public void componentResized(final ComponentEvent e) {
                 setTitle(frame, glJPanel, caps);
             }
 
             @Override
-            public void componentMoved(ComponentEvent e) {
+            public void componentMoved(final ComponentEvent e) {
                 setTitle(frame, glJPanel, caps);
             }
 
             @Override
-            public void componentShown(ComponentEvent e) { }
+            public void componentShown(final ComponentEvent e) { }
 
             @Override
-            public void componentHidden(ComponentEvent e) { }
+            public void componentHidden(final ComponentEvent e) { }
         });
 
         final FPSAnimator animator = useAnimator ? new FPSAnimator(glJPanel, 60) : null;
@@ -275,7 +275,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         } else {
             glp = GLProfile.getGL2ES2();
         }
-        GLCapabilities caps = new GLCapabilities( glp );
+        final GLCapabilities caps = new GLCapabilities( glp );
         if(useMSAA) {
             caps.setNumSamples(4);
             caps.setSampleBuffers(true);
@@ -296,7 +296,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         runTestGL(caps);
@@ -309,7 +309,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setPBuffer(true);
         runTestGL(caps);
     }
@@ -321,7 +321,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         caps.setPBuffer(true);
@@ -335,7 +335,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setBitmap(true);
         runTestGL(caps);
     }
@@ -347,7 +347,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         caps.setBitmap(true);
@@ -398,13 +398,13 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         runTestGL(caps);
     }
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         int w=640, h=480, rw=-1, rh=-1;
 
         for(int i=0; i<args.length; i++) {

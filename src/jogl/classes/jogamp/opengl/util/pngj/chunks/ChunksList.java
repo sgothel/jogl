@@ -31,7 +31,7 @@ public class ChunksList {
 
 	final ImageInfo imageInfo; // only required for writing
 
-	public ChunksList(ImageInfo imfinfo) {
+	public ChunksList(final ImageInfo imfinfo) {
 		this.imageInfo = imfinfo;
 	}
 
@@ -41,8 +41,8 @@ public class ChunksList {
 	 * @return key:chunk id, val: number of occurrences
 	 */
 	public HashMap<String, Integer> getChunksKeys() {
-		HashMap<String, Integer> ck = new HashMap<String, Integer>();
-		for (PngChunk c : chunks) {
+		final HashMap<String, Integer> ck = new HashMap<String, Integer>();
+		for (final PngChunk c : chunks) {
 			ck.put(c.id, ck.containsKey(c.id) ? ck.get(c.id) + 1 : 1);
 		}
 		return ck;
@@ -60,14 +60,14 @@ public class ChunksList {
 		if (innerid == null)
 			return ChunkHelper.filterList(list, new ChunkPredicate() {
 				@Override
-				public boolean match(PngChunk c) {
+				public boolean match(final PngChunk c) {
 					return c.id.equals(id);
 				}
 			});
 		else
 			return ChunkHelper.filterList(list, new ChunkPredicate() {
 				@Override
-				public boolean match(PngChunk c) {
+				public boolean match(final PngChunk c) {
 					if (!c.id.equals(id))
 						return false;
 					if (c instanceof PngChunkTextVar && !((PngChunkTextVar) c).getKey().equals(innerid))
@@ -82,7 +82,7 @@ public class ChunksList {
 	/**
 	 * Adds chunk in next position. This is used onyl by the pngReader
 	 */
-	public void appendReadChunk(PngChunk chunk, int chunkGroup) {
+	public void appendReadChunk(final PngChunk chunk, final int chunkGroup) {
 		chunk.setChunkGroup(chunkGroup);
 		chunks.add(chunk);
 	}
@@ -138,7 +138,7 @@ public class ChunksList {
 	 * one is returned (failifMultiple=false)
 	 **/
 	public PngChunk getById1(final String id, final String innerid, final boolean failIfMultiple) {
-		List<? extends PngChunk> list = getById(id, innerid);
+		final List<? extends PngChunk> list = getById(id, innerid);
 		if (list.isEmpty())
 			return null;
 		if (list.size() > 1 && (failIfMultiple || !list.get(0).allowsMultiple()))
@@ -155,7 +155,7 @@ public class ChunksList {
 	public List<PngChunk> getEquivalent(final PngChunk c2) {
 		return ChunkHelper.filterList(chunks, new ChunkPredicate() {
 			@Override
-			public boolean match(PngChunk c) {
+			public boolean match(final PngChunk c) {
 				return ChunkHelper.equivalent(c, c2);
 			}
 		});
@@ -170,9 +170,9 @@ public class ChunksList {
 	 * for debugging
 	 */
 	public String toStringFull() {
-		StringBuilder sb = new StringBuilder(toString());
+		final StringBuilder sb = new StringBuilder(toString());
 		sb.append("\n Read:\n");
-		for (PngChunk chunk : chunks) {
+		for (final PngChunk chunk : chunks) {
 			sb.append(chunk).append(" G=" + chunk.getChunkGroup() + "\n");
 		}
 		return sb.toString();

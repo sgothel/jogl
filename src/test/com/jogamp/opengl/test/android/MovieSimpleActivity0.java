@@ -59,15 +59,15 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
    static String TAG = "MovieSimpleActivity0";
 
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
-       public void mouseClicked(MouseEvent e) {
-           Object src = e.getSource();
+       public void mouseClicked(final MouseEvent e) {
+           final Object src = e.getSource();
            if(src instanceof Window) {
                ((Window)src).requestFocus(false);
            }
        } };
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
 
        final String[] streamLocs = new String[] {
@@ -102,10 +102,10 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
        mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
            @Override
-           public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+           public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
            @Override
-           public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
+           public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                System.err.println("MovieSimpleActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                System.err.println("MovieSimpleActivity0 State: "+mp);
                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
@@ -129,7 +129,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
 
-   static URI getURI(String path[], int off, boolean checkAvail) {
+   static URI getURI(final String path[], final int off, final boolean checkAvail) {
        URI uri = null;
        for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
@@ -138,7 +138,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
                    if( null != uc ) {
                        try {
                            uri = uc.getURL().toURI();
-                       } catch (URISyntaxException e) {
+                       } catch (final URISyntaxException e) {
                            uri = null;
                        }
                        if( uc instanceof HttpURLConnection ) {
@@ -148,7 +148,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
                } else {
                    try {
                        uri = new URI(path[i]);
-                   } catch (URISyntaxException e) {
+                   } catch (final URISyntaxException e) {
                        uri = null;
                    }
                }

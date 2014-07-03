@@ -41,6 +41,7 @@ import java.nio.Buffer;
 
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
@@ -123,18 +124,18 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(GLProfile glp,
-                       int internalFormat,
-                       int width,
-                       int height,
-                       int border,
-                       int pixelFormat,
-                       int pixelType,
-                       boolean mipmap,
-                       boolean dataIsCompressed,
-                       boolean mustFlipVertically,
-                       Buffer buffer,
-                       Flusher flusher) throws IllegalArgumentException {
+    public TextureData(final GLProfile glp,
+                       final int internalFormat,
+                       final int width,
+                       final int height,
+                       final int border,
+                       final int pixelFormat,
+                       final int pixelType,
+                       final boolean mipmap,
+                       final boolean dataIsCompressed,
+                       final boolean mustFlipVertically,
+                       final Buffer buffer,
+                       final Flusher flusher) throws IllegalArgumentException {
         this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType),
              mipmap, dataIsCompressed, mustFlipVertically, buffer, flusher);
     }
@@ -178,17 +179,17 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(GLProfile glp,
-                       int internalFormat,
-                       int width,
-                       int height,
-                       int border,
-                       GLPixelAttributes pixelAttributes,
-                       boolean mipmap,
-                       boolean dataIsCompressed,
-                       boolean mustFlipVertically,
-                       Buffer buffer,
-                       Flusher flusher) throws IllegalArgumentException {
+    public TextureData(final GLProfile glp,
+                       final int internalFormat,
+                       final int width,
+                       final int height,
+                       final int border,
+                       final GLPixelAttributes pixelAttributes,
+                       final boolean mipmap,
+                       final boolean dataIsCompressed,
+                       final boolean mustFlipVertically,
+                       final Buffer buffer,
+                       final Flusher flusher) throws IllegalArgumentException {
         if (mipmap && dataIsCompressed) {
             throw new IllegalArgumentException("Can not generate mipmaps for compressed textures");
         }
@@ -247,17 +248,17 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(GLProfile glp,
-                       int internalFormat,
-                       int width,
-                       int height,
-                       int border,
-                       int pixelFormat,
-                       int pixelType,
-                       boolean dataIsCompressed,
-                       boolean mustFlipVertically,
-                       Buffer[] mipmapData,
-                       Flusher flusher) throws IllegalArgumentException {
+    public TextureData(final GLProfile glp,
+                       final int internalFormat,
+                       final int width,
+                       final int height,
+                       final int border,
+                       final int pixelFormat,
+                       final int pixelType,
+                       final boolean dataIsCompressed,
+                       final boolean mustFlipVertically,
+                       final Buffer[] mipmapData,
+                       final Flusher flusher) throws IllegalArgumentException {
         this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType),
              dataIsCompressed, mustFlipVertically, mipmapData, flusher);
     }
@@ -300,16 +301,16 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(GLProfile glp,
-                       int internalFormat,
-                       int width,
-                       int height,
-                       int border,
-                       GLPixelAttributes pixelAttributes,
-                       boolean dataIsCompressed,
-                       boolean mustFlipVertically,
-                       Buffer[] mipmapData,
-                       Flusher flusher) throws IllegalArgumentException {
+    public TextureData(final GLProfile glp,
+                       final int internalFormat,
+                       final int width,
+                       final int height,
+                       final int border,
+                       final GLPixelAttributes pixelAttributes,
+                       final boolean dataIsCompressed,
+                       final boolean mustFlipVertically,
+                       final Buffer[] mipmapData,
+                       final Flusher flusher) throws IllegalArgumentException {
         this.glProfile = glp;
         this.width = width;
         this.height = height;
@@ -318,7 +319,7 @@ public class TextureData {
         this.internalFormat = internalFormat;
         this.dataIsCompressed = dataIsCompressed;
         this.mustFlipVertically = mustFlipVertically;
-        this.mipmapData = (Buffer[]) mipmapData.clone();
+        this.mipmapData = mipmapData.clone();
         this.flusher = flusher;
         alignment = 1;  // FIXME: is this correct enough in all situations?
         for (int i = 0; i < mipmapData.length; i++) {
@@ -336,10 +337,10 @@ public class TextureData {
      * Set the color space of the pixel data, which defaults to {@link ColorSpace#RGB}.
      * @see #getColorSpace()
      */
-    public void setColorSpace(ColorSpace cs) { pixelCS = cs; }
+    public void setColorSpace(final ColorSpace cs) { pixelCS = cs; }
 
     /** Used only by subclasses */
-    protected TextureData(GLProfile glp) { this.glProfile = glp; this.pixelAttributes = GLPixelAttributes.UNDEF; }
+    protected TextureData(final GLProfile glp) { this.glProfile = glp; this.pixelAttributes = GLPixelAttributes.UNDEF; }
 
     /** Returns the width in pixels of the texture data. */
     public int getWidth() { return width; }
@@ -399,20 +400,20 @@ public class TextureData {
     }
 
     /** Sets the width in pixels of the texture data. */
-    public void setWidth(int width) { this.width = width; }
+    public void setWidth(final int width) { this.width = width; }
     /** Sets the height in pixels of the texture data. */
-    public void setHeight(int height) { this.height = height; }
+    public void setHeight(final int height) { this.height = height; }
     /** Sets the border in pixels of the texture data. */
-    public void setBorder(int border) { this.border = border; }
+    public void setBorder(final int border) { this.border = border; }
     /** Sets the intended OpenGL pixel format of the texture data. */
-    public void setPixelAttributes(GLPixelAttributes pixelAttributes) { this.pixelAttributes = pixelAttributes; }
+    public void setPixelAttributes(final GLPixelAttributes pixelAttributes) { this.pixelAttributes = pixelAttributes; }
     /**
      * Sets the intended OpenGL pixel format component of {@link GLPixelAttributes} of the texture data.
      * <p>
      * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type.
      * </p>
      */
-    public void setPixelFormat(int pixelFormat) {
+    public void setPixelFormat(final int pixelFormat) {
         if( pixelAttributes.format != pixelFormat ) {
             pixelAttributes = new GLPixelAttributes(pixelFormat, pixelAttributes.type);
         }
@@ -423,42 +424,42 @@ public class TextureData {
      * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type.
      * </p>
      */
-    public void setPixelType(int pixelType) {
+    public void setPixelType(final int pixelType) {
         if( pixelAttributes.type != pixelType) {
             pixelAttributes = new GLPixelAttributes(pixelAttributes.format, pixelType);
         }
     }
     /** Sets the intended OpenGL internal format of the texture data. */
-    public void setInternalFormat(int internalFormat) { this.internalFormat = internalFormat; }
+    public void setInternalFormat(final int internalFormat) { this.internalFormat = internalFormat; }
     /** Sets whether mipmaps should be generated for the texture data. */
-    public void setMipmap(boolean mipmap) { this.mipmap = mipmap; }
+    public void setMipmap(final boolean mipmap) { this.mipmap = mipmap; }
     /** Sets whether the texture data is in compressed form. */
-    public void setIsDataCompressed(boolean compressed) { this.dataIsCompressed = compressed; }
+    public void setIsDataCompressed(final boolean compressed) { this.dataIsCompressed = compressed; }
     /** Sets whether the texture coordinates must be flipped vertically
         for proper display. */
-    public void setMustFlipVertically(boolean mustFlipVertically) { this.mustFlipVertically = mustFlipVertically; }
+    public void setMustFlipVertically(final boolean mustFlipVertically) { this.mustFlipVertically = mustFlipVertically; }
     /** Sets the texture data. */
-    public void setBuffer(Buffer buffer) {
+    public void setBuffer(final Buffer buffer) {
         this.buffer = buffer;
         estimatedMemorySize = estimatedMemorySize(buffer);
     }
     /** Sets the required byte alignment for the texture data. */
-    public void setAlignment(int alignment) { this.alignment = alignment; }
+    public void setAlignment(final int alignment) { this.alignment = alignment; }
     /** Sets the row length needed for correct GL_UNPACK_ROW_LENGTH
         specification. This is currently only supported for
         non-mipmapped, non-compressed textures. */
-    public void setRowLength(int rowLength) { this.rowLength = rowLength; }
+    public void setRowLength(final int rowLength) { this.rowLength = rowLength; }
     /** Indicates to this TextureData whether the GL_EXT_abgr extension
         is available. Used for optimization along some code paths to
         avoid data copies. */
-    public void setHaveEXTABGR(boolean haveEXTABGR) {
+    public void setHaveEXTABGR(final boolean haveEXTABGR) {
         this.haveEXTABGR = haveEXTABGR;
     }
     /** Indicates to this TextureData whether OpenGL version 1.2 is
         available. If not, falls back to relatively inefficient code
         paths for several input data types (several kinds of packed
         pixel formats, in particular). */
-    public void setHaveGL12(boolean haveGL12) {
+    public void setHaveGL12(final boolean haveGL12) {
         this.haveGL12 = haveGL12;
     }
 
@@ -509,10 +510,10 @@ public class TextureData {
     // Internals only below this point
     //
 
-    protected static int estimatedMemorySize(Buffer buffer) {
+    protected static int estimatedMemorySize(final Buffer buffer) {
         if (buffer == null) {
             return 0;
         }
-        return buffer.capacity() * GLBuffers.sizeOfBufferElem(buffer);
+        return buffer.capacity() * Buffers.sizeOfBufferElem(buffer);
     }
 }

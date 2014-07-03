@@ -46,7 +46,7 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
      *
      * @param alpha
      */
-    public AWTGLReadBufferUtil(GLProfile glp, boolean alpha) {
+    public AWTGLReadBufferUtil(final GLProfile glp, final boolean alpha) {
         super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */ ), alpha, false);
     }
 
@@ -64,7 +64,7 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
      *                       and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
      * @see #AWTGLReadBufferUtil(GLProfile, boolean)
      */
-    public BufferedImage readPixelsToBufferedImage(GL gl, boolean awtOrientation) {
+    public BufferedImage readPixelsToBufferedImage(final GL gl, final boolean awtOrientation) {
         return readPixelsToBufferedImage(gl, 0, 0, 0, 0, awtOrientation);
     }
 
@@ -84,7 +84,7 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
      *                       and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
      * @see #AWTGLReadBufferUtil(GLProfile, boolean)
      */
-    public BufferedImage readPixelsToBufferedImage(GL gl, int inX, int inY, int inWidth, int inHeight, boolean awtOrientation) {
+    public BufferedImage readPixelsToBufferedImage(final GL gl, final int inX, final int inY, final int inWidth, final int inHeight, final boolean awtOrientation) {
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int width, height;
         if( 0 >= inWidth || drawable.getSurfaceWidth() < inWidth ) {

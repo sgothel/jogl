@@ -46,15 +46,15 @@ public class FixedPoint {
     return (int)(value * 65536.0f);
   }
 
-  public static final float toFloat(int value) {
-    return (float)value/65536.0f;
+  public static final float toFloat(final int value) {
+    return value/65536.0f;
   }
 
-  public static final int mult(int x1, int x2) {
+  public static final int mult(final int x1, final int x2) {
     return (int) ( ((long)x1*(long)x2)/65536 );
   }
 
-  public static final int div(int x1, int x2) {
+  public static final int div(final int x1, final int x2) {
     return (int) ( (((long)x1)<<16)/x2 );
   }
 }

@@ -62,14 +62,14 @@ public class TestFloatUtil01NOUI {
         System.err.println("deltaFixedEpsMin "+deltaFixedEpsMin+", deltaFixedEpsLEQEpsilon "+deltaFixedEpsLEQEpsilon);
     }
 
-    private void dumpTestWE(int tstNum, int expWE, final float a, final float b, final float EPSILON) {
+    private void dumpTestWE(final int tstNum, final int expWE, final float a, final float b, final float EPSILON) {
         final float delta = a-b;
         final boolean equalWE =  FloatUtil.isEqual(a, b, EPSILON);
         final int compWE = FloatUtil.compare(a, b, EPSILON);
         final String msgWE = ( expWE != compWE ) ? "**** mismatch ****" : " OK";
         System.err.println("Print.WE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", exp "+expWE+", equal "+equalWE+", comp "+compWE+" - "+msgWE+", epsilon "+EPSILON);
     }
-    private void dumpTestNE(int tstNum, int exp, final float a, final float b) {
+    private void dumpTestNE(final int tstNum, final int exp, final float a, final float b) {
         final float delta = a-b;
         final boolean equal =  FloatUtil.isEqual(a, b);
         final int comp = FloatUtil.compare(a, b);
@@ -102,7 +102,7 @@ public class TestFloatUtil01NOUI {
         dumpTestWE(i++, 1, 0f, 0f+EPSILON-Float.MIN_VALUE, EPSILON);
         dumpTestWE(i++, 1, 0f, 0f-EPSILON+Float.MIN_VALUE, EPSILON);
     }
-    private void testZeroWithEpsilon(int tstNum, boolean exp, final float a, final float EPSILON) {
+    private void testZeroWithEpsilon(final int tstNum, final boolean exp, final float a, final float EPSILON) {
         final boolean zero =  FloatUtil.isZero(a, EPSILON);
         final float delta = a-0f;
         System.err.println("Zero."+tstNum+": a: "+a+", -> d "+delta+", exp "+exp+", zero "+zero+", epsilon "+EPSILON);
@@ -134,7 +134,7 @@ public class TestFloatUtil01NOUI {
         dumpTestNE(i++, 0, 1f, 1f+Float.MIN_VALUE);
         dumpTestNE(i++, 0, 0f, 0f+Float.MIN_VALUE);
     }
-    private void testEqualsNoEpsilon(int tstNum, boolean exp, final float a, final float b) {
+    private void testEqualsNoEpsilon(final int tstNum, final boolean exp, final float a, final float b) {
         final boolean equal =  FloatUtil.isEqual(a, b);
         final int comp = FloatUtil.compare(a, b);
         final float delta = a-b;
@@ -174,7 +174,7 @@ public class TestFloatUtil01NOUI {
         dumpTestWE(i++, 1, 1f, 1f+EPSILON-Float.MIN_VALUE, EPSILON);
         dumpTestWE(i++, 1, 1f, 1f-EPSILON+Float.MIN_VALUE, EPSILON);
     }
-    private void testEqualsWithEpsilon(int tstNum, boolean exp, final float a, final float b, final float EPSILON) {
+    private void testEqualsWithEpsilon(final int tstNum, final boolean exp, final float a, final float b, final float EPSILON) {
         final boolean equal =  FloatUtil.isEqual(a, b, EPSILON);
         final int comp = FloatUtil.compare(a, b, EPSILON);
         final float delta = a-b;
@@ -221,7 +221,7 @@ public class TestFloatUtil01NOUI {
         dumpTestNE(i++, 0, 1f, 1f+Float.MIN_VALUE);
         dumpTestNE(i++, 0, 0f, 0f+Float.MIN_VALUE);
     }
-    private void testCompareNoEpsilon(int tstNum, final int exp, final float a, final float b) {
+    private void testCompareNoEpsilon(final int tstNum, final int exp, final float a, final float b) {
         final boolean equal =  FloatUtil.isEqual(a, b);
         final int comp = FloatUtil.compare(a, b);
         final float delta = a-b;
@@ -267,7 +267,7 @@ public class TestFloatUtil01NOUI {
         testCompareWithEpsilon(i++,  0, -0f, 0f, EPSILON);
         testCompareWithEpsilon(i++,  0, 0f, -0f, EPSILON);
     }
-    private void testCompareWithEpsilon(int tstNum, final int exp, final float a, final float b, float EPSILON) {
+    private void testCompareWithEpsilon(final int tstNum, final int exp, final float a, final float b, final float EPSILON) {
         final boolean equal =  FloatUtil.isEqual(a, b, EPSILON);
         final int comp = FloatUtil.compare(a, b, EPSILON);
         final float delta = a-b;
@@ -276,7 +276,7 @@ public class TestFloatUtil01NOUI {
     }
 
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestFloatUtil01NOUI.class.getName());
     }
 }

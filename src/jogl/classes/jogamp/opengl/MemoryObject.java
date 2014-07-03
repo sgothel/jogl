@@ -43,13 +43,13 @@ public class MemoryObject {
     private final long size;
     private final int  hash;
     private ByteBuffer buffer=null;
-    public MemoryObject(long addr, long size) {
+    public MemoryObject(final long addr, final long size) {
         this.addr = addr;
         this.size = size;
         this.hash = HashUtil.getAddrSizeHash32_EqualDist(addr, size);
     }
 
-    public void setBuffer(ByteBuffer buffer) {
+    public void setBuffer(final ByteBuffer buffer) {
         this.buffer = buffer;
     }
 
@@ -76,7 +76,7 @@ public class MemoryObject {
      * @return true of reference is equal or <code>obj</code> is of type <code>MemoryObject</code>
      *         and <code>addr</code> and <code>size</code> is equal.<br>
      */
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this == obj) { return true; }
         if(obj instanceof MemoryObject) {
             final MemoryObject m = (MemoryObject) obj;
@@ -90,7 +90,7 @@ public class MemoryObject {
      * @param obj0 the MemoryObject
      * @return either the already mapped MemoryObject - not changing the map, or the newly mapped one.
      */
-    public static MemoryObject getOrAddSafe(HashMap<MemoryObject,MemoryObject> map, MemoryObject obj0) {
+    public static MemoryObject getOrAddSafe(final HashMap<MemoryObject,MemoryObject> map, final MemoryObject obj0) {
         final MemoryObject obj1 = map.get(obj0); // get identity (fast)
         if(null == obj1) {
             map.put(obj0, obj0);

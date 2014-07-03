@@ -129,7 +129,7 @@ public class MovieSimple implements GLEventListener {
             // Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream.
             // _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
             _defURI = new URI("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             e.printStackTrace();
         }
         defURI = _defURI;
@@ -159,12 +159,12 @@ public class MovieSimple implements GLEventListener {
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             super.init(drawable);
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             if( null != regionFPS ) {
                 regionFPS.destroy(drawable.getGL().getGL2ES2());
             }
@@ -172,7 +172,7 @@ public class MovieSimple implements GLEventListener {
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final GLAnimatorControl anim = drawable.getAnimator();
             final float lfps = null != anim ? anim.getLastFPS() : 0f;
             final float tfps = null != anim ? anim.getTotalFPS() : 0f;
@@ -212,7 +212,7 @@ public class MovieSimple implements GLEventListener {
     private boolean displayOSD = true;
 
     private final MouseListener mouseAction = new MouseAdapter() {
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
             if(e.getY()<=surfHeight/2 && null!=mPlayer && 1 == e.getClickCount()) {
                 if(GLMediaPlayer.State.Playing == mPlayer.getState()) {
                     mPlayer.pause(false);
@@ -221,20 +221,20 @@ public class MovieSimple implements GLEventListener {
                 }
             }
         }
-        public void mouseReleased(MouseEvent e) {
+        public void mouseReleased(final MouseEvent e) {
             if(e.getY()<=surfHeight/2) {
                 rotate = -1;
                 zoom = zoom0;
                 System.err.println("zoom: "+zoom);
             }
         }
-        public void mouseMoved(MouseEvent e) {
+        public void mouseMoved(final MouseEvent e) {
             prevMouseX = e.getX();
             // prevMouseY = e.getY();
         }
-        public void mouseDragged(MouseEvent e) {
-            int x = e.getX();
-            int y = e.getY();
+        public void mouseDragged(final MouseEvent e) {
+            final int x = e.getX();
+            final int y = e.getY();
 
             if(y>surfHeight/2) {
                 final float dp  = (float)(x-prevMouseX)/(float)surfWidth;
@@ -249,7 +249,7 @@ public class MovieSimple implements GLEventListener {
             prevMouseX = x;
             // prevMouseY = y;
         }
-        public void mouseWheelMoved(MouseEvent e) {
+        public void mouseWheelMoved(final MouseEvent e) {
             if( !e.isShiftDown() ) {
                 zoom += e.getRotation()[1]/10f; // vertical: wheel
                 System.err.println("zoom: "+zoom);
@@ -257,7 +257,7 @@ public class MovieSimple implements GLEventListener {
         } };
 
     private final KeyListener keyAction = new KeyAdapter() {
-        public void keyReleased(KeyEvent e)  {
+        public void keyReleased(final KeyEvent e)  {
             if( e.isAutoRepeat() ) {
                 return;
             }
@@ -343,10 +343,10 @@ public class MovieSimple implements GLEventListener {
 
         mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                 System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                 System.err.println("MovieCube State: "+mp);
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
@@ -367,7 +367,7 @@ public class MovieSimple implements GLEventListener {
         while( null == se && GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
             try {
                 Thread.sleep(16);
-            } catch (InterruptedException e) { }
+            } catch (final InterruptedException e) { }
             se = mPlayer.getStreamException();
         }
         if( null != se ) {
@@ -377,7 +377,7 @@ public class MovieSimple implements GLEventListener {
     }
 
     /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
-    public MovieSimple(GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
+    public MovieSimple(final GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
         mPlayer = sharedMediaPlayer;
         mPlayerScaleOrig = false;
         mPlayerShared = null != mPlayer;
@@ -388,26 +388,26 @@ public class MovieSimple implements GLEventListener {
         System.out.println("pC.1a shared "+mPlayerShared+", "+mPlayer);
     }
 
-    public void initStream(URI streamLoc, int vid, int aid, int textureCount) {
+    public void initStream(final URI streamLoc, final int vid, final int aid, final int textureCount) {
         mPlayer.initStream(streamLoc, vid, aid, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
 
-    public void setSwapInterval(int v) { this.swapInterval = v; }
+    public void setSwapInterval(final int v) { this.swapInterval = v; }
 
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
 
-    public void setScaleOrig(boolean v) {
+    public void setScaleOrig(final boolean v) {
         mPlayerScaleOrig = v;
     }
 
     /** defaults to true */
-    public void setOrthoProjection(boolean v) { orthoProjection=v; }
+    public void setOrthoProjection(final boolean v) { orthoProjection=v; }
     public boolean getOrthoProjection() { return orthoProjection; }
 
-    public boolean hasEffect(int e) { return 0 != ( effects & e ) ; }
-    public void setEffects(int e) { effects = e; };
-    public void setTransparency(float alpha) {
+    public boolean hasEffect(final int e) { return 0 != ( effects & e ) ; }
+    public void setEffects(final int e) { effects = e; };
+    public void setTransparency(final float alpha) {
         this.effects |= EFFECT_TRANSPARENT;
         this.alpha = alpha;
     }
@@ -416,11 +416,11 @@ public class MovieSimple implements GLEventListener {
         resetGLState = true;
     }
 
-    private void initShader(GL2ES2 gl) {
+    private void initShader(final GL2ES2 gl) {
         // Create & Compile the shader objects
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MovieSimple.class,
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MovieSimple.class,
                                             "../shader", "../shader/bin", shaderBasename, true);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MovieSimple.class,
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MovieSimple.class,
                                             "../shader", "../shader/bin", shaderBasename, true);
 
         boolean preludeGLSLVersion = true;
@@ -451,7 +451,7 @@ public class MovieSimple implements GLEventListener {
         rsFp.insertShaderSource(0, "TEXTURE-SEQUENCE-CODE-BEGIN", 0, sFpIns);
 
         // Create & Link the shader program
-        ShaderProgram sp = new ShaderProgram();
+        final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
         if(!sp.link(gl, System.err)) {
@@ -464,7 +464,7 @@ public class MovieSimple implements GLEventListener {
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         if(null == mPlayer) {
             throw new InternalError("mPlayer null");
         }
@@ -478,7 +478,7 @@ public class MovieSimple implements GLEventListener {
         zoom1 = orthoProjection ? 0f : -5f;
         zoom = zoom0;
 
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
         System.err.println("Alpha: "+alpha+", opaque "+drawable.getChosenGLCapabilities().isBackgroundOpaque()+
                            ", "+drawable.getClass().getName()+", "+drawable);
@@ -511,7 +511,7 @@ public class MovieSimple implements GLEventListener {
             if(!mPlayerShared) {
                 mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } );
             }
-        } catch (Exception glex) {
+        } catch (final Exception glex) {
             glex.printStackTrace();
             if(!mPlayerShared && null != mPlayer) {
                 mPlayer.destroy(gl);
@@ -526,7 +526,7 @@ public class MovieSimple implements GLEventListener {
             // Push the 1st uniform down the path
             st.useProgram(gl, true);
 
-            int[] viewPort = new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()};
+            final int[] viewPort = new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()};
             pmvMatrix = new PMVMatrix();
             reshapePMV(viewPort[2], viewPort[3]);
             pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
@@ -537,11 +537,11 @@ public class MovieSimple implements GLEventListener {
                 throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
             }
 
-            float dWidth = drawable.getSurfaceWidth();
-            float dHeight = drawable.getSurfaceHeight();
-            float mWidth = mPlayer.getWidth();
-            float mHeight = mPlayer.getHeight();
-            float mAspect = mWidth/mHeight;
+            final float dWidth = drawable.getSurfaceWidth();
+            final float dHeight = drawable.getSurfaceHeight();
+            final float mWidth = mPlayer.getWidth();
+            final float mHeight = mPlayer.getHeight();
+            final float mAspect = mWidth/mHeight;
             System.err.println("XXX0: mov aspect: "+mAspect);
             float xs, ys;
             if(orthoProjection) {
@@ -563,8 +563,8 @@ public class MovieSimple implements GLEventListener {
             {
                 System.err.println("XXX0: pixel  LB: "+verts[0]+", "+verts[1]+", "+verts[2]);
                 System.err.println("XXX0: pixel  RT: "+verts[3]+", "+verts[4]+", "+verts[5]);
-                float[] winLB = new float[3];
-                float[] winRT = new float[3];
+                final float[] winLB = new float[3];
+                final float[] winRT = new float[3];
                 pmvMatrix.gluProject(verts[0], verts[1], verts[2], viewPort, 0, winLB, 0);
                 pmvMatrix.gluProject(verts[3], verts[4], verts[5], viewPort, 0, winRT, 0);
                 System.err.println("XXX0: win   LB: "+winLB[0]+", "+winLB[1]+", "+winLB[2]);
@@ -582,7 +582,7 @@ public class MovieSimple implements GLEventListener {
             st.ownAttribute(interleavedVBO, true);
             gl.glClearColor(0.3f, 0.3f, 0.3f, 0.3f);
 
-            gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+            gl.glEnable(GL.GL_DEPTH_TEST);
 
             st.useProgram(gl, false);
 
@@ -611,7 +611,7 @@ public class MovieSimple implements GLEventListener {
         drawable.addGLEventListener(textRendererGLEL);
     }
 
-    protected void updateInterleavedVBO(GL gl, Texture tex) {
+    protected void updateInterleavedVBO(final GL gl, final Texture tex) {
         final float ss = 1f, ts = 1f; // scale tex-coord
         final boolean wasEnabled = interleavedVBO.enabled();
         interleavedVBO.seal(gl, false);
@@ -666,7 +666,7 @@ public class MovieSimple implements GLEventListener {
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null == mPlayer) { return; }
         surfWidth = width;
@@ -682,7 +682,7 @@ public class MovieSimple implements GLEventListener {
         System.out.println("pR "+mPlayer);
     }
 
-    private void reshapePMV(int width, int height) {
+    private void reshapePMV(final int width, final int height) {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         if(orthoProjection) {
@@ -702,13 +702,13 @@ public class MovieSimple implements GLEventListener {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         drawable.disposeGLEventListener(textRendererGLEL, true);
         textRendererGLEL = null;
         disposeImpl(drawable, true);
     }
 
-    private void disposeImpl(GLAutoDrawable drawable, boolean disposePlayer) {
+    private void disposeImpl(final GLAutoDrawable drawable, final boolean disposePlayer) {
         if(null == mPlayer) { return; }
 
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -719,7 +719,7 @@ public class MovieSimple implements GLEventListener {
         }
 
         System.out.println("pD.1 "+mPlayer+", disposePlayer "+disposePlayer);
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if( disposePlayer ) {
             if(!mPlayerShared) {
                 mPlayer.destroy(gl);
@@ -740,7 +740,7 @@ public class MovieSimple implements GLEventListener {
     long lastPerfPos = 0;
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
@@ -815,11 +815,11 @@ public class MovieSimple implements GLEventListener {
             }
 
             @Override
-            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
             }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                 System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                 System.err.println("MovieSimple State: "+mp);
                 final GLWindow window = (GLWindow) mp.getAttachedObject(WINDOW_KEY);
@@ -908,7 +908,7 @@ public class MovieSimple implements GLEventListener {
     static boolean loopEOS = false;
     static boolean origSize;
 
-    public static void main(String[] args) throws IOException, URISyntaxException {
+    public static void main(final String[] args) throws IOException, URISyntaxException {
         int swapInterval = 1;
         int width = 800;
         int height = 600;
@@ -934,7 +934,7 @@ public class MovieSimple implements GLEventListener {
             }
             windowCount = _windowCount;
         }
-        String[] urls_s = new String[windowCount];
+        final String[] urls_s = new String[windowCount];
         String file_s1=null, file_s2=null;
         {
             boolean _origSize = false;
@@ -997,7 +997,7 @@ public class MovieSimple implements GLEventListener {
         if( null != urls_s[0] ) {
             streamLoc0 = new URI(urls_s[0]);
         } else if( null != file_s1 ) {
-            File movieFile = new File(file_s1);
+            final File movieFile = new File(file_s1);
             streamLoc0 = movieFile.toURI();
         } else if( null != file_s2 ) {
             streamLoc0 = IOUtil.toURISimple(new File(file_s2));
@@ -1038,7 +1038,7 @@ public class MovieSimple implements GLEventListener {
             anim.start();
             windows[i] = GLWindow.create(caps);
             windows[i].addWindowListener(new WindowAdapter() {
-                public void windowDestroyed(WindowEvent e) {
+                public void windowDestroyed(final WindowEvent e) {
                     anim.stop();
                 }
             });

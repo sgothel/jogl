@@ -16,7 +16,7 @@ public class PngChunkICCP extends PngChunkSingle {
 	private String profileName;
 	private byte[] compressedProfile; // copmression/decopmresion is done in getter/setter
 
-	public PngChunkICCP(ImageInfo info) {
+	public PngChunkICCP(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -27,7 +27,7 @@ public class PngChunkICCP extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = createEmptyChunk(profileName.length() + compressedProfile.length + 2, true);
+		final ChunkRaw c = createEmptyChunk(profileName.length() + compressedProfile.length + 2, true);
 		System.arraycopy(ChunkHelper.toBytes(profileName), 0, c.data, 0, profileName.length());
 		c.data[profileName.length()] = 0;
 		c.data[profileName.length() + 1] = 0;
@@ -36,20 +36,20 @@ public class PngChunkICCP extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
-		int pos0 = ChunkHelper.posNullByte(chunk.data);
+	public void parseFromRaw(final ChunkRaw chunk) {
+		final int pos0 = ChunkHelper.posNullByte(chunk.data);
 		profileName = new String(chunk.data, 0, pos0, PngHelperInternal.charsetLatin1);
-		int comp = (chunk.data[pos0 + 1] & 0xff);
+		final int comp = (chunk.data[pos0 + 1] & 0xff);
 		if (comp != 0)
 			throw new PngjException("bad compression for ChunkTypeICCP");
-		int compdatasize = chunk.data.length - (pos0 + 2);
+		final int compdatasize = chunk.data.length - (pos0 + 2);
 		compressedProfile = new byte[compdatasize];
 		System.arraycopy(chunk.data, pos0 + 2, compressedProfile, 0, compdatasize);
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkICCP otherx = (PngChunkICCP) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkICCP otherx = (PngChunkICCP) other;
 		profileName = otherx.profileName;
 		compressedProfile = new byte[otherx.compressedProfile.length];
 		System.arraycopy(otherx.compressedProfile, 0, compressedProfile, 0, otherx.compressedProfile.length); // deep
@@ -59,12 +59,12 @@ public class PngChunkICCP extends PngChunkSingle {
 	/**
 	 * The profile should be uncompressed bytes
 	 */
-	public void setProfileNameAndContent(String name, byte[] profile) {
+	public void setProfileNameAndContent(final String name, final byte[] profile) {
 		profileName = name;
 		compressedProfile = ChunkHelper.compressBytes(profile, true);
 	}
 
-	public void setProfileNameAndContent(String name, String profile) {
+	public void setProfileNameAndContent(final String name, final String profile) {
 		setProfileNameAndContent(name, profile.getBytes(PngHelperInternal.charsetLatin1));
 	}
 

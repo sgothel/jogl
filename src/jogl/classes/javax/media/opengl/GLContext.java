@@ -227,7 +227,7 @@ public abstract class GLContext {
   /**
    * @param isInit true if called for class initialization, otherwise false (re-init or destruction).
    */
-  protected void resetStates(boolean isInit) {
+  protected void resetStates(final boolean isInit) {
       if (DEBUG) {
         System.err.println(getThreadName() + ": GLContext.resetStates(isInit "+isInit+")");
         // Thread.dumpStack();
@@ -277,7 +277,7 @@ public abstract class GLContext {
    * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
    * @throws IllegalArgumentException if the quirk is out of range
    */
-  public final boolean hasRendererQuirk(int quirk) throws IllegalArgumentException {
+  public final boolean hasRendererQuirk(final int quirk) throws IllegalArgumentException {
       return null != glRendererQuirks ? glRendererQuirks.exist(quirk) : false ;
   }
 
@@ -460,7 +460,7 @@ public abstract class GLContext {
    * @throws GLException if no context is current
    */
   public static GL getCurrentGL() throws GLException {
-    GLContext glc = getCurrent();
+    final GLContext glc = getCurrent();
     if(null==glc) {
         throw new GLException(getThreadName()+": No OpenGL context current on this thread");
     }
@@ -495,7 +495,7 @@ public abstract class GLContext {
   }
 
   /** Returns a String representation of the {@link #makeCurrent()} result. */
-  public static final String makeCurrentResultToString(int res) {
+  public static final String makeCurrentResultToString(final int res) {
       switch(res) {
           case CONTEXT_NOT_CURRENT:   return "CONTEXT_NOT_CURRENT";
           case CONTEXT_CURRENT:       return "CONTEXT_CURRENT";
@@ -509,7 +509,7 @@ public abstract class GLContext {
    * and has no other side-effects. For use by third parties adding
    * new GLContext implementations; not for use by end users.
    */
-  protected static void setCurrent(GLContext cur) {
+  protected static void setCurrent(final GLContext cur) {
     if( TRACE_SWITCH ) {
        if(null == cur) {
            System.err.println(getThreadName()+": GLContext.ContextSwitch: - setCurrent() - NULL");
@@ -570,7 +570,7 @@ public abstract class GLContext {
   /**
    * Returns the attached user object for the given name to this GLContext.
    */
-  public final Object getAttachedObject(String name) {
+  public final Object getAttachedObject(final String name) {
     return attachedObjects.get(name);
   }
 
@@ -578,11 +578,11 @@ public abstract class GLContext {
    * Sets the attached user object for the given name to this GLContext.
    * Returns the previously set object or null.
    */
-  public final Object attachObject(String name, Object obj) {
+  public final Object attachObject(final String name, final Object obj) {
     return attachedObjects.put(name, obj);
   }
 
-  public final Object detachObject(String name) {
+  public final Object detachObject(final String name) {
       return attachedObjects.remove(name);
   }
 
@@ -591,7 +591,7 @@ public abstract class GLContext {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());
     sb.append(" [");
     this.append(sb);
@@ -599,7 +599,7 @@ public abstract class GLContext {
     return sb.toString();
   }
 
-  public final StringBuilder append(StringBuilder sb) {
+  public final StringBuilder append(final StringBuilder sb) {
     sb.append("Version ").append(getGLVersion()).append(" [GL ").append(getGLVersionNumber()).append(", vendor ").append(getGLVendorVersionNumber());
     sb.append("], options 0x");
     sb.append(Integer.toHexString(ctxOptions));
@@ -816,7 +816,7 @@ public abstract class GLContext {
       return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + esSuffix + "\n" ;
   }
 
-  protected static final VersionNumber getStaticGLSLVersionNumber(int glMajorVersion, int glMinorVersion, int ctxOptions) {
+  protected static final VersionNumber getStaticGLSLVersionNumber(final int glMajorVersion, final int glMinorVersion, final int ctxOptions) {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
           if( 3 == glMajorVersion ) {
               return Version300;           // ES 3.0  ->  GLSL 3.00
@@ -938,14 +938,14 @@ public abstract class GLContext {
           final GL gl = getGL();
           final int[] val = new int[] { 0 } ;
           try {
-              gl.glGetIntegerv(GL2GL3.GL_MAX_SAMPLES, val, 0);
+              gl.glGetIntegerv(GL2ES3.GL_MAX_SAMPLES, val, 0);
               final int glerr = gl.glGetError();
               if(GL.GL_NO_ERROR == glerr) {
                   return val[0];
               } else if(DEBUG) {
                   System.err.println("GLContext.getMaxRenderbufferSamples: GL_MAX_SAMPLES query GL Error 0x"+Integer.toHexString(glerr));
               }
-          } catch (GLException gle) { gle.printStackTrace(); }
+          } catch (final GLException gle) { gle.printStackTrace(); }
       }
       return 0;
   }
@@ -1188,7 +1188,7 @@ public abstract class GLContext {
    *
    * @throws GLException if the context is not current.
    */
-  public final boolean setSwapInterval(int interval) throws GLException {
+  public final boolean setSwapInterval(final int interval) throws GLException {
     validateCurrent();
     if(0<=interval) {
         if( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) ) {
@@ -1200,7 +1200,7 @@ public abstract class GLContext {
     }
     return false;
   }
-  protected boolean setSwapIntervalImpl(int interval) {
+  protected boolean setSwapIntervalImpl(final int interval) {
       return false;
   }
   /** Return the current swap interval.
@@ -1225,27 +1225,27 @@ public abstract class GLContext {
     }
   }
 
-  public final boolean queryMaxSwapGroups(int[] maxGroups, int maxGroups_offset,
-                                          int[] maxBarriers, int maxBarriers_offset) {
+  public final boolean queryMaxSwapGroups(final int[] maxGroups, final int maxGroups_offset,
+                                          final int[] maxBarriers, final int maxBarriers_offset) {
     validateCurrent();
     return queryMaxSwapGroupsImpl(maxGroups, maxGroups_offset, maxBarriers, maxBarriers_offset);
   }
-  protected boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
-                                          int[] maxBarriers, int maxBarriers_offset) { return false; }
-  public final boolean joinSwapGroup(int group) {
+  protected boolean queryMaxSwapGroupsImpl(final int[] maxGroups, final int maxGroups_offset,
+                                          final int[] maxBarriers, final int maxBarriers_offset) { return false; }
+  public final boolean joinSwapGroup(final int group) {
     validateCurrent();
     return joinSwapGroupImpl(group);
   }
-  protected boolean joinSwapGroupImpl(int group) { /** nop per default .. **/  return false; }
+  protected boolean joinSwapGroupImpl(final int group) { /** nop per default .. **/  return false; }
   protected int currentSwapGroup = -1; // default: not set yet ..
   public int getSwapGroup() {
       return currentSwapGroup;
   }
-  public final boolean bindSwapBarrier(int group, int barrier) {
+  public final boolean bindSwapBarrier(final int group, final int barrier) {
     validateCurrent();
     return bindSwapBarrierImpl(group, barrier);
   }
-  protected boolean bindSwapBarrierImpl(int group, int barrier) { /** nop per default .. **/  return false; }
+  protected boolean bindSwapBarrierImpl(final int group, final int barrier) { /** nop per default .. **/  return false; }
 
   /**
    * Return the framebuffer name bound to this context,
@@ -1406,11 +1406,11 @@ public abstract class GLContext {
       /* 2.*/ { 0 },
       /* 3.*/ { 0 } };
 
-  public static final int getMaxMajor(int ctxProfile) {
+  public static final int getMaxMajor(final int ctxProfile) {
       return ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ? ES_VERSIONS.length-1 : GL_VERSIONS.length-1;
   }
 
-  public static final int getMaxMinor(int ctxProfile, int major) {
+  public static final int getMaxMinor(final int ctxProfile, final int major) {
       if( 1>major ) {
           return -1;
       }
@@ -1439,7 +1439,7 @@ public abstract class GLContext {
    * and {@link #decrementGLVersion(int, int[], int[])} until invalid.
    * </p>
    */
-  public static final boolean isValidGLVersion(int ctxProfile, int major, int minor) {
+  public static final boolean isValidGLVersion(final int ctxProfile, final int major, final int minor) {
       if( 1>major || 0>minor ) {
           return false;
       }
@@ -1455,7 +1455,7 @@ public abstract class GLContext {
    * Clip the given GL version to the maximum known valid version if exceeding.
    * @return true if clipped, i.e. given value exceeds maximum, otherwise false.
    */
-  public static final boolean clipGLVersion(int ctxProfile, int major[], int minor[]) {
+  public static final boolean clipGLVersion(final int ctxProfile, final int major[], final int minor[]) {
       final int m = major[0];
       final int n = minor[0];
 
@@ -1494,7 +1494,7 @@ public abstract class GLContext {
    * @param minor
    * @return
    */
-  public static final boolean decrementGLVersion(int ctxProfile, int major[], int minor[]) {
+  public static final boolean decrementGLVersion(final int ctxProfile, final int major[], final int minor[]) {
       if( !clipGLVersion(ctxProfile, major, minor) ) {
           int m = major[0];
           int n = minor[0] - 1;
@@ -1520,13 +1520,13 @@ public abstract class GLContext {
       return true;
   }
 
-  protected static int composeBits(int a8, int b8, int c16) {
+  protected static int composeBits(final int a8, final int b8, final int c16) {
     return  ( ( a8    & 0x000000FF ) << 24 ) |
             ( ( b8    & 0x000000FF ) << 16 ) |
             ( ( c16   & 0x0000FFFF )       ) ;
   }
 
-  private static void validateProfileBits(int bits, String argName) {
+  private static void validateProfileBits(final int bits, final String argName) {
     int num = 0;
     if( 0 != ( CTX_PROFILE_COMPAT & bits ) ) { num++; }
     if( 0 != ( CTX_PROFILE_CORE   & bits ) ) { num++; }
@@ -1557,13 +1557,13 @@ public abstract class GLContext {
       GLContextImpl.shutdownImpl(); // well ..
   }
 
-  protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
+  protected static boolean getAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
       synchronized ( deviceVersionsAvailableSet ) {
         return deviceVersionsAvailableSet.containsKey(device.getUniqueID());
       }
   }
 
-  protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
+  protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
       synchronized ( deviceVersionsAvailableSet ) {
           final String devKey = device.getUniqueID();
           if( null != deviceVersionsAvailableSet.put(devKey, devKey) ) {
@@ -1580,7 +1580,7 @@ public abstract class GLContext {
    * Returns a unique String object using {@link String#intern()} for the given arguments,
    * which object reference itself can be used as a key.
    */
-  protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
+  protected static String getDeviceVersionAvailableKey(final AbstractGraphicsDevice device, final int major, final int profile) {
       final String r = device.getUniqueID() + "-" + toHexString(composeBits(major, profile, 0));
       return r.intern();
   }
@@ -1597,8 +1597,8 @@ public abstract class GLContext {
    *
    * @see #createContextARBMapVersionsAvailable
    */
-  protected static Integer mapAvailableGLVersion(AbstractGraphicsDevice device,
-                                                 int reqMajor, int profile, int resMajor, int resMinor, int resCtp)
+  protected static Integer mapAvailableGLVersion(final AbstractGraphicsDevice device,
+                                                 final int reqMajor, final int profile, final int resMajor, final int resMinor, int resCtp)
   {
     validateProfileBits(profile, "profile");
     validateProfileBits(resCtp, "resCtp");
@@ -1624,7 +1624,7 @@ public abstract class GLContext {
     synchronized(deviceVersionAvailable) {
         final Set<String> keys = deviceVersionAvailable.keySet();
         boolean needsSeparator = false;
-        for(Iterator<String> i = keys.iterator(); i.hasNext(); ) {
+        for(final Iterator<String> i = keys.iterator(); i.hasNext(); ) {
             if(needsSeparator) {
                 sb.append(Platform.getNewline());
             }
@@ -1652,7 +1652,7 @@ public abstract class GLContext {
    * @param reqProfile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
    * @return the available GL version as encoded with {@link #composeBits(int, int, int), otherwise <code>null</code>
    */
-  protected static Integer getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile)  {
+  protected static Integer getAvailableGLVersion(final AbstractGraphicsDevice device, final int reqMajor, final int reqProfile)  {
     final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, reqProfile);
     Integer val;
     synchronized(deviceVersionAvailable) {
@@ -1668,8 +1668,8 @@ public abstract class GLContext {
    * @param minor if not null, returns the used minor version
    * @param ctp if not null, returns the used context profile
    */
-  protected static boolean getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile,
-                                                 int[] major, int minor[], int ctp[]) {
+  protected static boolean getAvailableGLVersion(final AbstractGraphicsDevice device, final int reqMajor, final int reqProfile,
+                                                 final int[] major, final int minor[], final int ctp[]) {
 
     final Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
     if(null==valI) {
@@ -1694,7 +1694,7 @@ public abstract class GLContext {
    * returns the highest GLProfile string regarding the implementation version and context profile bits.
    * @throws GLException if version and context profile bits could not be mapped to a GLProfile
    */
-  protected static String getGLProfile(int major, int minor, int ctp)
+  protected static String getGLProfile(final int major, final int minor, final int ctp)
           throws GLException {
     if(0 != ( CTX_PROFILE_COMPAT & ctp )) {
         if(major >= 4)                            { return GLProfile.GL4bc; }
@@ -1714,7 +1714,7 @@ public abstract class GLContext {
   /**
    * Returns the GLProfile's major version number at reqMajorCTP[0] and it's context property (CTP) at reqMajorCTP[1] for availability mapping request.
    */
-  protected static final void getRequestMajorAndCompat(final GLProfile glp, int[/*2*/] reqMajorCTP) {
+  protected static final void getRequestMajorAndCompat(final GLProfile glp, final int[/*2*/] reqMajorCTP) {
     final GLProfile glpImpl = glp.getImpl();
     if( glpImpl.isGL4() ) {
         reqMajorCTP[0]=4;
@@ -1743,9 +1743,9 @@ public abstract class GLContext {
     final int[] reqMajorCTP = new int[] { 0, 0 };
     getRequestMajorAndCompat(glp, reqMajorCTP);
 
-    int _major[] = { 0 };
-    int _minor[] = { 0 };
-    int _ctp[] = { 0 };
+    final int _major[] = { 0 };
+    final int _minor[] = { 0 };
+    final int _ctp[] = { 0 };
     if( GLContext.getAvailableGLVersion(device, reqMajorCTP[0], reqMajorCTP[1], _major, _minor, _ctp)) {
       return _ctp[0];
     }
@@ -1758,7 +1758,7 @@ public abstract class GLContext {
    * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
    * @return the highest GLProfile for the device regarding availability, version and profile bits.
    */
-  protected static GLProfile getAvailableGLProfile(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
+  protected static GLProfile getAvailableGLProfile(final AbstractGraphicsDevice device, final int reqMajor, final int reqProfile)
           throws GLException {
     final String glpName = getAvailableGLProfileName(device, reqMajor, reqProfile);
     return null != glpName ? GLProfile.get(device, glpName) : null;
@@ -1770,11 +1770,11 @@ public abstract class GLContext {
    * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
    * @return the highest GLProfile name for the device regarding availability, version and profile bits.
    */
-  /* package */ static String getAvailableGLProfileName(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
+  /* package */ static String getAvailableGLProfileName(final AbstractGraphicsDevice device, final int reqMajor, final int reqProfile)
           throws GLException {
-    int major[] = { 0 };
-    int minor[] = { 0 };
-    int ctp[] = { 0 };
+    final int major[] = { 0 };
+    final int minor[] = { 0 };
+    final int ctp[] = { 0 };
     if(GLContext.getAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp)) {
         return GLContext.getGLProfile(major[0], minor[0], ctp[0]);
     }
@@ -1786,10 +1786,10 @@ public abstract class GLContext {
    * @param major Key Value either 1, 2, 3 or 4
    * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
    */
-  protected static String getAvailableGLVersionAsString(AbstractGraphicsDevice device, int major, int profile) {
-    int _major[] = { 0 };
-    int _minor[] = { 0 };
-    int _ctp[] = { 0 };
+  protected static String getAvailableGLVersionAsString(final AbstractGraphicsDevice device, final int major, final int profile) {
+    final int _major[] = { 0 };
+    final int _minor[] = { 0 };
+    final int _ctp[] = { 0 };
     if(getAvailableGLVersion(device, major, profile, _major, _minor, _ctp)) {
         return getGLVersion(_major[0], _minor[0], _ctp[0], null);
     }
@@ -1809,7 +1809,7 @@ public abstract class GLContext {
    * @param glp {@link GLProfile} to check for FBO capabilities
    * @see GLContext#hasBasicFBOSupport()
    */
-  public static final boolean isFBOAvailable(AbstractGraphicsDevice device, GLProfile glp) {
+  public static final boolean isFBOAvailable(final AbstractGraphicsDevice device, final GLProfile glp) {
       return 0 != ( CTX_IMPL_FBO & getAvailableContextProperties(device, glp) );
   }
 
@@ -1818,7 +1818,7 @@ public abstract class GLContext {
    * @see GLContext#isHardwareRasterizer()
    * @see GLProfile#isHardwareRasterizer()
    */
-  public static final int isHardwareRasterizer(AbstractGraphicsDevice device, GLProfile glp) {
+  public static final int isHardwareRasterizer(final AbstractGraphicsDevice device, final GLProfile glp) {
       final int r;
       final int ctp = getAvailableContextProperties(device, glp);
       if(0 == ctp) {
@@ -1838,8 +1838,8 @@ public abstract class GLContext {
    * @param isHardware return value of one boolean, whether the profile is a hardware rasterizer or not
    * @return true if the requested GL version is available regardless of a software or hardware rasterizer, otherwise false.
    */
-  protected static boolean isGLVersionAvailable(AbstractGraphicsDevice device, int reqMajor, int reqProfile, boolean isHardware[]) {
-      Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
+  protected static boolean isGLVersionAvailable(final AbstractGraphicsDevice device, final int reqMajor, final int reqProfile, final boolean isHardware[]) {
+      final Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
       if(null==valI) {
           return false;
       }
@@ -1847,15 +1847,15 @@ public abstract class GLContext {
       return true;
   }
 
-  public static boolean isGLES1Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGLES1Available(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 1, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
-  public static boolean isGLES2Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGLES2Available(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 2, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
-  public static boolean isGLES3Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGLES3Available(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 3, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
@@ -1867,10 +1867,10 @@ public abstract class GLContext {
    * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
    * </p>
    */
-  public static final boolean isGLES3CompatibleAvailable(AbstractGraphicsDevice device) {
-      int major[] = { 0 };
-      int minor[] = { 0 };
-      int ctp[] = { 0 };
+  public static final boolean isGLES3CompatibleAvailable(final AbstractGraphicsDevice device) {
+      final int major[] = { 0 };
+      final int minor[] = { 0 };
+      final int ctp[] = { 0 };
       boolean ok;
 
       ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
@@ -1883,29 +1883,29 @@ public abstract class GLContext {
       return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
   }
 
-  public static boolean isGL4bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGL4bcAvailable(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT, isHardware);
   }
 
-  public static boolean isGL4Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGL4Available(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 4, CTX_PROFILE_CORE, isHardware);
   }
 
-  public static boolean isGL3bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGL3bcAvailable(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 3, CTX_PROFILE_COMPAT, isHardware);
   }
 
-  public static boolean isGL3Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGL3Available(final AbstractGraphicsDevice device, final boolean isHardware[]) {
       return isGLVersionAvailable(device, 3, CTX_PROFILE_CORE, isHardware);
   }
 
-  public static boolean isGL2Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+  public static boolean isGL2Available(final AbstractGraphicsDevice device, final boolean isHardware[]) {
     return isGLVersionAvailable(device, 2, CTX_PROFILE_COMPAT, isHardware);
   }
 
-  protected static String getGLVersion(int major, int minor, int ctp, String gl_version) {
+  protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
     boolean needColon = false;
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(major);
     sb.append(".");
     sb.append(minor);
@@ -1937,15 +1937,15 @@ public abstract class GLContext {
   // internal string utils
   //
 
-  protected static String toHexString(int hex) {
+  protected static String toHexString(final int hex) {
     return "0x" + Integer.toHexString(hex);
   }
 
-  protected static String toHexString(long hex) {
+  protected static String toHexString(final long hex) {
     return "0x" + Long.toHexString(hex);
   }
 
-  private static boolean appendString(StringBuilder sb, String string, boolean needColon, boolean condition) {
+  private static boolean appendString(final StringBuilder sb, final String string, boolean needColon, final boolean condition) {
     if(condition) {
         if(needColon) {
             sb.append(", ");

@@ -91,7 +91,7 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         final Dimension glc_sz = new Dimension(width/2, height);
         final GLCanvas glCanvas1 = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas1);
@@ -115,15 +115,15 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         Assert.assertNotNull(frame);
 
         final ActionListener print72DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 doPrintManual(frame, 72, 0, -1, -1);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 doPrintManual(frame, 300, -1, -1, -1);
             } };
         final ActionListener print600DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 doPrintManual(frame, 600, -1, -1, -1);
             } };
         final Button print72DPIButton = new Button("72dpi");
@@ -134,15 +134,15 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         print600DPIButton.addActionListener(print600DPIAction);
 
         frame.setLayout(new BorderLayout());
-        Panel printPanel = new Panel();
+        final Panel printPanel = new Panel();
         printPanel.add(print72DPIButton);
         printPanel.add(print300DPIButton);
         printPanel.add(print600DPIButton);
-        Panel southPanel = new Panel();
+        final Panel southPanel = new Panel();
         southPanel.add(new Label("South"));
-        Panel eastPanel = new Panel();
+        final Panel eastPanel = new Panel();
         eastPanel.add(new Label("East"));
-        Panel westPanel = new Panel();
+        final Panel westPanel = new Panel();
         westPanel.add(new Label("West"));
         frame.add(printPanel, BorderLayout.NORTH);
         frame.add(demoPanel, BorderLayout.CENTER);
@@ -151,7 +151,7 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         frame.add(westPanel, BorderLayout.WEST);
         frame.setTitle("Tiles AWT Print Test");
 
-        Animator animator = new Animator();
+        final Animator animator = new Animator();
         animator.add(glCanvas1);
         animator.add(glCanvas2);
 
@@ -240,13 +240,13 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
 
     @Test
     public void test01_aa0() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 
     @Test
     public void test02_aa8() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(8);
         runTestGL(caps);
@@ -254,13 +254,13 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-600dpi")) {
                 allow600dpi = true;
             } else if(args[i].equals("-wait")) {
@@ -268,11 +268,11 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
             }
         }
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestTiledPrintingGearsAWT.class.getName());
     }

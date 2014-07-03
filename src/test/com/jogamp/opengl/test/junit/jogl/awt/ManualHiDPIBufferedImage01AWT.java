@@ -22,7 +22,7 @@ public class ManualHiDPIBufferedImage01AWT {
     static final int width  = 200;
     static final int height = 100;
 
-    public static void main(String[] args) throws InterruptedException, InvocationTargetException {
+    public static void main(final String[] args) throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame();
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -36,7 +36,7 @@ public class ManualHiDPIBufferedImage01AWT {
                 @SuppressWarnings("serial")
                 final Canvas canvas = new Canvas() {
                     @Override
-                    public void paint(Graphics g) {
+                    public void paint(final Graphics g) {
                         super.paint(g);
                         g.drawImage(image1, 0, 0,          width, height, this);
                         g.drawImage(image2, 0, height + 5, width, height, this);
@@ -52,14 +52,14 @@ public class ManualHiDPIBufferedImage01AWT {
         });
     }
 
-    static JCheckBox getCheckBox(String text, boolean selected) {
-        JCheckBox checkBox = new JCheckBox(text);
+    static JCheckBox getCheckBox(final String text, final boolean selected) {
+        final JCheckBox checkBox = new JCheckBox(text);
         checkBox.setSelected(selected);
         checkBox.setSize(new Dimension(width, height));
         return checkBox;
     }
 
-    static Image getImage(JComponent component, int width, int height, int scale) {
+    static Image getImage(final JComponent component, final int width, final int height, final int scale) {
         final BufferedImage image = new BufferedImage(width*scale, height*scale, BufferedImage.TYPE_INT_ARGB);
         final Graphics g = image.getGraphics();
         ((Graphics2D) g).scale(scale, scale);

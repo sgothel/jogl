@@ -7,7 +7,7 @@ import jogamp.opengl.util.pngj.ImageInfo;
  */
 public abstract class PngChunkMultiple extends PngChunk {
 
-	protected PngChunkMultiple(String id, ImageInfo imgInfo) {
+	protected PngChunkMultiple(final String id, final ImageInfo imgInfo) {
 		super(id, imgInfo);
 	}
 

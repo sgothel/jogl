@@ -181,7 +181,7 @@ public enum VideoPixelFormat {
      * </pre>
      * @throws IllegalArgumentException if the given ordinal is out of range, i.e. not within [ 0 .. PixelFormat.values().length-1 ]
      */
-    public static VideoPixelFormat valueOf(int ordinal) throws IllegalArgumentException {
+    public static VideoPixelFormat valueOf(final int ordinal) throws IllegalArgumentException {
         final VideoPixelFormat[] all = VideoPixelFormat.values();
         if( 0 <= ordinal && ordinal < all.length ) {
             return all[ordinal];

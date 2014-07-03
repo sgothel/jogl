@@ -97,8 +97,8 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
         testWindowParentingAWTFocusTraversal(false);
     }
 
-    public void testWindowParentingAWTFocusTraversal(boolean onscreen) throws InterruptedException, InvocationTargetException, AWTException {
-        Robot robot = new Robot();
+    public void testWindowParentingAWTFocusTraversal(final boolean onscreen) throws InterruptedException, InvocationTargetException, AWTException {
+        final Robot robot = new Robot();
 
         // Bug 4908075 - http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4908075
         // Bug 6463168 - http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6463168
@@ -135,28 +135,28 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
         newtCanvasAWT1.setFocusable(true);
 
         // Test FocusAdapter
-        NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        final NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
         glWindow1.addWindowListener(glWindow1FA);
-        AWTFocusAdapter bWestFA = new AWTFocusAdapter("WEST");
+        final AWTFocusAdapter bWestFA = new AWTFocusAdapter("WEST");
         cWest.addFocusListener(bWestFA);
-        AWTFocusAdapter bEastFA = new AWTFocusAdapter("EAST");
+        final AWTFocusAdapter bEastFA = new AWTFocusAdapter("EAST");
         cEast.addFocusListener(bEastFA);
 
         // Test KeyAdapter
-        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        final NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1.addKeyListener(glWindow1KA);
-        AWTKeyAdapter bWestKA = new AWTKeyAdapter("West");
+        final AWTKeyAdapter bWestKA = new AWTKeyAdapter("West");
         cWest.addKeyListener(bWestKA);
-        AWTKeyAdapter bEastKA = new AWTKeyAdapter("East");
+        final AWTKeyAdapter bEastKA = new AWTKeyAdapter("East");
         cEast.addKeyListener(bEastKA);
 
         // demo ..
-        GLEventListener demo1 = new GearsES2(1);
+        final GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
         glWindow1.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
                 }
@@ -173,7 +173,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                                cEast.requestFocusInWindow();
                            }
                         });
-                    } catch (Exception ex) { ex.printStackTrace(); }
+                    } catch (final Exception ex) { ex.printStackTrace(); }
                 } else if(e.getKeyChar()=='w') {
                     System.err.println("Focus West");
                     try {
@@ -182,11 +182,11 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                                cWest.requestFocusInWindow();
                            }
                         });
-                    } catch (Exception ex) { ex.printStackTrace(); }
+                    } catch (final Exception ex) { ex.printStackTrace(); }
                 }
             }
         });
-        GLAnimatorControl animator1 = new Animator(glWindow1);
+        final GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
         // make frame
@@ -263,7 +263,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                        newtCanvasAWT1.requestFocus();
                    }
                 });
-            } catch (Exception ex) { ex.printStackTrace(); }
+            } catch (final Exception ex) { ex.printStackTrace(); }
             Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
@@ -276,7 +276,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                        cWest.requestFocus();
                    }
                 });
-            } catch (Exception ex) { ex.printStackTrace(); }
+            } catch (final Exception ex) { ex.printStackTrace(); }
             Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA));
             Assert.assertEquals(true,  bWestFA.focusGained());
             Assert.assertEquals(true,  glWindow1FA.focusLost());
@@ -310,10 +310,10 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
         glWindow1.destroy();
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -323,15 +323,15 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -341,7 +341,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                 forceGL3 = true;
             }
         }
-        String tstname = TestParentingFocus03KeyTraversalAWT.class.getName();
+        final String tstname = TestParentingFocus03KeyTraversalAWT.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

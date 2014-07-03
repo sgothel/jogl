@@ -40,7 +40,7 @@ import com.jogamp.graph.geom.Vertex.Factory;
 public class CrossHair extends UIShape {
     private float width, height, lineWidth;
 
-    public CrossHair(Factory<? extends Vertex> factory, int renderModes, float width, float height, float linewidth) {
+    public CrossHair(final Factory<? extends Vertex> factory, final int renderModes, final float width, final float height, final float linewidth) {
         super(factory, renderModes);
         this.width = width;
         this.height = height;
@@ -51,7 +51,7 @@ public class CrossHair extends UIShape {
     public final float getHeight() { return height; }
     public final float getLineWidth() { return lineWidth; }
 
-    public void setDimension(float width, float height, float lineWidth) {
+    public void setDimension(final float width, final float height, final float lineWidth) {
         this.width = width;
         this.height = height;
         this.lineWidth = lineWidth;
@@ -59,15 +59,15 @@ public class CrossHair extends UIShape {
     }
 
     @Override
-    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
     @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
     @Override
-    protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
+    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
 
         final float tw = getWidth();

@@ -85,11 +85,11 @@ public class OSXUtil implements ToolkitProperties {
      */
     public static final boolean hasThreadingIssues() { return false; }
 
-    public static boolean isNSView(long object) {
+    public static boolean isNSView(final long object) {
         return 0 != object ? isNSView0(object) : false;
     }
 
-    public static boolean isNSWindow(long object) {
+    public static boolean isNSWindow(final long object) {
         return 0 != object ? isNSWindow0(object) : false;
     }
 
@@ -99,32 +99,32 @@ public class OSXUtil implements ToolkitProperties {
      * @param src_y
      * @return top-left client-area position in window units
      */
-    public static Point GetLocationOnScreen(long windowOrView, int src_x, int src_y) {
+    public static Point GetLocationOnScreen(final long windowOrView, final int src_x, final int src_y) {
       return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
     }
 
-    public static Insets GetInsets(long windowOrView) {
+    public static Insets GetInsets(final long windowOrView) {
       return (Insets) GetInsets0(windowOrView);
     }
 
-    public static double GetPixelScale(int screenIndex) {
+    public static double GetPixelScale(final int screenIndex) {
       return GetPixelScale0(screenIndex);
     }
 
-    public static double GetPixelScale(long windowOrView) {
+    public static double GetPixelScale(final long windowOrView) {
       return GetPixelScale1(windowOrView);
     }
 
-    public static long CreateNSWindow(int x, int y, int width, int height) {
+    public static long CreateNSWindow(final int x, final int y, final int width, final int height) {
       return CreateNSWindow0(x, y, width, height);
     }
-    public static void DestroyNSWindow(long nsWindow) {
+    public static void DestroyNSWindow(final long nsWindow) {
         DestroyNSWindow0(nsWindow);
     }
-    public static long GetNSView(long nsWindow) {
+    public static long GetNSView(final long nsWindow) {
       return GetNSView0(nsWindow);
     }
-    public static long GetNSWindow(long nsView) {
+    public static long GetNSWindow(final long nsView) {
       return GetNSWindow0(nsView);
     }
 
@@ -268,7 +268,7 @@ public class OSXUtil implements ToolkitProperties {
                 if( waitUntilDone ) {
                     try {
                         sync.wait();
-                    } catch (InterruptedException ie) {
+                    } catch (final InterruptedException ie) {
                         throwable = ie;
                     }
                     if(null==throwable) {
@@ -288,7 +288,7 @@ public class OSXUtil implements ToolkitProperties {
      * @param runnable
      * @param delay delay to run the runnable in milliseconds
      */
-    public static void RunLater(boolean onMain, Runnable runnable, int delay) {
+    public static void RunLater(final boolean onMain, final Runnable runnable, final int delay) {
         RunLater0(onMain, false /* kickNSApp */, new RunnableTask( runnable, null, true, System.err ), delay);
     }
 
@@ -343,7 +343,7 @@ public class OSXUtil implements ToolkitProperties {
                 if( waitUntilDone ) {
                     try {
                         sync.wait();
-                    } catch (InterruptedException ie) {
+                    } catch (final InterruptedException ie) {
                         throwable = ie;
                     }
                     if(null==throwable) {
@@ -363,7 +363,7 @@ public class OSXUtil implements ToolkitProperties {
     }
 
     /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
-    public static int GetScreenRefreshRate(int scrn_idx) {
+    public static int GetScreenRefreshRate(final int scrn_idx) {
         return GetScreenRefreshRate0(scrn_idx);
     }
 

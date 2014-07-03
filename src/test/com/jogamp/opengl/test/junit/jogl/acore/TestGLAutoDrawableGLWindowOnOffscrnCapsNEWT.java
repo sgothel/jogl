@@ -70,7 +70,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         void setMakeSnapshot();
     }
 
-    static GLCapabilities getCaps(String profile) {
+    static GLCapabilities getCaps(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -78,7 +78,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         return new GLCapabilities(GLProfile.get(profile));
     }
 
-    void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
         final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, null);
@@ -135,7 +135,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
 
         glad.display();
         {
-            GLContext context = glad.getContext();
+            final GLContext context = glad.getContext();
             System.out.println("Chosen     GL CTX (2): "+context.getGLVersion());
             Assert.assertNotNull(context);
             Assert.assertTrue(context.isCreated());
@@ -462,7 +462,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         doTest(reqGLCaps, new GearsES2(1));
     } */
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT.class.getName());
     }
 

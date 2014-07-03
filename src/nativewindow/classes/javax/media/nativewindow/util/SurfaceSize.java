@@ -40,7 +40,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
     final DimensionImmutable resolution;
     final int bitsPerPixel;
 
-    public SurfaceSize(DimensionImmutable resolution, int bitsPerPixel) {
+    public SurfaceSize(final DimensionImmutable resolution, final int bitsPerPixel) {
         if(null==resolution || bitsPerPixel<=0) {
             throw new IllegalArgumentException("resolution must be set and bitsPerPixel greater 0");
         }
@@ -92,10 +92,10 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
      *          otherwise <code>false</code>.
      */
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof SurfaceSize) {
-            SurfaceSize p = (SurfaceSize)obj;
+            final SurfaceSize p = (SurfaceSize)obj;
             return getResolution().equals(p.getResolution()) &&
                    getBitsPerPixel() == p.getBitsPerPixel();
         }

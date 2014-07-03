@@ -78,7 +78,7 @@ public class FontFactory {
         return get(UBUNTU);
     }
 
-    public static final FontSet get(int font) {
+    public static final FontSet get(final int font) {
         switch (font) {
             case JAVA:
                 return JavaFontLoader.get();
@@ -87,7 +87,7 @@ public class FontFactory {
         }
     }
 
-    public static final Font get(File file) throws IOException {
+    public static final Font get(final File file) throws IOException {
         return fontConstr.create(file);
     }
 
@@ -101,7 +101,7 @@ public class FontFactory {
             try {
                 final URI uri = TempJarCache.getResource(fname);
                 conn = null != uri ? uri.toURL().openConnection() : null;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new IOException(e);
             }
         } else {
@@ -113,7 +113,7 @@ public class FontFactory {
         return null;
     }
 
-    public static boolean isPrintableChar( char c ) {
+    public static boolean isPrintableChar( final char c ) {
         if( Character.isWhitespace(c) ) {
             return true;
         }

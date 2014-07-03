@@ -28,7 +28,7 @@ import jogamp.graph.font.typecast.ot.Mnemonic;
  */
 public class Parser {
 
-    private short[][] instructions = new short[3][];
+    private final short[][] instructions = new short[3][];
 
     /**
      * Advance the instruction pointer to the next executable opcode.
@@ -41,7 +41,7 @@ public class Parser {
     public int advanceIP(int ip) {
 
         // The high word specifies font, cvt, or glyph program
-        int prog = ip >> 16;
+        final int prog = ip >> 16;
         int i = ip & 0xffff;
         int dataCount;
         ip++;
@@ -63,16 +63,16 @@ public class Parser {
         return ip;
     }
 
-    public int getISLength(int prog) {
+    public int getISLength(final int prog) {
         return instructions[prog].length;
     }
 
-    public short getOpcode(int ip) {
+    public short getOpcode(final int ip) {
         return instructions[ip >> 16][ip & 0xffff];
     }
 
-    public short getPushCount(int ip) {
-        short instr = instructions[ip >> 16][ip & 0xffff];
+    public short getPushCount(final int ip) {
+        final short instr = instructions[ip >> 16][ip & 0xffff];
         if ((Mnemonic.NPUSHB == instr) || (Mnemonic.NPUSHW == instr)) {
             return instructions[ip >> 16][(ip & 0xffff) + 1];
         } else if ((Mnemonic.PUSHB == (instr & 0xf8)) || (Mnemonic.PUSHW == (instr & 0xf8))) {
@@ -81,12 +81,12 @@ public class Parser {
         return 0;
     }
 
-    public int[] getPushData(int ip) {
-        int count = getPushCount(ip);
-        int[] data = new int[count];
-        int prog = ip >> 16;
-        int i = ip & 0xffff;
-        short instr = instructions[prog][i];
+    public int[] getPushData(final int ip) {
+        final int count = getPushCount(ip);
+        final int[] data = new int[count];
+        final int prog = ip >> 16;
+        final int i = ip & 0xffff;
+        final short instr = instructions[prog][i];
         if (Mnemonic.NPUSHB == instr) {
             for (int j = 0; j < count; j++) {
                 data[j] = instructions[prog][i + j + 2];
@@ -114,7 +114,7 @@ public class Parser {
         return ip;
     }
 
-    public int handleIf(boolean test, int ip) {
+    public int handleIf(final boolean test, int ip) {
         if (test == false) {
             // The TrueType spec says that we merely jump to the *next* ELSE or EIF
             // instruction in the instruction stream.  So therefore no nesting!
@@ -130,32 +130,32 @@ public class Parser {
     /**
      * This program is run everytime we scale the font
      */
-    public void setCvtProgram(short[] program) {
+    public void setCvtProgram(final short[] program) {
         instructions[1] = program;
     }
 
     /**
      * This program is only run once
      */
-    public void setFontProgram(short[] program) {
+    public void setFontProgram(final short[] program) {
         instructions[0] = program;
     }
 
     /**
      * This program is run everytime we scale the glyph
      */
-    public void setGlyphProgram(short[] program) {
+    public void setGlyphProgram(final short[] program) {
         instructions[2] = program;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         int ip = 0;
         while (ip < instructions[0].length) {
             sb.append(Mnemonic.getMnemonic(getOpcode(ip)));
             if (getPushCount(ip) > 0) {
-                int[] data = getPushData(ip);
+                final int[] data = getPushData(ip);
                 for(int j = 0; j < data.length; j++)
                 sb.append(" ").append(data[j]);
             }
@@ -167,7 +167,7 @@ public class Parser {
         while (ip < (0x10000 | instructions[1].length)) {
             sb.append(Mnemonic.getMnemonic(getOpcode(ip)));
             if(getPushCount(ip) > 0) {
-                int[] data = getPushData(ip);
+                final int[] data = getPushData(ip);
                 for (int j = 0; j < data.length; j++) {
                     sb.append(" ").append(data[j]);
                 }
@@ -180,7 +180,7 @@ public class Parser {
         while (ip < (0x20000 | instructions[2].length)) {
             sb.append(Mnemonic.getMnemonic(getOpcode(ip)));
             if (getPushCount(ip) > 0) {
-                int[] data = getPushData(ip);
+                final int[] data = getPushData(ip);
                 for (int j = 0; j < data.length; j++) {
                     sb.append(" ").append(data[j]);
                 }

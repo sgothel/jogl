@@ -73,13 +73,13 @@ public class TestTextRendererNEWT10 extends UITestCase {
         font = FontFactory.get(FontFactory.UBUNTU).getDefault();
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         try {
             return Integer.parseInt(a);
-        } catch (Exception ex) { throw new RuntimeException(ex); }
+        } catch (final Exception ex) { throw new RuntimeException(ex); }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -93,7 +93,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
                 forceGL3 = true;
             }
         }
-        String tstname = TestTextRendererNEWT10.class.getName();
+        final String tstname = TestTextRendererNEWT10.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
@@ -101,7 +101,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         try {
             System.err.println("** new frame ** (sleep: "+duration+"ms)");
             Thread.sleep(duration);
-        } catch (InterruptedException ie) {}
+        } catch (final InterruptedException ie) {}
     }
 
     // @Test
@@ -114,7 +114,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         testTextRendererImpl(4);
     }
 
-    void testTextRendererImpl(int sampleCount) throws InterruptedException {
+    void testTextRendererImpl(final int sampleCount) throws InterruptedException {
         final GLProfile glp;
         if(forceGL3) {
             glp = GLProfile.get(GLProfile.GL3);
@@ -180,7 +180,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
     int lastRow = -1;
 
-    void renderString(GLDrawable drawable, GL2ES2 gl, RegionRenderer renderer, TextRegionUtil textRenderUtil, String text, int column, int row, int z0) {
+    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0) {
         final int height = drawable.getSurfaceHeight();
 
         int dx = 0;
@@ -188,7 +188,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         if(0>row) {
             row = lastRow + 1;
         }
-        AABBox textBox = font.getMetricBounds(text, fontSize);
+        final AABBox textBox = font.getMetricBounds(text, fontSize);
         dx += font.getAdvanceWidth('X', fontSize) * column;
         dy -= (int)textBox.getHeight() * ( row + 1 );
 

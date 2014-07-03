@@ -43,6 +43,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLUniformData;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 public class PointsDemoES2 extends PointsDemo {
     ShaderState st;
@@ -58,7 +59,7 @@ public class PointsDemoES2 extends PointsDemo {
     /** ( pointSize, pointSmooth, attn. pointMinSize, attn. pointMaxSize ) , ( attenuation coefficients 1f 0f 0f, attenuation fade theshold 1f )   */
     private final FloatBuffer pointParams = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f, 4096.0f, 1.0f, 0.0f, 0.0f, 1.0f });
 
-    public PointsDemoES2(int swapInterval) {
+    public PointsDemoES2(final int swapInterval) {
         this.swapInterval = swapInterval;
     }
 
@@ -66,11 +67,11 @@ public class PointsDemoES2 extends PointsDemo {
         this.swapInterval = 1;
     }
 
-    public void setSmoothPoints(boolean v) {
+    public void setSmoothPoints(final boolean v) {
         pointParams.put(1, v ? 1.0f : 0.0f);
     }
 
-    public void setPointParams(float minSize, float maxSize, float distAttenConst, float distAttenLinear, float distAttenQuadratic, float fadeThreshold) {
+    public void setPointParams(final float minSize, final float maxSize, final float distAttenConst, final float distAttenLinear, final float distAttenQuadratic, final float fadeThreshold) {
         pointParams.put(2, minSize);
         pointParams.put(3, maxSize);
         pointParams.put(4+0, distAttenConst);
@@ -79,8 +80,8 @@ public class PointsDemoES2 extends PointsDemo {
         pointParams.put(4+3, fadeThreshold);
     }
 
-    public void init(GLAutoDrawable glad) {
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+    public void init(final GLAutoDrawable glad) {
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
 
         System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
@@ -103,9 +104,9 @@ public class PointsDemoES2 extends PointsDemo {
 
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
@@ -138,21 +139,21 @@ public class PointsDemoES2 extends PointsDemo {
         pointSizes.enableBuffer(gl, false);
 
         // OpenGL Render Settings
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
         st.useProgram(gl, false);
     }
 
-    public void display(GLAutoDrawable glad) {
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+    public void display(final GLAutoDrawable glad) {
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
         gl.glClearColor(0f, 0f, 0f, 0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         st.useProgram(gl, true);
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.uniform(gl, pmvMatrixUniform);
 
-        GLUniformData ud = st.getUniform(mgl_PointParams);
+        final GLUniformData ud = st.getUniform(mgl_PointParams);
         if(null!=ud) {
             // same data object
             st.uniform(gl, ud);
@@ -181,9 +182,9 @@ public class PointsDemoES2 extends PointsDemo {
         st.useProgram(gl, false);
     }
 
-    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         // Thread.dumpStack();
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
 
         if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
@@ -191,7 +192,7 @@ public class PointsDemoES2 extends PointsDemo {
 
         st.useProgram(gl, true);
         // Set location in front of camera
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.gluPerspective(45.0F, ( (float) width / (float) height ) / 1.0f, 1.0F, 100.0F);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
@@ -199,8 +200,8 @@ public class PointsDemoES2 extends PointsDemo {
         st.useProgram(gl, false);
     }
 
-    public void dispose(GLAutoDrawable glad) {
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+    public void dispose(final GLAutoDrawable glad) {
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
         st.destroy(gl);
         st = null;
         pmvMatrix = null;

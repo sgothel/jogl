@@ -98,7 +98,7 @@ public class PinchToZoomGesture implements GestureHandler {
      * @param surface the {@link NativeSurface}, which size is used to compute the relative zoom factor
      * @param allowMorePointer if false, allow only 2 pressed pointers (safe and recommended), otherwise accept other pointer to be pressed.
      */
-    public PinchToZoomGesture(NativeSurface surface, boolean allowMorePointer) {
+    public PinchToZoomGesture(final NativeSurface surface, final boolean allowMorePointer) {
         clear(true);
         this.surface = surface;
         this.allowMorePointer = allowMorePointer;
@@ -124,7 +124,7 @@ public class PinchToZoomGesture implements GestureHandler {
     }
 
     @Override
-    public void clear(boolean clearStarted) {
+    public void clear(final boolean clearStarted) {
         zoomEvent = null;
         if( clearStarted ) {
             zoomLastEdgeDist = 0;
@@ -155,7 +155,7 @@ public class PinchToZoomGesture implements GestureHandler {
         return zoom;
     }
     /** Set zoom value within [0..2], with 1 as <i>1:1</i>. */
-    public final void setZoom(float zoom) {
+    public final void setZoom(final float zoom) {
         this.zoom=zoom;
     }
 

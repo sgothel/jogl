@@ -69,8 +69,8 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     GLOffscreenAutoDrawable offScreenBuffer;
     AWTGLReadBufferUtil awtGLReadBufferUtil;
 
-    private void render(GLAutoDrawable drawable) {
-        GL2 gl = drawable.getGL().getGL2();
+    private void render(final GLAutoDrawable drawable) {
+        final GL2 gl = drawable.getGL().getGL2();
         Assert.assertNotNull(gl);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 
@@ -86,37 +86,37 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     }
 
     /* @Override */
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         awtGLReadBufferUtil = new AWTGLReadBufferUtil(drawable.getGLProfile(), false);
     }
 
     /* @Override */
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     }
 
     /* @Override */
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         render(offScreenBuffer);
         // BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);
-        BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), 0, 0, 200, 200, true /* awtOrientation */);
+        final BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), 0, 0, 200, 200, true /* awtOrientation */);
         Assert.assertNotNull(outputImage);
-        ImageIcon imageIcon = new ImageIcon(outputImage);
+        final ImageIcon imageIcon = new ImageIcon(outputImage);
         final JLabel imageLabel = new JLabel(imageIcon);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    Container cont = jframe.getContentPane();
+                    final Container cont = jframe.getContentPane();
                     cont.removeAll();
                     cont.add(imageLabel);
                     cont.validate();
                 }});
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
 
     /* @Override */
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         try {
             awtGLReadBufferUtil.dispose(drawable.getGL());
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -124,7 +124,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
                     jframe.setVisible(false);
                     jframe.dispose();
                 }});
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
@@ -134,20 +134,20 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         jframe = new JFrame("Offscreen Supersampling");
         Assert.assertNotNull(jframe);
         jframe.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
+            public void windowClosing(final WindowEvent e) {
                 System.exit(0);
             }
         });
 
-        GLProfile glp = GLProfile.get(GLProfile.GL2);
+        final GLProfile glp = GLProfile.get(GLProfile.GL2);
         Assert.assertNotNull(glp);
 
-        GLDrawableFactory fac = GLDrawableFactory.getFactory(glp);
+        final GLDrawableFactory fac = GLDrawableFactory.getFactory(glp);
         Assert.assertNotNull(fac);
 
         Assert.assertTrue( fac.canCreateGLPbuffer(GLProfile.getDefaultDevice(), glp) );
 
-        GLCapabilities glCap = new GLCapabilities(glp);
+        final GLCapabilities glCap = new GLCapabilities(glp);
         Assert.assertNotNull(glCap);
 
         // COMMENTING OUT THIS LINE FIXES THE ISSUE.
@@ -177,7 +177,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         offScreenBuffer.destroy();
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atol(args[++i], durationPerTest);

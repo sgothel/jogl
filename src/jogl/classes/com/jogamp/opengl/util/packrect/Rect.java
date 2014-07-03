@@ -77,11 +77,11 @@ public class Rect {
     this(null);
   }
 
-  public Rect(Object userData) {
+  public Rect(final Object userData) {
     this(0, 0, 0, 0, userData);
   }
 
-  public Rect(int x, int y, int w, int h, Object userData) {
+  public Rect(final int x, final int y, final int w, final int h, final Object userData) {
     setPosition(x, y);
     setSize(w, h);
     setUserData(userData);
@@ -94,7 +94,7 @@ public class Rect {
   public Object getUserData() { return userData; }
   public Rect getNextLocation() { return nextLocation; }
 
-  public void setPosition(int x, int y) {
+  public void setPosition(final int x, final int y) {
     if (x < 0)
       throw new IllegalArgumentException("Negative x");
     if (y < 0)
@@ -103,7 +103,7 @@ public class Rect {
     this.y = y;
   }
 
-  public void setSize(int w, int h) throws IllegalArgumentException {
+  public void setSize(final int w, final int h) throws IllegalArgumentException {
     if (w < 0)
       throw new IllegalArgumentException("Negative width");
     if (h < 0)
@@ -112,8 +112,8 @@ public class Rect {
     this.h = h;
   }
 
-  public void setUserData(Object obj) { userData = obj; }
-  public void setNextLocation(Rect nextLocation) { this.nextLocation = nextLocation; }
+  public void setUserData(final Object obj) { userData = obj; }
+  public void setNextLocation(final Rect nextLocation) { this.nextLocation = nextLocation; }
 
   // Helpers for computations.
 
@@ -139,7 +139,7 @@ public class Rect {
     return y() + h() - 1;
   }
 
-  public boolean canContain(Rect other) {
+  public boolean canContain(final Rect other) {
     return (w() >= other.w() &&
             h() >= other.h());
   }

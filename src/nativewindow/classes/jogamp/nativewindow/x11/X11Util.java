@@ -243,7 +243,7 @@ public class X11Util implements ToolkitProperties {
         return hasThreadingIssues; // JOGL impl. may utilize special locking "somewhere"
     }
 
-    public static void setX11ErrorHandler(boolean onoff, boolean quiet) {
+    public static void setX11ErrorHandler(final boolean onoff, final boolean quiet) {
         synchronized(setX11ErrorHandlerLock) {
             setX11ErrorHandler0(onoff, quiet);
         }
@@ -282,7 +282,7 @@ public class X11Util implements ToolkitProperties {
         boolean unCloseable;
         Throwable creationStack;
 
-        protected NamedDisplay(String name, long handle) {
+        protected NamedDisplay(final String name, final long handle) {
             this.name=name;
             this.handle=handle;
             this.refCount=0;
@@ -306,7 +306,7 @@ public class X11Util implements ToolkitProperties {
         }
 
         @Override
-        public final boolean equals(Object obj) {
+        public final boolean equals(final Object obj) {
             if(this == obj) { return true; }
             if(obj instanceof NamedDisplay) {
                 return handle == ((NamedDisplay) obj).handle;
@@ -321,7 +321,7 @@ public class X11Util implements ToolkitProperties {
         public final long   getHandle() { return handle; }
         public final int    getRefCount() { return refCount; }
 
-        public final void setUncloseable(boolean v) { unCloseable = v; }
+        public final void setUncloseable(final boolean v) { unCloseable = v; }
         public final boolean isUncloseable() { return unCloseable; }
         public final Throwable getCreationStack() { return creationStack; }
 
@@ -341,7 +341,7 @@ public class X11Util implements ToolkitProperties {
         synchronized(globalLock) {
             if( getMarkAllDisplaysUnclosable() ) {
                 for(int i=0; i<pendingDisplayList.size(); i++) {
-                    final NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
+                    final NamedDisplay ndpy = pendingDisplayList.get(i);
                     if(DEBUG) {
                         final boolean closeAttempted = !openDisplayMap.containsKey(ndpy.getHandle());
                         System.err.println("X11Util.closePendingDisplayConnections(): Closing ["+i+"]: "+ndpy+" - closeAttempted "+closeAttempted);
@@ -367,10 +367,10 @@ public class X11Util implements ToolkitProperties {
         synchronized(globalLock) {
             System.err.println("X11Util: Open X11 Display Connections: "+openDisplayList.size());
             for(int i=0; i<openDisplayList.size(); i++) {
-                NamedDisplay ndpy = openDisplayList.get(i);
+                final NamedDisplay ndpy = openDisplayList.get(i);
                 System.err.println("X11Util: Open["+i+"]: "+ndpy);
                 if(null!=ndpy) {
-                    Throwable t = ndpy.getCreationStack();
+                    final Throwable t = ndpy.getCreationStack();
                     if(null!=t) {
                         t.printStackTrace();
                     }
@@ -395,10 +395,10 @@ public class X11Util implements ToolkitProperties {
         synchronized(globalLock) {
             System.err.println("X11Util: Reusable X11 Display Connections: "+reusableDisplayList.size());
             for(int i=0; i<reusableDisplayList.size(); i++) {
-                NamedDisplay ndpy = (NamedDisplay) reusableDisplayList.get(i);
+                final NamedDisplay ndpy = reusableDisplayList.get(i);
                 System.err.println("X11Util: Reusable["+i+"]: "+ndpy);
                 if(null!=ndpy) {
-                    Throwable t = ndpy.getCreationStack();
+                    final Throwable t = ndpy.getCreationStack();
                     if(null!=t) {
                         t.printStackTrace();
                     }
@@ -406,10 +406,10 @@ public class X11Util implements ToolkitProperties {
             }
             System.err.println("X11Util: Pending X11 Display Connections (creation order): "+pendingDisplayList.size());
             for(int i=0; i<pendingDisplayList.size(); i++) {
-                NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
+                final NamedDisplay ndpy = pendingDisplayList.get(i);
                 System.err.println("X11Util: Pending["+i+"]: "+ndpy);
                 if(null!=ndpy) {
-                    Throwable t = ndpy.getCreationStack();
+                    final Throwable t = ndpy.getCreationStack();
                     if(null!=t) {
                         t.printStackTrace();
                     }
@@ -418,7 +418,7 @@ public class X11Util implements ToolkitProperties {
         }
     }
 
-    public static boolean markDisplayUncloseable(long handle) {
+    public static boolean markDisplayUncloseable(final long handle) {
         NamedDisplay ndpy;
         synchronized(globalLock) {
             ndpy = (NamedDisplay) openDisplayMap.get(handle);
@@ -470,7 +470,7 @@ public class X11Util implements ToolkitProperties {
         return namedDpy.getHandle();
     }
 
-    public static void closeDisplay(long handle) {
+    public static void closeDisplay(final long handle) {
         synchronized(globalLock) {
             final NamedDisplay namedDpy = (NamedDisplay) openDisplayMap.remove(handle);
             if(null==namedDpy) {
@@ -504,7 +504,7 @@ public class X11Util implements ToolkitProperties {
         }
     }
 
-    public static NamedDisplay getNamedDisplay(long handle) {
+    public static NamedDisplay getNamedDisplay(final long handle) {
         synchronized(globalLock) {
             return (NamedDisplay) openDisplayMap.get(handle);
         }
@@ -513,11 +513,11 @@ public class X11Util implements ToolkitProperties {
     /**
      * @return If name is null, it returns the previous queried NULL display name,
      * otherwise the name. */
-    public static String validateDisplayName(String name) {
+    public static String validateDisplayName(final String name) {
         return ( null == name || AbstractGraphicsDevice.DEFAULT_CONNECTION.equals(name) ) ? getNullDisplayName() : name ;
     }
 
-    public static String validateDisplayName(String name, long handle) {
+    public static String validateDisplayName(String name, final long handle) {
         if( ( null==name || AbstractGraphicsDevice.DEFAULT_CONNECTION.equals(name) ) && 0!=handle) {
             name = X11Lib.XDisplayString(handle);
         }
@@ -530,8 +530,8 @@ public class X11Util implements ToolkitProperties {
      **
      *******************************/
 
-    public static long XOpenDisplay(String arg0) {
-        long handle = X11Lib.XOpenDisplay(arg0);
+    public static long XOpenDisplay(final String arg0) {
+        final long handle = X11Lib.XOpenDisplay(arg0);
         if(XSYNC_ENABLED && 0 != handle) {
             X11Lib.XSynchronize(handle, true);
         }
@@ -542,7 +542,7 @@ public class X11Util implements ToolkitProperties {
         return handle;
     }
 
-    public static int XCloseDisplay(long display) {
+    public static int XCloseDisplay(final long display) {
         if(TRACE_DISPLAY_LIFECYCLE) {
             System.err.println(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
             // Thread.dumpStack();
@@ -550,7 +550,7 @@ public class X11Util implements ToolkitProperties {
         int res = -1;
         try {
             res = X11Lib.XCloseDisplay(display);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             System.err.println("X11Util: Caught exception:");
             ex.printStackTrace();
         }
@@ -561,7 +561,7 @@ public class X11Util implements ToolkitProperties {
     static long XineramaLibHandle = 0;
     static long XineramaQueryFunc = 0;
 
-    public static boolean XineramaIsEnabled(X11GraphicsDevice device) {
+    public static boolean XineramaIsEnabled(final X11GraphicsDevice device) {
         if(null == device) {
             throw new IllegalArgumentException("X11 Display device is NULL");
         }
@@ -573,7 +573,7 @@ public class X11Util implements ToolkitProperties {
         }
     }
 
-    public static boolean XineramaIsEnabled(long displayHandle) {
+    public static boolean XineramaIsEnabled(final long displayHandle) {
         if( 0 == displayHandle ) {
             throw new IllegalArgumentException("X11 Display handle is NULL");
         }

@@ -48,24 +48,24 @@ public class TestTextureSequence01NEWT extends UITestCase {
         final ImageSequence texSource = new ImageSequence(0, useBuildInTexLookup);
         window.addGLEventListener(new GLEventListener() {
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 try {
                     texSource.addFrame(drawable.getGL(), TestTextureSequence01NEWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
             @Override
-            public void dispose(GLAutoDrawable drawable) { }
+            public void dispose(final GLAutoDrawable drawable) { }
             @Override
-            public void display(GLAutoDrawable drawable) { }
+            public void display(final GLAutoDrawable drawable) { }
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
         window.addGLEventListener(new TextureSequenceCubeES2(texSource, false, -2.3f, 0f, 0f));
         final Animator animator = new Animator(window);
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         window.addKeyListener(quitAdapter);
         window.addWindowListener(quitAdapter);
         animator.start();
@@ -86,7 +86,7 @@ public class TestTextureSequence01NEWT extends UITestCase {
         testImpl();
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

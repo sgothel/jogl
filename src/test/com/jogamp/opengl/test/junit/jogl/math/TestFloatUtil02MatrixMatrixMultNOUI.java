@@ -59,8 +59,8 @@ public class TestFloatUtil02MatrixMatrixMultNOUI {
                                      893,  116,  116,  113,
                                      748,  116,  120,  104,
                                     1182,  113,  104,  131 };
-    
-    public static final void multMatrixf_RM(final float[] a, int a_off, final float[] b, int b_off, float[] d, int d_off) {
+
+    public static final void multMatrixf_RM(final float[] a, final int a_off, final float[] b, final int b_off, final float[] d, final int d_off) {
      for (int i = 0; i < 4; i++) {
         final float ai0=a[a_off+i*4+0],  ai1=a[a_off+i*4+1],  ai2=a[a_off+i*4+2],  ai3=a[a_off+i*4+3];
         d[d_off+i*4+0] = ai0 * b[b_off+0*4+0] + ai1 * b[b_off+1*4+0] + ai2 * b[b_off+2*4+0] + ai3 * b[b_off+3*4+0] ;
@@ -73,7 +73,7 @@ public class TestFloatUtil02MatrixMatrixMultNOUI {
     @Test
     public void testCM_m1xm2(){
 
-        float[] r = new float[16];
+        final float[] r = new float[16];
 
         FloatUtil.multMatrix(m1, 0, m2, 0, r, 0);
 
@@ -83,7 +83,7 @@ public class TestFloatUtil02MatrixMatrixMultNOUI {
     @Test
     public void testCM_m2xm1(){
 
-        float[] r = new float[16];
+        final float[] r = new float[16];
 
         FloatUtil.multMatrix(m2, 0, m1, 0, r, 0);
 
@@ -93,8 +93,8 @@ public class TestFloatUtil02MatrixMatrixMultNOUI {
     @Test
     public void testRM_m1xm2(){
 
-        float[] r = new float[16];
-        
+        final float[] r = new float[16];
+
         multMatrixf_RM(m1, 0, m2, 0, r, 0);
 
         Assert.assertArrayEquals(m1xm2_RM, r, 0f);
@@ -103,14 +103,14 @@ public class TestFloatUtil02MatrixMatrixMultNOUI {
     @Test
     public void testRM_m2xm1(){
 
-        float[] r = new float[16];
-        
+        final float[] r = new float[16];
+
         multMatrixf_RM(m2, 0, m1, 0, r, 0);
 
         Assert.assertArrayEquals(m2xm1_RM, r, 0f);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestFloatUtil02MatrixMatrixMultNOUI.class.getName());
     }
 }

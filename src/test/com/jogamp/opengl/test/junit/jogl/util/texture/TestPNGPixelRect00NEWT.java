@@ -128,7 +128,7 @@ public class TestPNGPixelRect00NEWT extends UITestCase {
         final File out2F_f=new File(getSimpleTestName(".")+"-02-"+basename+"-flipped.png");
         final File out2R_f=new File(getSimpleTestName(".")+"-03-"+basename+"-reversed.png");
         final File out2RF_f=new File(getSimpleTestName(".")+"-04-"+basename+"-reversed_flipped.png");
-        URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
+        final URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
         if( null == urlConn ) {
             throw new IOException("Cannot find "+pathname+basename+".png");
         }
@@ -205,7 +205,7 @@ public class TestPNGPixelRect00NEWT extends UITestCase {
         System.err.println("Test02: "+pathname+basename+".png, destFmt "+destFmt+", destMinStrideInBytes "+destMinStrideInBytes+", destIsGLOriented "+destIsGLOriented);
 
         final File out1_f=new File(getSimpleTestName(".")+"-"+basename+"-orig.png");
-        URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
+        final URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
 
         final PNGPixelRect image1 = PNGPixelRect.read(urlConn.getInputStream(), destFmt, false /* directBuffer */, destMinStrideInBytes, destIsGLOriented);
         System.err.println("PNGPixelRect - Orig: "+image1);
@@ -220,7 +220,7 @@ public class TestPNGPixelRect00NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPNGPixelRect00NEWT.class.getName());
     }
 }

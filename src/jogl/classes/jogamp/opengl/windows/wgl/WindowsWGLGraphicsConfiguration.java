@@ -66,24 +66,24 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     private boolean isDetermined = false;
     private boolean isExternal = false;
 
-    WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen,
-                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                    GLCapabilitiesChooser chooser) {
+    WindowsWGLGraphicsConfiguration(final AbstractGraphicsScreen screen,
+                                    final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                    final GLCapabilitiesChooser chooser) {
         super(screen, capsChosen, capsRequested);
         this.chooser=chooser;
         this.isDetermined = false;
     }
 
-    WindowsWGLGraphicsConfiguration(AbstractGraphicsScreen screen,
-                                    WGLGLCapabilities capsChosen, GLCapabilitiesImmutable capsRequested) {
+    WindowsWGLGraphicsConfiguration(final AbstractGraphicsScreen screen,
+                                    final WGLGLCapabilities capsChosen, final GLCapabilitiesImmutable capsRequested) {
         super(screen, capsChosen, capsRequested);
         setCapsPFD(capsChosen);
         this.chooser=null;
     }
 
 
-    static WindowsWGLGraphicsConfiguration createFromExternal(GLDrawableFactory _factory, long hdc, int pfdID,
-                                                             GLProfile glp, AbstractGraphicsScreen screen, boolean onscreen)
+    static WindowsWGLGraphicsConfiguration createFromExternal(final GLDrawableFactory _factory, final long hdc, final int pfdID,
+                                                             GLProfile glp, final AbstractGraphicsScreen screen, final boolean onscreen)
     {
         if(_factory==null) {
             throw new GLException("Null factory");
@@ -97,10 +97,10 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         if(null==glp) {
           glp = GLProfile.getDefault(screen.getDevice());
         }
-        WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
-        AbstractGraphicsDevice device = screen.getDevice();
-        WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
-        boolean hasARB = null != sharedResource && sharedResource.hasARBPixelFormat();
+        final WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
+        final AbstractGraphicsDevice device = screen.getDevice();
+        final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
+        final boolean hasARB = null != sharedResource && sharedResource.hasARBPixelFormat();
 
         WGLGLCapabilities caps = null;
 
@@ -114,7 +114,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                                   ", pfdID "+pfdID+", onscreen "+onscreen+", hasARB "+hasARB);
         }
 
-        WindowsWGLGraphicsConfiguration cfg = new WindowsWGLGraphicsConfiguration(screen, caps, caps);
+        final WindowsWGLGraphicsConfiguration cfg = new WindowsWGLGraphicsConfiguration(screen, caps, caps);
         cfg.markExternal();
         return cfg;
     }
@@ -136,7 +136,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
      * @see #isDetermined()
      * @see #isExternal()
      */
-    public final void updateGraphicsConfiguration(GLDrawableFactory factory, NativeSurface ns, int[] pfIDs) {
+    public final void updateGraphicsConfiguration(final GLDrawableFactory factory, final NativeSurface ns, final int[] pfIDs) {
         WindowsWGLGraphicsConfigurationFactory.updateGraphicsConfiguration(chooser, factory, ns, pfIDs);
     }
 
@@ -150,15 +150,15 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
      *
      * @see #isDetermined()
      */
-    public final void preselectGraphicsConfiguration(GLDrawableFactory factory, int[] pfdIDs) {
-        AbstractGraphicsDevice device = getScreen().getDevice();
+    public final void preselectGraphicsConfiguration(final GLDrawableFactory factory, final int[] pfdIDs) {
+        final AbstractGraphicsDevice device = getScreen().getDevice();
         WindowsWGLGraphicsConfigurationFactory.preselectGraphicsConfiguration(chooser, factory, device, this, pfdIDs);
     }
 
     /**
      * Sets the hdc's PixelFormat, this configuration's capabilities and marks it as determined.
      */
-    final void setPixelFormat(long hdc, WGLGLCapabilities caps) {
+    final void setPixelFormat(final long hdc, final WGLGLCapabilities caps) {
         if (0 == hdc) {
             throw new GLException("Error: HDC is null");
         }
@@ -170,12 +170,12 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         }
         if( !caps.isBackgroundOpaque() ) {
             final long hwnd = GDI.WindowFromDC(hdc);
-            DWM_BLURBEHIND bb = DWM_BLURBEHIND.create();
+            final DWM_BLURBEHIND bb = DWM_BLURBEHIND.create();
             bb.setDwFlags(GDI.DWM_BB_ENABLE| GDI.DWM_BB_TRANSITIONONMAXIMIZED);
             bb.setFEnable( 1 );
             boolean ok = GDI.DwmEnableBlurBehindWindow(hwnd, bb);
             if( ok ) {
-                MARGINS m = MARGINS.create();
+                final MARGINS m = MARGINS.create();
                 m.setCxLeftWidth(-1);
                 m.setCxRightWidth(-1);
                 m.setCyBottomHeight(-1);
@@ -198,7 +198,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
      * Only sets this configuration's capabilities and marks it as determined,
      * the actual pixelformat is not set.
      */
-    final void setCapsPFD(WGLGLCapabilities caps) {
+    final void setCapsPFD(final WGLGLCapabilities caps) {
         setChosenCapabilities(caps);
         this.isDetermined = true;
         if (DEBUG) {
@@ -228,7 +228,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     public final int getPixelFormatID() { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).getPFDID() : 0; }
     public final boolean isChoosenByARB() { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).isSetByARB() : false; }
 
-    static int fillAttribsForGeneralWGLARBQuery(WindowsWGLDrawableFactory.SharedResource sharedResource, IntBuffer iattributes) {
+    static int fillAttribsForGeneralWGLARBQuery(final WindowsWGLDrawableFactory.SharedResource sharedResource, final IntBuffer iattributes) {
         int niattribs = 0;
         iattributes.put(niattribs++, WGLExt.WGL_DRAW_TO_WINDOW_ARB);
         if(sharedResource.hasARBPBuffer()) {
@@ -257,7 +257,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return niattribs;
     }
 
-    static boolean wglARBPFIDValid(WindowsWGLContext sharedCtx, long hdc, int pfdID) {
+    static boolean wglARBPFIDValid(final WindowsWGLContext sharedCtx, final long hdc, final int pfdID) {
         final IntBuffer out = Buffers.newDirectIntBuffer(1);
         final IntBuffer in = Buffers.newDirectIntBuffer(1);
         in.put(0, WGLExt.WGL_COLOR_BITS_ARB);
@@ -268,12 +268,12 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return true;
     }
 
-    static int wglARBPFDIDCount(WindowsWGLContext sharedCtx, long hdc) {
+    static int wglARBPFDIDCount(final WindowsWGLContext sharedCtx, final long hdc) {
         final IntBuffer iresults = Buffers.newDirectIntBuffer(1);
         final IntBuffer iattributes = Buffers.newDirectIntBuffer(1);
         iattributes.put(0, WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB);
 
-        WGLExt wglExt = sharedCtx.getWGLExt();
+        final WGLExt wglExt = sharedCtx.getWGLExt();
         // pfdID shall be ignored here (spec), however, pass a valid pdf index '1' below (possible driver bug)
         if (!wglExt.wglGetPixelFormatAttribivARB(hdc, 1 /* pfdID */, 0, 1, iattributes, iresults)) {
             if(DEBUG) {
@@ -295,17 +295,17 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return pfdIDCount;
     }
 
-    static int[] wglAllARBPFDIDs(int pfdIDCount) {
-        int[] pfdIDs = new int[pfdIDCount];
+    static int[] wglAllARBPFDIDs(final int pfdIDCount) {
+        final int[] pfdIDs = new int[pfdIDCount];
         for (int i = 0; i < pfdIDCount; i++) {
             pfdIDs[i] = 1 + i;
         }
         return pfdIDs;
     }
 
-    static WGLGLCapabilities wglARBPFID2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                       AbstractGraphicsDevice device, GLProfile glp,
-                                                       long hdc, int pfdID, int winattrbits) {
+    static WGLGLCapabilities wglARBPFID2GLCapabilities(final WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                       final AbstractGraphicsDevice device, final GLProfile glp,
+                                                       final long hdc, final int pfdID, final int winattrbits) {
         if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
@@ -321,9 +321,9 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return AttribList2GLCapabilities(device, glp, hdc, pfdID, iattributes, niattribs, iresults, winattrbits);
     }
 
-    static int[] wglChoosePixelFormatARB(WindowsWGLDrawableFactory.SharedResource sharedResource, AbstractGraphicsDevice device,
-                                         GLCapabilitiesImmutable capabilities,
-                                         long hdc, IntBuffer iattributes, int accelerationMode, FloatBuffer fattributes)
+    static int[] wglChoosePixelFormatARB(final WindowsWGLDrawableFactory.SharedResource sharedResource, final AbstractGraphicsDevice device,
+                                         final GLCapabilitiesImmutable capabilities,
+                                         final long hdc, final IntBuffer iattributes, final int accelerationMode, final FloatBuffer fattributes)
     {
 
         if ( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
@@ -361,7 +361,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             System.err.println("wglChoosePixelFormatARB: NumFormats (wglChoosePixelFormatARB) accelMode 0x"
                     + Integer.toHexString(accelerationMode) + ": " + numFormats);
             for (int i = 0; i < numFormats; i++) {
-                WGLGLCapabilities dbgCaps0 = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(
+                final WGLGLCapabilities dbgCaps0 = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(
                                                 sharedResource, device, capabilities.getGLProfile(), hdc, pformats[i], GLGraphicsConfigurationUtil.ALL_BITS);
                 System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps0);
             }
@@ -369,8 +369,8 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return pformats;
     }
 
-    static List <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                     AbstractGraphicsDevice device, GLProfile glp, long hdc, int[] pfdIDs, int winattrbits, boolean onlyFirstValid) {
+    static List <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(final WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                     final AbstractGraphicsDevice device, final GLProfile glp, final long hdc, final int[] pfdIDs, final int winattrbits, final boolean onlyFirstValid) {
         if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
@@ -380,7 +380,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         final IntBuffer iresults = Buffers.newDirectIntBuffer(2*MAX_ATTRIBS);
         final int niattribs = fillAttribsForGeneralWGLARBQuery(sharedResource, iattributes);
 
-        ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
+        final ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
 
         for(int i = 0; i<numFormats; i++) {
             if ( pfdIDs[i] >= 1 &&
@@ -396,7 +396,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                         break;
                     }
                 } else if(DEBUG) {
-                    GLCapabilitiesImmutable skipped = AttribList2GLCapabilities(device, glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, GLGraphicsConfigurationUtil.ALL_BITS);
+                    final GLCapabilitiesImmutable skipped = AttribList2GLCapabilities(device, glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, GLGraphicsConfigurationUtil.ALL_BITS);
                     System.err.println("wglARBPFIDs2GLCapabilities: bucket["+i+" -> skip]: pfdID "+pfdIDs[i]+", "+skipped+", winattr "+GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrbits).toString());
                 }
             } else if (DEBUG) {
@@ -411,11 +411,11 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return bucket;
     }
 
-    static boolean GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
-                                             IntBuffer iattributes,
-                                             WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                             int accelerationValue,
-                                             int[] floatMode) throws GLException {
+    static boolean GLCapabilities2AttribList(final GLCapabilitiesImmutable caps,
+                                             final IntBuffer iattributes,
+                                             final WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                             final int accelerationValue,
+                                             final int[] floatMode) throws GLException {
         if (!sharedResource.hasARBPixelFormat()) {
           return false;
         }
@@ -539,14 +539,14 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
 
     static WGLGLCapabilities AttribList2GLCapabilities(final AbstractGraphicsDevice device,
                                                        final GLProfile glp, final long hdc, final int pfdID,
-                                                       final IntBuffer iattribs, final int niattribs, IntBuffer iresults, final int winattrmask) {
+                                                       final IntBuffer iattribs, final int niattribs, final IntBuffer iresults, final int winattrmask) {
         final int allDrawableTypeBits = AttribList2DrawableTypeBits(iattribs, niattribs, iresults);
         int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
         if( 0 == drawableTypeBits ) {
             return null;
         }
-        PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
+        final PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor();
 
         if (WGLUtil.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
             // remove displayable bits, since pfdID is non displayable
@@ -565,23 +565,23 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     // GDI PIXELFORMAT
     //
 
-    static int[] wglAllGDIPFIDs(long hdc) {
-        int numFormats = WGLUtil.DescribePixelFormat(hdc, 1, 0, null);
+    static int[] wglAllGDIPFIDs(final long hdc) {
+        final int numFormats = WGLUtil.DescribePixelFormat(hdc, 1, 0, null);
         if (numFormats == 0) {
             throw new GLException("DescribePixelFormat: No formats - HDC 0x" + Long.toHexString(hdc) +
                                   ", LastError: " + GDI.GetLastError());
         }
-        int[] pfdIDs = new int[numFormats];
+        final int[] pfdIDs = new int[numFormats];
         for (int i = 0; i < numFormats; i++) {
             pfdIDs[i] = 1 + i;
         }
         return pfdIDs;
     }
 
-    static int PFD2DrawableTypeBits(PIXELFORMATDESCRIPTOR pfd) {
+    static int PFD2DrawableTypeBits(final PIXELFORMATDESCRIPTOR pfd) {
         int val = 0;
 
-        int dwFlags = pfd.getDwFlags();
+        final int dwFlags = pfd.getDwFlags();
 
         if( 0 != (GDI.PFD_DRAW_TO_WINDOW & dwFlags ) ) {
             val |= GLGraphicsConfigurationUtil.WINDOW_BIT |
@@ -593,8 +593,8 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return val;
     }
 
-    static WGLGLCapabilities PFD2GLCapabilities(AbstractGraphicsDevice device, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
-        PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
+    static WGLGLCapabilities PFD2GLCapabilities(final AbstractGraphicsDevice device, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
+        final PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
         if(null == pfd) {
             return null;
         }
@@ -626,12 +626,12 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return (WGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, res);
    }
 
-    static WGLGLCapabilities PFD2GLCapabilitiesNoCheck(AbstractGraphicsDevice device, final GLProfile glp, final long hdc, final int pfdID) {
-        PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
+    static WGLGLCapabilities PFD2GLCapabilitiesNoCheck(final AbstractGraphicsDevice device, final GLProfile glp, final long hdc, final int pfdID) {
+        final PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
         return PFD2GLCapabilitiesNoCheck(device, glp, pfd, pfdID);
    }
 
-   static WGLGLCapabilities PFD2GLCapabilitiesNoCheck(AbstractGraphicsDevice device, GLProfile glp, PIXELFORMATDESCRIPTOR pfd, int pfdID) {
+   static WGLGLCapabilities PFD2GLCapabilitiesNoCheck(final AbstractGraphicsDevice device, final GLProfile glp, final PIXELFORMATDESCRIPTOR pfd, final int pfdID) {
         if(null == pfd) {
             return null;
         }
@@ -641,8 +641,8 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return (WGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, PFD2DrawableTypeBits(pfd), res);
    }
 
-   static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilitiesImmutable caps, PIXELFORMATDESCRIPTOR pfd) {
-       int colorDepth = (caps.getRedBits() +
+   static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(final GLCapabilitiesImmutable caps, final PIXELFORMATDESCRIPTOR pfd) {
+       final int colorDepth = (caps.getRedBits() +
                caps.getGreenBits() +
                caps.getBlueBits());
        if (colorDepth < 15) {
@@ -680,7 +680,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
        pfd.setCGreenBits((byte) caps.getGreenBits());
        pfd.setCBlueBits ((byte) caps.getBlueBits());
        pfd.setCAlphaBits((byte) caps.getAlphaBits());
-       int accumDepth = (caps.getAccumRedBits() +
+       final int accumDepth = (caps.getAccumRedBits() +
                caps.getAccumGreenBits() +
                caps.getAccumBlueBits());
        pfd.setCAccumBits     ((byte) accumDepth);
@@ -699,8 +699,8 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
        return pfd;
    }
 
-   static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor(long hdc, int pfdID) {
-       PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
+   static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor(final long hdc, final int pfdID) {
+       final PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
        pfd.setNSize((short) PIXELFORMATDESCRIPTOR.size());
        pfd.setNVersion((short) 1);
        if(0 != hdc && 1 <= pfdID) {

@@ -63,7 +63,7 @@ public class DefaultEDTUtil implements EDTUtil {
     private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
-    public DefaultEDTUtil(ThreadGroup tg, String name, Runnable dispatchMessages) {
+    public DefaultEDTUtil(final ThreadGroup tg, final String name, final Runnable dispatchMessages) {
         this.threadGroup = tg;
         this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
         this.dispatchMessages=dispatchMessages;
@@ -77,7 +77,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    final public void setPollPeriod(long ms) {
+    final public void setPollPeriod(final long ms) {
         pollPeriod = ms;
     }
 
@@ -141,7 +141,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean invokeStop(boolean wait, Runnable task) {
+    public final boolean invokeStop(final boolean wait, final Runnable task) {
         if(DEBUG) {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
             Thread.dumpStack();
@@ -149,7 +149,7 @@ public class DefaultEDTUtil implements EDTUtil {
         return invokeImpl(wait, task, true /* stop */, false /* provokeError */);
     }
 
-    public final boolean invokeAndWaitError(Runnable task) {
+    public final boolean invokeAndWaitError(final Runnable task) {
         if(DEBUG) {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeAndWaitError");
             Thread.dumpStack();
@@ -158,7 +158,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean invoke(boolean wait, Runnable task) {
+    public final boolean invoke(final boolean wait, final Runnable task) {
         return invokeImpl(wait, task, false /* stop */, false /* provokeError */);
     }
 
@@ -167,7 +167,7 @@ public class DefaultEDTUtil implements EDTUtil {
         public void run() { }
     };
 
-    private final boolean invokeImpl(boolean wait, Runnable task, boolean stop, boolean provokeError) {
+    private final boolean invokeImpl(boolean wait, Runnable task, final boolean stop, final boolean provokeError) {
         Throwable throwable = null;
         RunnableTask rTask = null;
         final Object rTaskLock = new Object();
@@ -235,7 +235,7 @@ public class DefaultEDTUtil implements EDTUtil {
             if( wait ) {
                 try {
                     rTaskLock.wait(); // free lock, allow execution of rTask
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -271,7 +271,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 try {
                     _edt.tasks.notifyAll();
                     _edt.tasks.wait();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -286,7 +286,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 while( edt.isRunning ) {
                     try {
                         edtLock.wait();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -302,7 +302,7 @@ public class DefaultEDTUtil implements EDTUtil {
         volatile boolean isRunning = false;
         final ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
 
-        public NEDT(ThreadGroup tg, String name) {
+        public NEDT(final ThreadGroup tg, final String name) {
             super(tg, name);
         }
 
@@ -349,7 +349,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         if(!shouldStop && tasks.size()==0) {
                             try {
                                 tasks.wait(pollPeriod);
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -379,7 +379,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                     }
                 } while(!shouldStop) ;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // handle errors ..
                 shouldStop = true;
                 if(t instanceof RuntimeException) {

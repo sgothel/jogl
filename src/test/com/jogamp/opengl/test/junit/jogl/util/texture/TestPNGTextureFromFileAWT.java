@@ -86,7 +86,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         grayTextureStream = TestPNGTextureFromFileAWT.class.getResourceAsStream( "grayscale_texture.png" );
         Assert.assertNotNull(grayTextureStream);
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream);
@@ -99,7 +99,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         testTextureStream = null;
     }
 
-    public void testImpl(boolean useFFP, final InputStream istream, final boolean useAWTIIOP)
+    public void testImpl(final boolean useFFP, final InputStream istream, final boolean useAWTIIOP)
             throws InterruptedException, IOException
     {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
@@ -123,7 +123,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         System.err.println("TextureData: "+texData);
 
         final GLCanvas glc = new GLCanvas(caps);
-        Dimension glc_sz = new Dimension(texData.getWidth(), texData.getHeight());
+        final Dimension glc_sz = new Dimension(texData.getWidth(), texData.getHeight());
         glc.setMinimumSize(glc_sz);
         glc.setPreferredSize(glc_sz);
         final Frame frame = new Frame("TestPNGTextureGL2FromFileAWT");
@@ -137,10 +137,10 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         glc.addGLEventListener(new GLEventListener() {
             boolean shot = false;
 
-            @Override public void init(GLAutoDrawable drawable) {}
+            @Override public void init(final GLAutoDrawable drawable) {}
 
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
@@ -148,8 +148,8 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
                 }
             }
 
-            @Override public void dispose(GLAutoDrawable drawable) { }
-            @Override public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            @Override public void dispose(final GLAutoDrawable drawable) { }
+            @Override public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
 
         final QuitAdapter quitAdapter = new QuitAdapter();
@@ -162,12 +162,12 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
                     frame.pack();
                     frame.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
 
-        Animator animator = new Animator(glc);
+        final Animator animator = new Animator(glc);
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         animator.start();
 
@@ -183,7 +183,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
                     frame.remove(glc);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -225,7 +225,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         testImpl(false, testTextureStream, false);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

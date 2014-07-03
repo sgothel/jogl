@@ -43,16 +43,16 @@ public class GLProcAddressResolver implements FunctionAddressResolver {
     public static final boolean DEBUG = false;
 
     @Override
-    public long resolve(String name, DynamicLookupHelper lookup) {
+    public long resolve(final String name, final DynamicLookupHelper lookup) {
 
         long newProcAddress = 0;
-        int permutations = GLNameResolver.getFuncNamePermutationNumber(name);
+        final int permutations = GLNameResolver.getFuncNamePermutationNumber(name);
 
         for (int i = 0; 0 == newProcAddress && i < permutations; i++) {
-            String funcName = GLNameResolver.getFuncNamePermutation(name, i);
+            final String funcName = GLNameResolver.getFuncNamePermutation(name, i);
             try {
                 newProcAddress = lookup.dynamicLookupFunction(funcName);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (DEBUG) {
                     e.printStackTrace();
                 }

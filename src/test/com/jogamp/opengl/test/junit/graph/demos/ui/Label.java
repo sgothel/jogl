@@ -43,7 +43,7 @@ public class Label extends UIShape {
     protected float pixelSize;
     protected String text;
 
-    public Label(Factory<? extends Vertex> factory, int renderModes, Font font, float pixelSize, String text) {
+    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float pixelSize, final String text) {
         super(factory, renderModes);
         this.font = font;
         this.pixelSize = pixelSize;
@@ -54,7 +54,7 @@ public class Label extends UIShape {
         return text;
     }
 
-    public void setText(String text) {
+    public void setText(final String text) {
         this.text = text;
         markShapeDirty();
     }
@@ -63,7 +63,7 @@ public class Label extends UIShape {
         return font;
     }
 
-    public void setFont(Font font) {
+    public void setFont(final Font font) {
         this.font = font;
         markShapeDirty();
     }
@@ -76,17 +76,17 @@ public class Label extends UIShape {
         return font.getLineHeight(pixelSize);
     }
 
-    public void setPixelSize(float pixelSize) {
+    public void setPixelSize(final float pixelSize) {
         this.pixelSize = pixelSize;
         markShapeDirty();
     }
 
     @Override
-    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
     @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
     private final float[] tmpV3 = new float[3];
@@ -95,7 +95,7 @@ public class Label extends UIShape {
 
     private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
         @Override
-        public void visit(OutlineShape shape, AffineTransform t) {
+        public void visit(final OutlineShape shape, final AffineTransform t) {
             shape.setSharpness(shapesSharpness);
             region.addOutlineShape(shape, t, rgbaColor);
             box.resize(shape.getBounds(), t, tmpV3);
@@ -103,7 +103,7 @@ public class Label extends UIShape {
     };
 
     @Override
-    protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
+    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text, tempT1, tempT2);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
