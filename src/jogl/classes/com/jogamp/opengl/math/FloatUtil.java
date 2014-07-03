@@ -548,7 +548,8 @@ public final class FloatUtil {
   }
 
   /**
-   * Make given matrix the perspective matrix based on given parameters.
+   * Make given matrix the perspective {@link #makeFrustum(float[], int, boolean, float, float, float, float, float, float) frustum}
+   * matrix based on given parameters.
    * <p>
    * All matrix fields are only set if <code>initM</code> is <code>true</code>.
    * </p>
@@ -556,7 +557,7 @@ public final class FloatUtil {
    * @param m 4x4 matrix in column-major order (also result)
    * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
    * @param initM if true, given matrix will be initialized w/ identity matrix,
-   *              otherwise only the non-zero fields are set.
+   *              otherwise only the frustum fields are set.
    * @param fovy angle in radians
    * @param aspect
    * @param zNear
@@ -565,11 +566,78 @@ public final class FloatUtil {
    */
   public static float[] makePerspective(final float[] m, final int m_off, final boolean initM,
                                         final float fovy, final float aspect, final float zNear, final float zFar) {
-      float top=(float)Math.tan(fovy)*zNear;
-      float bottom=-1.0f*top;
-      float left=aspect*bottom;
-      float right=aspect*top;
+      final float top=(float)Math.tan(fovy)*zNear;
+      final float bottom=-1.0f*top;
+      final float left=aspect*bottom;
+      final float right=aspect*top;
       return makeFrustum(m, m_off, initM, left, right, bottom, top, zNear, zFar);
+  }
+
+  /**
+   * Make given matrix the perspective {@link #makeFrustum(float[], int, boolean, float, float, float, float, float, float) frustum}
+   * matrix based on given parameters.
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
+   *
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the frustum fields are set.
+   * @param fovhv {@link FovHVHalves} field of view in both directions, may not be centered, either in radians or tangent
+   * @param zNear
+   * @param zFar
+   * @return given matrix for chaining
+   */
+  public static float[] makePerspective(final float[] m, final int m_offset, final boolean initM,
+                                        final FovHVHalves fovhv, final float zNear, final float zFar) {
+      if( initM ) {
+          // m[m_offset+0+4*0] = 1f;
+          m[m_offset+1+4*0] = 0f;
+          m[m_offset+2+4*0] = 0f;
+          m[m_offset+3+4*0] = 0f;
+
+          m[m_offset+0+4*1] = 0f;
+          // m[m_offset+1+4*1] = 1f;
+          m[m_offset+2+4*1] = 0f;
+          m[m_offset+3+4*1] = 0f;
+
+          // m[m_offset+0+4*2] = 0f;
+          // m[m_offset+1+4*2] = 0f;
+          // m[m_offset+2+4*2] = 1f;
+          // m[m_offset+3+4*2] = 0f;
+
+          m[m_offset+0+4*3] = 0f;
+          m[m_offset+1+4*3] = 0f;
+          // m[m_offset+2+4*3] = 0f;
+          // m[m_offset+3+4*3] = 1f;
+      }
+
+      final float projScaleX  = 2.0f / ( fovhv.left + fovhv.right  );
+      final float projScaleY  = 2.0f / ( fovhv.top  + fovhv.bottom );
+      final float projOffsetX =       ( fovhv.left - fovhv.right  ) * projScaleX * 0.5f;
+      final float projOffsetY = -1f * ( fovhv.top  - fovhv.bottom ) * projScaleY * 0.5f;
+
+      // Produces X result, mapping clip edges to [-w,+w]
+      m[m_offset+0+4*0] = projScaleX;
+      m[m_offset+0+4*2] = -1f * projOffsetX;
+
+      // Produces Y result, mapping clip edges to [-w,+w] (Y=up)
+      m[m_offset+1+4*1] = projScaleY;
+      m[m_offset+1+4*2] = -1f * projOffsetY;
+
+      // Custom Z-buffer result .. same as frustum matrix!
+      m[m_offset+2+4*2] = -1.0f*(zFar+zNear)/(zFar-zNear);
+      m[m_offset+2+4*3] = -2.0f*(zFar*zNear)/(zFar-zNear);
+      // alternative:
+      // m[m_offset+2+4*2] = -1.0f * zFar / (zNear - zFar);
+      // m[m_offset+2+4*3] = (zFar * zNear) / (zNear - zFar);
+
+      // Produces W result (= Z in)
+      m[m_offset+3+4*2] = -1.0f;
+      m[m_offset+3+4*3] = 0f;
+
+      return m;
   }
 
   /**
@@ -1034,7 +1102,7 @@ public final class FloatUtil {
                                           final float[] modelMatrix, final int modelMatrix_offset,
                                           final float[] projMatrix, final int projMatrix_offset,
                                           final int[] viewport, final int viewport_offset,
-                                          final float[] win_pos, int win_pos_offset,
+                                          final float[] win_pos, final int win_pos_offset,
                                           final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
       vec4Tmp1[0] = objx;
       vec4Tmp1[1] = objy;
@@ -1088,7 +1156,7 @@ public final class FloatUtil {
   public static boolean mapObjToWinCoords(final float objx, final float objy, final float objz,
                                           final float[/*16*/] mat4PMv,
                                           final int[] viewport, final int viewport_offset,
-                                          final float[] win_pos, int win_pos_offset,
+                                          final float[] win_pos, final int win_pos_offset,
                                           final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
       vec4Tmp2[0] = objx;
       vec4Tmp2[1] = objy;
@@ -1338,11 +1406,11 @@ public final class FloatUtil {
    * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
   public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz, final float clipw,
-                                          float[] modelMatrix, int modelMatrix_offset,
-                                          float[] projMatrix, int projMatrix_offset,
-                                          int[] viewport, int viewport_offset,
-                                          float near, float far,
-                                          float[] obj_pos, int obj_pos_offset,
+                                          final float[] modelMatrix, final int modelMatrix_offset,
+                                          final float[] projMatrix, final int projMatrix_offset,
+                                          final int[] viewport, final int viewport_offset,
+                                          final float near, final float far,
+                                          final float[] obj_pos, final int obj_pos_offset,
                                           final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
     // mat4Tmp1 = P x Mv
     multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
@@ -1445,7 +1513,7 @@ public final class FloatUtil {
    * @param d result a*b in column-major order
    * @return given result matrix <i>d</i> for chaining
    */
-  public static float[] multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, float[] d, final int d_off) {
+  public static float[] multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, final float[] d, final int d_off) {
       final float b00 = b[b_off+0+0*4];
       final float b10 = b[b_off+1+0*4];
       final float b20 = b[b_off+2+0*4];
@@ -1509,7 +1577,7 @@ public final class FloatUtil {
    * @param d result a*b in column-major order
    * @return given result matrix <i>d</i> for chaining
    */
-  public static float[] multMatrix(final float[] a, final float[] b, float[] d) {
+  public static float[] multMatrix(final float[] a, final float[] b, final float[] d) {
       final float b00 = b[0+0*4];
       final float b10 = b[1+0*4];
       final float b20 = b[2+0*4];

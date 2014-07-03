@@ -33,13 +33,17 @@ public final class VectorUtil {
 
     public static final float[] VEC3_ONE = { 1f, 1f, 1f };
     public static final float[] VEC3_ZERO = { 0f, 0f, 0f };
+    public static final float[] VEC3_UNIT_Y = { 0f, 1f, 0f };
+    public static final float[] VEC3_UNIT_Y_NEG = { 0f, -1f, 0f };
+    public static final float[] VEC3_UNIT_Z = { 0f, 0f, 1f };
+    public static final float[] VEC3_UNIT_Z_NEG = { 0f, 0f, -1f };
 
     public enum Winding {
         CW(-1), CCW(1);
 
         public final int dir;
 
-        Winding(int dir) {
+        Winding(final int dir) {
             this.dir = dir;
         }
     }
@@ -52,7 +56,7 @@ public final class VectorUtil {
      * @param srcOffset offset of src in array
      * @return copied output vector for chaining
      */
-    public static float[] copyVec2(final float[] dst, int dstOffset, final float[] src, int srcOffset)
+    public static float[] copyVec2(final float[] dst, final int dstOffset, final float[] src, final int srcOffset)
     {
         System.arraycopy(src, srcOffset, dst, dstOffset, 2);
         return dst;
@@ -66,7 +70,7 @@ public final class VectorUtil {
      * @param srcOffset offset of src in array
      * @return copied output vector for chaining
      */
-    public static float[] copyVec3(final float[] dst, int dstOffset, final float[] src, int srcOffset)
+    public static float[] copyVec3(final float[] dst, final int dstOffset, final float[] src, final int srcOffset)
     {
         System.arraycopy(src, srcOffset, dst, dstOffset, 3);
         return dst;
@@ -80,7 +84,7 @@ public final class VectorUtil {
      * @param srcOffset offset of src in array
      * @return copied output vector for chaining
      */
-    public static float[] copyVec4(final float[] dst, int dstOffset, final float[] src, int srcOffset)
+    public static float[] copyVec4(final float[] dst, final int dstOffset, final float[] src, final int srcOffset)
     {
         System.arraycopy(src, srcOffset, dst, dstOffset, 4);
         return dst;
@@ -92,7 +96,7 @@ public final class VectorUtil {
      * Implementation uses {@link FloatUtil#isEqual(float, float)}, see API doc for details.
      * </p>
      */
-    public static boolean isVec2Equal(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset) {
+    public static boolean isVec2Equal(final float[] vec1, final int vec1Offset, final float[] vec2, final int vec2Offset) {
         return FloatUtil.isEqual(vec1[0+vec1Offset], vec2[0+vec2Offset]) &&
                FloatUtil.isEqual(vec1[1+vec1Offset], vec2[1+vec2Offset]) ;
     }
@@ -103,7 +107,7 @@ public final class VectorUtil {
      * Implementation uses {@link FloatUtil#isEqual(float, float)}, see API doc for details.
      * </p>
      */
-    public static boolean isVec3Equal(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset) {
+    public static boolean isVec3Equal(final float[] vec1, final int vec1Offset, final float[] vec2, final int vec2Offset) {
         return FloatUtil.isEqual(vec1[0+vec1Offset], vec2[0+vec2Offset]) &&
                FloatUtil.isEqual(vec1[1+vec1Offset], vec2[1+vec2Offset]) &&
                FloatUtil.isEqual(vec1[2+vec1Offset], vec2[2+vec2Offset]) ;
@@ -115,7 +119,7 @@ public final class VectorUtil {
      * Implementation uses {@link FloatUtil#isEqual(float, float, float)}, see API doc for details.
      * </p>
      */
-    public static boolean isVec2Equal(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset, final float epsilon) {
+    public static boolean isVec2Equal(final float[] vec1, final int vec1Offset, final float[] vec2, final int vec2Offset, final float epsilon) {
         return FloatUtil.isEqual(vec1[0+vec1Offset], vec2[0+vec2Offset], epsilon) &&
                FloatUtil.isEqual(vec1[1+vec1Offset], vec2[1+vec2Offset], epsilon) ;
     }
@@ -126,7 +130,7 @@ public final class VectorUtil {
      * Implementation uses {@link FloatUtil#isEqual(float, float, float)}, see API doc for details.
      * </p>
      */
-    public static boolean isVec3Equal(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset, final float epsilon) {
+    public static boolean isVec3Equal(final float[] vec1, final int vec1Offset, final float[] vec2, final int vec2Offset, final float epsilon) {
         return FloatUtil.isEqual(vec1[0+vec1Offset], vec2[0+vec2Offset], epsilon) &&
                FloatUtil.isEqual(vec1[1+vec1Offset], vec2[1+vec2Offset], epsilon) &&
                FloatUtil.isEqual(vec1[2+vec1Offset], vec2[2+vec2Offset], epsilon) ;
@@ -250,7 +254,7 @@ public final class VectorUtil {
      */
     public static float normSquareVec2(final float[] vec, final int offset) {
         float v = vec[0+offset];
-        float r = v*v;
+        final float r = v*v;
         v = vec[1+offset];
         return r + v*v;
     }
@@ -956,7 +960,7 @@ public final class VectorUtil {
      * @param epsilon
      * @return resulting intersecting if exists, otherwise null
      */
-    public static float[] line2PlaneIntersection(final float[] result, final Ray ray, float[/*4*/] plane, final float epsilon) {
+    public static float[] line2PlaneIntersection(final float[] result, final Ray ray, final float[/*4*/] plane, final float epsilon) {
         final float tmp = dotVec3(ray.dir, plane) ;
 
         if ( Math.abs(tmp) < epsilon ) {

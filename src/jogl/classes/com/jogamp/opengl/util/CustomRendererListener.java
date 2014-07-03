@@ -25,13 +25,16 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package javax.media.opengl;
+package com.jogamp.opengl.util;
+
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
 
 /**
  * Extended {@link GLEventListener} interface
  * supporting more fine grained control over the implementation.
  */
-public interface GLEventListener2 extends GLEventListener {
+public interface CustomRendererListener extends GLEventListener {
     /**
      * {@link #display(GLAutoDrawable, int) display flag}: Repeat last produced image.
      * <p>
@@ -57,18 +60,4 @@ public interface GLEventListener2 extends GLEventListener {
      * @param flags
      */
     public void display(final GLAutoDrawable drawable, final int flags);
-
-    /**
-     * Might be called instead of {@link #reshape(GLAutoDrawable, int, int, int, int) reshape}
-     * to specify a custom projection and modelview matrix determined by the caller.
-     * <p>
-     * Method is usually called by a custom rendering loop,
-     * e.g. for manual stereo rendering or the like.
-     * </p>
-     *
-     * @param drawable the triggering {@link GLAutoDrawable}
-     * @param mat4Projection float[16] projection matrix
-     * @param mat4Modelview float[16] modelview matrix
-     */
-    public void setProjectionModelview(final GLAutoDrawable drawable, final float[] mat4Projection, final float[] mat4Modelview);
 }

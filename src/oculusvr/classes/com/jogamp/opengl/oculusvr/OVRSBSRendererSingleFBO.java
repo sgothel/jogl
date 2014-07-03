@@ -31,7 +31,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLEventListener2;
 
 import jogamp.opengl.oculusvr.OVRDistortion;
 
@@ -40,54 +39,33 @@ import com.jogamp.oculusvr.ovrFrameTiming;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.FBObject.Attachment.Type;
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.util.CustomRendererListener;
+import com.jogamp.opengl.util.stereo.StereoRendererListener;
 
 /**
  * OculusVR (OVR) <i>Side By Side</i> Distortion Renderer utilizing {@link OVRDistortion}
  * implementing {@link GLEventListener} for convenience.
  * <p>
- * Implementation renders an {@link GLEventListener2} instance
+ * Implementation renders an {@link StereoRendererListener} instance
  * side-by-side within one {@link FBObject} according to {@link OVRDistortion}.
  * </p>
  */
 public class OVRSBSRendererSingleFBO implements GLEventListener {
 
-    private final float[] mat4Projection = new float[16];
-    private final float[] mat4Modelview = new float[16];
     private final OVRDistortion dist;
     private final boolean ownsDist;
-    private final GLEventListener2 upstream;
+    private final StereoRendererListener upstream;
     private final FBObject fbo0;
 
-    // final float[] eyePos = { 0.0f, 1.6f, -5.0f };
-    private final float[] eyePos = { 0.0f, 0.0f, -20.0f };
-    // EyePos.y = ovrHmd_GetFloat(HMD, OVR_KEY_EYE_HEIGHT, EyePos.y);
-    private float eyeYaw = FloatUtil.PI; // 180 degrees in radians
-    private float frustumNear = 0.1f;
-    private float frustumFar = 7000f;
     private int numSamples;
     private TextureAttachment fbo0Tex;
 
-    public OVRSBSRendererSingleFBO(final OVRDistortion dist, final boolean ownsDist, final GLEventListener2 upstream, final int numSamples) {
+    public OVRSBSRendererSingleFBO(final OVRDistortion dist, final boolean ownsDist, final StereoRendererListener upstream, final int numSamples) {
         this.dist = dist;
         this.ownsDist = ownsDist;
         this.upstream = upstream;
         this.numSamples = numSamples;
         fbo0 = new FBObject();
-    }
-
-    /**
-     *
-     * @param eyePos
-     * @param eyeYaw
-     * @param frustumNear
-     * @param frustumFar
-     */
-    public void setUpstreamPMVParams(final float[] eyePos, final float eyeYaw, final float frustumNear, final float frustumFar) {
-        System.arraycopy(eyePos, 0, this.eyePos, 0, 3);
-        this.eyeYaw = eyeYaw;
-        this.frustumNear = frustumNear;
-        this.frustumFar = frustumFar;
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {
@@ -170,9 +148,9 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
                 final int[] viewport = eyeDist.viewport;
                 gl.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 
-                dist.getSBSUpstreamPMV(eyeNum, eyePos, eyeYaw, frustumNear, frustumFar, mat4Projection, mat4Modelview);
-                upstream.setProjectionModelview(drawable, mat4Projection, mat4Modelview);
-                upstream.display(drawable, eyeNum > 0 ? GLEventListener2.DISPLAY_REPEAT | GLEventListener2.DISPLAY_DONTCLEAR : 0);
+                upstream.reshapeEye(drawable, viewport[0], viewport[1], viewport[2], viewport[3],
+                                    dist.getEyeParam(eyeNum), dist.updateEyePose(eyeNum));
+                upstream.display(drawable, eyeNum > 0 ? CustomRendererListener.DISPLAY_REPEAT | CustomRendererListener.DISPLAY_DONTCLEAR : 0);
             }
             fbo0.unbind(gl);
             gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());

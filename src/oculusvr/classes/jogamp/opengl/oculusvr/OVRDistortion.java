@@ -33,6 +33,7 @@ import java.nio.ShortBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 
@@ -50,13 +51,17 @@ import com.jogamp.oculusvr.ovrPosef;
 import com.jogamp.oculusvr.ovrRecti;
 import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.oculusvr.ovrVector2f;
+import com.jogamp.oculusvr.ovrVector3f;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.util.CustomRendererListener;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
+import com.jogamp.opengl.util.stereo.EyeParameter;
+import com.jogamp.opengl.util.stereo.EyePose;
 
 /**
  * OculusVR Distortion Data and OpenGL Renderer Utility
@@ -80,7 +85,6 @@ public class OVRDistortion {
         public final int vertexCount;
         public final int indexCount;
         public final int[/*4*/] viewport;
-        public final float[/*3*/] viewAdjust;
 
         public final GLUniformData eyeToSourceUVScale;
         public final GLUniformData eyeToSourceUVOffset;
@@ -92,23 +96,23 @@ public class OVRDistortion {
         public final GLArrayData vboPos, vboParams, vboTexCoordsR, vboTexCoordsG, vboTexCoordsB;
         public final GLArrayDataServer indices;
 
-        public final ovrEyeRenderDesc eyeRenderDesc;
-        public final ovrFovPort eyeRenderFov;
+        public final ovrEyeRenderDesc ovrEyeDesc;
+        public final ovrFovPort ovrEyeFov;
+        public final EyeParameter eyeParameter;
 
-        public ovrPosef eyeRenderPose;
-        public final Quaternion eyeRenderPoseOrientation;
-        public final float[] eyeRenderPosePosition;
+        public ovrPosef ovrEyePose;
+        public EyePose eyePose;
 
         public final boolean useTimewarp() { return OVRDistortion.useTimewarp(distortionCaps); }
         public final boolean useChromatic() { return OVRDistortion.useChromatic(distortionCaps); }
         public final boolean useVignette() { return OVRDistortion.useVignette(distortionCaps); }
 
         private EyeData(final OvrHmdContext hmdCtx, final int distortionCaps,
-                        final ovrEyeRenderDesc eyeRenderDesc, final ovrSizei ovrTextureSize, final int[] eyeRenderViewport) {
-            this.eyeName = eyeRenderDesc.getEye();
+                        final float[] eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
+                        final ovrSizei ovrTextureSize, final int[] eyeRenderViewport) {
+            this.eyeName = eyeDesc.getEye();
             this.distortionCaps = distortionCaps;
             viewport = new int[4];
-            viewAdjust = new float[3];
             System.arraycopy(eyeRenderViewport, 0, viewport, 0, 4);
 
             final FloatBuffer fstash = Buffers.newDirectFloatBuffer(2+2+16+26);
@@ -124,15 +128,19 @@ public class OVRDistortion {
                 eyeRotationEnd = null;
             }
 
-            this.eyeRenderDesc = eyeRenderDesc;
-            this.eyeRenderFov = eyeRenderDesc.getFov();
+            this.ovrEyeDesc = eyeDesc;
+            this.ovrEyeFov = eyeDesc.getFov();
 
-            this.eyeRenderPoseOrientation = new Quaternion();
-            this.eyeRenderPosePosition = new float[3];
+            final ovrVector3f eyeViewAdjust = eyeDesc.getViewAdjust();
+            this.eyeParameter = new EyeParameter(eyeName, eyePositionOffset, OVRUtil.getFovHV(ovrEyeFov),
+                                                 eyeViewAdjust.getX(), eyeViewAdjust.getY(), eyeViewAdjust.getZ());
 
+            this.eyePose = new EyePose(eyeName);
+
+            updateEyePose(hmdCtx);
 
             final ovrDistortionMesh meshData = ovrDistortionMesh.create();
-            final ovrFovPort fov = eyeRenderDesc.getFov();
+            final ovrFovPort fov = eyeDesc.getFov();
 
             if( !OVR.ovrHmd_CreateDistortionMesh(hmdCtx, eyeName, fov, distortionCaps, meshData) ) {
                 throw new OVRException("Failed to create meshData for eye "+eyeName+" and "+OVRUtil.toString(fov));
@@ -156,7 +164,6 @@ public class OVRDistortion {
                 vboTexCoordsB = null;
             }
             indices = GLArrayDataServer.createData(1, GL2ES2.GL_SHORT, indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-            OVRUtil.copyVec3fToFloat(eyeRenderDesc.getViewAdjust(), viewAdjust);
 
             // Setup: eyeToSourceUVScale, eyeToSourceUVOffset
             {
@@ -309,24 +316,26 @@ public class OVRDistortion {
         }
 
         /**
-         * Updates {@link #eyeRenderPose} and it's extracted
+         * Updates {@link #ovrEyePose} and it's extracted
          * {@link #eyeRenderPoseOrientation} and {@link #eyeRenderPosePosition}.
-         * @param hmdCtx used get the {@link #eyeRenderPose} via {@link OVR#ovrHmd_GetEyePose(OvrHmdContext, int)}
+         * @param hmdCtx used get the {@link #ovrEyePose} via {@link OVR#ovrHmd_GetEyePose(OvrHmdContext, int)}
          */
-        public void updateEyePose(final OvrHmdContext hmdCtx) {
-            eyeRenderPose = OVR.ovrHmd_GetEyePose(hmdCtx, eyeName);
-            OVRUtil.copyToQuaternion(eyeRenderPose.getOrientation(), eyeRenderPoseOrientation);
-            OVRUtil.copyVec3fToFloat(eyeRenderPose.getPosition(), eyeRenderPosePosition);
+        public EyePose updateEyePose(final OvrHmdContext hmdCtx) {
+            ovrEyePose = OVR.ovrHmd_GetEyePose(hmdCtx, eyeName);
+            final ovrVector3f pos = ovrEyePose.getPosition();
+            eyePose.setPosition(pos.getX(), pos.getY(), pos.getZ());
+            OVRUtil.copyToQuaternion(ovrEyePose.getOrientation(), eyePose.orientation);
+            return eyePose;
         }
 
         @Override
         public String toString() {
             return "Eye["+eyeName+", viewport "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]+
-                        " viewAdjust["+viewAdjust[0]+", "+viewAdjust[1]+", "+viewAdjust[2]+
-                        "], vertices "+vertexCount+", indices "+indexCount+
+                        ", "+eyeParameter+
+                        ", vertices "+vertexCount+", indices "+indexCount+
                         ", uvScale["+eyeToSourceUVScale.floatBufferValue().get(0)+", "+eyeToSourceUVScale.floatBufferValue().get(1)+
                         "], uvOffset["+eyeToSourceUVOffset.floatBufferValue().get(0)+", "+eyeToSourceUVOffset.floatBufferValue().get(1)+
-                        "], desc"+OVRUtil.toString(eyeRenderDesc)+"]";
+                        "], desc"+OVRUtil.toString(ovrEyeDesc)+", "+eyePose+"]";
         }
     }
 
@@ -339,9 +348,6 @@ public class OVRDistortion {
 
     private final float[] mat4Tmp1 = new float[16];
     private final float[] mat4Tmp2 = new float[16];
-    private final float[] vec3Tmp1 = new float[3];
-    private final float[] vec3Tmp2 = new float[3];
-    private final float[] vec3Tmp3 = new float[3];
 
     private ShaderProgram sp;
 
@@ -354,7 +360,8 @@ public class OVRDistortion {
     }
 
     public static OVRDistortion create(final OvrHmdContext hmdCtx, final boolean sbsSingleTexture,
-                                       final ovrFovPort[] eyeFov, final float pixelsPerDisplayPixel, final int distortionCaps) {
+                                       final float[] eyePositionOffset, final ovrFovPort[] eyeFov,
+                                       final float pixelsPerDisplayPixel, final int distortionCaps) {
         final ovrEyeRenderDesc[] eyeRenderDesc = new ovrEyeRenderDesc[2];
         eyeRenderDesc[0] = OVR.ovrHmd_GetRenderDesc(hmdCtx, OVR.ovrEye_Left, eyeFov[0]);
         eyeRenderDesc[1] = OVR.ovrHmd_GetRenderDesc(hmdCtx, OVR.ovrEye_Right, eyeFov[1]);
@@ -400,10 +407,11 @@ public class OVRDistortion {
             eyeRenderViewports[1][2] = textureSize[0];
             eyeRenderViewports[1][3] = textureSize[1];
         }
-        return new OVRDistortion(hmdCtx, sbsSingleTexture, eyeRenderDesc, textureSize, eyeRenderViewports, distortionCaps, 0);
+        return new OVRDistortion(hmdCtx, sbsSingleTexture, eyePositionOffset, eyeRenderDesc, textureSize, eyeRenderViewports, distortionCaps, 0);
     }
 
-    public OVRDistortion(final OvrHmdContext hmdCtx, final boolean sbsSingleTexture, final ovrEyeRenderDesc[] eyeRenderDescs,
+    public OVRDistortion(final OvrHmdContext hmdCtx, final boolean sbsSingleTexture,
+                         final float[] eyePositionOffset, final ovrEyeRenderDesc[] eyeRenderDescs,
                          final int[] textureSize, final int[][] eyeRenderViewports,
                          final int distortionCaps, final int textureUnit) {
         this.hmdCtx = hmdCtx;
@@ -416,8 +424,8 @@ public class OVRDistortion {
         usesDistMesh = true;
 
         final ovrSizei ovrTextureSize = OVRUtil.createOVRSizei(textureSize);
-        eyes[0] = new EyeData(hmdCtx, distortionCaps, eyeRenderDescs[0], ovrTextureSize, eyeRenderViewports[0]);
-        eyes[1] = new EyeData(hmdCtx, distortionCaps, eyeRenderDescs[1], ovrTextureSize, eyeRenderViewports[1]);
+        eyes[0] = new EyeData(hmdCtx, distortionCaps, eyePositionOffset, eyeRenderDescs[0], ovrTextureSize, eyeRenderViewports[0]);
+        eyes[1] = new EyeData(hmdCtx, distortionCaps, eyePositionOffset, eyeRenderDescs[1], ovrTextureSize, eyeRenderViewports[1]);
         sp = null;
     }
 
@@ -438,14 +446,6 @@ public class OVRDistortion {
             throw new IllegalStateException("Not initialized");
         }
         eyes[eyeNum].enableVBO(gl, enable);
-    }
-
-    public void updateUniforms(final GL2ES2 gl, final int eyeNum) {
-        if( null == sp ) {
-            throw new IllegalStateException("Not initialized");
-        }
-        gl.glUniform(texUnit0);
-        eyes[eyeNum].updateUniform(gl, sp);
     }
 
     public final ShaderProgram getShaderProgram() { return sp; }
@@ -511,6 +511,35 @@ public class OVRDistortion {
         sp.destroy(gl);
     }
 
+    public EyeParameter getEyeParam(final int eyeNum) {
+        return eyes[eyeNum].eyeParameter;
+    }
+
+    /**
+     * Updates the {@link EyeData#ovrEyePose} via {@link EyeData#updateEyePose(OvrHmdContext)}
+     * for the denoted eye.
+     */
+    public EyePose updateEyePose(final int eyeNum) {
+        return eyes[eyeNum].updateEyePose(hmdCtx);
+    }
+
+    public void updateUniforms(final GL2ES2 gl, final int eyeNum) {
+        if( null == sp ) {
+            throw new IllegalStateException("Not initialized");
+        }
+        gl.glUniform(texUnit0);
+        eyes[eyeNum].updateUniform(gl, sp);
+    }
+
+    /**
+     * <p>
+     * {@link #updateEyePose(int)} must be called upfront
+     * when rendering upstream {@link GLEventListener}.
+     * </p>
+     *
+     * @param gl
+     * @param timewarpPointSeconds
+     */
     public void display(final GL2ES2 gl, final double timewarpPointSeconds) {
         if( null == sp ) {
             throw new IllegalStateException("Not initialized");
@@ -533,7 +562,7 @@ public class OVRDistortion {
         for(int eyeNum=0; eyeNum<2; eyeNum++) {
             final EyeData eye = eyes[eyeNum];
             if( useTimewarp() ) {
-                eye.updateTimewarp(hmdCtx, eye.eyeRenderPose, mat4Tmp1, mat4Tmp2);
+                eye.updateTimewarp(hmdCtx, eye.ovrEyePose, mat4Tmp1, mat4Tmp2);
             }
             eye.updateUniform(gl, sp);
             eye.enableVBO(gl, true);
@@ -548,6 +577,11 @@ public class OVRDistortion {
         sp.useProgram(gl, false);
     }
 
+    /**
+     *
+     * @param gl
+     * @param timewarpPointSeconds
+     */
     public void displayOneEyePre(final GL2ES2 gl, final double timewarpPointSeconds) {
         if( null == sp ) {
             throw new IllegalStateException("Not initialized");
@@ -568,13 +602,22 @@ public class OVRDistortion {
         gl.glUniform(texUnit0);
     }
 
+    /**
+     * <p>
+     * {@link #updateEyePose(int)} must be called upfront
+     * when rendering upstream {@link GLEventListener}.
+     * </p>
+     *
+     * @param gl
+     * @param eyeNum
+     */
     public void displayOneEye(final GL2ES2 gl, final int eyeNum) {
         if( null == sp ) {
             throw new IllegalStateException("Not initialized");
         }
         final EyeData eye = eyes[eyeNum];
         if( useTimewarp() ) {
-            eye.updateTimewarp(hmdCtx, eye.eyeRenderPose, mat4Tmp1, mat4Tmp2);
+            eye.updateTimewarp(hmdCtx, eye.ovrEyePose, mat4Tmp1, mat4Tmp2);
         }
         eye.updateUniform(gl, sp);
         eye.enableVBO(gl, true);
@@ -593,7 +636,12 @@ public class OVRDistortion {
     /**
      * Calculates the <i>Side By Side</i>, SBS, projection- and modelview matrix for one eye.
      * <p>
-     * Method also issues {@link EyeData#updateEyePose(OvrHmdContext)}.
+     * {@link #updateEyePose(int)} must be called upfront.
+     * </p>
+     * <p>
+     * This method merely exist as an example implementation to compute the matrices,
+     * which shall be adopted by the
+     * {@link CustomRendererListener#reshape(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
      * </p>
      * @param eyeNum eye denominator
      * @param eyePos float[3] eye postion vector
@@ -602,17 +650,20 @@ public class OVRDistortion {
      * @param far frustum far value
      * @param mat4Projection float[16] projection matrix result
      * @param mat4Modelview float[16] modelview matrix result
+     * @deprecated Only an example implementation, which should be adopted by the {@link CustomRendererListener#reshape(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
      */
     public void getSBSUpstreamPMV(final int eyeNum, final float[] eyePos, final float eyeYaw, final float near, final float far,
                                   final float[] mat4Projection, final float[] mat4Modelview) {
         final EyeData eyeDist = eyes[eyeNum];
 
-        eyeDist.updateEyePose(hmdCtx);
+        final float[] vec3Tmp1 = new float[3];
+        final float[] vec3Tmp2 = new float[3];
+        final float[] vec3Tmp3 = new float[3];
 
         //
         // Projection
         //
-        final ovrMatrix4f pm = OVR.ovrMatrix4f_Projection(eyeDist.eyeRenderFov, near, far, true /* rightHanded*/);
+        final ovrMatrix4f pm = OVR.ovrMatrix4f_Projection(eyeDist.ovrEyeFov, near, far, true /* rightHanded*/);
         /* final float[] mat4Projection = */ FloatUtil.transposeMatrix(pm.getM(0, mat4Tmp1), mat4Projection);
 
         //
@@ -620,19 +671,20 @@ public class OVRDistortion {
         //
         final Quaternion rollPitchYaw = new Quaternion();
         rollPitchYaw.rotateByAngleY(eyeYaw);
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyeDist.eyeRenderPosePosition, 0);
+        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyeDist.eyePose.position, 0);
         VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyePos);
 
-        rollPitchYaw.mult(eyeDist.eyeRenderPoseOrientation);
+        rollPitchYaw.mult(eyeDist.eyePose.orientation);
         final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VEC3_UP, 0);
         final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VEC3_FORWARD, 0);
         final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);
 
         final float[] mLookAt = FloatUtil.makeLookAt(mat4Tmp2, 0, shiftedEyePos, 0, center, 0, up, 0, mat4Tmp1);
-        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Modelview, true, eyeDist.viewAdjust[0], eyeDist.viewAdjust[1], eyeDist.viewAdjust[2]);
+        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Modelview, true,
+                                                              eyeDist.eyeParameter.distNoseToPupilX,
+                                                              eyeDist.eyeParameter.distMiddleToPupilY,
+                                                              eyeDist.eyeParameter.eyeReliefZ);
 
         /* mat4Modelview = */ FloatUtil.multMatrix(mViewAdjust, mLookAt);
     }
-
-
 }

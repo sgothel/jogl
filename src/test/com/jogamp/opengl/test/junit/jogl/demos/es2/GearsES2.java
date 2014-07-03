@@ -31,12 +31,19 @@ import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
+import com.jogamp.opengl.util.CustomRendererListener;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.stereo.EyeParameter;
+import com.jogamp.opengl.util.stereo.EyePose;
+import com.jogamp.opengl.util.stereo.StereoRendererListener;
 
 import java.nio.FloatBuffer;
 
@@ -45,7 +52,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener2;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 
@@ -53,7 +59,7 @@ import javax.media.opengl.GLUniformData;
  * GearsES2.java <BR>
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
-public class GearsES2 implements GLEventListener2, TileRendererBase.TileRendererListener {
+public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRendererListener {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );
 
     private ShaderState st = null;
@@ -62,6 +68,7 @@ public class GearsES2 implements GLEventListener2, TileRendererBase.TileRenderer
     private GLUniformData colorU = null;
     private float view_rotx = 20.0f, view_roty = 30.0f;
     private boolean flipVerticalInGLOrientation = false;
+    private final boolean customRendering = false;
 
     private final float view_rotz = 0.0f;
     private float panX = 0.0f, panY = 0.0f, panZ=0.0f;
@@ -344,6 +351,10 @@ public class GearsES2 implements GLEventListener2, TileRendererBase.TileRenderer
         reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
     }
 
+    private final float zNear = 2f;
+    private final float zFar = 10000f;
+    private final float zViewDist = 20.0f;
+
     void reshapeImpl(final GL2ES2 gl, final int tileX, final int tileY, final int tileWidth, final int tileHeight, final int imageWidth, final int imageHeight) {
         final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
         if(verbose) {
@@ -389,21 +400,29 @@ public class GearsES2 implements GLEventListener2, TileRendererBase.TileRenderer
         if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
             pmvMatrix.glScalef(1f, -1f, 1f);
         }
-        pmvMatrix.glFrustumf(l, r, b, t, 5.0f, 200.0f);
+        pmvMatrix.glFrustumf(l, r, b, t, zNear, zFar);
 
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
+        pmvMatrix.glTranslatef(0.0f, 0.0f, -zViewDist);
         st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
     }
     // private boolean useAndroidDebug = false;
 
+    private final float[] mat4Tmp1 = new float[16];
+    private final float[] mat4Tmp2 = new float[16];
+    private final float[] vec3Tmp1 = new float[3];
+    private final float[] vec3Tmp2 = new float[3];
+    private final float[] vec3Tmp3 = new float[3];
+
     @Override
-    public void setProjectionModelview(final GLAutoDrawable drawable, final float[] mat4Projection, final float[] mat4Modelview) {
+    public void reshapeEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
+                           final EyeParameter eyeParam, final EyePose eyePose) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
         if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
             pmvMatrix.glLoadIdentity();
             pmvMatrix.glScalef(1f, -1f, 1f);
@@ -411,8 +430,26 @@ public class GearsES2 implements GLEventListener2, TileRendererBase.TileRenderer
         } else {
             pmvMatrix.glLoadMatrixf(mat4Projection, 0);
         }
+
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+
+        final Quaternion rollPitchYaw = new Quaternion();
+        // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
+        // rollPitchYaw.rotateByAngleY(eyeYaw);
+        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyePose.position, 0);
+        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
+
+        rollPitchYaw.mult(eyePose.orientation);
+        final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
+        final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
+        final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);
+
+        final float[] mLookAt = FloatUtil.makeLookAt(mat4Tmp1, 0, shiftedEyePos, 0, center, 0, up, 0, mat4Tmp2);
+        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Tmp2, true, eyeParam.distNoseToPupilX, eyeParam.distMiddleToPupilY, eyeParam.eyeReliefZ);
+        final float[] mat4Modelview = FloatUtil.multMatrix(mViewAdjust, mLookAt);
+
         pmvMatrix.glLoadMatrixf(mat4Modelview, 0);
+        pmvMatrix.glTranslatef(0.0f, 0.0f, -zViewDist);
         st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
@@ -469,8 +506,8 @@ public class GearsES2 implements GLEventListener2, TileRendererBase.TileRenderer
             System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
         }
 
-        final boolean repeatedFrame = 0 != ( GLEventListener2.DISPLAY_REPEAT & flags );
-        final boolean dontClear = 0 != ( GLEventListener2.DISPLAY_DONTCLEAR & flags );
+        final boolean repeatedFrame = 0 != ( CustomRendererListener.DISPLAY_REPEAT & flags );
+        final boolean dontClear = 0 != ( CustomRendererListener.DISPLAY_DONTCLEAR & flags );
 
         // Turn the gears' teeth
         if( doRotate && !repeatedFrame ) {
@@ -533,15 +570,15 @@ public class GearsES2 implements GLEventListener2, TileRendererBase.TileRenderer
 
     public void setGLStates(final GL2ES2 gl, final boolean enable) {
         // Culling only possible if we do not flip the projection matrix
-        final boolean enableCullFace = ! ( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() );
+        final boolean useCullFace = ! ( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() || customRendering );
         if( enable ) {
             gl.glEnable(GL.GL_DEPTH_TEST);
-            if( enableCullFace ) {
+            if( useCullFace ) {
                 gl.glEnable(GL.GL_CULL_FACE);
             }
         } else {
             gl.glDisable(GL.GL_DEPTH_TEST);
-            if( enableCullFace ) {
+            if( useCullFace ) {
                 gl.glDisable(GL.GL_CULL_FACE);
             }
         }

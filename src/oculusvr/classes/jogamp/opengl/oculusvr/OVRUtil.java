@@ -37,6 +37,7 @@ import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.oculusvr.ovrVector2f;
 import com.jogamp.oculusvr.ovrVector2i;
 import com.jogamp.oculusvr.ovrVector3f;
+import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.math.Quaternion;
 
 /**
@@ -83,6 +84,12 @@ public class OVRUtil {
         res[2] = v.getZ();
     }
 
+    public static FovHVHalves getFovHV(final ovrFovPort tanHalfFov) {
+        return new FovHVHalves(tanHalfFov.getLeftTan(), tanHalfFov.getRightTan(),
+                               tanHalfFov.getUpTan(), tanHalfFov.getDownTan(),
+                               true);
+    }
+
     public static String toString(final ovrFovPort fov) {
         return "["+fov.getLeftTan()+" l, "+fov.getRightTan()+" r, "+
                    fov.getUpTan()+" u, "+fov.getDownTan()+" d]";
@@ -100,12 +107,10 @@ public class OVRUtil {
     public static String toString(final ovrVector3f v3) {
         return "["+v3.getX()+", "+v3.getY()+", "+v3.getZ()+"]";
     }
-
     public static String toString(final ovrEyeRenderDesc desc) {
         return "["+desc.getEye()+", fov"+toString(desc.getFov())+
                  ", viewport"+toString(desc.getDistortedViewport())+
                  ", pptCtr"+toString(desc.getPixelsPerTanAngleAtCenter())+
                  ", view-adjust"+toString(desc.getViewAdjust())+"]";
     }
-
 }

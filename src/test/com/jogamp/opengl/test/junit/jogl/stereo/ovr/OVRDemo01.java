@@ -133,9 +133,11 @@ public class OVRDemo01 {
         System.err.println(OVRVersion.getAvailableCapabilitiesInfo(hmdDesc, ovrHmdIndex, null).toString());
 
         // Start the sensor which provides the Rift’s pose and motion.
-        final int requiredSensorCaps = OVR.ovrSensorCap_Orientation;
-        final int supportedSensorCaps = requiredSensorCaps | OVR.ovrSensorCap_YawCorrection | OVR.ovrSensorCap_Position;
-        OVR.ovrHmd_StartSensor(hmdCtx, supportedSensorCaps, requiredSensorCaps);
+        final int requiredSensorCaps = 0;
+        final int supportedSensorCaps = requiredSensorCaps | OVR.ovrSensorCap_Orientation | OVR.ovrSensorCap_YawCorrection | OVR.ovrSensorCap_Position;
+        if( !OVR.ovrHmd_StartSensor(hmdCtx, supportedSensorCaps, requiredSensorCaps) ) {
+            throw new OVRException("OVR HMD #"+ovrHmdIndex+" required sensors not available");
+        }
 
         //
         //
@@ -161,12 +163,15 @@ public class OVRDemo01 {
         //
         // Oculus Rift setup
         //
+        final float[] eyePositionOffset = { 0.0f, 1.6f, -5.0f };
+        // EyePos.y = ovrHmd_GetFloat(HMD, OVR_KEY_EYE_HEIGHT, EyePos.y);
+
         final ovrFovPort[] defaultEyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[2]);
         final int distortionCaps = ( useVignette ? OVR.ovrDistortionCap_Vignette : 0 ) |
                                    ( useChromatic ? OVR.ovrDistortionCap_Chromatic : 0 ) |
                                    ( useTimewarp ? OVR.ovrDistortionCap_TimeWarp : 0 );
         final float pixelsPerDisplayPixel = 1f;
-        final OVRDistortion dist = OVRDistortion.create(hmdCtx, useSingleFBO, defaultEyeFov, pixelsPerDisplayPixel, distortionCaps);
+        final OVRDistortion dist = OVRDistortion.create(hmdCtx, useSingleFBO, eyePositionOffset, defaultEyeFov, pixelsPerDisplayPixel, distortionCaps);
         System.err.println("OVRDistortion: "+dist);
 
         final GearsES2 upstream = new GearsES2(0);
