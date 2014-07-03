@@ -552,6 +552,7 @@
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${swt.jar}" />
             <pathelement location="${jogl-all.jar}" />
+            <pathelement location="${oculusvr.jar}" />
         </path>
 
         <!-- Test Run w/ AWT .. -->

@@ -300,6 +300,7 @@
         <copy todir="${archive}">
             <fileset dir="${build}">
                 <include name="jogl-java-src.zip"/>
+                <include name="jogl-test-java-src.zip"/>
             </fileset>
         </copy>
         <archive.7z destfile="${build}/${archive.name}.7z"
@@ -385,7 +386,7 @@
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.* com.jogamp.oculusvr.*" />
 
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*, jogamp.nativewindow.*, jogamp.opengl.*, jogamp.newt.*" />
 
