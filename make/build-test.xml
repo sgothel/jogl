@@ -123,6 +123,7 @@
     <target name="test.compile.android" if="android-jars.available">
         <!-- Perform the junit pass Java Android compile -->
         <javac destdir="${classes}"
+               excludes="${java.part.test.oculusvr}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"

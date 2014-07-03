@@ -247,6 +247,7 @@
         <!--delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" includes="jogl-java-src.zip" />
         </delete-->
+        <mkdir dir="${build}/oculusvr/gensrc/classes"/> <!-- just in case it was _not_ build -->
         <zip destfile="${build}/jogl-java-src.zip" level="0">
             <fileset dir="${src}/nativewindow/classes"/>
             <fileset dir="${build}/nativewindow/gensrc/classes"/>
