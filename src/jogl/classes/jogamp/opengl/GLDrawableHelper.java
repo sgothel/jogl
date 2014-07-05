@@ -649,8 +649,10 @@ public class GLDrawableHelper {
 
   public final void display(final GLAutoDrawable drawable) {
     displayImpl(drawable);
+    // runForAllGLEventListener(drawable, displayAction);
     if( glRunnables.size()>0 && !execGLRunnables(drawable) ) { // glRunnables volatile OK; execGL.. only executed if size > 0
         displayImpl(drawable);
+        // runForAllGLEventListener(drawable, displayAction);
     }
   }
   private final void displayImpl(final GLAutoDrawable drawable) {
@@ -665,6 +667,31 @@ public class GLDrawableHelper {
                 init( listener, drawable, true /* sendReshape */, listenersToBeInit.size() + 1 == listenerCount /* setViewport if 1st init */ );
             }
             listener.display(drawable);
+          }
+      }
+  }
+
+  public static interface GLEventListenerAction {
+      public void run(final GLAutoDrawable drawable, final GLEventListener listener);
+  }
+  /**
+  private static GLEventListenerAction displayAction = new GLEventListenerAction() {
+      public void run(final GLAutoDrawable drawable, final GLEventListener listener) {
+          listener.display(drawable);
+      }  }; */
+
+  public final void runForAllGLEventListener(final GLAutoDrawable drawable, final GLEventListenerAction action) {
+      synchronized(listenersLock) {
+          final ArrayList<GLEventListener> _listeners = listeners;
+          final int listenerCount = _listeners.size();
+          for (int i=0; i < listenerCount; i++) {
+            final GLEventListener listener = _listeners.get(i) ;
+            // GLEventListener may need to be init,
+            // in case this one is added after the realization of the GLAutoDrawable
+            if( listenersToBeInit.remove(listener) ) {
+                init( listener, drawable, true /* sendReshape */, listenersToBeInit.size() + 1 == listenerCount /* setViewport if 1st init */ );
+            }
+            action.run(drawable, listener);
           }
       }
   }

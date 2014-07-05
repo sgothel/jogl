@@ -28,8 +28,6 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.FloatBuffer;
@@ -38,16 +36,12 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLES2;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -59,61 +53,62 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
-import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
-import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.stereo.EyeParameter;
+import com.jogamp.opengl.util.stereo.EyePose;
+import com.jogamp.opengl.util.stereo.StereoClientRenderer;
+import com.jogamp.opengl.util.stereo.StereoGLEventListener;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
- * Simple planar movie player w/ orthogonal 1:1 projection.
+ * Side-By-Side (SBS) 3D Movie Player for {@link StereoClientRenderer}
+ * <p>
+ * The movie is assumed to be symmetrical SBS,
+ * the left-eye receives the left-part of the texture
+ * and the right-eye the right-part.
+ * </p>
  */
-public class MovieSimple implements GLEventListener {
-    public static final int EFFECT_NORMAL                  =    0;
-    public static final int EFFECT_GRADIENT_BOTTOM2TOP     = 1<<1;
-    public static final int EFFECT_TRANSPARENT             = 1<<3;
-
+public class MovieSBSStereo implements StereoGLEventListener {
     public static final String WINDOW_KEY = "window";
+    public static final String STEREO_RENDERER_KEY = "stereo";
     public static final String PLAYER = "player";
 
     private static boolean waitForKey = false;
     private int surfWidth, surfHeight;
     private int prevMouseX; // , prevMouseY;
     private int rotate = 0;
-    private boolean  orthoProjection = true;
-    private float nearPlaneNormalized;
     private float zoom0;
     private float zoom1;
     private float zoom;
     private long startTime;
-    private int effects = EFFECT_NORMAL;
-    private float alpha = 1.0f;
-    private int swapInterval = 1;
-    private int swapIntervalSet = -1;
+    private final float alpha = 1.0f;
 
     private GLMediaPlayer mPlayer;
-    private final boolean mPlayerShared;
     private boolean mPlayerScaleOrig;
     private float[] verts = null;
-    private GLArrayDataServer interleavedVBO;
+    private GLArrayDataServer interleavedVBOLeft;
+    private GLArrayDataServer interleavedVBORight;
     private volatile boolean resetGLState = false;
+    private StereoClientRenderer stereoClientRenderer;
 
     private ShaderState st;
     private PMVMatrix pmvMatrix;
@@ -139,7 +134,7 @@ public class MovieSimple implements GLEventListener {
 
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         private final Font font = getFont(0, 0, 0);
-        private final float fontSize = 10f;
+        private final float fontSize = 1f; // 0.01f;
         private final GLRegion regionFPS;
 
         InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
@@ -181,15 +176,15 @@ public class MovieSimple implements GLEventListener {
 
             // Note: MODELVIEW is from [ 0 .. height ]
 
-            final int height = drawable.getSurfaceHeight();
+            final int height = 0; // drawable.getSurfaceHeight();
 
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
             final String ptsPrec = null != regionFPS ? "3.1" : "3.0";
-            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
+            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
-                    aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
+                    aspect, mPlayer.getFramerate(), lfps, tfps);
             final String text2 = String.format("audio: id %d, kbps %d, codec %s",
                     mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
             final String text3 = String.format("video: id %d, kbps %d, codec %s",
@@ -204,12 +199,12 @@ public class MovieSimple implements GLEventListener {
                     renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, true);
                 }
                 renderString(drawable, font, pixelSize, text2, 1 /* col */, -4 /* row */, 0, height, -1, true);
-                renderString(drawable, font, pixelSize, text3, 1 /* col */, -3 /* row */, 0, height, -1, true);
-                renderString(drawable, font, pixelSize, text4, 1 /* col */, -2 /* row */, 0, height, -1, true);
+                renderString(drawable, font, pixelSize, text3, 1 /* col */, -3 /* row */, 0, height,  0, true);
+                renderString(drawable, font, pixelSize, text4, 1 /* col */, -2 /* row */, 0, height,  1, true);
             }
         } };
     private InfoTextRendererGLELBase textRendererGLEL = null;
-    private boolean displayOSD = true;
+    private boolean displayOSD = false;
 
     private final MouseListener mouseAction = new MouseAdapter() {
         public void mousePressed(final MouseEvent e) {
@@ -265,13 +260,6 @@ public class MovieSimple implements GLEventListener {
             final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
             int pts1 = 0;
             switch(e.getKeySymbol()) {
-                case KeyEvent.VK_V: {
-                    switch(swapIntervalSet) {
-                        case 0: swapInterval = 1; break;
-                        default: swapInterval = 0; break;
-                    }
-                    break;
-                }
                 case KeyEvent.VK_O:          displayOSD = !displayOSD; break;
                 case KeyEvent.VK_RIGHT:      pts1 = pts0 +  1000; break;
                 case KeyEvent.VK_UP:         pts1 = pts0 + 10000; break;
@@ -330,62 +318,12 @@ public class MovieSimple implements GLEventListener {
             }
         } };
 
-    /**
-     * Default constructor which also issues {@link #initStream(URI, int, int, int)} w/ default values
-     * and polls until the {@link GLMediaPlayer} is {@link GLMediaPlayer.State#Initialized}.
-     * If {@link GLMediaEventListener#EVENT_CHANGE_EOS} is reached, the stream is started over again.
-     * <p>
-     * This default constructor is merely useful for some <i>drop-in</i> test, e.g. using an applet.
-     * </p>
-     */
-    public MovieSimple() {
-        this(null);
-
-        mPlayer.addEventListener(new GLMediaEventListener() {
-            @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-            @Override
-            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
-                System.err.println("MovieCube State: "+mp);
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
-                    resetGLState();
-                }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                    new Thread() {
-                        public void run() {
-                            // loop for-ever ..
-                            mPlayer.seek(0);
-                            mPlayer.play();
-                        } }.start();
-                }
-            }
-        });
-        initStream(defURI, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 3 /* textureCount */);
-        StreamException se = null;
-        while( null == se && GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
-            try {
-                Thread.sleep(16);
-            } catch (final InterruptedException e) { }
-            se = mPlayer.getStreamException();
-        }
-        if( null != se ) {
-            se.printStackTrace();
-            throw new RuntimeException(se);
-        }
-    }
-
-    /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
-    public MovieSimple(final GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
-        mPlayer = sharedMediaPlayer;
+    /** user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
+    public MovieSBSStereo() throws IllegalStateException {
         mPlayerScaleOrig = false;
-        mPlayerShared = null != mPlayer;
-        if( !mPlayerShared ) {
-            mPlayer = GLMediaPlayerFactory.createDefault();
-            mPlayer.attachObject(PLAYER, this);
-        }
-        System.out.println("pC.1a shared "+mPlayerShared+", "+mPlayer);
+        mPlayer = GLMediaPlayerFactory.createDefault();
+        mPlayer.attachObject(PLAYER, this);
+        System.out.println("pC.1a "+mPlayer);
     }
 
     public void initStream(final URI streamLoc, final int vid, final int aid, final int textureCount) {
@@ -393,24 +331,16 @@ public class MovieSimple implements GLEventListener {
         System.out.println("pC.1b "+mPlayer);
     }
 
-    public void setSwapInterval(final int v) { this.swapInterval = v; }
-
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
 
     public void setScaleOrig(final boolean v) {
         mPlayerScaleOrig = v;
     }
 
-    /** defaults to true */
-    public void setOrthoProjection(final boolean v) { orthoProjection=v; }
-    public boolean getOrthoProjection() { return orthoProjection; }
-
-    public boolean hasEffect(final int e) { return 0 != ( effects & e ) ; }
-    public void setEffects(final int e) { effects = e; };
-    public void setTransparency(final float alpha) {
-        this.effects |= EFFECT_TRANSPARENT;
-        this.alpha = alpha;
+    public void setStereoClientRenderer(final StereoClientRenderer scr) {
+        stereoClientRenderer = scr;
     }
+    public StereoClientRenderer getStereoClientRenderer() { return stereoClientRenderer; }
 
     public void resetGLState() {
         resetGLState = true;
@@ -418,9 +348,9 @@ public class MovieSimple implements GLEventListener {
 
     private void initShader(final GL2ES2 gl) {
         // Create & Compile the shader objects
-        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MovieSimple.class,
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MovieSBSStereo.class,
                                             "../shader", "../shader/bin", shaderBasename, true);
-        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MovieSimple.class,
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MovieSBSStereo.class,
                                             "../shader", "../shader/bin", shaderBasename, true);
 
         boolean preludeGLSLVersion = true;
@@ -474,9 +404,9 @@ public class MovieSimple implements GLEventListener {
         final boolean hasVideo = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID();
         resetGLState = false;
 
-        zoom0 =  orthoProjection ? 0f : -2.5f;
-        zoom1 = orthoProjection ? 0f : -5f;
-        zoom = zoom0;
+        zoom0 =  -2.1f;
+        zoom1 = -5f;
+        zoom = 0f;
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
@@ -488,11 +418,11 @@ public class MovieSimple implements GLEventListener {
         }
         final Texture tex;
         try {
-            System.out.println("p0 "+mPlayer+", shared "+mPlayerShared);
-            if(!mPlayerShared && GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
+            System.out.println("p0 "+mPlayer);
+            if(GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
                 mPlayer.initGL(gl);
             }
-            System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
+            System.out.println("p1 "+mPlayer);
             final TextureFrame frame = mPlayer.getLastTexture();
             if( null != frame ) {
                 if( !hasVideo ) {
@@ -508,12 +438,10 @@ public class MovieSimple implements GLEventListener {
                     throw new InternalError("XXX: "+mPlayer);
                 }
             }
-            if(!mPlayerShared) {
-                mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } );
-            }
+            mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
         } catch (final Exception glex) {
             glex.printStackTrace();
-            if(!mPlayerShared && null != mPlayer) {
+            if(null != mPlayer) {
                 mPlayer.destroy(gl);
                 mPlayer = null;
             }
@@ -544,18 +472,10 @@ public class MovieSimple implements GLEventListener {
             final float mAspect = mWidth/mHeight;
             System.err.println("XXX0: mov aspect: "+mAspect);
             float xs, ys;
-            if(orthoProjection) {
-                if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
-                    xs   = mWidth/2f;                ys   = xs / mAspect;
-                } else {
-                    xs   = dWidth/2f;                ys   = xs / mAspect; // w>h
-                }
+            if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
+                xs   = mAspect * ( mWidth / dWidth ) ; ys   =  xs / mAspect ;
             } else {
-                if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
-                    xs   = mAspect * ( mWidth / dWidth ) ; ys   =  xs / mAspect ;
-                } else {
-                    xs   = mAspect; ys   = 1f; // b>h
-                }
+                xs   = mAspect; ys   = 1f; // b>h
             }
             verts = new float[] { -1f*xs, -1f*ys, 0f, // LB
                                    1f*xs,  1f*ys, 0f  // RT
@@ -571,15 +491,23 @@ public class MovieSimple implements GLEventListener {
                 System.err.println("XXX0: win   RT: "+winRT[0]+", "+winRT[1]+", "+winRT[2]);
             }
 
-            interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
+            interleavedVBOLeft = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
             {
-                interleavedVBO.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);
-                interleavedVBO.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
-                interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
+                interleavedVBOLeft.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);
+                interleavedVBOLeft.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
+                interleavedVBOLeft.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
             }
-            updateInterleavedVBO(gl, tex);
+            interleavedVBORight = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
+            {
+                interleavedVBORight.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);
+                interleavedVBORight.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
+                interleavedVBORight.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
+            }
+            updateInterleavedVBO(gl, interleavedVBOLeft, tex, 0);
+            updateInterleavedVBO(gl, interleavedVBORight, tex, 1);
 
-            st.ownAttribute(interleavedVBO, true);
+            st.ownAttribute(interleavedVBOLeft, true);
+            st.ownAttribute(interleavedVBORight, true);
             gl.glClearColor(0.3f, 0.3f, 0.3f, 0.3f);
 
             gl.glEnable(GL.GL_DEPTH_TEST);
@@ -587,14 +515,13 @@ public class MovieSimple implements GLEventListener {
             st.useProgram(gl, false);
 
             // Let's show the completed shader state ..
-            System.out.println("iVBO: "+interleavedVBO);
+            System.out.println("iVBOLeft : "+interleavedVBOLeft);
+            System.out.println("iVBORight: "+interleavedVBORight);
             System.out.println(st);
         }
 
-        if(!mPlayerShared) {
-            mPlayer.play();
-            System.out.println("play.0 "+mPlayer);
-        }
+        mPlayer.play();
+        System.out.println("play.0 "+mPlayer);
         startTime = System.currentTimeMillis();
 
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -608,69 +535,70 @@ public class MovieSimple implements GLEventListener {
         final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
         final boolean lowPerfDevice = gl.isGLES();
         textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
-        drawable.addGLEventListener(textRendererGLEL);
+        textRendererGLEL.init(drawable);
     }
 
-    protected void updateInterleavedVBO(final GL gl, final Texture tex) {
-        final float ss = 1f, ts = 1f; // scale tex-coord
-        final boolean wasEnabled = interleavedVBO.enabled();
-        interleavedVBO.seal(gl, false);
-        interleavedVBO.rewind();
+    protected void updateInterleavedVBO(final GL gl, final GLArrayDataServer iVBO, final Texture tex, final int eyeNum) {
+        final boolean wasEnabled = iVBO.enabled();
+        iVBO.seal(gl, false);
+        iVBO.rewind();
         {
-            final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
+            final FloatBuffer ib = (FloatBuffer)iVBO.getBuffer();
             final TextureCoords tc = tex.getImageTexCoords();
-            System.err.println("XXX0: "+tc);
+            final float texHalfWidth = tc.right()/2f;
+            System.err.println("XXX0: "+tc+", texHalfWidth "+texHalfWidth);
             System.err.println("XXX0: tex aspect: "+tex.getAspectRatio());
             System.err.println("XXX0: tex y-flip: "+tex.getMustFlipVertically());
 
              // left-bottom
             ib.put(verts[0]);  ib.put(verts[1]);  ib.put(verts[2]);
-            if( hasEffect(EFFECT_GRADIENT_BOTTOM2TOP) ) {
-                ib.put( 0);    ib.put( 0);     ib.put( 0);    ib.put(alpha);
+            ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+            if( 0 == eyeNum ) {
+                ib.put( tc.left() );  ib.put( tc.bottom() );
             } else {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+                ib.put( tc.left() + texHalfWidth );  ib.put( tc.bottom() );
             }
-            ib.put( tc.left()   *ss);  ib.put( tc.bottom() *ts);
 
              // right-bottom
             ib.put(verts[3]);  ib.put(verts[1]);  ib.put(verts[2]);
-            if( hasEffect(EFFECT_GRADIENT_BOTTOM2TOP) ) {
-                ib.put( 0);    ib.put( 0);     ib.put( 0);    ib.put(alpha);
+            ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+            if( 0 == eyeNum ) {
+                ib.put( texHalfWidth );  ib.put( tc.bottom() );
             } else {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+                ib.put( tc.right() );  ib.put( tc.bottom() );
             }
-            ib.put( tc.right()  *ss);  ib.put( tc.bottom() *ts);
 
              // left-top
             ib.put(verts[0]);  ib.put(verts[4]);  ib.put(verts[2]);
-            if( hasEffect(EFFECT_GRADIENT_BOTTOM2TOP) ) {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+            ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+            if( 0 == eyeNum ) {
+                ib.put( tc.left() );  ib.put( tc.top() );
             } else {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+                ib.put( tc.left() + texHalfWidth );  ib.put( tc.top() );
             }
-            ib.put( tc.left()   *ss);  ib.put( tc.top()    *ts);
 
              // right-top
             ib.put(verts[3]);  ib.put(verts[4]);  ib.put(verts[2]);
-            if( hasEffect(EFFECT_GRADIENT_BOTTOM2TOP) ) {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+            ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+            if( 0 == eyeNum ) {
+                ib.put( texHalfWidth );  ib.put( tc.top() );
             } else {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
+                ib.put( tc.right() );  ib.put( tc.top() );
             }
-            ib.put( tc.right()  *ss);  ib.put( tc.top()    *ts);
         }
-        interleavedVBO.seal(gl, true);
+        iVBO.seal(gl, true);
         if( !wasEnabled ) {
-            interleavedVBO.enableBuffer(gl, false);
+            iVBO.enableBuffer(gl, false);
         }
     }
 
     @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        if(null == mPlayer) { return; }
         surfWidth = width;
         surfHeight = height;
+
+        if(null == mPlayer) { return; }
 
         if(null != st) {
             reshapePMV(width, height);
@@ -680,33 +608,70 @@ public class MovieSimple implements GLEventListener {
         }
 
         System.out.println("pR "+mPlayer);
+        textRendererGLEL.reshape(drawable, x, y, width, height);
     }
 
-    private final float zNear = 1f;
-    private final float zFar = 10f;
+    private final float zNear = 0.1f;
+    private final float zFar = 10000f;
 
     private void reshapePMV(final int width, final int height) {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        if(orthoProjection) {
-            final float fw = width / 2f;
-            final float fh = height/ 2f;
-            pmvMatrix.glOrthof(-fw, fw, -fh, fh, -1.0f, 1.0f);
-            nearPlaneNormalized = 0f;
-        } else {
-            pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, zNear, zFar);
-            nearPlaneNormalized = 1f/(10f-1f);
-        }
-        System.err.println("XXX0: Perspective nearPlaneNormalized: "+nearPlaneNormalized);
+        pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, zNear, zFar);
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, zoom0);
     }
 
+    private final float[] mat4Tmp1 = new float[16];
+    private final float[] mat4Tmp2 = new float[16];
+    private final float[] vec3Tmp1 = new float[3];
+    private final float[] vec3Tmp2 = new float[3];
+    private final float[] vec3Tmp3 = new float[3];
+
+    GLArrayDataServer interleavedVBOCurrent = null;
+
+    @Override
+    public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
+                              final EyeParameter eyeParam, final EyePose eyePose) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        interleavedVBOCurrent = 0 == eyeParam.number ? interleavedVBOLeft : interleavedVBORight;
+
+        surfWidth = drawable.getSurfaceWidth();
+        surfHeight = drawable.getSurfaceHeight();
+
+        if(null == mPlayer) { return; }
+        if(null == st) { return; }
+
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+        final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
+        pmvMatrix.glLoadMatrixf(mat4Projection, 0);
+
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        final Quaternion rollPitchYaw = new Quaternion();
+        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyePose.position, 0);
+        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
+
+        rollPitchYaw.mult(eyePose.orientation);
+        final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
+        final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
+        final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);
+
+        final float[] mLookAt = FloatUtil.makeLookAt(mat4Tmp1, 0, shiftedEyePos, 0, center, 0, up, 0, mat4Tmp2);
+        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Tmp2, true, eyeParam.distNoseToPupilX, eyeParam.distMiddleToPupilY, eyeParam.eyeReliefZ);
+        final float[] mat4Modelview = FloatUtil.multMatrix(mViewAdjust, mLookAt);
+        pmvMatrix.glLoadMatrixf(mat4Modelview, 0);
+        pmvMatrix.glTranslatef(0, 0, zoom0);
+        st.useProgram(gl, true);
+        st.uniform(gl, pmvMatrixUniform);
+        st.useProgram(gl, false);
+        textRendererGLEL.reshape(drawable, x, y, width, height);
+    }
+
     @Override
     public void dispose(final GLAutoDrawable drawable) {
-        drawable.disposeGLEventListener(textRendererGLEL, true);
+        textRendererGLEL.dispose(drawable);
         textRendererGLEL = null;
         disposeImpl(drawable, true);
     }
@@ -724,9 +689,7 @@ public class MovieSimple implements GLEventListener {
         System.out.println("pD.1 "+mPlayer+", disposePlayer "+disposePlayer);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if( disposePlayer ) {
-            if(!mPlayerShared) {
-                mPlayer.destroy(gl);
-            }
+            mPlayer.destroy(gl);
             System.out.println("pD.X "+mPlayer);
             mPlayer=null;
         }
@@ -744,13 +707,17 @@ public class MovieSimple implements GLEventListener {
 
     @Override
     public void display(final GLAutoDrawable drawable) {
+        display(drawable, 0);
+    }
+
+    @Override
+    public void display(final GLAutoDrawable drawable, final int flags) {
+        // TODO Auto-generated method stub
+        final boolean repeatedFrame = 0 != ( CustomGLEventListener.DISPLAY_REPEAT & flags );
+        final boolean dontClear = 0 != ( CustomGLEventListener.DISPLAY_DONTCLEAR & flags );
+        final GLArrayDataServer iVBO = null != interleavedVBOCurrent ? interleavedVBOCurrent : interleavedVBOLeft;
+
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
-            drawable.getAnimator().resetFPSCounter();
-            swapIntervalSet = swapInterval;
-            swapInterval = -1;
-        }
         if(null == mPlayer) { return; }
 
         if( resetGLState ) {
@@ -767,7 +734,9 @@ public class MovieSimple implements GLEventListener {
             lastPerfPos = currentPos;
         }
 
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        if( !dontClear ) {
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        }
 
         if(null == st) {
             return;
@@ -776,7 +745,7 @@ public class MovieSimple implements GLEventListener {
         st.useProgram(gl, true);
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();
+        pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(0, 0, zoom);
         if(rotate > 0) {
             final float ang = ((System.currentTimeMillis() - startTime) * 360.0f) / 8000.0f;
@@ -785,11 +754,11 @@ public class MovieSimple implements GLEventListener {
             rotate = 0;
         }
         st.uniform(gl, pmvMatrixUniform);
-        interleavedVBO.enableBuffer(gl, true);
+        iVBO.enableBuffer(gl, true);
         Texture tex = null;
         if(null!=mPlayer) {
             final TextureSequence.TextureFrame texFrame;
-            if( mPlayerShared ) {
+            if( repeatedFrame ) {
                 texFrame=mPlayer.getLastTexture();
             } else {
                 texFrame=mPlayer.getNextTexture(gl);
@@ -805,11 +774,14 @@ public class MovieSimple implements GLEventListener {
         if(null != tex) {
             tex.disable(gl);
         }
-        interleavedVBO.enableBuffer(gl, false);
+        iVBO.enableBuffer(gl, false);
         st.useProgram(gl, false);
+        pmvMatrix.glPopMatrix();
+
+        textRendererGLEL.display(drawable);
     }
 
-    static class MyGLMediaEventListener implements GLMediaEventListener {
+    static class StereoGLMediaEventListener implements GLMediaEventListener {
             void destroyWindow(final Window window) {
                 new Thread() {
                     public void run() {
@@ -826,41 +798,22 @@ public class MovieSimple implements GLEventListener {
                 System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                 System.err.println("MovieSimple State: "+mp);
                 final GLWindow window = (GLWindow) mp.getAttachedObject(WINDOW_KEY);
-                final MovieSimple ms = (MovieSimple)mp.getAttachedObject(PLAYER);
+                final MovieSBSStereo ms = (MovieSBSStereo)mp.getAttachedObject(PLAYER);
+                final StereoClientRenderer stereoClientRenderer = (StereoClientRenderer) mp.getAttachedObject(STEREO_RENDERER_KEY);
+
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
                     System.err.println("MovieSimple State: CHANGE_SIZE");
-                    if( origSize ) {
-                        window.setSurfaceSize(mp.getWidth(), mp.getHeight());
-                    }
                     // window.disposeGLEventListener(ms, false /* remove */ );
                     ms.resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
                     System.err.println("MovieSimple State: INIT");
                     // Use GLEventListener in all cases [A+V, V, A]
-                    window.addGLEventListener(ms);
+                    stereoClientRenderer.addGLEventListener(ms);
                     final GLAnimatorControl anim = window.getAnimator();
                     anim.setUpdateFPSFrames(60, null);
                     anim.resetFPSCounter();
-                    /**
-                     * Kick off player w/o GLEventListener, i.e. for audio only.
-                     *
-                        new Thread() {
-                            public void run() {
-                                try {
-                                    mp.initGL(null);
-                                    if ( GLMediaPlayer.State.Paused == mp.getState() ) { // init OK
-                                        mp.play();
-                                    }
-                                    System.out.println("play.1 "+mp);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    destroyWindow();
-                                    return;
-                                }
-                            }
-                        }.start();
-                    */
+                    ms.setStereoClientRenderer(stereoClientRenderer);
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {
                     window.getAnimator().resetFPSCounter();
@@ -876,17 +829,13 @@ public class MovieSimple implements GLEventListener {
                         destroy = true;
                     } else {
                         System.err.println("MovieSimple State: EOS");
-                        if( loopEOS ) {
-                            new Thread() {
-                                public void run() {
-                                    mp.setPlaySpeed(1f);
-                                    mp.seek(0);
-                                    mp.play();
-                                }
-                            }.start();
-                        } else {
-                            destroy = true;
-                        }
+                        new Thread() {
+                            public void run() {
+                                mp.setPlaySpeed(1f);
+                                mp.seek(0);
+                                mp.play();
+                            }
+                        }.start();
                     }
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
@@ -906,170 +855,5 @@ public class MovieSimple implements GLEventListener {
                 }
             }
         };
-    public final static MyGLMediaEventListener myGLMediaEventListener = new MyGLMediaEventListener();
-
-    static boolean loopEOS = false;
-    static boolean origSize;
-
-    public static void main(final String[] args) throws IOException, URISyntaxException {
-        int swapInterval = 1;
-        int width = 800;
-        int height = 600;
-        int textureCount = 3; // default - threaded
-        boolean ortho = true;
-        boolean zoom = false;
-
-        boolean forceES2 = false;
-        boolean forceES3 = false;
-        boolean forceGL3 = false;
-        boolean forceGLDef = false;
-        int vid = GLMediaPlayer.STREAM_ID_AUTO;
-        int aid = GLMediaPlayer.STREAM_ID_AUTO;
-
-        final int windowCount;
-        {
-            int _windowCount = 1;
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-windows")) {
-                    i++;
-                    _windowCount = MiscUtils.atoi(args[i], _windowCount);
-                }
-            }
-            windowCount = _windowCount;
-        }
-        final String[] urls_s = new String[windowCount];
-        String file_s1=null, file_s2=null;
-        {
-            boolean _origSize = false;
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-vid")) {
-                    i++;
-                    vid = MiscUtils.atoi(args[i], vid);
-                } else if(args[i].equals("-aid")) {
-                    i++;
-                    aid = MiscUtils.atoi(args[i], aid);
-                } else if(args[i].equals("-width")) {
-                    i++;
-                    width = MiscUtils.atoi(args[i], width);
-                } else if(args[i].equals("-height")) {
-                    i++;
-                    height = MiscUtils.atoi(args[i], height);
-                } else if(args[i].equals("-osize")) {
-                    _origSize = true;
-                } else if(args[i].equals("-textureCount")) {
-                    i++;
-                    textureCount = MiscUtils.atoi(args[i], textureCount);
-                } else if(args[i].equals("-es2")) {
-                    forceES2 = true;
-                } else if(args[i].equals("-es3")) {
-                    forceES3 = true;
-                } else if(args[i].equals("-gl3")) {
-                    forceGL3 = true;
-                } else if(args[i].equals("-gldef")) {
-                    forceGLDef = true;
-                } else if(args[i].equals("-vsync")) {
-                    i++;
-                    swapInterval = MiscUtils.atoi(args[i], swapInterval);
-                } else if(args[i].equals("-projection")) {
-                    ortho=false;
-                } else if(args[i].equals("-zoom")) {
-                    zoom=true;
-                } else if(args[i].equals("-loop")) {
-                    loopEOS=true;
-                } else if(args[i].equals("-urlN")) {
-                    i++;
-                    final int n = MiscUtils.atoi(args[i], 0);
-                    i++;
-                    urls_s[n] = args[i];
-                } else if(args[i].equals("-url")) {
-                    i++;
-                    urls_s[0] = args[i];
-                } else if(args[i].equals("-file1")) {
-                    i++;
-                    file_s1 = args[i];
-                } else if(args[i].equals("-file2")) {
-                    i++;
-                    file_s2 = args[i];
-                } else if(args[i].equals("-wait")) {
-                    waitForKey = true;
-                }
-            }
-            origSize = _origSize;
-        }
-        final URI streamLoc0;
-        if( null != urls_s[0] ) {
-            streamLoc0 = new URI(urls_s[0]);
-        } else if( null != file_s1 ) {
-            final File movieFile = new File(file_s1);
-            streamLoc0 = movieFile.toURI();
-        } else if( null != file_s2 ) {
-            streamLoc0 = IOUtil.toURISimple(new File(file_s2));
-        } else {
-            streamLoc0 = defURI;
-        }
-        System.err.println("url_s "+urls_s[0]);
-        System.err.println("file_s 1: "+file_s1+", 2: "+file_s2);
-        System.err.println("stream0 "+streamLoc0);
-        System.err.println("vid "+vid+", aid "+aid);
-        System.err.println("textureCount "+textureCount);
-        System.err.println("forceES2   "+forceES2);
-        System.err.println("forceES3   "+forceES3);
-        System.err.println("forceGL3   "+forceGL3);
-        System.err.println("forceGLDef "+forceGLDef);
-        System.err.println("swapInterval "+swapInterval);
-
-        final GLProfile glp;
-        if(forceGLDef) {
-            glp = GLProfile.getDefault();
-        } else if(forceGL3) {
-            glp = GLProfile.get(GLProfile.GL3);
-        } else if(forceES3) {
-            glp = GLProfile.get(GLProfile.GLES3);
-        } else if(forceES2) {
-            glp = GLProfile.get(GLProfile.GLES2);
-        } else {
-            glp = GLProfile.getGL2ES2();
-        }
-        System.err.println("GLProfile: "+glp);
-        final GLCapabilities caps = new GLCapabilities(glp);
-        // caps.setAlphaBits(4); // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
-
-        final MovieSimple[] mss = new MovieSimple[windowCount];
-        final GLWindow[] windows = new GLWindow[windowCount];
-        for(int i=0; i<windowCount; i++) {
-            final Animator anim = new Animator();
-            anim.start();
-            windows[i] = GLWindow.create(caps);
-            windows[i].addWindowListener(new WindowAdapter() {
-                public void windowDestroyed(final WindowEvent e) {
-                    anim.stop();
-                }
-            });
-            mss[i] = new MovieSimple(null);
-            mss[i].setSwapInterval(swapInterval);
-            mss[i].setScaleOrig(!zoom);
-            mss[i].setOrthoProjection(ortho);
-            mss[i].mPlayer.attachObject(WINDOW_KEY, windows[i]);
-            mss[i].mPlayer.addEventListener(myGLMediaEventListener);
-
-            windows[i].setTitle("Player "+i);
-            windows[i].setSize(width, height);
-            windows[i].setVisible(true);
-            anim.add(windows[i]);
-
-            final URI streamLocN;
-            if( 0 == i ) {
-                streamLocN = streamLoc0;
-            } else {
-                if( null != urls_s[i] ) {
-                    streamLocN = new URI(urls_s[i]);
-                } else {
-                    streamLocN = defURI;
-                }
-            }
-            System.err.println("Win #"+i+": stream "+streamLocN);
-            mss[i].initStream(streamLocN, vid, aid, textureCount);
-        }
-    }
-
+    public final static StereoGLMediaEventListener stereoGLMediaEventListener = new StereoGLMediaEventListener();
 }

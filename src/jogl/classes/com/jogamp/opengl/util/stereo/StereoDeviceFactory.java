@@ -27,42 +27,38 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.common.util.ReflectionUtil;
 
 /**
- * Constant parameter for one eye.
+ * Platform agnostic {@link StereoDevice} factory.
  */
-public final class EyeParameter {
-    /** Eye number, <code>0</code> for the left eye and <code>1</code> for the right eye. */
-    public final int number;
+public abstract class StereoDeviceFactory {
+    private static final String OVRStereoDeviceClazzName = "jogamp.opengl.oculusvr.OVRStereoDeviceFactory";
+    private static final Object[] ctorArgs;
+    private static final String isAvailableMethodName = "isAvailable";
 
-    /** float[3] eye position vector used to define eye height in meter relative to <i>actor</i>. */
-    public final float[] positionOffset;
+    static {
+        ctorArgs = new Object[6];
+        ctorArgs[0] = null;
 
-    /** Field of view in both directions, may not be centered, either in radians or tangent. */
-    public final FovHVHalves fovhv;
-
-    /** IPD related horizontal distance from nose to pupil in meter. */
-    public final float distNoseToPupilX;
-
-    /** Vertical distance from middle-line to pupil in meter. */
-    public final float distMiddleToPupilY;
-
-    /** Z-axis eye relief in meter. */
-    public final float eyeReliefZ;
-
-    public EyeParameter(final int number, final float[] positionOffset, final FovHVHalves fovhv,
-                        final float distNoseToPupil, final float verticalDelta, final float eyeRelief) {
-        this.number = number;
-        this.positionOffset = new float[3];
-        System.arraycopy(positionOffset, 0, this.positionOffset, 0, 3);
-        this.fovhv = fovhv;
-        this.distNoseToPupilX = distNoseToPupil;
-        this.distMiddleToPupilY = verticalDelta;
-        this.eyeReliefZ = eyeRelief;
     }
-    public final String toString() {
-        return "EyeParam[num "+number+", posOff["+positionOffset[0]+", "+positionOffset[1]+", "+positionOffset[2]+"], "+fovhv+
-                      ", distPupil[noseX "+distNoseToPupilX+", middleY "+distMiddleToPupilY+", reliefZ "+eyeReliefZ+"]]";
+    public static StereoDeviceFactory createDefaultFactory() {
+        final ClassLoader cl = StereoDeviceFactory.class.getClassLoader();
+        final StereoDeviceFactory sink = createFactory(cl, OVRStereoDeviceClazzName);
+        if( null == sink ) {
+            // sink = create(cl, ANYOTHERCLAZZNAME);
+        }
+        return sink;
     }
+
+    public static StereoDeviceFactory createFactory(final ClassLoader cl, final String implName) {
+        try {
+            if(((Boolean)ReflectionUtil.callStaticMethod(implName, isAvailableMethodName, null, null, cl)).booleanValue()) {
+                return (StereoDeviceFactory) ReflectionUtil.createInstance(implName, cl);
+            }
+        } catch (final Throwable t) { if(StereoDevice.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
+        return null;
+    }
+
+    public abstract StereoDevice createDevice(final int deviceIndex, final boolean verbose);
 }

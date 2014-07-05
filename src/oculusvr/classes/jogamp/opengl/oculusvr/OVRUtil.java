@@ -27,7 +27,11 @@
  */
 package jogamp.opengl.oculusvr;
 
-import jogamp.opengl.Debug;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
+import javax.media.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.oculusvr.ovrEyeRenderDesc;
 import com.jogamp.oculusvr.ovrFovPort;
@@ -44,8 +48,6 @@ import com.jogamp.opengl.math.Quaternion;
  * OculusVR Data Conversion Helper Functions
  */
 public class OVRUtil {
-    public static final boolean DEBUG = Debug.debug("OVR");
-
     public static ovrRecti createOVRRecti(final int[] rect) {
         final ovrRecti res = ovrRecti.create();
         final ovrVector2i pos = res.getPos();
@@ -54,6 +56,16 @@ public class OVRUtil {
         pos.setY(rect[1]);
         size.setW(rect[2]);
         size.setH(rect[3]);
+        return res;
+    }
+    public static ovrRecti createOVRRecti(final RectangleImmutable rect) {
+        final ovrRecti res = ovrRecti.create();
+        final ovrVector2i pos = res.getPos();
+        final ovrSizei size = res.getSize();
+        pos.setX(rect.getX());
+        pos.setY(rect.getY());
+        size.setW(rect.getWidth());
+        size.setH(rect.getHeight());
         return res;
     }
     public static ovrRecti[] createOVRRectis(final int[][] rects) {
@@ -69,11 +81,24 @@ public class OVRUtil {
         res.setH(size[1]);
         return res;
     }
-    public static Quaternion getQuaternion(final ovrQuatf q) {
-        return new Quaternion(q.getX(), q.getY(), q.getZ(), q.getW());
+    public static ovrSizei createOVRSizei(final DimensionImmutable size) {
+        final ovrSizei res = ovrSizei.create();
+        res.setW(size.getWidth());
+        res.setH(size.getHeight());
+        return res;
     }
-    public static void copyToQuaternion(final ovrQuatf in, final Quaternion  out) {
-        out.set(in.getX(), in.getY(), in.getZ(), in.getW());
+    public static DimensionImmutable getOVRSizei(final ovrSizei v) {
+        return new Dimension(v.getW(), v.getH());
+    }
+    public static PointImmutable getVec2iAsPoint(final ovrVector2i v) {
+        return new Point(v.getX(), v.getY());
+    }
+    public static int[] getVec2i(final ovrVector2i v) {
+        return new int[] { v.getX(), v.getY() };
+    }
+    public static void copyVec2iToInt(final ovrVector2i v, final int[] res) {
+        res[0] = v.getX();
+        res[1] = v.getY();
     }
     public static float[] getVec3f(final ovrVector3f v) {
         return new float[] { v.getX(), v.getY(), v.getZ() };
@@ -83,11 +108,32 @@ public class OVRUtil {
         res[1] = v.getY();
         res[2] = v.getZ();
     }
+    public static Quaternion getQuaternion(final ovrQuatf q) {
+        return new Quaternion(q.getX(), q.getY(), q.getZ(), q.getW());
+    }
+    public static void copyToQuaternion(final ovrQuatf in, final Quaternion  out) {
+        out.set(in.getX(), in.getY(), in.getZ(), in.getW());
+    }
 
     public static FovHVHalves getFovHV(final ovrFovPort tanHalfFov) {
         return new FovHVHalves(tanHalfFov.getLeftTan(), tanHalfFov.getRightTan(),
                                tanHalfFov.getUpTan(), tanHalfFov.getDownTan(),
                                true);
+    }
+    public static ovrFovPort getOVRFovPort(final FovHVHalves fovHVHalves) {
+        final ovrFovPort tanHalfFov = ovrFovPort.create();
+        if( fovHVHalves.inTangents ) {
+            tanHalfFov.setLeftTan(fovHVHalves.left);
+            tanHalfFov.setRightTan(fovHVHalves.right);
+            tanHalfFov.setUpTan(fovHVHalves.top);
+            tanHalfFov.setDownTan(fovHVHalves.bottom);
+        } else {
+            tanHalfFov.setLeftTan((float)Math.tan(fovHVHalves.left));
+            tanHalfFov.setRightTan((float)Math.tan(fovHVHalves.right));
+            tanHalfFov.setUpTan((float)Math.tan(fovHVHalves.top));
+            tanHalfFov.setDownTan((float)Math.tan(fovHVHalves.bottom));
+        }
+        return tanHalfFov;
     }
 
     public static String toString(final ovrFovPort fov) {

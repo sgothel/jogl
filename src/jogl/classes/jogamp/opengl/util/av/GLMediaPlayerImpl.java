@@ -36,7 +36,6 @@ import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;

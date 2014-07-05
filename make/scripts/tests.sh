@@ -276,6 +276,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.StereoDevice"
 
     if [ $awton -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -370,7 +371,7 @@ function testawtswt() {
 #
 # Stereo
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.stereo.ovr.OVRDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI

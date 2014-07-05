@@ -31,15 +31,16 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.util.CustomRendererListener;
+import com.jogamp.opengl.util.CustomGLEventListener;
 
 /**
- * Extended {@link GLEventListener} and {@link CustomRendererListener} interface
+ * Extended {@link GLEventListener} and {@link CustomGLEventListener} interface
  * supporting stereoscopic client rendering.
  */
-public interface StereoRendererListener extends CustomRendererListener {
+public interface StereoGLEventListener extends CustomGLEventListener {
     /**
-     * Stereo capable specialization of {@link #reshape(GLAutoDrawable, int, int, int, int)}.
+     * Stereo capable specialization of {@link #reshape(GLAutoDrawable, int, int, int, int)}
+     * for one {@link StereoDeviceRenderer.Eye}.
      * <p>
      * Called by the stereo renderer before each {@link #display(GLAutoDrawable)}
      * or {@link #display(GLAutoDrawable, int)} call.
@@ -66,8 +67,8 @@ public interface StereoRendererListener extends CustomRendererListener {
      * @param eyePose current eye position and orientation
      * @see FloatUtil#makePerspective(float[], int, boolean, com.jogamp.opengl.math.FloatUtil.FovHVHalves, float, float)
      */
-    public void reshapeEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
-                           final EyeParameter eyeParam, final EyePose eyePose);
+    public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
+                              final EyeParameter eyeParam, final EyePose eyePose);
 
 
 }

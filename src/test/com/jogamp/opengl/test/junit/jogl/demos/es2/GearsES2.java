@@ -35,7 +35,7 @@ import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
-import com.jogamp.opengl.util.CustomRendererListener;
+import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -43,7 +43,7 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.EyePose;
-import com.jogamp.opengl.util.stereo.StereoRendererListener;
+import com.jogamp.opengl.util.stereo.StereoGLEventListener;
 
 import java.nio.FloatBuffer;
 
@@ -60,7 +60,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
  * GearsES2.java <BR>
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
-public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRendererListener {
+public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRendererListener {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );
 
     private ShaderState st = null;
@@ -419,8 +419,8 @@ public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRe
     private final float[] vec3Tmp3 = new float[3];
 
     @Override
-    public void reshapeEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
-                           final EyeParameter eyeParam, final EyePose eyePose) {
+    public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
+                              final EyeParameter eyeParam, final EyePose eyePose) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
@@ -507,8 +507,8 @@ public class GearsES2 implements StereoRendererListener, TileRendererBase.TileRe
             System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
         }
 
-        final boolean repeatedFrame = 0 != ( CustomRendererListener.DISPLAY_REPEAT & flags );
-        final boolean dontClear = 0 != ( CustomRendererListener.DISPLAY_DONTCLEAR & flags );
+        final boolean repeatedFrame = 0 != ( CustomGLEventListener.DISPLAY_REPEAT & flags );
+        final boolean dontClear = 0 != ( CustomGLEventListener.DISPLAY_DONTCLEAR & flags );
 
         // Turn the gears' teeth
         if( doRotate && !repeatedFrame ) {

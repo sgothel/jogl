@@ -25,45 +25,39 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.stereo;
+package com.jogamp.opengl.util;
 
-import com.jogamp.opengl.math.Quaternion;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
 
 /**
- * Position and orientation of one eye.
+ * Extended {@link GLEventListener} interface
+ * supporting more fine grained control over the implementation.
  */
-public final class EyePose {
-    /** Eye number, <code>0</code> for the left eye and <code>1</code> for the right eye. */
-    public final int number;
+public interface CustomGLEventListener extends GLEventListener {
+    /**
+     * {@link #display(GLAutoDrawable, int) display flag}: Repeat last produced image.
+     * <p>
+     * While a repeated frame shall produce the same artifacts as the last <code>display</code> call,
+     * e.g. not change animated objects, it shall reflect the {@link #setProjectionModelview(GLAutoDrawable, float[], float[]) current matrix}.
+     * </p>
+     */
+    public static final int DISPLAY_REPEAT    = 1 << 0;
 
-    /** float[3] eye position vector. */
-    public final float[] position;
+    /**
+     * {@link #display(GLAutoDrawable, int) display flag}: Do not clear any target buffer, e.g. color-, depth- or stencil-buffers.
+     */
+    public static final int DISPLAY_DONTCLEAR = 1 << 1;
 
-    /** Eye orientation */
-    public final Quaternion orientation;
-
-    public EyePose(final int number) {
-        this.number = number;
-        this.position = new float[3];
-        this.orientation = new Quaternion();
-    }
-    public EyePose(final int number, final float[] position, final Quaternion orientation) {
-        this(number);
-        set(position, orientation);
-    }
-
-    /** Set position and orientation of this instance. */
-    public final void set(final float[] position, final Quaternion orientation) {
-        System.arraycopy(position, 0, this.position, 0, 3);
-        this.orientation.set(orientation);
-    }
-    /** Set position and orientation of this instance. */
-    public final void setPosition(final float posX, final float posY, final float posZ) {
-        position[0] = posX;
-        position[1] = posY;
-        position[2] = posZ;
-    }
-    public final String toString() {
-        return "EyePose[num "+number+", pos["+position[0]+", "+position[1]+", "+position[2]+"], "+orientation+"]";
-    }
+    /**
+     * Extended {@link #display(GLAutoDrawable) display} method,
+     * allowing to pass a display flag, e.g. {@link #DISPLAY_REPEAT} or {@link #DISPLAY_DONTCLEAR}.
+     * <p>
+     * Method is usually called by a custom rendering loop,
+     * e.g. for manual stereo rendering or the like.
+     * </p>
+     * @param drawable
+     * @param flags
+     */
+    public void display(final GLAutoDrawable drawable, final int flags);
 }

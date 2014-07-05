@@ -25,39 +25,27 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util;
+package jogamp.opengl.oculusvr;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.oculusvr.OVR;
+import com.jogamp.oculusvr.OVRVersion;
+import com.jogamp.oculusvr.OvrHmdContext;
+import com.jogamp.opengl.util.stereo.StereoDevice;
+import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 
-/**
- * Extended {@link GLEventListener} interface
- * supporting more fine grained control over the implementation.
- */
-public interface CustomRendererListener extends GLEventListener {
-    /**
-     * {@link #display(GLAutoDrawable, int) display flag}: Repeat last produced image.
-     * <p>
-     * While a repeated frame shall produce the same artifacts as the last <code>display</code> call,
-     * e.g. not change animated objects, it shall reflect the {@link #setProjectionModelview(GLAutoDrawable, float[], float[]) current matrix}.
-     * </p>
-     */
-    public static final int DISPLAY_REPEAT    = 1 << 0;
+public class OVRStereoDeviceFactory extends StereoDeviceFactory {
 
-    /**
-     * {@link #display(GLAutoDrawable, int) display flag}: Do not clear any target buffer, e.g. color-, depth- or stencil-buffers.
-     */
-    public static final int DISPLAY_DONTCLEAR = 1 << 1;
+    public static boolean isAvailable() {
+        return OVR.ovr_Initialize(); // recursive ..
+    }
 
-    /**
-     * Extended {@link #display(GLAutoDrawable) display} method,
-     * allowing to pass a display flag, e.g. {@link #DISPLAY_REPEAT} or {@link #DISPLAY_DONTCLEAR}.
-     * <p>
-     * Method is usually called by a custom rendering loop,
-     * e.g. for manual stereo rendering or the like.
-     * </p>
-     * @param drawable
-     * @param flags
-     */
-    public void display(final GLAutoDrawable drawable, final int flags);
+    @Override
+    public final StereoDevice createDevice(final int deviceIndex, final boolean verbose) {
+        final OvrHmdContext hmdCtx = OVR.ovrHmd_Create(deviceIndex);
+        final OVRStereoDevice ctx = new OVRStereoDevice(hmdCtx, deviceIndex);
+        if( verbose ) {
+            System.err.println(OVRVersion.getAvailableCapabilitiesInfo(ctx.hmdDesc, deviceIndex, null).toString());
+        }
+        return ctx;
+    }
 }
