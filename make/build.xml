@@ -166,6 +166,10 @@
               <exclude name="*jogl_cg.${native.library.suffix}" />
             </fileset>
         </jar>
+        <!-- Produce duplicates for diff 'all' configuration, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
+        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-noawt-natives-${os.and.arch}.jar" />
+        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-mobile-natives-${os.and.arch}.jar" />
+        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-android-natives-${os.and.arch}.jar" />
     </target>
 
     <target name="android.package.jogl.skip.check" depends="init,gluegen.cpptasks.detect.os">

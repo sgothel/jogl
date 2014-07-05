@@ -45,7 +45,7 @@ function listdeployment() {
     echo
 
     echo JOGL Min X11 Min egl es1 es2
-    report gluegen-rt.$JAR_SUFFIX atomic/jogl-core.$JAR_SUFFIX atomic/jogl-glmobile.$JAR_SUFFIX atomic/jogl-util.$JAR_SUFFIX atomic/nativewindow-core.$JAR_SUFFIX atomic/newt-core.$JAR_SUFFIX atomic/nativewindow-os-x11.$JAR_SUFFIX atomic/newt-driver-x11.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_mobile.so.gz libnativewindow_x11.so.gz libnewt.so.gz
+    report gluegen-rt.$JAR_SUFFIX atomic/jogl.$JAR_SUFFIX atomic/jogl-glmobile.$JAR_SUFFIX atomic/jogl-util.$JAR_SUFFIX atomic/nativewindow.$JAR_SUFFIX atomic/newt.$JAR_SUFFIX atomic/nativewindow-os-x11.$JAR_SUFFIX atomic/newt-driver-x11.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_mobile.so.gz libnativewindow_x11.so.gz libnewt.so.gz
     echo
 
     echo JOGL Android - mobile egl es1 es2
@@ -53,7 +53,7 @@ function listdeployment() {
     echo
 
     echo JOGL Min Android/Mobile Min egl es1 es2
-    report gluegen-rt-android.$JAR_SUFFIX atomic/jogl-core.$JAR_SUFFIX atomic/jogl-glmobile.$JAR_SUFFIX atomic/jogl-os-android.$JAR_SUFFIX atomic/jogl-util.$JAR_SUFFIX atomic/nativewindow-core.$JAR_SUFFIX atomic/newt-core.$JAR_SUFFIX atomic/newt-driver-android.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_mobile.so.gz
+    report gluegen-rt-android.$JAR_SUFFIX atomic/jogl.$JAR_SUFFIX atomic/jogl-glmobile.$JAR_SUFFIX atomic/jogl-os-android.$JAR_SUFFIX atomic/jogl-util.$JAR_SUFFIX atomic/nativewindow.$JAR_SUFFIX atomic/newt.$JAR_SUFFIX atomic/newt-driver-android.$JAR_SUFFIX libgluegen-rt.so.gz libjogl_mobile.so.gz
     echo
 }
 

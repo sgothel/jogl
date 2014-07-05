@@ -48,7 +48,7 @@ import java.util.*;
 
                 if(TempJarCache.isInitialized()) {
                    // only: joal.jar -> joal-natives-<os.and.arch>.jar
-                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { OVRDynamicLibraryBundleInfo.class }, null, null );
+                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { OVRDynamicLibraryBundleInfo.class }, null);
                 }
                 return null;
             }

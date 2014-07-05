@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/atomic/newt-core.jar" />
+      <jar href="jar/atomic/newt.jar" />
       <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow-noawt.jnlp" />
     </resources>
 

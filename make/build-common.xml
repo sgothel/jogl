@@ -268,54 +268,54 @@
 
         <!-- Atomic JavaSE JARS -->
 
-        <property name="nativewindow-core.jar"         value="${build.nativewindow}/nativewindow-core.jar" />
-        <property name="nativewindow-awt.jar"          value="${build.nativewindow}/nativewindow-awt.jar"  />
-        <property name="nativewindow-os-x11.jar"       value="${build.nativewindow}/nativewindow-os-x11.jar"  />
-        <property name="nativewindow-os-win.jar"       value="${build.nativewindow}/nativewindow-os-win.jar"  />
-        <property name="nativewindow-os-osx.jar"       value="${build.nativewindow}/nativewindow-os-osx.jar"  />
+        <property name="nativewindow.jar"        value="${build.nativewindow}/nativewindow.jar" />
+        <property name="nativewindow-awt.jar"    value="${build.nativewindow}/nativewindow-awt.jar"  />
+        <property name="nativewindow-os-x11.jar" value="${build.nativewindow}/nativewindow-os-x11.jar"  />
+        <property name="nativewindow-os-win.jar" value="${build.nativewindow}/nativewindow-os-win.jar"  />
+        <property name="nativewindow-os-osx.jar" value="${build.nativewindow}/nativewindow-os-osx.jar"  />
 
         <path id="nativewindow_all_atoms.classpath">
-            <pathelement location="${nativewindow-core.jar}" />
+            <pathelement location="${nativewindow.jar}" />
             <pathelement location="${nativewindow-awt.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />
         </path>
         <path id="nativewindow_all-noawt_atoms.classpath">
-            <pathelement location="${nativewindow-core.jar}" />
+            <pathelement location="${nativewindow.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />
         </path>
         <path id="nativewindow_core_atoms.classpath">
-            <pathelement location="${nativewindow-core.jar}" />
+            <pathelement location="${nativewindow.jar}" />
         </path>
         
-        <property name="jogl-core.jar"                  value="${build.jogl}/jogl-core.jar" />
-        <property name="jogl-sdk.jar"                   value="${build.jogl}/jogl-sdk.jar" />
-        <property name="jogl-glmobile.jar"              value="${build.jogl}/jogl-glmobile.jar" />
-        <property name="jogl-glmobile-dbg.jar"          value="${build.jogl}/jogl-glmobile-dbg.jar" />
-        <property name="jogl-util.jar"                  value="${build.jogl}/jogl-util.jar" />
-        <property name="jogl-util-graph.jar"            value="${build.jogl}/jogl-util-graph.jar" />
-        <property name="jogl-util-graph-fonts-p0.jar"   value="${build.jogl}/jogl-fonts-p0.jar" />
-        <property name="jogl-util-fixedfuncemu.jar"     value="${build.jogl}/jogl-util-fixedfuncemu.jar" />
-        <property name="jogl-awt.jar"                   value="${build.jogl}/jogl-awt.jar" />
-        <property name="jogl-swt.jar"                   value="${build.jogl}/jogl-swt.jar" />
-        <property name="jogl-util-awt.jar"              value="${build.jogl}/jogl-util-awt.jar" />
-        <property name="jogl-os-x11.jar"                value="${build.jogl}/jogl-os-x11.jar" />
-        <property name="jogl-os-win.jar"                value="${build.jogl}/jogl-os-win.jar" />
-        <property name="jogl-os-osx.jar"                value="${build.jogl}/jogl-os-osx.jar" />
-        <property name="jogl-os-android.jar"            value="${build.jogl}/jogl-os-android.jar" />
-        <property name="jogl-gldesktop.jar"             value="${build.jogl}/jogl-gldesktop.jar" />
-        <property name="jogl-gldesktop-dbg.jar"         value="${build.jogl}/jogl-gldesktop-dbg.jar" />
-        <property name="jogl-glu.jar"                   value="${build.jogl}/jogl-glu.jar" />
-        <property name="jogl-glu-gldesktop.jar"         value="${build.jogl}/jogl-glu-gldesktop.jar" />
-        <property name="jogl-util-gldesktop.jar"        value="${build.jogl}/jogl-util-gldesktop.jar" />
-        <property name="jogl-omx.jar"                   value="${build.jogl}/jogl-omx.jar" />
-        <property name="jogl-cg.jar"                    value="${build.jogl}/jogl-cg.jar" />
+        <property name="jogl.jar"                     value="${build.jogl}/jogl.jar" />
+        <property name="jogl-sdk.jar"                 value="${build.jogl}/jogl-sdk.jar" />
+        <property name="jogl-glmobile.jar"            value="${build.jogl}/jogl-glmobile.jar" />
+        <property name="jogl-glmobile-dbg.jar"        value="${build.jogl}/jogl-glmobile-dbg.jar" />
+        <property name="jogl-util.jar"                value="${build.jogl}/jogl-util.jar" />
+        <property name="jogl-util-graph.jar"          value="${build.jogl}/jogl-util-graph.jar" />
+        <property name="jogl-util-graph-fonts-p0.jar" value="${build.jogl}/jogl-fonts-p0.jar" />
+        <property name="jogl-util-fixedfuncemu.jar"   value="${build.jogl}/jogl-util-fixedfuncemu.jar" />
+        <property name="jogl-awt.jar"                 value="${build.jogl}/jogl-awt.jar" />
+        <property name="jogl-swt.jar"                 value="${build.jogl}/jogl-swt.jar" />
+        <property name="jogl-util-awt.jar"            value="${build.jogl}/jogl-util-awt.jar" />
+        <property name="jogl-os-x11.jar"              value="${build.jogl}/jogl-os-x11.jar" />
+        <property name="jogl-os-win.jar"              value="${build.jogl}/jogl-os-win.jar" />
+        <property name="jogl-os-osx.jar"              value="${build.jogl}/jogl-os-osx.jar" />
+        <property name="jogl-os-android.jar"          value="${build.jogl}/jogl-os-android.jar" />
+        <property name="jogl-gldesktop.jar"           value="${build.jogl}/jogl-gldesktop.jar" />
+        <property name="jogl-gldesktop-dbg.jar"       value="${build.jogl}/jogl-gldesktop-dbg.jar" />
+        <property name="jogl-glu.jar"                 value="${build.jogl}/jogl-glu.jar" />
+        <property name="jogl-glu-gldesktop.jar"       value="${build.jogl}/jogl-glu-gldesktop.jar" />
+        <property name="jogl-util-gldesktop.jar"      value="${build.jogl}/jogl-util-gldesktop.jar" />
+        <property name="jogl-omx.jar"                 value="${build.jogl}/jogl-omx.jar" />
+        <property name="jogl-cg.jar"                  value="${build.jogl}/jogl-cg.jar" />
 
         <path id="jogl_all_atoms.classpath">
-            <pathelement location="${jogl-core.jar}" />
+            <pathelement location="${jogl.jar}" />
             <pathelement location="${jogl-sdk.jar}" />
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
@@ -336,7 +336,7 @@
             <pathelement location="${jogl-omx.jar}" />
         </path>
         <path id="jogl_all-noawt_atoms.classpath">
-            <pathelement location="${jogl-core.jar}" />
+            <pathelement location="${jogl.jar}" />
             <pathelement location="${jogl-sdk.jar}" />
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
@@ -354,7 +354,7 @@
             <pathelement location="${jogl-omx.jar}" />
         </path>
         <path id="jogl_all-mobile_atoms.classpath">
-            <pathelement location="${jogl-core.jar}" />
+            <pathelement location="${jogl.jar}" />
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
             <pathelement location="${jogl-util.jar}" />
@@ -365,7 +365,7 @@
             <pathelement location="${jogl-omx.jar}" />
         </path>
         <path id="jogl_all-android_atoms.classpath">
-            <pathelement location="${jogl-core.jar}" />
+            <pathelement location="${jogl.jar}" />
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
             <pathelement location="${jogl-util.jar}" />
@@ -376,24 +376,24 @@
             <pathelement location="${jogl-omx.jar}" />
         </path>
         <!-- 
-            ${jogl-core.jar} ${jogl-glu.jar} ${jogl-glu-gldesktop.jar} ${jogl-os-x11.jar} ${jogl-os-win.jar} ${jogl-os-osx.jar} ${jogl-gldesktop.jar} ${jogl-gldesktop-dbg.jar} ${jogl-glmobile.jar} ${jogl-glmobile-dbg.jar} ${jogl-omx.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-gldesktop.jar} ${jogl-util-awt.jar} ${jogl-util-fixedfuncemu.jar} ${jogl-sdk.jar} -->
+            ${jogl.jar} ${jogl-glu.jar} ${jogl-glu-gldesktop.jar} ${jogl-os-x11.jar} ${jogl-os-win.jar} ${jogl-os-osx.jar} ${jogl-gldesktop.jar} ${jogl-gldesktop-dbg.jar} ${jogl-glmobile.jar} ${jogl-glmobile-dbg.jar} ${jogl-omx.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-gldesktop.jar} ${jogl-util-awt.jar} ${jogl-util-fixedfuncemu.jar} ${jogl-sdk.jar} -->
 
-        <property name="newt-core.jar"                  value="${build.newt}/newt-core.jar" />
-        <property name="newt-ogl.jar"                   value="${build.newt}/newt-ogl.jar" />
-        <property name="newt-awt.jar"                   value="${build.newt}/newt-awt.jar" />
-        <property name="newt-swt.jar"                   value="${build.newt}/newt-swt.jar" />
-        <property name="newt-event.jar"                 value="${build.newt}/newt-event.jar" />              <!-- using NEWT events w/o NEWT -->
-        <property name="newt-driver-linux.jar"          value="${build.newt}/newt-driver-linux.jar" />
-        <property name="newt-driver-x11.jar"            value="${build.newt}/newt-driver-x11.jar" />
-        <property name="newt-driver-win.jar"            value="${build.newt}/newt-driver-win.jar" />
-        <property name="newt-driver-osx.jar"            value="${build.newt}/newt-driver-osx.jar" />
-        <property name="newt-driver-android.jar"        value="${build.newt}/newt-driver-android.jar" />     <!-- excluded from all -->
-        <property name="newt-driver-kd.jar"             value="${build.newt}/newt-driver-kd.jar" />          <!-- excluded from all -->
-        <property name="newt-driver-intelgdl.jar"       value="${build.newt}/newt-driver-intelgdl.jar" />    <!-- excluded from all -->
-        <property name="newt-driver-bcm-old.jar"        value="${build.newt}/newt-driver-bcm-old.jar" />     <!-- excluded from all -->
-        <property name="newt-driver-bcm-vc.jar"         value="${build.newt}/newt-driver-bcm-vc.jar" />
+        <property name="newt.jar"                 value="${build.newt}/newt.jar" />
+        <property name="newt-ogl.jar"             value="${build.newt}/newt-ogl.jar" />
+        <property name="newt-awt.jar"             value="${build.newt}/newt-awt.jar" />
+        <property name="newt-swt.jar"             value="${build.newt}/newt-swt.jar" />
+        <property name="newt-event.jar"           value="${build.newt}/newt-event.jar" />              <!-- using NEWT events w/o NEWT -->
+        <property name="newt-driver-linux.jar"    value="${build.newt}/newt-driver-linux.jar" />
+        <property name="newt-driver-x11.jar"      value="${build.newt}/newt-driver-x11.jar" />
+        <property name="newt-driver-win.jar"      value="${build.newt}/newt-driver-win.jar" />
+        <property name="newt-driver-osx.jar"      value="${build.newt}/newt-driver-osx.jar" />
+        <property name="newt-driver-android.jar"  value="${build.newt}/newt-driver-android.jar" />     <!-- excluded from all -->
+        <property name="newt-driver-kd.jar"       value="${build.newt}/newt-driver-kd.jar" />          <!-- excluded from all -->
+        <property name="newt-driver-intelgdl.jar" value="${build.newt}/newt-driver-intelgdl.jar" />    <!-- excluded from all -->
+        <property name="newt-driver-bcm-old.jar"  value="${build.newt}/newt-driver-bcm-old.jar" />     <!-- excluded from all -->
+        <property name="newt-driver-bcm-vc.jar"   value="${build.newt}/newt-driver-bcm-vc.jar" />
         <path id="newt_all_atoms.classpath">
-            <pathelement location="${newt-core.jar}" />
+            <pathelement location="${newt.jar}" />
             <pathelement location="${newt-ogl.jar}" />
             <pathelement location="${newt-awt.jar}" />
             <pathelement location="${newt-swt.jar}" />
@@ -404,7 +404,7 @@
             <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-noawt_atoms.classpath">
-            <pathelement location="${newt-core.jar}" />
+            <pathelement location="${newt.jar}" />
             <pathelement location="${newt-ogl.jar}" />
             <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
@@ -413,7 +413,7 @@
             <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-mobile_atoms.classpath">
-            <pathelement location="${newt-core.jar}" />
+            <pathelement location="${newt.jar}" />
             <pathelement location="${newt-ogl.jar}" />
             <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
@@ -421,7 +421,7 @@
             <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-android_atoms.classpath">
-            <pathelement location="${newt-core.jar}" />
+            <pathelement location="${newt.jar}" />
             <pathelement location="${newt-ogl.jar}" />
             <pathelement location="${newt-driver-android.jar}" />
         </path>
