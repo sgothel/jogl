@@ -122,17 +122,11 @@ public class OVRUtil {
     }
     public static ovrFovPort getOVRFovPort(final FovHVHalves fovHVHalves) {
         final ovrFovPort tanHalfFov = ovrFovPort.create();
-        if( fovHVHalves.inTangents ) {
-            tanHalfFov.setLeftTan(fovHVHalves.left);
-            tanHalfFov.setRightTan(fovHVHalves.right);
-            tanHalfFov.setUpTan(fovHVHalves.top);
-            tanHalfFov.setDownTan(fovHVHalves.bottom);
-        } else {
-            tanHalfFov.setLeftTan((float)Math.tan(fovHVHalves.left));
-            tanHalfFov.setRightTan((float)Math.tan(fovHVHalves.right));
-            tanHalfFov.setUpTan((float)Math.tan(fovHVHalves.top));
-            tanHalfFov.setDownTan((float)Math.tan(fovHVHalves.bottom));
-        }
+        final FovHVHalves fovHVHalvesTan = fovHVHalves.getInTangents();
+        tanHalfFov.setLeftTan(fovHVHalvesTan.left);
+        tanHalfFov.setRightTan(fovHVHalvesTan.right);
+        tanHalfFov.setUpTan(fovHVHalvesTan.top);
+        tanHalfFov.setDownTan(fovHVHalvesTan.bottom);
         return tanHalfFov;
     }
 

@@ -237,7 +237,9 @@ public class StereoDemo01 {
         // EyePos.y = ovrHmd_GetFloat(HMD, OVR_KEY_EYE_HEIGHT, EyePos.y);
         final FovHVHalves[] defaultEyeFov = stereoDevice.getDefaultFOV();
         System.err.println("Default Fov[0]: "+defaultEyeFov[0]);
+        System.err.println("Default Fov[0]: "+defaultEyeFov[0].toStringInDegrees());
         System.err.println("Default Fov[1]: "+defaultEyeFov[1]);
+        System.err.println("Default Fov[1]: "+defaultEyeFov[1].toStringInDegrees());
 
         final float[] eyePositionOffset = null == movieSimple ? StereoDevice.DEFAULT_EYE_POSITION_OFFSET // default
                                                               : new float[] { 0f, 0.3f, 0f };            // better fixed movie position

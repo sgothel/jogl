@@ -48,7 +48,10 @@ public final class FovHVHalves {
 
     /**
      * Constructor for one {@link FovHVHalves} instance.
-     *
+     * <p>
+     * It is recommended to pass and store values in tangent
+     * if used for perspective FOV calculations, since it will avoid conversion to tangent later on.
+     * </p>
      * @param left half horizontal FOV, left side, in tangent or radians
      * @param right half horizontal FOV, right side, in tangent or radians
      * @param top half vertical FOV, top side, in tangent or radians
@@ -73,9 +76,24 @@ public final class FovHVHalves {
      * @param verticalFov whole vertical FOV in radians
      */
     public static FovHVHalves createByRadians(final float horizontalFov, final float verticalFov) {
-        final float halfHorizFovTan = (float)Math.tan(horizontalFov/2f);
-        final float halfVertFovTan = (float)Math.tan(verticalFov/2f);
+        final float halfHorizFovTan = FloatUtil.tan(horizontalFov/2f);
+        final float halfVertFovTan = FloatUtil.tan(verticalFov/2f);
         return new FovHVHalves(halfHorizFovTan, halfHorizFovTan, halfVertFovTan, halfVertFovTan, true);
+    }
+
+    /**
+     * Returns this instance values <i>in tangent</i> values.
+     * <p>
+     * If this instance is {@link #inTangents} already, method returns this instance,
+     * otherwise a newly created instance w/ converted values to tangent.
+     * </p>
+     */
+    public final FovHVHalves getInTangents() {
+        if( inTangents ) {
+            return this;
+        } else {
+            return new FovHVHalves(FloatUtil.tan(left), FloatUtil.tan(right), FloatUtil.tan(top), FloatUtil.tan(bottom), true);
+        }
     }
 
     /** Returns the full horizontal FOV, i.e. {@link #left} + {@link #right}. */
@@ -85,6 +103,19 @@ public final class FovHVHalves {
     public final float vertFov() { return top+bottom; }
 
     public final String toString() {
-        return "FovHVHalves["+(inTangents?"tangents":"radians")+": "+left+" l, "+right+" r, "+top+" t, "+bottom+" b]";
+        return "FovHVH["+(inTangents?"tangents":"radians")+": "+left+" l, "+right+" r, "+top+" t, "+bottom+" b]";
+    }
+    public final String toStringInDegrees() {
+        final float f = 180.0f / FloatUtil.PI;
+        final String storedAs = inTangents?"tangents":"radians";
+        if( inTangents ) {
+            final float aleft = FloatUtil.atan(left);
+            final float aright = FloatUtil.atan(right);
+            final float atop = FloatUtil.atan(top);
+            final float abottom = FloatUtil.atan(bottom);
+            return "FovHVH[degrees: "+aleft*f+" l, "+aright*f+" r, "+atop*f+" t, "+abottom*f+" b, stored-as: "+storedAs+"]";
+        } else {
+            return "FovHVH[degrees: "+left*f+" l, "+right*f+" r, "+top*f+" t, "+bottom*f+" b, stored-as: "+storedAs+"]";
+        }
     }
 }

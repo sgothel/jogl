@@ -165,13 +165,13 @@ public class ProjectFloat {
   /**
    * Method gluPerspective.
    *
-   * @param fovy angle in degrees
+   * @param fovy_deg fov angle in degrees
    * @param aspect
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(final GLMatrixFunc gl, final float fovy, final float aspect, final float zNear, final float zFar) {
-    gl.glMultMatrixf(FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy / 2 * (float) Math.PI / 180, aspect, zNear, zFar), 0);
+  public void gluPerspective(final GLMatrixFunc gl, final float fovy_deg, final float aspect, final float zNear, final float zFar) {
+    gl.glMultMatrixf(FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_deg * FloatUtil.PI / 180.0f, aspect, zNear, zFar), 0);
   }
 
   /**
@@ -235,6 +235,7 @@ public class ProjectFloat {
   /**
    * Map object coordinates to window coordinates.
    */
+  @SuppressWarnings("deprecation")
   public boolean gluProject(final float objx, final float objy, final float objz,
                             final FloatBuffer modelMatrix,
                             final FloatBuffer projMatrix,
@@ -283,6 +284,7 @@ public class ProjectFloat {
    *
    * @return
    */
+  @SuppressWarnings("deprecation")
   public boolean gluProject(final float objx, final float objy, final float objz,
                             final FloatBuffer modelMatrix,
                             final FloatBuffer projMatrix,
@@ -365,6 +367,7 @@ public class ProjectFloat {
    * @param obj_pos_offset
    * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
+  @SuppressWarnings("deprecation")
   public boolean gluUnProject(final float winx, final float winy, final float winz,
                               final FloatBuffer modelMatrix,
                               final FloatBuffer projMatrix,
@@ -422,6 +425,7 @@ public class ProjectFloat {
    *
    * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
+  @SuppressWarnings("deprecation")
   public boolean gluUnProject(final float winx, final float winy, final float winz,
                               final FloatBuffer modelMatrix,
                               final FloatBuffer projMatrix,
@@ -523,6 +527,7 @@ public class ProjectFloat {
    *
    * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
+  @SuppressWarnings("deprecation")
   public boolean gluUnProject4(final float winx, final float winy, final float winz, final float clipw,
                                final FloatBuffer modelMatrix, final FloatBuffer projMatrix,
                                final IntBuffer viewport,

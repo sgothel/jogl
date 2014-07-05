@@ -558,18 +558,18 @@ public final class FloatUtil {
    * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
    * @param initM if true, given matrix will be initialized w/ identity matrix,
    *              otherwise only the frustum fields are set.
-   * @param fovy angle in radians
+   * @param fovy_rad angle in radians
    * @param aspect
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
    */
   public static float[] makePerspective(final float[] m, final int m_off, final boolean initM,
-                                        final float fovy, final float aspect, final float zNear, final float zFar) {
-      final float top=(float)Math.tan(fovy)*zNear;
-      final float bottom=-1.0f*top;
-      final float left=aspect*bottom;
-      final float right=aspect*top;
+                                        final float fovy_rad, final float aspect, final float zNear, final float zFar) {
+      final float top    =  tan(fovy_rad/2f) * zNear; // use tangent of half-fov !
+      final float bottom =  -1.0f * top;
+      final float left   = aspect * bottom;
+      final float right  = aspect * top;
       return makeFrustum(m, m_off, initM, left, right, bottom, top, zNear, zFar);
   }
 
@@ -591,53 +591,12 @@ public final class FloatUtil {
    */
   public static float[] makePerspective(final float[] m, final int m_offset, final boolean initM,
                                         final FovHVHalves fovhv, final float zNear, final float zFar) {
-      if( initM ) {
-          // m[m_offset+0+4*0] = 1f;
-          m[m_offset+1+4*0] = 0f;
-          m[m_offset+2+4*0] = 0f;
-          m[m_offset+3+4*0] = 0f;
-
-          m[m_offset+0+4*1] = 0f;
-          // m[m_offset+1+4*1] = 1f;
-          m[m_offset+2+4*1] = 0f;
-          m[m_offset+3+4*1] = 0f;
-
-          // m[m_offset+0+4*2] = 0f;
-          // m[m_offset+1+4*2] = 0f;
-          // m[m_offset+2+4*2] = 1f;
-          // m[m_offset+3+4*2] = 0f;
-
-          m[m_offset+0+4*3] = 0f;
-          m[m_offset+1+4*3] = 0f;
-          // m[m_offset+2+4*3] = 0f;
-          // m[m_offset+3+4*3] = 1f;
-      }
-
-      final float projScaleX  = 2.0f / ( fovhv.left + fovhv.right  );
-      final float projScaleY  = 2.0f / ( fovhv.top  + fovhv.bottom );
-      final float projOffsetX =       ( fovhv.left - fovhv.right  ) * projScaleX * 0.5f;
-      final float projOffsetY = -1f * ( fovhv.top  - fovhv.bottom ) * projScaleY * 0.5f;
-
-      // Produces X result, mapping clip edges to [-w,+w]
-      m[m_offset+0+4*0] = projScaleX;
-      m[m_offset+0+4*2] = -1f * projOffsetX;
-
-      // Produces Y result, mapping clip edges to [-w,+w] (Y=up)
-      m[m_offset+1+4*1] = projScaleY;
-      m[m_offset+1+4*2] = -1f * projOffsetY;
-
-      // Custom Z-buffer result .. same as frustum matrix!
-      m[m_offset+2+4*2] = -1.0f*(zFar+zNear)/(zFar-zNear);
-      m[m_offset+2+4*3] = -2.0f*(zFar*zNear)/(zFar-zNear);
-      // alternative:
-      // m[m_offset+2+4*2] = -1.0f * zFar / (zNear - zFar);
-      // m[m_offset+2+4*3] = (zFar * zNear) / (zNear - zFar);
-
-      // Produces W result (= Z in)
-      m[m_offset+3+4*2] = -1.0f;
-      m[m_offset+3+4*3] = 0f;
-
-      return m;
+      final FovHVHalves fovhvTan = fovhv.getInTangents();  // use tangent of half-fov !
+      final float top    =         fovhvTan.top    * zNear;
+      final float bottom = -1.0f * fovhvTan.bottom * zNear;
+      final float left   = -1.0f * fovhvTan.left   * zNear;
+      final float right  =         fovhvTan.right  * zNear;
+      return makeFrustum(m, m_offset, initM, left, right, bottom, top, zNear, zFar);
   }
 
   /**

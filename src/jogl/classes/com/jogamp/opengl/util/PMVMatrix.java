@@ -644,8 +644,8 @@ public final class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glRotatef(final float angdeg, final float x, final float y, final float z) {
-        glMultMatrixf(FloatUtil.makeRotationAxis(mat4Tmp1, 0, angdeg * FloatUtil.PI / 180.0f, x, y, z, mat4Tmp2), 0);
+    public final void glRotatef(final float ang_deg, final float x, final float y, final float z) {
+        glMultMatrixf(FloatUtil.makeRotationAxis(mat4Tmp1, 0, ang_deg * FloatUtil.PI / 180.0f, x, y, z, mat4Tmp2), 0);
     }
 
     /**
@@ -671,9 +671,14 @@ public final class PMVMatrix implements GLMatrixFunc {
 
     /**
      * {@link #glMultMatrixf(FloatBuffer) Multiply} the {@link #glGetMatrixMode() current matrix} with the perspective/frustum matrix.
+     *
+     * @param fovy_deg fov angle in degrees
+     * @param aspect aspect ratio
+     * @param zNear
+     * @param zFar
      */
-    public final void gluPerspective(final float fovy, final float aspect, final float zNear, final float zFar) {
-      glMultMatrixf( FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy*((float)Math.PI)/360.0f, aspect, zNear, zFar), 0 );
+    public final void gluPerspective(final float fovy_deg, final float aspect, final float zNear, final float zFar) {
+      glMultMatrixf( FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_deg * FloatUtil.PI / 180.0f, aspect, zNear, zFar), 0 );
     }
 
     /**
