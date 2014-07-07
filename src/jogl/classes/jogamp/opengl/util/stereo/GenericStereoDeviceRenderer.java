@@ -25,11 +25,12 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.oculusvr;
+package jogamp.opengl.util.stereo;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
+import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.GL;
@@ -41,22 +42,8 @@ import javax.media.opengl.GLUniformData;
 import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.oculusvr.OVR;
-import com.jogamp.oculusvr.OVRException;
-import com.jogamp.oculusvr.OvrHmdContext;
-import com.jogamp.oculusvr.ovrDistortionMesh;
-import com.jogamp.oculusvr.ovrDistortionVertex;
-import com.jogamp.oculusvr.ovrEyeRenderDesc;
-import com.jogamp.oculusvr.ovrFovPort;
-import com.jogamp.oculusvr.ovrFrameTiming;
-import com.jogamp.oculusvr.ovrMatrix4f;
-import com.jogamp.oculusvr.ovrPosef;
-import com.jogamp.oculusvr.ovrRecti;
-import com.jogamp.oculusvr.ovrSizei;
-import com.jogamp.oculusvr.ovrVector2f;
-import com.jogamp.oculusvr.ovrVector3f;
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -67,15 +54,15 @@ import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 import com.jogamp.opengl.util.stereo.StereoUtil;
 
 /**
- * OculusVR Stereo Device Distortion and OpenGL Renderer Utility
+ * Generic Stereo Device Distortion and OpenGL Renderer Utility
  */
-public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
+public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     private static final String shaderPrefix01 = "dist01";
     private static final String shaderTimewarpSuffix = "_timewarp";
     private static final String shaderChromaSuffix = "_chroma";
     private static final String shaderPlainSuffix = "_plain";
 
-    public static class OVREye implements StereoDeviceRenderer.Eye {
+    public static class GenericEye implements StereoDeviceRenderer.Eye {
         private final int eyeName;
         private final int distortionBits;
         private final int vertexCount;
@@ -92,11 +79,8 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         private final GLArrayData vboPos, vboParams, vboTexCoordsR, vboTexCoordsG, vboTexCoordsB;
         private final GLArrayDataServer indices;
 
-        private final ovrEyeRenderDesc ovrEyeDesc;
-        private final ovrFovPort ovrEyeFov;
         private final EyeParameter eyeParameter;
 
-        private ovrPosef ovrEyePose;
         private final EyePose eyePose;
 
         @Override
@@ -108,69 +92,77 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         @Override
         public final EyePose getLastEyePose() { return eyePose; }
 
-        private OVREye(final OvrHmdContext hmdCtx, final int distortionBits,
-                       final float[] eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
-                       final ovrSizei ovrTextureSize, final RectangleImmutable eyeViewport) {
-            this.eyeName = eyeDesc.getEye();
+        private GenericEye(final GenericStereoDevice device, final int distortionBits,
+                         final float[] eyePositionOffset, final EyeParameter eyeParam,
+                         final DimensionImmutable textureSize, final RectangleImmutable eyeViewport) {
+            this.eyeName = eyeParam.number;
             this.distortionBits = distortionBits;
             this.viewport = eyeViewport;
 
-            final boolean usesTimewarp = StereoUtil.usesTimewarpDistortion(distortionBits);
+            final boolean usePP = null != device.config.distortionMeshProducer && 0 != distortionBits;
+
+            final boolean usesTimewarp = usePP && StereoUtil.usesTimewarpDistortion(distortionBits);
             final FloatBuffer fstash = Buffers.newDirectFloatBuffer( 2 + 2 + ( usesTimewarp ? 16 + 16 : 0 ) ) ;
 
-            eyeToSourceUVScale = new GLUniformData("ovr_EyeToSourceUVScale", 2, Buffers.slice2Float(fstash, 0, 2));
-            eyeToSourceUVOffset = new GLUniformData("ovr_EyeToSourceUVOffset", 2, Buffers.slice2Float(fstash, 2, 2));
+            if( usePP ) {
+                eyeToSourceUVScale = new GLUniformData("svr_EyeToSourceUVScale", 2, Buffers.slice2Float(fstash, 0, 2));
+                eyeToSourceUVOffset = new GLUniformData("svr_EyeToSourceUVOffset", 2, Buffers.slice2Float(fstash, 2, 2));
+            } else {
+                eyeToSourceUVScale = null;
+                eyeToSourceUVOffset = null;
+            }
 
             if( usesTimewarp ) {
-                eyeRotationStart = new GLUniformData("ovr_EyeRotationStart", 4, 4, Buffers.slice2Float(fstash, 4, 16));
-                eyeRotationEnd = new GLUniformData("ovr_EyeRotationEnd", 4, 4, Buffers.slice2Float(fstash, 20, 16));
+                eyeRotationStart = new GLUniformData("svr_EyeRotationStart", 4, 4, Buffers.slice2Float(fstash, 4, 16));
+                eyeRotationEnd = new GLUniformData("svr_EyeRotationEnd", 4, 4, Buffers.slice2Float(fstash, 20, 16));
             } else {
                 eyeRotationStart = null;
                 eyeRotationEnd = null;
             }
 
-            this.ovrEyeDesc = eyeDesc;
-            this.ovrEyeFov = eyeDesc.getFov();
-
-            final ovrVector3f eyeViewAdjust = eyeDesc.getViewAdjust();
-            this.eyeParameter = new EyeParameter(eyeName, eyePositionOffset, OVRUtil.getFovHV(ovrEyeFov),
-                                                 eyeViewAdjust.getX(), eyeViewAdjust.getY(), eyeViewAdjust.getZ());
+            this.eyeParameter = eyeParam;
 
             this.eyePose = new EyePose(eyeName);
 
-            updateEyePose(hmdCtx); // 1st init
+            updateEyePose(device); // 1st init
 
             // Setup: eyeToSourceUVScale, eyeToSourceUVOffset
-            {
-                final ovrVector2f[] uvScaleOffsetOut = new ovrVector2f[2];
-                uvScaleOffsetOut[0] = ovrVector2f.create(); // FIXME: remove ctor / double check
-                uvScaleOffsetOut[1] = ovrVector2f.create();
-
-                final ovrRecti ovrEyeRenderViewport = OVRUtil.createOVRRecti(eyeViewport);
-                OVR.ovrHmd_GetRenderScaleAndOffset(ovrEyeFov, ovrTextureSize, ovrEyeRenderViewport, uvScaleOffsetOut);
+            if( usePP ) {
+                final ScaleAndOffset2D textureScaleAndOffset = new ScaleAndOffset2D(eyeParam.fovhv, textureSize, eyeViewport);
                 if( StereoDevice.DEBUG ) {
-                    System.err.println("XXX."+eyeName+": eyeParam      "+eyeParameter);
-                    System.err.println("XXX."+eyeName+": uvScale       "+OVRUtil.toString(uvScaleOffsetOut[0]));
-                    System.err.println("XXX."+eyeName+": uvOffset      "+OVRUtil.toString(uvScaleOffsetOut[1]));
-                    System.err.println("XXX."+eyeName+": textureSize   "+OVRUtil.toString(ovrTextureSize));
-                    System.err.println("XXX."+eyeName+": viewport      "+OVRUtil.toString(ovrEyeRenderViewport));
+                    System.err.println("XXX."+eyeName+": eyeParam      "+eyeParam);
+                    System.err.println("XXX."+eyeName+": uvScaleOffset "+textureScaleAndOffset);
+                    System.err.println("XXX."+eyeName+": textureSize   "+textureSize);
+                    System.err.println("XXX."+eyeName+": viewport      "+eyeViewport);
                 }
                 final FloatBuffer eyeToSourceUVScaleFB = eyeToSourceUVScale.floatBufferValue();
-                eyeToSourceUVScaleFB.put(0, uvScaleOffsetOut[0].getX());
-                eyeToSourceUVScaleFB.put(1, uvScaleOffsetOut[0].getY());
+                eyeToSourceUVScaleFB.put(0, textureScaleAndOffset.scale[0]);
+                eyeToSourceUVScaleFB.put(1, textureScaleAndOffset.scale[1]);
                 final FloatBuffer eyeToSourceUVOffsetFB = eyeToSourceUVOffset.floatBufferValue();
-                eyeToSourceUVOffsetFB.put(0, uvScaleOffsetOut[1].getX());
-                eyeToSourceUVOffsetFB.put(1, uvScaleOffsetOut[1].getY());
+                eyeToSourceUVOffsetFB.put(0, textureScaleAndOffset.offset[0]);
+                eyeToSourceUVOffsetFB.put(1, textureScaleAndOffset.offset[1]);
+            } else {
+                vertexCount = 0;
+                indexCount = 0;
+                iVBO = null;
+                vboPos = null;
+                vboParams = null;
+                vboTexCoordsR = null;
+                vboTexCoordsG = null;
+                vboTexCoordsB = null;
+                indices = null;
+                if( StereoDevice.DEBUG ) {
+                    System.err.println("XXX."+eyeName+": "+this);
+                }
+                return;
+            }
+            final DistortionMesh meshData = device.config.distortionMeshProducer.create(eyeParam, distortionBits);
+            if( null == meshData ) {
+                throw new GLException("Failed to create meshData for eye "+eyeParam+", and "+StereoUtil.distortionBitsToString(distortionBits));
             }
 
-            final ovrDistortionMesh meshData = ovrDistortionMesh.create();
-
-            final int ovrDistortionCaps = distBits2OVRDistCaps(distortionBits);
-            if( !OVR.ovrHmd_CreateDistortionMesh(hmdCtx, eyeName, ovrEyeFov, ovrDistortionCaps, meshData) ) {
-                throw new OVRException("Failed to create meshData for eye "+eyeName+", "+OVRUtil.toString(ovrEyeFov)+" and "+StereoUtil.distortionBitsToString(distortionBits));
-            }
-            vertexCount = meshData.getVertexCount();
-            indexCount = meshData.getIndexCount();
+            vertexCount = meshData.vertexCount;
+            indexCount = meshData.indexCount;
 
             /** 2+2+2+2+2: { vec2 position, vec2 color, vec2 texCoordR, vec2 texCoordG, vec2 texCoordB } */
             final boolean useChromatic = StereoUtil.usesChromaticDistortion(distortionBits);
@@ -178,12 +170,12 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
             final int compsPerElement = 2+2+2+( useChromatic ? 2+2 /* texCoordG + texCoordB */: 0 );
             iVBO = GLArrayDataServer.createGLSLInterleaved(compsPerElement, GL.GL_FLOAT, false, vertexCount, GL.GL_STATIC_DRAW);
-            vboPos = iVBO.addGLSLSubArray("ovr_Position", 2, GL.GL_ARRAY_BUFFER);
-            vboParams = iVBO.addGLSLSubArray("ovr_Params", 2, GL.GL_ARRAY_BUFFER);
-            vboTexCoordsR = iVBO.addGLSLSubArray("ovr_TexCoordR", 2, GL.GL_ARRAY_BUFFER);
+            vboPos = iVBO.addGLSLSubArray("svr_Position", 2, GL.GL_ARRAY_BUFFER);
+            vboParams = iVBO.addGLSLSubArray("svr_Params", 2, GL.GL_ARRAY_BUFFER);
+            vboTexCoordsR = iVBO.addGLSLSubArray("svr_TexCoordR", 2, GL.GL_ARRAY_BUFFER);
             if( useChromatic ) {
-                vboTexCoordsG = iVBO.addGLSLSubArray("ovr_TexCoordG", 2, GL.GL_ARRAY_BUFFER);
-                vboTexCoordsB = iVBO.addGLSLSubArray("ovr_TexCoordB", 2, GL.GL_ARRAY_BUFFER);
+                vboTexCoordsG = iVBO.addGLSLSubArray("svr_TexCoordG", 2, GL.GL_ARRAY_BUFFER);
+                vboTexCoordsB = iVBO.addGLSLSubArray("svr_TexCoordB", 2, GL.GL_ARRAY_BUFFER);
             } else {
                 vboTexCoordsG = null;
                 vboTexCoordsB = null;
@@ -192,89 +184,117 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
             /** 2+2+2+2+2: { vec2 position, vec2 color, vec2 texCoordR, vec2 texCoordG, vec2 texCoordB } */
             final FloatBuffer iVBOFB = (FloatBuffer)iVBO.getBuffer();
-            final ovrDistortionVertex[] ovRes = new ovrDistortionVertex[1];
-            ovRes[0] = ovrDistortionVertex.create(); // FIXME: remove ctor / double check
 
             for ( int vertNum = 0; vertNum < vertexCount; vertNum++ ) {
-                final ovrDistortionVertex ov = meshData.getPVertexData(vertNum, ovRes)[0];
-                ovrVector2f v;
+                final DistortionMesh.DistortionVertex v = meshData.vertices[vertNum];
+                int dataIdx = 0;
 
                 if( StereoDevice.DUMP_DATA ) {
                     System.err.println("XXX."+eyeName+": START VERTEX "+vertNum+" / "+vertexCount);
                 }
                 // pos
-                v = ov.getPos();
-                if( StereoDevice.DUMP_DATA ) {
-                    System.err.println("XXX."+eyeName+": pos "+OVRUtil.toString(v));
+                if( v.pos_size >= 2 ) {
+                    if( StereoDevice.DUMP_DATA ) {
+                        System.err.println("XXX."+eyeName+": pos ["+v.data[dataIdx]+", "+v.data[dataIdx+1]+"]");
+                    }
+                    iVBOFB.put(v.data[dataIdx]);
+                    iVBOFB.put(v.data[dataIdx+1]);
+                } else {
+                    iVBOFB.put(0f);
+                    iVBOFB.put(0f);
                 }
-                iVBOFB.put(v.getX());
-                iVBOFB.put(v.getY());
+                dataIdx += v.pos_size;
 
                 // params
-                if( useVignette ) {
+                if( v.vignetteFactor_size >= 1 && useVignette ) {
                     if( StereoDevice.DUMP_DATA ) {
-                        System.err.println("XXX."+eyeName+": vignette "+ov.getVignetteFactor());
+                        System.err.println("XXX."+eyeName+": vignette "+v.data[dataIdx]);
                     }
-                    iVBOFB.put(ov.getVignetteFactor());
+                    iVBOFB.put(v.data[dataIdx]);
                 } else {
                     iVBOFB.put(1.0f);
                 }
-                if( StereoDevice.DUMP_DATA ) {
-                    System.err.println("XXX."+eyeName+": timewarp "+ov.getTimeWarpFactor());
+                dataIdx += v.vignetteFactor_size;
+
+                if( v.timewarpFactor_size >= 1 ) {
+                    if( StereoDevice.DUMP_DATA ) {
+                        System.err.println("XXX."+eyeName+": timewarp "+v.data[dataIdx]);
+                    }
+                    iVBOFB.put(v.data[dataIdx]);
+                } else {
+                    iVBOFB.put(1.0f);
                 }
-                iVBOFB.put(ov.getTimeWarpFactor());
+                dataIdx += v.timewarpFactor_size;
 
                 // texCoordR
-                v = ov.getTexR();
-                if( StereoDevice.DUMP_DATA ) {
-                    System.err.println("XXX."+eyeName+": texR "+OVRUtil.toString(v));
+                if( v.texR_size >= 2 ) {
+                    if( StereoDevice.DUMP_DATA ) {
+                        System.err.println("XXX."+eyeName+": texR ["+v.data[dataIdx]+", "+v.data[dataIdx+1]+"]");
+                    }
+                    iVBOFB.put(v.data[dataIdx]);
+                    iVBOFB.put(v.data[dataIdx+1]);
+                } else {
+                    iVBOFB.put(1f);
+                    iVBOFB.put(1f);
                 }
-                iVBOFB.put(v.getX());
-                iVBOFB.put(v.getY());
+                dataIdx += v.texR_size;
 
                 if( useChromatic ) {
                     // texCoordG
-                    v = ov.getTexG();
-                    if( StereoDevice.DUMP_DATA ) {
-                        System.err.println("XXX."+eyeName+": texG "+OVRUtil.toString(v));
+                    if( v.texG_size >= 2 ) {
+                        if( StereoDevice.DUMP_DATA ) {
+                            System.err.println("XXX."+eyeName+": texG ["+v.data[dataIdx]+", "+v.data[dataIdx+1]+"]");
+                        }
+                        iVBOFB.put(v.data[dataIdx]);
+                        iVBOFB.put(v.data[dataIdx+1]);
+                    } else {
+                        iVBOFB.put(1f);
+                        iVBOFB.put(1f);
                     }
-                    iVBOFB.put(v.getX());
-                    iVBOFB.put(v.getY());
+                    dataIdx += v.texG_size;
 
                     // texCoordB
-                    v = ov.getTexB();
-                    if( StereoDevice.DUMP_DATA ) {
-                        System.err.println("XXX."+eyeName+": texB "+OVRUtil.toString(v));
+                    if( v.texB_size >= 2 ) {
+                        if( StereoDevice.DUMP_DATA ) {
+                            System.err.println("XXX."+eyeName+": texB ["+v.data[dataIdx]+", "+v.data[dataIdx+1]+"]");
+                        }
+                        iVBOFB.put(v.data[dataIdx]);
+                        iVBOFB.put(v.data[dataIdx+1]);
+                    } else {
+                        iVBOFB.put(1f);
+                        iVBOFB.put(1f);
                     }
-                    iVBOFB.put(v.getX());
-                    iVBOFB.put(v.getY());
+                    dataIdx += v.texB_size;
+                } else {
+                    dataIdx += v.texG_size;
+                    dataIdx += v.texB_size;
                 }
             }
             if( StereoDevice.DUMP_DATA ) {
                 System.err.println("XXX."+eyeName+": iVBO "+iVBO);
             }
             {
-                final ShortBuffer in = meshData.getPIndexData();
                 if( StereoDevice.DUMP_DATA ) {
                     System.err.println("XXX."+eyeName+": idx "+indices+", count "+indexCount);
                     for(int i=0; i< indexCount; i++) {
                         if( 0 == i % 16 ) {
                             System.err.printf("%n%5d: ", i);
                         }
-                        System.err.printf("%5d, ", (int)in.get(i));
+                        System.err.printf("%5d, ", (int)meshData.indices[i]);
                     }
                     System.err.println();
                 }
                 final ShortBuffer out = (ShortBuffer) indices.getBuffer();
-                out.put(in);
+                out.put(meshData.indices, 0, meshData.indexCount);
             }
             if( StereoDevice.DEBUG ) {
                 System.err.println("XXX."+eyeName+": "+this);
             }
-            OVR.ovrHmd_DestroyDistortionMesh(meshData);
         }
 
         private void linkData(final GL2ES2 gl, final ShaderProgram sp) {
+            if( null == iVBO ) return;
+
             if( 0 > vboPos.setLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+vboPos);
             }
@@ -313,15 +333,18 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         }
 
         private void dispose(final GL2ES2 gl) {
+            if( null == iVBO ) return;
             iVBO.destroy(gl);
             indices.destroy(gl);
         }
         private void enableVBO(final GL2ES2 gl, final boolean enable) {
+            if( null == iVBO ) return;
             iVBO.enableBuffer(gl, enable);
             indices.bindBuffer(gl, enable); // keeps VBO binding if enable:=true
         }
 
         private void updateUniform(final GL2ES2 gl, final ShaderProgram sp) {
+            if( null == iVBO ) return;
             gl.glUniform(eyeToSourceUVScale);
             gl.glUniform(eyeToSourceUVOffset);
             if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
@@ -330,113 +353,90 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             }
         }
 
-        private void updateTimewarp(final OvrHmdContext hmdCtx, final ovrPosef eyeRenderPose, final float[] mat4Tmp1, final float[] mat4Tmp2) {
-            final ovrMatrix4f[] timeWarpMatrices = new ovrMatrix4f[2];
-            timeWarpMatrices[0] = ovrMatrix4f.create(); // FIXME: remove ctor / double check
-            timeWarpMatrices[1] = ovrMatrix4f.create();
-            OVR.ovrHmd_GetEyeTimewarpMatrices(hmdCtx, eyeName, eyeRenderPose, timeWarpMatrices);
-
-            final float[] eyeRotationStartM = FloatUtil.transposeMatrix(timeWarpMatrices[0].getM(0, mat4Tmp1), mat4Tmp2);
-            final FloatBuffer eyeRotationStartU = eyeRotationStart.floatBufferValue();
-            eyeRotationStartU.put(eyeRotationStartM);
-            eyeRotationStartU.rewind();
-
-            final float[] eyeRotationEndM = FloatUtil.transposeMatrix(timeWarpMatrices[1].getM(0, mat4Tmp1), mat4Tmp2);
-            final FloatBuffer eyeRotationEndU = eyeRotationEnd.floatBufferValue();
-            eyeRotationEndU.put(eyeRotationEndM);
-            eyeRotationEndU.rewind();
-        }
-
         /**
          * Updates {@link #ovrEyePose} and it's extracted
          * {@link #eyeRenderPoseOrientation} and {@link #eyeRenderPosePosition}.
          * @param hmdCtx used get the {@link #ovrEyePose} via {@link OVR#ovrHmd_GetEyePose(OvrHmdContext, int)}
          */
-        private EyePose updateEyePose(final OvrHmdContext hmdCtx) {
-            ovrEyePose = OVR.ovrHmd_GetEyePose(hmdCtx, eyeName);
-            final ovrVector3f pos = ovrEyePose.getPosition();
-            eyePose.setPosition(pos.getX(), pos.getY(), pos.getZ());
-            OVRUtil.copyToQuaternion(ovrEyePose.getOrientation(), eyePose.orientation);
+        private EyePose updateEyePose(final GenericStereoDevice hmdCtx) {
             return eyePose;
         }
 
         @Override
         public String toString() {
+            final String ppTxt = null == iVBO ? ", no post-processing" :
+                        ", uvScale["+eyeToSourceUVScale.floatBufferValue().get(0)+", "+eyeToSourceUVScale.floatBufferValue().get(1)+
+                        "], uvOffset["+eyeToSourceUVOffset.floatBufferValue().get(0)+", "+eyeToSourceUVOffset.floatBufferValue().get(1)+"]";
+
             return "Eye["+eyeName+", viewport "+viewport+
                         ", "+eyeParameter+
                         ", vertices "+vertexCount+", indices "+indexCount+
-                        ", uvScale["+eyeToSourceUVScale.floatBufferValue().get(0)+", "+eyeToSourceUVScale.floatBufferValue().get(1)+
-                        "], uvOffset["+eyeToSourceUVOffset.floatBufferValue().get(0)+", "+eyeToSourceUVOffset.floatBufferValue().get(1)+
-                        "], desc"+OVRUtil.toString(ovrEyeDesc)+", "+eyePose+"]";
+                        ppTxt+
+                        ", desc"+eyeParameter+", "+eyePose+"]";
         }
     }
 
-    private final OVRStereoDevice context;
-    private final OVREye[] eyes;
+    private final GenericStereoDevice device;
+    private final GenericEye[] eyes;
     private final int distortionBits;
     private final int textureCount;
     private final DimensionImmutable singleTextureSize;
     private final DimensionImmutable totalTextureSize;
+    /** if texUnit0 is null: no post-processing */
     private final GLUniformData texUnit0;
 
-
-    private final float[] mat4Tmp1 = new float[16];
-    private final float[] mat4Tmp2 = new float[16];
-
     private ShaderProgram sp;
-    private ovrFrameTiming frameTiming;
+    private long frameStart = 0;
 
     @Override
     public String toString() {
-        return "OVRDist[distortion["+StereoUtil.distortionBitsToString(distortionBits)+
-                       "], singleSize "+singleTextureSize+
-                       ", sbsSize "+totalTextureSize+
-                       ", texCount "+textureCount+", texUnit "+getTextureUnit()+
-                       ", "+PlatformPropsImpl.NEWLINE+"  "+eyes[0]+", "+PlatformPropsImpl.NEWLINE+"  "+eyes[1]+"]";
+        return "GenericStereo[distortion["+StereoUtil.distortionBitsToString(distortionBits)+
+                             "], singleSize "+singleTextureSize+
+                             ", sbsSize "+totalTextureSize+
+                             ", texCount "+textureCount+", texUnit "+(null != texUnit0 ? texUnit0.intValue() : "n/a")+
+                             ", "+PlatformPropsImpl.NEWLINE+"  "+(0 < eyes.length ? eyes[0] : "none")+
+                             ", "+PlatformPropsImpl.NEWLINE+"  "+(1 < eyes.length ? eyes[1] : "none")+"]";
     }
 
 
-    private static int distBits2OVRDistCaps(final int distortionBits) {
-        int caps = 0;
-        if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
-            caps |= OVR.ovrDistortionCap_TimeWarp;
-        }
-        if( StereoUtil.usesChromaticDistortion(distortionBits) ) {
-            caps |= OVR.ovrDistortionCap_Chromatic;
-        }
-        if( StereoUtil.usesVignetteDistortion(distortionBits) ) {
-            caps |= OVR.ovrDistortionCap_Vignette;
-        }
-        return caps;
-    }
+    private static final DimensionImmutable zeroSize = new Dimension(0, 0);
 
-    /* pp */ OVRStereoDeviceRenderer(final OVRStereoDevice context, final int distortionBits,
-                             final int textureCount, final float[] eyePositionOffset,
-                             final ovrEyeRenderDesc[] eyeRenderDescs, final DimensionImmutable singleTextureSize, final DimensionImmutable totalTextureSize,
-                             final RectangleImmutable[] eyeViewports, final int textureUnit) {
-        if( 1 > textureCount || 2 < textureCount ) {
-            throw new IllegalArgumentException("textureCount can only be 1 or 2, has "+textureCount);
-        }
-        this.context = context;
-        this.eyes = new OVREye[2];
+    /* pp */ GenericStereoDeviceRenderer(final GenericStereoDevice context, final int distortionBits,
+                                       final int textureCount, final float[] eyePositionOffset,
+                                       final EyeParameter[] eyeParam, final float pixelsPerDisplayPixel, final int textureUnit,
+                                       final DimensionImmutable singleTextureSize, final DimensionImmutable totalTextureSize,
+                                       final RectangleImmutable[] eyeViewports) {
+        this.device = context;
+        this.eyes = new GenericEye[eyeParam.length];
         this.distortionBits = ( distortionBits | context.getMinimumDistortionBits() ) & context.getSupportedDistortionBits();
-        this.textureCount = textureCount;
-        this.singleTextureSize = singleTextureSize;
-        this.totalTextureSize = totalTextureSize;
+        final boolean usePP = null != device.config.distortionMeshProducer && 0 != this.distortionBits;
+        final DimensionImmutable textureSize;
 
-        texUnit0 = new GLUniformData("ovr_Texture0", textureUnit);
-
-        final ovrSizei ovrTextureSize = OVRUtil.createOVRSizei( 1 == textureCount ? totalTextureSize : singleTextureSize );
-        eyes[0] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[0], ovrTextureSize, eyeViewports[0]);
-        eyes[1] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTextureSize, eyeViewports[1]);
+        if( usePP ) {
+            if( 1 > textureCount || 2 < textureCount ) {
+                this.textureCount = 2;
+            } else {
+                this.textureCount = textureCount;
+            }
+            this.singleTextureSize = singleTextureSize;
+            this.totalTextureSize = totalTextureSize;
+            textureSize = 1 == textureCount ? totalTextureSize : singleTextureSize;
+            texUnit0 = new GLUniformData("svr_Texture0", textureUnit);
+        } else {
+            this.textureCount = 0;
+            this.singleTextureSize = zeroSize;
+            this.totalTextureSize = zeroSize;
+            textureSize = zeroSize;
+            texUnit0 = null;
+        }
+        for(int i=0; i<eyeParam.length; i++) {
+            eyes[i] = new GenericEye(context, this.distortionBits, eyePositionOffset, eyeParam[i], textureSize, eyeViewports[i]);
+        }
         sp = null;
-        frameTiming = null;
     }
 
     @Override
-    public StereoDevice getDevice() {
-        return context;
-    }
+    public StereoDevice getDevice() {  return device; }
 
     @Override
     public final int getDistortionBits() { return distortionBits; }
@@ -454,10 +454,10 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     public final int getTextureCount() { return textureCount; }
 
     @Override
-    public final int getTextureUnit() { return texUnit0.intValue(); }
+    public final int getTextureUnit() { return ppAvailable() ? texUnit0.intValue() : 0; }
 
     @Override
-    public final boolean ppAvailable() { return 0 != distortionBits; }
+    public final boolean ppAvailable() { return null != texUnit0; }
 
     @Override
     public final void init(final GL gl) {
@@ -466,6 +466,9 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         }
         if( null != sp ) {
             throw new IllegalStateException("Already initialized");
+        }
+        if( !ppAvailable() ) {
+            return;
         }
         final GL2ES2 gl2es2 = gl.getGL2ES2();
 
@@ -497,9 +500,9 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             }
             fragmentShaderBasename = sb.toString();
         }
-        final ShaderCode vp0 = ShaderCode.create(gl2es2, GL2ES2.GL_VERTEX_SHADER, OVRStereoDeviceRenderer.class, "shader",
+        final ShaderCode vp0 = ShaderCode.create(gl2es2, GL2ES2.GL_VERTEX_SHADER, GenericStereoDeviceRenderer.class, "shader",
                 "shader/bin", vertexShaderBasename, true);
-        final ShaderCode fp0 = ShaderCode.create(gl2es2, GL2ES2.GL_FRAGMENT_SHADER, OVRStereoDeviceRenderer.class, "shader",
+        final ShaderCode fp0 = ShaderCode.create(gl2es2, GL2ES2.GL_FRAGMENT_SHADER, GenericStereoDeviceRenderer.class, "shader",
                 "shader/bin", fragmentShaderBasename, true);
         vp0.defaultShaderCustomization(gl2es2, true, true);
         fp0.defaultShaderCustomization(gl2es2, true, true);
@@ -512,21 +515,26 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         }
         sp.useProgram(gl2es2, true);
         if( 0 > texUnit0.setLocation(gl2es2, sp.program()) ) {
-            throw new OVRException("Couldn't locate "+texUnit0);
+            throw new GLException("Couldn't locate "+texUnit0);
         }
-        eyes[0].linkData(gl2es2, sp);
-        eyes[1].linkData(gl2es2, sp);
+        for(int i=0; i<eyes.length; i++) {
+            eyes[i].linkData(gl2es2, sp);
+        }
         sp.useProgram(gl2es2, false);
     }
 
     @Override
     public final void dispose(final GL gl) {
         final GL2ES2 gl2es2 = gl.getGL2ES2();
-        sp.useProgram(gl2es2, false);
-        eyes[0].dispose(gl2es2);
-        eyes[1].dispose(gl2es2);
-        sp.destroy(gl2es2);
-        frameTiming = null;
+        if( null != sp ) {
+            sp.useProgram(gl2es2, false);
+        }
+        for(int i=0; i<eyes.length; i++) {
+            eyes[i].dispose(gl2es2);
+        }
+        if( null != sp ) {
+            sp.destroy(gl2es2);
+        }
     }
 
     @Override
@@ -536,21 +544,20 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
     @Override
     public final EyePose updateEyePose(final int eyeNum) {
-        return eyes[eyeNum].updateEyePose(context.handle);
+        return eyes[eyeNum].updateEyePose(device);
     }
 
     @Override
     public final void beginFrame(final GL gl) {
-        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.handle, 0);
+        frameStart = Platform.currentTimeMillis();
     }
 
     @Override
     public final void endFrame(final GL gl) {
-        if( null == frameTiming ) {
+        if( 0 == frameStart ) {
             throw new IllegalStateException("beginFrame not called");
         }
-        OVR.ovrHmd_EndFrameTiming(context.handle);
-        frameTiming = null;
+        frameStart = 0;
     }
 
     @Override
@@ -558,11 +565,8 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         if( null == sp ) {
             throw new IllegalStateException("Not initialized");
         }
-        if( null == frameTiming ) {
+        if( 0 == frameStart ) {
             throw new IllegalStateException("beginFrame not called");
-        }
-        if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
-            OVR.ovr_WaitTillTime(frameTiming.getTimewarpPointSeconds());
         }
         final GL2ES2 gl2es2 = gl.getGL2ES2();
 
@@ -585,10 +589,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
     @Override
     public final void ppOneEye(final GL gl, final int eyeNum) {
-        final OVREye eye = eyes[eyeNum];
-        if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
-            eye.updateTimewarp(context.handle, eye.ovrEyePose, mat4Tmp1, mat4Tmp2);
-        }
+        final GenericEye eye = eyes[eyeNum];
         final GL2ES2 gl2es2 = gl.getGL2ES2();
 
         eye.updateUniform(gl2es2, sp);

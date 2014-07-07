@@ -673,7 +673,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * {@link #glMultMatrixf(FloatBuffer) Multiply} the {@link #glGetMatrixMode() current matrix} with the perspective/frustum matrix.
      *
      * @param fovy_deg fov angle in degrees
-     * @param aspect aspect ratio
+     * @param aspect aspect ratio width / height
      * @param zNear
      * @param zFar
      */

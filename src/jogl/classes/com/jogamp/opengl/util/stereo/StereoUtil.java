@@ -50,7 +50,7 @@ public class StereoUtil {
         final StringBuilder sb = new StringBuilder();
         if( usesBarrelDistortion(distortionBits) ) {
             if( appendComma ) { sb.append(", "); };
-            sb.append("barrell"); appendComma=true;
+            sb.append("barrel"); appendComma=true;
         }
         if( usesVignetteDistortion(distortionBits) ) {
             if( appendComma ) { sb.append(", "); };

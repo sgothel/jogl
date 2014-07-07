@@ -153,7 +153,7 @@
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/stereo/* com/jogamp/opengl/util/packrect/** com/jogamp/opengl/util/PNG* jogamp/opengl/util/av/** jogamp/opengl/util/jpeg/** jogamp/opengl/util/pngj/**"/>
+                  value="com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** com/jogamp/opengl/util/PNG* com/jogamp/opengl/util/stereo/** jogamp/opengl/util/av/** jogamp/opengl/util/jpeg/** jogamp/opengl/util/pngj/** jogamp/opengl/util/stereo/**"/>
 
         <property name="java.part.util.awt"
                   value="com/jogamp/opengl/util/**/awt/**"/>
@@ -173,6 +173,9 @@
         <property name="java.part.core.shadercode"
                   value="jogamp/opengl/shader/* jogamp/opengl/shader/bin/**"/>
 
+        <property name="java.part.util.shadercode"
+                  value="jogamp/opengl/util/stereo/shader/*"/>
+
         <property name="java.part.util.graph.shadercode"
                   value="jogamp/graph/curve/opengl/shader/* jogamp/graph/curve/opengl/shader/bin/**"/>
 
@@ -183,7 +186,7 @@
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
         <property name="java.part.nonjava" 
-                  value="${java.part.core.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+                  value="${java.part.core.shadercode} ${java.part.util.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <property name="java.part.all-desktop" 
                   value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glu.gldesktop} ${java.part.util.gldesktop}"/>

@@ -31,24 +31,41 @@ import com.jogamp.common.util.ReflectionUtil;
 
 /**
  * Platform agnostic {@link StereoDevice} factory.
+ * <p>
+ * To implement a new {@link StereoDevice}, the following interfaces/classes must be implemented:
+ * <ul>
+ *   <li>{@link StereoDeviceFactory}</li>
+ *   <li>{@link StereoDevice}</li>
+ *   <li>{@link StereoDeviceRenderer}</li>
+ * </ul>
+ * </p>
  */
 public abstract class StereoDeviceFactory {
     private static final String OVRStereoDeviceClazzName = "jogamp.opengl.oculusvr.OVRStereoDeviceFactory";
-    private static final Object[] ctorArgs;
+    private static final String GenericStereoDeviceClazzName = "jogamp.opengl.util.stereo.GenericStereoDeviceFactory";
     private static final String isAvailableMethodName = "isAvailable";
 
-    static {
-        ctorArgs = new Object[6];
-        ctorArgs[0] = null;
+    public static enum DeviceType { Default, Generic, OculusVR };
 
-    }
     public static StereoDeviceFactory createDefaultFactory() {
         final ClassLoader cl = StereoDeviceFactory.class.getClassLoader();
-        final StereoDeviceFactory sink = createFactory(cl, OVRStereoDeviceClazzName);
+        StereoDeviceFactory sink = createFactory(cl, OVRStereoDeviceClazzName);
         if( null == sink ) {
-            // sink = create(cl, ANYOTHERCLAZZNAME);
+            sink = createFactory(cl, GenericStereoDeviceClazzName);
         }
         return sink;
+    }
+
+    public static StereoDeviceFactory createFactory(final DeviceType type) {
+        final String className;
+        switch( type ) {
+            case Default: return createDefaultFactory();
+            case Generic: className = GenericStereoDeviceClazzName; break;
+            case OculusVR: className = OVRStereoDeviceClazzName; break;
+            default: throw new InternalError("XXX");
+        }
+        final ClassLoader cl = StereoDeviceFactory.class.getClassLoader();
+        return createFactory(cl, className);
     }
 
     public static StereoDeviceFactory createFactory(final ClassLoader cl, final String implName) {
@@ -60,5 +77,5 @@ public abstract class StereoDeviceFactory {
         return null;
     }
 
-    public abstract StereoDevice createDevice(final int deviceIndex, final boolean verbose);
+    public abstract StereoDevice createDevice(final int deviceIndex, final StereoDevice.Config config, final boolean verbose);
 }

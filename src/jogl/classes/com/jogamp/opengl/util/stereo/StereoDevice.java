@@ -39,14 +39,12 @@ import com.jogamp.opengl.math.FovHVHalves;
  */
 public interface StereoDevice {
     public static final boolean DEBUG = Debug.debug("StereoDevice");
+    public static final boolean DUMP_DATA = Debug.isPropertyDefined("jogl.debug.StereoDevice.DumpData", true);
 
-    /**
-     * Default eye position offset for {@link #createRenderer(int, int, float[], FovHVHalves[], float)}.
-     * <p>
-     * Default offset is 1.6f <i>up</i> and 5.0f <i>away</i>.
-     * </p>
-     */
-    public static final float[] DEFAULT_EYE_POSITION_OFFSET = { 0.0f, 1.6f, -5.0f };
+    /** Merely a class providing a type-tag for extensions */
+    public static class Config {
+        // NOP
+    }
 
     /** Disposes this {@link StereoDevice}. */
     public void dispose();
@@ -66,7 +64,25 @@ public interface StereoDevice {
     public DimensionImmutable getSurfaceSize();
 
     /**
-     * Returns the device default {@link FovHVHalves} per eye.
+     * Return the device default eye position offset for {@link #createRenderer(int, int, float[], FovHVHalves[], float)}.
+     * <p>
+     * Result is an array of float values for
+     * <ul>
+     *   <li><i>right</i> (positive)</li>
+     *   <li><i>up</i> (positive)</li>
+     *   <li><i>forward</i> (negative)</li>
+     * </ul>
+     * </p>
+     * @return
+     */
+    public float[] getDefaultEyePositionOffset();
+
+    /**
+     * Returns the device default {@link FovHVHalves} for all supported eyes
+     * in natural order, i.e. left and right if supported.
+     * <p>
+     * Monoscopic devices return an array length of one, without the value for the right-eye!
+     * </p>
      */
     public FovHVHalves[] getDefaultFOV();
 
@@ -77,12 +93,60 @@ public interface StereoDevice {
     public boolean getSensorsStarted();
 
     /**
+     * Returns an array of the preferred eye rendering order.
+     * The array length reflects the supported eye count.
+     * <p>
+     * Monoscopic devices only support one eye, where stereoscopic device two eyes.
+     * </p>
+     */
+    public int[] getEyeRenderOrder();
+
+    /**
+     * Returns the supported distortion compensation by the {@link StereoDeviceRenderer},
+     * e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL}, {@link StereoDeviceRenderer#DISTORTION_CHROMATIC}, etc.
+     * @see StereoDeviceRenderer#getDistortionBits()
+     * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)
+     * @see #getRecommendedDistortionBits()
+     * @see #getMinimumDistortionBits()
+     */
+    public int getSupportedDistortionBits();
+
+    /**
+     * Returns the recommended distortion compensation bits for the {@link StereoDeviceRenderer},
+     * e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL}, {@link StereoDeviceRenderer#DISTORTION_CHROMATIC}
+     * {@link StereoDeviceRenderer#DISTORTION_VIGNETTE}.
+     * <p>
+     * User shall use the recommended distortion compensation to achieve a distortion free view.
+     * </p>
+     * @see StereoDeviceRenderer#getDistortionBits()
+     * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)
+     * @see #getSupportedDistortionBits()
+     * @see #getMinimumDistortionBits()
+     */
+    public int getRecommendedDistortionBits();
+
+    /**
+     * Returns the minimum distortion compensation bits as required by the {@link StereoDeviceRenderer},
+     * e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL} in case the stereoscopic display uses [a]spherical lenses.
+     * <p>
+     * Minimum distortion compensation bits are being enforced by the {@link StereoDeviceRenderer}.
+     * </p>
+     * @see #getSupportedDistortionBits()
+     * @see #getRecommendedDistortionBits()
+     * @see StereoDeviceRenderer#getDistortionBits()
+     * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)
+     */
+    public int getMinimumDistortionBits();
+
+    /**
      * Create a new {@link StereoDeviceRenderer} instance.
      *
-     * @param distortionBits {@link StereoDeviceRenderer} distortion bits, e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL}, etc.
-     * @param textureCount desired texture count for post-processing, see {@link StereoDeviceRenderer#getTextureCount()} and {@link StereoDeviceRenderer#ppRequired()}
-     * @param eyePositionOffset eye position offset, e.g. {@link #DEFAULT_EYE_POSITION_OFFSET}.
-     * @param eyeFov FovHVHalves[2] field-of-view per eye
+     * @param distortionBits {@link StereoDeviceRenderer} distortion bits, e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL}, etc,
+     *                       see {@link #getRecommendedDistortionBits()}.
+     * @param textureCount desired texture count for post-processing, see {@link StereoDeviceRenderer#getTextureCount()} and {@link StereoDeviceRenderer#ppAvailable()}
+     * @param eyePositionOffset eye position offset, e.g. {@link #getDefaultEyePositionOffset()}.
+     * @param eyeFov FovHVHalves[] field-of-view per eye, e.g. {@link #getDefaultFOV()}. May contain only one value for monoscopic devices,
+     *               see {@link #getEyeRenderOrder()}.
      * @param pixelsPerDisplayPixel
      * @param textureUnit
      * @return

@@ -276,6 +276,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
     #D_ARGS="-Djogl.debug.StereoDevice"
 
     if [ $awton -eq 1 ] ; then

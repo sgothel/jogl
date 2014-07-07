@@ -69,26 +69,87 @@ public final class FovHVHalves {
     /**
      * Returns a symmetrical centered {@link FovHVHalves} instance in tangents, using:
      * <pre>
-        final float halfHorizFovTan = (float)Math.tan(horizontalFov/2f);
-        final float halfVertFovTan = (float)Math.tan(verticalFov/2f);
+        halfHorizFovTan = tan( horizontalFov / 2f );
+        halfVertFovTan  = tan( verticalFov / 2f );
      * </pre>
      * @param horizontalFov whole horizontal FOV in radians
      * @param verticalFov whole vertical FOV in radians
      */
-    public static FovHVHalves createByRadians(final float horizontalFov, final float verticalFov) {
+    public static FovHVHalves byRadians(final float horizontalFov, final float verticalFov) {
         final float halfHorizFovTan = FloatUtil.tan(horizontalFov/2f);
         final float halfVertFovTan = FloatUtil.tan(verticalFov/2f);
         return new FovHVHalves(halfHorizFovTan, halfHorizFovTan, halfVertFovTan, halfVertFovTan, true);
     }
 
     /**
-     * Returns this instance values <i>in tangent</i> values.
+     * Returns a symmetrical centered {@link FovHVHalves} instance in tangents, using:
+     * <pre>
+        top  = bottom = tan( verticalFov / 2f );
+        left =  right = aspect * top;
+     * </pre>
+     *
+     * @param verticalFov vertical FOV in radians
+     * @param aspect aspect ration width / height
+     */
+    public static FovHVHalves byFovyRadianAndAspect(final float verticalFov, final float aspect) {
+        final float halfVertFovTan = FloatUtil.tan(verticalFov/2f);
+        final float halfHorizFovTan = aspect * halfVertFovTan;
+        return new FovHVHalves(halfHorizFovTan, halfHorizFovTan,
+                               halfVertFovTan, halfVertFovTan, true);
+    }
+
+    /**
+     * Returns a custom symmetry {@link FovHVHalves} instance in tangents, using:
+     * <pre>
+        left   = tan( horizontalFov * horizCenterFromLeft )
+        right  = tan( horizontalFov * ( 1f - horizCenterFromLeft ) )
+        top    = tan( verticalFov   * vertCenterFromTop )
+        bottom = tan( verticalFov   * (1f - vertCenterFromTop ) )
+     * </pre>
+     * @param horizontalFov whole horizontal FOV in radians
+     * @param horizCenterFromLeft horizontal center from left in [0..1]
+     * @param verticalFov whole vertical FOV in radians
+     * @param vertCenterFromTop vertical center from top in [0..1]
+     */
+    public static FovHVHalves byRadians(final float horizontalFov, final float horizCenterFromLeft,
+                                        final float verticalFov, final float vertCenterFromTop) {
+        return new FovHVHalves(FloatUtil.tan(horizontalFov * horizCenterFromLeft),
+                               FloatUtil.tan(horizontalFov * ( 1f - horizCenterFromLeft )),
+                               FloatUtil.tan(verticalFov   * vertCenterFromTop),
+                               FloatUtil.tan(verticalFov   * (1f - vertCenterFromTop )),
+                               true);
+    }
+
+    /**
+     * Returns a custom symmetry {@link FovHVHalves} instance in tangents,
+     * via computing the <code>horizontalFov</code> using:
+     * <pre>
+        halfVertFovTan  = tan( verticalFov / 2f );
+        halfHorizFovTan = aspect * halfVertFovTan;
+        horizontalFov   = atan( halfHorizFovTan ) * 2f;
+        return {@link #byRadians(float, float, float, float) byRadians}(horizontalFov, horizCenterFromLeft, verticalFov, vertCenterFromTop)
+     * </pre>
+     * @param verticalFov whole vertical FOV in radians
+     * @param vertCenterFromTop vertical center from top in [0..1]
+     * @param aspect aspect ration width / height
+     * @param horizCenterFromLeft horizontal center from left in [0..1]
+     */
+    public static FovHVHalves byFovyRadianAndAspect(final float verticalFov, final float vertCenterFromTop,
+                                                    final float aspect, final float horizCenterFromLeft) {
+        final float halfVertFovTan = FloatUtil.tan(verticalFov/2f);
+        final float halfHorizFovTan = aspect * halfVertFovTan;
+        final float horizontalFov = FloatUtil.atan(halfHorizFovTan) * 2f;
+        return byRadians(horizontalFov, horizCenterFromLeft, verticalFov, vertCenterFromTop);
+    }
+
+    /**
+     * Returns this instance <i>in tangent</i> values.
      * <p>
      * If this instance is {@link #inTangents} already, method returns this instance,
      * otherwise a newly created instance w/ converted values to tangent.
      * </p>
      */
-    public final FovHVHalves getInTangents() {
+    public final FovHVHalves toTangents() {
         if( inTangents ) {
             return this;
         } else {

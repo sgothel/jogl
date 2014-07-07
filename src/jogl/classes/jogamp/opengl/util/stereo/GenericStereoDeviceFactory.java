@@ -25,28 +25,19 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.oculusvr;
+package jogamp.opengl.util.stereo;
 
-import com.jogamp.oculusvr.OVR;
-import com.jogamp.oculusvr.OVRVersion;
-import com.jogamp.oculusvr.OvrHmdContext;
 import com.jogamp.opengl.util.stereo.StereoDevice;
-import com.jogamp.opengl.util.stereo.StereoDevice.Config;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 
-public class OVRStereoDeviceFactory extends StereoDeviceFactory {
+public class GenericStereoDeviceFactory extends StereoDeviceFactory {
 
     public static boolean isAvailable() {
-        return OVR.ovr_Initialize(); // recursive ..
+        return true;
     }
 
     @Override
-    public final StereoDevice createDevice(final int deviceIndex, Config config, final boolean verbose) {
-        final OvrHmdContext hmdCtx = OVR.ovrHmd_Create(deviceIndex);
-        final OVRStereoDevice ctx = new OVRStereoDevice(hmdCtx, deviceIndex);
-        if( verbose ) {
-            System.err.println(OVRVersion.getAvailableCapabilitiesInfo(ctx.hmdDesc, deviceIndex, null).toString());
-        }
-        return ctx;
+    public final StereoDevice createDevice(final int deviceIndex, final StereoDevice.Config config, final boolean verbose) {
+        return new GenericStereoDevice(deviceIndex, config);
     }
 }

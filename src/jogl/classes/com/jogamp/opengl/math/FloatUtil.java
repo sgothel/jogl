@@ -559,7 +559,7 @@ public final class FloatUtil {
    * @param initM if true, given matrix will be initialized w/ identity matrix,
    *              otherwise only the frustum fields are set.
    * @param fovy_rad angle in radians
-   * @param aspect
+   * @param aspect aspect ratio width / height
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
@@ -591,7 +591,7 @@ public final class FloatUtil {
    */
   public static float[] makePerspective(final float[] m, final int m_offset, final boolean initM,
                                         final FovHVHalves fovhv, final float zNear, final float zFar) {
-      final FovHVHalves fovhvTan = fovhv.getInTangents();  // use tangent of half-fov !
+      final FovHVHalves fovhvTan = fovhv.toTangents();  // use tangent of half-fov !
       final float top    =         fovhvTan.top    * zNear;
       final float bottom = -1.0f * fovhvTan.bottom * zNear;
       final float left   = -1.0f * fovhvTan.left   * zNear;

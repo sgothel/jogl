@@ -33,6 +33,7 @@ import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.RectangleImmutable;
 
+import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.ovrEyeRenderDesc;
 import com.jogamp.oculusvr.ovrFovPort;
 import com.jogamp.oculusvr.ovrQuatf;
@@ -43,6 +44,7 @@ import com.jogamp.oculusvr.ovrVector2i;
 import com.jogamp.oculusvr.ovrVector3f;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 
 /**
  * OculusVR Data Conversion Helper Functions
@@ -122,13 +124,28 @@ public class OVRUtil {
     }
     public static ovrFovPort getOVRFovPort(final FovHVHalves fovHVHalves) {
         final ovrFovPort tanHalfFov = ovrFovPort.create();
-        final FovHVHalves fovHVHalvesTan = fovHVHalves.getInTangents();
+        final FovHVHalves fovHVHalvesTan = fovHVHalves.toTangents();
         tanHalfFov.setLeftTan(fovHVHalvesTan.left);
         tanHalfFov.setRightTan(fovHVHalvesTan.right);
         tanHalfFov.setUpTan(fovHVHalvesTan.top);
         tanHalfFov.setDownTan(fovHVHalvesTan.bottom);
         return tanHalfFov;
     }
+
+    public static int ovrDistCaps2DistBits(final int ovrDistortionCaps) {
+        int bits = StereoDeviceRenderer.DISTORTION_BARREL;
+        if( 0 != ( OVR.ovrDistortionCap_TimeWarp & ovrDistortionCaps ) ) {
+            bits |= StereoDeviceRenderer.DISTORTION_TIMEWARP;
+        }
+        if( 0 != ( OVR.ovrDistortionCap_Chromatic & ovrDistortionCaps ) ) {
+            bits |= StereoDeviceRenderer.DISTORTION_CHROMATIC;
+        }
+        if( 0 != ( OVR.ovrDistortionCap_Vignette & ovrDistortionCaps ) ) {
+            bits |= StereoDeviceRenderer.DISTORTION_VIGNETTE;
+        }
+        return bits;
+    }
+
 
     public static String toString(final ovrFovPort fov) {
         return "["+fov.getLeftTan()+" l, "+fov.getRightTan()+" r, "+

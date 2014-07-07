@@ -50,6 +50,7 @@
 
         <!-- The source directories. -->
         <property name="src.java"                 value="${project.root}/${rootrel.src.java}" />
+        <property name="src.ovr.java"             value="${rel.oculusvr.sdk}/jogl/src/classes" />
         <property name="src.c"                    value="${project.root}/${rootrel.src.c}" />
         
         <!-- The generated source directories. -->
@@ -195,6 +196,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
+            <src path="${src.ovr.java}" />
             <src path="${src.generated.java}" />
         </javac>
         <!-- make shadercode and fonts available in classpath -->
@@ -618,6 +620,7 @@
     <target name="build-jars-dependset" depends="init,gluegen.cpptasks.detect.os" >
         <dependset>
             <srcfileset dir="${src.java}"/>
+            <srcfileset dir="${src.ovr.java}"/>
             <targetfileset dir="." includes="${build.oculusvr}/oculusvr.jar" />
         </dependset>
     </target>
@@ -661,7 +664,7 @@
       -->
     <target name="javadoc" depends="init">
         <javadoc packagenames="${javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
+                 sourcepath="${src.java};${src.ovr.java};${src.generated.java}"        
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  encoding="UTF-8"

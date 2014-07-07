@@ -42,19 +42,50 @@ import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
+import com.jogamp.opengl.util.stereo.StereoUtil;
 
 public class OVRStereoDevice implements StereoDevice {
+    /** 1.6 up, 5 forward */
+    private static final float[] DEFAULT_EYE_POSITION_OFFSET = { 0.0f, 1.6f, -5.0f };
+
     public final OvrHmdContext handle;
     public final int deviceIndex;
     public final ovrHmdDesc hmdDesc;
+    private final FovHVHalves[] defaultEyeFov;
 
     private boolean sensorsStarted = false;
+    private final int[] eyeRenderOrder;
+    private final int supportedDistortionBits, recommendedDistortionBits, minimumDistortionBits;
 
     public OVRStereoDevice(final OvrHmdContext nativeContext, final int deviceIndex) {
         this.handle = nativeContext;
         this.deviceIndex = deviceIndex;
         this.hmdDesc = ovrHmdDesc.create();
         OVR.ovrHmd_GetDesc(handle, hmdDesc);
+        final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[hmdDesc.getEyeRenderOrderArrayLength()]);
+        defaultEyeFov = new FovHVHalves[defaultOVREyeFov.length];
+        for(int i=0; i<defaultEyeFov.length; i++) {
+            defaultEyeFov[i] = OVRUtil.getFovHV(defaultOVREyeFov[i]);
+        }
+        eyeRenderOrder = new int[hmdDesc.getEyeRenderOrderArrayLength()];
+        hmdDesc.getEyeRenderOrder(0, eyeRenderOrder);
+        supportedDistortionBits = OVRUtil.ovrDistCaps2DistBits(hmdDesc.getDistortionCaps());
+        recommendedDistortionBits = supportedDistortionBits & ~StereoDeviceRenderer.DISTORTION_TIMEWARP;
+        minimumDistortionBits = StereoDeviceRenderer.DISTORTION_BARREL;
+    }
+
+    @Override
+    public final String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("OVRStereoDevice[product "+hmdDesc.getProductNameAsString());
+        sb.append(", vendor "+hmdDesc.getManufacturerAsString());
+        sb.append(", device "+hmdDesc.getDisplayDeviceNameAsString());
+        sb.append(", surfaceSize "+getSurfaceSize());
+        sb.append(", surfacePos "+getPosition());
+        sb.append(", distortionBits[supported ["+StereoUtil.distortionBitsToString(getSupportedDistortionBits())+
+                      "], recommended ["+StereoUtil.distortionBitsToString(getRecommendedDistortionBits())+
+                      "], minimum ["+StereoUtil.distortionBitsToString(getMinimumDistortionBits())+"]]]");
+        return sb.toString();
     }
 
     @Override
@@ -73,12 +104,13 @@ public class OVRStereoDevice implements StereoDevice {
     }
 
     @Override
+    public float[] getDefaultEyePositionOffset() {
+        return DEFAULT_EYE_POSITION_OFFSET;
+    }
+
+    @Override
     public final FovHVHalves[] getDefaultFOV() {
-        final ovrFovPort[] defaultEyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[2]);
-        final FovHVHalves[] eyeFov = new FovHVHalves[2];
-        eyeFov[0] = OVRUtil.getFovHV(defaultEyeFov[0]);
-        eyeFov[1] = OVRUtil.getFovHV(defaultEyeFov[1]);
-        return eyeFov;
+        return defaultEyeFov;
     }
 
     @Override
@@ -104,7 +136,27 @@ public class OVRStereoDevice implements StereoDevice {
         }
     }
     @Override
-    public boolean getSensorsStarted() { return sensorsStarted; }
+    public final boolean getSensorsStarted() { return sensorsStarted; }
+
+    @Override
+    public final int[] getEyeRenderOrder() {
+        return eyeRenderOrder;
+    }
+
+    @Override
+    public final int getSupportedDistortionBits() {
+        return supportedDistortionBits;
+    };
+
+    @Override
+    public final int getRecommendedDistortionBits() {
+        return recommendedDistortionBits;
+    }
+
+    @Override
+    public final int getMinimumDistortionBits() {
+        return minimumDistortionBits;
+    }
 
     @Override
     public final StereoDeviceRenderer createRenderer(final int distortionBits,

@@ -30,12 +30,15 @@ package com.jogamp.opengl.test.junit.jogl.stereo;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
+
+import jogamp.opengl.util.stereo.GenericStereoDevice;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.ReflectionUtil;
@@ -56,6 +59,7 @@ import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 import com.jogamp.opengl.util.stereo.StereoClientRenderer;
 import com.jogamp.opengl.util.stereo.StereoGLEventListener;
+import com.jogamp.opengl.util.stereo.StereoUtil;
 
 /**
  * All distortions, no multisampling, bilinear filtering, manual-swap and using two FBOs (default, good)
@@ -103,8 +107,14 @@ public class StereoDemo01 {
     static String useFilmFile = null;
     static String useFilmURI = null;
     static String stereoRendererListenerName = null;
+    static StereoDeviceFactory.DeviceType deviceType = StereoDeviceFactory.DeviceType.Default;
+    static int deviceIndex = 0;
 
     public static void main(final String args[]) throws InterruptedException, URISyntaxException {
+        boolean useRecommendedDistortionBits = true;
+        int posx = -1;
+        int posy = -1;
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -121,18 +131,34 @@ public class StereoDemo01 {
             } else if(args[i].equals("-vignette")) {
                 i++;
                 useVignette = MiscUtils.atob(args[i], useVignette);
+                useRecommendedDistortionBits = false;
             } else if(args[i].equals("-chromatic")) {
                 i++;
                 useChromatic = MiscUtils.atob(args[i], useChromatic);
+                useRecommendedDistortionBits = false;
             } else if(args[i].equals("-timewarp")) {
                 i++;
                 useTimewarp = MiscUtils.atob(args[i], useTimewarp);
+                useRecommendedDistortionBits = false;
             } else if(args[i].equals("-vignette")) {
                 i++;
                 useVignette = MiscUtils.atob(args[i], useVignette);
+                useRecommendedDistortionBits = false;
             } else if(args[i].equals("-mainScreen")) {
                 i++;
                 useStereoScreen = !MiscUtils.atob(args[i], useStereoScreen);
+            } else if(args[i].equals("-device")) {
+                i++;
+                deviceType = StereoDeviceFactory.DeviceType.valueOf(args[i]);
+            } else if(args[i].equals("-deviceIndex")) {
+                i++;
+                deviceIndex = MiscUtils.atoi(args[i], deviceIndex);
+            } else if(args[i].equals("-posx")) {
+                i++;
+                posx = MiscUtils.atoi(args[i], posx);
+            } else if(args[i].equals("-posy")) {
+                i++;
+                posy = MiscUtils.atoi(args[i], posy);
             } else if(args[i].equals("-autoSwap")) {
                 i++;
                 useAutoSwap = MiscUtils.atob(args[i], useAutoSwap);
@@ -173,41 +199,53 @@ public class StereoDemo01 {
             movieURI = null;
         }
         final StereoDemo01 demo01 = new StereoDemo01();
-        demo01.doIt(0, upstream, movieSimple, movieURI, biLinear, numSamples, useSingleFBO, useVignette, useChromatic, useTimewarp,
+        demo01.doIt(deviceType, deviceIndex, posx, posy,
+                    upstream, movieSimple, movieURI, biLinear, numSamples, useSingleFBO,
+                    useRecommendedDistortionBits, useVignette, useChromatic, useTimewarp,
                     useAutoSwap, true /* useAnimator */, false /* exclusiveContext*/);
     }
 
-    public void doIt(final int stereoDeviceIndex,
+    public void doIt(final StereoDeviceFactory.DeviceType deviceType, final int deviceIndex, final int posx, final int posy,
                      final StereoGLEventListener upstream, final MovieSBSStereo movieSimple, final URI movieURI,
                      final boolean biLinear, final int numSamples, final boolean useSingleFBO,
-                     final boolean useVignette, final boolean useChromatic, final boolean useTimewarp,
+                     final boolean useRecommendedDistortionBits, final boolean useVignette, final boolean useChromatic, final boolean useTimewarp,
                      final boolean useAutoSwap, final boolean useAnimator, final boolean exclusiveContext) throws InterruptedException {
 
         System.err.println("glob duration "+duration);
         System.err.println("glob useStereoScreen "+useStereoScreen);
+        System.err.println("deviceType "+deviceType);
+        System.err.println("deviceIndex "+deviceIndex);
         System.err.println("biLinear "+biLinear);
         System.err.println("numSamples "+numSamples);
         System.err.println("useSingleFBO "+useSingleFBO);
+        System.err.println("useRecommendedDistortionBits "+useRecommendedDistortionBits);
         System.err.println("useVignette "+useVignette);
         System.err.println("useChromatic "+useChromatic);
         System.err.println("useTimewarp "+useTimewarp);
         System.err.println("useAutoSwap "+useAutoSwap);
 
-        final StereoDeviceFactory stereoDeviceFactory = StereoDeviceFactory.createDefaultFactory();
+        final StereoDeviceFactory stereoDeviceFactory = StereoDeviceFactory.createFactory(deviceType);
         if( null == stereoDeviceFactory ) {
             System.err.println("No StereoDeviceFactory available");
             return;
         }
 
-        final StereoDevice stereoDevice = stereoDeviceFactory.createDevice(stereoDeviceIndex, true /* verbose */);
+        final StereoDevice stereoDevice = stereoDeviceFactory.createDevice(deviceIndex, null, true /* verbose */);
         if( null == stereoDevice ) {
-            System.err.println("No StereoDevice.Context available for index "+stereoDeviceIndex);
+            System.err.println("No StereoDevice.Context available for index "+deviceIndex);
             return;
         }
 
+        final boolean isGenericDevice = stereoDevice instanceof GenericStereoDevice;
+
+        if( 0 <= posx && 0 <= posy && isGenericDevice ) {
+            ((GenericStereoDevice)stereoDevice).setSurfacePosition(posx, posy);
+        }
+        System.err.println("StereoDevice "+stereoDevice);
+
         // Start the sensor which provides the Rift’s pose and motion.
         if( !stereoDevice.startSensors(true) ) {
-            System.err.println("Could not start sensors on device "+stereoDeviceIndex);
+            System.err.println("Could not start sensors on device "+deviceIndex);
         }
 
         //
@@ -232,24 +270,35 @@ public class StereoDemo01 {
         }
 
         //
-        // Oculus Rift setup
+        // Stereo Device Setup
         //
         // EyePos.y = ovrHmd_GetFloat(HMD, OVR_KEY_EYE_HEIGHT, EyePos.y);
         final FovHVHalves[] defaultEyeFov = stereoDevice.getDefaultFOV();
         System.err.println("Default Fov[0]: "+defaultEyeFov[0]);
         System.err.println("Default Fov[0]: "+defaultEyeFov[0].toStringInDegrees());
-        System.err.println("Default Fov[1]: "+defaultEyeFov[1]);
-        System.err.println("Default Fov[1]: "+defaultEyeFov[1].toStringInDegrees());
+        if( defaultEyeFov.length > 1 ) {
+            System.err.println("Default Fov[1]: "+defaultEyeFov[1]);
+            System.err.println("Default Fov[1]: "+defaultEyeFov[1].toStringInDegrees());
+        }
 
-        final float[] eyePositionOffset = null == movieSimple ? StereoDevice.DEFAULT_EYE_POSITION_OFFSET // default
-                                                              : new float[] { 0f, 0.3f, 0f };            // better fixed movie position
+        final float[] eyePositionOffset = null == movieSimple || isGenericDevice ? stereoDevice.getDefaultEyePositionOffset() // default
+                                                                                 : new float[] { 0f, 0.3f, 0f };              // better fixed movie position
+        System.err.println("Eye Position Offset: "+Arrays.toString(eyePositionOffset));
+
         final int textureUnit = 0;
-        final int distortionBits = ( useVignette ? StereoDeviceRenderer.DISTORTION_VIGNETTE : 0 ) |
-                                   ( useChromatic ? StereoDeviceRenderer.DISTORTION_CHROMATIC : 0 ) |
-                                   ( useTimewarp ? StereoDeviceRenderer.DISTORTION_TIMEWARP : 0 );
+        final int reqDistortionBits;
+        if( useRecommendedDistortionBits ) {
+            reqDistortionBits = stereoDevice.getRecommendedDistortionBits();
+        } else {
+            reqDistortionBits = ( useVignette ? StereoDeviceRenderer.DISTORTION_VIGNETTE : 0 ) |
+                             ( useChromatic ? StereoDeviceRenderer.DISTORTION_CHROMATIC : 0 ) |
+                             ( useTimewarp ? StereoDeviceRenderer.DISTORTION_TIMEWARP : 0 );
+        }
+        System.err.println("Requesting Distortion Bits: "+StereoUtil.distortionBitsToString(reqDistortionBits));
+
         final float pixelsPerDisplayPixel = 1f;
         final StereoDeviceRenderer stereoDeviceRenderer =
-                stereoDevice.createRenderer(distortionBits, useSingleFBO ? 1 : 2, eyePositionOffset,
+                stereoDevice.createRenderer(reqDistortionBits, useSingleFBO ? 1 : 2, eyePositionOffset,
                                             defaultEyeFov, pixelsPerDisplayPixel, textureUnit);
         System.err.println("StereoDeviceRenderer: "+stereoDeviceRenderer);
 

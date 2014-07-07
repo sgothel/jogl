@@ -393,7 +393,7 @@ public final class VectorUtil {
     }
 
     /**
-     * Scales a vector by param using given result float[]
+     * Scales a vector by param using given result float[], result = vector * scale
      * @param result vector for the result, may be vector (in-place)
      * @param vector input vector
      * @param scale single scale constant for all vector components
@@ -406,7 +406,7 @@ public final class VectorUtil {
     }
 
     /**
-     * Scales a vector by param using given result float[]
+     * Scales a vector by param using given result float[], result = vector * scale
      * @param result vector for the result, may be vector (in-place)
      * @param vector input vector
      * @param scale single scale constant for all vector components
@@ -420,7 +420,7 @@ public final class VectorUtil {
     }
 
     /**
-     * Scales a vector by param using given result float[]
+     * Scales a vector by param using given result float[], result = vector * scale
      * @param result vector for the result, may be vector (in-place)
      * @param vector input vector
      * @param scale 3 component scale constant for each vector component
@@ -435,7 +435,7 @@ public final class VectorUtil {
     }
 
     /**
-     * Scales a vector by param using given result float[]
+     * Scales a vector by param using given result float[], result = vector * scale
      * @param result vector for the result, may be vector (in-place)
      * @param vector input vector
      * @param scale 2 component scale constant for each vector component
@@ -445,6 +445,62 @@ public final class VectorUtil {
     {
         result[0] = vector[0] * scale[0];
         result[1] = vector[1] * scale[1];
+        return result;
+    }
+
+    /**
+     * Divides a vector by param using given result float[], result = vector / scale
+     * @param result vector for the result, may be vector (in-place)
+     * @param vector input vector
+     * @param scale single scale constant for all vector components
+     * @return result vector for chaining
+     */
+    public static float[] divVec2(final float[] result, final float[] vector, final float scale) {
+        result[0] = vector[0] / scale;
+        result[1] = vector[1] / scale;
+        return result;
+    }
+
+    /**
+     * Divides a vector by param using given result float[], result = vector / scale
+     * @param result vector for the result, may be vector (in-place)
+     * @param vector input vector
+     * @param scale single scale constant for all vector components
+     * @return result vector for chaining
+     */
+    public static float[] divVec3(final float[] result, final float[] vector, final float scale) {
+        result[0] = vector[0] / scale;
+        result[1] = vector[1] / scale;
+        result[2] = vector[2] / scale;
+        return result;
+    }
+
+    /**
+     * Divides a vector by param using given result float[], result = vector / scale
+     * @param result vector for the result, may be vector (in-place)
+     * @param vector input vector
+     * @param scale 3 component scale constant for each vector component
+     * @return result vector for chaining
+     */
+    public static float[] divVec3(final float[] result, final float[] vector, final float[] scale)
+    {
+        result[0] = vector[0] / scale[0];
+        result[1] = vector[1] / scale[1];
+        result[2] = vector[2] / scale[2];
+        return result;
+    }
+
+    /**
+     * Divides a vector by param using given result float[], result = vector / scale
+     * @param result vector for the result, may be vector (in-place)
+     * @param vector input vector
+     * @param scale 2 component scale constant for each vector component
+     * @return result vector for chaining
+     */
+    public static float[] divVec2(final float[] result, final float[] vector, final float[] scale)
+    {
+        result[0] = vector[0] / scale[0];
+        result[1] = vector[1] / scale[1];
         return result;
     }
 

@@ -41,13 +41,13 @@ import javax.media.opengl.GL;
  *   <li>device.{@link #beginFrame(GL)}</li>
  *   <li>For both eyes:<ul>
  *     <li>device.{@link #updateEyePose(int)}</li>
- *     <li>if device.{@link #ppRequired()}: Set the render target, e.g. FBO</li>
+ *     <li>if device.{@link #ppAvailable()}: Set the render target, e.g. FBO</li>
  *     <li>Set the viewport using {@link Eye#getViewport()}</li>
  *     <li>{@link StereoGLEventListener#reshapeForEye(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream.reshapeEye(..)}</li>
  *     <li>{@link StereoGLEventListener#display(javax.media.opengl.GLAutoDrawable, int) upstream.display(..)}.</li>
  *   </ul></li>
  *   <li>Reset the viewport</li>
- *   <li>If device.{@link #ppRequired()}:<ul>
+ *   <li>If device.{@link #ppAvailable()}:<ul>
  *     <li>device.{@link #ppBegin(GL)}</li>
  *     <li>Use render target, e.g. FBO's texture</li>
  *     <li>device.{@link #ppBothEyes(GL)} or device.{@link #ppOneEye(GL, int)} for both eyes</li>
@@ -116,10 +116,10 @@ public interface StereoDeviceRenderer {
     public EyePose updateEyePose(final int eyeNum);
 
     /**
-     * Returns distortion compensation bits, e.g. {@link #DISTORTION_BARREL},
+     * Returns used distortion compensation bits, e.g. {@link #DISTORTION_BARREL},
      * in case the stereoscopic display requires such, i.e. in case lenses are utilized.
      * <p>
-     * Distortion requires {@link #ppRequired() post-processing}.
+     * Distortion requires {@link #ppAvailable() post-processing}.
      * </p>
      */
     public int getDistortionBits();
@@ -133,7 +133,7 @@ public interface StereoDeviceRenderer {
      * </p>
      * <p>
      * Either the renderer presents the images <i>side-by-side</i> according to the {@link Eye#getViewport() eye's viewport},
-     * or {@link #ppRequired() post-processing} is utilized to merge {@link #getTextureCount() textures}
+     * or {@link #ppAvailable() post-processing} is utilized to merge {@link #getTextureCount() textures}
      * to a <i>side-by-side</i> configuration.
      * </p>
      */
@@ -156,7 +156,7 @@ public interface StereoDeviceRenderer {
     public DimensionImmutable getTotalSurfaceSize();
 
     /**
-     * Returns the used texture-image count for post-processing, see {@link #ppRequired()}.
+     * Returns the used texture-image count for post-processing, see {@link #ppAvailable()}.
      * <p>
      * In case the renderer does not support multiple textures for post-processing,
      * or no post-processing at all, method returns zero despite the request
@@ -165,7 +165,7 @@ public interface StereoDeviceRenderer {
      */
     public int getTextureCount();
 
-    /** Returns the desired texture-image unit for post-processing, see {@link #ppRequired()}. */
+    /** Returns the desired texture-image unit for post-processing, see {@link #ppAvailable()}. */
     public int getTextureUnit();
 
     /** Initialize OpenGL related resources */
@@ -181,13 +181,12 @@ public interface StereoDeviceRenderer {
     public void endFrame(final GL gl);
 
     /**
-     * Returns <code>true</code> if stereoscopic post-processing is required,
+     * Returns <code>true</code> if stereoscopic post-processing is required and available,
      * otherwise <code>false</code>.
      * <p>
-     * Stereoscopic post-processing is usually required if:
+     * Stereoscopic post-processing is available if:
      * <ul>
-     *   <li>one of the <i>distortion</i> modes are set, i.e. {@link #usesBarrelDistortion()}</li>
-     *   <li>texture-images are being used, see {@link #getTextureCount()}</li>
+     *   <li>one of the <i>distortion</i> bits are set, see {@link #getDistortionBits()}</li>
      * </ul>
      * </p>
      * <p>
@@ -195,15 +194,15 @@ public interface StereoDeviceRenderer {
      * the following post-processing methods must be called to before {@link #endFrame()}:
      * <ul>
      *   <li>{@link #ppBegin(GL)}</li>
-     *   <li>{@link #ppBothEyes(GL)} or {@link #ppOneEye(GL, int)} for both eyes</li>
+     *   <li>{@link #ppOneEye(GL, int)} for both eyes</li>
      *   <li>{@link #ppEnd(GL)}</li>
      * </ul>
      * </p>
      */
-    public boolean ppRequired();
+    public boolean ppAvailable();
 
     /**
-     * Begin stereoscopic post-processing, see {@link #ppRequired()}.
+     * Begin stereoscopic post-processing, see {@link #ppAvailable()}.
      * <p>
      * {@link #updateEyePose(int)} for both eyes must be called upfront
      * when rendering upstream {@link StereoGLEventListener}.
@@ -214,20 +213,14 @@ public interface StereoDeviceRenderer {
     public void ppBegin(final GL gl);
 
     /**
-     * Performs stereoscopic post-processing for both eyes, see {@link #ppRequired()}.
-     * @param gl
-     */
-    public void ppBothEyes(final GL gl);
-
-    /**
-     * Performs stereoscopic post-processing for one eye, see {@link #ppRequired()}.
+     * Performs stereoscopic post-processing for one eye, see {@link #ppAvailable()}.
      * @param gl
      * @param eyeNum
      */
     public void ppOneEye(final GL gl, final int eyeNum);
 
     /**
-     * End stereoscopic post-processing, see {@link #ppRequired()}.
+     * End stereoscopic post-processing, see {@link #ppAvailable()}.
      * @param gl
      */
     public void ppEnd(final GL gl);

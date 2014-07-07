@@ -32,6 +32,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src/oculusvr/classes"/>
+	<classpathentry kind="src" path="oculusvr-sdk/jogl/src/classes"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>

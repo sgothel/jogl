@@ -58,7 +58,6 @@ public class StereoClientRenderer implements GLEventListener {
     private final FBObject[] fbos;
     private final int magFilter;
     private final int minFilter;
-    private final boolean usePostprocessing;
 
     private int numSamples;
     private final TextureAttachment[] fboTexs;
@@ -71,7 +70,6 @@ public class StereoClientRenderer implements GLEventListener {
         }
         this.helper = new GLDrawableHelper();
         this.deviceRenderer = deviceRenderer;
-        this.usePostprocessing = deviceRenderer.ppRequired() || deviceRenderer.usesSideBySideStereo() && fboCount > 1;
         this.ownsDevice = ownsDevice;
         this.magFilter = magFilter;
         this.minFilter = minFilter;
@@ -179,26 +177,31 @@ public class StereoClientRenderer implements GLEventListener {
 
         final int fboCount = fbos.length;
         final int displayRepeatFlags;
-        if( 1 == fboCount ) {
+        if( 1 >= fboCount ) {
             displayRepeatFlags = CustomGLEventListener.DISPLAY_DONTCLEAR;
         } else {
             displayRepeatFlags = 0;
         }
 
+        final int[] eyeOrder = deviceRenderer.getDevice().getEyeRenderOrder();
+        final int eyeCount = eyeOrder.length;
+
         // Update eye pos upfront to have same (almost) results
-        deviceRenderer.updateEyePose(0);
-        deviceRenderer.updateEyePose(1);
+        for(int eyeNum=0; eyeNum<eyeCount; eyeNum++) {
+            deviceRenderer.updateEyePose(eyeNum);
+        }
 
         if( 1 == fboCount ) {
             fbos[0].bind(gl);
         }
 
-        for(int eyeNum=0; eyeNum<2; eyeNum++) {
+        for(int eyeNum=0; eyeNum<eyeCount; eyeNum++) {
+            final int eyeName = eyeOrder[eyeNum];
             if( 1 < fboCount ) {
-                fbos[eyeNum].bind(gl);
+                fbos[eyeName].bind(gl);
             }
 
-            final StereoDeviceRenderer.Eye eye = deviceRenderer.getEye(eyeNum);
+            final StereoDeviceRenderer.Eye eye = deviceRenderer.getEye(eyeName);
             final RectangleImmutable viewport = eye.getViewport();
             gl.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
@@ -213,28 +216,31 @@ public class StereoClientRenderer implements GLEventListener {
             helper.runForAllGLEventListener(drawable, reshapeDisplayAction);
 
             if( 1 < fboCount ) {
-                fbos[eyeNum].unbind(gl);
+                fbos[eyeName].unbind(gl);
             }
         }
+
         if( 1 == fboCount ) {
             fbos[0].unbind(gl);
         }
         // restore viewport
         gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
 
-        if( usePostprocessing ) {
+        if( deviceRenderer.ppAvailable() ) {
             deviceRenderer.ppBegin(gl);
             if( 1 == fboCount ) {
                 fbos[0].use(gl, fboTexs[0]);
-                deviceRenderer.ppBothEyes(gl);
+                for(int eyeNum=0; eyeNum<eyeCount; eyeNum++) {
+                    deviceRenderer.ppOneEye(gl, eyeOrder[eyeNum]);
+                }
                 fbos[0].unuse(gl);
             } else {
-                fbos[0].use(gl, fboTexs[0]);
-                deviceRenderer.ppOneEye(gl, 0);
-                fbos[0].unuse(gl);
-                fbos[1].use(gl, fboTexs[1]);
-                deviceRenderer.ppOneEye(gl, 1);
-                fbos[1].unuse(gl);
+                for(int eyeNum=0; eyeNum<eyeCount; eyeNum++) {
+                    final int eyeName = eyeOrder[eyeNum];
+                    fbos[eyeName].use(gl, fboTexs[eyeName]);
+                    deviceRenderer.ppOneEye(gl, eyeName);
+                    fbos[eyeName].unuse(gl);
+                }
             }
             deviceRenderer.ppEnd(gl);
         }
