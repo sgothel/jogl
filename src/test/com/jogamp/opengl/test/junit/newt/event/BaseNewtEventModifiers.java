@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.newt.event ;
 
 import java.io.PrintStream ;
 import java.util.ArrayList ;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLProfile ;
 
@@ -86,7 +87,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
         private boolean _modifierCheckEnabled ;
         private int _expectedModifiers;
-        private volatile int _eventCount ;
+        private final AtomicInteger _eventCount = new AtomicInteger(0);
         private ArrayList<String> _failures = new ArrayList<String>() ;
 
         public synchronized void setModifierCheckEnabled( final boolean value ) {
@@ -112,7 +113,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         public synchronized ArrayList<String> clear() {
             final ArrayList<String> old = _failures;
 
-            _eventCount = 0;
+            _eventCount.set(0);
 
             // Assume we will have a failure due to no event delivery.
             // If an event is delivered and it's good this assumed
@@ -124,10 +125,10 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
         public ArrayList<String> getFailures(final int waitEventCount) {
             int j;
-            for(j=0; j < 20 && _eventCount < waitEventCount; j++) { // wait until events are collected
+            for(j=0; j < 20 && _eventCount.get() < waitEventCount; j++) { // wait until events are collected
                 _robot.delay(MS_ROBOT_AUTO_DELAY);
             }
-            if(0 == _eventCount) {
+            if(0 == _eventCount.get()) {
                 _debugPrintStream.println("**** No Event. Waited "+j+" * "+MS_ROBOT_AUTO_DELAY+"ms, eventCount "+_eventCount);
             }
             return clear();
@@ -177,7 +178,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         }
 
         public synchronized void mousePressed( final com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
+            _eventCount.incrementAndGet();
             if( _debug ) {
                 _debugPrintStream.println( "MousePressed     "+_eventCount+": "+event);
             }
@@ -185,7 +186,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         }
 
         public synchronized void mouseReleased( final com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
+            _eventCount.incrementAndGet();
             if( _debug ) {
                 _debugPrintStream.println( "MouseReleased    "+_eventCount+": "+event);
             }
@@ -193,7 +194,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         }
 
         public synchronized void mouseDragged( final com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
+            _eventCount.incrementAndGet();
             if( _debug ) {
                 _debugPrintStream.println( "MouseDragged     "+_eventCount+": "+event);
             }

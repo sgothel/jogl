@@ -31,6 +31,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -87,7 +88,7 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START");
-        initCount = 0;
+        initCount.set(0);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -97,7 +98,7 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
                         glad.addGLEventListener(new GLEventListener() {
                             @Override
                             public void init(final GLAutoDrawable drawable) {
-                                initCount++;
+                                initCount.getAndIncrement();
                             }
                             @Override
                             public void dispose(final GLAutoDrawable drawable) {}
@@ -122,24 +123,24 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
         }
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while( panelCount > initCount && INIT_TIMEOUT > t1 - t0 ) {
+        while( panelCount > initCount.get() && INIT_TIMEOUT > t1 - t0 ) {
             try {
                 Thread.sleep(100);
-                System.err.println("Sleep initialized: "+initCount+"/"+panelCount);
+                System.err.println("Sleep initialized: "+initCount.get()+"/"+panelCount);
             } catch (final InterruptedException e1) {
                 e1.printStackTrace();
             }
             t1 = System.currentTimeMillis();
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = initCount;
+        final double panelCountF = initCount.get();
         System.err.printf("P: %d %s:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                initCount,
+                initCount.get(),
                 useGLJPanel?"GLJPanel":"GLCanvas",
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
                 t[3]-t[0], (t[3]-t[0])/panelCountF);
-        System.err.println("INIT END: "+initCount+"/"+panelCount);
+        System.err.println("INIT END: "+initCount.get()+"/"+panelCount);
         if( wait ) {
             UITestCase.waitForKey("Post-Init");
         }
@@ -211,7 +212,7 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
     static boolean wait = false;
     static int width = 800, height = 600, rows = 5, cols = 5;
 
-    volatile int initCount = 0;
+    AtomicInteger initCount = new AtomicInteger(0);
 
     public static void main(final String[] args) {
         boolean useGLJPanel = true, useGears = false, manual=false;

@@ -29,6 +29,7 @@
 package jogamp.nativewindow;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.nativewindow.ToolkitLock;
 
@@ -86,11 +87,11 @@ public class SharedResourceToolkitLock implements ToolkitLock {
             res = (SharedResourceToolkitLock) handle2Lock.get(handle);
             if( null == res ) {
                 res = new SharedResourceToolkitLock(handle);
-                res.refCount++;
+                res.refCount.incrementAndGet();
                 handle2Lock.put(handle, res);
                 if(DEBUG || TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.get() * NEW   *: "+res); }
             } else {
-                res.refCount++;
+                res.refCount.incrementAndGet();
                 if(DEBUG || TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.get() * EXIST *: "+res); }
             }
         }
@@ -99,12 +100,12 @@ public class SharedResourceToolkitLock implements ToolkitLock {
 
     private final RecursiveLock lock;
     private final long handle;
-    private volatile int refCount;
+    private final AtomicInteger refCount;
 
     private SharedResourceToolkitLock(final long handle) {
         this.lock = LockFactory.createRecursiveLock();
         this.handle = handle;
-        this.refCount = 0;
+        this.refCount = new AtomicInteger(0);
     }
 
 
@@ -127,10 +128,9 @@ public class SharedResourceToolkitLock implements ToolkitLock {
 
     @Override
     public final void dispose() {
-        if(0 < refCount) { // volatile OK
+        if(0 < refCount.get()) { // volatile OK
             synchronized(handle2Lock) {
-                refCount--;
-                if(0 == refCount) {
+                if( 0 == refCount.decrementAndGet() ) {
                     if(DEBUG || TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.dispose() * REMOV *: "+this); }
                     handle2Lock.remove(handle);
                 } else {

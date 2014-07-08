@@ -1050,7 +1050,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     private final void newFrameAvailable(final TextureFrame frame, final long currentTimeMillis) {
-        decodedFrameCount++;
+        decodedFrameCount++; // safe: only written-to either from stream-worker or user thread
         if( 0 == frame.getDuration() ) { // patch frame duration if not set already
             frame.setDuration( (int) frame_duration );
         }

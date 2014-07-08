@@ -33,6 +33,7 @@ import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.Robot;
@@ -864,31 +865,31 @@ public class AWTRobotUtil {
     static class AWTWindowClosingAdapter
             extends java.awt.event.WindowAdapter implements WindowClosingListener
     {
-        volatile int closing = 0;
-        volatile int closed = 0;
+        AtomicInteger closing = new AtomicInteger(0);
+        AtomicInteger closed = new AtomicInteger(0);
 
         public void reset() {
-            closing = 0;
-            closed = 0;
+            closing.set(0);
+            closed.set(0);
         }
         public int getWindowClosingCount() {
-            return closing;
+            return closing.get();
         }
         public int getWindowClosedCount() {
-            return closed;
+            return closed.get();
         }
         public boolean isWindowClosing() {
-            return 0 < closing;
+            return 0 < closing.get();
         }
         public boolean isWindowClosed() {
-            return 0 < closed;
+            return 0 < closed.get();
         }
         public void windowClosing(final java.awt.event.WindowEvent e) {
-            closing++;
+            closing.incrementAndGet();
             System.err.println("AWTWindowClosingAdapter.windowClosing: "+this);
         }
         public void windowClosed(final java.awt.event.WindowEvent e) {
-            closed++;
+            closed.incrementAndGet();
             System.err.println("AWTWindowClosingAdapter.windowClosed: "+this);
         }
         public String toString() {
@@ -898,31 +899,31 @@ public class AWTRobotUtil {
     static class NEWTWindowClosingAdapter
             extends com.jogamp.newt.event.WindowAdapter implements WindowClosingListener
     {
-        volatile int closing = 0;
-        volatile int closed = 0;
+        AtomicInteger closing = new AtomicInteger(0);
+        AtomicInteger closed = new AtomicInteger(0);
 
         public void reset() {
-            closing = 0;
-            closed = 0;
+            closing.set(0);
+            closed.set(0);
         }
         public int getWindowClosingCount() {
-            return closing;
+            return closing.get();
         }
         public int getWindowClosedCount() {
-            return closed;
+            return closed.get();
         }
         public boolean isWindowClosing() {
-            return 0 < closing;
+            return 0 < closing.get();
         }
         public boolean isWindowClosed() {
-            return 0 < closed;
+            return 0 < closed.get();
         }
         public void windowDestroyNotify(final WindowEvent e) {
-            closing++;
+            closing.incrementAndGet();
             System.err.println("NEWTWindowClosingAdapter.windowDestroyNotify: "+this);
         }
         public void windowDestroyed(final WindowEvent e) {
-            closed++;
+            closed.incrementAndGet();
             System.err.println("NEWTWindowClosingAdapter.windowDestroyed: "+this);
         }
         public String toString() {

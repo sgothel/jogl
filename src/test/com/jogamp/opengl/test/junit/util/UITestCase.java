@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
@@ -361,8 +362,8 @@ public abstract class UITestCase {
         private volatile boolean makeShot = false;
         private volatile boolean makeShotAlways = false;
         private volatile boolean verbose = false;
-        private volatile int displayCount=0;
-        private volatile int reshapeCount=0;
+        private final AtomicInteger displayCount = new AtomicInteger(0);
+        private final AtomicInteger reshapeCount = new AtomicInteger(0);
         private volatile String postSNDetail = null;
         public SnapshotGLEventListener(final GLReadBufferUtil screenshot) {
             this.screenshot = screenshot;
@@ -370,8 +371,8 @@ public abstract class UITestCase {
         public SnapshotGLEventListener() {
             this.screenshot = new GLReadBufferUtil(false, false);
         }
-        public int getDisplayCount() { return displayCount; }
-        public int getReshapeCount() { return reshapeCount; }
+        public int getDisplayCount() { return displayCount.get(); }
+        public int getReshapeCount() { return reshapeCount.get(); }
         public GLReadBufferUtil getGLReadBufferUtil() { return screenshot; }
         public void init(final GLAutoDrawable drawable) {}
         public void dispose(final GLAutoDrawable drawable) {}
@@ -383,15 +384,15 @@ public abstract class UITestCase {
             }
             if(_makeShot) {
                 makeShot=false;
-                snapshot(displayCount, postSNDetail, gl, screenshot, TextureIO.PNG, null);
+                snapshot(displayCount.get(), postSNDetail, gl, screenshot, TextureIO.PNG, null);
             }
-            displayCount++;
+            displayCount.incrementAndGet();
         }
         public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
             if(verbose) {
                 System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight());
             }
-            reshapeCount++;
+            reshapeCount.incrementAndGet();
         }
         public void setMakeSnapshot() {
             makeShot=true;

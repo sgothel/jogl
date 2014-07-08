@@ -737,7 +737,7 @@ public class ALAudioSink implements AudioSink {
                 throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while queueing buffer "+toHexString(alBufferNames[0])+". "+this);
             }
             alBufferBytesQueued += byteCount;
-            enqueuedFrameCount++;
+            enqueuedFrameCount++; // safe: only written-to while locked!
 
             if(DEBUG_TRACE) {
                 System.err.println(">> "+alFrame.alBuffer+" -> "+shortString()+" @ "+getThreadName());

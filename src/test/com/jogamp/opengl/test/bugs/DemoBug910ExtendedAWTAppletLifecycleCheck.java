@@ -35,6 +35,7 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("serial")
 public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
@@ -83,27 +84,27 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
                 ", compCount "+compCount+", compClazz "+clazzName);
     }
 
-    volatile int initCount = 0;
-    volatile int startCount = 0;
-    volatile int stopCount = 0;
-    volatile int destroyCount = 0;
+    AtomicInteger initCount = new AtomicInteger(0);
+    AtomicInteger startCount = new AtomicInteger(0);
+    AtomicInteger stopCount = new AtomicInteger(0);
+    AtomicInteger destroyCount = new AtomicInteger(0);
 
     private final void checkAppletState(final String msg, final boolean expIsActive,
                                         final int expInitCount, final int expStartCount, final int expStopCount, final boolean startStopCountEquals, final int expDestroyCount) {
         final boolean isActive = this.isActive();
-        final String okS = ( expInitCount == initCount &&
+        final String okS = ( expInitCount == initCount.get() &&
                              expIsActive == isActive &&
-                             expStartCount == startCount &&
-                             expStopCount == stopCount &&
-                             expDestroyCount == destroyCount &&
+                             expStartCount == startCount.get() &&
+                             expStopCount == stopCount.get() &&
+                             expDestroyCount == destroyCount.get() &&
                              ( !startStopCountEquals || startCount == stopCount ) ) ? "OK" : "ERROR";
         println("Applet-State @ "+msg+": "+okS+
                 ", active[exp "+expIsActive+", has "+isActive+"]"+(expIsActive!=isActive?"*":"")+
-                ", init[exp "+expInitCount+", has "+initCount+"]"+(expInitCount!=initCount?"*":"")+
-                ", start[exp "+expStartCount+", has "+startCount+"]"+(expStartCount!=startCount?"*":"")+
-                ", stop[exp "+expStopCount+", has "+stopCount+"]"+(expStopCount!=stopCount?"*":"")+
+                ", init[exp "+expInitCount+", has "+initCount+"]"+(expInitCount!=initCount.get()?"*":"")+
+                ", start[exp "+expStartCount+", has "+startCount+"]"+(expStartCount!=startCount.get()?"*":"")+
+                ", stop[exp "+expStopCount+", has "+stopCount+"]"+(expStopCount!=stopCount.get()?"*":"")+
                 ", start==stop[exp "+startStopCountEquals+", start "+startCount+", stop "+stopCount+"]"+(( startStopCountEquals && startCount != stopCount )?"*":"")+
-                ", destroy[exp "+expDestroyCount+", has "+destroyCount+"]"+(expDestroyCount!=destroyCount?"*":""));
+                ", destroy[exp "+expDestroyCount+", has "+destroyCount+"]"+(expDestroyCount!=destroyCount.get()?"*":""));
     }
 
     private class MyCanvas extends Canvas {
@@ -160,7 +161,7 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
     public void init() {
         final java.awt.Dimension aSize = getSize();
         println("Applet.init() START - applet.size "+aSize+" - "+currentThreadName());
-        initCount++;
+        initCount.incrementAndGet();
         checkAppletState("init", false /* expIsActive */, 1 /* expInitCount */,
                          0 /* expStartCount */, 0 /* expStopCount */, true /* startStopCountEquals */,
                          0 /* expDestroyCount */);
@@ -182,9 +183,9 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
     @Override
     public void start() {
         println("Applet.start() START (isVisible "+isVisible()+", isDisplayable "+isDisplayable()+") - "+currentThreadName());
-        startCount++;
+        startCount.incrementAndGet();
         checkAppletState("start", true /* expIsActive */, 1 /* expInitCount */,
-                         startCount /* expStartCount */, startCount-1 /* expStopCount */, false /* startStopCountEquals */,
+                         startCount.get() /* expStartCount */, startCount.get()-1 /* expStopCount */, false /* startStopCountEquals */,
                          0 /* expDestroyCount */);
         invoke(true, new Runnable() {
             public void run() {
@@ -204,9 +205,9 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
     @Override
     public void stop() {
         println("Applet.stop() START - "+currentThreadName());
-        stopCount++;
+        stopCount.incrementAndGet();
         checkAppletState("stop", false /* expIsActive */, 1 /* expInitCount */,
-                         stopCount /* expStartCount */, stopCount /* expStopCount */, true /* startStopCountEquals */,
+                         stopCount.get() /* expStartCount */, stopCount.get() /* expStopCount */, true /* startStopCountEquals */,
                          0 /* expDestroyCount */);
         invoke(true, new Runnable() {
             public void run() {
@@ -218,9 +219,9 @@ public class DemoBug910ExtendedAWTAppletLifecycleCheck extends Applet {
     @Override
     public void destroy() {
         println("Applet.destroy() START - "+currentThreadName());
-        destroyCount++;
+        destroyCount.incrementAndGet();
         checkAppletState("destroy", false /* expIsActive */, 1 /* expInitCount */,
-                         startCount /* expStartCount */, stopCount /* expStopCount */, true /* startStopCountEquals */,
+                         startCount.get() /* expStartCount */, stopCount.get() /* expStopCount */, true /* startStopCountEquals */,
                          1 /* expDestroyCount */);
         invoke(true, new Runnable() {
             public void run() {

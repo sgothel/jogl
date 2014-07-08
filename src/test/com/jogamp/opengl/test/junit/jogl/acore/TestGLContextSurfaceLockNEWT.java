@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLAutoDrawable;
@@ -152,8 +153,8 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
     }
 
     protected class MyEventCounter implements GLEventListener {
-        volatile int reshapeCount = 0;
-        volatile int displayCount = 0;
+        AtomicInteger reshapeCount = new AtomicInteger(0);
+        AtomicInteger displayCount = new AtomicInteger(0);
 
         @Override
         public void init(final GLAutoDrawable drawable) {
@@ -166,17 +167,17 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
 
         @Override
         public void display(final GLAutoDrawable drawable) {
-            displayCount++;
+            displayCount.incrementAndGet();
         }
 
         @Override
         public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-            reshapeCount++;
+            reshapeCount.incrementAndGet();
         }
 
         public void reset() {
-            reshapeCount = 0;
-            displayCount = 0;
+            reshapeCount.set(0);
+            displayCount.set(0);
         }
     }
 
