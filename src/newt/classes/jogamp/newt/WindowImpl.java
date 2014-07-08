@@ -661,12 +661,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return 0 == ( changeFlags & FLAG_IS_FULLSCREEN_SPAN );
     }
 
-    protected int getReconfigureFlags(int changeFlags, final boolean visible) {
-        return changeFlags |= ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
-                              ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
-                              ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
-                              ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
-                              ( visible ? FLAG_IS_VISIBLE : 0 ) ;
+    protected int getReconfigureFlags(final int changeFlags, final boolean visible) {
+        return changeFlags | ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
+                             ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
+                             ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
+                             ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
+                             ( visible ? FLAG_IS_VISIBLE : 0 ) ;
     }
     protected static String getReconfigureFlagsAsString(StringBuilder sb, final int flags) {
         if(null == sb) { sb = new StringBuilder(); }
