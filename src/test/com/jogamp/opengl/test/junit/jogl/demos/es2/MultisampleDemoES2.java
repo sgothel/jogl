@@ -75,7 +75,7 @@ public class MultisampleDemoES2 implements GLEventListener {
         System.err.println();
         System.err.println("req. msaa: "+multisample);
         System.err.println("Requested: " + glad.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
-        multisample = multisample & glad.getChosenGLCapabilities().getNumSamples() > 0 ;
+        multisample = multisample && glad.getChosenGLCapabilities().getNumSamples() > 0 ;
         System.err.println("Chosen   : " + glad.getChosenGLCapabilities());
         System.err.println("has  msaa: "+multisample);
         System.err.println();

@@ -47,29 +47,29 @@ public class GLNameResolver {
     //        if exist as an ARB extension with the same value.
     // Pass-3 Emit
 
-    public static final String[] extensionsARB = { "ARB", "GL2", "OES", "KHR", "OML" };
-    public static final String[] extensionsVEN = { "3DFX",
-                                                   "AMD",
-                                                   "ANGLE",
-                                                   "ARM",
-                                                   "APPLE",
-                                                   "ATI",
-                                                   "EXT",
-                                                   "HI",
-                                                   "HP",
-                                                   "IBM",
-                                                   "IMG",
-                                                   "MESA",
-                                                   "MESAX",
-                                                   "NV",
-                                                   "QCOM",
-                                                   "SGI",
-                                                   "SGIS",
-                                                   "SGIX",
-                                                   "SUN",
-                                                   "VIV",
-                                                   "WIN"
-                                                   };
+    private static final String[] extensionsARB = { "ARB", "GL2", "OES", "KHR", "OML" };
+    private static final String[] extensionsVEN = { "3DFX",
+                                                    "AMD",
+                                                    "ANGLE",
+                                                    "ARM",
+                                                    "APPLE",
+                                                    "ATI",
+                                                    "EXT",
+                                                    "HI",
+                                                    "HP",
+                                                    "IBM",
+                                                    "IMG",
+                                                    "MESA",
+                                                    "MESAX",
+                                                    "NV",
+                                                    "QCOM",
+                                                    "SGI",
+                                                    "SGIS",
+                                                    "SGIX",
+                                                    "SUN",
+                                                    "VIV",
+                                                    "WIN"
+    };
 
 
     public static final boolean isGLFunction(final String str) {

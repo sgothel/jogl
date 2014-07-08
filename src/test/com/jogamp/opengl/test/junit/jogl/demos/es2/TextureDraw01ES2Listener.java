@@ -125,8 +125,8 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
 
     @Override
     public void init(final GLAutoDrawable glad) {
-        if(null!=textureData) {
-            this.texture = TextureIO.newTexture(glad.getGL(), textureData);
+        if( null != textureData ) {
+            texture = TextureIO.newTexture(glad.getGL(), textureData);
         }
         final GL2ES2 gl = glad.getGL().getGL2ES2();
 
@@ -148,8 +148,10 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
 
-        // fetch the flipped texture coordinates
-        texture.getImageTexCoords().getST_LB_RB_LT_RT(s_quadTexCoords, 0, 1f, 1f);
+        if( null != texture ) {
+            // fetch the flipped texture coordinates
+            texture.getImageTexCoords().getST_LB_RB_LT_RT(s_quadTexCoords, 0, 1f, 1f);
+        }
 
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
         {
