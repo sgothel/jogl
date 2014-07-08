@@ -233,12 +233,13 @@ public class GenericStereoDevice implements StereoDevice {
         {
             final DimensionImmutable surfaceSizeInPixel = new Dimension(1280, 800);
             final float[] screenSizeInMeters = new float[] { 0.1498f, 0.0936f };
+            final DimensionImmutable eyeTextureSize = new Dimension(surfaceSizeInPixel.getWidth()/2, surfaceSizeInPixel.getHeight());
             final float interpupillaryDistanceInMeters = 0.0635f;
             final float pupilCenterFromScreenTopInMeters = screenSizeInMeters[1] / 2f;
             final float[] horizPupilCenterFromLeft = Config.getHorizPupilCenterFromLeft(screenSizeInMeters[0], interpupillaryDistanceInMeters);
             final float vertPupilCenterFromTop = Config.getVertPupilCenterFromTop(screenSizeInMeters[1], pupilCenterFromScreenTopInMeters);
             final float fovy = 45f;
-            final float aspect = ( surfaceSizeInPixel.getWidth() / 2.0f ) / surfaceSizeInPixel.getHeight();
+            final float aspect = (float)eyeTextureSize.getWidth() / (float)eyeTextureSize.getHeight();
             final FovHVHalves defaultSBSEyeFovLeft = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[0]);
             final FovHVHalves defaultSBSEyeFovRight = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[1]);
 
@@ -247,7 +248,7 @@ public class GenericStereoDevice implements StereoDevice {
                             ShutterType.RollingTopToBottom,
                             surfaceSizeInPixel,                // resolution
                             screenSizeInMeters,                // screenSize [m]
-                            new Dimension(1280/2, 800),        // eye textureSize
+                            eyeTextureSize,                    // eye textureSize
                             0.0936f/2f,                        // pupilCenterFromScreenTop [m]
                             interpupillaryDistanceInMeters,    // IPD [m]
                             new int[] { 0, 1 },                // eye order
@@ -281,7 +282,7 @@ public class GenericStereoDevice implements StereoDevice {
             final float[] horizPupilCenterFromLeft = Config.getHorizPupilCenterFromLeft(screenSizeInMeters[0], interpupillaryDistanceInMeters);
             final float vertPupilCenterFromTop = Config.getVertPupilCenterFromTop(screenSizeInMeters[1], pupilCenterFromScreenTopInMeters);
             final float fovy = 129f;
-            final float aspect = eyeTextureSize.getWidth() / eyeTextureSize.getHeight();
+            final float aspect = (float)eyeTextureSize.getWidth() / (float)eyeTextureSize.getHeight();
             final FovHVHalves defaultSBSEyeFovLenseLeft = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[0]);
             final FovHVHalves defaultSBSEyeFovLenseRight = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[1]);
 
