@@ -150,7 +150,7 @@ public class TestGLDebug01NEWT extends UITestCase {
         org.junit.runner.JUnitCore.main(tstname);
     }
 
-    public class MyGLDebugListener implements GLDebugListener {
+    public static class MyGLDebugListener implements GLDebugListener {
         int recSource;
         int recType;
         int recSeverity;

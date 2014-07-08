@@ -79,7 +79,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         dummyWindow.destroy();
     }
 
-    public class JOGLTask implements Runnable {
+    public static class JOGLTask implements Runnable {
         private final int id;
         private final Object postSync;
         private final boolean reuse;

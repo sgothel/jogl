@@ -41,7 +41,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
                 + "  Position = vec4(1.0, 1.0, 1.0, 1.0); \n"
                 + "}                                      \n";
 
-    class MyShader {
+    static class MyShader {
         int shaderProgram;
         int vertShader;
 

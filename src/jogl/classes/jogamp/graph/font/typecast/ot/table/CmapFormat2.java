@@ -60,7 +60,7 @@ import java.io.IOException;
  */
 public class CmapFormat2 extends CmapFormat {
 
-    private class SubHeader {
+    static class SubHeader {
         int _firstCode;
         int _entryCount;
         short _idDelta;

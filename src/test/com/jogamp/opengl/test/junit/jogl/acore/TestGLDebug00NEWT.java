@@ -58,7 +58,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     static String dbgTstMsg0 = "Hello World";
     static int dbgTstId0 = 42;
 
-    public class WindowContext {
+    public static class WindowContext {
         public final Window window;
         public final GLContext context;
 
@@ -190,7 +190,7 @@ public class TestGLDebug00NEWT extends UITestCase {
         org.junit.runner.JUnitCore.main(tstname);
     }
 
-    public class MyGLDebugListener implements GLDebugListener {
+    public static class MyGLDebugListener implements GLDebugListener {
         int recSource;
         int recType;
         int recSeverity;

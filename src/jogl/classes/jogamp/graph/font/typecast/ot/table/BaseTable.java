@@ -32,14 +32,14 @@ import java.io.IOException;
  */
 public class BaseTable implements Table {
 
-    private abstract class BaseCoord {
+    abstract class BaseCoord {
 
-        public abstract int getBaseCoordFormat();
+        abstract int getBaseCoordFormat();
 
-        public abstract short getCoordinate();
+        abstract short getCoordinate();
     }
 
-    private class BaseCoordFormat1 extends BaseCoord {
+    class BaseCoordFormat1 extends BaseCoord {
 
         private final short _coordinate;
 
@@ -48,87 +48,87 @@ public class BaseTable implements Table {
         }
 
         @Override
-        public int getBaseCoordFormat() {
+        int getBaseCoordFormat() {
             return 1;
         }
 
         @Override
-        public short getCoordinate() {
+        short getCoordinate() {
             return _coordinate;
         }
 
     }
 
-    private class BaseCoordFormat2 extends BaseCoord {
+    class BaseCoordFormat2 extends BaseCoord {
 
         private final short _coordinate;
-        private final int _referenceGlyph;
-        private final int _baseCoordPoint;
+        // private final int _referenceGlyph;
+        // private final int _baseCoordPoint;
 
         protected BaseCoordFormat2(final DataInput di) throws IOException {
             _coordinate = di.readShort();
-            _referenceGlyph = di.readUnsignedShort();
-            _baseCoordPoint = di.readUnsignedShort();
+            /* _referenceGlyph = */ di.readUnsignedShort();
+            /* _baseCoordPoint = */ di.readUnsignedShort();
         }
 
         @Override
-        public int getBaseCoordFormat() {
+        int getBaseCoordFormat() {
             return 2;
         }
 
         @Override
-        public short getCoordinate() {
+        short getCoordinate() {
             return _coordinate;
         }
 
     }
 
-    private class BaseCoordFormat3 extends BaseCoord {
+    class BaseCoordFormat3 extends BaseCoord {
 
         private final short _coordinate;
-        private final int _deviceTableOffset;
+        // private final int _deviceTableOffset;
 
         protected BaseCoordFormat3(final DataInput di) throws IOException {
             _coordinate = di.readShort();
-            _deviceTableOffset = di.readUnsignedShort();
+            /* _deviceTableOffset = */ di.readUnsignedShort();
         }
 
         @Override
-        public int getBaseCoordFormat() {
+        int getBaseCoordFormat() {
             return 2;
         }
 
         @Override
-        public short getCoordinate() {
+        short getCoordinate() {
             return _coordinate;
         }
 
     }
 
-    private class FeatMinMaxRecord {
+    static class FeatMinMaxRecord {
 
-        private final int _tag;
-        private final int _minCoordOffset;
-        private final int _maxCoordOffset;
+        // private final int _tag;
+        // private final int _minCoordOffset;
+        // private final int _maxCoordOffset;
 
         protected FeatMinMaxRecord(final DataInput di) throws IOException {
-            _tag = di.readInt();
-            _minCoordOffset = di.readUnsignedShort();
-            _maxCoordOffset = di.readUnsignedShort();
+            /* _tag = */ di.readInt();
+            /* _minCoordOffset = */ di.readUnsignedShort();
+            /* _maxCoordOffset = */ di.readUnsignedShort();
         }
     }
 
-    private class MinMax {
+    class MinMax {
 
-        private final int _minCoordOffset;
-        private final int _maxCoordOffset;
+        // private final int _minCoordOffset;
+        // private final int _maxCoordOffset;
         private final int _featMinMaxCount;
         private final FeatMinMaxRecord[] _featMinMaxRecord;
 
         protected MinMax(final int minMaxOffset) throws IOException {
             final DataInput di = getDataInputForOffset(minMaxOffset);
-            _minCoordOffset = di.readUnsignedShort();
-            _maxCoordOffset = di.readUnsignedShort();
+            /* _minCoordOffset = */ di.readUnsignedShort();
+            /* _maxCoordOffset = */ di.readUnsignedShort();
             _featMinMaxCount = di.readUnsignedShort();
             _featMinMaxRecord = new FeatMinMaxRecord[_featMinMaxCount];
             for (int i = 0; i < _featMinMaxCount; ++i) {
@@ -137,16 +137,16 @@ public class BaseTable implements Table {
         }
     }
 
-    private class BaseValues {
+    class BaseValues {
 
-        private final int _defaultIndex;
+        // private final int _defaultIndex;
         private final int _baseCoordCount;
         private final int[] _baseCoordOffset;
         private final BaseCoord[] _baseCoords;
 
         protected BaseValues(final int baseValuesOffset) throws IOException {
             final DataInput di = getDataInputForOffset(baseValuesOffset);
-            _defaultIndex = di.readUnsignedShort();
+            /* _defaultIndex = */ di.readUnsignedShort();
             _baseCoordCount = di.readUnsignedShort();
             _baseCoordOffset = new int[_baseCoordCount];
             for (int i = 0; i < _baseCoordCount; ++i) {
@@ -170,26 +170,27 @@ public class BaseTable implements Table {
         }
     }
 
-    private class BaseLangSysRecord {
+    static class BaseLangSysRecord {
 
-        private final int _baseLangSysTag;
+        // private final int _baseLangSysTag;
         private final int _minMaxOffset;
 
         protected BaseLangSysRecord(final DataInput di) throws IOException {
-            _baseLangSysTag = di.readInt();
+            /* _baseLangSysTag = */ di.readInt();
             _minMaxOffset = di.readUnsignedShort();
         }
 
-        public int getBaseLangSysTag() {
+        /**
+        int getBaseLangSysTag() {
             return _baseLangSysTag;
-        }
+        } */
 
-        public int getMinMaxOffset() {
+        int getMinMaxOffset() {
             return _minMaxOffset;
         }
     }
 
-    private class BaseScript {
+    class BaseScript {
 
         private final int _thisOffset;
         private final int _baseValuesOffset;
@@ -239,7 +240,7 @@ public class BaseTable implements Table {
         }
     }
 
-    private class BaseScriptRecord {
+    static class BaseScriptRecord {
 
         private final int _baseScriptTag;
         private final int _baseScriptOffset;
@@ -249,16 +250,16 @@ public class BaseTable implements Table {
             _baseScriptOffset = di.readUnsignedShort();
         }
 
-        public int getBaseScriptTag() {
+        int getBaseScriptTag() {
             return _baseScriptTag;
         }
 
-        public int getBaseScriptOffset() {
+        int getBaseScriptOffset() {
             return _baseScriptOffset;
         }
     }
 
-    private class BaseScriptList {
+    class BaseScriptList {
 
         private final int _thisOffset;
         private final int _baseScriptCount;
@@ -297,7 +298,7 @@ public class BaseTable implements Table {
         }
      }
 
-    private class BaseTagList {
+    class BaseTagList {
 
         private final int _thisOffset;
         private final int _baseTagCount;
@@ -325,7 +326,7 @@ public class BaseTable implements Table {
         }
     }
 
-    private class Axis {
+    class Axis {
 
         private final int _thisOffset;
         private final int _baseTagListOffset;

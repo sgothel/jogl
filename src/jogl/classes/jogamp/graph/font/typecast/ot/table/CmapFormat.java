@@ -59,7 +59,7 @@ import java.io.IOException;
  */
 public abstract class CmapFormat {
 
-    public class Range {
+    public static class Range {
 
         private final int _startCode;
         private final int _endCode;

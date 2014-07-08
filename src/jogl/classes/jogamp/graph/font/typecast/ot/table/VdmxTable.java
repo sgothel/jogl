@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 public class VdmxTable implements Table {
 
-    private class Ratio {
+    static class Ratio {
 
         private final byte _bCharSet;
         private final byte _xRatio;
@@ -61,7 +61,7 @@ public class VdmxTable implements Table {
         }
     }
 
-    private class VTableRecord {
+    static class VTableRecord {
 
         private final int _yPelHeight;
         private final short _yMax;
@@ -86,7 +86,7 @@ public class VdmxTable implements Table {
         }
     }
 
-    private class Group {
+    static class Group {
 
         private final int _recs;
         private final int _startsz;

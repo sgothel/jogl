@@ -37,7 +37,7 @@ import java.util.Hashtable;
  */
 public class CffTable implements Table {
 
-    public class Dict {
+    public static class Dict {
 
         private final Dictionary<Integer, Object> _entries = new Hashtable<Integer, Object>();
         private final int[] _data;

@@ -33,7 +33,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class TypecastGlyph implements Font.Glyph {
-    public class Advance
+    public static class Advance
     {
         private final Font      font;
         private final float     advance;
@@ -87,7 +87,7 @@ public class TypecastGlyph implements Font.Glyph {
         }
     }
 
-    public class Metrics
+    public static class Metrics
     {
         private final AABBox    bbox;
         private final Advance advance;

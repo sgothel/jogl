@@ -545,7 +545,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       /** An Animator subclass which renders one frame at the time
        *  upon calls to the requestRender() method.
        **/
-      public class CustomAnimator extends AnimatorBase {
+      public static class CustomAnimator extends AnimatorBase {
           private Timer timer = null;
           private TimerTask task = null;
           private volatile boolean shouldRun;

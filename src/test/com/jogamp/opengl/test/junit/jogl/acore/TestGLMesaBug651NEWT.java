@@ -74,7 +74,7 @@ public class TestGLMesaBug651NEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    class UnitTester implements GLEventListener {
+    static class UnitTester implements GLEventListener {
         @Override
         public void init(final GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();

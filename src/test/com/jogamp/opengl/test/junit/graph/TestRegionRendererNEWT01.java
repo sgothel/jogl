@@ -245,7 +245,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         destroyWindow(window);
     }
 
-    private class RegionGLListener implements GLEventListener {
+    private static class RegionGLListener implements GLEventListener {
         String winTitle;
         String name;
         GPURendererListenerBase01 impl;

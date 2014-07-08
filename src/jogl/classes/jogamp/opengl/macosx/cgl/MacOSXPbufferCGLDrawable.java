@@ -175,7 +175,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   // NSOpenGLPixelBuffer implementation
-  class NSOpenGLImpl implements GLBackendImpl {
+  static class NSOpenGLImpl implements GLBackendImpl {
     @Override
     public long create(final int renderTarget, final int internalFormat, final int width, final int height) {
       return CGL.createPBuffer(renderTarget, internalFormat, width, height);
@@ -188,7 +188,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   // CGL implementation
-  class CGLImpl implements GLBackendImpl {
+  static class CGLImpl implements GLBackendImpl {
     @Override
     public long create(final int renderTarget, final int internalFormat, final int width, final int height) {
       final PointerBuffer pbuffer = PointerBuffer.allocateDirect(1);

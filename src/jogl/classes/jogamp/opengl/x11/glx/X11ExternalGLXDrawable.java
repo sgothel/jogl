@@ -104,7 +104,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     throw new GLException("Should not call this");
   }
 
-  class Context extends X11GLXContext {
+  static class Context extends X11GLXContext {
     Context(final X11GLXDrawable drawable, final GLContext shareWith) {
       super(drawable, shareWith);
     }

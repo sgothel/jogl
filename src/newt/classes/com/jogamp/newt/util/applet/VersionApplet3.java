@@ -206,7 +206,7 @@ public class VersionApplet3 implements Applet3 {
         return null;
     }
 
-    class GLInfo implements GLEventListener {
+    static class GLInfo implements GLEventListener {
         @Override
         public void init(final GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();

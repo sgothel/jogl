@@ -82,7 +82,7 @@ public final class Path2D implements Cloneable {
     /*
      * GeneralPath path iterator
      */
-    class Iterator implements PathIterator {
+    static class Iterator implements PathIterator {
 
         /**
          * The current cursor position in types buffer

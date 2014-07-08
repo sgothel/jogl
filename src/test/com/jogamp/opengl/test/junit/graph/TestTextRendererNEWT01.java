@@ -205,7 +205,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         destroyWindow(window);
     }
 
-    private class TextGLListener extends GPUTextRendererListenerBase01 {
+    private static class TextGLListener extends GPUTextRendererListenerBase01 {
         String winTitle;
 
         public TextGLListener(final RenderState rs, final int type, final boolean debug, final boolean trace) {

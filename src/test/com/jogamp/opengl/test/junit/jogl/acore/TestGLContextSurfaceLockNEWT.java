@@ -152,7 +152,7 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         return true;
     }
 
-    protected class MyEventCounter implements GLEventListener {
+    protected static class MyEventCounter implements GLEventListener {
         AtomicInteger reshapeCount = new AtomicInteger(0);
         AtomicInteger displayCount = new AtomicInteger(0);
 

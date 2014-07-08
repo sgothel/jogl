@@ -253,7 +253,7 @@ public class BuildComposablePipeline {
     }
 
     //-------------------------------------------------------
-    protected class PlainMethod {
+    protected static class PlainMethod {
 
         Method m;
         boolean runHooks;

@@ -373,7 +373,7 @@ public class JPEGDecoder {
     }
 
     /** The JPEG encoded components */
-    class ComponentIn {
+    static class ComponentIn {
         final int h, v;
         /** index to frame.qtt[] */
         final int qttIdx;
@@ -414,7 +414,7 @@ public class JPEGDecoder {
     }
 
     /** The decoded components */
-    class ComponentOut {
+    static class ComponentOut {
         private final ArrayList<byte[]> lines;
         final float scaleX;
         final float scaleY;
@@ -760,7 +760,7 @@ public class JPEGDecoder {
         frame.mcusPerColumn = mcusPerColumn;
     }
 
-    private static class BinObjIdxed {
+    static class BinObjIdxed {
         final BinObj children;
         byte index;
         BinObjIdxed() {
@@ -768,7 +768,7 @@ public class JPEGDecoder {
             this.index = 0;
         }
     }
-    private static class BinObj {
+    static class BinObj {
         final boolean isValue;
         final BinObj[] tree;
         final byte b;
@@ -827,7 +827,7 @@ public class JPEGDecoder {
     }
 
     private final Output output = new Output();
-    private static class Output {
+    static class Output {
         private int blocksPerLine;
         private int blocksPerColumn;
         private int samplesPerLine;
@@ -1023,11 +1023,11 @@ public class JPEGDecoder {
         }
     }
 
-    private static interface DecoderFunction {
+    static interface DecoderFunction {
         void decode(ComponentIn component, int[] zz) throws IOException;
     }
 
-    private class Decoder {
+    class Decoder {
         // private int precision;
         // private int samplesPerLine;
         // private int scanLines;

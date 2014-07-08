@@ -263,7 +263,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
         "-------Press H to change text---------\n";
 
-    private final class TextRendererGLEL extends TextRendererGLELBase {
+    private static final class TextRendererGLEL extends TextRendererGLELBase {
         private final GLReadBufferUtil screenshot;
         private final GLRegion regionFPS, regionFPSAnim;
         final Font font;

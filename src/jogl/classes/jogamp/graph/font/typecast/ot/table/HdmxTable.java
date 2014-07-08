@@ -31,7 +31,7 @@ import java.io.IOException;
  */
 public class HdmxTable implements Table {
 
-    public class DeviceRecord {
+    public static class DeviceRecord {
 
         private final short _pixelSize;
         private final short _maxWidth;
