@@ -476,7 +476,7 @@ public abstract class NativeWindowFactory {
      */
     public static ToolkitLock getDefaultToolkitLock(final String type) {
         if( requiresToolkitLock ) {
-            if( TYPE_AWT == type && isAWTAvailable() ) {
+            if( TYPE_AWT == type && isAWTAvailable() ) { // uses .intern()!
                 return getAWTToolkitLock();
             }
             return ResourceToolkitLock.create();
@@ -494,7 +494,7 @@ public abstract class NativeWindowFactory {
      */
     public static ToolkitLock getDefaultToolkitLock(final String type, final long deviceHandle) {
         if( requiresToolkitLock ) {
-            if( TYPE_AWT == type && isAWTAvailable() ) {
+            if( TYPE_AWT == type && isAWTAvailable() ) { // uses .intern()!
                 return getAWTToolkitLock();
             }
             return ResourceToolkitLock.create();

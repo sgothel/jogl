@@ -177,7 +177,7 @@ public abstract class GLContextImpl extends GLContext {
       glRendererLowerCase = glRenderer;
       glVersion = glVendor;
 
-      if ( null != boundFBOTarget ) { // <init>: boundFBOTarget is not written yet
+      if ( !isInit && null != boundFBOTarget ) { // <init>: boundFBOTarget is not written yet
           boundFBOTarget[0] = 0; // draw
           boundFBOTarget[1] = 0; // read
       }

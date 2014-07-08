@@ -212,7 +212,7 @@ public class SVertex implements Vertex {
      */
     @Override
     public SVertex clone(){
-        return new SVertex(this);
+        return new SVertex(this); // OK to not call super.clone(), using own copy-ctor
     }
 
     @Override

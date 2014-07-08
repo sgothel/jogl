@@ -1082,7 +1082,7 @@ public class GLProfile {
         if(this==o) { return true; }
         if(o instanceof GLProfile) {
             final GLProfile glp = (GLProfile)o;
-            return getName() == glp.getName() && getImplName() == glp.getImplName() ;
+            return getName() == glp.getName() && getImplName() == glp.getImplName() ; // uses .intern()!
         }
         return false;
     }

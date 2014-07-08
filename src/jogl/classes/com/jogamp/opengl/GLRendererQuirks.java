@@ -354,7 +354,7 @@ public class GLRendererQuirks {
      * otherwise false.
      */
     public static boolean areSameStickyDevice(final AbstractGraphicsDevice device1, final AbstractGraphicsDevice device2) {
-        return device1.getUniqueID() == device2.getUniqueID();
+        return device1.getUniqueID() == device2.getUniqueID(); // uses .intern()!
     }
 
     /**

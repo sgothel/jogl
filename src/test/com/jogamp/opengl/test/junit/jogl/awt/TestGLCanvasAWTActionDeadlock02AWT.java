@@ -629,7 +629,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
               }
               animThread = null;
               try {
-                  Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+                  Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads / holding the lock is OK here!
               } catch (final InterruptedException e) { }
               return true;
           }
