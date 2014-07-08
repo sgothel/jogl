@@ -1581,7 +1581,7 @@ public class TextRenderer {
     }
 
     class GlyphProducer {
-        final int undefined = -2;
+        static final int undefined = -2;
         final FontRenderContext fontRenderContext = null; // FIXME: Never initialized!
         List<Glyph> glyphsOutput = new ArrayList<Glyph>();
         HashMap<String, GlyphVector> fullGlyphVectorCache = new HashMap<String, GlyphVector>();

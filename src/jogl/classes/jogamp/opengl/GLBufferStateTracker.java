@@ -92,7 +92,7 @@ public class GLBufferStateTracker {
   // OpenGL specifications.
   // http://www.opengl.org/sdk/docs/man/xhtml/glBindBuffer.xml
   private final IntIntHashMap bindingMap;
-  private final int bindingNotFound = 0xFFFFFFFF;
+  private static final int bindingNotFound = 0xFFFFFFFF;
 
   private final int[] bufTmp = new int[1];
 

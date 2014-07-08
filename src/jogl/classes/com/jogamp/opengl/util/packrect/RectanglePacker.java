@@ -51,8 +51,8 @@ public class RectanglePacker {
   private final BackingStoreManager manager;
   private Object backingStore;
   private LevelSet levels;
-  private final float EXPANSION_FACTOR = 0.5f;
-  private final float SHRINK_FACTOR = 0.3f;
+  private static final float EXPANSION_FACTOR = 0.5f;
+  private static final float SHRINK_FACTOR = 0.3f;
 
   private final int initialWidth;
   private final int initialHeight;

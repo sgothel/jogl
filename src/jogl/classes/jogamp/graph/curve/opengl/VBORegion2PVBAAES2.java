@@ -333,7 +333,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     private final float[] drawVec4Tmp1 = new float[4];
     private final float[] drawVec4Tmp2 = new float[4];
     private final float[] drawMat4PMv = new float[16];
-    private final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
+    private static final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {

@@ -156,5 +156,5 @@ public abstract class GLBufferStorage {
                 return s0+", mapped "+mappedBuffer+"]";
             }
         }
-        private final String msgClazzName = "GLBufferStorage";
+        private static final String msgClazzName = "GLBufferStorage";
 }
