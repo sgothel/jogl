@@ -588,7 +588,10 @@ public class GLBuffers extends Buffers {
             case GL2.GL_BITMAP:
               if (GL2.GL_COLOR_INDEX == format || GL2ES2.GL_STENCIL_INDEX == format) {
                   compSize = 1;
+              } else {
+                  throw new GLException("BITMAP type only supported for format COLOR_INDEX and STENCIL_INDEX, not 0x"+Integer.toHexString(format));
               }
+              break;
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
               compSize = 1;
