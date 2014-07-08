@@ -15,7 +15,7 @@ public class GLUniformData {
      *
      */
     public GLUniformData(final String name, final int val) {
-        initScalar(name, 1, new Integer(val));
+        initScalar(name, 1, Integer.valueOf(val));
     }
 
     /**
@@ -25,7 +25,7 @@ public class GLUniformData {
      *
      */
     public GLUniformData(final String name, final float val) {
-        initScalar(name, 1, new Float(val));
+        initScalar(name, 1, Float.valueOf(val));
     }
 
     /**
@@ -74,8 +74,8 @@ public class GLUniformData {
         initBuffer(name, rows, columns, data);
     }
 
-    public GLUniformData setData(final int data) { initScalar(new Integer(data)); return this; }
-    public GLUniformData setData(final float data) { initScalar(new Float(data)); return this; }
+    public GLUniformData setData(final int data) { initScalar(Integer.valueOf(data)); return this; }
+    public GLUniformData setData(final float data) { initScalar(Float.valueOf(data)); return this; }
     public GLUniformData setData(final IntBuffer data) { initBuffer(data); return this; }
     public GLUniformData setData(final FloatBuffer data) { initBuffer(data); return this; }
 

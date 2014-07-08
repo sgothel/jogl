@@ -156,7 +156,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 for (int i = 0; i < configs.length; i++) {
                     final GraphicsConfiguration gc = configs[i];
                     pfdIDs[i] = Win32SunJDKReflection.graphicsConfigurationGetPixelFormatID(gc);
-                    pfdIDOSet.add(new Integer(pfdIDs[i]));
+                    pfdIDOSet.add( Integer.valueOf(pfdIDs[i]) );
                     if(DEBUG) {
                         System.err.println("AWT pfd["+i+"] "+pfdIDs[i]);
                     }

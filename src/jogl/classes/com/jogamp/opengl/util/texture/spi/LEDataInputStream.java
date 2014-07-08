@@ -216,7 +216,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
     @Override
     public final String    readLine() throws IOException
     {
-        return new String();
+        return "";
     }
 
     /**
@@ -226,7 +226,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
     @Override
     public final String    readUTF() throws IOException
     {
-        return new String();
+        return "";
     }
 
     /**
@@ -235,7 +235,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      **/
     public final static    String readUTF(final DataInput in) throws    IOException
     {
-        return new String();
+        return "";
     }
 }
 

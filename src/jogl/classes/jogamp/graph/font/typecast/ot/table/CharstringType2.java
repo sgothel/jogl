@@ -183,26 +183,26 @@ public class CharstringType2 extends Charstring {
 
             // 1 byte integer
             ++_ip;
-            return new Integer(b0 - 139);
+            return Integer.valueOf(b0 - 139);
         } else if (247 <= b0 && b0 <= 250) {
 
             // 2 byte integer
             final int b1 = _data[_ip + 1];
             _ip += 2;
-            return new Integer((b0 - 247) * 256 + b1 + 108);
+            return Integer.valueOf((b0 - 247) * 256 + b1 + 108);
         } else if (251 <= b0 && b0 <= 254) {
 
             // 2 byte integer
             final int b1 = _data[_ip + 1];
             _ip += 2;
-            return new Integer(-(b0 - 251) * 256 - b1 - 108);
+            return Integer.valueOf(-(b0 - 251) * 256 - b1 - 108);
         } else if (b0 == 28) {
 
             // 3 byte integer
             final int b1 = _data[_ip + 1];
             final int b2 = _data[_ip + 2];
             _ip += 3;
-            return new Integer(b1 << 8 | b2);
+            return Integer.valueOf(b1 << 8 | b2);
         } else if (b0 == 255) {
 
             // 16-bit signed integer with 16 bits of fraction
@@ -211,7 +211,7 @@ public class CharstringType2 extends Charstring {
             final int b3 = _data[_ip + 3];
             final int b4 = _data[_ip + 4];
             _ip += 5;
-            return new Float((b1 << 8 | b2) + ((b3 << 8 | b4) / 65536.0));
+            return Float.valueOf((b1 << 8 | b2) + ((b3 << 8 | b4) / 65536f));
         } else {
             return null;
         }

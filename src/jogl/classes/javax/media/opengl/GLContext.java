@@ -1611,7 +1611,7 @@ public abstract class GLContext {
         // Thread.dumpStack();
     }
     final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, profile);
-    final Integer val = new Integer(composeBits(resMajor, resMinor, resCtp));
+    final Integer val = Integer.valueOf(composeBits(resMajor, resMinor, resCtp));
     synchronized(deviceVersionAvailable) {
         return deviceVersionAvailable.put( objectKey, val );
     }

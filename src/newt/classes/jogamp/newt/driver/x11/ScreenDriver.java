@@ -77,7 +77,7 @@ public class ScreenDriver extends ScreenImpl {
         final Long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
             @Override
             public Long run(final long dpy) {
-                return new Long(GetScreen0(dpy, screen_idx));
+                return Long.valueOf(GetScreen0(dpy, screen_idx));
             } } );
         if (handle.longValue() == 0) {
             throw new RuntimeException("Error creating screen: " + screen_idx);
@@ -213,7 +213,7 @@ public class ScreenDriver extends ScreenImpl {
     private final DisplayImpl.DisplayRunnable<Boolean> xineramaEnabledQueryWithTemp = new DisplayImpl.DisplayRunnable<Boolean>() {
         @Override
         public Boolean run(final long dpy) {
-            return new Boolean(X11Util.XineramaIsEnabled(dpy));
+            return Boolean.valueOf(X11Util.XineramaIsEnabled(dpy));
         } };
 
     @Override

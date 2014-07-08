@@ -169,7 +169,7 @@ public class ShaderUtil {
                         final int[] formats = new int[numFormats];
                         gl.glGetIntegerv(GL2ES2.GL_SHADER_BINARY_FORMATS, formats, 0);
                         for(int i=0; i<numFormats; i++) {
-                            info.shaderBinaryFormats.add(new Integer(formats[i]));
+                            info.shaderBinaryFormats.add(Integer.valueOf(formats[i]));
                         }
                     }
                 } catch (final GLException gle) {
@@ -200,7 +200,7 @@ public class ShaderUtil {
                             v = true;
                         }
                     }
-                    info.shaderCompilerAvailable = new Boolean(v);
+                    info.shaderCompilerAvailable = Boolean.valueOf(v);
                     queryOK = true;
                 } catch (final GLException gle) {
                     System.err.println("Caught exception on thread "+Thread.currentThread().getName());

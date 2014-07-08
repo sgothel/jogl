@@ -100,26 +100,26 @@ public class CffTable implements Table {
 
                 // 1 byte integer
                 ++_index;
-                return new Integer(b0 - 139);
+                return Integer.valueOf(b0 - 139);
             } else if (247 <= b0 && b0 <= 250) {
 
                 // 2 byte integer
                 final int b1 = _data[_index + 1];
                 _index += 2;
-                return new Integer((b0 - 247) * 256 + b1 + 108);
+                return Integer.valueOf((b0 - 247) * 256 + b1 + 108);
             } else if (251 <= b0 && b0 <= 254) {
 
                 // 2 byte integer
                 final int b1 = _data[_index + 1];
                 _index += 2;
-                return new Integer(-(b0 - 251) * 256 - b1 - 108);
+                return Integer.valueOf(-(b0 - 251) * 256 - b1 - 108);
             } else if (b0 == 28) {
 
                 // 3 byte integer
                 final int b1 = _data[_index + 1];
                 final int b2 = _data[_index + 2];
                 _index += 3;
-                return new Integer(b1 << 8 | b2);
+                return Integer.valueOf(b1 << 8 | b2);
             } else if (b0 == 29) {
 
                 // 5 byte integer
@@ -128,7 +128,7 @@ public class CffTable implements Table {
                 final int b3 = _data[_index + 3];
                 final int b4 = _data[_index + 4];
                 _index += 5;
-                return new Integer(b1 << 24 | b2 << 16 | b3 << 8 | b4);
+                return Integer.valueOf(b1 << 24 | b2 << 16 | b3 << 8 | b4);
             } else if (b0 == 30) {
 
                 // Real number
@@ -143,7 +143,7 @@ public class CffTable implements Table {
                     fString.append(decodeRealNibble(nibble1));
                     fString.append(decodeRealNibble(nibble2));
                 }
-                return new Float(fString.toString());
+                return Float.valueOf(fString.toString());
             } else {
                 return null;
             }

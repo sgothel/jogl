@@ -387,8 +387,8 @@ public class Java2D {
 
     try {
       return (Rectangle) getOGLViewportMethod.invoke(null, new Object[] {g,
-                                                                         new Integer(componentWidth),
-                                                                         new Integer(componentHeight)});
+                                                                         Integer.valueOf(componentWidth),
+                                                                         Integer.valueOf(componentHeight)});
     } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (final Exception e) {
@@ -514,7 +514,7 @@ public class Java2D {
     checkCompatible();
 
     try {
-      return ((Long) createOGLContextOnSurfaceMethod.invoke(null, new Object[] { g, new Long(shareCtx) })).longValue();
+      return ((Long) createOGLContextOnSurfaceMethod.invoke(null, new Object[] { g, Long.valueOf(shareCtx) })).longValue();
     } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (final Exception e) {
@@ -528,7 +528,7 @@ public class Java2D {
     checkCompatible();
 
     try {
-      return ((Boolean) makeOGLContextCurrentOnSurfaceMethod.invoke(null, new Object[] { g, new Long(ctx) })).booleanValue();
+      return ((Boolean) makeOGLContextCurrentOnSurfaceMethod.invoke(null, new Object[] { g, Long.valueOf(ctx) })).booleanValue();
     } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (final Exception e) {
@@ -541,7 +541,7 @@ public class Java2D {
     checkCompatible();
 
     try {
-      destroyOGLContextMethod.invoke(null, new Object[] { new Long(ctx) });
+      destroyOGLContextMethod.invoke(null, new Object[] { Long.valueOf(ctx) });
     } catch (final InvocationTargetException e) {
       throw new GLException(e.getTargetException());
     } catch (final Exception e) {

@@ -322,7 +322,7 @@ public class Mixer {
     private static Map createdBuffers = new HashMap(); // Map Long, ByteBuffer
 
     private static ByteBuffer newDirectByteBuffer(final long address, final long capacity) {
-        final Long key = new Long(address);
+        final Long key = Long.valueOf(address);
         ByteBuffer buf = (ByteBuffer) createdBuffers.get(key);
         if (buf == null) {
             buf = newDirectByteBufferImpl(address, capacity);
@@ -351,9 +351,9 @@ public class Mixer {
             try {
                 return (ByteBuffer)
                     directByteBufferConstructor.newInstance(new Object[] {
-                            new Integer((int) capacity),
+                            Integer.valueOf((int) capacity),
                             null,
-                            new Integer((int) address)
+                            Integer.valueOf((int) address)
                         });
             } catch (final Exception e) {
                 e.printStackTrace();

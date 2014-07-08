@@ -1582,7 +1582,7 @@ public class TextRenderer {
 
     class GlyphProducer {
         final int undefined = -2;
-        FontRenderContext fontRenderContext = null; // FIXME: Never initialized!
+        final FontRenderContext fontRenderContext = null; // FIXME: Never initialized!
         List<Glyph> glyphsOutput = new ArrayList<Glyph>();
         HashMap<String, GlyphVector> fullGlyphVectorCache = new HashMap<String, GlyphVector>();
         HashMap<Character, GlyphMetrics> glyphMetricsCache = new HashMap<Character, GlyphMetrics>();
@@ -1749,7 +1749,7 @@ public class TextRenderer {
 
         static {
             for (int i = 0; i < cache.length; i++) {
-                cache[i] = new Character((char) i);
+                cache[i] = Character.valueOf((char) i);
             }
         }
 
@@ -1757,7 +1757,7 @@ public class TextRenderer {
             if (c <= 127) { // must cache
                 return CharacterCache.cache[c];
             }
-            return new Character(c);
+            return Character.valueOf(c);
         }
     }
 

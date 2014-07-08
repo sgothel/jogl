@@ -89,7 +89,7 @@ public class Win32SunJDKReflection {
     }
 
     try {
-      return (GraphicsConfiguration) win32GraphicsConfigGetConfigMethod.invoke(null, new Object[] { device, new Integer(pfdID) });
+      return (GraphicsConfiguration) win32GraphicsConfigGetConfigMethod.invoke(null, new Object[] { device, Integer.valueOf(pfdID) });
     } catch (final Exception e) {
       return null;
     }

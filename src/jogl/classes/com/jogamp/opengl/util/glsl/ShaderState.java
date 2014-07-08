@@ -347,8 +347,7 @@ public class ShaderState {
     public void bindAttribLocation(final GL2ES2 gl, final int location, final String name) {
         if(null==shaderProgram) throw new GLException("No program is attached");
         if(shaderProgram.linked()) throw new GLException("Program is already linked");
-        final Integer loc = new Integer(location);
-        activeAttribLocationMap.put(name, loc);
+        activeAttribLocationMap.put(name, Integer.valueOf(location));
         gl.glBindAttribLocation(shaderProgram.program(), location, name);
     }
 
@@ -371,7 +370,7 @@ public class ShaderState {
         if(null==shaderProgram) throw new GLException("No program is attached");
         if(shaderProgram.linked()) throw new GLException("Program is already linked");
         final String name = data.getName();
-        activeAttribLocationMap.put(name, new Integer(location));
+        activeAttribLocationMap.put(name, Integer.valueOf(location));
         data.setLocation(gl, shaderProgram.program(), location);
         activeAttribDataMap.put(data.getName(), data);
     }
@@ -399,7 +398,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = gl.glGetAttribLocation(shaderProgram.program(), name);
             if(0<=location) {
-                activeAttribLocationMap.put(name, new Integer(location));
+                activeAttribLocationMap.put(name, Integer.valueOf(location));
                 if(DEBUG) {
                     System.err.println("ShaderState: glGetAttribLocation: "+name+", loc: "+location);
                 }
@@ -442,8 +441,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = data.setLocation(gl, shaderProgram.program());
             if(0<=location) {
-                final Integer idx = new Integer(location);
-                activeAttribLocationMap.put(name, idx);
+                activeAttribLocationMap.put(name, Integer.valueOf(location));
                 if(DEBUG) {
                     System.err.println("ShaderState: glGetAttribLocation: "+name+", loc: "+location);
                 }
@@ -721,7 +719,7 @@ public class ShaderState {
         final String name = attribute.getName();
         final int loc = attribute.setLocation(gl, shaderProgram.program());
         if(0<=loc) {
-            activeAttribLocationMap.put(name, new Integer(loc));
+            activeAttribLocationMap.put(name, Integer.valueOf(loc));
             if(DEBUG) {
                 System.err.println("ShaderState: relocateAttribute: "+name+", loc: "+loc);
             }
@@ -873,8 +871,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = gl.glGetUniformLocation(shaderProgram.program(), name);
             if(0<=location) {
-                final Integer idx = new Integer(location);
-                activeUniformLocationMap.put(name, idx);
+                activeUniformLocationMap.put(name, Integer.valueOf(location));
             } else if(verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
                 if(DEBUG) {
@@ -915,7 +912,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = data.setLocation(gl, shaderProgram.program());
             if(0<=location) {
-                activeUniformLocationMap.put(name, new Integer(location));
+                activeUniformLocationMap.put(name, Integer.valueOf(location));
             } else if(verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
                 if(DEBUG) {
@@ -1005,7 +1002,7 @@ public class ShaderState {
             final int loc = data.setLocation(gl, shaderProgram.program());
             if( 0 <= loc ) {
                 // only pass the data, if the uniform exists in the current shader
-                activeUniformLocationMap.put(data.getName(), new Integer(loc));
+                activeUniformLocationMap.put(data.getName(), Integer.valueOf(loc));
                 if(DEBUG) {
                     System.err.println("ShaderState: resetAllUniforms: "+data);
                 }

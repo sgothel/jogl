@@ -228,9 +228,9 @@ public class SWTAccessor {
 
     private static Number getIntOrLong(final long arg) {
         if(swt_uses_long_handles) {
-            return new Long(arg);
+            return Long.valueOf(arg);
         }
-        return new Integer((int) arg);
+        return Integer.valueOf((int) arg);
     }
 
     private static void callStaticMethodL2V(final Method m, final long arg) {
@@ -453,9 +453,9 @@ public class SWTAccessor {
             @Override
             public void run() {
                 if(swt_uses_long_handles) {
-                    ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Long(gc), gcData });
+                    ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { Long.valueOf(gc), gcData });
                 }  else {
-                    ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Integer((int)gc), gcData });
+                    ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { Integer.valueOf((int)gc), gcData });
                 }
             }
         });
