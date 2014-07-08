@@ -105,8 +105,8 @@ public class GLXUtil {
               final String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
               try {
                   // e.g. "1.3"
-                  major.put(0, Integer.valueOf(str.substring(0, 1)).intValue());
-                  minor.put(0, Integer.valueOf(str.substring(2, 3)).intValue());
+                  major.put(0, Integer.parseInt(str.substring(0, 1)));
+                  minor.put(0, Integer.parseInt(str.substring(2, 3)));
               } catch (final Exception e) {
                   major.put(0, 1);
                   minor.put(0, 2);
@@ -161,8 +161,8 @@ public class GLXUtil {
         final String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
         try {
               // e.g. "1.3"
-              major[0] = Integer.valueOf(str.substring(0, 1)).intValue();
-              minor[0] = Integer.valueOf(str.substring(2, 3)).intValue();
+              major[0] = Integer.parseInt(str.substring(0, 1));
+              minor[0] = Integer.parseInt(str.substring(2, 3));
         } catch (final Exception e) {
               major[0] = 1;
               minor[0] = 2;

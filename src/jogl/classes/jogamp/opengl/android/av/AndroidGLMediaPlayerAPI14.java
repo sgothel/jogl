@@ -263,7 +263,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } else {
                 int cameraId = 0;
                 try {
-                    cameraId = Integer.valueOf(cameraPath);
+                    cameraId = Integer.parseInt(cameraPath);
                 } catch (final NumberFormatException nfe) {}
                 if( 0 <= cameraId && cameraId < Camera.getNumberOfCameras() ) {
                     cam = Camera.open(cameraId);

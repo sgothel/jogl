@@ -1623,7 +1623,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected static final int getPropIntVal(final Map<String, String> props, final String key) {
         final String val = props.get(key);
         try {
-            return Integer.valueOf(val).intValue();
+            return Integer.parseInt(val);
         } catch (final NumberFormatException nfe) {
             if(DEBUG) {
                 System.err.println("Not a valid integer for <"+key+">: <"+val+">");
