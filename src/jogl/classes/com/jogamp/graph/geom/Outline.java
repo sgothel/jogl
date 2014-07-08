@@ -274,4 +274,8 @@ public class Outline implements Comparable<Outline> {
         }
         return true;
     }
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
 }

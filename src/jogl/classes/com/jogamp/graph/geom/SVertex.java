@@ -185,6 +185,10 @@ public class SVertex implements Vertex {
                VectorUtil.isVec3Equal(getTexCoord(), 0, v.getTexCoord(), 0, FloatUtil.EPSILON) &&
                VectorUtil.isVec3Equal(getCoord(), 0, v.getCoord(), 0, FloatUtil.EPSILON) ;
     }
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
 
     @Override
     public final float[] getTexCoord() {

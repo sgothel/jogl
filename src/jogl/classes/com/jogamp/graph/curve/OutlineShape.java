@@ -791,4 +791,9 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }
         return true;
     }
+
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
 }

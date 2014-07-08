@@ -586,5 +586,9 @@ public class AffineTransform implements Cloneable {
         }
         return false;
     }
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
 }
 

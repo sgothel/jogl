@@ -1198,6 +1198,10 @@ public class Quaternion {
                Math.abs(z - comp.getZ()) <= ALLOWED_DEVIANCE &&
                Math.abs(w - comp.getW()) <= ALLOWED_DEVIANCE;
     }
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
 
     public String toString() {
         return "Quaternion[x "+x+", y "+y+", z "+z+", w "+w+"]";

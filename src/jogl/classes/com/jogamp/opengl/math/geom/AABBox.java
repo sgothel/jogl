@@ -673,6 +673,10 @@ public class AABBox {
         return VectorUtil.isVec2Equal(low, 0, other.low, 0, FloatUtil.EPSILON) &&
                VectorUtil.isVec3Equal(high, 0, other.high, 0, FloatUtil.EPSILON) ;
     }
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
 
     /**
      * Assume this bounding box as being in object space and
