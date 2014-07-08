@@ -1582,7 +1582,7 @@ public class TextRenderer {
 
     class GlyphProducer {
         final int undefined = -2;
-        FontRenderContext fontRenderContext;
+        FontRenderContext fontRenderContext = null; // FIXME: Never initialized!
         List<Glyph> glyphsOutput = new ArrayList<Glyph>();
         HashMap<String, GlyphVector> fullGlyphVectorCache = new HashMap<String, GlyphVector>();
         HashMap<Character, GlyphMetrics> glyphMetricsCache = new HashMap<Character, GlyphMetrics>();
@@ -1675,6 +1675,9 @@ public class TextRenderer {
 
             // Have to do this the hard / uncached way
             singleUnicode[0] = unicodeID;
+            if( null == fontRenderContext ) { // FIXME: Never initialized!
+                throw new InternalError("fontRenderContext never initialized!");
+            }
             final GlyphVector gv = font.createGlyphVector(fontRenderContext,
                                                                     singleUnicode);
             return gv.getGlyphMetrics(0).getAdvance();

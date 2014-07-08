@@ -420,7 +420,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     // stex.getTransformMatrix(atex.getSTMatrix());
                 }
             }
-            nextFrame.setPTS( pts );
+            sTexFrame.setPTS( pts );
         }
         return pts;
     }

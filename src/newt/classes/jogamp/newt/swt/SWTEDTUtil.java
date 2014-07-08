@@ -83,9 +83,18 @@ public class SWTEDTUtil implements EDTUtil {
         synchronized(edtLock) {
             if( nedt.isRunning() ) {
                 final Thread curT = Thread.currentThread();
-                final Thread swtT = !swtDisposed ? swtDisplay.getThread() : null;
+                final String swtTName;
+                final Thread swtT;
+                if( !swtDisposed ) {
+                    swtT = swtDisplay.getThread();
+                    swtTName = swtT.getName();
+                } else {
+                    swtT = null;
+                    swtTName = null;
+                }
                 final boolean onSWTEDT = swtT == curT;
-                throw new IllegalStateException("EDT still running and not subject to stop. Curr "+curT.getName()+", NEDT "+nedt.getName()+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", SWT-EDT "+swtT.getName()+", on SWT-EDT "+onSWTEDT);
+                throw new IllegalStateException("EDT still running and not subject to stop. Curr "+curT.getName()+
+                        ", NEDT "+nedt.getName()+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", SWT-EDT "+swtTName+", on SWT-EDT "+onSWTEDT);
             }
             if(DEBUG) {
                 System.err.println(Thread.currentThread()+": SWT-EDT reset - edt: "+nedt+", swtDisposed (skipping) "+swtDisposed);

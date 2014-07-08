@@ -281,11 +281,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
 
     @Override
     protected void updateImpl(final GL2ES2 gl) {
-        if(null == indicesFbo) {
-            if(Region.DEBUG_INSTANCE) {
-                System.err.println("VBORegion2PVBAAES2 Create: " + this);
-            }
-        }
         // seal buffers
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);

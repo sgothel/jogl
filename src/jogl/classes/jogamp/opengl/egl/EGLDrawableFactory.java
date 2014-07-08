@@ -478,8 +478,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     downstreamSurface = createDummySurfaceImpl(defaultDevice, false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64); // egl pbuffer offscreen
                     if( null != downstreamSurface ) {
                         downstreamSurface.createNotify();
+                        surface = downstreamSurface;
                     }
-                    surface = downstreamSurface;
                 } else {
                     // 3rd case fake creation of defaultDevice shared resource, no pbuffer available
                     final List<GLCapabilitiesImmutable> capsAnyL = getAvailableEGLConfigs(defaultDevice, reqCapsAny);
@@ -499,14 +499,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 upstreamSurface = desktopFactory.createDummySurface(adevice, reqCapsAny, null, 64, 64); // X11, WGL, .. dummy window
                 if(null != upstreamSurface) {
                     upstreamSurface.createNotify();
+                    eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);
+                    eglDevice.open();
+                    if( DEBUG ) {
+                        dumpEGLInfo("EGLDrawableFactory.mapAvailableEGLESConfig: ", eglDevice.getHandle());
+                    }
+                    hasPBuffer[0] = true;
+                    surface = upstreamSurface;
                 }
-                surface = upstreamSurface;
-                eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);
-                eglDevice.open();
-                if( DEBUG ) {
-                    dumpEGLInfo("EGLDrawableFactory.mapAvailableEGLESConfig: ", eglDevice.getHandle());
-                }
-                hasPBuffer[0] = true;
             }
 
             if(null != surface) {

@@ -617,13 +617,13 @@ public class ALAudioSink implements AudioSink {
                             throw new InternalError("Buffer name mismatch: dequeued: "+buffers[i]+", released "+releasedBuffer+", "+this);
                         }
                     }
-                }
-                alBufferBytesQueued -= releasedBuffer.getByteSize();
-                if( !alFramesAvail.put(releasedBuffer) ) {
-                    throw new InternalError("Internal Error: "+this);
-                }
-                if(DEBUG_TRACE) {
-                    System.err.println("<< [al "+buffers[i]+", q "+releasedBuffer.alBuffer+"] <- "+shortString()+" @ "+getThreadName());
+                    alBufferBytesQueued -= releasedBuffer.getByteSize();
+                    if( !alFramesAvail.put(releasedBuffer) ) {
+                        throw new InternalError("Internal Error: "+this);
+                    }
+                    if(DEBUG_TRACE) {
+                        System.err.println("<< [al "+buffers[i]+", q "+releasedBuffer.alBuffer+"] <- "+shortString()+" @ "+getThreadName());
+                    }
                 }
             }
         }

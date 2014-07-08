@@ -217,8 +217,18 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
 
     @Override
     public String toString() {
-        final String us_s = null != upstreamSurface ? ( upstreamSurface.getClass().getName() + ": 0x" + Long.toHexString(upstreamSurface.getSurfaceHandle()) ) : "nil";
-        return "EGLUpstreamSurfaceHook[ "+ upstreamSurface.getSurfaceWidth() + "x" + upstreamSurface.getSurfaceHeight() + ", " + us_s+ "]";
+        final String us_s;
+        final int sw, sh;
+        if( null != upstreamSurface ) {
+            us_s = upstreamSurface.getClass().getName() + ": 0x" + Long.toHexString(upstreamSurface.getSurfaceHandle());
+            sw = upstreamSurface.getSurfaceWidth();
+            sh = upstreamSurface.getSurfaceHeight();
+        } else {
+            us_s = "nil";
+            sw = -1;
+            sh = -1;
+        }
+        return "EGLUpstreamSurfaceHook[ "+ sw + "x" + sh + ", " + us_s+ "]";
     }
 
 }

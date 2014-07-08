@@ -177,7 +177,7 @@ public abstract class GLContextImpl extends GLContext {
       glRendererLowerCase = glRenderer;
       glVersion = glVendor;
 
-      if (boundFBOTarget != null) { // <init>
+      if ( null != boundFBOTarget ) { // <init>: boundFBOTarget is not written yet
           boundFBOTarget[0] = 0; // draw
           boundFBOTarget[1] = 0; // read
       }
@@ -1939,19 +1939,20 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   private static final boolean hasFBOImpl(final int major, final int ctp, final ExtensionAvailabilityCache extCache) {
-    return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||   // ES >= 2.0
+    return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||                           // ES >= 2.0
 
-           major >= 3 ||                                                 // any >= 3.0 GL ctx (core, compat and ES)
+           major >= 3 ||                                                              // any >= 3.0 GL ctx (core, compat and ES)
 
            ( null != extCache &&
+             (
+               extCache.isExtensionAvailable(GLExtensions.ARB_ES2_compatibility)  ||  // ES 2.0 compatible
 
-               extCache.isExtensionAvailable(GLExtensions.ARB_ES2_compatibility)  ||         // ES 2.0 compatible
+               extCache.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||  // ARB_framebuffer_object
 
-               extCache.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||         // ARB_framebuffer_object
+               extCache.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) ||  // EXT_framebuffer_object
 
-               extCache.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) ||         // EXT_framebuffer_object
-
-               extCache.isExtensionAvailable(GLExtensions.OES_framebuffer_object) ) ;        // OES_framebuffer_object excluded
+               extCache.isExtensionAvailable(GLExtensions.OES_framebuffer_object)     // OES_framebuffer_object
+             ) );
   }
 
   private final void removeCachedVersion(final int major, final int minor, int ctxProfileBits) {

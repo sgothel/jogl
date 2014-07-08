@@ -272,11 +272,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(capsRequested);
     final GLDrawableImpl drawable = createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
                                                                  new UpstreamSurfaceHookMutableSize(width, height) ) );
+    final GLContextImpl ctx;
     if(null != drawable) {
         drawable.setRealized(true);
+        ctx = (GLContextImpl) drawable.createContext(shareWith);
+    } else {
+        ctx = null;
     }
-
-    return new GLPbufferImpl( drawable, (GLContextImpl) drawable.createContext(shareWith) );
+    return new GLPbufferImpl( drawable, ctx);
   }
 
   //---------------------------------------------------------------------------
@@ -607,7 +610,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         rampEntry = 0.0f;
       gammaRamp[i] = rampEntry;
     }
-    needsGammaRampReset = true;
+    if( !needsGammaRampReset ) {
+        originalGammaRamp = getGammaRamp();
+        needsGammaRampReset = true;
+    }
     return setGammaRamp(gammaRamp);
   }
 

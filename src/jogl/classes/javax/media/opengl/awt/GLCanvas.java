@@ -413,7 +413,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final AWTGraphicsConfiguration config = chooseGraphicsConfiguration( (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities(),
                                                                        (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities(),
                                                                        chooser, gc.getDevice());
-        final GraphicsConfiguration compatible = (null!=config)?config.getAWTGraphicsConfiguration():null;
+        final GraphicsConfiguration compatible = config.getAWTGraphicsConfiguration();
         final boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
             System.err.println(getThreadName()+": Info:");
@@ -1513,7 +1513,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
     }
 
-    if (config == null) {
+    if ( null == config ) {
       throw new GLException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }
 
