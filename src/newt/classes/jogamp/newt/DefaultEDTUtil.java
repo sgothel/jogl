@@ -78,7 +78,7 @@ public class DefaultEDTUtil implements EDTUtil {
 
     @Override
     final public void setPollPeriod(final long ms) {
-        pollPeriod = ms;
+        pollPeriod = ms; // writing to static field is intended
     }
 
     @Override

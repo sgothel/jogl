@@ -74,7 +74,7 @@ public class SWTEDTUtil implements EDTUtil {
 
     @Override
     public void setPollPeriod(final long ms) {
-        pollPeriod = ms;
+        pollPeriod = ms; // writing to static field is intended
     }
 
     @Override
