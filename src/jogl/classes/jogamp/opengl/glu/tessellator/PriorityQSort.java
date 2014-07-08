@@ -202,7 +202,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
         }
         curr = size;
         if (++size >= max) {
-            final Object[] saveKey = keys;
+            // final Object[] saveKey = keys;
 
             /* If the heap overflows, double its size. */
             max <<= 1;
@@ -210,10 +210,11 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
             final Object[] pqKeys = new Object[max];
             System.arraycopy( keys, 0, pqKeys, 0, keys.length );
             keys = pqKeys;
+            /** Cannot be null
             if (keys == null) {
-                keys = saveKey;    /* restore ptr to free upon return */
+                keys = saveKey;    // restore ptr to free upon return
                 return Integer.MAX_VALUE;
-            }
+            } */
         }
         assert curr != Integer.MAX_VALUE;
         keys[curr] = keyNew;

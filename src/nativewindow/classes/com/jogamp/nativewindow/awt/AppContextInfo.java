@@ -160,8 +160,8 @@ public class AppContextInfo {
               } else {
                   // old info is OK
                   if( DEBUG ) {
-                      final int mainThreadAppContextHash = null != mainThreadAppContext ? mainThreadAppContext.hashCode() : 0;
-                      final int thisThreadAppContextHash = null != thisThreadAppContext ? thisThreadAppContext.hashCode() : 0;
+                      final int mainThreadAppContextHash = mainThreadAppContext.hashCode();
+                      final int thisThreadAppContextHash = thisThreadAppContext.hashCode();
                       System.err.println("Bug 1004[TGMapped "+tgMapped+"]: OK AppContext @ "+info+" on thread "+thread.getName()+" "+toHexString(thread.hashCode())+
                                          ": tg "+threadGroup.getName()+" "+toHexString(threadGroup.hashCode())+
                                          "  : appCtx [ this "+thisThreadAppContext+" "+toHexString(thisThreadAppContextHash)+

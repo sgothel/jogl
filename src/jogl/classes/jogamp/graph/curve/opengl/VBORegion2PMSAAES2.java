@@ -384,7 +384,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 System.err.printf("XXX.Scale %d * [%f x %f]: %d x %d%n",
                         sampleCount[0], winWidth, winHeight, targetFboWidth, targetFboHeight);
             }
-            if( hasDelta || fboDirty || isShapeDirty() || null == fbo || ( fbo != null && fbo.getNumSamples() != sampleCount[0] ) ) {
+            if( hasDelta || fboDirty || isShapeDirty() || null == fbo || fbo.getNumSamples() != sampleCount[0] ) {
                 // FIXME: rescale
                 final float minX = box.getMinX()-diffObjBorderWidth;
                 final float minY = box.getMinY()-diffObjBorderHeight;

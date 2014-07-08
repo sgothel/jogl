@@ -173,10 +173,11 @@ class PriorityQHeap extends jogamp.opengl.glu.tessellator.PriorityQ {
                 pqNodes[i] = new PQnode();
             }
             nodes = pqNodes;
+            /** Cannot be null
             if (nodes == null) {
-                nodes = saveNodes;    /* restore ptr to free upon return */
+                nodes = saveNodes;    // restore ptr to free upon return
                 return Integer.MAX_VALUE;
-            }
+            } */
 
 //            pq->handles = (PQhandleElem *)memRealloc( pq->handles,(size_t)((pq->max + 1) * sizeof( pq->handles[0] )));
             final PriorityQ.PQhandleElem[] pqHandles = new PriorityQ.PQhandleElem[max + 1];
@@ -185,10 +186,11 @@ class PriorityQHeap extends jogamp.opengl.glu.tessellator.PriorityQ {
                 pqHandles[i] = new PQhandleElem();
             }
             handles = pqHandles;
+            /** cannot be null
             if (handles == null) {
-                handles = saveHandles; /* restore ptr to free upon return */
+                handles = saveHandles; // restore ptr to free upon return
                 return Integer.MAX_VALUE;
-            }
+            } */
         }
 
         if (freeList == 0) {

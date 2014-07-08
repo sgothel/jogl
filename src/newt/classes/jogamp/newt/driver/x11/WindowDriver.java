@@ -298,7 +298,7 @@ public class WindowDriver extends WindowImpl {
                 final PointerIconImpl pi = (PointerIconImpl)getPointerIcon();
                 final boolean res;
                 if( pointerVisible && null != pi ) {
-                    setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.validatedHandle() : 0);
+                    setPointerIcon0(dpy, getWindowHandle(), pi.validatedHandle());
                     res = true;
                 } else {
                     res = setPointerVisible0(dpy, getWindowHandle(), pointerVisible);

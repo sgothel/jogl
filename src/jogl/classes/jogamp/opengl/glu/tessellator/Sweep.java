@@ -1237,7 +1237,6 @@ class Sweep {
                 return Geom.VertLeq(((GLUvertex) key1), (GLUvertex) key2);
             }
         });
-        if (pq == null) return false;
 
         vHead = tess.mesh.vHead;
         for (v = vHead.next; v != vHead; v = v.next) {

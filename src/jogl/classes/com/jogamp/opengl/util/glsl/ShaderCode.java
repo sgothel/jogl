@@ -551,7 +551,7 @@ public class ShaderCode {
             out.println("<no shader source>");
             return;
         }
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         final int shaderCount = (null!=shader)?shader.capacity():0;
         for(int i=0; i<shaderCount; i++) {
             out.println("");
@@ -601,7 +601,7 @@ public class ShaderCode {
         if(0>shaderIdx || shaderIdx>=shaderCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within shader bounds [0.."+(shaderCount-1)+"]: "+shaderIdx);
         }
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         if(shaderIdx>=sourceCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within source bounds [0.."+(sourceCount-1)+"]: "+shaderIdx);
         }
@@ -660,7 +660,7 @@ public class ShaderCode {
         final int oldNameLen = oldName.length();
         final int newNameLen = newName.length();
         int num = 0;
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         for(int shaderIdx = 0; shaderIdx<sourceCount; shaderIdx++) {
             final CharSequence[] src = shaderSource[shaderIdx];
             for(int j=0; j<src.length; j++) {
@@ -706,7 +706,7 @@ public class ShaderCode {
         if(0>shaderIdx || shaderIdx>=shaderCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within shader bounds [0.."+(shaderCount-1)+"]: "+shaderIdx);
         }
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         if(shaderIdx>=sourceCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within source bounds [0.."+(sourceCount-1)+"]: "+shaderIdx);
         }

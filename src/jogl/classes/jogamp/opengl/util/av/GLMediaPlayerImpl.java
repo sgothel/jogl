@@ -571,19 +571,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
             this.vid = vid;
             this.aid = aid;
-            if ( this.streamLoc != null ) {
-                new Thread() {
-                    public void run() {
-                        try {
-                            // StreamWorker may be used, see API-doc of StreamWorker
-                            initStreamImpl(vid, aid);
-                        } catch (final Throwable t) {
-                            streamErr = new StreamException(t.getClass().getSimpleName()+" while initializing: "+GLMediaPlayerImpl.this.toString(), t);
-                            changeState(GLMediaEventListener.EVENT_CHANGE_ERR, GLMediaPlayer.State.Uninitialized);
-                        } // also initializes width, height, .. etc
-                    }
-                }.start();
-            }
+            new Thread() {
+                public void run() {
+                    try {
+                        // StreamWorker may be used, see API-doc of StreamWorker
+                        initStreamImpl(vid, aid);
+                    } catch (final Throwable t) {
+                        streamErr = new StreamException(t.getClass().getSimpleName()+" while initializing: "+GLMediaPlayerImpl.this.toString(), t);
+                        changeState(GLMediaEventListener.EVENT_CHANGE_ERR, GLMediaPlayer.State.Uninitialized);
+                    } // also initializes width, height, .. etc
+                }
+            }.start();
         }
     }
     /**

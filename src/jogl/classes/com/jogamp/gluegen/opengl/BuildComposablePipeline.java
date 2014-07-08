@@ -186,8 +186,10 @@ public class BuildComposablePipeline {
         }
 
         try {
+            // Keep assignment w/ null comparison for clarification.
+            // If no exception is thrown, return value is always non-null;
             hasImmediateMode =
-                    (classToComposeAround.getMethod("glBegin", new Class<?>[]{Integer.TYPE}) != null);
+                    null != classToComposeAround.getMethod("glBegin", new Class<?>[]{Integer.TYPE});
         } catch (final Exception e) {
         }
 
@@ -388,7 +390,7 @@ public class BuildComposablePipeline {
                     }
                 }
 
-                if (null != baseInterfaceClass && !clazzList.contains(baseInterfaceClass)) {
+                if ( !clazzList.contains(baseInterfaceClass) ) {
                     ifNames[i++] = baseInterfaceClass.getName();
                     clazzList.add(baseInterfaceClass);
                 }

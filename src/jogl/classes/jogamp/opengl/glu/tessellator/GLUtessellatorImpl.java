@@ -354,7 +354,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
 /* Create a new vertex and edge which immediately follow e
  * in the ordering around the left face.
  */
-            if (Mesh.__gl_meshSplitEdge(e) == null) return false;
+            Mesh.__gl_meshSplitEdge(e);
             e = e.Lnext;
         }
 
@@ -396,11 +396,12 @@ public class GLUtessellatorImpl implements GLUtessellator {
         final CachedVertex[] v = cache;
 
         mesh = Mesh.__gl_meshNewMesh();
-        if (mesh == null) return false;
 
         for (int i = 0; i < cacheCount; i++) {
             final CachedVertex vertex = v[i];
-            if (!addVertex(vertex.coords, vertex.data)) return false;
+            if (!addVertex(vertex.coords, vertex.data)) {
+                return false;
+            }
         }
         cacheCount = 0;
         flushCacheOnNextVertex = false;
