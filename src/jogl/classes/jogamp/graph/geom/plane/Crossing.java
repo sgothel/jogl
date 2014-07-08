@@ -190,6 +190,7 @@ public class Crossing {
                 }
                 // CURVE-END
                 if (t > 1 - DELTA) {
+                    // FIXME: consider using FloatUtil.isEqual(ax, bx, epsilon), ...
                     if (py1 < ay && (ax != bx ? ax - bx : bx) > 0.0) {
                         cross++;
                     }
@@ -288,6 +289,7 @@ public class Crossing {
                 }
                 // CURVE-START
                 if (t < DELTA) {
+                    // FIXME: consider using FloatUtil.isZero(bx, epsilon), ...
                     if (py1 < 0.0 && (bx != 0.0 ? bx : (cx != bx ? cx - bx : ax - cx)) < 0.0) {
                         cross--;
                     }
