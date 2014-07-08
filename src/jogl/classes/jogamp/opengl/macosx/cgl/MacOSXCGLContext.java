@@ -536,7 +536,7 @@ public class MacOSXCGLContext extends GLContextImpl
               isPBuffer[0] = false;
               isFBO[0] = true;
               if(DEBUG) {
-                  System.err.println("NS viewHandle.1: GLFBODrawableImpl drawable: isFBO "+isFBO+", isPBuffer "+isPBuffer+", "+drawable.getClass().getName()+",\n\t"+drawable);
+                  System.err.println("NS viewHandle.1: GLFBODrawableImpl drawable: isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
           } else {
               final long drawableHandle = drawable.getHandle();

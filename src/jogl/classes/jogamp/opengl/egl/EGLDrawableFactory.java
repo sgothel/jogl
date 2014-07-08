@@ -381,7 +381,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             case 1:
                 profileString = GLProfile.GLES1; break;
             default:
-                throw new GLException("Invalid ES profile number "+esProfile);
+                throw new GLException("Invalid ES profile number "+esProfile[0]);
         }
         if ( !GLProfile.isAvailable(adevice, profileString) ) {
             if( DEBUG ) {
@@ -395,7 +395,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         final boolean mapsADeviceToDefaultDevice = !QUERY_EGL_ES_NATIVE_TK || initDefaultDevice ||
                                                    null == desktopFactory || adevice instanceof EGLGraphicsDevice ;
         if( DEBUG ) {
-            System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" ( "+esProfile+" ), "+
+            System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" ( "+esProfile[0]+" ), "+
                                "defaultSharedResourceSet "+(null!=defaultSharedResource)+", mapsADeviceToDefaultDevice "+mapsADeviceToDefaultDevice+
                                " (QUERY_EGL_ES_NATIVE_TK "+QUERY_EGL_ES_NATIVE_TK+", hasDesktopFactory "+(null != desktopFactory)+
                                ", isEGLGraphicsDevice "+(adevice instanceof EGLGraphicsDevice)+")");

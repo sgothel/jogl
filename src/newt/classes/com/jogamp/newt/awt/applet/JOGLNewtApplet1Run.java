@@ -36,6 +36,7 @@ import java.awt.EventQueue;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Arrays;
 
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import javax.media.opengl.FPSCounter;
@@ -264,7 +265,7 @@ public class JOGLNewtApplet1Run extends Applet {
             }
             System.err.println("JOGLNewtApplet1Run start:");
             System.err.println("TopComponent: "+topC.getLocation()+" rel, "+topC.getLocationOnScreen()+" screen, visible "+topC.isVisible()+", "+topC);
-            System.err.println("Applet Pos: "+this.getLocation()+" rel, "+p0+" screen, visible "+this.isVisible()+", "+this);
+            System.err.println("Applet Pos: "+this.getLocation()+" rel, "+Arrays.toString(p0)+" screen, visible "+this.isVisible()+", "+this);
             if(null != newtCanvasAWT) {
                 System.err.println("NewtCanvasAWT Pos: "+newtCanvasAWT.getLocation()+" rel, "+newtCanvasAWT.getLocationOnScreen()+" screen, visible "+newtCanvasAWT.isVisible()+", "+newtCanvasAWT);
             }

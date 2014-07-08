@@ -694,7 +694,7 @@ public class FBObject {
             throw new GLException("FBO not initialized");
         }
         if(maxColorAttachments != colorAttachmentPoints.length) {
-            throw new InternalError("maxColorAttachments "+maxColorAttachments+", array.lenght "+colorAttachmentPoints);
+            throw new InternalError("maxColorAttachments "+maxColorAttachments+", array.length "+colorAttachmentPoints.length);
         }
         if(0 > point || point >= maxColorAttachments) {
             throw new IllegalArgumentException("attachment point out of range: "+point+", should be within [0.."+(maxColorAttachments-1)+"], "+this);

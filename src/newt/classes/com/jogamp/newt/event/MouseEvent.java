@@ -34,6 +34,8 @@
 
 package com.jogamp.newt.event;
 
+import java.util.Arrays;
+
 /**
  * Pointer event of type {@link PointerType}.
  * <p>
@@ -525,7 +527,7 @@ public class MouseEvent extends InputEvent
             sb = new StringBuilder();
         }
         sb.append("MouseEvent[").append(getEventTypeString(getEventType()))
-        .append(", ").append(x).append("/").append(y)
+        .append(", ").append(Arrays.toString(x)).append("/").append(Arrays.toString(y))
         .append(", button ").append(button).append(", count ")
         .append(clickCount).append(", rotation [").append(rotationXYZ[0]).append(", ").append(rotationXYZ[1]).append(", ").append(rotationXYZ[2]).append("] * ").append(rotationScale);
         if(pointerID.length>0) {

@@ -329,7 +329,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
                 final byte c1 = bb.get(o++), c2 = bb.get(o++);
                 final boolean equal = c1==components[0] && c2==components[1];
                 System.err.printf("Test [%3d][%3d] exp 0x%02X%02X == has 0x%02X%02X : %b%n",
-                        x, components[1], components[0], c2, c1, equal );
+                        x, y, components[1], components[0], c2, c1, equal );
                 Assert.assertEquals(components[0], c1);
                 Assert.assertEquals(components[1], c2);
               }
