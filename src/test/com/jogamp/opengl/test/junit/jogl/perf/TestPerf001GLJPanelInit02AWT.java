@@ -32,6 +32,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -95,7 +96,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START");
-        initCount = 0;
+        initCount.set(0);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -121,7 +122,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                             glad.addGLEventListener(new GLEventListener() {
                                 @Override
                                 public void init(final GLAutoDrawable drawable) {
-                                    initCount++;
+                                    initCount.incrementAndGet();
                                 }
                                 @Override
                                 public void dispose(final GLAutoDrawable drawable) {}
@@ -152,7 +153,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                                     super.paintComponent(g);
                                     if( !initialized && added && reshapeWidth > 0 && reshapeHeight > 0 && isDisplayable() ) {
                                         initialized = true;
-                                        initCount++;
+                                        initCount.incrementAndGet();
                                     }
                                 }
                             };
@@ -178,7 +179,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         }
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while( frameCount > initCount && INIT_TIMEOUT > t1 - t0 ) {
+        while( frameCount > initCount.get() && INIT_TIMEOUT > t1 - t0 ) {
             try {
                 Thread.sleep(100);
                 System.err.println("Sleep initialized: "+initCount+"/"+frameCount);
@@ -188,9 +189,9 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
             t1 = System.currentTimeMillis();
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = initCount;
+        final double panelCountF = initCount.get();
         System.err.printf("P: %d %s%s:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                initCount,
+                initCount.get(),
                 useGLJPanel?"GLJPanel":(useGLCanvas?"GLCanvas":"No_GL"), initMT?" (mt)":" (01)",
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
@@ -380,7 +381,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     static boolean wait = false;
     static int width = 800, height = 600, frameCount = 25;
 
-    volatile int initCount = 0;
+    AtomicInteger initCount = new AtomicInteger(0);
 
     public static void main(final String[] args) {
         boolean manual=false;

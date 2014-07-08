@@ -28,6 +28,7 @@
 package com.jogamp.opengl.test.junit.jogl.perf;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -72,7 +73,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START");
-        initCount = 0;
+        initCount.set(0);
 
         t[0] = Platform.currentTimeMillis();
         int x = 32, y = 32;
@@ -93,7 +94,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
             frame[i].addGLEventListener(new GLEventListener() {
                 @Override
                 public void init(final GLAutoDrawable drawable) {
-                    initCount++;
+                    initCount.incrementAndGet();
                 }
                 @Override
                 public void dispose(final GLAutoDrawable drawable) {}
@@ -111,7 +112,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
 
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while( frameCount > initCount && INIT_TIMEOUT > t1 - t0 ) {
+        while( frameCount > initCount.get() && INIT_TIMEOUT > t1 - t0 ) {
             try {
                 Thread.sleep(100);
                 System.err.println("Sleep initialized: "+initCount+"/"+frameCount);
@@ -121,9 +122,9 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
             t1 = System.currentTimeMillis();
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = initCount;
+        final double panelCountF = initCount.get();
         System.err.printf("P: %d GLWindow:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                initCount,
+                initCount.get(),
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
                 t[3]-t[0], (t[3]-t[0])/panelCountF);
@@ -169,7 +170,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
     static boolean wait = false, mainRun = false;
     static int width = 800, height = 600, frameCount = 25;
 
-    volatile int initCount = 0;
+    AtomicInteger initCount = new AtomicInteger(0);
 
     public static void main(final String[] args) {
         mainRun = true;

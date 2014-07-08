@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -122,8 +123,8 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
     // Buffer objects can be shared across shared OpenGL context.
     // If we run with sharedContext, then the tests will use these shared buffer objects,
     // otherwise each event listener allocates its own buffer objects.
-    private static volatile int[] sharedVertexBufferObjects = {0};
-    private static volatile int[] sharedIndexBufferObjects = {0};
+    private static AtomicInteger sharedVertexBufferObjects = new AtomicInteger(0);
+    private static AtomicInteger sharedIndexBufferObjects = new AtomicInteger(0);
 
     @BeforeClass
     public static void initClass() {
@@ -240,19 +241,22 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                 //
                 if (useShared) {
                     System.err.println("Using shared VBOs on slave 0x"+Integer.toHexString(hashCode()));
-                    vertexBufferObjects = sharedVertexBufferObjects;
-                    indexBufferObjects = sharedIndexBufferObjects;
+                    privateVertexBufferObjects[0] = sharedVertexBufferObjects.get();
+                    privateIndexBufferObjects[0] = sharedIndexBufferObjects.get();
                 } else {
                     System.err.println("Using local VBOs on slave 0x"+Integer.toHexString(hashCode()));
-                    vertexBufferObjects = privateVertexBufferObjects;
-                    indexBufferObjects = privateIndexBufferObjects;
                 }
+                vertexBufferObjects = privateVertexBufferObjects;
+                indexBufferObjects = privateIndexBufferObjects;
 
                 // if buffer sharing is enabled, then the first of the two event listeners to be
                 // initialized will allocate the buffers, and the other will re-use the allocated one
                 if (vertexBufferObjects[0] == 0) {
                     System.err.println("Creating vertex VBO on slave 0x"+Integer.toHexString(hashCode()));
                     vertexBufferObjects[0] = createVertexBuffer(gl2);
+                    if (useShared) {
+                        sharedVertexBufferObjects.set(vertexBufferObjects[0]);
+                    }
                 }
 
                 // A check in the case that buffer sharing is enabled but context sharing is not enabled -- in that
@@ -276,6 +280,9 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                 if (indexBufferObjects[0] == 0) {
                     System.err.println("Creating index VBO on slave 0x"+Integer.toHexString(hashCode()));
                     indexBufferObjects[0] = createVertexIndexBuffer(gl2);
+                    if (useShared) {
+                        sharedIndexBufferObjects.set(indexBufferObjects[0]);
+                    }
                 }
 
                 // again, a check in the case that buffer sharing is enabled but context sharing is not enabled
@@ -311,12 +318,13 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                     int [] vertexBufferObjects;
                     int [] indexBufferObjects;
                     if (useShared) {
-                        vertexBufferObjects = sharedVertexBufferObjects;
-                        indexBufferObjects = sharedIndexBufferObjects;
-                    } else {
-                        vertexBufferObjects = privateVertexBufferObjects;
-                        indexBufferObjects = privateIndexBufferObjects;
+                        privateVertexBufferObjects[0] = sharedVertexBufferObjects.get();
+                        privateIndexBufferObjects[0] = sharedIndexBufferObjects.get();
+                        sharedVertexBufferObjects.set(0);
+                        sharedIndexBufferObjects.set(0);
                     }
+                    vertexBufferObjects = privateVertexBufferObjects;
+                    indexBufferObjects = privateIndexBufferObjects;
 
                     gl2.glDeleteBuffers(1, vertexBufferObjects, 0);
                     logAnyErrorCodes(this, gl2, "dispose.2");
@@ -414,12 +422,11 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             int [] indexBufferObjects;
             synchronized (this) {
                 if (useShared) {
-                    vertexBufferObjects = sharedVertexBufferObjects;
-                    indexBufferObjects = sharedIndexBufferObjects;
-                } else {
-                    vertexBufferObjects = privateVertexBufferObjects;
-                    indexBufferObjects = privateIndexBufferObjects;
+                    privateVertexBufferObjects[0] = sharedVertexBufferObjects.get();
+                    privateIndexBufferObjects[0] = sharedIndexBufferObjects.get();
                 }
+                vertexBufferObjects = privateVertexBufferObjects;
+                indexBufferObjects = privateIndexBufferObjects;
             } // synchronized (this)
 
             // A check in the case that buffer sharing is enabled but context sharing is not enabled -- in that
