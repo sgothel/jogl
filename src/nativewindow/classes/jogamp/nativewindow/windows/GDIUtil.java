@@ -40,7 +40,7 @@ public class GDIUtil implements ToolkitProperties {
 
     private static final String dummyWindowClassNameBase = "_dummyWindow_clazz" ;
     private static RegisteredClassFactory dummyWindowClassFactory;
-    private static boolean isInit = false;
+    private static volatile boolean isInit = false;
 
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}

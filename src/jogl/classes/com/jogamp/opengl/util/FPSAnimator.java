@@ -106,7 +106,7 @@ public class FPSAnimator extends AnimatorBase {
      * @param fps
      * @throws GLException if the animator has already been started
      */
-    public final synchronized void setFPS(final int fps) throws GLException {
+    public final void setFPS(final int fps) throws GLException {
         if ( isStarted() ) {
             throw new GLException("Animator already started.");
         }
