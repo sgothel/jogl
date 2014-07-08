@@ -107,21 +107,21 @@ public class BuildStaticGLInfo {
 
   // Handles function pointer
   protected static final int funcIdentifierGroup = 9;
-  protected static Pattern funcPattern =
+  protected static final Pattern funcPattern =
     Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s+\\*\\s*|\\s*\\*\\s+|\\s+)?(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
 
-  protected static Pattern associationPattern =
+  protected static final Pattern associationPattern =
     Pattern.compile("\\#ifndef ([CEW]?GL[XU]?_[A-Za-z0-9_]+)(.*)");
 
-  protected static Pattern ifPattern =
+  protected static final Pattern ifPattern =
     Pattern.compile("\\#if(.*)");
-  protected static Pattern elsePattern =
+  protected static final Pattern elsePattern =
     Pattern.compile("\\#(elif|else)(.*)");
-  protected static Pattern endifPattern =
+  protected static final Pattern endifPattern =
     Pattern.compile("\\#endif(.*)");
 
   protected static final int defineIdentifierGroup = 1;
-  protected static Pattern definePattern =
+  protected static final Pattern definePattern =
     Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
 
   // Maps function / #define names to Set of names of the extensions they're declared in

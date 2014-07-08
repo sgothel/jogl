@@ -405,7 +405,7 @@ public class GLEventListenerState {
         }
     }
 
-    public static GLRunnable setViewport = new GLRunnable() {
+    public static final GLRunnable setViewport = new GLRunnable() {
         @Override
         public boolean run(final GLAutoDrawable drawable) {
             drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
@@ -413,7 +413,7 @@ public class GLEventListenerState {
         }
     };
 
-    public static GLRunnable glFinish = new GLRunnable() {
+    public static final GLRunnable glFinish = new GLRunnable() {
         @Override
         public boolean run(final GLAutoDrawable drawable) {
             drawable.getGL().glFinish();

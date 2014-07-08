@@ -46,7 +46,7 @@ public class LandscapeES2 implements GLEventListener {
     private int swapInterval = 0;
     private boolean verbose = true;
 
-    static public int TARGET_FPS    = 120;
+    static public final int TARGET_FPS    = 120;
     private long millisOffset;
     private int frameCount;
     private float frameRate;

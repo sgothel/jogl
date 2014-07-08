@@ -32,9 +32,9 @@ import com.jogamp.graph.geom.Triangle;
 
 
 public class HEdge {
-    public static int BOUNDARY = 3;
-    public static int INNER = 1;
-    public static int HOLE = 2;
+    public static final int BOUNDARY = 3;
+    public static final int INNER = 1;
+    public static final int HOLE = 2;
 
     private GraphVertex vert;
     private HEdge prev = null;

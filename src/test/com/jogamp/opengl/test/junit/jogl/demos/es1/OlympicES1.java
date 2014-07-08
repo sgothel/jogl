@@ -30,8 +30,8 @@ public class OlympicES1 implements GLEventListener
     private boolean debug = false ;
     private boolean trace = false ;
 
-    // private static final double M_PI= 3.141592654;
-    private static final double M_2PI= 2*3.141592654;
+    // private static final double M_PI= Math.PI;
+    private static final double M_2PI = 2.0*Math.PI;
 
     private static final int
     // XSIZE=   100,

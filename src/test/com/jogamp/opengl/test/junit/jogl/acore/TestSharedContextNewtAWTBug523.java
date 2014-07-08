@@ -155,12 +155,12 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
         boolean useShared;
         int canvasWidth;
         int canvasHeight;
-        private final float boundsRadius = 2f;
+        private static final float boundsRadius = 2f;
         private float viewDistance;
-        private float viewDistanceFactor = 1.0f;
+        private static float viewDistanceFactor = 1.0f;
         private float xAxisRotation;
         private float yAxisRotation;
-        private final float viewFovDegrees = 15f;
+        private static final float viewFovDegrees = 15f;
 
         // Buffer objects can be shared across canvas instances, if those canvases are initialized with the same GLContext.
         // If we run with sharedBufferObjects true, then the tests will use these shared buffer objects.

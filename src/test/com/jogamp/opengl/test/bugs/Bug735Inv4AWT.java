@@ -44,13 +44,13 @@ import com.jogamp.opengl.util.AnimatorBase;
  * </pre>
  */
 public class Bug735Inv4AWT {
-  static public int AWT  = 0;
-  static public int NEWT = 1;
+  static public final int AWT  = 0;
+  static public final int NEWT = 1;
 
-  static public int APPLET_WIDTH  = 500;
-  static public int APPLET_HEIGHT = 290;
-  static public int TOOLKIT       = NEWT;
-  static public boolean IGNORE_AWT_REPAINT = false;
+  static public final int APPLET_WIDTH  = 500;
+  static public final int APPLET_HEIGHT = 290;
+  static public final int TOOLKIT       = NEWT;
+  static public final boolean IGNORE_AWT_REPAINT = false;
   static public boolean USE_ECT = false;
   static public int SWAP_INTERVAL = 1;
 

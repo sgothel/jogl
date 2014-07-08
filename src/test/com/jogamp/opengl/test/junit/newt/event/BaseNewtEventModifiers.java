@@ -72,7 +72,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     protected static final int MS_ROBOT_POST_TEST_DELAY = 100;
 
     protected static final boolean _debug = true ;
-    protected static PrintStream _debugPrintStream = System.err ;
+    protected static final PrintStream _debugPrintStream = System.err ;
 
     ////////////////////////////////////////////////////////////////////////////
 

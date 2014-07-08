@@ -16,13 +16,13 @@ public class PngHelperInternal {
 	/**
 	 * Default charset, used internally by PNG for several things
 	 */
-	public static Charset charsetLatin1 = Charset.forName("ISO-8859-1");
+	public static final Charset charsetLatin1 = Charset.forName("ISO-8859-1");
 	/**
 	 * UTF-8 is only used for some chunks
 	 */
-	public static Charset charsetUTF8 = Charset.forName("UTF-8");
+	public static final Charset charsetUTF8 = Charset.forName("UTF-8");
 
-	static boolean DEBUG = false;
+	static final boolean DEBUG = false;
 
 	/**
 	 * PNG magic bytes

@@ -119,6 +119,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.ImmModeSink;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -375,7 +376,7 @@ public class GLUquadricImpl implements GLUquadric {
       nsign = 1.0f;
     }
 
-    da = 2.0f * PI / slices;
+    da = PI_2 / slices;
     dr = (topRadius - baseRadius) / stacks;
     dz = height / stacks;
     nz = (baseRadius - topRadius) / height;
@@ -519,7 +520,7 @@ public class GLUquadricImpl implements GLUquadric {
       }
     }
 
-    da = 2.0f * PI / slices;
+    da = PI_2 / slices;
     dr = (outerRadius - innerRadius) /  loops;
 
     switch (drawStyle) {
@@ -971,7 +972,7 @@ public class GLUquadricImpl implements GLUquadric {
     }
 
     drho = PI / stacks;
-    dtheta = 2.0f * PI / slices;
+    dtheta = PI_2 / slices;
 
     if (drawStyle == GLU.GLU_FILL) {
       if (!textureFlag) {
@@ -1118,7 +1119,8 @@ public class GLUquadricImpl implements GLUquadric {
   // Internals only below this point
   //
 
-  private static final float PI = (float)Math.PI;
+  private static final float PI = FloatUtil.PI;
+  private static final float PI_2 = 2f * FloatUtil.PI;
   private static final int CACHE_SIZE = 240;
 
   private final void glBegin(final GL gl, final int mode) {

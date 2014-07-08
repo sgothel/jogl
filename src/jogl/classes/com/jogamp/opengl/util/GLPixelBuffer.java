@@ -32,7 +32,6 @@ import java.nio.ByteBuffer;
 
 import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
@@ -166,14 +165,14 @@ public class GLPixelBuffer {
      * utilizing best match for {@link GLPixelAttributes}
      * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
      */
-    public static GLPixelBufferProvider defaultProviderNoRowStride = new DefaultGLPixelBufferProvider(false);
+    public static final GLPixelBufferProvider defaultProviderNoRowStride = new DefaultGLPixelBufferProvider(false);
 
     /**
      * Default {@link GLPixelBufferProvider} with {@link GLPixelBufferProvider#getAllowRowStride()} == <code>true</code>,
      * utilizing best match for {@link GLPixelAttributes}
      * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
      */
-    public static GLPixelBufferProvider defaultProviderWithRowStride = new DefaultGLPixelBufferProvider(true);
+    public static final GLPixelBufferProvider defaultProviderWithRowStride = new DefaultGLPixelBufferProvider(true);
 
     /** Pixel attributes. */
     public static class GLPixelAttributes {
