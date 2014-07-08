@@ -312,7 +312,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 System.err.println("AnimatorBase.setExclusiveContextThread: "+oldExclusiveContext+" -> "+exclusiveContext+", propagateState "+propagateState+", "+this);
             }
         }
-        final Thread dECT = enable ? ( null != userExclusiveContextThread ? userExclusiveContextThread : animThread ) : null ;
+        final Thread dECT = enable ? ( null != _exclusiveContextThread ? _exclusiveContextThread : animThread ) : null ;
         if( propagateState ) {
             setDrawablesExclCtxState(enable);
             if( !enable ) {
