@@ -74,7 +74,7 @@ public class OneTriangle {
         immModeSink.glColor3f( 0, 1, 0 );
         immModeSink.glVertex2f( width, 0 );
         immModeSink.glColor3f( 0, 0, 1 );
-        immModeSink.glVertex2f( width / 2, height );
+        immModeSink.glVertex2f( width / 2f, height );
         immModeSink.glEnd(gl, true);
     }
 }
