@@ -52,9 +52,6 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         if(null == capsRequested) {
             throw new IllegalArgumentException("Null requested caps");
         }
-        if( ! ( capsChosen instanceof VisualIDHolder ) ) {
-            throw new IllegalArgumentException("Chosen caps is not implementing NativeVisualID");
-        }
         this.screen = screen;
         this.capabilitiesChosen = capsChosen;
         this.capabilitiesRequested = capsRequested;

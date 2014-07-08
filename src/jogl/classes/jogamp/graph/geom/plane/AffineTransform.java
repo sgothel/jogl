@@ -534,13 +534,14 @@ public class AffineTransform implements Cloneable {
         if (src == null) {
             return null;
         }
-        if (src instanceof Path2D) {
-            return src.createTransformedShape(this);
-        }
-        final PathIterator path = src.iterator(this);
-        final Path2D dst = new Path2D(path.getWindingRule());
-        dst.append(path, false);
-        return dst;
+        return src.createTransformedShape(this);
+        /**
+         * If !(src instanceof Path2D): (but here it always is)
+            final PathIterator path = src.iterator(this);
+            final Path2D dst = new Path2D(path.getWindingRule());
+            dst.append(path, false);
+            return dst;
+         */
     }
 
     @Override

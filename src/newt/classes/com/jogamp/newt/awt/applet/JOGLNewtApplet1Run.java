@@ -111,9 +111,6 @@ public class JOGLNewtApplet1Run extends Applet {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.init() START - "+currentThreadName());
         }
-        if(!(this instanceof Container)) {
-            throw new RuntimeException("This Applet is not a AWT Container");
-        }
         final Container container = this;
 
         String glEventListenerClazzName=null;

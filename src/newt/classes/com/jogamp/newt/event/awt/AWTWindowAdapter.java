@@ -94,10 +94,7 @@ public class AWTWindowAdapter
         while( null != comp && !(comp instanceof java.awt.Window) ) {
             comp = comp.getParent();
         }
-        if(comp instanceof java.awt.Window) {
-            return (java.awt.Window) comp;
-        }
-        return null;
+        return (java.awt.Window) comp; // either null or a 'java.awt.Window'
     }
 
     @Override
