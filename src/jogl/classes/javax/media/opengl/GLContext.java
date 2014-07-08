@@ -1878,7 +1878,7 @@ public abstract class GLContext {
           ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
       }
       if( !ok ) {
-          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
+          GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
       }
       return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
   }

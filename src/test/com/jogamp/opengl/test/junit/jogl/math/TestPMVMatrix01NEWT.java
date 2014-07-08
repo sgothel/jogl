@@ -331,7 +331,8 @@ public class TestPMVMatrix01NEWT extends UITestCase {
     @SuppressWarnings("unused")
     @Test
     public void test03MvTranslate() {
-        final FloatBuffer pmvMv, pmvMvi, pmvMvit;
+        final FloatBuffer pmvMv;
+        // final FloatBuffer pmvMvi, pmvMvit;
         {
             final PMVMatrix pmv = new PMVMatrix();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -341,8 +342,8 @@ public class TestPMVMatrix01NEWT extends UITestCase {
             pmv.glTranslatef(5f, 6f, 7f);
 
             pmvMv = pmv.glGetMvMatrixf();
-            pmvMvi = pmv.glGetMviMatrixf();
-            pmvMvit = pmv.glGetMvitMatrixf();
+            // pmvMvi = pmv.glGetMviMatrixf();
+            // pmvMvit = pmv.glGetMvitMatrixf();
         }
 
         final FloatBuffer glMv = FloatBuffer.allocate(16);
@@ -369,7 +370,8 @@ public class TestPMVMatrix01NEWT extends UITestCase {
     @SuppressWarnings("unused")
     @Test
     public void test04MvTranslateRotate() {
-        final FloatBuffer pmvMv, pmvMvi, pmvMvit;
+        final FloatBuffer pmvMv;
+        // final FloatBuffer pmvMvi, pmvMvit;
         {
             final PMVMatrix pmv = new PMVMatrix();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -380,8 +382,8 @@ public class TestPMVMatrix01NEWT extends UITestCase {
             pmv.glRotatef(90f, 1f, 0f, 0f);
 
             pmvMv = pmv.glGetMvMatrixf();
-            pmvMvi = pmv.glGetMviMatrixf();
-            pmvMvit = pmv.glGetMvitMatrixf();
+            // pmvMvi = pmv.glGetMviMatrixf();
+            // pmvMvit = pmv.glGetMvitMatrixf();
         }
 
         final FloatBuffer glMv = FloatBuffer.allocate(16);

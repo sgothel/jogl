@@ -47,15 +47,14 @@ public class Maplist {
 
   /**
    * Backend class
+   * private final Backend backend;
    */
-  private final Backend backend;
 
   /**
    * Makes new Maplist
-   * @param backend Backend class
    */
-  public Maplist(final Backend backend) {
-    this.backend = backend;
+  public Maplist(/* final Backend backend */) {
+    // this.backend = backend;
   }
 
   /**
@@ -88,7 +87,7 @@ public class Maplist {
    */
   private void add(final int type, final int rational, final int ncoords) {
     // DONE
-    final Mapdesc map = new Mapdesc(type, rational, ncoords, backend);
+    final Mapdesc map = new Mapdesc(type, rational, ncoords);
     if (maps == null) {
       maps = map;
     } else {

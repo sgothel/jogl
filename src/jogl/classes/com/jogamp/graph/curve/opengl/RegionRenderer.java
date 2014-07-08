@@ -478,7 +478,7 @@ public class RegionRenderer {
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_CHANNEL);
         }
         if( Region.hasColorTexture( renderModes ) ) {
-            posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_TEXTURE);
+                    rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_TEXTURE);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_TEXTURE);
         }
         if( !pass1 ) {

@@ -182,27 +182,31 @@ public class Curve {
     } else {
       assert (order <= MAXORDER);
 
-      final float tmp[][] = new float[MAXORDER][MAXCOORDS];
+      setstepsize(mapdesc.maxrate);
 
-      final int tstride = (MAXORDER);
+      /***
+          final float tmp[][] = new float[MAXORDER][MAXCOORDS];
 
-      final int val = 0;
-      // mapdesc.project(spts,stride,tmp,tstride,order);
+          final int tstride = (MAXORDER);
 
-      //                System.out.println("TODO curve.getsptepsize mapdesc.project");
+          final int val = 0;
+          // mapdesc.project(spts,stride,tmp,tstride,order);
 
-      if (val == 0) {
-        setstepsize(mapdesc.maxrate);
-      } else {
-        final float t = mapdesc.getProperty(NurbsConsts.N_PIXEL_TOLERANCE);
-        if (mapdesc.isParametricDistanceSampling()) {
-          //                        System.out.println("TODO curve.getstepsize - parametric");
-        } else if (mapdesc.isPathLengthSampling()) {
-          //                        System.out.println("TODO curve.getstepsize - pathlength");
-        } else {
-          setstepsize(mapdesc.maxrate);
-        }
-      }
+          //                System.out.println("TODO curve.getsptepsize mapdesc.project");
+
+          if (val == 0) {
+            setstepsize(mapdesc.maxrate);
+          } else {
+            final float t = mapdesc.getProperty(NurbsConsts.N_PIXEL_TOLERANCE);
+            if (mapdesc.isParametricDistanceSampling()) {
+              //                        System.out.println("TODO curve.getstepsize - parametric");
+            } else if (mapdesc.isPathLengthSampling()) {
+              //                        System.out.println("TODO curve.getstepsize - pathlength");
+            } else {
+              setstepsize(mapdesc.maxrate);
+            }
+          }
+      */
 
     }
 

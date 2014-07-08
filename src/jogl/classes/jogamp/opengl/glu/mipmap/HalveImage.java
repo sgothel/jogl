@@ -1140,10 +1140,10 @@ public class HalveImage {
           final int imageSizeInBytes, final boolean isSwap ) {
     int ii, jj;
     final int halfWidth = width / 2;
-    final int halfHeight = height / 2;
+    // final int halfHeight = height / 2;
     final int halfDepth = depth / 2;
     int src = 0;
-    final int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
+    // final int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
     int outIndex = 0;
 
     assert( (width == 1 || height == 1) && depth >= 2 );

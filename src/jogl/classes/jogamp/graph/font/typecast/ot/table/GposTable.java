@@ -36,10 +36,10 @@ public class GposTable implements Table {
         _de = (DirectoryEntry) de.clone();
 
         // GPOS Header
-        final int version = di.readInt();
-        final int scriptList = di.readInt();
-        final int featureList = di.readInt();
-        final int lookupList = di.readInt();
+        /* final int version = */ di.readInt();
+        /* final int scriptList = */ di.readInt();
+        /* final int featureList = */ di.readInt();
+        /* final int lookupList = */ di.readInt();
     }
 
     /** Get the table type, as a table directory value.

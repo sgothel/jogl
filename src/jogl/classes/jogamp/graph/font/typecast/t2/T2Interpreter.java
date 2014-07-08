@@ -307,10 +307,20 @@ public class T2Interpreter {
                 dxb[count - i - 1] = popArg().intValue();
                 dya[count - i - 1] = popArg().intValue();
             }
+            /**
+             * Not using the 'popped' arguments,
+             * hence simply pop them from stack!
+             *
             final int dy3 = popArg().intValue();
             final int dy2 = popArg().intValue();
             final int dx2 = popArg().intValue();
             final int dx1 = popArg().intValue();
+            */
+            popArg();
+            popArg();
+            popArg();
+            popArg();
+
             for (int i = 0; i < count; ++i) {
                 final Point lastPoint = getLastPoint();
                 final int xa = lastPoint.x;

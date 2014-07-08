@@ -76,7 +76,7 @@ public abstract class Issue344Base implements GLEventListener
 
         final Rectangle2D bounds = renderer.getBounds(getText());
         final float w = (float) bounds.getWidth();
-        final float h = (float) bounds.getHeight();
+        // final float h = (float) bounds.getHeight();
         textScaleFactor = 2.0f / (w * 1.1f);
         gl.setSwapInterval(0);
     }

@@ -369,7 +369,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
 
         int rsFpPos = preludeGLSLVersion ? rsFp.addGLSLVersion(gl) : 0;
         rsFpPos = rsFp.insertShaderSource(0, rsFpPos, mPlayer.getRequiredExtensionsShaderStub());
-        rsFpPos = rsFp.addDefaultShaderPrecision(gl, rsFpPos);
+        rsFp.addDefaultShaderPrecision(gl, rsFpPos);
 
         final String texLookupFuncName = mPlayer.getTextureLookupFunctionName(myTextureLookupName);
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);

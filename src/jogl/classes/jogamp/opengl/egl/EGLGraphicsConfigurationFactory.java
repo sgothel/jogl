@@ -333,7 +333,6 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen);
         List<GLCapabilitiesImmutable> availableCaps = null;
         int recommendedIndex = -1;
-        long recommendedEGLConfig = -1;
         final IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
 
         if(!EGL.eglGetConfigs(eglDisplay, null, 0, numConfigs)) {
@@ -380,7 +379,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if( hasEGLChosenCaps ) {
             availableCaps = eglConfigs2GLCaps(device, glp, configs, numConfigs.get(0), winattrmask, forceTransparentFlag, skipCapsChooser /* onlyFirsValid */);
             if(availableCaps.size() > 0) {
-                recommendedEGLConfig =  configs.get(0);
+                final long recommendedEGLConfig =  configs.get(0);
                 recommendedIndex = 0;
                 if (DEBUG) {
                     System.err.println("EGLGraphicsConfiguration.eglChooseConfig: #1 eglChooseConfig: recommended fbcfg " + toHexString(recommendedEGLConfig) + ", idx " + recommendedIndex);
@@ -399,7 +398,6 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
         if( null == availableCaps || 0 == availableCaps.size() ) {
             // reset ..
-            recommendedEGLConfig = -1;
             recommendedIndex = -1;
 
             if(!EGL.eglGetConfigs(eglDisplay, configs, configs.capacity(), numConfigs)) {

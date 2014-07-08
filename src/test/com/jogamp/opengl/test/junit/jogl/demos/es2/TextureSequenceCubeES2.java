@@ -180,7 +180,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         int rsFpPos = preludeGLSLVersion ? rsFp.addGLSLVersion(gl) : 0;
         rsFpPos = rsFp.insertShaderSource(0, rsFpPos, texSeq.getRequiredExtensionsShaderStub());
-        rsFpPos = rsFp.addDefaultShaderPrecision(gl, rsFpPos);
+        rsFp.addDefaultShaderPrecision(gl, rsFpPos);
 
         final String texLookupFuncName = texSeq.getTextureLookupFunctionName(myTextureLookupName);
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);

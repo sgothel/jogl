@@ -31,19 +31,19 @@ import java.io.IOException;
 public class ResourceMap {
 
     private final byte[] headerCopy = new byte[16];
-    private final int nextResourceMap;
-    private final int fileReferenceNumber;
-    private final int attributes;
+    // private final int nextResourceMap;
+    // private final int fileReferenceNumber;
+    // private final int attributes;
     private final ResourceType[] types;
 
     /** Creates new ResourceMap */
     public ResourceMap(final DataInput di) throws IOException {
         di.readFully(headerCopy);
-        nextResourceMap = di.readInt();
-        fileReferenceNumber = di.readUnsignedShort();
-        attributes = di.readUnsignedShort();
-        final int typeOffset = di.readUnsignedShort();
-        final int nameOffset = di.readUnsignedShort();
+        /* nextResourceMap = */ di.readInt();
+        /* fileReferenceNumber = */ di.readUnsignedShort();
+        /* attributes = */ di.readUnsignedShort();
+        /* final int typeOffset = */ di.readUnsignedShort();
+        /* final int nameOffset = */ di.readUnsignedShort();
         final int typeCount = di.readUnsignedShort() + 1;
 
         // Read types
@@ -65,7 +65,6 @@ public class ResourceMap {
 
     public ResourceType getResourceType(final String typeName) {
         for (int i = 0; i < types.length; i++) {
-            final String s = types[i].getTypeAsString();
             if (types[i].getTypeAsString().equals(typeName)) {
                 return types[i];
             }

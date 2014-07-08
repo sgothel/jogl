@@ -28,8 +28,8 @@ public abstract class KernSubtable {
 
     public static KernSubtable read(final DataInput di) throws IOException {
         KernSubtable table = null;
-        final int version = di.readUnsignedShort();
-        final int length = di.readUnsignedShort();
+        /* final int version = */ di.readUnsignedShort();
+        /* final int length = */ di.readUnsignedShort();
         final int coverage = di.readUnsignedShort();
         final int format = coverage >> 8;
 

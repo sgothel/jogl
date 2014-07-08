@@ -452,8 +452,8 @@ public class Interpreter {
     /**
      * JuMP Relative
      */
-    private int _jmpr(int instructionIndex) {
-        return instructionIndex += pop() - 1;
+    private int _jmpr(final int instructionIndex) {
+        return instructionIndex + ( pop() - 1 );
     }
 
     /**
@@ -484,7 +484,7 @@ public class Interpreter {
      * LOOP and CALL function
      */
     private void _loopcall() {
-        final int index = pop();
+        /* final int index = */ pop();
         final int count = pop();
         for (int i = 0; i < count; i++) {
             execute(functionMap[i]);
@@ -946,13 +946,13 @@ public class Interpreter {
     private void _sfvtl(final short param) {
         pop();
         pop();
-        if (param == 1) {
+        // if (param == 1) {
             gs.freedom_vector[0] = 0x0000;
             gs.freedom_vector[1] = 0x0000;
-        } else {
-            gs.freedom_vector[0] = 0x0000;
-            gs.freedom_vector[1] = 0x0000;
-        }
+        // } else {
+        //    gs.freedom_vector[0] = 0x0000;
+        //    gs.freedom_vector[1] = 0x0000;
+        //}
     }
 
     /**
@@ -1039,19 +1039,24 @@ public class Interpreter {
      */
     private void _spvtl(final short param) {
 
+        // below block is dead code, reduce to pop() calls.
+        pop();
+        pop();
+        /**
         // We'll get a copy of the line and normalize it -
         // divide the x- and y-coords by the vector's dot product.
         final Point p1 = zone[gs.zp2][pop()];
         final Point p2 = zone[gs.zp1][pop()];
         final int x = p2.x - p1.x;
         final int y = p2.y - p1.y;
-        if(param == 1) {
+         */
+        // if(param == 1) {
             gs.projection_vector[0] = 0x0000;
             gs.projection_vector[1] = 0x0000;
-        } else {
-            gs.projection_vector[0] = 0x0000;
-            gs.projection_vector[1] = 0x0000;
-        }
+        // } else {
+        //    gs.projection_vector[0] = 0x0000;
+        //    gs.projection_vector[1] = 0x0000;
+        // }
     }
 
     private void _sround() {

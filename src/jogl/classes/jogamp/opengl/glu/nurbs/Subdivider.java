@@ -133,12 +133,12 @@ public class Subdivider {
   /**
    * Breakpoints
    */
-  private Flist smbrkpts;
+  private final Flist smbrkpts = new Flist();
 
   /**
    * Not used
+   * private float[] stepsizes;
    */
-  private float[] stepsizes;
 
   /**
    * Domain distance in V direction
@@ -651,8 +651,8 @@ public class Subdivider {
         arctesselator.bezier(newright, s, s, t1, t2);
         arctesselator.bezier(newleft, s, s, t2, t1);
       } else {
-        arctesselator.pwl_right(newright, s, t1, t2, stepsizes[0]);
-        arctesselator.pwl_left(newright, s, t2, t1, stepsizes[2]);
+        arctesselator.pwl_right(newright, s, t1, t2, 0 /* stepsizes[0] */);
+        arctesselator.pwl_left(newright, s, t2, t1, 0 /* stepsizes[2] */);
       }
       link(jarc1, jarc2, newright, newleft);
       left.addarc(newright);
@@ -732,7 +732,6 @@ public class Subdivider {
         } else if (hdiff == 0) {
           tailonright.addarc(jarc);
         } else {
-          final Arc jtemp;
           switch (arc_split(jarc, param, value, 0)) {
           case 2:
             tailonright.addarc(jarc);

@@ -166,9 +166,8 @@ public class Mapdesc {
    * @param type map type
    * @param rational is rational
    * @param ncoords number of control points coords
-   * @param backend backend object
    */
-  public Mapdesc(final int type, final int rational, final int ncoords, final Backend backend) {
+  public Mapdesc(final int type, final int rational, final int ncoords) {
     // DONE
     this.type = type;
     this.isrational = rational;

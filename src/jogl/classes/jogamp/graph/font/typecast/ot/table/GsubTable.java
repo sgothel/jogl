@@ -76,7 +76,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
         final DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buf));
 
         // GSUB Header
-        final int version = dis.readInt();
+        /* final int version = */ dis.readInt();
         final int scriptListOffset = dis.readUnsignedShort();
         final int featureListOffset = dis.readUnsignedShort();
         final int lookupListOffset = dis.readUnsignedShort();

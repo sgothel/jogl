@@ -37,7 +37,6 @@ import jogamp.opengl.glu.nurbs.*;
 
 import java.lang.reflect.Method;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLUnurbs;
 
@@ -71,13 +70,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Using callback
+   * private final int callBackFlag;
    */
-  private final int callBackFlag;
 
   /**
    * Object for error call backs
+   * private final Object errorCallback;
    */
-  private final Object errorCallback;
 
   /**
    * List of map definitions
@@ -116,8 +115,8 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Is curve modified
+   * private int isCurveModified;
    */
-  private int isCurveModified;
 
   /**
    * Object holding rendering settings
@@ -126,8 +125,8 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Display list
+   * private DisplayList dl;
    */
-  private DisplayList dl;
 
   /**
    * Object for subdividing curves and surfaces
@@ -136,13 +135,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Object responsible for rendering
+   * private Backend backend;
    */
-  private Backend backend;
 
   /**
    * Next picewise linear curve in linked list
+   * private O_pwlcurve nextPwlcurve;
    */
-  private O_pwlcurve nextPwlcurve;
 
   /**
    * Next trimming NURBS curve in linked list
@@ -156,13 +155,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Are there any changes in trimming
+   * private boolean isTrimModified;
    */
-  private boolean isTrimModified;
 
   /**
    * Are there any changes in surface data
+   * private boolean isDataSurfaceModified;
    */
-  private boolean isDataSurfaceModified;
 
   /**
    * Nurber of trmims of processed surface
@@ -181,20 +180,20 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Nextr surface in linked list
+   * private O_nurbssurface nextNurbssurface;
    */
-  private O_nurbssurface nextNurbssurface;
 
   /**
    * Are there any changes in surface
+   * private boolean isSurfaceModified;
    */
-  private boolean isSurfaceModified;
 
   /**
    * Initializes default GLUgl2nurbs object
    */
   public GLUgl2nurbsImpl() {
     // DONE
-    maplist = new Maplist(backend);
+    maplist = new Maplist();
     renderhints = new Renderhints();
     subdivider = new Subdivider();
     // original code
@@ -265,9 +264,9 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     this.autoloadmode = true;
 
-    this.callBackFlag = 0;
+    // this.callBackFlag = 0;
 
-    this.errorCallback = null;
+    // this.errorCallback = null;
   }
 
   /**
@@ -311,14 +310,14 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   private void thread(final String name, final Object arg) {
     // DONE
-    final Class partype[] = new Class[1];
+    final Class<?> partype[] = new Class[1];
     partype[0] = arg.getClass();
     Method m;
     try {
       m = this.getClass().getMethod(name, partype);
-      if (dl != null) {
+      /* if (dl != null) {
         dl.append(this, m, arg);
-      } else {
+      } else */ {
         m.invoke(this, new Object[] { arg });
       }
     } catch (final Throwable e) {
@@ -337,9 +336,9 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     // DONE
     try {
       final Method m = this.getClass().getMethod(name, (Class[]) null);
-      if (dl != null) {
+      /* if (dl != null) {
         dl.append(this, m, null);
-      } else {
+      } else */ {
         m.invoke(this, (Object[]) null);
       }
     } catch (final Throwable e) {
@@ -365,7 +364,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     if (inTrim) {
       if (!nextCurve.equals(o_curve)) {
-        isCurveModified = 1;
+        // isCurveModified = 1;
         nextCurve = o_curve;
       }
     } else {
@@ -375,7 +374,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     }
     nextCurve = o_curve.next;
     // kind of solution of union
-    nextPwlcurve = o_curve.o_pwlcurve;
+    // nextPwlcurve = o_curve.o_pwlcurve;
     nextNurbscurve = o_curve.o_nurbscurve;
   }
 
@@ -395,13 +394,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     if (!playBack)
       bgnrender();
 
-    isTrimModified = false;
-    isDataSurfaceModified = false;
+    // isTrimModified = false;
+    // isDataSurfaceModified = false;
     isDataValid = 1;
     numTrims = 0;
     currentSurface = o_surface;
     nextTrim = o_surface.o_trim;
-    nextNurbssurface = o_surface.o_nurbssurface;
+    // nextNurbssurface = o_surface.o_nurbssurface;
   }
 
   /**
@@ -429,14 +428,14 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     inSurface = 0;
 
-    nextNurbssurface = null;
+    // nextNurbssurface = null;
 
     if (isDataValid <= 0) {
       return;
     }
 
     if (nextTrim != null) {
-      isTrimModified = true;
+      // isTrimModified = true;
       nextTrim = null;
     }
 
@@ -638,7 +637,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     // if(!o_nurbscurve.equals(nextNurbscurve)){
     if (!o_nurbscurve.equals(currentCurve.o_nurbscurve)) {
-      isCurveModified = 1;
+      // isCurveModified = 1;
       currentCurve.o_nurbscurve = o_nurbscurve;
       // nextNurbscurve=o_nurbscurve;
 
@@ -647,15 +646,19 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     nextNurbscurve = o_nurbscurve.next;
 
     if (!currentCurve.equals(o_nurbscurve.owner)) {
-      isCurveModified = 1;
+      // isCurveModified = 1;
       o_nurbscurve.owner = currentCurve;
     }
 
-    if (o_nurbscurve.owner == null)
-      isCurveModified = 1;
 
-    if (inCurve == 2)
+    /**
+    if (o_nurbscurve.owner == null) {
+      isCurveModified = 1;
+    } */
+
+    if (inCurve == 2) {
       endcurve();
+    }
   }
 
   /**
@@ -677,18 +680,18 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     } else
       o_nurbssurface.used = true;
 
-    if (!o_nurbssurface.equals(nextNurbscurve)) {
-      isSurfaceModified = true;
+    // Always true, instances of diff classes are compared: if (!o_nurbssurface.equals(nextNurbscurve)) {
+      // isSurfaceModified = true;
       // nextNurbssurface=o_nurbssurface;
       currentSurface.o_nurbssurface = o_nurbssurface;
-    }
+    // }
 
     if (!currentSurface.equals(o_nurbssurface.owner)) {
-      isSurfaceModified = true;
+      // isSurfaceModified = true;
       o_nurbssurface.owner = currentSurface;
     }
 
-    nextNurbssurface = o_nurbssurface.next;
+    // nextNurbssurface = o_nurbssurface.next;
 
     if (inSurface == 2)
       endsurface();
