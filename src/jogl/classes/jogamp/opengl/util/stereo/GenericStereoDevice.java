@@ -141,7 +141,7 @@ public class GenericStereoDevice implements StereoDevice {
                                  rightPupilCenterFromMiddleInMeters / visibleWidthOfOneEye };
         }
 
-        private void init() {
+        void init() {
             final float[] eyeReliefInMeters = new float[defaultEyeParam.length];
             if( 0 < defaultEyeParam.length ) {
                 eyeReliefInMeters[0] = defaultEyeParam[0].eyeReliefZ;
