@@ -499,7 +499,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 upstreamSurface = desktopFactory.createDummySurface(adevice, reqCapsAny, null, 64, 64); // X11, WGL, .. dummy window
                 if(null != upstreamSurface) {
                     upstreamSurface.createNotify();
-                    eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);
+                    eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
                     eglDevice.open();
                     if( DEBUG ) {
                         dumpEGLInfo("EGLDrawableFactory.mapAvailableEGLESConfig: ", eglDevice.getHandle());
