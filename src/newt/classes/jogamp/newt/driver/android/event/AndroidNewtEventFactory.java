@@ -277,7 +277,7 @@ public class AndroidNewtEventFactory {
         }
 
         if( event.getPressure() > maxPressure ) {
-            maxPressure = event.getPressure();
+            maxPressure = event.getPressure(); // write to static field intended
         }
 
         //

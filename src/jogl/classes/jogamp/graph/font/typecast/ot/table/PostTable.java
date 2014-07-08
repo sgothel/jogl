@@ -330,8 +330,8 @@ public class PostTable implements Table {
                     psGlyphName[i] = new String(buf);
                 }
             }
-        } else if (version == 0x00025000) {
-        } else if (version == 0x00030000) {
+        // } else if (version == 0x00025000) {
+        // } else if (version == 0x00030000) {
         }
     }
 

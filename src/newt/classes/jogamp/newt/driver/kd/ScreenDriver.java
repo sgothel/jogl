@@ -111,8 +111,8 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     protected void sizeChanged(final int w, final int h) {
-        cachedWidth = w;
-        cachedHeight = h;
+        cachedWidth = w;  // write to static field intended
+        cachedHeight = h; // write to static field intended
     }
 
     private static int cachedWidth = 0;

@@ -107,8 +107,8 @@ public class ScreenDriver extends ScreenImpl {
 
     /** Called from {@link #initNative()}. */
     protected void setScreenSize(final int width, final int height) {
-        cachedWidth = width;
-        cachedHeight = height;
+        cachedWidth = width;   // write to static field intended
+        cachedHeight = height; // write to static field intended
     }
 
     private static int cachedWidth = 0;
