@@ -163,9 +163,8 @@ public class MonitorModeProps {
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    private static SurfaceSize streamInSurfaceSize(final DimensionImmutable resolution, final int[] sizeProperties, int offset) {
-        final SurfaceSize surfaceSize = new SurfaceSize(resolution, sizeProperties[offset++]);
-        return surfaceSize;
+    private static SurfaceSize streamInSurfaceSize(final DimensionImmutable resolution, final int[] sizeProperties, final int offset) {
+        return new SurfaceSize(resolution, sizeProperties[offset]);
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */

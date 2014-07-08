@@ -102,7 +102,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
                                 System.err.println("MemoryHog: ****** +4k: "+osizeMB+" MB +"+nsizeMB+" MB - Done");
                                 try {
                                     Thread.sleep(500);
-                                } catch (final Exception e) {};
+                                } catch (final Exception e) { e.printStackTrace(); };
                             }
                         } }, "MemoryHog").start();
                 } else if( e.getPointerCount() == 4 ) {

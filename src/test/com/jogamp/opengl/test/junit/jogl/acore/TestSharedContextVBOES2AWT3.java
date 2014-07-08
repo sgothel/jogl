@@ -207,11 +207,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 try {
-                    if( destroyCleanOrder ) {
-                        f2.dispose();
-                    } else {
-                        f2.dispose();
-                    }
+                    f2.dispose();
                 } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
@@ -365,11 +361,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 try {
-                    if( destroyCleanOrder ) {
-                        f2.dispose();
-                    } else {
-                        f2.dispose();
-                    }
+                    f2.dispose();
                 } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }

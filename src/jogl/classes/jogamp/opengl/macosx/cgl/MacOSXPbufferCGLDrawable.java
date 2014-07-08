@@ -46,12 +46,9 @@ import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.opengl.util.GLBuffers;
@@ -119,8 +116,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private void createPbuffer() {
     final MutableSurface ms = (MutableSurface) getNativeSurface();
     final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ms.getGraphicsConfiguration();
-    final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-    final GLProfile glProfile = capabilities.getGLProfile();
     final MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
 
     if (DEBUG) {

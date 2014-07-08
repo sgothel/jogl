@@ -43,7 +43,7 @@ public class TestMainVersionGLCanvasAWT extends UITestCase {
 
     @Test
     public void testMain() throws InterruptedException {
-        GLCanvas.main(null);
+        GLCanvas.main(new String[0]);
     }
 
 

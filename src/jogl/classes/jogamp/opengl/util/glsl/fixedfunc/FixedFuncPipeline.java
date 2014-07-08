@@ -748,24 +748,24 @@ public class FixedFuncPipeline {
             if( !gl.getContext().isCPUDataSourcingAvail() ) {
                 throw new GLException("CPU data sourcing n/a w/ "+gl.getContext());
             }
-            if( GL.GL_POINTS != mode ) {
+            // if( GL.GL_POINTS != mode ) {
                 ((GLES2)gl).glDrawElements(mode, count, type, indices);
-            } else {
+            /* } else {
                 // FIXME GL_POINTS !
                 ((GLES2)gl).glDrawElements(mode, count, type, indices);
-            }
+            } */
         }
     }
     public void glDrawElements(final GL2ES2 gl, final int mode, final int count, final int type, final long indices_buffer_offset) {
         validate(gl, true);
         if ( GL2GL3.GL_QUADS == mode && !gl.isGL2() ) {
             throw new GLException("Cannot handle indexed QUADS on !GL2 w/ VBO due to lack of CPU index access");
-        } else if( GL.GL_POINTS != mode ) {
+        } else /* if( GL.GL_POINTS != mode ) */ {
+            gl.glDrawElements(mode, count, type, indices_buffer_offset);
+        } /* else {
             // FIXME GL_POINTS !
             gl.glDrawElements(mode, count, type, indices_buffer_offset);
-        } else {
-            gl.glDrawElements(mode, count, type, indices_buffer_offset);
-        }
+        } */
     }
 
     private final int textureEnabledCount() {

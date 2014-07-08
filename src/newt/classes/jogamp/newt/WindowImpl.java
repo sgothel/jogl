@@ -3069,11 +3069,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * </p>
      */
     protected void consumePointerEvent(MouseEvent pe) {
-        int x = pe.getX();
-        int y = pe.getY();
-
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("consumePointerEvent.in: "+pe+", "+pState0+", pos "+x+"/"+y+", win["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
+            System.err.println("consumePointerEvent.in: "+pe+", "+pState0+", pos "+pe.getX()+"/"+pe.getY()+", win["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
                                "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"]");
         }
 
@@ -3098,8 +3095,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
             case MouseEvent.EVENT_MOUSE_ENTERED:
                 // clip coordinates to window dimension
-                x = Math.min(Math.max(x,  0), getSurfaceWidth()-1);
-                y = Math.min(Math.max(y,  0), getSurfaceHeight()-1);
+                // final int pe_x = Math.min(Math.max(pe.getX(),  0), getSurfaceWidth()-1);
+                // final int pe_y = Math.min(Math.max(pe.getY(),  0), getSurfaceHeight()-1);
                 pState0.clearButton();
                 if( eventType == MouseEvent.EVENT_MOUSE_ENTERED ) {
                     insideSurface = true;
@@ -3122,20 +3119,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
 
             default:
-                insideSurface = x >= 0 && y >= 0 && x < getSurfaceWidth() && y < getSurfaceHeight();
+                final int pe_x = pe.getX();
+                final int pe_y = pe.getY();
+                insideSurface = pe_x >= 0 && pe_y >= 0 && pe_x < getSurfaceWidth() && pe_y < getSurfaceHeight();
                 if( pe.getPointerType(0) == PointerType.Mouse ) {
                     if( !pState0.insideSurface && insideSurface ) {
                         // ENTER .. use clipped coordinates
                         eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, pe.getSource(), pe.getWhen(), pe.getModifiers(),
-                                                 Math.min(Math.max(x,  0), getSurfaceWidth()-1),
-                                                 Math.min(Math.max(y,  0), getSurfaceHeight()-1),
-                                                 (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
+                                                  Math.min(Math.max(pe_x,  0), getSurfaceWidth()-1),
+                                                  Math.min(Math.max(pe_y,  0), getSurfaceHeight()-1),
+                                                  (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
                         pState0.exitSent = false;
                     } else if( !insideSurface && eExitAllowed ) {
                         // EXIT .. use clipped coordinates
                         eExited = new MouseEvent(MouseEvent.EVENT_MOUSE_EXITED, pe.getSource(), pe.getWhen(), pe.getModifiers(),
-                                                 Math.min(Math.max(x,  0), getSurfaceWidth()-1),
-                                                 Math.min(Math.max(y,  0), getSurfaceHeight()-1),
+                                                 Math.min(Math.max(pe_x,  0), getSurfaceWidth()-1),
+                                                 Math.min(Math.max(pe_y,  0), getSurfaceHeight()-1),
                                                  (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
                         pState0.exitSent = true;
                     }

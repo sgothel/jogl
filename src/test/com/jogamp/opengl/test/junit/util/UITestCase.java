@@ -273,7 +273,7 @@ public abstract class UITestCase {
         System.err.println(preMessage+"> Press enter to continue");
         try {
             System.err.println(stdin.readLine());
-        } catch (final IOException e) { }
+        } catch (final IOException e) { e.printStackTrace(); }
     }
 
     static final String unsupportedTestMsg = "Test not supported on this platform.";

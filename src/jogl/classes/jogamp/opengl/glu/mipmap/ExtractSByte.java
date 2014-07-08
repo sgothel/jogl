@@ -58,9 +58,7 @@ public class ExtractSByte implements ExtractPrimitive {
 
   @Override
   public double extract( final boolean isSwap, final ByteBuffer sbyte ) {
-    final byte b = sbyte.get();
-    assert( b <= 127 );
-    return( b );
+    return sbyte.get(); // <= 127
   }
 
   @Override

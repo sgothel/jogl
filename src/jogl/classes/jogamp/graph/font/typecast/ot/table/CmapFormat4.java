@@ -157,13 +157,13 @@ public class CmapFormat4 extends CmapFormat {
             .append(_entrySelector)
             .append(", rangeShift: ")
             .append(_rangeShift)
-            .append(", endCode: ")
-            .append(_endCode)
-            .append(", startCode: ")
-            .append(_endCode)
-            .append(", idDelta: ")
-            .append(_idDelta)
-            .append(", idRangeOffset: ")
-            .append(_idRangeOffset).toString();
+            .append(", endCodeLen: ")
+            .append(_endCode.length)
+            .append(", startCodeLen: ")
+            .append(_endCode.length)
+            .append(", idDeltaLen: ")
+            .append(_idDelta.length)
+            .append(", idRangeOffsetLen: ")
+            .append(_idRangeOffset.length).toString();
     }
 }

@@ -35,13 +35,13 @@ class WindowEventCom2 extends WindowAdapter {
     public void windowResized(final WindowEvent e) {
         final String str = (String) e.getAttachment();
         if(null==str) {
-            e.setAttachment(new String("WindowEventCom2.windowResized: "+e));
+            e.setAttachment("WindowEventCom2.windowResized: "+e);
         }
     }
     public void windowMoved(final WindowEvent e) {
         final String str = (String) e.getAttachment();
         if(null==str) {
-            e.setAttachment(new String("WindowEventCom2.windowMoved: "+e));
+            e.setAttachment("WindowEventCom2.windowMoved: "+e);
         }
     }
 }

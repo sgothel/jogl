@@ -463,21 +463,21 @@ public class GLUquadricImpl implements GLUquadric {
             x = sin((i * da));
             y = cos((i * da));
           }
-          if (nsign == 1.0f) {
+          // if (nsign == 1.0f) {
             normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
             TXTR_COORD(gl, s, t);
             glVertex3f(gl, (x * r), (y * r), z);
             normal3f(gl, (x * nsign), (y * nsign), (nz * nsign));
             TXTR_COORD(gl, s, t + dt);
             glVertex3f(gl, (x * (r + dr)), (y * (r + dr)), (z + dz));
-          } else {
+          /* } else {
             normal3f(gl, x * nsign, y * nsign, nz * nsign);
             TXTR_COORD(gl, s, t);
             glVertex3f(gl, (x * r), (y * r), z);
             normal3f(gl, x * nsign, y * nsign, nz * nsign);
             TXTR_COORD(gl, s, t + dt);
             glVertex3f(gl, (x * (r + dr)), (y * (r + dr)), (z + dz));
-          }
+          } */
           s += ds;
         } // for slices
         glEnd(gl);
@@ -625,7 +625,7 @@ public class GLUquadricImpl implements GLUquadric {
         if (innerRadius != 0.0) {
           float a;
           glBegin(gl, GL.GL_LINE_LOOP);
-          for (a = 0.0f; a < 2.0 * PI; a += da) {
+          for (a = 0.0f; a < PI_2; a += da) {
             final float x = innerRadius * sin(a);
             final float y = innerRadius * cos(a);
             glVertex2f(gl, x, y);
@@ -635,7 +635,7 @@ public class GLUquadricImpl implements GLUquadric {
         {
           float a;
           glBegin(gl, GL.GL_LINE_LOOP);
-          for (a = 0; a < 2.0f * PI; a += da) {
+          for (a = 0; a < PI_2; a += da) {
             final float x = outerRadius * sin(a);
             final float y = outerRadius * cos(a);
             glVertex2f(gl, x, y);
@@ -1120,7 +1120,7 @@ public class GLUquadricImpl implements GLUquadric {
   //
 
   private static final float PI = FloatUtil.PI;
-  private static final float PI_2 = 2f * FloatUtil.PI;
+  private static final float PI_2 = 2f * PI;
   private static final int CACHE_SIZE = 240;
 
   private final void glBegin(final GL gl, final int mode) {

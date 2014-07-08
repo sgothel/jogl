@@ -643,20 +643,12 @@ public class MovieSimple implements GLEventListener {
 
              // left-top
             ib.put(verts[0]);  ib.put(verts[4]);  ib.put(verts[2]);
-            if( hasEffect(EFFECT_GRADIENT_BOTTOM2TOP) ) {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
-            } else {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
-            }
+            ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
             ib.put( tc.left()   *ss);  ib.put( tc.top()    *ts);
 
              // right-top
             ib.put(verts[3]);  ib.put(verts[4]);  ib.put(verts[2]);
-            if( hasEffect(EFFECT_GRADIENT_BOTTOM2TOP) ) {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
-            } else {
-                ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
-            }
+            ib.put( 1);    ib.put( 1);     ib.put( 1);    ib.put(alpha);
             ib.put( tc.right()  *ss);  ib.put( tc.top()    *ts);
         }
         interleavedVBO.seal(gl, true);

@@ -149,15 +149,15 @@ public class GLSLMiscHelper {
         validateGLArrayDataServerState(gl, st, vDataArray);
         return vDataArray;
     }
-    public static float[] vertices0 = new float[] { -2f,  2f, 0f,
-                                                     2f,  2f, 0f,
-                                                    -2f, -2f, 0f,
-                                                     2f, -2f, 0f };
+    public static final float[] vertices0 = new float[] { -2f,  2f, 0f,
+                                                           2f,  2f, 0f,
+                                                          -2f, -2f, 0f,
+                                                           2f, -2f, 0f };
 
-    public static float[] vertices1 = new float[] { -2f,  1f, 0f,
-                                                     2f,  1f, 0f,
-                                                    -2f, -1f, 0f,
-                                                     2f, -1f, 0f };
+    public static final float[] vertices1 = new float[] { -2f,  1f, 0f,
+                                                           2f,  1f, 0f,
+                                                          -2f, -1f, 0f,
+                                                           2f, -1f, 0f };
 
     public static GLArrayDataServer createColors(final GL2ES2 gl, final ShaderState st, final int shaderProgram, final int location, final float[] colors) {
         if(null != st && 0 != shaderProgram) {
@@ -194,14 +194,14 @@ public class GLSLMiscHelper {
         validateGLArrayDataServerState(gl, st, cDataArray);
         return cDataArray;
     }
-    public static float[] colors0 = new float[] { 1f, 0f, 0f, 1f,
-                                                  0f, 0f, 1f, 1f,
-                                                  1f, 0f, 0f, 1f,
-                                                  1f, 0f, 1f, 1f };
+    public static final float[] colors0 = new float[] { 1f, 0f, 0f, 1f,
+                                                        0f, 0f, 1f, 1f,
+                                                        1f, 0f, 0f, 1f,
+                                                        1f, 0f, 1f, 1f };
 
-    public static float[] colors1 = new float[] { 1f, 0f, 1f, 1f,
-                                                  0f, 1f, 0f, 1f,
-                                                  1f, 0f, 1f, 1f,
-                                                  1f, 0f, 1f, 1f };
+    public static final float[] colors1 = new float[] { 1f, 0f, 1f, 1f,
+                                                        0f, 1f, 0f, 1f,
+                                                        1f, 0f, 1f, 1f,
+                                                        1f, 0f, 1f, 1f };
 
 }

@@ -33,10 +33,10 @@ import com.jogamp.newt.event.*;
 class WindowEventCom1 extends WindowAdapter {
 
     public void windowResized(final WindowEvent e) {
-        e.setAttachment(new String("WindowEventCom1.windowResized: "+e));
+        e.setAttachment("WindowEventCom1.windowResized: "+e);
     }
     public void windowMoved(final WindowEvent e) {
-        e.setAttachment(new String("WindowEventCom1.windowMoved: "+e));
+        e.setAttachment("WindowEventCom1.windowMoved: "+e);
     }
 }
 

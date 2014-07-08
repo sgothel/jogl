@@ -661,8 +661,6 @@ public class Mipmap {
   public static int gluBuild2DMipmapLevels( final GL gl, final int target, final int internalFormat,
           final int width, final int height, final int format, final int type, final int userLevel,
           final int baseLevel, final int maxLevel, final Object data ) {
-    int dataPos = 0;
-
     int level, levels;
 
     final int rc = checkMipmapArgs( internalFormat, format, type );
@@ -686,14 +684,14 @@ public class Mipmap {
     }
 
     //PointerWrapper pointer = PointerWrapperFactory.getPointerWrapper( data );
-    ByteBuffer buffer = null;
+    final ByteBuffer buffer;
     if( data instanceof ByteBuffer ) {
         buffer = (ByteBuffer)data;
-        dataPos = buffer.position();
     } else if( data instanceof byte[] ) {
-      final byte[] array = (byte[])data;
-      buffer = ByteBuffer.allocateDirect(array.length);
-      buffer.put(array);
+        final byte[] array = (byte[])data;
+        buffer = ByteBuffer.allocateDirect(array.length);
+        buffer.put(array);
+        buffer.flip();
     } else if( data instanceof short[] ) {
         final short[] array = (short[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 2 );
@@ -709,8 +707,11 @@ public class Mipmap {
         buffer = ByteBuffer.allocateDirect( array.length * 4 );
         final FloatBuffer fb = buffer.asFloatBuffer();
         fb.put( array );
+    } else {
+        throw new IllegalArgumentException("Unhandled data type: "+data.getClass().getName());
     }
 
+    final int dataPos = buffer.position();
     try {
       return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat,
               width, height, width, height, format, type, userLevel, baseLevel,
@@ -723,8 +724,6 @@ public class Mipmap {
 
   public static int gluBuild2DMipmaps( final GL gl, final int target, final int internalFormat,
           final int width, final int height, final int format, final int type, final Object data ) {
-    int dataPos = 0;
-
     final int[] widthPowerOf2 = new int[1];
     final int[] heightPowerOf2 = new int[1];
     int level, levels;
@@ -748,14 +747,14 @@ public class Mipmap {
     }
 
     //PointerWrapper pointer = PointerWrapperFactory.getPointerWrapper( data );
-    ByteBuffer buffer = null;
+    final ByteBuffer buffer;
     if( data instanceof ByteBuffer ) {
         buffer = (ByteBuffer)data;
-        dataPos = buffer.position();
     } else if( data instanceof byte[] ) {
-      final byte[] array = (byte[])data;
-      buffer = ByteBuffer.allocateDirect(array.length);
-      buffer.put(array);
+        final byte[] array = (byte[])data;
+        buffer = ByteBuffer.allocateDirect(array.length);
+        buffer.put(array);
+        buffer.flip();
     } else if( data instanceof short[] ) {
         final short[] array = (short[])data;
         buffer = ByteBuffer.allocateDirect( array.length * 2 );
@@ -771,8 +770,11 @@ public class Mipmap {
         buffer = ByteBuffer.allocateDirect( array.length * 4 );
         final FloatBuffer fb = buffer.asFloatBuffer();
         fb.put( array );
+    } else {
+        throw new IllegalArgumentException("Unhandled data type: "+data.getClass().getName());
     }
 
+    final int dataPos = buffer.position();
     try {
       return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat,
               width, height, widthPowerOf2[0], heightPowerOf2[0], format, type, 0,

@@ -207,7 +207,7 @@ public class ShaderUtil {
                     gle.printStackTrace();
                 }
                 if(!queryOK) {
-                    info.shaderCompilerAvailable = new Boolean(true);
+                    info.shaderCompilerAvailable = Boolean.valueOf(true);
                 }
             } else if( gl.isGL2ES2() ) {
                 info.shaderCompilerAvailable = new Boolean(true);
