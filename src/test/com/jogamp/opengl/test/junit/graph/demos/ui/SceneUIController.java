@@ -99,7 +99,11 @@ public class SceneUIController implements GLEventListener{
     }
 
     public int getSampleCount() { return sampleCount[0]; }
-    public void setSampleCount(final int v) { sampleCount[0]=v; markAllShapesDirty(); }
+    public int setSampleCount(final int v) {
+        sampleCount[0] = Math.min(8, Math.max(v, 1)); // clip
+        markAllShapesDirty();
+        return sampleCount[0];
+    }
 
     public void setAllShapesQuality(final int q) {
         for(int i=0; i<shapes.size(); i++) {

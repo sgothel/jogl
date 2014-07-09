@@ -167,7 +167,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             }
             rsLocal.update(gl, rs, updateLocLocal, renderModes, false, true);
             rs.updateUniformDataLoc(gl, updateLocLocal, false /* updateData */, gcu_FboTexUnit, true); // FIXME always update if changing tex-unit
-            rs.updateUniformLoc(gl, updateLocLocal, gcu_FboTexSize, true);
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_FboTexSize, sampleCount > 1); // maybe optimized away for sampleCount <= 1
         }
     }
 
@@ -576,7 +576,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             fbo.reset(gl, fboWidth, fboHeight);
             // Shall not use bilinear (GL_LINEAR), due to own VBAA. Result is smooth w/o it now!
             // FIXME: FXAA requires bilinear filtering!
-            // texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            // texA = fbo.attachTexture2D(gl, 0, true, GL.GL_LINEAR, GL.GL_LINEAR, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             texA = fbo.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             if( !blendingEnabled ) {
                 // no depth-buffer w/ blending

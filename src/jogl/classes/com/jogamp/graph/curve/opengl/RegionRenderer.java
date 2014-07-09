@@ -323,14 +323,23 @@ public class RegionRenderer {
         PASS2_VBAA_QUAL0_SAMPLES4("vbaa", "_flipquad3", 4),
         /** Pass-2: VBAA Flipquad3, 8 samples */
         PASS2_VBAA_QUAL0_SAMPLES8("vbaa", "_flipquad3", 8),
-        /** Pass-2: VBAA All-Equal, 2 samples */
-        PASS2_VBAA_QUAL1_SAMPLES2("vbaa", "_allequal", 2),
-        /** Pass-2: VBAA All-Equal, 4 samples */
-        PASS2_VBAA_QUAL1_SAMPLES4("vbaa", "_allequal", 4),
-        /** Pass-2: VBAA All-Equal, 6 samples */
-        PASS2_VBAA_QUAL1_SAMPLES6("vbaa", "_allequal", 6),
-        /** Pass-2: VBAA All-Equal, 8 samples */
-        PASS2_VBAA_QUAL1_SAMPLES8("vbaa", "_allequal", 8);
+
+        /** Pass-2: VBAA Brute-Force, Odd, 1 samples */
+        PASS2_VBAA_QUAL1_SAMPLES1("vbaa", "_bforce_odd",  1),
+        /** Pass-2: VBAA Brute-Force, Even, 2 samples */
+        PASS2_VBAA_QUAL1_SAMPLES2("vbaa", "_bforce_even", 2),
+        /** Pass-2: VBAA Brute-Force, Odd, 3 samples */
+        PASS2_VBAA_QUAL1_SAMPLES3("vbaa", "_bforce_odd",  3),
+        /** Pass-2: VBAA Brute-Force, Even, 4 samples */
+        PASS2_VBAA_QUAL1_SAMPLES4("vbaa", "_bforce_even", 4),
+        /** Pass-2: VBAA Brute-Force, Odd, 5 samples */
+        PASS2_VBAA_QUAL1_SAMPLES5("vbaa", "_bforce_odd",  5),
+        /** Pass-2: VBAA Brute-Force, Even, 6 samples */
+        PASS2_VBAA_QUAL1_SAMPLES6("vbaa", "_bforce_even", 6),
+        /** Pass-2: VBAA Brute-Force, Odd, 7 samples */
+        PASS2_VBAA_QUAL1_SAMPLES7("vbaa", "_bforce_odd",  7),
+        /** Pass-2: VBAA Brute-Force, Even, 8 samples */
+        PASS2_VBAA_QUAL1_SAMPLES8("vbaa", "_bforce_even", 8);
 
         public final String tech;
         public final String sub;
@@ -361,14 +370,16 @@ public class RegionRenderer {
                         return PASS2_VBAA_QUAL0_SAMPLES8;
                     }
                 } else {
-                    if( sampleCount < 4 ) {
-                        return PASS2_VBAA_QUAL1_SAMPLES2;
-                    } else if( sampleCount < 6 ) {
-                        return PASS2_VBAA_QUAL1_SAMPLES4;
-                    } else if( sampleCount < 8 ) {
-                        return PASS2_VBAA_QUAL1_SAMPLES6;
-                    } else {
-                        return PASS2_VBAA_QUAL1_SAMPLES8;
+                    switch( sampleCount ) {
+                        case 0: // Fall through intended
+                        case 1:  return PASS2_VBAA_QUAL1_SAMPLES1;
+                        case 2:  return PASS2_VBAA_QUAL1_SAMPLES2;
+                        case 3:  return PASS2_VBAA_QUAL1_SAMPLES3;
+                        case 4:  return PASS2_VBAA_QUAL1_SAMPLES4;
+                        case 5:  return PASS2_VBAA_QUAL1_SAMPLES5;
+                        case 6:  return PASS2_VBAA_QUAL1_SAMPLES6;
+                        case 7:  return PASS2_VBAA_QUAL1_SAMPLES7;
+                        default: return PASS2_VBAA_QUAL1_SAMPLES8;
                     }
                 }
             } else {

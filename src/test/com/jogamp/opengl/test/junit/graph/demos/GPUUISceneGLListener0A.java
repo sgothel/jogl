@@ -309,16 +309,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                         int sampleCount = sceneUIController.getSampleCount();
                         if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
                             // left-half pressed
-                            if( sampleCount > 0 ) {
-                                sampleCount-=1;
-                            }
+                            sampleCount--;
                         } else {
                             // right-half pressed
-                            if( sampleCount < 8 ) {
-                                sampleCount+=1;
-                            }
+                            sampleCount++;
                         }
-                        sceneUIController.setSampleCount(sampleCount);
+                        sampleCount = sceneUIController.setSampleCount(sampleCount); // validated / clipped
                     }
                 } } );
             button.addMouseListener(dragZoomRotateListener);
