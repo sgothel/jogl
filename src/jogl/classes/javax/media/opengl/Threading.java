@@ -129,8 +129,8 @@ public class Threading {
         consequences and are prepared to enforce some amount of
         threading restrictions in their applications. Disabling
         single-threading, for example, may have unintended consequences
-        on GLAutoDrawable implementations such as GLCanvas, GLJPanel and
-        GLPbuffer. Currently there is no supported way to re-enable it
+        on GLAutoDrawable implementations such as GLCanvas and GLJPanel.
+        Currently there is no supported way to re-enable it
         once disabled, partly to discourage careless use of this
         method. This method should be called as early as possible in an
         application. */

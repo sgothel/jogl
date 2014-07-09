@@ -155,6 +155,11 @@ import jogamp.opengl.awt.AWTTilePainter;
  * <ul>
  *   <li><pre>sun.awt.noerasebackground=true</pre></li>
  * </ul>
+ *
+ * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+ * To share a {@link GLContext} see the following note in the documentation overview:
+ * <a href="../../../spec-overview.html#SHARING">context sharing</a>
+ * as well as {@link GLSharedContextSetter}.
  */
 
 @SuppressWarnings("serial")
@@ -200,6 +205,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
       mechanism, on the default screen device.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no default profile is available for the default desktop device.
    */
   public GLCanvas() throws GLException {
@@ -209,27 +217,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism, on the default screen device.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
    */
   public GLCanvas(final GLCapabilitiesImmutable capsReqUser) throws GLException {
-    this(capsReqUser, null, null, null);
-  }
-
-  /** Creates a new GLCanvas component with the requested set of
-      OpenGL capabilities, using the default OpenGL capabilities
-      selection mechanism, on the default screen device.
-   *  This constructor variant also supports using a shared GLContext.
-   *
-   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
-   * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
-   * @deprecated Use {@link #GLCanvas(GLCapabilitiesImmutable)}
-   *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-   */
-  public GLCanvas(final GLCapabilitiesImmutable capsReqUser, final GLContext shareWith)
-          throws GLException
-  {
-    this(capsReqUser, null, shareWith, null);
+    this(capsReqUser, null, null);
   }
 
   /** Creates a new GLCanvas component. The passed GLCapabilities
@@ -242,39 +237,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    */
   public GLCanvas(final GLCapabilitiesImmutable capsReqUser,
                   final GLCapabilitiesChooser chooser,
                   final GraphicsDevice device)
-      throws GLException
-  {
-      this(capsReqUser, chooser, null, device);
-  }
-
-  /** Creates a new GLCanvas component. The passed GLCapabilities
-      specifies the OpenGL capabilities for the component; if null, a
-      default set of capabilities is used. The GLCapabilitiesChooser
-      specifies the algorithm for selecting one of the available
-      GLCapabilities for the component; a DefaultGLCapabilitesChooser
-      is used if null is passed for this argument. The passed
-      GLContext specifies an OpenGL context with which to share
-      textures, display lists and other OpenGL state, and may be null
-      if sharing is not desired. See the note in the overview
-      documentation on <a
-      href="../../../spec-overview.html#SHARING">context
-      sharing</a>. The passed GraphicsDevice indicates the screen on
-      which to create the GLCanvas; the GLDrawableFactory uses the
-      default screen device of the local GraphicsEnvironment if null
-      is passed for this argument.
-   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
-   * @deprecated Use {@link #GLCanvas(GLCapabilitiesImmutable, GLCapabilitiesChooser, GraphicsDevice)}
-   *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-   */
-  public GLCanvas(GLCapabilitiesImmutable capsReqUser,
-                  final GLCapabilitiesChooser chooser,
-                  final GLContext shareWith,
-                  GraphicsDevice device)
       throws GLException
   {
     /*
@@ -287,29 +257,28 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     super();
 
     if(null==capsReqUser) {
-        capsReqUser = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDevice()));
+        this.capsReqUser = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDevice()));
     } else {
         // don't allow the user to change data
-        capsReqUser = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
+        this.capsReqUser = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
     }
-    if(!capsReqUser.isOnscreen()) {
+    if( !this.capsReqUser.isOnscreen() ) {
         setShallUseOffscreenLayer(true); // trigger offscreen layer - if supported
     }
 
     if(null==device) {
         final GraphicsConfiguration gc = super.getGraphicsConfiguration();
         if(null!=gc) {
-            device = gc.getDevice();
+            this.device = gc.getDevice();
+        } else {
+            this.device = null;
         }
+    } else {
+        this.device = device;
     }
 
     // instantiation will be issued in addNotify()
-    this.capsReqUser = capsReqUser;
     this.chooser = chooser;
-    if( null != shareWith ) {
-        helper.setSharedContext(null, shareWith);
-    }
-    this.device = device;
 
     this.addHierarchyListener(hierarchyListener);
     this.isShowing = isShowing();

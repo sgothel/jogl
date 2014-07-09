@@ -28,7 +28,6 @@
 package com.jogamp.opengl.test.junit.jogl.caps;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -41,7 +40,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import com.jogamp.opengl.util.awt.Screenshot;
+import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 import java.awt.image.BufferedImage;
@@ -56,6 +55,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug605FlippedImageAWT extends UITestCase {
     class FlippedImageTest implements GLEventListener {
+        AWTGLReadBufferUtil screenshot;
+
         public void display(final GLAutoDrawable drawable) {
             final GL2 gl = drawable.getGL().getGL2();
 
@@ -87,34 +88,35 @@ public class TestBug605FlippedImageAWT extends UITestCase {
             final int height = drawable.getSurfaceHeight();
 
             final String fname = getSnapshotFilename(0, null, caps, width, height, false, TextureIO.PNG, null);
+            final BufferedImage image;
             try {
-                Screenshot.writeToFile(new File(fname), width, height, false);
+                image = screenshot.readPixelsToBufferedImage(gl, 0, 0, width, height, true /* awtOrientation */);
+                screenshot.write(new File(fname));
             } catch (final GLException e) {
                 throw e;
-            } catch (final IOException e) {
-                throw new GLException(e);
             }
-            testFlipped(width, height);
+            testFlipped(image, width, height);
         }
 
         public void init(final GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();
             System.err.println("GL_RENDERER: "+gl.glGetString(GL.GL_RENDERER));
             System.err.println("GL_VERSION: "+gl.glGetString(GL.GL_VERSION));
+            screenshot = new AWTGLReadBufferUtil(drawable.getGLProfile(), false);
         }
         public void reshape(final GLAutoDrawable glDrawable, final int x, final int y, final int w, final int h) {}
         public void displayChanged(final GLAutoDrawable drawable, final boolean modeChanged, final boolean deviceChanged) {}
-        public void dispose(final GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {
+            screenshot.dispose(drawable.getGL());
+        }
     }
 
     static final int green = 0x0000ff00; // above
     static final int red   = 0x00ff0000; // below
 
-    private void testFlipped(final int width, final int height) {
+    private void testFlipped(final BufferedImage image, final int width, final int height) {
         // Default origin 0/0 is lower left corner, so is the memory layout
         // However AWT origin 0/0 is upper left corner
-        final BufferedImage image = Screenshot.readToBufferedImage(width, height);
-
         final int below = image.getRGB(0, height-1) & 0x00ffffff;
         System.err.println("below: 0x"+Integer.toHexString(below));
 

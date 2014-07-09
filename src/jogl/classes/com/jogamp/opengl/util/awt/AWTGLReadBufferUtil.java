@@ -50,6 +50,9 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
         super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */ ), alpha, false);
     }
 
+    /**
+     * Returns the {@link AWTGLPixelBuffer}, as filled by previous call to {@link #readPixels(GL, int, int, int, int, boolean)}.
+     */
     public AWTGLPixelBuffer getAWTGLPixelBuffer() { return (AWTGLPixelBuffer)this.getPixelBuffer(); }
 
     /**

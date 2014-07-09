@@ -423,20 +423,6 @@ public interface AudioSink {
     public int getFreeFrameCount();
 
     /**
-     * Enqueue the remaining bytes of the given {@link AudioDataFrame}'s direct ByteBuffer to this sink.
-     * <p>
-     * The data must comply with the chosen {@link AudioFormat} as returned by {@link #initSink(AudioFormat)}.
-     * </p>
-     * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
-     * </p>
-     * @returns the enqueued internal {@link AudioFrame}, which may differ from the input <code>audioDataFrame</code>.
-     * @deprecated User shall use {@link #enqueueData(int, ByteBuffer, int)}, which allows implementation
-     *             to reuse specialized {@link AudioFrame} instances.
-     */
-    public AudioFrame enqueueData(AudioDataFrame audioDataFrame);
-
-    /**
      * Enqueue <code>byteCount</code> bytes of the remaining bytes of the given NIO {@link ByteBuffer} to this sink.
      * <p>
      * The data must comply with the chosen {@link AudioFormat} as returned by {@link #initSink(AudioFormat)}.

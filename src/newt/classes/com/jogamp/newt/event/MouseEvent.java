@@ -154,12 +154,6 @@ public class MouseEvent extends InputEvent
     /** Maximum number of buttons, value <code>16</code> */
     public static final short BUTTON_COUNT =  16;
 
-    /**
-     * Maximum number of buttons, value <code>16</code>.
-     * @deprecated Use {@link #BUTTON_COUNT} .. semantics.
-     */
-    public static final short BUTTON_NUMBER =  16;
-
     /** Returns the 3-axis XYZ rotation array by given rotation on Y axis or X axis (if SHIFT_MASK is given in mods). */
     public static final float[] getRotationXYZ(final float rotationXorY, final int mods) {
         final float[] rotationXYZ = new float[] { 0f, 0f, 0f };

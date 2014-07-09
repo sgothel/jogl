@@ -30,10 +30,9 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
@@ -47,7 +46,6 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-@SuppressWarnings("deprecation")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPBufferDeadlockAWT extends UITestCase {
   static GLProfile glp;
@@ -62,12 +60,8 @@ public class TestPBufferDeadlockAWT extends UITestCase {
   }
 
   protected void runTestGL( final GLCapabilities caps ) throws InterruptedException, InvocationTargetException {
-    final GLPbuffer pbuffer = GLDrawableFactory.getFactory( GLProfile.getGL2ES2() ).createGLPbuffer(
-        null,
-        caps, new DefaultGLCapabilitiesChooser(),
-        512, 512,
-        null
-    );
+    caps.setPBuffer(true);
+    final GLAutoDrawable pbuffer = GLDrawableFactory.getFactory( caps.getGLProfile() ).createOffscreenAutoDrawable(null, caps, null, 512, 512);
 
     final boolean[] done = {false};
     final Runnable pbufferCreationAction = new Runnable() {

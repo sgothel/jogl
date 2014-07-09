@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 
@@ -40,7 +39,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -52,18 +51,19 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 
 /**
- * Tests for bug 461, a failure of GLDrawableFactory.createGLPbuffer() on Windows
+ * Tests for bug 461, a failure of PBuffer GLDrawableFactory.createOffscreenAutoDrawable(..) on Windows
  * when the stencil buffer is turned on.
  *
- * @author Wade Walker (from code sample provided by Owen Dimond)
+ * @author Wade Walker (from code sample provided by Owen Dimond), et al.
  */
-@SuppressWarnings("deprecation")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implements GLEventListener {
     JFrame jframe;
-    GLPbuffer offScreenBuffer;
+    GLOffscreenAutoDrawable offScreenBuffer;
+    AWTGLReadBufferUtil screenshot;
 
     private void render(final GLAutoDrawable drawable) {
         final GL2 gl = drawable.getGL().getGL2();
@@ -83,6 +83,7 @@ public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implement
 
     /* @Override */
     public void init(final GLAutoDrawable drawable) {
+        screenshot = new AWTGLReadBufferUtil(drawable.getGLProfile(), false);
     }
 
     /* @Override */
@@ -92,7 +93,7 @@ public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implement
     /* @Override */
     public void display(final GLAutoDrawable drawable) {
         render(offScreenBuffer);
-        final BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);
+        final BufferedImage outputImage = screenshot.readPixelsToBufferedImage(drawable.getGL(), 0, 0, 200, 200, true /* awtOrientation */);
         Assert.assertNotNull(outputImage);
         final ImageIcon imageIcon = new ImageIcon(outputImage);
         final JLabel imageLabel = new JLabel(imageIcon);
@@ -101,6 +102,7 @@ public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implement
 
     /* @Override */
     public void dispose(final GLAutoDrawable drawable) {
+        screenshot.dispose(drawable.getGL());
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -113,7 +115,23 @@ public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implement
     }
 
     @Test
-    public void testOffscreenSupersampling() throws InterruptedException, InvocationTargetException {
+    public void test01DefaultOffscreenSupersampling() throws InterruptedException, InvocationTargetException {
+        final GLProfile glp = GLProfile.get(GLProfile.GL2);
+        Assert.assertNotNull(glp);
+        final GLCapabilities glCap = new GLCapabilities(glp);
+        test(glCap);
+    }
+
+    @Test
+    public void test02PBufferOffscreenSupersampling() throws InterruptedException, InvocationTargetException {
+        final GLProfile glp = GLProfile.get(GLProfile.GL2);
+        Assert.assertNotNull(glp);
+        final GLCapabilities glCap = new GLCapabilities(glp);
+        glCap.setPBuffer(true);
+        test(glCap);
+    }
+
+    void test(final GLCapabilities glCap) throws InterruptedException, InvocationTargetException {
         jframe = new JFrame("Offscreen Supersampling");
         Assert.assertNotNull(jframe);
         jframe.setSize( 300, 300);
@@ -123,20 +141,13 @@ public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implement
             }
         });
 
-        final GLProfile glp = GLProfile.get(GLProfile.GL2);
-        Assert.assertNotNull(glp);
-
-        final GLDrawableFactory fac = GLDrawableFactory.getFactory(glp);
+        final GLDrawableFactory fac = GLDrawableFactory.getFactory(glCap.getGLProfile());
         Assert.assertNotNull(fac);
-
-        Assert.assertTrue( fac.canCreateGLPbuffer(GLProfile.getDefaultDevice(), glp) );
-
-        final GLCapabilities glCap = new GLCapabilities(glp);
-        Assert.assertNotNull(glCap);
 
         // COMMENTING OUT THIS LINE FIXES THE ISSUE.
         // Setting this in JOGL1 works. Thus this is a JOGL2 issue.
         glCap.setSampleBuffers(true);
+        glCap.setNumSamples(4);
 
         // Without line below, there is an error on Windows.
         glCap.setDoubleBuffered(false);
@@ -144,7 +155,7 @@ public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implement
         glCap.setStencilBits(1);
 
         //makes a new buffer
-        offScreenBuffer = fac.createGLPbuffer(GLProfile.getDefaultDevice(), glCap, null, 200, 200, null);
+        offScreenBuffer = fac.createOffscreenAutoDrawable(null, glCap, null, 200, 200);
         Assert.assertNotNull(offScreenBuffer);
         offScreenBuffer.addGLEventListener(this);
         offScreenBuffer.display();

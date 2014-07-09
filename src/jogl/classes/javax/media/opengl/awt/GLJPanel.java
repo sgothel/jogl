@@ -170,6 +170,10 @@ import com.jogamp.opengl.util.texture.TextureState;
     It is recommended to reset those states to default when leaving the {@link GLEventListener#display(GLAutoDrawable)} method!
     We may change this behavior in the future, i.e. preserve all influencing states.
     </p>
+    <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+    To share a {@link GLContext} see the following note in the documentation overview:
+    <a href="../../../spec-overview.html#SHARING">context sharing</a>
+    as well as {@link GLSharedContextSetter}.
 */
 
 @SuppressWarnings("serial")
@@ -298,6 +302,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   /** Creates a new GLJPanel component with a default set of OpenGL
       capabilities and using the default OpenGL capabilities selection
       mechanism.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no default profile is available for the default desktop device.
    */
   public GLJPanel() throws GLException {
@@ -307,10 +314,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    */
   public GLJPanel(final GLCapabilitiesImmutable userCapsRequest) throws GLException {
-    this(userCapsRequest, null, null);
+    this(userCapsRequest, null);
   }
 
   /** Creates a new GLJPanel component. The passed GLCapabilities
@@ -319,32 +329,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       specifies the algorithm for selecting one of the available
       GLCapabilities for the component; a DefaultGLCapabilitesChooser
       is used if null is passed for this argument.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
     * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
   */
   public GLJPanel(final GLCapabilitiesImmutable userCapsRequest, final GLCapabilitiesChooser chooser)
-          throws GLException
-  {
-      this(userCapsRequest, chooser, null);
-  }
-
-  /** Creates a new GLJPanel component. The passed GLCapabilities
-      specifies the OpenGL capabilities for the component; if null, a
-      default set of capabilities is used. The GLCapabilitiesChooser
-      specifies the algorithm for selecting one of the available
-      GLCapabilities for the component; a DefaultGLCapabilitesChooser
-      is used if null is passed for this argument. The passed
-      GLContext specifies an OpenGL context with which to share
-      textures, display lists and other OpenGL state, and may be null
-      if sharing is not desired. See the note in the overview documentation on
-      <a href="../../../spec-overview.html#SHARING">context sharing</a>.
-      <P>
-      Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
-      since J2D GL Context must be shared and we can only share one context.
-    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
-    * @deprecated Use {@link #GLJPanel(GLCapabilitiesImmutable, GLCapabilitiesChooser)}
-    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-    */
-  public GLJPanel(final GLCapabilitiesImmutable userCapsRequest, final GLCapabilitiesChooser chooser, final GLContext shareWith)
           throws GLException
   {
     super();
@@ -366,9 +356,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.chooser = chooser;
 
     helper = new GLDrawableHelper();
-    if( null != shareWith ) {
-        helper.setSharedContext(null, shareWith);
-    }
     autoSwapBufferMode = helper.getAutoSwapBufferMode();
 
     this.setFocusable(true); // allow keyboard input!

@@ -673,11 +673,6 @@ public class ALAudioSink implements AudioSink {
     }
 
     @Override
-    public final AudioFrame enqueueData(final AudioDataFrame audioDataFrame) {
-        return enqueueData(audioDataFrame.getPTS(), audioDataFrame.getData(), audioDataFrame.getByteSize());
-    }
-
-    @Override
     public final AudioFrame enqueueData(final int pts, final ByteBuffer bytes, final int byteCount) {
         if( !initialized || null == chosenFormat ) {
             return null;

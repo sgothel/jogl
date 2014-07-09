@@ -59,7 +59,6 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -74,7 +73,6 @@ import com.jogamp.opengl.GLRendererQuirks;
     Independent Bitmaps on Windows, pixmaps on X11). Direct access to
     these GLDrawables is not supplied directly to end users, though
     they may be instantiated by the GLJPanel implementation. */
-@SuppressWarnings("deprecation")
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = GLDrawableFactory.DEBUG; // allow package access
 
@@ -251,37 +249,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   @Override
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
-  @Override
-  public final GLPbuffer createGLPbuffer(final AbstractGraphicsDevice deviceReq,
-                                   final GLCapabilitiesImmutable capsRequested,
-                                   final GLCapabilitiesChooser chooser,
-                                   final int width,
-                                   final int height,
-                                   final GLContext shareWith) {
-    if(width<=0 || height<=0) {
-        throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
-    }
-    final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
-    if(null == device) {
-        throw new GLException("No shared device for requested: "+deviceReq);
-    }
-    if ( !canCreateGLPbuffer(device, capsRequested.getGLProfile()) ) {
-        throw new GLException("Pbuffer not available with device: "+device);
-    }
-
-    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(capsRequested);
-    final GLDrawableImpl drawable = createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
-                                                                 new UpstreamSurfaceHookMutableSize(width, height) ) );
-    final GLContextImpl ctx;
-    if(null != drawable) {
-        drawable.setRealized(true);
-        ctx = (GLContextImpl) drawable.createContext(shareWith);
-    } else {
-        ctx = null;
-    }
-    return new GLPbufferImpl( drawable, ctx);
-  }
-
   //---------------------------------------------------------------------------
   //
   // Offscreen GLDrawable construction
@@ -294,21 +261,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
     return GLContext.isFBOAvailable(device, glp);
-  }
-
-  @Override
-  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(final AbstractGraphicsDevice deviceReq,
-                                                             final GLCapabilitiesImmutable capsRequested,
-                                                             final GLCapabilitiesChooser chooser,
-                                                             final int width, final int height,
-                                                             final GLContext shareWith) {
-    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
-    drawable.setRealized(true);
-    final GLContext context = drawable.createContext(shareWith);
-    if(drawable instanceof GLFBODrawableImpl) {
-        return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, context, null, null );
-    }
-    return new GLOffscreenAutoDrawableImpl( drawable, context, null, null);
   }
 
   @Override

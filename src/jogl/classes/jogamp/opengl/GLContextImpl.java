@@ -2093,13 +2093,6 @@ public abstract class GLContextImpl extends GLContext {
       return contextFQN;
   }
 
-  /** Indicates which floating-point pbuffer implementation is in
-      use. Returns one of GLPbuffer.APPLE_FLOAT, GLPbuffer.ATI_FLOAT,
-      or GLPbuffer.NV_FLOAT. */
-  public int getFloatingPointMode() throws GLException {
-    throw new GLException("Not supported on non-pbuffer contexts");
-  }
-
   @Override
   public int getDefaultPixelDataType() {
       evalPixelDataType();

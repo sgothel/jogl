@@ -99,12 +99,6 @@ package javax.media.opengl;
  */
 public interface GLSharedContextSetter extends GLAutoDrawable {
     /**
-     * Returns true if all {@link GLEventListener} are initialized, otherwise false.
-     * @deprecated Promote method to {@link GLAutoDrawable}
-     */
-    boolean areAllGLEventListenerInitialized();
-
-    /**
      * Specifies an {@link GLContext OpenGL context}, which shall be shared by this {@link GLAutoDrawable}'s {@link GLContext}.
      * <p>
      * Since the {@link GLDrawable drawable} and {@link GLContext context} is created

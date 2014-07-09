@@ -491,18 +491,6 @@ public class GLBufferObjectTracker {
         return res;
     }
 
-    public synchronized final long getBufferSize(final int bufferName) {
-        final GLBufferStorageImpl store = (GLBufferStorageImpl)bufferName2StorageMap.get(bufferName);
-        if ( null == store ) {
-            if (DEBUG) {
-                System.err.printf("%s: %s.getBufferSize(): Buffer %d not tracked%n", warning, msgClazzName, bufferName);
-                Thread.dumpStack();
-            }
-            return 0;
-        }
-        return store.getSize();
-    }
-
     public synchronized final GLBufferStorage getBufferStorage(final int bufferName) {
         return (GLBufferStorageImpl)bufferName2StorageMap.get(bufferName);
     }

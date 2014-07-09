@@ -297,40 +297,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    /**
-    * Creates an instance using {@link #GLCanvas(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser, GLContext)}
-    * on the SWT thread.
-    *
-    * @param parent
-    *           Required (non-null) parent Composite.
-    * @param style
-    *           Optional SWT style bit-field. The {@link SWT#NO_BACKGROUND} bit is set before passing this up to the
-    *           Canvas constructor, so OpenGL handles the background.
-    * @param caps
-    *           Optional GLCapabilities. If not provided, the default capabilities for the default GLProfile for the
-    *           graphics device determined by the parent Composite are used. Note that the GLCapabilities that are
-    *           actually used may differ based on the capabilities of the graphics device.
-    * @param chooser
-    *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
-    *           requested GLCapabilities, and the available capabilities of the graphics device.
-    * @param shareWith
-    *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
-    * @return a new instance
-    * @deprecated Use {@link #create(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser)}
-    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-    */
-   public static GLCanvas create(final Composite parent, final int style, final GLCapabilitiesImmutable caps,
-                                 final GLCapabilitiesChooser chooser, final GLContext shareWith) {
-       final GLCanvas[] res = new GLCanvas[] { null };
-       parent.getDisplay().syncExec(new Runnable() {
-           @Override
-           public void run() {
-               res[0] = new GLCanvas( parent, style, caps, chooser, shareWith );
-           }
-       });
-       return res[0];
-   }
-
-   /**
     * Creates a new SWT GLCanvas.
     *
     * @param parent
@@ -348,31 +314,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
     */
    public GLCanvas(final Composite parent, final int style, final GLCapabilitiesImmutable capsReqUser,
                    final GLCapabilitiesChooser capsChooser) {
-       this(parent, style, capsReqUser, capsChooser, null);
-   }
-
-   /**
-    * Creates a new SWT GLCanvas.
-    *
-    * @param parent
-    *           Required (non-null) parent Composite.
-    * @param style
-    *           Optional SWT style bit-field. The {@link SWT#NO_BACKGROUND} bit is set before passing this up to the
-    *           Canvas constructor, so OpenGL handles the background.
-    * @param capsReqUser
-    *           Optional GLCapabilities. If not provided, the default capabilities for the default GLProfile for the
-    *           graphics device determined by the parent Composite are used. Note that the GLCapabilities that are
-    *           actually used may differ based on the capabilities of the graphics device.
-    * @param capsChooser
-    *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
-    *           requested GLCapabilities, and the available capabilities of the graphics device.
-    * @param shareWith
-    *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
-    * @deprecated Use {@link #GLCanvas(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser)}
-    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-    */
-   public GLCanvas(final Composite parent, final int style, GLCapabilitiesImmutable capsReqUser,
-                   final GLCapabilitiesChooser capsChooser, final GLContext shareWith) {
       /* NO_BACKGROUND required to avoid clearing bg in native SWT widget (we do this in the GL display) */
       super(parent, style | SWT.NO_BACKGROUND);
 
@@ -399,16 +340,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
           screen = SWTAccessor.getScreen(swtDevice, -1 /* default */);
       }
 
-      /* Select default GLCapabilities if none was provided, otherwise clone provided caps to ensure safety */
+      /* Select default GLCapabilities if none was provided, otherwise use cloned provided caps */
       if(null == capsReqUser) {
-          capsReqUser = new GLCapabilities(GLProfile.getDefault(screen.getDevice()));
+          this.capsRequested = new GLCapabilities(GLProfile.getDefault(screen.getDevice()));
+      } else {
+          this.capsRequested = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
       }
-
-      this.capsRequested = capsReqUser;
       this.capsChooser = capsChooser;
-      if( null != shareWith ) {
-          helper.setSharedContext(null, shareWith);
-      }
 
       // post create .. when ready
       gdkWindow = 0;

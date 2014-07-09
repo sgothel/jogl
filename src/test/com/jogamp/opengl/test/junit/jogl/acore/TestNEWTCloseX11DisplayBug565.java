@@ -1,6 +1,7 @@
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import jogamp.nativewindow.x11.X11Util;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -10,22 +11,21 @@ import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 /**
- * Tests the closing the device of GLWindow and GLPBuffer in JOGL
+ * Tests the closing the device of GLWindow and off-screen GLAutoDrawable using FBO and PBuffer in JOGL
  */
-@SuppressWarnings("deprecation")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNEWTCloseX11DisplayBug565 {
 
   @Test
-  public void testX11WindowMemoryLeak() throws Exception {
+  public void test01X11WindowMemoryLeak() throws Exception {
     GLProfile.initSingleton(); // ensure shared resource runner is done
     try {
       for ( int j = 0; j < 10; j++ ) {
@@ -64,7 +64,7 @@ public class TestNEWTCloseX11DisplayBug565 {
 
 
   @Test
-  public void testX11WindowMemoryLeakGLPbuffer() throws Exception {
+  public void test02X11WindowMemoryLeakPBufferAutoDrawable() throws Exception {
     GLProfile.initSingleton(); // ensure shared resource runner is done
     try {
       for ( int j = 0; j < 10; j++ ) {
@@ -75,17 +75,9 @@ public class TestNEWTCloseX11DisplayBug565 {
             open0 = 0;
         }
         final GLProfile glp = GLProfile.getDefault( );
-        final GLCapabilitiesImmutable caps = new GLCapabilities( glp );
-
-
-        final GLPbuffer buffer = GLDrawableFactory.getFactory( glp ).createGLPbuffer(
-            null,
-            caps,
-            new DefaultGLCapabilitiesChooser(),
-            256,
-            256,
-            null
-        );
+        final GLCapabilities caps = new GLCapabilities( glp );
+        caps.setPBuffer(true);
+        final GLAutoDrawable buffer = GLDrawableFactory.getFactory( glp ).createOffscreenAutoDrawable(null, caps, null, 256, 256);
         buffer.display();
         buffer.destroy();
 
@@ -106,7 +98,7 @@ public class TestNEWTCloseX11DisplayBug565 {
   }
 
   @Test
-  public void testX11WindowMemoryLeakFBOAutoDrawable() throws Exception {
+  public void test03X11WindowMemoryLeakFBOAutoDrawable() throws Exception {
     GLProfile.initSingleton(); // ensure shared resource runner is done
     try {
       for ( int j = 0; j < 10; j++ ) {

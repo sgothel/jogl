@@ -57,7 +57,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 
 /**
- * Tests for bug 461, a failure of GLDrawableFactory.createGLPbuffer() on Windows
+ * Tests for bug 461, a failure of GLDrawableFactory.createOffscreenAutoDrawable(..) on Windows
  * when the stencil buffer is turned on.
  *
  * @author Wade Walker (from code sample provided by Owen Dimond)
@@ -97,7 +97,6 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     /* @Override */
     public void display(final GLAutoDrawable drawable) {
         render(offScreenBuffer);
-        // BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);
         final BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), 0, 0, 200, 200, true /* awtOrientation */);
         Assert.assertNotNull(outputImage);
         final ImageIcon imageIcon = new ImageIcon(outputImage);
@@ -145,14 +144,13 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         final GLDrawableFactory fac = GLDrawableFactory.getFactory(glp);
         Assert.assertNotNull(fac);
 
-        Assert.assertTrue( fac.canCreateGLPbuffer(GLProfile.getDefaultDevice(), glp) );
-
         final GLCapabilities glCap = new GLCapabilities(glp);
         Assert.assertNotNull(glCap);
 
         // COMMENTING OUT THIS LINE FIXES THE ISSUE.
         // Setting this in JOGL1 works. Thus this is a JOGL2 issue.
         glCap.setSampleBuffers(true);
+        glCap.setNumSamples(4);
 
         // Without line below, there is an error on Windows.
         // glCap.setDoubleBuffered(false); // implicit double buffer -> MSAA + FBO

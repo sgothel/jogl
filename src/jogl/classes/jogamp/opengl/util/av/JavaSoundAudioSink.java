@@ -186,28 +186,22 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioFrame enqueueData(final AudioDataFrame audioDataFrame) {
-        int byteSize = audioDataFrame.getByteSize();
-        final ByteBuffer byteBuffer = audioDataFrame.getData();
-        final byte[] bytes = new byte[byteSize];
+    public AudioFrame enqueueData(final int pts, final ByteBuffer byteBuffer, final int byteCount) {
+        final byte[] bytes = new byte[byteCount];
         final int p = byteBuffer.position();
-        byteBuffer.get(bytes, 0, byteSize);
+        byteBuffer.get(bytes, 0, byteCount);
         byteBuffer.position(p);
 
         int written = 0;
         int len;
-        while (byteSize > 0) {
-            len = auline.write(bytes, written, byteSize);
-            byteSize -= len;
+        int bytesLeft = byteCount;
+        while (bytesLeft > 0) {
+            len = auline.write(bytes, written, byteCount);
+            bytesLeft -= len;
             written += len;
         }
         playImpl();
-        return audioDataFrame;
-    }
-
-    @Override
-    public AudioFrame enqueueData(final int pts, final ByteBuffer bytes, final int byteCount) {
-        return enqueueData(new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), bytes, byteCount));
+        return new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), byteBuffer, byteCount);
     }
 
     @Override

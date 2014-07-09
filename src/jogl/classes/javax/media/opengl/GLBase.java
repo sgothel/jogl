@@ -505,20 +505,12 @@ public interface GLBase {
    public void glDepthRange(double zNear, double zFar);
 
    /**
-    * @deprecated Avoid original GL API namespace conflict. Use {@link #getBoundBuffer(int)}
-    */
-   public int glGetBoundBuffer(int target);
-   /**
     * @param target a GL buffer (VBO) target as used in {@link GL#glBindBuffer(int, int)}, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}, {@link GL#GL_ARRAY_BUFFER}, ..
     * @return the GL buffer name bound to a target via {@link GL#glBindBuffer(int, int)} or 0 if unbound.
     * @see #getBufferStorage(int)
     */
    public int getBoundBuffer(int target);
 
-   /**
-    * @deprecated Use {@link #getBufferStorage(int)}.
-    */
-   public long glGetBufferSize(int bufferName);
    /**
     * @param bufferName a GL buffer name, generated with e.g. {@link GL#glGenBuffers(int, int[], int)} and used in {@link GL#glBindBuffer(int, int)}, {@link GL#glBufferData(int, long, java.nio.Buffer, int)} or {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)}.
     * @return the size of the given GL buffer storage, see {@link GLBufferStorage}
@@ -580,18 +572,10 @@ public interface GLBase {
    public GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) throws GLException;
 
    /**
-    * @deprecated Avoid original GL API namespace conflict. Use {@link #isVBOArrayBound()}
-    */
-   public boolean glIsVBOArrayBound();
-   /**
     * @return true if a VBO is bound to {@link GL#GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
    public boolean isVBOArrayBound();
 
-   /**
-    * @deprecated Avoid original GL API namespace conflict. Use {@link #isVBOElementArrayBound()}
-    */
-   public boolean glIsVBOElementArrayBound();
    /**
     * @return true if a VBO is bound to {@link GL#GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */

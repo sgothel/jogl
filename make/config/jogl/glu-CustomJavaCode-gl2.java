@@ -38,13 +38,6 @@ public GLUgl2()
   project = new ProjectDouble();
 }
 
-/** @deprecated No more used, NOP */
-@Override
-public void destroy() {
-  super.destroy();
-}
-
-
 //----------------------------------------------------------------------
 // Utility routines
 //

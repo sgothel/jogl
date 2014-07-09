@@ -131,10 +131,6 @@ public GLU()
   project = new ProjectFloat();
 }
 
-/** @deprecated No more used, NOP */
-public void destroy() {
-}
-
 public static final GL getCurrentGL() throws GLException {
   GLContext curContext = GLContext.getCurrent();
   if (curContext == null) {
