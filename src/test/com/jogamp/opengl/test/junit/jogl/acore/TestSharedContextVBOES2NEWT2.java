@@ -128,12 +128,11 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         f1.invoke(false, new GLRunnable() {
             @Override
             public boolean run(final GLAutoDrawable drawable) {
-                final GLContext ctx1 = f1.getContext();
-                Assert.assertTrue("Ctx is shared before shared creation", !ctx1.isShared());
-                f2.setSharedContext(ctx1);
+                Assert.assertTrue("Ctx is shared before shared creation", !f1.getContext().isShared());
+                f2.setSharedAutoDrawable(f1);
                 f2.setVisible(true);
                 f2.display(); // kick off GLContext ..
-                f3.setSharedContext(ctx1);
+                f3.setSharedAutoDrawable(f1);
                 f3.setVisible(true);
                 f3.display(); // kick off GLContext ..
                 return true;
@@ -253,11 +252,10 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         f1.invoke(false, new GLRunnable() {
             @Override
             public boolean run(final GLAutoDrawable drawable) {
-                final GLContext ctx1 = f1.getContext();
-                Assert.assertTrue("Ctx is shared before shared creation", !ctx1.isShared());
-                f2.setSharedContext(ctx1);
+                Assert.assertTrue("Ctx is shared before shared creation", !f1.getContext().isShared());
+                f2.setSharedAutoDrawable(f1);
                 f2.setVisible(true);
-                f3.setSharedContext(ctx1);
+                f3.setSharedAutoDrawable(f1);
                 f3.setVisible(true);
                 return true;
             }

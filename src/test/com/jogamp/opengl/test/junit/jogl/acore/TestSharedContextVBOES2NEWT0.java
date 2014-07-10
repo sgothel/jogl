@@ -33,6 +33,7 @@ import java.util.List;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
@@ -76,14 +77,14 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         }
     }
 
-    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final GearsES2 gears, final GLContext sharedContext) throws InterruptedException {
-        final boolean useShared = null != sharedContext;
+    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final GearsES2 gears, final GLAutoDrawable sharedDrawable) throws InterruptedException {
+        final boolean useShared = null != sharedDrawable;
         final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setPosition(x, y);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
         if(useShared) {
-            glWindow.setSharedContext(sharedContext);
+            glWindow.setSharedAutoDrawable(sharedDrawable);
         }
         glWindow.setSize(width, height);
         glWindow.addGLEventListener(gears);
@@ -130,7 +131,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGearsObjects(g1.getGear1(), g1.getGear2(), g1.getGear3());
         final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
-                                                f1.getY()+0, g2, f1.getContext());
+                                                f1.getY()+0, g2, f1);
         final GLContext ctx2 = f2.getContext();
         Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
         Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
@@ -153,7 +154,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGearsObjects(g1.getGear1(), g1.getGear2(), g1.getGear3());
         final GLWindow f3 = runTestGL(animator, f1.getX()+0,
-                                                f1.getY()+height+insets.getTotalHeight(), g3, f1.getContext());
+                                                f1.getY()+height+insets.getTotalHeight(), g3, f1);
 
         final GLContext ctx3 = f3.getContext();
         Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());

@@ -180,7 +180,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                            windowBounds.setWidth( wh[0] );
                            windowBounds.setHeight( wh[1] );
                        }
-                       glWindowHUD.setSharedContext(glWindowMain.getContext());
+                       glWindowHUD.setSharedAutoDrawable(glWindowMain);
                        demoHUD = new MovieSimple(mPlayerShared);
                        mPlayerSub = mPlayerShared;
                     } else {

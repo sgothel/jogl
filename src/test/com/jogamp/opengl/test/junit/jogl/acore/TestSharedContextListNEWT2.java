@@ -93,7 +93,7 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
         if(useShared) {
-            glWindow.setSharedContext(sharedDrawable.getContext());
+            glWindow.setSharedAutoDrawable(sharedDrawable);
         }
 
         glWindow.setSize(width, height);
