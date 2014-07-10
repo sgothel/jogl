@@ -58,7 +58,6 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLRunnable;
-import javax.media.opengl.GLSharedContextSetter;
 
 import com.jogamp.common.util.PropertyAccess;
 
@@ -152,14 +151,8 @@ public class GLDrawableHelper {
       final GLContext shareWith;
       final boolean pending;
       if ( null != sharedAutoDrawable ) {
-          final boolean allGLELInitialized;
-          if( sharedAutoDrawable instanceof GLSharedContextSetter ) {
-              allGLELInitialized = ((GLSharedContextSetter)sharedAutoDrawable).areAllGLEventListenerInitialized();
-          } else {
-              allGLELInitialized = true; // we have to assume 'yes'
-          }
           shareWith = sharedAutoDrawable.getContext();
-          pending = null == shareWith || !shareWith.isCreated() || !allGLELInitialized;
+          pending = null == shareWith || !shareWith.isCreated() || !sharedAutoDrawable.areAllGLEventListenerInitialized();
       } else {
           shareWith = sharedContext;
           pending = null != shareWith && !shareWith.isCreated();
