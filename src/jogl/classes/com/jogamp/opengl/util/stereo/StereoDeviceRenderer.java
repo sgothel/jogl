@@ -31,6 +31,8 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.GL;
 
+import com.jogamp.opengl.math.FovHVHalves;
+
 /**
  * Stereoscopic device rendering interface.
  * <p>
@@ -54,7 +56,20 @@ import javax.media.opengl.GL;
  *     <li>device.{@link #ppEnd(GL)}</li>
  *   </ul></li>
  *   <li>device.{@link #endFrame(GL)}</li>
+ * </ul>
+ * </p>
+ * <a name="asymFOVRendering"><h5>Correct {@link FovHVHalves Asymmetric FOV} Rendering</h5></a>
+ * <p>
+ * The {@link StereoClientRenderer} shall render both images for each eye correctly <i>Off-axis</i>
+ * utilizing an asymmetric camera frustum, i.e. by using {@link StereoDevice StereoDevice}'s {@link StereoDevice#getDefaultFOV() default} {@link FovHVHalves}.<br>
+ *
+ * Some references:
  * <ul>
+ *   <li><a href="https://en.wikipedia.org/wiki/Binocular_vision">Wiki: Binocular Vision</a></li>
+ *   <li><a href="http://paulbourke.net/stereographics/stereorender/">Paul Burke: Stereo Graphics - Stereo Renderer</a></li>
+ *   <li><a href="https://en.wikipedia.org/wiki/Distortion_%28optics%29">Wiki: Distortion (Optics)</a></li>
+ * </ul>
+ * </p>
  */
 public interface StereoDeviceRenderer {
     /**
