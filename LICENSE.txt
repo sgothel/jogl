@@ -381,6 +381,11 @@ A.7) The JOGL source tree _may_ contain code from Oculus VR, Inc.
     if the git sub-module oculusvr-sdk is included in the jogl source repository
     as true for current official JogAmp builds and releases!
 
+    If using JogAmp JOGL builds with oculusvr-sdk support, 
+    but the user prefers to _not_ use it for license or other reasons,
+    the user can simply remove the artifacts 'jar/atomics/oculusvr*jar'.
+    No other produced artifact is affected.
+
     While the Oculus VR Rift SDK Software License is permissive,
     it's differences to the New BSD license shall be mentioned, see below!
 
