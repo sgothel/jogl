@@ -41,14 +41,13 @@ import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.FBObject.Attachment.Type;
-import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.util.CustomGLEventListener;
 
 /**
  * {@link StereoClientRenderer} utilizing {@link StereoDeviceRenderer}
  * implementing {@link GLEventListener} for convenience.
  * <p>
- * See {@link StereoDeviceRenderer} notes about <b>Correct {@link FovHVHalves Asymmetric FOV} Rendering</b>.
+ * See {@link StereoDeviceRenderer} notes about <a href="StereoDeviceRenderer.html#asymFOVRendering">Correct Asymmetric FOV Rendering</a>.
  * <p>
  * Implementation renders {@link StereoGLEventListener}
  * using one or more {@link FBObject} according to {@link StereoDeviceRenderer#getTextureCount()}.
