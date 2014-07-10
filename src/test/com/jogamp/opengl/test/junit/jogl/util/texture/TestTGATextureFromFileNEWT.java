@@ -64,6 +64,7 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
 
     InputStream testTextureStream01U32;
     InputStream testTextureStream02RLE32;
+    InputStream testTextureStream03RLE32;
 
     @Before
     public void initTest() throws IOException {
@@ -78,6 +79,12 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream02RLE32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream02RLE32);
+        }
+        {
+            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug982.rle32.256x256.tga");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStream03RLE32 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStream03RLE32);
         }
     }
 
@@ -150,10 +157,16 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
         testImpl(true, testTextureStream02RLE32);
     }
 
+    @Test
+    public void test03RLE32__GL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStream03RLE32);
+    }
+
     @After
     public void cleanupTest() {
         testTextureStream01U32 = null;
         testTextureStream02RLE32 = null;
+        testTextureStream03RLE32 = null;
     }
 
     public static void main(final String args[]) throws IOException {
