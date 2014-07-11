@@ -47,8 +47,8 @@ import java.util.*;
                 Platform.initSingleton();
 
                 if(TempJarCache.isInitialized()) {
-                   // only: joal.jar -> joal-natives-<os.and.arch>.jar
-                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { OVRDynamicLibraryBundleInfo.class }, null);
+                   // only: oculusvr.jar -> oculusvr-natives-<os.and.arch>.jar
+                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { com.jogamp.oculusvr.OVRDynamicLibraryBundleInfo.class }, null);
                 }
                 return null;
             }

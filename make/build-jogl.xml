@@ -1741,6 +1741,18 @@
                 <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
             </filterset>
         </copy>
+        <copy file="${manifestfile}-natives"
+            tofile="${build.jogl}/manifest-natives.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
     </target>
 
     <target name="build-jars-os-desktop-javase" depends="setup-manifestfile">
@@ -1857,17 +1869,18 @@
             <fileset dir="${classes}"
                      includes="${java.part.nv-cg}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.jogl}">
-              <include name="*.${native.library.suffix}" />
-              <exclude name="*jogl_cg.${native.library.suffix}" />
-            </fileset>
-        </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-cg-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.jogl}">
-              <include name="*jogl_cg.${native.library.suffix}" />
-            </fileset>
-        </jar>
+        <native.tag.jar objdir="${obj.jogl}"
+                        nativejarfile="${build.jogl}/jogl-natives-${os.and.arch}.jar"
+                        manifestfile="${build.jogl}/manifest-natives.mf"
+                        module="opengl"
+                        includelibs="*.${native.library.suffix}" 
+                        excludelibs="*jogl_cg.${native.library.suffix}" />
+
+        <native.tag.jar objdir="${obj.jogl}"
+                        nativejarfile="${build.jogl}/jogl-cg-natives-${os.and.arch}.jar"
+                        manifestfile="${build.jogl}/manifest-natives.mf"
+                        module="cg"
+                        includelibs="*jogl_cg.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->

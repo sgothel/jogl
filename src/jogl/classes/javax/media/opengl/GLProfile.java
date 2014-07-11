@@ -37,7 +37,6 @@
 
 package javax.media.opengl;
 
-import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -132,10 +131,10 @@ public class GLProfile {
 
                         if(TempJarCache.isInitialized()) {
                            final ClassLoader cl = GLProfile.class.getClassLoader();
-                           final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
-                           final Class<?>[] classesFromJavaJars = new Class<?>[] { NWJNILibLoader.class, GLProfile.class, null };
-                           if( ReflectionUtil.isClassAvailable(newtFactoryClassName, cl) ) {
-                               classesFromJavaJars[2] = ReflectionUtil.getClass(newtFactoryClassName, false, cl);
+                           final String newtDebugClassName = "jogamp.newt.Debug";
+                           final Class<?>[] classesFromJavaJars = new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.opengl.Debug.class, null };
+                           if( ReflectionUtil.isClassAvailable(newtDebugClassName, cl) ) {
+                               classesFromJavaJars[2] = ReflectionUtil.getClass(newtDebugClassName, false, cl);
                            }
                            JNILibLoaderBase.addNativeJarLibsJoglCfg(classesFromJavaJars);
                         }
