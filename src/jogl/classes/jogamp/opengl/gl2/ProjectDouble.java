@@ -114,10 +114,11 @@
  */
 package jogamp.opengl.gl2;
 
-import java.nio.*;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 
-import javax.media.opengl.*;
-import jogamp.opengl.*;
+import javax.media.opengl.GL2;
+
 import com.jogamp.common.nio.Buffers;
 
 /**
@@ -152,12 +153,7 @@ public class ProjectDouble {
   private final double[] in = new double[4];
   private final double[] out = new double[4];
 
-  private final double[] forward = new double[3];
-  private final double[] side = new double[3];
-  private final double[] up = new double[3];
-
   // Buffer-based implementation
-  private DoubleBuffer locbuf;
   private final DoubleBuffer matrixBuf;
 
   private final DoubleBuffer tempMatrixBuf;
@@ -174,7 +170,7 @@ public class ProjectDouble {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    DoubleBuffer locbuf = Buffers.newDirectDoubleBuffer(128);
+    final DoubleBuffer locbuf = Buffers.newDirectDoubleBuffer(128);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(locbuf, pos, sz);
@@ -194,14 +190,7 @@ public class ProjectDouble {
     upBuf = slice(locbuf, pos, sz);
   }
 
-  public void destroy() {
-    if(locbuf!=null) {
-        locbuf.clear();
-        locbuf=null;
-    }
-  }
-
-  private static DoubleBuffer slice(DoubleBuffer buf, int pos, int len) {
+  private static DoubleBuffer slice(final DoubleBuffer buf, final int pos, final int len) {
     buf.position(pos);
     buf.limit(pos + len);
     return buf.slice();
@@ -210,8 +199,8 @@ public class ProjectDouble {
   /**
    * Make matrix an identity matrix
    */
-  private void __gluMakeIdentityd(DoubleBuffer m) {
-    int oldPos = m.position();
+  private void __gluMakeIdentityd(final DoubleBuffer m) {
+    final int oldPos = m.position();
     m.put(IDENTITY_MATRIX);
     m.position(oldPos);
   }
@@ -219,7 +208,7 @@ public class ProjectDouble {
   /**
    * Make matrix an identity matrix
    */
-  private void __gluMakeIdentityd(double[] m) {
+  private void __gluMakeIdentityd(final double[] m) {
     for (int i = 0; i < 16; i++) {
       m[i] = IDENTITY_MATRIX[i];
     }
@@ -232,7 +221,7 @@ public class ProjectDouble {
    * @param in
    * @param out
    */
-  private void __gluMultMatrixVecd(double[] matrix, int matrix_offset, double[] in, double[] out) {
+  private void __gluMultMatrixVecd(final double[] matrix, final int matrix_offset, final double[] in, final double[] out) {
     for (int i = 0; i < 4; i++) {
       out[i] =
         in[0] * matrix[0*4+i+matrix_offset] +
@@ -249,10 +238,10 @@ public class ProjectDouble {
    * @param in
    * @param out
    */
-  private void __gluMultMatrixVecd(DoubleBuffer matrix, DoubleBuffer in, DoubleBuffer out) {
-    int inPos = in.position();
-    int outPos = out.position();
-    int matrixPos = matrix.position();
+  private void __gluMultMatrixVecd(final DoubleBuffer matrix, final DoubleBuffer in, final DoubleBuffer out) {
+    final int inPos = in.position();
+    final int outPos = out.position();
+    final int matrixPos = matrix.position();
     for (int i = 0; i < 4; i++) {
       out.put(i + outPos,
               in.get(0+inPos) * matrix.get(0*4+i+matrixPos) +
@@ -268,10 +257,10 @@ public class ProjectDouble {
    *
    * @return
    */
-  private boolean __gluInvertMatrixd(double[] src, double[] inverse) {
+  private boolean __gluInvertMatrixd(final double[] src, final double[] inverse) {
     int i, j, k, swap;
     double t;
-    double[][] temp = tempMatrix;
+    final double[][] temp = tempMatrix;
 
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
@@ -338,14 +327,14 @@ public class ProjectDouble {
    *
    * @return
    */
-  private boolean __gluInvertMatrixd(DoubleBuffer src, DoubleBuffer inverse) {
+  private boolean __gluInvertMatrixd(final DoubleBuffer src, final DoubleBuffer inverse) {
     int i, j, k, swap;
     double t;
 
-    int srcPos = src.position();
-    int invPos = inverse.position();
+    final int srcPos = src.position();
+    final int invPos = inverse.position();
 
-    DoubleBuffer temp = tempMatrixBuf;
+    final DoubleBuffer temp = tempMatrixBuf;
 
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
@@ -412,7 +401,7 @@ public class ProjectDouble {
    * @param b
    * @param r
    */
-  private void __gluMultMatricesd(double[] a, int a_offset, double[] b, int b_offset, double[] r) {
+  private void __gluMultMatricesd(final double[] a, final int a_offset, final double[] b, final int b_offset, final double[] r) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         r[i*4+j] =
@@ -430,10 +419,10 @@ public class ProjectDouble {
    * @param b
    * @param r
    */
-  private void __gluMultMatricesd(DoubleBuffer a, DoubleBuffer b, DoubleBuffer r) {
-    int aPos = a.position();
-    int bPos = b.position();
-    int rPos = r.position();
+  private void __gluMultMatricesd(final DoubleBuffer a, final DoubleBuffer b, final DoubleBuffer r) {
+    final int aPos = a.position();
+    final int bPos = b.position();
+    final int rPos = r.position();
 
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
@@ -451,31 +440,10 @@ public class ProjectDouble {
    *
    * @param v
    */
-  private static void normalize(double[] v) {
+  private static void normalize(final DoubleBuffer v) {
     double r;
 
-    r = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    if ( r == 0.0 )
-      return;
-
-    r = 1.0 / r;
-
-    v[0] *= r;
-    v[1] *= r;
-    v[2] *= r;
-
-    return;
-  }
-
-  /**
-   * Normalize vector
-   *
-   * @param v
-   */
-  private static void normalize(DoubleBuffer v) {
-    double r;
-
-    int vPos = v.position();
+    final int vPos = v.position();
 
     r = Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
                   v.get(1+vPos) * v.get(1+vPos) +
@@ -500,23 +468,10 @@ public class ProjectDouble {
    * @param v2
    * @param result
    */
-  private static void cross(double[] v1, double[] v2, double[] result) {
-    result[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    result[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    result[2] = v1[0] * v2[1] - v1[1] * v2[0];
-  }
-
-  /**
-   * Calculate cross-product
-   *
-   * @param v1
-   * @param v2
-   * @param result
-   */
-  private static void cross(DoubleBuffer v1, DoubleBuffer v2, DoubleBuffer result) {
-    int v1Pos = v1.position();
-    int v2Pos = v2.position();
-    int rPos  = result.position();
+  private static void cross(final DoubleBuffer v1, final DoubleBuffer v2, final DoubleBuffer result) {
+    final int v1Pos = v1.position();
+    final int v2Pos = v2.position();
+    final int rPos  = result.position();
 
     result.put(0+rPos, v1.get(1+v1Pos) * v2.get(2+v2Pos) - v1.get(2+v1Pos) * v2.get(1+v2Pos));
     result.put(1+rPos, v1.get(2+v1Pos) * v2.get(0+v2Pos) - v1.get(0+v1Pos) * v2.get(2+v2Pos));
@@ -531,7 +486,7 @@ public class ProjectDouble {
    * @param bottom
    * @param top
    */
-  public void gluOrtho2D(GL2 gl, double left, double right, double bottom, double top) {
+  public void gluOrtho2D(final GL2 gl, final double left, final double right, final double bottom, final double top) {
     gl.glOrtho(left, right, bottom, top, -1, 1);
   }
 
@@ -543,9 +498,9 @@ public class ProjectDouble {
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(GL2 gl, double fovy, double aspect, double zNear, double zFar) {
+  public void gluPerspective(final GL2 gl, final double fovy, final double aspect, final double zNear, final double zFar) {
     double sine, cotangent, deltaZ;
-    double radians = fovy / 2 * Math.PI / 180;
+    final double radians = fovy / 2 * Math.PI / 180;
 
     deltaZ = zFar - zNear;
     sine = Math.sin(radians);
@@ -581,19 +536,19 @@ public class ProjectDouble {
    * @param upy
    * @param upz
    */
-  public void gluLookAt(GL2 gl,
-                        double eyex,
-                        double eyey,
-                        double eyez,
-                        double centerx,
-                        double centery,
-                        double centerz,
-                        double upx,
-                        double upy,
-                        double upz) {
-    DoubleBuffer forward = this.forwardBuf;
-    DoubleBuffer side = this.sideBuf;
-    DoubleBuffer up = this.upBuf;
+  public void gluLookAt(final GL2 gl,
+                        final double eyex,
+                        final double eyey,
+                        final double eyez,
+                        final double centerx,
+                        final double centery,
+                        final double centerz,
+                        final double upx,
+                        final double upy,
+                        final double upz) {
+    final DoubleBuffer forward = this.forwardBuf;
+    final DoubleBuffer side = this.sideBuf;
+    final DoubleBuffer up = this.upBuf;
 
     forward.put(0, centerx - eyex);
     forward.put(1, centery - eyey);
@@ -642,20 +597,20 @@ public class ProjectDouble {
    *
    * @return
    */
-  public boolean gluProject(double objx,
-                            double objy,
-                            double objz,
-                            double[] modelMatrix,
-                            int modelMatrix_offset,
-                            double[] projMatrix,
-                            int projMatrix_offset,
-                            int[] viewport,
-                            int viewport_offset,
-                            double[] win_pos,
-                            int win_pos_offset ) {
+  public boolean gluProject(final double objx,
+                            final double objy,
+                            final double objz,
+                            final double[] modelMatrix,
+                            final int modelMatrix_offset,
+                            final double[] projMatrix,
+                            final int projMatrix_offset,
+                            final int[] viewport,
+                            final int viewport_offset,
+                            final double[] win_pos,
+                            final int win_pos_offset ) {
 
-    double[] in = this.in;
-    double[] out = this.out;
+    final double[] in = this.in;
+    final double[] out = this.out;
 
     in[0] = objx;
     in[1] = objy;
@@ -696,16 +651,16 @@ public class ProjectDouble {
    *
    * @return
    */
-  public boolean gluProject(double objx,
-                            double objy,
-                            double objz,
-                            DoubleBuffer modelMatrix,
-                            DoubleBuffer projMatrix,
-                            IntBuffer viewport,
-                            DoubleBuffer win_pos) {
+  public boolean gluProject(final double objx,
+                            final double objy,
+                            final double objz,
+                            final DoubleBuffer modelMatrix,
+                            final DoubleBuffer projMatrix,
+                            final IntBuffer viewport,
+                            final DoubleBuffer win_pos) {
 
-    DoubleBuffer in = this.inBuf;
-    DoubleBuffer out = this.outBuf;
+    final DoubleBuffer in = this.inBuf;
+    final DoubleBuffer out = this.outBuf;
 
     in.put(0, objx);
     in.put(1, objy);
@@ -726,8 +681,8 @@ public class ProjectDouble {
     in.put(2, in.get(2) * in.get(3) + 0.5f);
 
     // Map x,y to viewport
-    int vPos = viewport.position();
-    int wPos = win_pos.position();
+    final int vPos = viewport.position();
+    final int wPos = win_pos.position();
     win_pos.put(0+wPos, in.get(0) * viewport.get(2+vPos) + viewport.get(0+vPos));
     win_pos.put(1+wPos, in.get(1) * viewport.get(3+vPos) + viewport.get(1+vPos));
     win_pos.put(2+wPos, in.get(2));
@@ -749,19 +704,19 @@ public class ProjectDouble {
    *
    * @return
    */
-  public boolean gluUnProject(double winx,
-                              double winy,
-                              double winz,
-                              double[] modelMatrix,
-                              int modelMatrix_offset,
-                              double[] projMatrix,
-                              int projMatrix_offset,
-                              int[] viewport,
-                              int viewport_offset,
-                              double[] obj_pos,
-                              int obj_pos_offset) {
-    double[] in = this.in;
-    double[] out = this.out;
+  public boolean gluUnProject(final double winx,
+                              final double winy,
+                              final double winz,
+                              final double[] modelMatrix,
+                              final int modelMatrix_offset,
+                              final double[] projMatrix,
+                              final int projMatrix_offset,
+                              final int[] viewport,
+                              final int viewport_offset,
+                              final double[] obj_pos,
+                              final int obj_pos_offset) {
+    final double[] in = this.in;
+    final double[] out = this.out;
 
     __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
@@ -810,15 +765,15 @@ public class ProjectDouble {
    *
    * @return
    */
-  public boolean gluUnProject(double winx,
-                              double winy,
-                              double winz,
-                              DoubleBuffer modelMatrix,
-                              DoubleBuffer projMatrix,
-                              IntBuffer viewport,
-                              DoubleBuffer obj_pos) {
-    DoubleBuffer in = this.inBuf;
-    DoubleBuffer out = this.outBuf;
+  public boolean gluUnProject(final double winx,
+                              final double winy,
+                              final double winz,
+                              final DoubleBuffer modelMatrix,
+                              final DoubleBuffer projMatrix,
+                              final IntBuffer viewport,
+                              final DoubleBuffer obj_pos) {
+    final DoubleBuffer in = this.inBuf;
+    final DoubleBuffer out = this.outBuf;
 
     __gluMultMatricesd(modelMatrix, projMatrix, matrixBuf);
 
@@ -831,8 +786,8 @@ public class ProjectDouble {
     in.put(3, 1.0);
 
     // Map x and y from window coordinates
-    int vPos = viewport.position();
-    int oPos = obj_pos.position();
+    final int vPos = viewport.position();
+    final int oPos = obj_pos.position();
     in.put(0, (in.get(0) - viewport.get(0+vPos)) / viewport.get(2+vPos));
     in.put(1, (in.get(1) - viewport.get(1+vPos)) / viewport.get(3+vPos));
 
@@ -872,22 +827,22 @@ public class ProjectDouble {
    *
    * @return
    */
-  public boolean gluUnProject4(double winx,
-                               double winy,
-                               double winz,
-                               double clipw,
-                               double[] modelMatrix,
-                               int modelMatrix_offset,
-                               double[] projMatrix,
-                               int projMatrix_offset,
-                               int[] viewport,
-                               int viewport_offset,
-                               double near,
-                               double far,
-                               double[] obj_pos,
-                               int obj_pos_offset ) {
-    double[] in = this.in;
-    double[] out = this.out;
+  public boolean gluUnProject4(final double winx,
+                               final double winy,
+                               final double winz,
+                               final double clipw,
+                               final double[] modelMatrix,
+                               final int modelMatrix_offset,
+                               final double[] projMatrix,
+                               final int projMatrix_offset,
+                               final int[] viewport,
+                               final int viewport_offset,
+                               final double near,
+                               final double far,
+                               final double[] obj_pos,
+                               final int obj_pos_offset ) {
+    final double[] in = this.in;
+    final double[] out = this.out;
 
     __gluMultMatricesd(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
 
@@ -937,18 +892,18 @@ public class ProjectDouble {
    *
    * @return
    */
-  public boolean gluUnProject4(double winx,
-                               double winy,
-                               double winz,
-                               double clipw,
-                               DoubleBuffer modelMatrix,
-                               DoubleBuffer projMatrix,
-                               IntBuffer viewport,
-                               double near,
-                               double far,
-                               DoubleBuffer obj_pos) {
-    DoubleBuffer in = this.inBuf;
-    DoubleBuffer out = this.outBuf;
+  public boolean gluUnProject4(final double winx,
+                               final double winy,
+                               final double winz,
+                               final double clipw,
+                               final DoubleBuffer modelMatrix,
+                               final DoubleBuffer projMatrix,
+                               final IntBuffer viewport,
+                               final double near,
+                               final double far,
+                               final DoubleBuffer obj_pos) {
+    final DoubleBuffer in = this.inBuf;
+    final DoubleBuffer out = this.outBuf;
 
     __gluMultMatricesd(modelMatrix, projMatrix, matrixBuf);
 
@@ -961,7 +916,7 @@ public class ProjectDouble {
     in.put(3, clipw);
 
     // Map x and y from window coordinates
-    int vPos = viewport.position();
+    final int vPos = viewport.position();
     in.put(0, (in.get(0) - viewport.get(0+vPos)) / viewport.get(2+vPos));
     in.put(1, (in.get(1) - viewport.get(1+vPos)) / viewport.get(3+vPos));
     in.put(2, (in.get(2) - near) / (far - near));
@@ -976,7 +931,7 @@ public class ProjectDouble {
     if (out.get(3) == 0.0)
       return false;
 
-    int oPos = obj_pos.position();
+    final int oPos = obj_pos.position();
     obj_pos.put(0+oPos, out.get(0));
     obj_pos.put(1+oPos, out.get(1));
     obj_pos.put(2+oPos, out.get(2));
@@ -994,18 +949,18 @@ public class ProjectDouble {
    * @param deltaY
    * @param viewport
    */
-  public void gluPickMatrix(GL2 gl,
-                            double x,
-                            double y,
-                            double deltaX,
-                            double deltaY,
-                            IntBuffer viewport) {
+  public void gluPickMatrix(final GL2 gl,
+                            final double x,
+                            final double y,
+                            final double deltaX,
+                            final double deltaY,
+                            final IntBuffer viewport) {
     if (deltaX <= 0 || deltaY <= 0) {
       return;
     }
 
     /* Translate and scale the picked region to the entire window */
-    int vPos = viewport.position();
+    final int vPos = viewport.position();
     gl.glTranslated((viewport.get(2+vPos) - 2 * (x - viewport.get(0+vPos))) / deltaX,
                     (viewport.get(3+vPos) - 2 * (y - viewport.get(1+vPos))) / deltaY,
                     0);
@@ -1022,13 +977,13 @@ public class ProjectDouble {
    * @param viewport
    * @param viewport_offset
    */
-  public void gluPickMatrix(GL2 gl,
-                            double x,
-                            double y,
-                            double deltaX,
-                            double deltaY,
-                            int[] viewport,
-                            int viewport_offset) {
+  public void gluPickMatrix(final GL2 gl,
+                            final double x,
+                            final double y,
+                            final double deltaX,
+                            final double deltaY,
+                            final int[] viewport,
+                            final int viewport_offset) {
     if (deltaX <= 0 || deltaY <= 0) {
       return;
     }

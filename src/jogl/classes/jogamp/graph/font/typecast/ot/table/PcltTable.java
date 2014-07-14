@@ -18,25 +18,25 @@ import java.io.IOException;
  */
 public class PcltTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private long fontNumber;
-    private int pitch;
-    private int xHeight;
-    private int style;
-    private int typeFamily;
-    private int capHeight;
-    private int symbolSet;
-    private char[] typeface = new char[16];
-    private short[] characterComplement = new short[8];
-    private char[] fileName = new char[6];
-    private short strokeWeight;
-    private short widthType;
-    private byte serifStyle;
-    private byte reserved;
+    private final DirectoryEntry de;
+    private final int version;
+    private final long fontNumber;
+    private final int pitch;
+    private final int xHeight;
+    private final int style;
+    private final int typeFamily;
+    private final int capHeight;
+    private final int symbolSet;
+    private final char[] typeface = new char[16];
+    private final short[] characterComplement = new short[8];
+    private final char[] fileName = new char[6];
+    private final short strokeWeight;
+    private final short widthType;
+    private final byte serifStyle;
+    private final byte reserved;
 
     /** Creates new PcltTable */
-    protected PcltTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected PcltTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readInt();
         fontNumber = di.readInt();

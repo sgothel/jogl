@@ -46,14 +46,14 @@ class GLUTStrokeRoman {
 /* char: 33 '!' */
 
 static final CoordRec char33_stroke0[] = {
-    new CoordRec((float) 13.3819, (float) 100),
+    new CoordRec((float) 13.3819, 100),
     new CoordRec((float) 13.3819, (float) 33.3333),
 };
 
 static final CoordRec char33_stroke1[] = {
     new CoordRec((float) 13.3819, (float) 9.5238),
     new CoordRec((float) 8.62, (float) 4.7619),
-    new CoordRec((float) 13.3819, (float) 0),
+    new CoordRec((float) 13.3819, 0),
     new CoordRec((float) 18.1438, (float) 4.7619),
     new CoordRec((float) 13.3819, (float) 9.5238),
 };
@@ -66,12 +66,12 @@ static final StrokeRec char33[] = {
 /* char: 34 '"' */
 
 static final CoordRec char34_stroke0[] = {
-    new CoordRec((float) 4.02, (float) 100),
+    new CoordRec((float) 4.02, 100),
     new CoordRec((float) 4.02, (float) 66.6667),
 };
 
 static final CoordRec char34_stroke1[] = {
-    new CoordRec((float) 42.1152, (float) 100),
+    new CoordRec((float) 42.1152, 100),
     new CoordRec((float) 42.1152, (float) 66.6667),
 };
 
@@ -124,8 +124,8 @@ static final CoordRec char36_stroke1[] = {
 static final CoordRec char36_stroke2[] = {
     new CoordRec((float) 71.4867, (float) 85.7143),
     new CoordRec((float) 61.9629, (float) 95.2381),
-    new CoordRec((float) 47.6771, (float) 100),
-    new CoordRec((float) 28.6295, (float) 100),
+    new CoordRec((float) 47.6771, 100),
+    new CoordRec((float) 28.6295, 100),
     new CoordRec((float) 14.3438, (float) 95.2381),
     new CoordRec((float) 4.82, (float) 85.7143),
     new CoordRec((float) 4.82, (float) 76.1905),
@@ -138,8 +138,8 @@ static final CoordRec char36_stroke2[] = {
     new CoordRec((float) 71.4867, (float) 28.5714),
     new CoordRec((float) 71.4867, (float) 14.2857),
     new CoordRec((float) 61.9629, (float) 4.7619),
-    new CoordRec((float) 47.6771, (float) 0),
-    new CoordRec((float) 28.6295, (float) 0),
+    new CoordRec((float) 47.6771, 0),
+    new CoordRec((float) 28.6295, 0),
     new CoordRec((float) 14.3438, (float) 4.7619),
     new CoordRec((float) 4.82, (float) 14.2857),
 };
@@ -153,12 +153,12 @@ static final StrokeRec char36[] = {
 /* char: 37 '%' */
 
 static final CoordRec char37_stroke0[] = {
-    new CoordRec((float) 92.0743, (float) 100),
-    new CoordRec((float) 6.36, (float) 0),
+    new CoordRec((float) 92.0743, 100),
+    new CoordRec((float) 6.36, 0),
 };
 
 static final CoordRec char37_stroke1[] = {
-    new CoordRec((float) 30.1695, (float) 100),
+    new CoordRec((float) 30.1695, 100),
     new CoordRec((float) 39.6933, (float) 90.4762),
     new CoordRec((float) 39.6933, (float) 80.9524),
     new CoordRec((float) 34.9314, (float) 71.4286),
@@ -167,13 +167,13 @@ static final CoordRec char37_stroke1[] = {
     new CoordRec((float) 6.36, (float) 76.1905),
     new CoordRec((float) 6.36, (float) 85.7143),
     new CoordRec((float) 11.1219, (float) 95.2381),
-    new CoordRec((float) 20.6457, (float) 100),
-    new CoordRec((float) 30.1695, (float) 100),
+    new CoordRec((float) 20.6457, 100),
+    new CoordRec((float) 30.1695, 100),
     new CoordRec((float) 39.6933, (float) 95.2381),
     new CoordRec((float) 53.979, (float) 90.4762),
     new CoordRec((float) 68.2648, (float) 90.4762),
     new CoordRec((float) 82.5505, (float) 95.2381),
-    new CoordRec((float) 92.0743, (float) 100),
+    new CoordRec((float) 92.0743, 100),
 };
 
 static final CoordRec char37_stroke2[] = {
@@ -181,8 +181,8 @@ static final CoordRec char37_stroke2[] = {
     new CoordRec((float) 63.5029, (float) 28.5714),
     new CoordRec((float) 58.741, (float) 19.0476),
     new CoordRec((float) 58.741, (float) 9.5238),
-    new CoordRec((float) 68.2648, (float) 0),
-    new CoordRec((float) 77.7886, (float) 0),
+    new CoordRec((float) 68.2648, 0),
+    new CoordRec((float) 77.7886, 0),
     new CoordRec((float) 87.3124, (float) 4.7619),
     new CoordRec((float) 92.0743, (float) 14.2857),
     new CoordRec((float) 92.0743, (float) 23.8095),
@@ -208,8 +208,8 @@ static final CoordRec char38_stroke0[] = {
     new CoordRec((float) 72.6467, (float) 28.5714),
     new CoordRec((float) 63.1229, (float) 14.2857),
     new CoordRec((float) 53.599, (float) 4.7619),
-    new CoordRec((float) 44.0752, (float) 0),
-    new CoordRec((float) 25.0276, (float) 0),
+    new CoordRec((float) 44.0752, 0),
+    new CoordRec((float) 25.0276, 0),
     new CoordRec((float) 15.5038, (float) 4.7619),
     new CoordRec((float) 10.7419, (float) 9.5238),
     new CoordRec((float) 5.98, (float) 19.0476),
@@ -221,7 +221,7 @@ static final CoordRec char38_stroke0[] = {
     new CoordRec((float) 58.361, (float) 76.1905),
     new CoordRec((float) 58.361, (float) 85.7143),
     new CoordRec((float) 53.599, (float) 95.2381),
-    new CoordRec((float) 44.0752, (float) 100),
+    new CoordRec((float) 44.0752, 100),
     new CoordRec((float) 34.5514, (float) 95.2381),
     new CoordRec((float) 29.7895, (float) 85.7143),
     new CoordRec((float) 29.7895, (float) 76.1905),
@@ -229,8 +229,8 @@ static final CoordRec char38_stroke0[] = {
     new CoordRec((float) 44.0752, (float) 47.619),
     new CoordRec((float) 67.8848, (float) 14.2857),
     new CoordRec((float) 77.4086, (float) 4.7619),
-    new CoordRec((float) 86.9324, (float) 0),
-    new CoordRec((float) 96.4562, (float) 0),
+    new CoordRec((float) 86.9324, 0),
+    new CoordRec((float) 96.4562, 0),
     new CoordRec((float) 101.218, (float) 4.7619),
     new CoordRec((float) 101.218, (float) 9.5238),
 };
@@ -242,7 +242,7 @@ static final StrokeRec char38[] = {
 /* char: 39 ''' */
 
 static final CoordRec char39_stroke0[] = {
-    new CoordRec((float) 4.44, (float) 100),
+    new CoordRec((float) 4.44, 100),
     new CoordRec((float) 4.44, (float) 66.6667),
 };
 
@@ -315,7 +315,7 @@ static final StrokeRec char42[] = {
 
 static final CoordRec char43_stroke0[] = {
     new CoordRec((float) 48.8371, (float) 85.7143),
-    new CoordRec((float) 48.8371, (float) 0),
+    new CoordRec((float) 48.8371, 0),
 };
 
 static final CoordRec char43_stroke1[] = {
@@ -332,7 +332,7 @@ static final StrokeRec char43[] = {
 
 static final CoordRec char44_stroke0[] = {
     new CoordRec((float) 18.2838, (float) 4.7619),
-    new CoordRec((float) 13.5219, (float) 0),
+    new CoordRec((float) 13.5219, 0),
     new CoordRec((float) 8.76, (float) 4.7619),
     new CoordRec((float) 13.5219, (float) 9.5238),
     new CoordRec((float) 18.2838, (float) 4.7619),
@@ -361,7 +361,7 @@ static final StrokeRec char45[] = {
 static final CoordRec char46_stroke0[] = {
     new CoordRec((float) 13.1019, (float) 9.5238),
     new CoordRec((float) 8.34, (float) 4.7619),
-    new CoordRec((float) 13.1019, (float) 0),
+    new CoordRec((float) 13.1019, 0),
     new CoordRec((float) 17.8638, (float) 4.7619),
     new CoordRec((float) 13.1019, (float) 9.5238),
 };
@@ -374,7 +374,7 @@ static final StrokeRec char46[] = {
 
 static final CoordRec char47_stroke0[] = {
     new CoordRec((float) 7.24, (float) -14.2857),
-    new CoordRec((float) 73.9067, (float) 100),
+    new CoordRec((float) 73.9067, 100),
 };
 
 static final StrokeRec char47[] = {
@@ -384,23 +384,23 @@ static final StrokeRec char47[] = {
 /* char: 48 '0' */
 
 static final CoordRec char48_stroke0[] = {
-    new CoordRec((float) 33.5514, (float) 100),
+    new CoordRec((float) 33.5514, 100),
     new CoordRec((float) 19.2657, (float) 95.2381),
     new CoordRec((float) 9.7419, (float) 80.9524),
     new CoordRec((float) 4.98, (float) 57.1429),
     new CoordRec((float) 4.98, (float) 42.8571),
     new CoordRec((float) 9.7419, (float) 19.0476),
     new CoordRec((float) 19.2657, (float) 4.7619),
-    new CoordRec((float) 33.5514, (float) 0),
-    new CoordRec((float) 43.0752, (float) 0),
+    new CoordRec((float) 33.5514, 0),
+    new CoordRec((float) 43.0752, 0),
     new CoordRec((float) 57.361, (float) 4.7619),
     new CoordRec((float) 66.8848, (float) 19.0476),
     new CoordRec((float) 71.6467, (float) 42.8571),
     new CoordRec((float) 71.6467, (float) 57.1429),
     new CoordRec((float) 66.8848, (float) 80.9524),
     new CoordRec((float) 57.361, (float) 95.2381),
-    new CoordRec((float) 43.0752, (float) 100),
-    new CoordRec((float) 33.5514, (float) 100),
+    new CoordRec((float) 43.0752, 100),
+    new CoordRec((float) 33.5514, 100),
 };
 
 static final StrokeRec char48[] = {
@@ -412,8 +412,8 @@ static final StrokeRec char48[] = {
 static final CoordRec char49_stroke0[] = {
     new CoordRec((float) 11.82, (float) 80.9524),
     new CoordRec((float) 21.3438, (float) 85.7143),
-    new CoordRec((float) 35.6295, (float) 100),
-    new CoordRec((float) 35.6295, (float) 0),
+    new CoordRec((float) 35.6295, 100),
+    new CoordRec((float) 35.6295, 0),
 };
 
 static final StrokeRec char49[] = {
@@ -427,16 +427,16 @@ static final CoordRec char50_stroke0[] = {
     new CoordRec((float) 10.1819, (float) 80.9524),
     new CoordRec((float) 14.9438, (float) 90.4762),
     new CoordRec((float) 19.7057, (float) 95.2381),
-    new CoordRec((float) 29.2295, (float) 100),
-    new CoordRec((float) 48.2771, (float) 100),
+    new CoordRec((float) 29.2295, 100),
+    new CoordRec((float) 48.2771, 100),
     new CoordRec((float) 57.801, (float) 95.2381),
     new CoordRec((float) 62.5629, (float) 90.4762),
     new CoordRec((float) 67.3248, (float) 80.9524),
     new CoordRec((float) 67.3248, (float) 71.4286),
     new CoordRec((float) 62.5629, (float) 61.9048),
     new CoordRec((float) 53.039, (float) 47.619),
-    new CoordRec((float) 5.42, (float) 0),
-    new CoordRec((float) 72.0867, (float) 0),
+    new CoordRec((float) 5.42, 0),
+    new CoordRec((float) 72.0867, 0),
 };
 
 static final StrokeRec char50[] = {
@@ -446,8 +446,8 @@ static final StrokeRec char50[] = {
 /* char: 51 '3' */
 
 static final CoordRec char51_stroke0[] = {
-    new CoordRec((float) 14.5238, (float) 100),
-    new CoordRec((float) 66.9048, (float) 100),
+    new CoordRec((float) 14.5238, 100),
+    new CoordRec((float) 66.9048, 100),
     new CoordRec((float) 38.3333, (float) 61.9048),
     new CoordRec((float) 52.619, (float) 61.9048),
     new CoordRec((float) 62.1429, (float) 57.1429),
@@ -456,11 +456,11 @@ static final CoordRec char51_stroke0[] = {
     new CoordRec((float) 71.6667, (float) 28.5714),
     new CoordRec((float) 66.9048, (float) 14.2857),
     new CoordRec((float) 57.381, (float) 4.7619),
-    new CoordRec((float) 43.0952, (float) 0),
-    new CoordRec((float) 28.8095, (float) 0),
+    new CoordRec((float) 43.0952, 0),
+    new CoordRec((float) 28.8095, 0),
     new CoordRec((float) 14.5238, (float) 4.7619),
     new CoordRec((float) 9.7619, (float) 9.5238),
-    new CoordRec((float) 5, (float) 19.0476),
+    new CoordRec(5, (float) 19.0476),
 };
 
 static final StrokeRec char51[] = {
@@ -470,14 +470,14 @@ static final StrokeRec char51[] = {
 /* char: 52 '4' */
 
 static final CoordRec char52_stroke0[] = {
-    new CoordRec((float) 51.499, (float) 100),
+    new CoordRec((float) 51.499, 100),
     new CoordRec((float) 3.88, (float) 33.3333),
     new CoordRec((float) 75.3086, (float) 33.3333),
 };
 
 static final CoordRec char52_stroke1[] = {
-    new CoordRec((float) 51.499, (float) 100),
-    new CoordRec((float) 51.499, (float) 0),
+    new CoordRec((float) 51.499, 100),
+    new CoordRec((float) 51.499, 0),
 };
 
 static final StrokeRec char52[] = {
@@ -488,8 +488,8 @@ static final StrokeRec char52[] = {
 /* char: 53 '5' */
 
 static final CoordRec char53_stroke0[] = {
-    new CoordRec((float) 62.0029, (float) 100),
-    new CoordRec((float) 14.3838, (float) 100),
+    new CoordRec((float) 62.0029, 100),
+    new CoordRec((float) 14.3838, 100),
     new CoordRec((float) 9.6219, (float) 57.1429),
     new CoordRec((float) 14.3838, (float) 61.9048),
     new CoordRec((float) 28.6695, (float) 66.6667),
@@ -500,8 +500,8 @@ static final CoordRec char53_stroke0[] = {
     new CoordRec((float) 71.5267, (float) 28.5714),
     new CoordRec((float) 66.7648, (float) 14.2857),
     new CoordRec((float) 57.241, (float) 4.7619),
-    new CoordRec((float) 42.9552, (float) 0),
-    new CoordRec((float) 28.6695, (float) 0),
+    new CoordRec((float) 42.9552, 0),
+    new CoordRec((float) 28.6695, 0),
     new CoordRec((float) 14.3838, (float) 4.7619),
     new CoordRec((float) 9.6219, (float) 9.5238),
     new CoordRec((float) 4.86, (float) 19.0476),
@@ -516,16 +516,16 @@ static final StrokeRec char53[] = {
 static final CoordRec char54_stroke0[] = {
     new CoordRec((float) 62.7229, (float) 85.7143),
     new CoordRec((float) 57.961, (float) 95.2381),
-    new CoordRec((float) 43.6752, (float) 100),
-    new CoordRec((float) 34.1514, (float) 100),
+    new CoordRec((float) 43.6752, 100),
+    new CoordRec((float) 34.1514, 100),
     new CoordRec((float) 19.8657, (float) 95.2381),
     new CoordRec((float) 10.3419, (float) 80.9524),
     new CoordRec((float) 5.58, (float) 57.1429),
     new CoordRec((float) 5.58, (float) 33.3333),
     new CoordRec((float) 10.3419, (float) 14.2857),
     new CoordRec((float) 19.8657, (float) 4.7619),
-    new CoordRec((float) 34.1514, (float) 0),
-    new CoordRec((float) 38.9133, (float) 0),
+    new CoordRec((float) 34.1514, 0),
+    new CoordRec((float) 38.9133, 0),
     new CoordRec((float) 53.199, (float) 4.7619),
     new CoordRec((float) 62.7229, (float) 14.2857),
     new CoordRec((float) 67.4848, (float) 28.5714),
@@ -546,13 +546,13 @@ static final StrokeRec char54[] = {
 /* char: 55 '7' */
 
 static final CoordRec char55_stroke0[] = {
-    new CoordRec((float) 72.2267, (float) 100),
-    new CoordRec((float) 24.6076, (float) 0),
+    new CoordRec((float) 72.2267, 100),
+    new CoordRec((float) 24.6076, 0),
 };
 
 static final CoordRec char55_stroke1[] = {
-    new CoordRec((float) 5.56, (float) 100),
-    new CoordRec((float) 72.2267, (float) 100),
+    new CoordRec((float) 5.56, 100),
+    new CoordRec((float) 72.2267, 100),
 };
 
 static final StrokeRec char55[] = {
@@ -563,7 +563,7 @@ static final StrokeRec char55[] = {
 /* char: 56 '8' */
 
 static final CoordRec char56_stroke0[] = {
-    new CoordRec((float) 29.4095, (float) 100),
+    new CoordRec((float) 29.4095, 100),
     new CoordRec((float) 15.1238, (float) 95.2381),
     new CoordRec((float) 10.3619, (float) 85.7143),
     new CoordRec((float) 10.3619, (float) 76.1905),
@@ -576,8 +576,8 @@ static final CoordRec char56_stroke0[] = {
     new CoordRec((float) 72.2667, (float) 19.0476),
     new CoordRec((float) 67.5048, (float) 9.5238),
     new CoordRec((float) 62.7429, (float) 4.7619),
-    new CoordRec((float) 48.4571, (float) 0),
-    new CoordRec((float) 29.4095, (float) 0),
+    new CoordRec((float) 48.4571, 0),
+    new CoordRec((float) 29.4095, 0),
     new CoordRec((float) 15.1238, (float) 4.7619),
     new CoordRec((float) 10.3619, (float) 9.5238),
     new CoordRec((float) 5.6, (float) 19.0476),
@@ -590,8 +590,8 @@ static final CoordRec char56_stroke0[] = {
     new CoordRec((float) 67.5048, (float) 76.1905),
     new CoordRec((float) 67.5048, (float) 85.7143),
     new CoordRec((float) 62.7429, (float) 95.2381),
-    new CoordRec((float) 48.4571, (float) 100),
-    new CoordRec((float) 29.4095, (float) 100),
+    new CoordRec((float) 48.4571, 100),
+    new CoordRec((float) 29.4095, 100),
 };
 
 static final StrokeRec char56[] = {
@@ -612,16 +612,16 @@ static final CoordRec char57_stroke0[] = {
     new CoordRec((float) 6.6, (float) 71.4286),
     new CoordRec((float) 11.3619, (float) 85.7143),
     new CoordRec((float) 20.8857, (float) 95.2381),
-    new CoordRec((float) 35.1714, (float) 100),
-    new CoordRec((float) 39.9333, (float) 100),
+    new CoordRec((float) 35.1714, 100),
+    new CoordRec((float) 39.9333, 100),
     new CoordRec((float) 54.219, (float) 95.2381),
     new CoordRec((float) 63.7429, (float) 85.7143),
     new CoordRec((float) 68.5048, (float) 66.6667),
     new CoordRec((float) 68.5048, (float) 42.8571),
     new CoordRec((float) 63.7429, (float) 19.0476),
     new CoordRec((float) 54.219, (float) 4.7619),
-    new CoordRec((float) 39.9333, (float) 0),
-    new CoordRec((float) 30.4095, (float) 0),
+    new CoordRec((float) 39.9333, 0),
+    new CoordRec((float) 30.4095, 0),
     new CoordRec((float) 16.1238, (float) 4.7619),
     new CoordRec((float) 11.3619, (float) 14.2857),
 };
@@ -643,7 +643,7 @@ static final CoordRec char58_stroke0[] = {
 static final CoordRec char58_stroke1[] = {
     new CoordRec((float) 14.0819, (float) 9.5238),
     new CoordRec((float) 9.32, (float) 4.7619),
-    new CoordRec((float) 14.0819, (float) 0),
+    new CoordRec((float) 14.0819, 0),
     new CoordRec((float) 18.8438, (float) 4.7619),
     new CoordRec((float) 14.0819, (float) 9.5238),
 };
@@ -665,7 +665,7 @@ static final CoordRec char59_stroke0[] = {
 
 static final CoordRec char59_stroke1[] = {
     new CoordRec((float) 17.7238, (float) 4.7619),
-    new CoordRec((float) 12.9619, (float) 0),
+    new CoordRec((float) 12.9619, 0),
     new CoordRec((float) 8.2, (float) 4.7619),
     new CoordRec((float) 12.9619, (float) 9.5238),
     new CoordRec((float) 17.7238, (float) 4.7619),
@@ -684,7 +684,7 @@ static final StrokeRec char59[] = {
 static final CoordRec char60_stroke0[] = {
     new CoordRec((float) 79.2505, (float) 85.7143),
     new CoordRec((float) 3.06, (float) 42.8571),
-    new CoordRec((float) 79.2505, (float) 0),
+    new CoordRec((float) 79.2505, 0),
 };
 
 static final StrokeRec char60[] = {
@@ -713,7 +713,7 @@ static final StrokeRec char61[] = {
 static final CoordRec char62_stroke0[] = {
     new CoordRec((float) 2.78, (float) 85.7143),
     new CoordRec((float) 78.9705, (float) 42.8571),
-    new CoordRec((float) 2.78, (float) 0),
+    new CoordRec((float) 2.78, 0),
 };
 
 static final StrokeRec char62[] = {
@@ -727,8 +727,8 @@ static final CoordRec char63_stroke0[] = {
     new CoordRec((float) 8.42, (float) 80.9524),
     new CoordRec((float) 13.1819, (float) 90.4762),
     new CoordRec((float) 17.9438, (float) 95.2381),
-    new CoordRec((float) 27.4676, (float) 100),
-    new CoordRec((float) 46.5152, (float) 100),
+    new CoordRec((float) 27.4676, 100),
+    new CoordRec((float) 46.5152, 100),
     new CoordRec((float) 56.039, (float) 95.2381),
     new CoordRec((float) 60.801, (float) 90.4762),
     new CoordRec((float) 65.5629, (float) 80.9524),
@@ -742,7 +742,7 @@ static final CoordRec char63_stroke0[] = {
 static final CoordRec char63_stroke1[] = {
     new CoordRec((float) 36.9914, (float) 9.5238),
     new CoordRec((float) 32.2295, (float) 4.7619),
-    new CoordRec((float) 36.9914, (float) 0),
+    new CoordRec((float) 36.9914, 0),
     new CoordRec((float) 41.7533, (float) 4.7619),
     new CoordRec((float) 36.9914, (float) 9.5238),
 };
@@ -795,13 +795,13 @@ static final StrokeRec char64[] = {
 /* char: 65 'A' */
 
 static final CoordRec char65_stroke0[] = {
-    new CoordRec((float) 40.5952, (float) 100),
-    new CoordRec((float) 2.5, (float) 0),
+    new CoordRec((float) 40.5952, 100),
+    new CoordRec((float) 2.5, 0),
 };
 
 static final CoordRec char65_stroke1[] = {
-    new CoordRec((float) 40.5952, (float) 100),
-    new CoordRec((float) 78.6905, (float) 0),
+    new CoordRec((float) 40.5952, 100),
+    new CoordRec((float) 78.6905, 0),
 };
 
 static final CoordRec char65_stroke2[] = {
@@ -818,13 +818,13 @@ static final StrokeRec char65[] = {
 /* char: 66 'B' */
 
 static final CoordRec char66_stroke0[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 11.42, (float) 0),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 11.42, 0),
 };
 
 static final CoordRec char66_stroke1[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 54.2771, (float) 100),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 54.2771, 100),
     new CoordRec((float) 68.5629, (float) 95.2381),
     new CoordRec((float) 73.3248, (float) 90.4762),
     new CoordRec((float) 78.0867, (float) 80.9524),
@@ -843,8 +843,8 @@ static final CoordRec char66_stroke2[] = {
     new CoordRec((float) 78.0867, (float) 19.0476),
     new CoordRec((float) 73.3248, (float) 9.5238),
     new CoordRec((float) 68.5629, (float) 4.7619),
-    new CoordRec((float) 54.2771, (float) 0),
-    new CoordRec((float) 11.42, (float) 0),
+    new CoordRec((float) 54.2771, 0),
+    new CoordRec((float) 11.42, 0),
 };
 
 static final StrokeRec char66[] = {
@@ -859,8 +859,8 @@ static final CoordRec char67_stroke0[] = {
     new CoordRec((float) 78.0886, (float) 76.1905),
     new CoordRec((float) 73.3267, (float) 85.7143),
     new CoordRec((float) 63.8029, (float) 95.2381),
-    new CoordRec((float) 54.279, (float) 100),
-    new CoordRec((float) 35.2314, (float) 100),
+    new CoordRec((float) 54.279, 100),
+    new CoordRec((float) 35.2314, 100),
     new CoordRec((float) 25.7076, (float) 95.2381),
     new CoordRec((float) 16.1838, (float) 85.7143),
     new CoordRec((float) 11.4219, (float) 76.1905),
@@ -869,8 +869,8 @@ static final CoordRec char67_stroke0[] = {
     new CoordRec((float) 11.4219, (float) 23.8095),
     new CoordRec((float) 16.1838, (float) 14.2857),
     new CoordRec((float) 25.7076, (float) 4.7619),
-    new CoordRec((float) 35.2314, (float) 0),
-    new CoordRec((float) 54.279, (float) 0),
+    new CoordRec((float) 35.2314, 0),
+    new CoordRec((float) 54.279, 0),
     new CoordRec((float) 63.8029, (float) 4.7619),
     new CoordRec((float) 73.3267, (float) 14.2857),
     new CoordRec((float) 78.0886, (float) 23.8095),
@@ -883,13 +883,13 @@ static final StrokeRec char67[] = {
 /* char: 68 'D' */
 
 static final CoordRec char68_stroke0[] = {
-    new CoordRec((float) 11.96, (float) 100),
-    new CoordRec((float) 11.96, (float) 0),
+    new CoordRec((float) 11.96, 100),
+    new CoordRec((float) 11.96, 0),
 };
 
 static final CoordRec char68_stroke1[] = {
-    new CoordRec((float) 11.96, (float) 100),
-    new CoordRec((float) 45.2933, (float) 100),
+    new CoordRec((float) 11.96, 100),
+    new CoordRec((float) 45.2933, 100),
     new CoordRec((float) 59.579, (float) 95.2381),
     new CoordRec((float) 69.1029, (float) 85.7143),
     new CoordRec((float) 73.8648, (float) 76.1905),
@@ -898,8 +898,8 @@ static final CoordRec char68_stroke1[] = {
     new CoordRec((float) 73.8648, (float) 23.8095),
     new CoordRec((float) 69.1029, (float) 14.2857),
     new CoordRec((float) 59.579, (float) 4.7619),
-    new CoordRec((float) 45.2933, (float) 0),
-    new CoordRec((float) 11.96, (float) 0),
+    new CoordRec((float) 45.2933, 0),
+    new CoordRec((float) 11.96, 0),
 };
 
 static final StrokeRec char68[] = {
@@ -910,13 +910,13 @@ static final StrokeRec char68[] = {
 /* char: 69 'E' */
 
 static final CoordRec char69_stroke0[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 11.42, (float) 0),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 11.42, 0),
 };
 
 static final CoordRec char69_stroke1[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 73.3248, (float) 100),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 73.3248, 100),
 };
 
 static final CoordRec char69_stroke2[] = {
@@ -925,8 +925,8 @@ static final CoordRec char69_stroke2[] = {
 };
 
 static final CoordRec char69_stroke3[] = {
-    new CoordRec((float) 11.42, (float) 0),
-    new CoordRec((float) 73.3248, (float) 0),
+    new CoordRec((float) 11.42, 0),
+    new CoordRec((float) 73.3248, 0),
 };
 
 static final StrokeRec char69[] = {
@@ -939,13 +939,13 @@ static final StrokeRec char69[] = {
 /* char: 70 'F' */
 
 static final CoordRec char70_stroke0[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 11.42, (float) 0),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 11.42, 0),
 };
 
 static final CoordRec char70_stroke1[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 73.3248, (float) 100),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 73.3248, 100),
 };
 
 static final CoordRec char70_stroke2[] = {
@@ -965,8 +965,8 @@ static final CoordRec char71_stroke0[] = {
     new CoordRec((float) 78.4886, (float) 76.1905),
     new CoordRec((float) 73.7267, (float) 85.7143),
     new CoordRec((float) 64.2029, (float) 95.2381),
-    new CoordRec((float) 54.679, (float) 100),
-    new CoordRec((float) 35.6314, (float) 100),
+    new CoordRec((float) 54.679, 100),
+    new CoordRec((float) 35.6314, 100),
     new CoordRec((float) 26.1076, (float) 95.2381),
     new CoordRec((float) 16.5838, (float) 85.7143),
     new CoordRec((float) 11.8219, (float) 76.1905),
@@ -975,8 +975,8 @@ static final CoordRec char71_stroke0[] = {
     new CoordRec((float) 11.8219, (float) 23.8095),
     new CoordRec((float) 16.5838, (float) 14.2857),
     new CoordRec((float) 26.1076, (float) 4.7619),
-    new CoordRec((float) 35.6314, (float) 0),
-    new CoordRec((float) 54.679, (float) 0),
+    new CoordRec((float) 35.6314, 0),
+    new CoordRec((float) 54.679, 0),
     new CoordRec((float) 64.2029, (float) 4.7619),
     new CoordRec((float) 73.7267, (float) 14.2857),
     new CoordRec((float) 78.4886, (float) 23.8095),
@@ -996,13 +996,13 @@ static final StrokeRec char71[] = {
 /* char: 72 'H' */
 
 static final CoordRec char72_stroke0[] = {
-    new CoordRec((float) 11.42, (float) 100),
-    new CoordRec((float) 11.42, (float) 0),
+    new CoordRec((float) 11.42, 100),
+    new CoordRec((float) 11.42, 0),
 };
 
 static final CoordRec char72_stroke1[] = {
-    new CoordRec((float) 78.0867, (float) 100),
-    new CoordRec((float) 78.0867, (float) 0),
+    new CoordRec((float) 78.0867, 100),
+    new CoordRec((float) 78.0867, 0),
 };
 
 static final CoordRec char72_stroke2[] = {
@@ -1019,8 +1019,8 @@ static final StrokeRec char72[] = {
 /* char: 73 'I' */
 
 static final CoordRec char73_stroke0[] = {
-    new CoordRec((float) 10.86, (float) 100),
-    new CoordRec((float) 10.86, (float) 0),
+    new CoordRec((float) 10.86, 100),
+    new CoordRec((float) 10.86, 0),
 };
 
 static final StrokeRec char73[] = {
@@ -1030,12 +1030,12 @@ static final StrokeRec char73[] = {
 /* char: 74 'J' */
 
 static final CoordRec char74_stroke0[] = {
-    new CoordRec((float) 50.119, (float) 100),
+    new CoordRec((float) 50.119, 100),
     new CoordRec((float) 50.119, (float) 23.8095),
     new CoordRec((float) 45.3571, (float) 9.5238),
     new CoordRec((float) 40.5952, (float) 4.7619),
-    new CoordRec((float) 31.0714, (float) 0),
-    new CoordRec((float) 21.5476, (float) 0),
+    new CoordRec((float) 31.0714, 0),
+    new CoordRec((float) 21.5476, 0),
     new CoordRec((float) 12.0238, (float) 4.7619),
     new CoordRec((float) 7.2619, (float) 9.5238),
     new CoordRec((float) 2.5, (float) 23.8095),
@@ -1049,18 +1049,18 @@ static final StrokeRec char74[] = {
 /* char: 75 'K' */
 
 static final CoordRec char75_stroke0[] = {
-    new CoordRec((float) 11.28, (float) 100),
-    new CoordRec((float) 11.28, (float) 0),
+    new CoordRec((float) 11.28, 100),
+    new CoordRec((float) 11.28, 0),
 };
 
 static final CoordRec char75_stroke1[] = {
-    new CoordRec((float) 77.9467, (float) 100),
+    new CoordRec((float) 77.9467, 100),
     new CoordRec((float) 11.28, (float) 33.3333),
 };
 
 static final CoordRec char75_stroke2[] = {
     new CoordRec((float) 35.0895, (float) 57.1429),
-    new CoordRec((float) 77.9467, (float) 0),
+    new CoordRec((float) 77.9467, 0),
 };
 
 static final StrokeRec char75[] = {
@@ -1072,13 +1072,13 @@ static final StrokeRec char75[] = {
 /* char: 76 'L' */
 
 static final CoordRec char76_stroke0[] = {
-    new CoordRec((float) 11.68, (float) 100),
-    new CoordRec((float) 11.68, (float) 0),
+    new CoordRec((float) 11.68, 100),
+    new CoordRec((float) 11.68, 0),
 };
 
 static final CoordRec char76_stroke1[] = {
-    new CoordRec((float) 11.68, (float) 0),
-    new CoordRec((float) 68.8229, (float) 0),
+    new CoordRec((float) 11.68, 0),
+    new CoordRec((float) 68.8229, 0),
 };
 
 static final StrokeRec char76[] = {
@@ -1089,23 +1089,23 @@ static final StrokeRec char76[] = {
 /* char: 77 'M' */
 
 static final CoordRec char77_stroke0[] = {
-    new CoordRec((float) 10.86, (float) 100),
-    new CoordRec((float) 10.86, (float) 0),
+    new CoordRec((float) 10.86, 100),
+    new CoordRec((float) 10.86, 0),
 };
 
 static final CoordRec char77_stroke1[] = {
-    new CoordRec((float) 10.86, (float) 100),
-    new CoordRec((float) 48.9552, (float) 0),
+    new CoordRec((float) 10.86, 100),
+    new CoordRec((float) 48.9552, 0),
 };
 
 static final CoordRec char77_stroke2[] = {
-    new CoordRec((float) 87.0505, (float) 100),
-    new CoordRec((float) 48.9552, (float) 0),
+    new CoordRec((float) 87.0505, 100),
+    new CoordRec((float) 48.9552, 0),
 };
 
 static final CoordRec char77_stroke3[] = {
-    new CoordRec((float) 87.0505, (float) 100),
-    new CoordRec((float) 87.0505, (float) 0),
+    new CoordRec((float) 87.0505, 100),
+    new CoordRec((float) 87.0505, 0),
 };
 
 static final StrokeRec char77[] = {
@@ -1118,18 +1118,18 @@ static final StrokeRec char77[] = {
 /* char: 78 'N' */
 
 static final CoordRec char78_stroke0[] = {
-    new CoordRec((float) 11.14, (float) 100),
-    new CoordRec((float) 11.14, (float) 0),
+    new CoordRec((float) 11.14, 100),
+    new CoordRec((float) 11.14, 0),
 };
 
 static final CoordRec char78_stroke1[] = {
-    new CoordRec((float) 11.14, (float) 100),
-    new CoordRec((float) 77.8067, (float) 0),
+    new CoordRec((float) 11.14, 100),
+    new CoordRec((float) 77.8067, 0),
 };
 
 static final CoordRec char78_stroke2[] = {
-    new CoordRec((float) 77.8067, (float) 100),
-    new CoordRec((float) 77.8067, (float) 0),
+    new CoordRec((float) 77.8067, 100),
+    new CoordRec((float) 77.8067, 0),
 };
 
 static final StrokeRec char78[] = {
@@ -1141,7 +1141,7 @@ static final StrokeRec char78[] = {
 /* char: 79 'O' */
 
 static final CoordRec char79_stroke0[] = {
-    new CoordRec((float) 34.8114, (float) 100),
+    new CoordRec((float) 34.8114, 100),
     new CoordRec((float) 25.2876, (float) 95.2381),
     new CoordRec((float) 15.7638, (float) 85.7143),
     new CoordRec((float) 11.0019, (float) 76.1905),
@@ -1150,8 +1150,8 @@ static final CoordRec char79_stroke0[] = {
     new CoordRec((float) 11.0019, (float) 23.8095),
     new CoordRec((float) 15.7638, (float) 14.2857),
     new CoordRec((float) 25.2876, (float) 4.7619),
-    new CoordRec((float) 34.8114, (float) 0),
-    new CoordRec((float) 53.859, (float) 0),
+    new CoordRec((float) 34.8114, 0),
+    new CoordRec((float) 53.859, 0),
     new CoordRec((float) 63.3829, (float) 4.7619),
     new CoordRec((float) 72.9067, (float) 14.2857),
     new CoordRec((float) 77.6686, (float) 23.8095),
@@ -1160,8 +1160,8 @@ static final CoordRec char79_stroke0[] = {
     new CoordRec((float) 77.6686, (float) 76.1905),
     new CoordRec((float) 72.9067, (float) 85.7143),
     new CoordRec((float) 63.3829, (float) 95.2381),
-    new CoordRec((float) 53.859, (float) 100),
-    new CoordRec((float) 34.8114, (float) 100),
+    new CoordRec((float) 53.859, 100),
+    new CoordRec((float) 34.8114, 100),
 };
 
 static final StrokeRec char79[] = {
@@ -1171,13 +1171,13 @@ static final StrokeRec char79[] = {
 /* char: 80 'P' */
 
 static final CoordRec char80_stroke0[] = {
-    new CoordRec((float) 12.1, (float) 100),
-    new CoordRec((float) 12.1, (float) 0),
+    new CoordRec((float) 12.1, 100),
+    new CoordRec((float) 12.1, 0),
 };
 
 static final CoordRec char80_stroke1[] = {
-    new CoordRec((float) 12.1, (float) 100),
-    new CoordRec((float) 54.9571, (float) 100),
+    new CoordRec((float) 12.1, 100),
+    new CoordRec((float) 54.9571, 100),
     new CoordRec((float) 69.2429, (float) 95.2381),
     new CoordRec((float) 74.0048, (float) 90.4762),
     new CoordRec((float) 78.7667, (float) 80.9524),
@@ -1196,7 +1196,7 @@ static final StrokeRec char80[] = {
 /* char: 81 'Q' */
 
 static final CoordRec char81_stroke0[] = {
-    new CoordRec((float) 33.8714, (float) 100),
+    new CoordRec((float) 33.8714, 100),
     new CoordRec((float) 24.3476, (float) 95.2381),
     new CoordRec((float) 14.8238, (float) 85.7143),
     new CoordRec((float) 10.0619, (float) 76.1905),
@@ -1205,8 +1205,8 @@ static final CoordRec char81_stroke0[] = {
     new CoordRec((float) 10.0619, (float) 23.8095),
     new CoordRec((float) 14.8238, (float) 14.2857),
     new CoordRec((float) 24.3476, (float) 4.7619),
-    new CoordRec((float) 33.8714, (float) 0),
-    new CoordRec((float) 52.919, (float) 0),
+    new CoordRec((float) 33.8714, 0),
+    new CoordRec((float) 52.919, 0),
     new CoordRec((float) 62.4429, (float) 4.7619),
     new CoordRec((float) 71.9667, (float) 14.2857),
     new CoordRec((float) 76.7286, (float) 23.8095),
@@ -1215,8 +1215,8 @@ static final CoordRec char81_stroke0[] = {
     new CoordRec((float) 76.7286, (float) 76.1905),
     new CoordRec((float) 71.9667, (float) 85.7143),
     new CoordRec((float) 62.4429, (float) 95.2381),
-    new CoordRec((float) 52.919, (float) 100),
-    new CoordRec((float) 33.8714, (float) 100),
+    new CoordRec((float) 52.919, 100),
+    new CoordRec((float) 33.8714, 100),
 };
 
 static final CoordRec char81_stroke1[] = {
@@ -1232,13 +1232,13 @@ static final StrokeRec char81[] = {
 /* char: 82 'R' */
 
 static final CoordRec char82_stroke0[] = {
-    new CoordRec((float) 11.68, (float) 100),
-    new CoordRec((float) 11.68, (float) 0),
+    new CoordRec((float) 11.68, 100),
+    new CoordRec((float) 11.68, 0),
 };
 
 static final CoordRec char82_stroke1[] = {
-    new CoordRec((float) 11.68, (float) 100),
-    new CoordRec((float) 54.5371, (float) 100),
+    new CoordRec((float) 11.68, 100),
+    new CoordRec((float) 54.5371, 100),
     new CoordRec((float) 68.8229, (float) 95.2381),
     new CoordRec((float) 73.5848, (float) 90.4762),
     new CoordRec((float) 78.3467, (float) 80.9524),
@@ -1251,7 +1251,7 @@ static final CoordRec char82_stroke1[] = {
 
 static final CoordRec char82_stroke2[] = {
     new CoordRec((float) 45.0133, (float) 52.381),
-    new CoordRec((float) 78.3467, (float) 0),
+    new CoordRec((float) 78.3467, 0),
 };
 
 static final StrokeRec char82[] = {
@@ -1265,11 +1265,11 @@ static final StrokeRec char82[] = {
 static final CoordRec char83_stroke0[] = {
     new CoordRec((float) 74.6667, (float) 85.7143),
     new CoordRec((float) 65.1429, (float) 95.2381),
-    new CoordRec((float) 50.8571, (float) 100),
-    new CoordRec((float) 31.8095, (float) 100),
+    new CoordRec((float) 50.8571, 100),
+    new CoordRec((float) 31.8095, 100),
     new CoordRec((float) 17.5238, (float) 95.2381),
-    new CoordRec((float) 8, (float) 85.7143),
-    new CoordRec((float) 8, (float) 76.1905),
+    new CoordRec(8, (float) 85.7143),
+    new CoordRec(8, (float) 76.1905),
     new CoordRec((float) 12.7619, (float) 66.6667),
     new CoordRec((float) 17.5238, (float) 61.9048),
     new CoordRec((float) 27.0476, (float) 57.1429),
@@ -1279,10 +1279,10 @@ static final CoordRec char83_stroke0[] = {
     new CoordRec((float) 74.6667, (float) 28.5714),
     new CoordRec((float) 74.6667, (float) 14.2857),
     new CoordRec((float) 65.1429, (float) 4.7619),
-    new CoordRec((float) 50.8571, (float) 0),
-    new CoordRec((float) 31.8095, (float) 0),
+    new CoordRec((float) 50.8571, 0),
+    new CoordRec((float) 31.8095, 0),
     new CoordRec((float) 17.5238, (float) 4.7619),
-    new CoordRec((float) 8, (float) 14.2857),
+    new CoordRec(8, (float) 14.2857),
 };
 
 static final StrokeRec char83[] = {
@@ -1292,13 +1292,13 @@ static final StrokeRec char83[] = {
 /* char: 84 'T' */
 
 static final CoordRec char84_stroke0[] = {
-    new CoordRec((float) 35.6933, (float) 100),
-    new CoordRec((float) 35.6933, (float) 0),
+    new CoordRec((float) 35.6933, 100),
+    new CoordRec((float) 35.6933, 0),
 };
 
 static final CoordRec char84_stroke1[] = {
-    new CoordRec((float) 2.36, (float) 100),
-    new CoordRec((float) 69.0267, (float) 100),
+    new CoordRec((float) 2.36, 100),
+    new CoordRec((float) 69.0267, 100),
 };
 
 static final StrokeRec char84[] = {
@@ -1309,16 +1309,16 @@ static final StrokeRec char84[] = {
 /* char: 85 'U' */
 
 static final CoordRec char85_stroke0[] = {
-    new CoordRec((float) 11.54, (float) 100),
+    new CoordRec((float) 11.54, 100),
     new CoordRec((float) 11.54, (float) 28.5714),
     new CoordRec((float) 16.3019, (float) 14.2857),
     new CoordRec((float) 25.8257, (float) 4.7619),
-    new CoordRec((float) 40.1114, (float) 0),
-    new CoordRec((float) 49.6352, (float) 0),
+    new CoordRec((float) 40.1114, 0),
+    new CoordRec((float) 49.6352, 0),
     new CoordRec((float) 63.921, (float) 4.7619),
     new CoordRec((float) 73.4448, (float) 14.2857),
     new CoordRec((float) 78.2067, (float) 28.5714),
-    new CoordRec((float) 78.2067, (float) 100),
+    new CoordRec((float) 78.2067, 100),
 };
 
 static final StrokeRec char85[] = {
@@ -1328,13 +1328,13 @@ static final StrokeRec char85[] = {
 /* char: 86 'V' */
 
 static final CoordRec char86_stroke0[] = {
-    new CoordRec((float) 2.36, (float) 100),
-    new CoordRec((float) 40.4552, (float) 0),
+    new CoordRec((float) 2.36, 100),
+    new CoordRec((float) 40.4552, 0),
 };
 
 static final CoordRec char86_stroke1[] = {
-    new CoordRec((float) 78.5505, (float) 100),
-    new CoordRec((float) 40.4552, (float) 0),
+    new CoordRec((float) 78.5505, 100),
+    new CoordRec((float) 40.4552, 0),
 };
 
 static final StrokeRec char86[] = {
@@ -1345,23 +1345,23 @@ static final StrokeRec char86[] = {
 /* char: 87 'W' */
 
 static final CoordRec char87_stroke0[] = {
-    new CoordRec((float) 2.22, (float) 100),
-    new CoordRec((float) 26.0295, (float) 0),
+    new CoordRec((float) 2.22, 100),
+    new CoordRec((float) 26.0295, 0),
 };
 
 static final CoordRec char87_stroke1[] = {
-    new CoordRec((float) 49.839, (float) 100),
-    new CoordRec((float) 26.0295, (float) 0),
+    new CoordRec((float) 49.839, 100),
+    new CoordRec((float) 26.0295, 0),
 };
 
 static final CoordRec char87_stroke2[] = {
-    new CoordRec((float) 49.839, (float) 100),
-    new CoordRec((float) 73.6486, (float) 0),
+    new CoordRec((float) 49.839, 100),
+    new CoordRec((float) 73.6486, 0),
 };
 
 static final CoordRec char87_stroke3[] = {
-    new CoordRec((float) 97.4581, (float) 100),
-    new CoordRec((float) 73.6486, (float) 0),
+    new CoordRec((float) 97.4581, 100),
+    new CoordRec((float) 73.6486, 0),
 };
 
 static final StrokeRec char87[] = {
@@ -1374,13 +1374,13 @@ static final StrokeRec char87[] = {
 /* char: 88 'X' */
 
 static final CoordRec char88_stroke0[] = {
-    new CoordRec((float) 2.5, (float) 100),
-    new CoordRec((float) 69.1667, (float) 0),
+    new CoordRec((float) 2.5, 100),
+    new CoordRec((float) 69.1667, 0),
 };
 
 static final CoordRec char88_stroke1[] = {
-    new CoordRec((float) 69.1667, (float) 100),
-    new CoordRec((float) 2.5, (float) 0),
+    new CoordRec((float) 69.1667, 100),
+    new CoordRec((float) 2.5, 0),
 };
 
 static final StrokeRec char88[] = {
@@ -1391,13 +1391,13 @@ static final StrokeRec char88[] = {
 /* char: 89 'Y' */
 
 static final CoordRec char89_stroke0[] = {
-    new CoordRec((float) 1.52, (float) 100),
+    new CoordRec((float) 1.52, 100),
     new CoordRec((float) 39.6152, (float) 52.381),
-    new CoordRec((float) 39.6152, (float) 0),
+    new CoordRec((float) 39.6152, 0),
 };
 
 static final CoordRec char89_stroke1[] = {
-    new CoordRec((float) 77.7105, (float) 100),
+    new CoordRec((float) 77.7105, 100),
     new CoordRec((float) 39.6152, (float) 52.381),
 };
 
@@ -1409,18 +1409,18 @@ static final StrokeRec char89[] = {
 /* char: 90 'Z' */
 
 static final CoordRec char90_stroke0[] = {
-    new CoordRec((float) 69.1667, (float) 100),
-    new CoordRec((float) 2.5, (float) 0),
+    new CoordRec((float) 69.1667, 100),
+    new CoordRec((float) 2.5, 0),
 };
 
 static final CoordRec char90_stroke1[] = {
-    new CoordRec((float) 2.5, (float) 100),
-    new CoordRec((float) 69.1667, (float) 100),
+    new CoordRec((float) 2.5, 100),
+    new CoordRec((float) 69.1667, 100),
 };
 
 static final CoordRec char90_stroke2[] = {
-    new CoordRec((float) 2.5, (float) 0),
-    new CoordRec((float) 69.1667, (float) 0),
+    new CoordRec((float) 2.5, 0),
+    new CoordRec((float) 69.1667, 0),
 };
 
 static final StrokeRec char90[] = {
@@ -1461,7 +1461,7 @@ static final StrokeRec char91[] = {
 /* char: 92 '\' */
 
 static final CoordRec char92_stroke0[] = {
-    new CoordRec((float) 5.84, (float) 100),
+    new CoordRec((float) 5.84, 100),
     new CoordRec((float) 72.5067, (float) -14.2857),
 };
 
@@ -1532,12 +1532,12 @@ static final StrokeRec char95[] = {
 /* char: 96 '`' */
 
 static final CoordRec char96_stroke0[] = {
-    new CoordRec((float) 33.0219, (float) 100),
+    new CoordRec((float) 33.0219, 100),
     new CoordRec((float) 56.8314, (float) 71.4286),
 };
 
 static final CoordRec char96_stroke1[] = {
-    new CoordRec((float) 33.0219, (float) 100),
+    new CoordRec((float) 33.0219, 100),
     new CoordRec((float) 28.26, (float) 95.2381),
     new CoordRec((float) 56.8314, (float) 71.4286),
 };
@@ -1551,7 +1551,7 @@ static final StrokeRec char96[] = {
 
 static final CoordRec char97_stroke0[] = {
     new CoordRec((float) 63.8229, (float) 66.6667),
-    new CoordRec((float) 63.8229, (float) 0),
+    new CoordRec((float) 63.8229, 0),
 };
 
 static final CoordRec char97_stroke1[] = {
@@ -1565,8 +1565,8 @@ static final CoordRec char97_stroke1[] = {
     new CoordRec((float) 6.68, (float) 28.5714),
     new CoordRec((float) 11.4419, (float) 14.2857),
     new CoordRec((float) 20.9657, (float) 4.7619),
-    new CoordRec((float) 30.4895, (float) 0),
-    new CoordRec((float) 44.7752, (float) 0),
+    new CoordRec((float) 30.4895, 0),
+    new CoordRec((float) 44.7752, 0),
     new CoordRec((float) 54.299, (float) 4.7619),
     new CoordRec((float) 63.8229, (float) 14.2857),
 };
@@ -1579,8 +1579,8 @@ static final StrokeRec char97[] = {
 /* char: 98 'b' */
 
 static final CoordRec char98_stroke0[] = {
-    new CoordRec((float) 8.76, (float) 100),
-    new CoordRec((float) 8.76, (float) 0),
+    new CoordRec((float) 8.76, 100),
+    new CoordRec((float) 8.76, 0),
 };
 
 static final CoordRec char98_stroke1[] = {
@@ -1594,8 +1594,8 @@ static final CoordRec char98_stroke1[] = {
     new CoordRec((float) 65.9029, (float) 28.5714),
     new CoordRec((float) 61.141, (float) 14.2857),
     new CoordRec((float) 51.6171, (float) 4.7619),
-    new CoordRec((float) 42.0933, (float) 0),
-    new CoordRec((float) 27.8076, (float) 0),
+    new CoordRec((float) 42.0933, 0),
+    new CoordRec((float) 27.8076, 0),
     new CoordRec((float) 18.2838, (float) 4.7619),
     new CoordRec((float) 8.76, (float) 14.2857),
 };
@@ -1618,8 +1618,8 @@ static final CoordRec char99_stroke0[] = {
     new CoordRec((float) 5.52, (float) 28.5714),
     new CoordRec((float) 10.2819, (float) 14.2857),
     new CoordRec((float) 19.8057, (float) 4.7619),
-    new CoordRec((float) 29.3295, (float) 0),
-    new CoordRec((float) 43.6152, (float) 0),
+    new CoordRec((float) 29.3295, 0),
+    new CoordRec((float) 43.6152, 0),
     new CoordRec((float) 53.139, (float) 4.7619),
     new CoordRec((float) 62.6629, (float) 14.2857),
 };
@@ -1631,8 +1631,8 @@ static final StrokeRec char99[] = {
 /* char: 100 'd' */
 
 static final CoordRec char100_stroke0[] = {
-    new CoordRec((float) 61.7829, (float) 100),
-    new CoordRec((float) 61.7829, (float) 0),
+    new CoordRec((float) 61.7829, 100),
+    new CoordRec((float) 61.7829, 0),
 };
 
 static final CoordRec char100_stroke1[] = {
@@ -1646,8 +1646,8 @@ static final CoordRec char100_stroke1[] = {
     new CoordRec((float) 4.64, (float) 28.5714),
     new CoordRec((float) 9.4019, (float) 14.2857),
     new CoordRec((float) 18.9257, (float) 4.7619),
-    new CoordRec((float) 28.4495, (float) 0),
-    new CoordRec((float) 42.7352, (float) 0),
+    new CoordRec((float) 28.4495, 0),
+    new CoordRec((float) 42.7352, 0),
     new CoordRec((float) 52.259, (float) 4.7619),
     new CoordRec((float) 61.7829, (float) 14.2857),
 };
@@ -1673,8 +1673,8 @@ static final CoordRec char101_stroke0[] = {
     new CoordRec((float) 5.72, (float) 28.5714),
     new CoordRec((float) 10.4819, (float) 14.2857),
     new CoordRec((float) 20.0057, (float) 4.7619),
-    new CoordRec((float) 29.5295, (float) 0),
-    new CoordRec((float) 43.8152, (float) 0),
+    new CoordRec((float) 29.5295, 0),
+    new CoordRec((float) 43.8152, 0),
     new CoordRec((float) 53.339, (float) 4.7619),
     new CoordRec((float) 62.8629, (float) 14.2857),
 };
@@ -1686,11 +1686,11 @@ static final StrokeRec char101[] = {
 /* char: 102 'f' */
 
 static final CoordRec char102_stroke0[] = {
-    new CoordRec((float) 38.7752, (float) 100),
-    new CoordRec((float) 29.2514, (float) 100),
+    new CoordRec((float) 38.7752, 100),
+    new CoordRec((float) 29.2514, 100),
     new CoordRec((float) 19.7276, (float) 95.2381),
     new CoordRec((float) 14.9657, (float) 80.9524),
-    new CoordRec((float) 14.9657, (float) 0),
+    new CoordRec((float) 14.9657, 0),
 };
 
 static final CoordRec char102_stroke1[] = {
@@ -1726,8 +1726,8 @@ static final CoordRec char103_stroke1[] = {
     new CoordRec((float) 5.36, (float) 28.5714),
     new CoordRec((float) 10.1219, (float) 14.2857),
     new CoordRec((float) 19.6457, (float) 4.7619),
-    new CoordRec((float) 29.1695, (float) 0),
-    new CoordRec((float) 43.4552, (float) 0),
+    new CoordRec((float) 29.1695, 0),
+    new CoordRec((float) 43.4552, 0),
     new CoordRec((float) 52.979, (float) 4.7619),
     new CoordRec((float) 62.5029, (float) 14.2857),
 };
@@ -1740,8 +1740,8 @@ static final StrokeRec char103[] = {
 /* char: 104 'h' */
 
 static final CoordRec char104_stroke0[] = {
-    new CoordRec((float) 9.6, (float) 100),
-    new CoordRec((float) 9.6, (float) 0),
+    new CoordRec((float) 9.6, 100),
+    new CoordRec((float) 9.6, 0),
 };
 
 static final CoordRec char104_stroke1[] = {
@@ -1751,7 +1751,7 @@ static final CoordRec char104_stroke1[] = {
     new CoordRec((float) 47.6952, (float) 66.6667),
     new CoordRec((float) 57.219, (float) 61.9048),
     new CoordRec((float) 61.981, (float) 47.619),
-    new CoordRec((float) 61.981, (float) 0),
+    new CoordRec((float) 61.981, 0),
 };
 
 static final StrokeRec char104[] = {
@@ -1762,16 +1762,16 @@ static final StrokeRec char104[] = {
 /* char: 105 'i' */
 
 static final CoordRec char105_stroke0[] = {
-    new CoordRec((float) 10.02, (float) 100),
+    new CoordRec((float) 10.02, 100),
     new CoordRec((float) 14.7819, (float) 95.2381),
-    new CoordRec((float) 19.5438, (float) 100),
+    new CoordRec((float) 19.5438, 100),
     new CoordRec((float) 14.7819, (float) 104.762),
-    new CoordRec((float) 10.02, (float) 100),
+    new CoordRec((float) 10.02, 100),
 };
 
 static final CoordRec char105_stroke1[] = {
     new CoordRec((float) 14.7819, (float) 66.6667),
-    new CoordRec((float) 14.7819, (float) 0),
+    new CoordRec((float) 14.7819, 0),
 };
 
 static final StrokeRec char105[] = {
@@ -1782,11 +1782,11 @@ static final StrokeRec char105[] = {
 /* char: 106 'j' */
 
 static final CoordRec char106_stroke0[] = {
-    new CoordRec((float) 17.3876, (float) 100),
+    new CoordRec((float) 17.3876, 100),
     new CoordRec((float) 22.1495, (float) 95.2381),
-    new CoordRec((float) 26.9114, (float) 100),
+    new CoordRec((float) 26.9114, 100),
     new CoordRec((float) 22.1495, (float) 104.762),
-    new CoordRec((float) 17.3876, (float) 100),
+    new CoordRec((float) 17.3876, 100),
 };
 
 static final CoordRec char106_stroke1[] = {
@@ -1805,8 +1805,8 @@ static final StrokeRec char106[] = {
 /* char: 107 'k' */
 
 static final CoordRec char107_stroke0[] = {
-    new CoordRec((float) 9.6, (float) 100),
-    new CoordRec((float) 9.6, (float) 0),
+    new CoordRec((float) 9.6, 100),
+    new CoordRec((float) 9.6, 0),
 };
 
 static final CoordRec char107_stroke1[] = {
@@ -1816,7 +1816,7 @@ static final CoordRec char107_stroke1[] = {
 
 static final CoordRec char107_stroke2[] = {
     new CoordRec((float) 28.6476, (float) 38.0952),
-    new CoordRec((float) 61.981, (float) 0),
+    new CoordRec((float) 61.981, 0),
 };
 
 static final StrokeRec char107[] = {
@@ -1828,8 +1828,8 @@ static final StrokeRec char107[] = {
 /* char: 108 'l' */
 
 static final CoordRec char108_stroke0[] = {
-    new CoordRec((float) 10.02, (float) 100),
-    new CoordRec((float) 10.02, (float) 0),
+    new CoordRec((float) 10.02, 100),
+    new CoordRec((float) 10.02, 0),
 };
 
 static final StrokeRec char108[] = {
@@ -1840,7 +1840,7 @@ static final StrokeRec char108[] = {
 
 static final CoordRec char109_stroke0[] = {
     new CoordRec((float) 9.6, (float) 66.6667),
-    new CoordRec((float) 9.6, (float) 0),
+    new CoordRec((float) 9.6, 0),
 };
 
 static final CoordRec char109_stroke1[] = {
@@ -1850,7 +1850,7 @@ static final CoordRec char109_stroke1[] = {
     new CoordRec((float) 47.6952, (float) 66.6667),
     new CoordRec((float) 57.219, (float) 61.9048),
     new CoordRec((float) 61.981, (float) 47.619),
-    new CoordRec((float) 61.981, (float) 0),
+    new CoordRec((float) 61.981, 0),
 };
 
 static final CoordRec char109_stroke2[] = {
@@ -1860,7 +1860,7 @@ static final CoordRec char109_stroke2[] = {
     new CoordRec((float) 100.076, (float) 66.6667),
     new CoordRec((float) 109.6, (float) 61.9048),
     new CoordRec((float) 114.362, (float) 47.619),
-    new CoordRec((float) 114.362, (float) 0),
+    new CoordRec((float) 114.362, 0),
 };
 
 static final StrokeRec char109[] = {
@@ -1873,7 +1873,7 @@ static final StrokeRec char109[] = {
 
 static final CoordRec char110_stroke0[] = {
     new CoordRec((float) 9.18, (float) 66.6667),
-    new CoordRec((float) 9.18, (float) 0),
+    new CoordRec((float) 9.18, 0),
 };
 
 static final CoordRec char110_stroke1[] = {
@@ -1883,7 +1883,7 @@ static final CoordRec char110_stroke1[] = {
     new CoordRec((float) 47.2752, (float) 66.6667),
     new CoordRec((float) 56.799, (float) 61.9048),
     new CoordRec((float) 61.561, (float) 47.619),
-    new CoordRec((float) 61.561, (float) 0),
+    new CoordRec((float) 61.561, 0),
 };
 
 static final StrokeRec char110[] = {
@@ -1901,8 +1901,8 @@ static final CoordRec char111_stroke0[] = {
     new CoordRec((float) 4.98, (float) 28.5714),
     new CoordRec((float) 9.7419, (float) 14.2857),
     new CoordRec((float) 19.2657, (float) 4.7619),
-    new CoordRec((float) 28.7895, (float) 0),
-    new CoordRec((float) 43.0752, (float) 0),
+    new CoordRec((float) 28.7895, 0),
+    new CoordRec((float) 43.0752, 0),
     new CoordRec((float) 52.599, (float) 4.7619),
     new CoordRec((float) 62.1229, (float) 14.2857),
     new CoordRec((float) 66.8848, (float) 28.5714),
@@ -1935,8 +1935,8 @@ static final CoordRec char112_stroke1[] = {
     new CoordRec((float) 66.6029, (float) 28.5714),
     new CoordRec((float) 61.841, (float) 14.2857),
     new CoordRec((float) 52.3171, (float) 4.7619),
-    new CoordRec((float) 42.7933, (float) 0),
-    new CoordRec((float) 28.5076, (float) 0),
+    new CoordRec((float) 42.7933, 0),
+    new CoordRec((float) 28.5076, 0),
     new CoordRec((float) 18.9838, (float) 4.7619),
     new CoordRec((float) 9.46, (float) 14.2857),
 };
@@ -1964,8 +1964,8 @@ static final CoordRec char113_stroke1[] = {
     new CoordRec((float) 4.84, (float) 28.5714),
     new CoordRec((float) 9.6019, (float) 14.2857),
     new CoordRec((float) 19.1257, (float) 4.7619),
-    new CoordRec((float) 28.6495, (float) 0),
-    new CoordRec((float) 42.9352, (float) 0),
+    new CoordRec((float) 28.6495, 0),
+    new CoordRec((float) 42.9352, 0),
     new CoordRec((float) 52.459, (float) 4.7619),
     new CoordRec((float) 61.9829, (float) 14.2857),
 };
@@ -1979,7 +1979,7 @@ static final StrokeRec char113[] = {
 
 static final CoordRec char114_stroke0[] = {
     new CoordRec((float) 9.46, (float) 66.6667),
-    new CoordRec((float) 9.46, (float) 0),
+    new CoordRec((float) 9.46, 0),
 };
 
 static final CoordRec char114_stroke1[] = {
@@ -2011,8 +2011,8 @@ static final CoordRec char115_stroke0[] = {
     new CoordRec((float) 57.081, (float) 19.0476),
     new CoordRec((float) 57.081, (float) 14.2857),
     new CoordRec((float) 52.319, (float) 4.7619),
-    new CoordRec((float) 38.0333, (float) 0),
-    new CoordRec((float) 23.7476, (float) 0),
+    new CoordRec((float) 38.0333, 0),
+    new CoordRec((float) 23.7476, 0),
     new CoordRec((float) 9.4619, (float) 4.7619),
     new CoordRec((float) 4.7, (float) 14.2857),
 };
@@ -2024,11 +2024,11 @@ static final StrokeRec char115[] = {
 /* char: 116 't' */
 
 static final CoordRec char116_stroke0[] = {
-    new CoordRec((float) 14.8257, (float) 100),
+    new CoordRec((float) 14.8257, 100),
     new CoordRec((float) 14.8257, (float) 19.0476),
     new CoordRec((float) 19.5876, (float) 4.7619),
-    new CoordRec((float) 29.1114, (float) 0),
-    new CoordRec((float) 38.6352, (float) 0),
+    new CoordRec((float) 29.1114, 0),
+    new CoordRec((float) 38.6352, 0),
 };
 
 static final CoordRec char116_stroke1[] = {
@@ -2047,15 +2047,15 @@ static final CoordRec char117_stroke0[] = {
     new CoordRec((float) 9.46, (float) 66.6667),
     new CoordRec((float) 9.46, (float) 19.0476),
     new CoordRec((float) 14.2219, (float) 4.7619),
-    new CoordRec((float) 23.7457, (float) 0),
-    new CoordRec((float) 38.0314, (float) 0),
+    new CoordRec((float) 23.7457, 0),
+    new CoordRec((float) 38.0314, 0),
     new CoordRec((float) 47.5552, (float) 4.7619),
     new CoordRec((float) 61.841, (float) 19.0476),
 };
 
 static final CoordRec char117_stroke1[] = {
     new CoordRec((float) 61.841, (float) 66.6667),
-    new CoordRec((float) 61.841, (float) 0),
+    new CoordRec((float) 61.841, 0),
 };
 
 static final StrokeRec char117[] = {
@@ -2067,12 +2067,12 @@ static final StrokeRec char117[] = {
 
 static final CoordRec char118_stroke0[] = {
     new CoordRec((float) 1.8, (float) 66.6667),
-    new CoordRec((float) 30.3714, (float) 0),
+    new CoordRec((float) 30.3714, 0),
 };
 
 static final CoordRec char118_stroke1[] = {
     new CoordRec((float) 58.9429, (float) 66.6667),
-    new CoordRec((float) 30.3714, (float) 0),
+    new CoordRec((float) 30.3714, 0),
 };
 
 static final StrokeRec char118[] = {
@@ -2084,22 +2084,22 @@ static final StrokeRec char118[] = {
 
 static final CoordRec char119_stroke0[] = {
     new CoordRec((float) 2.5, (float) 66.6667),
-    new CoordRec((float) 21.5476, (float) 0),
+    new CoordRec((float) 21.5476, 0),
 };
 
 static final CoordRec char119_stroke1[] = {
     new CoordRec((float) 40.5952, (float) 66.6667),
-    new CoordRec((float) 21.5476, (float) 0),
+    new CoordRec((float) 21.5476, 0),
 };
 
 static final CoordRec char119_stroke2[] = {
     new CoordRec((float) 40.5952, (float) 66.6667),
-    new CoordRec((float) 59.6429, (float) 0),
+    new CoordRec((float) 59.6429, 0),
 };
 
 static final CoordRec char119_stroke3[] = {
     new CoordRec((float) 78.6905, (float) 66.6667),
-    new CoordRec((float) 59.6429, (float) 0),
+    new CoordRec((float) 59.6429, 0),
 };
 
 static final StrokeRec char119[] = {
@@ -2113,12 +2113,12 @@ static final StrokeRec char119[] = {
 
 static final CoordRec char120_stroke0[] = {
     new CoordRec((float) 1.66, (float) 66.6667),
-    new CoordRec((float) 54.041, (float) 0),
+    new CoordRec((float) 54.041, 0),
 };
 
 static final CoordRec char120_stroke1[] = {
     new CoordRec((float) 54.041, (float) 66.6667),
-    new CoordRec((float) 1.66, (float) 0),
+    new CoordRec((float) 1.66, 0),
 };
 
 static final StrokeRec char120[] = {
@@ -2130,12 +2130,12 @@ static final StrokeRec char120[] = {
 
 static final CoordRec char121_stroke0[] = {
     new CoordRec((float) 6.5619, (float) 66.6667),
-    new CoordRec((float) 35.1333, (float) 0),
+    new CoordRec((float) 35.1333, 0),
 };
 
 static final CoordRec char121_stroke1[] = {
     new CoordRec((float) 63.7048, (float) 66.6667),
-    new CoordRec((float) 35.1333, (float) 0),
+    new CoordRec((float) 35.1333, 0),
     new CoordRec((float) 25.6095, (float) -19.0476),
     new CoordRec((float) 16.0857, (float) -28.5714),
     new CoordRec((float) 6.5619, (float) -33.3333),
@@ -2151,7 +2151,7 @@ static final StrokeRec char121[] = {
 
 static final CoordRec char122_stroke0[] = {
     new CoordRec((float) 56.821, (float) 66.6667),
-    new CoordRec((float) 4.44, (float) 0),
+    new CoordRec((float) 4.44, 0),
 };
 
 static final CoordRec char122_stroke1[] = {
@@ -2160,8 +2160,8 @@ static final CoordRec char122_stroke1[] = {
 };
 
 static final CoordRec char122_stroke2[] = {
-    new CoordRec((float) 4.44, (float) 0),
-    new CoordRec((float) 56.821, (float) 0),
+    new CoordRec((float) 4.44, 0),
+    new CoordRec((float) 56.821, 0),
 };
 
 static final StrokeRec char122[] = {
@@ -2176,7 +2176,7 @@ static final CoordRec char123_stroke0[] = {
     new CoordRec((float) 31.1895, (float) 119.048),
     new CoordRec((float) 21.6657, (float) 114.286),
     new CoordRec((float) 16.9038, (float) 109.524),
-    new CoordRec((float) 12.1419, (float) 100),
+    new CoordRec((float) 12.1419, 100),
     new CoordRec((float) 12.1419, (float) 90.4762),
     new CoordRec((float) 16.9038, (float) 80.9524),
     new CoordRec((float) 21.6657, (float) 76.1905),
@@ -2199,7 +2199,7 @@ static final CoordRec char123_stroke1[] = {
     new CoordRec((float) 31.1895, (float) 23.8095),
     new CoordRec((float) 31.1895, (float) 14.2857),
     new CoordRec((float) 26.4276, (float) 4.7619),
-    new CoordRec((float) 21.6657, (float) 0),
+    new CoordRec((float) 21.6657, 0),
     new CoordRec((float) 16.9038, (float) -9.5238),
     new CoordRec((float) 16.9038, (float) -19.0476),
     new CoordRec((float) 21.6657, (float) -28.5714),
@@ -2241,7 +2241,7 @@ static final CoordRec char125_stroke0[] = {
     new CoordRec((float) 9.18, (float) 119.048),
     new CoordRec((float) 18.7038, (float) 114.286),
     new CoordRec((float) 23.4657, (float) 109.524),
-    new CoordRec((float) 28.2276, (float) 100),
+    new CoordRec((float) 28.2276, 100),
     new CoordRec((float) 28.2276, (float) 90.4762),
     new CoordRec((float) 23.4657, (float) 80.9524),
     new CoordRec((float) 18.7038, (float) 76.1905),
@@ -2264,7 +2264,7 @@ static final CoordRec char125_stroke1[] = {
     new CoordRec((float) 9.18, (float) 23.8095),
     new CoordRec((float) 9.18, (float) 14.2857),
     new CoordRec((float) 13.9419, (float) 4.7619),
-    new CoordRec((float) 18.7038, (float) 0),
+    new CoordRec((float) 18.7038, 0),
     new CoordRec((float) 23.4657, (float) -9.5238),
     new CoordRec((float) 23.4657, (float) -19.0476),
     new CoordRec((float) 18.7038, (float) -28.5714),
@@ -2327,7 +2327,7 @@ static final StrokeRec char126[] = {
 /* char: 127 */
 
 static final CoordRec char127_stroke0[] = {
-    new CoordRec((float) 52.381, (float) 100),
+    new CoordRec((float) 52.381, 100),
     new CoordRec((float) 14.2857, (float) -33.3333),
 };
 
@@ -2335,12 +2335,12 @@ static final CoordRec char127_stroke1[] = {
     new CoordRec((float) 28.5714, (float) 66.6667),
     new CoordRec((float) 14.2857, (float) 61.9048),
     new CoordRec((float) 4.7619, (float) 52.381),
-    new CoordRec((float) 0, (float) 38.0952),
-    new CoordRec((float) 0, (float) 23.8095),
+    new CoordRec(0, (float) 38.0952),
+    new CoordRec(0, (float) 23.8095),
     new CoordRec((float) 4.7619, (float) 14.2857),
     new CoordRec((float) 14.2857, (float) 4.7619),
-    new CoordRec((float) 28.5714, (float) 0),
-    new CoordRec((float) 38.0952, (float) 0),
+    new CoordRec((float) 28.5714, 0),
+    new CoordRec((float) 38.0952, 0),
     new CoordRec((float) 52.381, (float) 4.7619),
     new CoordRec((float) 61.9048, (float) 14.2857),
     new CoordRec((float) 66.6667, (float) 28.5714),
@@ -2357,38 +2357,38 @@ static final StrokeRec char127[] = {
 };
 
 static final StrokeCharRec chars[] = {
-    new StrokeCharRec( 0, /* char0 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char1 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char2 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char3 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char4 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char5 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char6 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char7 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char8 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char9 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char10 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char11 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char12 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char13 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char14 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char15 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char16 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char17 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char18 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char19 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char20 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char21 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char22 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char23 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char24 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char25 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char26 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char27 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char28 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char29 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char30 */ null, (float) 0, (float) 0 ),
-    new StrokeCharRec( 0, /* char31 */ null, (float) 0, (float) 0 ),
+    new StrokeCharRec( 0, /* char0 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char1 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char2 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char3 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char4 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char5 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char6 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char7 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char8 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char9 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char10 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char11 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char12 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char13 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char14 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char15 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char16 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char17 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char18 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char19 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char20 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char21 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char22 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char23 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char24 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char25 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char26 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char27 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char28 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char29 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char30 */ null, 0, 0 ),
+    new StrokeCharRec( 0, /* char31 */ null, 0, 0 ),
     new StrokeCharRec( 0, /* char32 */ null, (float) 52.381, (float) 104.762 ),
     new StrokeCharRec( 2, char33, (float) 13.3819, (float) 26.6238 ),
     new StrokeCharRec( 2, char34, (float) 23.0676, (float) 51.4352 ),

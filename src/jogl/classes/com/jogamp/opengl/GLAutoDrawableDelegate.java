@@ -36,6 +36,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.util.locks.LockFactory;
@@ -83,7 +84,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
      *                  and no further lifecycle handling is applied.
      * @param lock optional custom {@link RecursiveLock}.
      */
-    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget, boolean ownDevice, RecursiveLock lock) {
+    public GLAutoDrawableDelegate(final GLDrawable drawable, final GLContext context, final Object upstreamWidget, final boolean ownDevice, final RecursiveLock lock) {
         super((GLDrawableImpl)drawable, (GLContextImpl)context, ownDevice);
         if(null == drawable) {
             throw new IllegalArgumentException("null drawable");
@@ -101,8 +102,23 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
         super.defaultWindowRepaintOp();
     }
 
-    /** Implementation to handle resize events from the windowing system. All required locks are being claimed. */
-    public final void windowResizedOp(int newWidth, int newHeight) {
+    /**
+     * Handling resize events from the windowing system.
+     * <p>
+     * Implementation:
+     * <ul>
+     *   <li>resizes {@link #getDelegatedDrawable() the GLDrawable}, if offscreen,</li>
+     *   <li>triggers a pending {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape events}, and</li>
+     *   <li>issues a {@link #display()} call, if no animator is present.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * All required locks are being claimed.
+     * </p>
+     * @param newWidth new width in pixel units
+     * @param newWidth new height in pixel units
+     */
+    public final void windowResizedOp(final int newWidth, final int newHeight) {
         super.defaultWindowResizedOp(newWidth, newHeight);
     }
 
@@ -138,7 +154,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
      * Set the upstream UI toolkit object.
      * @see #getUpstreamWidget()
      */
-    public final void setUpstreamWidget(Object newUpstreamWidget) {
+    public final void setUpstreamWidget(final Object newUpstreamWidget) {
         upstreamWidget = newUpstreamWidget;
     }
 

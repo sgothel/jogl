@@ -61,7 +61,7 @@ public class NEWTEvent extends java.util.EventObject {
 
     static final boolean DEBUG = false;
 
-    protected NEWTEvent(short eventType, Object source, long when) {
+    protected NEWTEvent(final short eventType, final Object source, final long when) {
         super(source);
         this.eventType = eventType;
         this.when = when;
@@ -86,7 +86,7 @@ public class NEWTEvent extends java.util.EventObject {
      * communication.
      * @param attachment User application specific object
      */
-    public final void setAttachment(Object attachment) {
+    public final void setAttachment(final Object attachment) {
         this.attachment = attachment;
     }
 
@@ -123,7 +123,7 @@ public class NEWTEvent extends java.util.EventObject {
      * </ul>
      * </p>
      */
-    public final void setConsumed(boolean consumed) {
+    public final void setConsumed(final boolean consumed) {
         if( consumed ) {
             setAttachment( consumedTag );
         } else if( consumedTag == attachment ) {
@@ -143,7 +143,7 @@ public class NEWTEvent extends java.util.EventObject {
         return sb.append("NEWTEvent[source:").append(getSource().getClass().getName()).append(", consumed ").append(isConsumed()).append(", when:").append(getWhen()).append(" d ").append((System.currentTimeMillis()-getWhen())).append("ms]");
     }
 
-    public static String toHexString(short hex) {
-        return "0x" + Integer.toHexString( (int)hex & 0x0000FFFF );
+    public static String toHexString(final short hex) {
+        return "0x" + Integer.toHexString( hex & 0x0000FFFF );
     }
 }

@@ -56,30 +56,30 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
    static final String forceKillProcessTest = "demo.force.killProcessTest";
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - 0");
        super.onCreate(savedInstanceState);
 
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
+       final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
        if( null != System.getProperty(forceRGBA5650) ) {
            Log.d(TAG, "forceRGBA5650");
            caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5);
        }
 
        Log.d(TAG, "req caps: "+caps);
-       GLWindow glWindow = GLWindow.create(caps);
+       final GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
 
-       GearsES2 demo = new GearsES2(-1);
+       final GearsES2 demo = new GearsES2(-1);
        // demo.enableAndroidTrace(true);
        glWindow.addGLEventListener(demo);
        glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
            @Override
-           public void monitorModeChangeNotify(MonitorEvent me) { }
+           public void monitorModeChangeNotify(final MonitorEvent me) { }
            @Override
-           public void monitorModeChanged(MonitorEvent me, boolean success) {
+           public void monitorModeChanged(final MonitorEvent me, final boolean success) {
                System.err.println("MonitorMode Changed (success "+success+"): "+me);
            }
        });
@@ -87,12 +87,12 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
            Log.d(TAG, "forceKillProcessTest");
            glWindow.addMouseListener(new MouseAdapter() {
             @Override
-            public void mousePressed(MouseEvent e) {
+            public void mousePressed(final MouseEvent e) {
                 if( e.getPointerCount() == 3 ) {
                     Log.d(TAG, "MemoryHog");
                     new Thread(new Runnable() {
                         public void run() {
-                            ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+                            final ArrayList<Buffer> buffers = new ArrayList<Buffer>();
                             while(true) {
                                 final int halfMB = 512 * 1024;
                                 final float osizeMB = buffers.size() * 0.5f;
@@ -102,7 +102,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
                                 System.err.println("MemoryHog: ****** +4k: "+osizeMB+" MB +"+nsizeMB+" MB - Done");
                                 try {
                                     Thread.sleep(500);
-                                } catch (Exception e) {};
+                                } catch (final Exception e) { e.printStackTrace(); };
                             }
                         } }, "MemoryHog").start();
                 } else if( e.getPointerCount() == 4 ) {
@@ -112,7 +112,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
             }
            });
        }
-       Animator animator = new Animator(glWindow);
+       final Animator animator = new Animator(glWindow);
        // animator.setRunAsFastAsPossible(true);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
 

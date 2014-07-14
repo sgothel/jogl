@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.swt;
 
 import javax.media.opengl.GL2ES1;
@@ -61,7 +61,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles.
- * <p> 
+ * <p>
  * Uses the SWT GLCanvas <code>org.eclipse.swt.opengl.GLCanvas</code>.
  * </p>
  * @author Wade Walker, et.al.
@@ -86,7 +86,7 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invoke(true, new Runnable() {
-            public void run() {        
+            public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
                 shell = new Shell( display );
@@ -111,7 +111,7 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -120,8 +120,8 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
         composite = null;
     }
 
-    protected void runTestAGL( GLProfile glprofile ) throws InterruptedException {
-        GLData gldata = new GLData();
+    protected void runTestAGL( final GLProfile glprofile ) throws InterruptedException {
+        final GLData gldata = new GLData();
         gldata.doubleBuffer = true;
         // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
         // at the wrong times (we use glClear for this instead)
@@ -133,11 +133,11 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
 
         // fix the viewport when the user resizes the window
         glcanvas.addListener( SWT.Resize, new Listener() {
-            public void handleEvent( Event event ) {
-                Rectangle rectangle = glcanvas.getClientArea();
+            public void handleEvent( final Event event ) {
+                final Rectangle rectangle = glcanvas.getClientArea();
                 glcanvas.setCurrent();
                 glcontext.makeCurrent();
-                GL2ES1 gl = glcontext.getGL().getGL2ES1();
+                final GL2ES1 gl = glcontext.getGL().getGL2ES1();
                 OneTriangle.setup( gl, rectangle.width, rectangle.height );
                 glcontext.release();
                 System.err.println("resize");
@@ -146,24 +146,24 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
 
         // draw the triangle when the OS tells us that any part of the window needs drawing
         glcanvas.addPaintListener( new PaintListener() {
-            public void paintControl( PaintEvent paintevent ) {
-                Rectangle rectangle = glcanvas.getClientArea();
+            public void paintControl( final PaintEvent paintevent ) {
+                final Rectangle rectangle = glcanvas.getClientArea();
                 glcanvas.setCurrent();
                 glcontext.makeCurrent();
-                GL2ES1 gl = glcontext.getGL().getGL2ES1();
+                final GL2ES1 gl = glcontext.getGL().getGL2ES1();
                 OneTriangle.render( gl, rectangle.width, rectangle.height );
                 glcanvas.swapBuffers();
                 glcontext.release();
                 System.err.println("paint");
             }
         });
-        
+
         shell.setText( getClass().getName() );
         shell.setSize( 640, 480 );
         shell.open();
 
-        long lStartTime = System.currentTimeMillis();
-        long lEndTime = lStartTime + duration;
+        final long lStartTime = System.currentTimeMillis();
+        final long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !glcanvas.isDisposed() ) {
                 if( !display.readAndDispatch() ) {
@@ -171,7 +171,7 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
                     Thread.sleep(10);
                 }
             }
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -180,19 +180,19 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
 
     @Test
     public void test() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getGL2ES1();
+        final GLProfile glprofile = GLProfile.getGL2ES1();
         runTestAGL( glprofile );
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = atoi(args[++i]);

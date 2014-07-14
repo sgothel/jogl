@@ -69,7 +69,7 @@ public class ImageLine {
 	/**
 	 * default mode: INT packed
 	 */
-	public ImageLine(ImageInfo imgInfo) {
+	public ImageLine(final ImageInfo imgInfo) {
 		this(imgInfo, SampleType.INT, false);
 	}
 
@@ -86,14 +86,14 @@ public class ImageLine {
 	 *            images
 	 *
 	 */
-	public ImageLine(ImageInfo imgInfo, SampleType stype, boolean unpackedMode) {
+	public ImageLine(final ImageInfo imgInfo, final SampleType stype, final boolean unpackedMode) {
 		this(imgInfo, stype, unpackedMode, null, null);
 	}
 
 	/**
 	 * If a preallocated array is passed, the copy is shallow
 	 */
-	ImageLine(ImageInfo imgInfo, SampleType stype, boolean unpackedMode, int[] sci, byte[] scb) {
+	ImageLine(final ImageInfo imgInfo, final SampleType stype, final boolean unpackedMode, final int[] sci, final byte[] scb) {
 		this.imgInfo = imgInfo;
 		channels = imgInfo.channels;
 		bitDepth = imgInfo.bitDepth;
@@ -118,7 +118,7 @@ public class ImageLine {
 	}
 
 	/** Sets row number (0 : Rows-1) */
-	public void setRown(int n) {
+	public void setRown(final int n) {
 		this.rown = n;
 	}
 
@@ -274,7 +274,7 @@ public class ImageLine {
 	 * The caller must be sure that the original was really packed
 	 */
 	public ImageLine unpackToNewImageLine() {
-		ImageLine newline = new ImageLine(imgInfo, sampleType, true);
+		final ImageLine newline = new ImageLine(imgInfo, sampleType, true);
 		if (sampleType == SampleType.INT)
 			unpackInplaceInt(imgInfo, scanline, newline.scanline, false);
 		else
@@ -288,7 +288,7 @@ public class ImageLine {
 	 * The caller must be sure that the original was really unpacked
 	 */
 	public ImageLine packToNewImageLine() {
-		ImageLine newline = new ImageLine(imgInfo, sampleType, false);
+		final ImageLine newline = new ImageLine(imgInfo, sampleType, false);
 		if (sampleType == SampleType.INT)
 			packInplaceInt(imgInfo, scanline, newline.scanline, false);
 		else
@@ -300,7 +300,7 @@ public class ImageLine {
 		return filterUsed;
 	}
 
-	public void setFilterUsed(FilterType ft) {
+	public void setFilterUsed(final FilterType ft) {
 		filterUsed = ft;
 	}
 
@@ -323,9 +323,9 @@ public class ImageLine {
 	/**
 	 * Prints some statistics - just for debugging
 	 */
-	public static void showLineInfo(ImageLine line) {
+	public static void showLineInfo(final ImageLine line) {
 		System.out.println(line);
-		ImageLineStats stats = new ImageLineHelper.ImageLineStats(line);
+		final ImageLineStats stats = new ImageLineHelper.ImageLineStats(line);
 		System.out.println(stats);
 		System.out.println(ImageLineHelper.infoFirstLastPixels(line));
 	}

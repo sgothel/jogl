@@ -71,7 +71,7 @@ public class DisplayDriver extends DisplayImpl {
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
                     final URLConnection urlConn = iconRes.resolve(iconRes.resourceCount()-1);
                     image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, true /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -107,7 +107,7 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 
@@ -121,14 +121,14 @@ public class DisplayDriver extends DisplayImpl {
     public final boolean getNativePointerIconForceDirectNIO() { return true; }
 
     @Override
-    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+    protected final long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         return createPointerIcon0(
               pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */,
               width, height, hotX, hotY);
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+    protected final void destroyPointerIconImpl(final long displayHandle, final long piHandle) {
         destroyPointerIcon0(piHandle);
     }
 

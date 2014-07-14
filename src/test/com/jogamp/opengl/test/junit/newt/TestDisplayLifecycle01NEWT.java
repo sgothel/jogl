@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -62,17 +62,17 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         caps = new GLCapabilities(glp);
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height)
+    static GLWindow createWindow(final Screen screen, final GLCapabilities caps, final int width, final int height)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
 
         //
         // Create native windowing resources .. X11/Win/OSX
-        // 
+        //
         GLWindow glWindow;
         if(null!=screen) {
-            Window window = NewtFactory.createWindow(screen, caps);
+            final Window window = NewtFactory.createWindow(screen, caps);
             Assert.assertNotNull(window);
             glWindow = GLWindow.create(window);
         } else {
@@ -80,7 +80,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
         glWindow.setUpdateFPSFrames(1, null);
 
-        GLEventListener demo = new GearsES2();
+        final GLEventListener demo = new GearsES2();
         setDemoFields(demo, glWindow);
         glWindow.addGLEventListener(demo);
         glWindow.addWindowListener(new TraceWindowAdapter());
@@ -88,7 +88,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         return glWindow;
     }
 
-    private void testDisplayCreate01(Display display, Screen screen) throws InterruptedException {
+    private void testDisplayCreate01(final Display display, final Screen screen) throws InterruptedException {
         // start-state == end-state
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -99,7 +99,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
 
         // Create Window, pending lazy native creation
-        GLWindow window = createWindow(screen, caps, width, height);
+        final GLWindow window = createWindow(screen, caps, width, height);
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -209,6 +209,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
             Assert.assertNotNull(edtUtil);
             Assert.assertEquals(false,edtUtil.isRunning());
             edtUtil.start();
+            Assert.assertEquals(true,edtUtil.isRunning());
             edtUtil.invoke(true, null);
             Assert.assertEquals(true,edtUtil.isRunning());
             edtUtil.invokeStop(true, null);
@@ -228,15 +229,15 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // Create Display/Screen, pending lazy native creation
-        Display display = NewtFactory.createDisplay(null);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Display display = NewtFactory.createDisplay(null);
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         testDisplayCreate01(display, screen);
         testDisplayCreate01(display, screen);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
         if(!MiscUtils.setFieldIfExists(demo, "window", glWindow)) {
@@ -244,22 +245,22 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
         System.err.println("durationPerTest: "+durationPerTest);
-        String tstname = TestDisplayLifecycle01NEWT.class.getName();
+        final String tstname = TestDisplayLifecycle01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

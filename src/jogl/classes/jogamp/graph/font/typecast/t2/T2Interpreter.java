@@ -39,11 +39,11 @@ public class T2Interpreter {
     private static final int SUBR_STACK_LIMIT = 10;
     private static final int TRANSIENT_ARRAY_ELEMENT_COUNT = 32;
 
-    private Number[] _argStack = new Number[ARGUMENT_STACK_LIMIT];
+    private final Number[] _argStack = new Number[ARGUMENT_STACK_LIMIT];
     private int _argStackIndex = 0;
-    private int[] _subrStack = new int[SUBR_STACK_LIMIT];
+    private final int[] _subrStack = new int[SUBR_STACK_LIMIT];
     private int _subrStackIndex = 0;
-    private Number[] _transientArray = new Number[TRANSIENT_ARRAY_ELEMENT_COUNT];
+    private final Number[] _transientArray = new Number[TRANSIENT_ARRAY_ELEMENT_COUNT];
 
     private ArrayList<Point> _points;
 
@@ -56,10 +56,10 @@ public class T2Interpreter {
      * (dx1, dy1).
      */
     private void _rmoveto() {
-        int dy1 = popArg().intValue();
-        int dx1 = popArg().intValue();
+        final int dy1 = popArg().intValue();
+        final int dx1 = popArg().intValue();
         clearArg();
-        Point lastPoint = getLastPoint();
+        final Point lastPoint = getLastPoint();
         moveTo(lastPoint.x + dx1, lastPoint.y + dy1);
     }
 
@@ -67,9 +67,9 @@ public class T2Interpreter {
      * Moves the current point dx1 units in the horizontal direction.
      */
     private void _hmoveto() {
-        int dx1 = popArg().intValue();
+        final int dx1 = popArg().intValue();
         clearArg();
-        Point lastPoint = getLastPoint();
+        final Point lastPoint = getLastPoint();
         moveTo(lastPoint.x + dx1, lastPoint.y);
     }
 
@@ -77,9 +77,9 @@ public class T2Interpreter {
      * Moves the current point dy1 units in the vertical direction.
      */
     private void _vmoveto() {
-        int dy1 = popArg().intValue();
+        final int dy1 = popArg().intValue();
         clearArg();
-        Point lastPoint = getLastPoint();
+        final Point lastPoint = getLastPoint();
         moveTo(lastPoint.x, lastPoint.y + dy1);
     }
 
@@ -90,15 +90,15 @@ public class T2Interpreter {
      * lines is determined from the number of arguments on the stack.
      */
     private void _rlineto() {
-        int count = getArgCount() / 2;
-        int[] dx = new int[count];
-        int[] dy = new int[count];
+        final int count = getArgCount() / 2;
+        final int[] dx = new int[count];
+        final int[] dy = new int[count];
         for (int i = 0; i < count; ++i) {
             dy[count - i - 1] = popArg().intValue();
             dx[count - i - 1] = popArg().intValue();
         }
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
+            final Point lastPoint = getLastPoint();
             lineTo(lastPoint.x + dx[i], lastPoint.y + dy[i]);
         }
         clearArg();
@@ -115,13 +115,13 @@ public class T2Interpreter {
      * number of arguments on the stack.
      */
     private void _hlineto() {
-        int count = getArgCount();
-        Number[] nums = new Number[count];
+        final int count = getArgCount();
+        final Number[] nums = new Number[count];
         for (int i = 0; i < count; ++i) {
             nums[count - i - 1] = popArg();
         }
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
+            final Point lastPoint = getLastPoint();
             if (i % 2 == 0) {
                 lineTo(lastPoint.x + nums[i].intValue(), lastPoint.y);
             } else {
@@ -142,13 +142,13 @@ public class T2Interpreter {
      * number of arguments on the stack.
      */
     private void _vlineto() {
-        int count = getArgCount();
-        Number[] nums = new Number[count];
+        final int count = getArgCount();
+        final Number[] nums = new Number[count];
         for (int i = 0; i < count; ++i) {
             nums[count - i - 1] = popArg();
         }
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
+            final Point lastPoint = getLastPoint();
             if (i % 2 == 0) {
                 lineTo(lastPoint.x, lastPoint.y + nums[i].intValue());
             } else {
@@ -167,13 +167,13 @@ public class T2Interpreter {
      * stack.
      */
     private void _rrcurveto() {
-        int count = getArgCount() / 6;
-        int[] dxa = new int[count];
-        int[] dya = new int[count];
-        int[] dxb = new int[count];
-        int[] dyb = new int[count];
-        int[] dxc = new int[count];
-        int[] dyc = new int[count];
+        final int count = getArgCount() / 6;
+        final int[] dxa = new int[count];
+        final int[] dya = new int[count];
+        final int[] dxb = new int[count];
+        final int[] dyb = new int[count];
+        final int[] dxc = new int[count];
+        final int[] dyc = new int[count];
         for (int i = 0; i < count; ++i) {
             dyc[count - i - 1] = popArg().intValue();
             dxc[count - i - 1] = popArg().intValue();
@@ -183,13 +183,13 @@ public class T2Interpreter {
             dxa[count - i - 1] = popArg().intValue();
         }
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
-            int xa = lastPoint.x + dxa[i];
-            int ya = lastPoint.y + dya[i];
-            int xb = xa + dxb[i];
-            int yb = ya + dyb[i];
-            int xc = xb + dxc[i];
-            int yc = yb + dyc[i];
+            final Point lastPoint = getLastPoint();
+            final int xa = lastPoint.x + dxa[i];
+            final int ya = lastPoint.y + dya[i];
+            final int xb = xa + dxb[i];
+            final int yb = ya + dyb[i];
+            final int xc = xb + dxc[i];
+            final int yc = yb + dyc[i];
             curveTo(xa, ya, xb, yb, xc, yc);
         }
         clearArg();
@@ -203,12 +203,12 @@ public class T2Interpreter {
      * case). Note the argument order for the odd argument case.
      */
     private void _hhcurveto() {
-        int count = getArgCount() / 4;
+        final int count = getArgCount() / 4;
         int dy1 = 0;
-        int[] dxa = new int[count];
-        int[] dxb = new int[count];
-        int[] dyb = new int[count];
-        int[] dxc = new int[count];
+        final int[] dxa = new int[count];
+        final int[] dxb = new int[count];
+        final int[] dyb = new int[count];
+        final int[] dxc = new int[count];
         for (int i = 0; i < count; ++i) {
             dxc[count - i - 1] = popArg().intValue();
             dyb[count - i - 1] = popArg().intValue();
@@ -219,13 +219,13 @@ public class T2Interpreter {
             dy1 = popArg().intValue();
         }
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
-            int xa = lastPoint.x + dxa[i];
-            int ya = lastPoint.y + (i == 0 ? dy1 : 0);
-            int xb = xa + dxb[i];
-            int yb = ya + dyb[i];
-            int xc = xb + dxc[i];
-            int yc = yb;
+            final Point lastPoint = getLastPoint();
+            final int xa = lastPoint.x + dxa[i];
+            final int ya = lastPoint.y + (i == 0 ? dy1 : 0);
+            final int xb = xa + dxb[i];
+            final int yb = ya + dyb[i];
+            final int xc = xb + dxc[i];
+            final int yc = yb;
             curveTo(xa, ya, xb, yb, xc, yc);
         }
         clearArg();
@@ -243,15 +243,15 @@ public class T2Interpreter {
      */
     private void _hvcurveto() {
         if (getArgCount() % 8 <= 1) {
-            int count = getArgCount() / 8;
-            int[] dxa = new int[count];
-            int[] dxb = new int[count];
-            int[] dyb = new int[count];
-            int[] dyc = new int[count];
-            int[] dyd = new int[count];
-            int[] dxe = new int[count];
-            int[] dye = new int[count];
-            int[] dxf = new int[count];
+            final int count = getArgCount() / 8;
+            final int[] dxa = new int[count];
+            final int[] dxb = new int[count];
+            final int[] dyb = new int[count];
+            final int[] dyc = new int[count];
+            final int[] dyd = new int[count];
+            final int[] dxe = new int[count];
+            final int[] dye = new int[count];
+            final int[] dxf = new int[count];
             int dyf = 0;
             if (getArgCount() % 8 == 1) {
                 dyf = popArg().intValue();
@@ -267,32 +267,32 @@ public class T2Interpreter {
                 dxa[count - i - 1] = popArg().intValue();
             }
             for (int i = 0; i < count; ++i) {
-                Point lastPoint = getLastPoint();
-                int xa = lastPoint.x + dxa[i];
-                int ya = lastPoint.y;
-                int xb = xa + dxb[i];
-                int yb = ya + dyb[i];
-                int xc = xb;
-                int yc = yb + dyc[i];
-                int xd = xc;
-                int yd = yc + dyd[i];
-                int xe = xd + dxe[i];
-                int ye = yd + dye[i];
-                int xf = xe + dxf[i];
-                int yf = ye + dyf;
+                final Point lastPoint = getLastPoint();
+                final int xa = lastPoint.x + dxa[i];
+                final int ya = lastPoint.y;
+                final int xb = xa + dxb[i];
+                final int yb = ya + dyb[i];
+                final int xc = xb;
+                final int yc = yb + dyc[i];
+                final int xd = xc;
+                final int yd = yc + dyd[i];
+                final int xe = xd + dxe[i];
+                final int ye = yd + dye[i];
+                final int xf = xe + dxf[i];
+                final int yf = ye + dyf;
                 curveTo(xa, ya, xb, yb, xc, yc);
                 curveTo(xd, yd, xe, ye, xf, yf);
             }
         } else {
-            int count = getArgCount() / 8;
-            int[] dya = new int[count];
-            int[] dxb = new int[count];
-            int[] dyb = new int[count];
-            int[] dxc = new int[count];
-            int[] dxd = new int[count];
-            int[] dxe = new int[count];
-            int[] dye = new int[count];
-            int[] dyf = new int[count];
+            final int count = getArgCount() / 8;
+            final int[] dya = new int[count];
+            final int[] dxb = new int[count];
+            final int[] dyb = new int[count];
+            final int[] dxc = new int[count];
+            final int[] dxd = new int[count];
+            final int[] dxe = new int[count];
+            final int[] dye = new int[count];
+            final int[] dyf = new int[count];
             int dxf = 0;
             if (getArgCount() % 8 == 1) {
                 dxf = popArg().intValue();
@@ -307,24 +307,34 @@ public class T2Interpreter {
                 dxb[count - i - 1] = popArg().intValue();
                 dya[count - i - 1] = popArg().intValue();
             }
-            int dy3 = popArg().intValue();
-            int dy2 = popArg().intValue();
-            int dx2 = popArg().intValue();
-            int dx1 = popArg().intValue();
+            /**
+             * Not using the 'popped' arguments,
+             * hence simply pop them from stack!
+             *
+            final int dy3 = popArg().intValue();
+            final int dy2 = popArg().intValue();
+            final int dx2 = popArg().intValue();
+            final int dx1 = popArg().intValue();
+            */
+            popArg();
+            popArg();
+            popArg();
+            popArg();
+
             for (int i = 0; i < count; ++i) {
-                Point lastPoint = getLastPoint();
-                int xa = lastPoint.x;
-                int ya = lastPoint.y + dya[i];
-                int xb = xa + dxb[i];
-                int yb = ya + dyb[i];
-                int xc = xb + dxc[i];
-                int yc = yb;
-                int xd = xc + dxd[i];
-                int yd = yc;
-                int xe = xd + dxe[i];
-                int ye = yd + dye[i];
-                int xf = xe + dxf;
-                int yf = ye + dyf[i];
+                final Point lastPoint = getLastPoint();
+                final int xa = lastPoint.x;
+                final int ya = lastPoint.y + dya[i];
+                final int xb = xa + dxb[i];
+                final int yb = ya + dyb[i];
+                final int xc = xb + dxc[i];
+                final int yc = yb;
+                final int xd = xc + dxd[i];
+                final int yd = yc;
+                final int xe = xd + dxe[i];
+                final int ye = yd + dye[i];
+                final int xf = xe + dxf;
+                final int yf = ye + dyf[i];
                 curveTo(xa, ya, xb, yb, xc, yc);
                 curveTo(xd, yd, xe, ye, xf, yf);
 
@@ -341,15 +351,15 @@ public class T2Interpreter {
      * on the argument stack.
      */
     private void _rcurveline() {
-        int count = (getArgCount() - 2) / 6;
-        int[] dxa = new int[count];
-        int[] dya = new int[count];
-        int[] dxb = new int[count];
-        int[] dyb = new int[count];
-        int[] dxc = new int[count];
-        int[] dyc = new int[count];
-        int dyd = popArg().intValue();
-        int dxd = popArg().intValue();
+        final int count = (getArgCount() - 2) / 6;
+        final int[] dxa = new int[count];
+        final int[] dya = new int[count];
+        final int[] dxb = new int[count];
+        final int[] dyb = new int[count];
+        final int[] dxc = new int[count];
+        final int[] dyc = new int[count];
+        final int dyd = popArg().intValue();
+        final int dxd = popArg().intValue();
         for (int i = 0; i < count; ++i) {
             dyc[count - i - 1] = popArg().intValue();
             dxc[count - i - 1] = popArg().intValue();
@@ -361,11 +371,11 @@ public class T2Interpreter {
         int xc = 0;
         int yc = 0;
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
-            int xa = lastPoint.x + dxa[i];
-            int ya = lastPoint.y + dya[i];
-            int xb = xa + dxb[i];
-            int yb = ya + dyb[i];
+            final Point lastPoint = getLastPoint();
+            final int xa = lastPoint.x + dxa[i];
+            final int ya = lastPoint.y + dya[i];
+            final int xb = xa + dxb[i];
+            final int yb = ya + dyb[i];
             xc = xb + dxc[i];
             yc = yb + dyc[i];
             curveTo(xa, ya, xb, yb, xc, yc);
@@ -381,15 +391,15 @@ public class T2Interpreter {
      * items on the argument stack.
      */
     private void _rlinecurve() {
-        int count = (getArgCount() - 6) / 2;
-        int[] dxa = new int[count];
-        int[] dya = new int[count];
-        int dyd = popArg().intValue();
-        int dxd = popArg().intValue();
-        int dyc = popArg().intValue();
-        int dxc = popArg().intValue();
-        int dyb = popArg().intValue();
-        int dxb = popArg().intValue();
+        final int count = (getArgCount() - 6) / 2;
+        final int[] dxa = new int[count];
+        final int[] dya = new int[count];
+        final int dyd = popArg().intValue();
+        final int dxd = popArg().intValue();
+        final int dyc = popArg().intValue();
+        final int dxc = popArg().intValue();
+        final int dyb = popArg().intValue();
+        final int dxb = popArg().intValue();
         for (int i = 0; i < count; ++i) {
             dya[count - i - 1] = popArg().intValue();
             dxa[count - i - 1] = popArg().intValue();
@@ -397,17 +407,17 @@ public class T2Interpreter {
         int xa = 0;
         int ya = 0;
         for (int i = 0; i < count; ++i) {
-            Point lastPoint = getLastPoint();
+            final Point lastPoint = getLastPoint();
             xa = lastPoint.x + dxa[i];
             ya = lastPoint.y + dya[i];
             lineTo(xa, ya);
         }
-        int xb = xa + dxb;
-        int yb = ya + dyb;
-        int xc = xb + dxc;
-        int yc = yb + dyc;
-        int xd = xc + dxd;
-        int yd = yc + dyd;
+        final int xb = xa + dxb;
+        final int yb = ya + dyb;
+        final int xc = xb + dxc;
+        final int yc = yb + dyc;
+        final int xd = xc + dxd;
+        final int yd = yc + dyd;
         curveTo(xb, yb, xc, yc, xd, yd);
         clearArg();
     }
@@ -420,15 +430,15 @@ public class T2Interpreter {
      */
     private void _vhcurveto() {
         if (getArgCount() % 8 <= 1) {
-            int count = getArgCount() / 8;
-            int[] dya = new int[count];
-            int[] dxb = new int[count];
-            int[] dyb = new int[count];
-            int[] dxc = new int[count];
-            int[] dxd = new int[count];
-            int[] dxe = new int[count];
-            int[] dye = new int[count];
-            int[] dyf = new int[count];
+            final int count = getArgCount() / 8;
+            final int[] dya = new int[count];
+            final int[] dxb = new int[count];
+            final int[] dyb = new int[count];
+            final int[] dxc = new int[count];
+            final int[] dxd = new int[count];
+            final int[] dxe = new int[count];
+            final int[] dye = new int[count];
+            final int[] dyf = new int[count];
             int dxf = 0;
             if (getArgCount() % 8 == 1) {
                 dxf = popArg().intValue();
@@ -444,24 +454,24 @@ public class T2Interpreter {
                 dya[count - i - 1] = popArg().intValue();
             }
             for (int i = 0; i < count; ++i) {
-                Point lastPoint = getLastPoint();
-                int xa = lastPoint.x;
-                int ya = lastPoint.y + dya[i];
-                int xb = xa + dxb[i];
-                int yb = ya + dyb[i];
-                int xc = xb + dxc[i];
-                int yc = yb;
-                int xd = xc + dxd[i];
-                int yd = yc;
-                int xe = xd + dxe[i];
-                int ye = yd + dye[i];
-                int xf = xe + dxf;
-                int yf = ye + dyf[i];
+                final Point lastPoint = getLastPoint();
+                final int xa = lastPoint.x;
+                final int ya = lastPoint.y + dya[i];
+                final int xb = xa + dxb[i];
+                final int yb = ya + dyb[i];
+                final int xc = xb + dxc[i];
+                final int yc = yb;
+                final int xd = xc + dxd[i];
+                final int yd = yc;
+                final int xe = xd + dxe[i];
+                final int ye = yd + dye[i];
+                final int xf = xe + dxf;
+                final int yf = ye + dyf[i];
                 curveTo(xa, ya, xb, yb, xc, yc);
                 curveTo(xd, yd, xe, ye, xf, yf);
             }
         } else {
-            int foo = 0;
+            final int foo = 0;
         }
         clearArg();
     }
@@ -565,7 +575,7 @@ public class T2Interpreter {
      * Returns the absolute value of num.
      */
     private void _abs() {
-        double num = popArg().doubleValue();
+        final double num = popArg().doubleValue();
         pushArg(Math.abs(num));
     }
 
@@ -573,8 +583,8 @@ public class T2Interpreter {
      * Returns the sum of the two numbers num1 and num2.
      */
     private void _add() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg(num1 + num2);
     }
 
@@ -582,8 +592,8 @@ public class T2Interpreter {
      * Returns the result of subtracting num2 from num1.
      */
     private void _sub() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg(num1 - num2);
     }
 
@@ -592,8 +602,8 @@ public class T2Interpreter {
      * undefined if overflow occurs and is zero for underflow.
      */
     private void _div() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg(num1 / num2);
     }
 
@@ -601,7 +611,7 @@ public class T2Interpreter {
      * Returns the negative of num.
      */
     private void _neg() {
-        double num = popArg().doubleValue();
+        final double num = popArg().doubleValue();
         pushArg(-num);
     }
 
@@ -618,8 +628,8 @@ public class T2Interpreter {
      * result is undefined, and zero is returned for underflow.
      */
     private void _mul() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg(num1 * num2);
     }
 
@@ -628,7 +638,7 @@ public class T2Interpreter {
      * undefined.
      */
     private void _sqrt() {
-        double num = popArg().doubleValue();
+        final double num = popArg().doubleValue();
         pushArg(Math.sqrt(num));
     }
 
@@ -643,8 +653,8 @@ public class T2Interpreter {
      * Exchanges the top two elements on the argument stack.
      */
     private void _exch() {
-        Number num2 = popArg();
-        Number num1 = popArg();
+        final Number num2 = popArg();
+        final Number num1 = popArg();
         pushArg(num2);
         pushArg(num1);
     }
@@ -656,8 +666,8 @@ public class T2Interpreter {
      * undefined.
      */
     private void _index() {
-        int i = popArg().intValue();
-        Number[] nums = new Number[i];
+        final int i = popArg().intValue();
+        final Number[] nums = new Number[i];
         for (int j = 0; j < i; ++j) {
             nums[j] = popArg();
         }
@@ -675,9 +685,9 @@ public class T2Interpreter {
      * operation is undefined.
      */
     private void _roll() {
-        int j = popArg().intValue();
-        int n = popArg().intValue();
-        Number[] nums = new Number[n];
+        final int j = popArg().intValue();
+        final int n = popArg().intValue();
+        final Number[] nums = new Number[n];
         for (int i = 0; i < n; ++i) {
             nums[i] = popArg();
         }
@@ -690,7 +700,7 @@ public class T2Interpreter {
      * Duplicates the top element on the argument stack.
      */
     private void _dup() {
-        Number any = popArg();
+        final Number any = popArg();
         pushArg(any);
         pushArg(any);
     }
@@ -699,8 +709,8 @@ public class T2Interpreter {
      * Stores val into the transient array at the location given by i.
      */
     private void _put() {
-        int i = popArg().intValue();
-        Number val = popArg();
+        final int i = popArg().intValue();
+        final Number val = popArg();
         _transientArray[i] = val;
     }
 
@@ -711,7 +721,7 @@ public class T2Interpreter {
      * charstring, the value returned is undefined.
      */
     private void _get() {
-        int i = popArg().intValue();
+        final int i = popArg().intValue();
         pushArg(_transientArray[i]);
     }
 
@@ -720,8 +730,8 @@ public class T2Interpreter {
      * puts a 0 on the stack if either argument is zero.
      */
     private void _and() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg((num1!=0.0) && (num2!=0.0) ? 1 : 0);
     }
 
@@ -730,8 +740,8 @@ public class T2Interpreter {
      * puts a 0 on the stack if both arguments are zero.
      */
     private void _or() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg((num1!=0.0) || (num2!=0.0) ? 1 : 0);
     }
 
@@ -739,7 +749,7 @@ public class T2Interpreter {
      * Returns a 0 if num1 is non-zero; returns a 1 if num1 is zero.
      */
     private void _not() {
-        double num1 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg((num1!=0.0) ? 0 : 1);
     }
 
@@ -748,8 +758,8 @@ public class T2Interpreter {
      * is put on the stack.
      */
     private void _eq() {
-        double num2 = popArg().doubleValue();
-        double num1 = popArg().doubleValue();
+        final double num2 = popArg().doubleValue();
+        final double num1 = popArg().doubleValue();
         pushArg(num1 == num2 ? 1 : 0);
     }
 
@@ -759,10 +769,10 @@ public class T2Interpreter {
      * number of a subroutine.
      */
     private void _ifelse() {
-        double v2 = popArg().doubleValue();
-        double v1 = popArg().doubleValue();
-        Number s2 = popArg();
-        Number s1 = popArg();
+        final double v2 = popArg().doubleValue();
+        final double v1 = popArg().doubleValue();
+        final Number s2 = popArg();
+        final Number s1 = popArg();
         pushArg(v1 <= v2 ? s1 : s2);
     }
 
@@ -796,7 +806,7 @@ public class T2Interpreter {
 
     }
 
-    public Point[] execute(CharstringType2 cs) {
+    public Point[] execute(final CharstringType2 cs) {
         _points = new ArrayList<Point>();
         cs.resetIP();
         while (cs.moreBytes()) {
@@ -964,7 +974,7 @@ public class T2Interpreter {
                 }
             }
         }
-        Point[] pointArray = new Point[_points.size()];
+        final Point[] pointArray = new Point[_points.size()];
         _points.toArray(pointArray);
         return pointArray;
     }
@@ -986,7 +996,7 @@ public class T2Interpreter {
     /**
      * Push a value on to the argument stack
      */
-    private void pushArg(Number n) {
+    private void pushArg(final Number n) {
         _argStack[_argStackIndex++] = n;
     }
 
@@ -1000,7 +1010,7 @@ public class T2Interpreter {
     /**
      * Push a value on to the subroutine stack
      */
-    private void pushSubr(int n) {
+    private void pushSubr(final int n) {
         _subrStack[_subrStackIndex++] = n;
     }
 
@@ -1012,7 +1022,7 @@ public class T2Interpreter {
     }
 
     private Point getLastPoint() {
-        int size = _points.size();
+        final int size = _points.size();
         if (size > 0) {
             return _points.get(size - 1);
         } else {
@@ -1020,23 +1030,23 @@ public class T2Interpreter {
         }
     }
 
-    private void moveTo(int x, int y) {
+    private void moveTo(final int x, final int y) {
         endContour();
         _points.add(new Point(x, y, true, false));
     }
 
-    private void lineTo(int x, int y) {
+    private void lineTo(final int x, final int y) {
         _points.add(new Point(x, y, true, false));
     }
 
-    private void curveTo(int cx1, int cy1, int cx2, int cy2, int x, int y) {
+    private void curveTo(final int cx1, final int cy1, final int cx2, final int cy2, final int x, final int y) {
         _points.add(new Point(cx1, cy1, false, false));
         _points.add(new Point(cx2, cy2, false, false));
         _points.add(new Point(x, y, true, false));
     }
 
     private void endContour() {
-        Point lastPoint = getLastPoint();
+        final Point lastPoint = getLastPoint();
         if (lastPoint != null) {
             lastPoint.endOfContour = true;
         }

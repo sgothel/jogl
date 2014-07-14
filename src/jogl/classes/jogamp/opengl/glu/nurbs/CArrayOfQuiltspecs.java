@@ -25,7 +25,7 @@ public class CArrayOfQuiltspecs {
    * @param pointer
    *            pointer (index) to array
    */
-  public CArrayOfQuiltspecs(Quiltspec[] array, int pointer) {
+  public CArrayOfQuiltspecs(final Quiltspec[] array, final int pointer) {
     this.array = array;
     this.pointer = pointer;
   }
@@ -36,7 +36,7 @@ public class CArrayOfQuiltspecs {
    * @param carray
    *            reference array
    */
-  public CArrayOfQuiltspecs(CArrayOfQuiltspecs carray) {
+  public CArrayOfQuiltspecs(final CArrayOfQuiltspecs carray) {
     this.array = carray.array;
     this.pointer = carray.pointer;
   }
@@ -47,7 +47,7 @@ public class CArrayOfQuiltspecs {
    * @param array
    *            underlaying array
    */
-  public CArrayOfQuiltspecs(Quiltspec[] array) {
+  public CArrayOfQuiltspecs(final Quiltspec[] array) {
     this.array = array;
     this.pointer = 0;
   }
@@ -74,7 +74,7 @@ public class CArrayOfQuiltspecs {
    * @param f
    *            desired value
    */
-  public void set(Quiltspec f) {
+  public void set(final Quiltspec f) {
     array[pointer] = f;
 
   }
@@ -86,7 +86,7 @@ public class CArrayOfQuiltspecs {
    *            array index
    * @return element at index
    */
-  public Quiltspec get(int i) {
+  public Quiltspec get(final int i) {
     return array[i];
   }
 
@@ -96,7 +96,7 @@ public class CArrayOfQuiltspecs {
    * @param i
    *            lessen by
    */
-  public void lessenPointerBy(int i) {
+  public void lessenPointerBy(final int i) {
     pointer -= i;
 
   }
@@ -116,7 +116,7 @@ public class CArrayOfQuiltspecs {
    * @param pointer
    *            pointer value to be set
    */
-  public void setPointer(int pointer) {
+  public void setPointer(final int pointer) {
     this.pointer = pointer;
   }
 
@@ -126,7 +126,7 @@ public class CArrayOfQuiltspecs {
    * @param i
    *            raise by
    */
-  public void raisePointerBy(int i) {
+  public void raisePointerBy(final int i) {
     pointer += i;
 
   }
@@ -154,7 +154,7 @@ public class CArrayOfQuiltspecs {
    * @param array
    *            underlaying array
    */
-  public void setArray(Quiltspec[] array) {
+  public void setArray(final Quiltspec[] array) {
     this.array = array;
   }
 }

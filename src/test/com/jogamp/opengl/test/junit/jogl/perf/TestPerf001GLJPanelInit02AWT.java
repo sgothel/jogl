@@ -32,6 +32,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -95,7 +96,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START");
-        initCount = 0;
+        initCount.set(0);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -120,15 +121,15 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                         if( null != glad ) {
                             glad.addGLEventListener(new GLEventListener() {
                                 @Override
-                                public void init(GLAutoDrawable drawable) {
-                                    initCount++;
+                                public void init(final GLAutoDrawable drawable) {
+                                    initCount.incrementAndGet();
                                 }
                                 @Override
-                                public void dispose(GLAutoDrawable drawable) {}
+                                public void dispose(final GLAutoDrawable drawable) {}
                                 @Override
-                                public void display(GLAutoDrawable drawable) {}
+                                public void display(final GLAutoDrawable drawable) {}
                                 @Override
-                                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+                                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
                             });
                             panel.add((Component)glad);
                         } else {
@@ -143,7 +144,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                                 }
                                 @SuppressWarnings("deprecation")
                                 @Override
-                                public void reshape(int x, int y, int width, int height) {
+                                public void reshape(final int x, final int y, final int width, final int height) {
                                     super.reshape(x, y, width, height);
                                     reshapeWidth = width; reshapeHeight = height;
                                 }
@@ -152,7 +153,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                                     super.paintComponent(g);
                                     if( !initialized && added && reshapeWidth > 0 && reshapeHeight > 0 && isDisplayable() ) {
                                         initialized = true;
-                                        initCount++;
+                                        initCount.incrementAndGet();
                                     }
                                 }
                             };
@@ -172,25 +173,25 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                     }
                     t[2] = Platform.currentTimeMillis();
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while( frameCount > initCount && INIT_TIMEOUT > t1 - t0 ) {
+        while( frameCount > initCount.get() && INIT_TIMEOUT > t1 - t0 ) {
             try {
                 Thread.sleep(100);
                 System.err.println("Sleep initialized: "+initCount+"/"+frameCount);
-            } catch (InterruptedException e1) {
+            } catch (final InterruptedException e1) {
                 e1.printStackTrace();
             }
             t1 = System.currentTimeMillis();
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = initCount;
+        final double panelCountF = initCount.get();
         System.err.printf("P: %d %s%s:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                initCount,
+                initCount.get(),
                 useGLJPanel?"GLJPanel":(useGLCanvas?"GLCanvas":"No_GL"), initMT?" (mt)":" (01)",
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
@@ -202,7 +203,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         }
         try {
             Thread.sleep(duration);
-        } catch (InterruptedException e1) {
+        } catch (final InterruptedException e1) {
             e1.printStackTrace();
         }
         t[4] = Platform.currentTimeMillis();
@@ -213,7 +214,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                             frame[i].dispose();
                         }
                     } } );
-        } catch (Exception e1) {
+        } catch (final Exception e1) {
             e1.printStackTrace();
         }
 
@@ -225,8 +226,8 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         System.err.println("Total: "+(t[4]-t[0]));
     }
 
-    private GLAutoDrawable createGLCanvas(GLCapabilitiesImmutable caps, boolean useGears, GLAnimatorControl anim, Dimension size) {
-        GLCanvas canvas = new GLCanvas(caps);
+    private GLAutoDrawable createGLCanvas(final GLCapabilitiesImmutable caps, final boolean useGears, final GLAnimatorControl anim, final Dimension size) {
+        final GLCanvas canvas = new GLCanvas(caps);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
         if( useGears ) {
@@ -239,8 +240,8 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         }
         return canvas;
     }
-    private GLAutoDrawable createGLJPanel(boolean initMT, boolean useSwingDoubleBuffer, GLCapabilitiesImmutable caps, boolean useGears, boolean skipGLOrientationVerticalFlip, GLAnimatorControl anim, Dimension size) {
-        GLJPanel canvas = new GLJPanel(caps);
+    private GLAutoDrawable createGLJPanel(final boolean initMT, final boolean useSwingDoubleBuffer, final GLCapabilitiesImmutable caps, final boolean useGears, final boolean skipGLOrientationVerticalFlip, final GLAnimatorControl anim, final Dimension size) {
+        final GLJPanel canvas = new GLJPanel(caps);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
         canvas.setDoubleBuffered(useSwingDoubleBuffer);
@@ -370,7 +371,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
 
     // @Test
     public void testXXNopGLJPanelBitmapGridSingle() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(null);
+        final GLCapabilities caps = new GLCapabilities(null);
         caps.setBitmap(true);
         test(caps, false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
              true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false);
@@ -380,9 +381,9 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     static boolean wait = false;
     static int width = 800, height = 600, frameCount = 25;
 
-    volatile int initCount = 0;
+    AtomicInteger initCount = new AtomicInteger(0);
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         boolean manual=false;
         boolean waitMain = false;
         boolean useGLJPanel = true, initMT = false, useGLCanvas = false, useSwingDoubleBuffer=false;
@@ -435,7 +436,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         }
         if( manual ) {
             GLProfile.initSingleton();
-            TestPerf001GLJPanelInit02AWT demo = new TestPerf001GLJPanelInit02AWT();
+            final TestPerf001GLJPanelInit02AWT demo = new TestPerf001GLJPanelInit02AWT();
             demo.test(null, useGears, skipGLOrientationVerticalFlip, width, height, frameCount,
                       initMT, useGLJPanel, useSwingDoubleBuffer, useGLCanvas, useAnim, overlap);
         } else {

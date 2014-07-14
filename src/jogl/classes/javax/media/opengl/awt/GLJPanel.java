@@ -60,6 +60,7 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.GL;
@@ -83,6 +84,9 @@ import javax.media.opengl.GLSharedContextSetter;
 import javax.media.opengl.Threading;
 import javax.swing.JPanel;
 
+import jogamp.nativewindow.SurfaceScaleUtils;
+import jogamp.nativewindow.WrappedSurface;
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -92,6 +96,7 @@ import jogamp.opengl.awt.AWTTilePainter;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.util.glsl.GLSLTextureRaster;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
@@ -165,10 +170,14 @@ import com.jogamp.opengl.util.texture.TextureState;
     It is recommended to reset those states to default when leaving the {@link GLEventListener#display(GLAutoDrawable)} method!
     We may change this behavior in the future, i.e. preserve all influencing states.
     </p>
+    <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+    To share a {@link GLContext} see the following note in the documentation overview:
+    <a href="../../../spec-overview.html#SHARING">context sharing</a>
+    as well as {@link GLSharedContextSetter}.
 */
 
 @SuppressWarnings("serial")
-public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol, AWTPrintLifecycle, GLSharedContextSetter {
+public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol, AWTPrintLifecycle, GLSharedContextSetter, ScalableSurface {
   private static final boolean DEBUG;
   private static final boolean DEBUG_VIEWPORT;
   private static final boolean USE_GLSL_TEXTURE_RASTERIZER;
@@ -186,11 +195,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   static {
       Debug.initSingleton();
       DEBUG = Debug.debug("GLJPanel");
-      DEBUG_VIEWPORT = Debug.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
-      USE_GLSL_TEXTURE_RASTERIZER = !Debug.isPropertyDefined("jogl.gljpanel.noglsl", true);
-      SKIP_VERTICAL_FLIP_DEFAULT = Debug.isPropertyDefined("jogl.gljpanel.noverticalflip", true);
-      boolean enabled = Debug.getBooleanProperty("sun.java2d.opengl", false);
-      java2dOGLEnabledByProp = enabled && !Debug.isPropertyDefined("jogl.gljpanel.noogl", true);
+      DEBUG_VIEWPORT = PropertyAccess.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
+      USE_GLSL_TEXTURE_RASTERIZER = !PropertyAccess.isPropertyDefined("jogl.gljpanel.noglsl", true);
+      SKIP_VERTICAL_FLIP_DEFAULT = PropertyAccess.isPropertyDefined("jogl.gljpanel.noverticalflip", true);
+      boolean enabled = PropertyAccess.getBooleanProperty("sun.java2d.opengl", false);
+      java2dOGLEnabledByProp = enabled && !PropertyAccess.isPropertyDefined("jogl.gljpanel.noogl", true);
 
       enabled = false;
       if( java2dOGLEnabledByProp ) {
@@ -243,6 +252,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private boolean handleReshape = false;
   private boolean sendReshape = true;
 
+  private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
   // For handling reshape events lazily: reshapeWidth -> panelWidth -> backend.width
   private int reshapeWidth;
   private int reshapeHeight;
@@ -273,7 +286,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private volatile boolean isShowing;
   private final HierarchyListener hierarchyListener = new HierarchyListener() {
       @Override
-      public void hierarchyChanged(HierarchyEvent e) {
+      public void hierarchyChanged(final HierarchyEvent e) {
           isShowing = GLJPanel.this.isShowing();
       }
   };
@@ -289,6 +302,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   /** Creates a new GLJPanel component with a default set of OpenGL
       capabilities and using the default OpenGL capabilities selection
       mechanism.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no default profile is available for the default desktop device.
    */
   public GLJPanel() throws GLException {
@@ -298,10 +314,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
       selection mechanism.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    */
-  public GLJPanel(GLCapabilitiesImmutable userCapsRequest) throws GLException {
-    this(userCapsRequest, null, null);
+  public GLJPanel(final GLCapabilitiesImmutable userCapsRequest) throws GLException {
+    this(userCapsRequest, null);
   }
 
   /** Creates a new GLJPanel component. The passed GLCapabilities
@@ -310,32 +329,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       specifies the algorithm for selecting one of the available
       GLCapabilities for the component; a DefaultGLCapabilitesChooser
       is used if null is passed for this argument.
+      <p>
+      See details about <a href="#contextSharing">OpenGL context sharing</a>.
+      </p>
     * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
   */
-  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser)
-          throws GLException
-  {
-      this(userCapsRequest, chooser, null);
-  }
-
-  /** Creates a new GLJPanel component. The passed GLCapabilities
-      specifies the OpenGL capabilities for the component; if null, a
-      default set of capabilities is used. The GLCapabilitiesChooser
-      specifies the algorithm for selecting one of the available
-      GLCapabilities for the component; a DefaultGLCapabilitesChooser
-      is used if null is passed for this argument. The passed
-      GLContext specifies an OpenGL context with which to share
-      textures, display lists and other OpenGL state, and may be null
-      if sharing is not desired. See the note in the overview documentation on
-      <a href="../../../spec-overview.html#SHARING">context sharing</a>.
-      <P>
-      Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
-      since J2D GL Context must be shared and we can only share one context.
-    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
-    * @deprecated Use {@link #GLJPanel(GLCapabilitiesImmutable, GLCapabilitiesChooser)}
-    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-    */
-  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith)
+  public GLJPanel(final GLCapabilitiesImmutable userCapsRequest, final GLCapabilitiesChooser chooser)
           throws GLException
   {
     super();
@@ -357,9 +356,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.chooser = chooser;
 
     helper = new GLDrawableHelper();
-    if( null != shareWith ) {
-        helper.setSharedContext(null, shareWith);
-    }
     autoSwapBufferMode = helper.getAutoSwapBufferMode();
 
     this.setFocusable(true); // allow keyboard input!
@@ -385,7 +381,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    * <p>
    * @param offthread
    */
-  public final boolean initializeBackend(boolean offthread) {
+  public final boolean initializeBackend(final boolean offthread) {
     if( offthread ) {
         new Thread(getThreadName()+"-GLJPanel_Init") {
             public void run() {
@@ -404,12 +400,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
+  public final void setSharedContext(final GLContext sharedContext) throws IllegalStateException {
       helper.setSharedContext(this.getContext(), sharedContext);
   }
 
   @Override
-  public final void setSharedAutoDrawable(GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+  public final void setSharedAutoDrawable(final GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
       helper.setSharedAutoDrawable(this, sharedAutoDrawable);
   }
 
@@ -420,7 +416,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    * @throws IllegalArgumentException if <code>custom</code> is <code>null</code>
    * @throws IllegalStateException if backend is already realized, i.e. this instanced already painted once.
    */
-  public void setPixelBufferProvider(AWTGLPixelBufferProvider custom) throws IllegalArgumentException, IllegalStateException {
+  public void setPixelBufferProvider(final AWTGLPixelBufferProvider custom) throws IllegalArgumentException, IllegalStateException {
       if( null == custom ) {
           throw new IllegalArgumentException("Null PixelBufferProvider");
       }
@@ -446,7 +442,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           // so do everything on the event dispatch thread
           try {
             EventQueue.invokeAndWait(paintImmediatelyAction);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             throw new GLException(e);
           }
         }
@@ -461,7 +457,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     if (backend != null && backend.getContext() != null) {
       boolean animatorPaused = false;
-      GLAnimatorControl animator =  getAnimator();
+      final GLAnimatorControl animator =  getAnimator();
       if(null!=animator) {
         animatorPaused = animator.pause();
       }
@@ -479,6 +475,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         animator.resume();
       }
     }
+    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - stop");
@@ -505,16 +505,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       // Make GLJPanel behave better in NetBeans GUI builder
       g.setColor(Color.BLACK);
       g.fillRect(0, 0, getWidth(), getHeight());
-      FontMetrics fm = g.getFontMetrics();
+      final FontMetrics fm = g.getFontMetrics();
       String name = getName();
       if (name == null) {
         name = getClass().getName();
-        int idx = name.lastIndexOf('.');
+        final int idx = name.lastIndexOf('.');
         if (idx >= 0) {
           name = name.substring(idx + 1);
         }
       }
-      Rectangle2D bounds = fm.getStringBounds(name, g);
+      final Rectangle2D bounds = fm.getStringBounds(name, g);
       g.setColor(Color.WHITE);
       g.drawString(name,
                    (int) ((getWidth()  - bounds.getWidth())  / 2),
@@ -547,6 +547,47 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
+  private final void updateWrappedSurfaceScale(final GLDrawable d) {
+      final NativeSurface s = d.getNativeSurface();
+      if( s instanceof WrappedSurface ) {
+          ((WrappedSurface)s).setSurfaceScale(hasPixelScale);
+      }
+  }
+
+  @Override
+  public final void setSurfaceScale(final int[] pixelScale) { // HiDPI support
+      SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
+      final Backend b = backend;
+      if ( isInitialized && null != b ) {
+          final int hadPixelScaleX = hasPixelScale[0];
+          final int hadPixelScaleY = hasPixelScale[1];
+          SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
+          if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
+              updateWrappedSurfaceScale(b.getDrawable());
+              reshapeImpl(getWidth(), getHeight());
+              display();
+          }
+      }
+  }
+
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(reqPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public final int[] getCurrentSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public int[] getNativeSurfaceScale(final int[] result) {
+      System.arraycopy(nativePixelScale, 0, result, 0, 2);
+      return result;
+  }
+
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
       super.addNotify() in their addNotify() method in order to
@@ -557,8 +598,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   public void addNotify() {
     super.addNotify();
     awtWindowClosingProtocol.addClosingListener();
+
+    // HiDPI support
+    {
+        final int ps = JAWTUtil.getPixelScale(getGraphicsConfiguration());
+        nativePixelScale[0] = ps;
+        nativePixelScale[1] = ps;
+    }
+    SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
+
     if (DEBUG) {
-      System.err.println(getThreadName()+": GLJPanel.addNotify()");
+        System.err.println(getThreadName()+": GLJPanel.addNotify()");
     }
   }
 
@@ -585,18 +635,24 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    */
   @SuppressWarnings("deprecation")
   @Override
-  public void reshape(int x, int y, int width, int height) {
+  public void reshape(final int x, final int y, final int width, final int height) {
     super.reshape(x, y, width, height);
+    reshapeImpl(width, height);
+  }
 
+  private void reshapeImpl(final int width, final int height) {
+    final int scaledWidth = width * hasPixelScale[0];
+    final int scaledHeight = height * hasPixelScale[1];
     if( DEBUG ) {
-        System.err.println(getThreadName()+": GLJPanel.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+" [ this "+getWidth()+"x"+getHeight()+", panel "+
-                panelWidth+"x"+panelHeight +
+        System.err.println(getThreadName()+": GLJPanel.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+
+                " [ this "+getWidth()+"x"+getHeight()+", pixelScale "+getPixelScaleStr()+
+                ", panel "+panelWidth+"x"+panelHeight +
                 ", reshape: " +reshapeWidth+"x"+reshapeHeight +
-                "] -> "+(printActive?"skipped":"") + width+"x"+height);
+                "] -> "+(printActive?"[skipped] ":"") + width+"x"+height+" * "+getPixelScaleStr()+" -> "+scaledWidth+"x"+scaledHeight);
     }
     if( !printActive ) {
-        reshapeWidth = width;
-        reshapeHeight = height;
+        reshapeWidth = scaledWidth;
+        reshapeHeight = scaledHeight;
         handleReshape = true;
     }
   }
@@ -607,7 +663,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private AWTTilePainter printAWTTiles = null;
 
   @Override
-  public void setupPrint(double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
+  public void setupPrint(final double scaleMatX, final double scaleMatY, final int numSamples, final int tileWidth, final int tileHeight) {
       printActive = true;
       final int componentCount = isOpaque() ? 3 : 4;
       final TileRenderer printRenderer = new TileRenderer();
@@ -646,12 +702,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           final int printNumSamples = printAWTTiles.getNumSamples(caps);
           GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
           final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
-          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getWidth() ||
-                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getHeight();
+          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
           final boolean reqNewGLAD = reqNewGLADSamples || reqNewGLADSize ;
           if( DEBUG ) {
               System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
-                                 ", drawableSize "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+
+                                 ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
                                  ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
                                  ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
                                  ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
@@ -669,13 +725,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               printDrawable = printGLAD.getDelegatedDrawable();
           }
           printAWTTiles.setGLOrientation( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented(), printGLAD.isGLOriented() );
-          printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
+          printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
           printAWTTiles.renderer.attachAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
               System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-              System.err.println("AWT print.setup printGLAD: "+printGLAD.getWidth()+"x"+printGLAD.getHeight()+", "+printGLAD);
-              System.err.println("AWT print.setup printDraw: "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+", "+printDrawable);
+              System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+              System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
           }
       }
   };
@@ -711,17 +767,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
           final int awtWidth = GLJPanel.this.getWidth();
           final int awtHeight= GLJPanel.this.getHeight();
+          final int scaledAWTWidth = awtWidth * hasPixelScale[0];
+          final int scaledAWTHeight= awtHeight * hasPixelScale[1];
           final GLDrawable drawable = GLJPanel.this.getDelegatedDrawable();
-          if( awtWidth != panelWidth || awtHeight != panelHeight ||
-              drawable.getWidth() != panelWidth || drawable.getHeight() != panelHeight ) {
+          if( scaledAWTWidth != panelWidth || scaledAWTHeight != panelHeight ||
+              drawable.getSurfaceWidth() != panelWidth || drawable.getSurfaceHeight() != panelHeight ) {
               // -> !( awtSize == panelSize == drawableSize )
               if ( DEBUG ) {
-                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resizeWithinPrint panel " +panelWidth+"x"+panelHeight +
-                          ", draw "+drawable.getWidth()+"x"+drawable.getHeight()+
-                          " -> " + awtWidth+"x"+awtHeight);
+                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resizeWithinPrint panel " +panelWidth+"x"+panelHeight + " @ scale "+getPixelScaleStr()+
+                          ", draw "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+
+                          " -> " + awtWidth+"x"+awtHeight+" * "+getPixelScaleStr()+" -> "+scaledAWTWidth+"x"+scaledAWTHeight);
               }
-              reshapeWidth = awtWidth;
-              reshapeHeight = awtHeight;
+              reshapeWidth = scaledAWTWidth;
+              reshapeHeight = scaledAWTHeight;
               sendReshape = handleReshape(); // reshapeSize -> panelSize, backend reshape w/ GL reshape
           } else {
               sendReshape = true; // only GL reshape
@@ -732,7 +790,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   };
 
   @Override
-  public void print(Graphics graphics) {
+  public void print(final Graphics graphics) {
       if( !printActive ) {
           throw new IllegalStateException("setupPrint() not called");
       }
@@ -767,8 +825,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   printAWTTiles.resetGraphics2D();
               }
           }
-      } catch (NoninvertibleTransformException nte) {
-          System.err.println("Catched: Inversion failed of: "+g2d.getTransform());
+      } catch (final NoninvertibleTransformException nte) {
+          System.err.println("Caught: Inversion failed of: "+g2d.getTransform());
           nte.printStackTrace();
       }
       if( DEBUG ) {
@@ -776,7 +834,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
   }
   @Override
-  protected void printComponent(Graphics g) {
+  protected void printComponent(final Graphics g) {
       if( DEBUG ) {
           System.err.println("AWT printComponent.X: "+printAWTTiles);
       }
@@ -784,7 +842,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setOpaque(boolean opaque) {
+  public void setOpaque(final boolean opaque) {
     if (backend != null) {
       backend.setOpaque(opaque);
     }
@@ -792,12 +850,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void addGLEventListener(GLEventListener listener) {
+  public void addGLEventListener(final GLEventListener listener) {
     helper.addGLEventListener(listener);
   }
 
   @Override
-  public void addGLEventListener(int index, GLEventListener listener) {
+  public void addGLEventListener(final int index, final GLEventListener listener) {
     helper.addGLEventListener(index, listener);
   }
 
@@ -807,7 +865,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+  public GLEventListener getGLEventListener(final int index) throws IndexOutOfBoundsException {
       return helper.getGLEventListener(index);
   }
 
@@ -817,17 +875,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public boolean getGLEventListenerInitState(GLEventListener listener) {
+  public boolean getGLEventListenerInitState(final GLEventListener listener) {
       return helper.getGLEventListenerInitState(listener);
   }
 
   @Override
-  public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+  public void setGLEventListenerInitState(final GLEventListener listener, final boolean initialized) {
       helper.setGLEventListenerInitState(listener, initialized);
   }
 
   @Override
-  public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+  public GLEventListener disposeGLEventListener(final GLEventListener listener, final boolean remove) {
     final DisposeGLEventListenerAction r = new DisposeGLEventListenerAction(listener, remove);
     if (EventQueue.isDispatchThread()) {
       r.run();
@@ -836,7 +894,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       // so do everything on the event dispatch thread
       try {
         EventQueue.invokeAndWait(r);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new GLException(e);
       }
     }
@@ -844,12 +902,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public GLEventListener removeGLEventListener(GLEventListener listener) {
+  public GLEventListener removeGLEventListener(final GLEventListener listener) {
     return helper.removeGLEventListener(listener);
   }
 
   @Override
-  public void setAnimator(GLAnimatorControl animatorControl) {
+  public void setAnimator(final GLAnimatorControl animatorControl) {
     helper.setAnimator(animatorControl);
   }
 
@@ -859,7 +917,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public final Thread setExclusiveContextThread(Thread t) throws GLException {
+  public final Thread setExclusiveContextThread(final Thread t) throws GLException {
       return helper.setExclusiveContextThread(t, getContext());
   }
 
@@ -869,7 +927,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public boolean invoke(boolean wait, GLRunnable glRunnable) {
+  public boolean invoke(final boolean wait, final GLRunnable glRunnable) {
     return helper.invoke(this, wait, glRunnable);
   }
 
@@ -879,7 +937,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     final Backend b = backend;
     if ( null == b ) {
         return null;
@@ -888,7 +946,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setRealized(boolean realized) {
+  public void setRealized(final boolean realized) {
   }
 
   @Override
@@ -897,7 +955,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
+  public GLContext setContext(final GLContext newCtx, final boolean destroyPrevCtx) {
     final Backend b = backend;
     if ( null == b ) {
         return null;
@@ -932,13 +990,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     if (Beans.isDesignTime()) {
       return null;
     }
-    GLContext context = getContext();
+    final GLContext context = getContext();
     return (context == null) ? null : context.getGL();
   }
 
   @Override
-  public GL setGL(GL gl) {
-    GLContext context = getContext();
+  public GL setGL(final GL gl) {
+    final GLContext context = getContext();
     if (context != null) {
       context.setGL(gl);
       return gl;
@@ -947,7 +1005,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setAutoSwapBufferMode(boolean enable) {
+  public void setAutoSwapBufferMode(final boolean enable) {
     this.autoSwapBufferMode = enable;
     boolean backendHandlesSwapBuffer = false;
     if( isInitialized ) {
@@ -977,7 +1035,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setContextCreationFlags(int flags) {
+  public void setContextCreationFlags(final int flags) {
     additionalCtxCreationFlags = flags;
   }
 
@@ -1000,6 +1058,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       OpenGL drawable as the Swing implementation uses. */
   public boolean shouldPreserveColorBufferIfTranslucent() {
     return oglPipelineUsable();
+  }
+
+  @Override
+  public int getSurfaceWidth() {
+      return panelWidth; // FIXME HiDPI: Accurate or: getWidth() * hasPixelScale[0];
+  }
+
+  @Override
+  public int getSurfaceHeight() {
+      return panelHeight; // FIXME HiDPI: Accurate or: getHeight() * hasPixelScale[1];
   }
 
   /**
@@ -1031,7 +1099,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    * See constraints of {@link #isGLOriented()}.
    * </p>
    */
-  public final void setSkipGLOrientationVerticalFlip(boolean v) {
+  public final void setSkipGLOrientationVerticalFlip(final boolean v) {
       skipGLOrientationVerticalFlip = v;
   }
   /** See {@link #setSkipGLOrientationVerticalFlip(boolean)}. */
@@ -1106,7 +1174,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    * @param v requested texture unit
    * @see #getTextureUnit()
    */
-  public final void setTextureUnit(int v) {
+  public final void setTextureUnit(final int v) {
       requestedTextureUnit = v;
   }
 
@@ -1126,7 +1194,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               }
 
               if (DEBUG) {
-                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +panelWidth+"x"+panelHeight + " -> " + reshapeWidth+"x"+reshapeHeight);
+                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +
+                          panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr() + " -> " +
+                          reshapeWidth+"x"+reshapeHeight+" @ scale "+getPixelScaleStr());
               }
               // Pull down reshapeWidth and reshapeHeight into panelWidth and
               // panelHeight eagerly in order to complete initialization, and
@@ -1154,19 +1224,23 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
+  private final String getPixelScaleStr() { return hasPixelScale[0]+"x"+hasPixelScale[1]; }
+
   @Override
   public WindowClosingMode getDefaultCloseOperation() {
       return awtWindowClosingProtocol.getDefaultCloseOperation();
   }
 
   @Override
-  public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+  public WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
       return awtWindowClosingProtocol.setDefaultCloseOperation(op);
   }
 
   private boolean handleReshape() {
     if (DEBUG) {
-      System.err.println(getThreadName()+": GLJPanel.handleReshape: " +panelWidth+"x"+panelHeight + " -> " + reshapeWidth+"x"+reshapeHeight);
+      System.err.println(getThreadName()+": GLJPanel.handleReshape: "+
+                         panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr() + " -> " +
+                         reshapeWidth+"x"+reshapeHeight+" @ scale "+getPixelScaleStr());
     }
     panelWidth  = reshapeWidth;
     panelHeight = reshapeHeight;
@@ -1179,12 +1253,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   class Updater implements GLEventListener {
     private Graphics g;
 
-    public void setGraphics(Graphics g) {
+    public void setGraphics(final Graphics g) {
       this.g = g;
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
       if (!backend.preGL(g)) {
         return;
       }
@@ -1193,18 +1267,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
       helper.disposeAllGLEventListener(GLJPanel.this, false);
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
       if (!backend.preGL(g)) {
         return;
       }
       if (sendReshape) {
         if (DEBUG) {
-          System.err.println(getThreadName()+": GLJPanel.display: reshape(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + ")");
+          System.err.println(getThreadName()+": GLJPanel.display: reshape(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + " @ scale "+getPixelScaleStr()+")");
         }
         helper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
         sendReshape = false;
@@ -1214,12 +1288,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       backend.postGL(g, true);
     }
 
-    public void plainPaint(GLAutoDrawable drawable) {
+    public void plainPaint(final GLAutoDrawable drawable) {
       helper.display(GLJPanel.this);
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
       // This is handled above and dispatched directly to the appropriate context
     }
   }
@@ -1243,7 +1317,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 // so we can continue with the destruction.
                 try {
                     helper.disposeGL(GLJPanel.this, _context, !backendDestroy);
-                } catch (GLException gle) {
+                } catch (final GLException gle) {
                     gle.printStackTrace();
                 }
             }
@@ -1287,7 +1361,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private class DisposeGLEventListenerAction implements Runnable {
       GLEventListener listener;
       private final boolean remove;
-      private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
+      private DisposeGLEventListenerAction(final GLEventListener listener, final boolean remove) {
           this.listener = listener;
           this.remove = remove;
       }
@@ -1301,8 +1375,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
   };
 
-  private int getGLInteger(GL gl, int which) {
-    int[] tmp = new int[1];
+  private int getGLInteger(final GL gl, final int which) {
+    final int[] tmp = new int[1];
     gl.glGetIntegerv(which, tmp, 0);
     return tmp[0];
   }
@@ -1421,7 +1495,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // For saving/restoring of OpenGL state during ReadPixels
     private final GLPixelStorageModes psm =  new GLPixelStorageModes();
 
-    OffscreenBackend(GLProfile glp, AWTGLPixelBufferProvider custom) {
+    OffscreenBackend(final GLProfile glp, final AWTGLPixelBufferProvider custom) {
         if(null == custom) {
             pixelBufferProvider = getSingleAWTGLPixelBufferProvider();
         } else {
@@ -1452,11 +1526,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                                                     offscreenCaps,
                                                     chooser,
                                                     panelWidth, panelHeight);
+          updateWrappedSurfaceScale(offscreenDrawable);
           offscreenDrawable.setRealized(true);
           if( DEBUG ) {
               offscreenDrawable.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
                   @Override
-                  public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+                  public final void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
                       System.err.println(getThreadName()+": OffscreenBackend.swapBuffers - frameCount "+frameCount);
                   } } );
           }
@@ -1484,13 +1559,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   fboDrawable.setTextureUnit( GLJPanel.this.requestedTextureUnit );
                   try {
                       fboFlipped = new FBObject();
-                      fboFlipped.reset(gl, fboDrawable.getWidth(), fboDrawable.getHeight(), 0, false);
+                      fboFlipped.reset(gl, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight(), 0, false);
                       fboFlipped.attachTexture2D(gl, 0, chosenCaps.getAlphaBits()>0);
                       // fboFlipped.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                       glslTextureRaster = new GLSLTextureRaster(fboDrawable.getTextureUnit(), true);
                       glslTextureRaster.init(gl.getGL2ES2());
-                      glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, fboDrawable.getWidth(), fboDrawable.getHeight());
-                  } catch (Exception ex) {
+                      glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight());
+                  } catch (final Exception ex) {
                       ex.printStackTrace();
                       if(null != glslTextureRaster) {
                         glslTextureRaster.dispose(gl.getGL2ES2());
@@ -1572,7 +1647,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final void setOpaque(boolean opaque) {
+    public final void setOpaque(final boolean opaque) {
       if ( opaque != isOpaque() && !useSingletonBuffer ) {
           pixelBuffer.dispose();
           pixelBuffer = null;
@@ -1581,7 +1656,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final boolean preGL(Graphics g) {
+    public final boolean preGL(final Graphics g) {
       // Empty in this implementation
       return true;
     }
@@ -1600,17 +1675,45 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final void postGL(Graphics g, boolean isDisplay) {
+    public final void postGL(final Graphics g, final boolean isDisplay) {
       if (isDisplay) {
         if(DEBUG) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: - frameCount "+frameCount);
         }
+
+        final GL gl = offscreenContext.getGL();
+
+        //
+        // Save TextureState ASAP, i.e. the user values for the used FBO texture-unit
+        // and the current active texture-unit (if not same)
+        //
+        final TextureState usrTexState, fboTexState;
+        final int fboTexUnit;
+
+        if( offscreenIsFBO ) {
+            fboTexUnit = GL.GL_TEXTURE0 + ((GLFBODrawable)offscreenDrawable).getTextureUnit();
+            usrTexState = new TextureState(gl, GL.GL_TEXTURE_2D);
+            if( fboTexUnit != usrTexState.getUnit() ) {
+                // glActiveTexture(..) + glBindTexture(..) are implicit performed in GLFBODrawableImpl's
+                // swapBuffers/contextMadeCurent -> swapFBOImpl.
+                // We need to cache the texture unit's bound texture-id before it's overwritten.
+                gl.glActiveTexture(fboTexUnit);
+                fboTexState = new TextureState(gl, fboTexUnit, GL.GL_TEXTURE_2D);
+            } else {
+                fboTexState = usrTexState;
+            }
+        } else {
+            fboTexUnit = 0;
+            usrTexState = null;
+            fboTexState = null;
+        }
+
+
         if( autoSwapBufferMode ) {
             // Since we only use a single-buffer non-MSAA or double-buffered MSAA offscreenDrawable,
             // we can always swap!
             offscreenDrawable.swapBuffers();
         }
-        final GL gl = offscreenContext.getGL();
 
         final int componentCount;
         final int alignment;
@@ -1643,18 +1746,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelBufferProvider isSingletonBufferProvider "+useSingletonBuffer+", 0x"+Integer.toHexString(pixelBufferProvider.hashCode())+", "+pixelBufferProvider.getClass().getSimpleName());
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelBuffer 0x"+Integer.toHexString(pixelBuffer.hashCode())+", "+pixelBuffer+", alignment "+alignment);
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" panelSize "+panelWidth+"x"+panelHeight);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" panelSize "+panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr());
           }
         }
-        if( offscreenDrawable.getWidth() != panelWidth || offscreenDrawable.getHeight() != panelHeight ) {
-            throw new InternalError("OffscreenDrawable panelSize mismatch (reshape missed): panelSize "+panelWidth+"x"+panelHeight+" != drawable "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight()+", on thread "+getThreadName());
+        if( offscreenDrawable.getSurfaceWidth() != panelWidth || offscreenDrawable.getSurfaceHeight() != panelHeight ) {
+            throw new InternalError("OffscreenDrawable panelSize mismatch (reshape missed): panelSize "+panelWidth+"x"+panelHeight+" != drawable "+offscreenDrawable.getSurfaceWidth()+"x"+offscreenDrawable.getSurfaceHeight()+", on thread "+getThreadName());
         }
         if( null == alignedImage ||
             panelWidth != alignedImage.getWidth() || panelHeight != alignedImage.getHeight() ||
             !pixelBuffer.isDataBufferSource(alignedImage) ) {
             alignedImage = pixelBuffer.getAlignedImage(panelWidth, panelHeight);
             if(DEBUG) {
-                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" new alignedImage "+alignedImage.getWidth()+"x"+alignedImage.getHeight()+", "+alignedImage+", pixelBuffer "+pixelBuffer.width+"x"+pixelBuffer.height+", "+pixelBuffer);
+                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" new alignedImage "+alignedImage.getWidth()+"x"+alignedImage.getHeight()+" @ scale "+getPixelScaleStr()+", "+alignedImage+", pixelBuffer "+pixelBuffer.width+"x"+pixelBuffer.height+", "+pixelBuffer);
             }
         }
         final IntBuffer readBackInts;
@@ -1668,32 +1771,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
            readBackInts = readBackIntsForCPUVFlip;
         }
 
-        final TextureState usrTexState, fboTexState;
-        final int fboTexUnit = GL.GL_TEXTURE0 + ( offscreenIsFBO ? ((GLFBODrawable)offscreenDrawable).getTextureUnit() : 0 );
-
-        if( offscreenIsFBO ) {
-            usrTexState = new TextureState(gl, GL.GL_TEXTURE_2D);
-            if( fboTexUnit != usrTexState.getUnit() ) {
-                // glActiveTexture(..) + glBindTexture(..) are implicit performed in GLFBODrawableImpl's
-                // swapBuffers/contextMadeCurent -> swapFBOImpl.
-                // We need to cache the texture unit's bound texture-id before it's overwritten.
-                gl.glActiveTexture(fboTexUnit);
-                fboTexState = new TextureState(gl, fboTexUnit, GL.GL_TEXTURE_2D);
-            } else {
-                fboTexState = usrTexState;
-            }
-        } else {
-            usrTexState = null;
-            fboTexState = null;
-        }
-
         // Must now copy pixels from offscreen context into surface
         if(DEBUG) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.readPixels: - frameCount "+frameCount);
         }
 
-        // Save current modes
-        psm.setAlignment(gl, alignment, alignment);
+        // Save PACK modes, reset them to defaults and set alignment
+        psm.setPackAlignment(gl, alignment);
         if(gl.isGL2ES3()) {
             final GL2ES3 gl2es3 = gl.getGL2ES3();
             gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, panelWidth);
@@ -1705,14 +1789,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             final int[] usrViewport = new int[] { 0, 0, 0, 0 };
             gl.glGetIntegerv(GL.GL_VIEWPORT, usrViewport, 0);
             viewportChange = 0 != usrViewport[0] || 0 != usrViewport[1] ||
-                             offscreenDrawable.getWidth() != usrViewport[2] || offscreenDrawable.getHeight() != usrViewport[3];
+                             offscreenDrawable.getSurfaceWidth() != usrViewport[2] || offscreenDrawable.getSurfaceHeight() != usrViewport[3];
             if( DEBUG_VIEWPORT ) {
                 System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: "+GLJPanel.this.getName()+" Viewport: change "+viewportChange+
                          ", "+usrViewport[0]+"/"+usrViewport[1]+" "+usrViewport[2]+"x"+usrViewport[3]+
-                         " -> 0/0 "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight());
+                         " -> 0/0 "+offscreenDrawable.getSurfaceWidth()+"x"+offscreenDrawable.getSurfaceHeight());
             }
             if( viewportChange ) {
-                gl.glViewport(0, 0, offscreenDrawable.getWidth(), offscreenDrawable.getHeight());
+                gl.glViewport(0, 0, offscreenDrawable.getSurfaceWidth(), offscreenDrawable.getSurfaceHeight());
             }
 
             // perform vert-flipping via OpenGL/FBO
@@ -1732,7 +1816,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             if( viewportChange ) {
                 gl.glViewport(usrViewport[0], usrViewport[1], usrViewport[2], usrViewport[3]);
             }
-            fboTexState.restore(gl);
         } else {
             gl.glReadPixels(0, 0, panelWidth, panelHeight, pixelAttribs.format, pixelAttribs.type, readBackInts);
 
@@ -1752,8 +1835,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 }
             }
         }
-        if( offscreenIsFBO && fboTexUnit != usrTexState.getUnit() ) {
-            usrTexState.restore(gl);
+        if( 0 != fboTexUnit ) { // implies offscreenIsFBO
+            fboTexState.restore(gl);
+            if( fboTexUnit != usrTexState.getUnit() ) {
+                usrTexState.restore(gl);
+            }
         }
 
         // Restore saved modes.
@@ -1773,7 +1859,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final void doPaintComponent(Graphics g) {
+    public final void doPaintComponent(final Graphics g) {
       helper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
 
       if ( null != alignedImage ) {
@@ -1781,7 +1867,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.doPaintComponent.drawImage: - frameCount "+frameCount);
         }
         // Draw resulting image in one shot
-        g.drawImage(alignedImage, 0, 0, alignedImage.getWidth(), alignedImage.getHeight(), null); // Null ImageObserver since image data is ready.
+        g.drawImage(alignedImage, 0, 0, alignedImage.getWidth()/hasPixelScale[0], alignedImage.getHeight()/hasPixelScale[1], null); // Null ImageObserver since image data is ready.
       }
       frameCount++;
     }
@@ -1800,20 +1886,21 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 // write back
                 _drawable = _drawableNew;
                 offscreenDrawable = _drawableNew;
+                updateWrappedSurfaceScale(offscreenDrawable);
             }
         }
         if (DEBUG) {
-            System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.handleReshape: " +panelWidth+"x"+panelHeight + " -> " + _drawable.getWidth()+"x"+_drawable.getHeight());
+            System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.handleReshape: " +panelWidth+"x"+panelHeight + " @ scale "+getPixelScaleStr() + " -> " + _drawable.getSurfaceWidth()+"x"+_drawable.getSurfaceHeight());
         }
-        panelWidth = _drawable.getWidth();
-        panelHeight = _drawable.getHeight();
+        panelWidth = _drawable.getSurfaceWidth();
+        panelHeight = _drawable.getSurfaceHeight();
 
         if( null != glslTextureRaster ) {
             if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
                 try {
                     final GL gl = offscreenContext.getGL();
-                    fboFlipped.reset(gl, _drawable.getWidth(), _drawable.getHeight(), 0, false);
-                    glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, _drawable.getWidth(), _drawable.getHeight());
+                    fboFlipped.reset(gl, _drawable.getSurfaceWidth(), _drawable.getSurfaceHeight(), 0, false);
+                    glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, _drawable.getSurfaceWidth(), _drawable.getSurfaceHeight());
                 } finally {
                     offscreenContext.release();
                 }
@@ -1823,12 +1910,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final GLContext createContext(GLContext shareWith) {
+    public final GLContext createContext(final GLContext shareWith) {
       return (null != offscreenDrawable) ? offscreenDrawable.createContext(shareWith) : null;
     }
 
     @Override
-    public final void setContext(GLContext ctx) {
+    public final void setContext(final GLContext ctx) {
       offscreenContext=(GLContextImpl)ctx;
     }
 
@@ -1942,12 +2029,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final void setOpaque(boolean opaque) {
+    public final void setOpaque(final boolean opaque) {
       // Empty in this implementation
     }
 
     @Override
-    public final GLContext createContext(GLContext shareWith) {
+    public final GLContext createContext(final GLContext shareWith) {
       if(null != shareWith) {
           throw new GLException("J2DOGLBackend cannot create context w/ additional shared context, since it already needs to share the context w/ J2D.");
       }
@@ -1955,7 +2042,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final void setContext(GLContext ctx) {
+    public final void setContext(final GLContext ctx) {
         joglContext=ctx;
     }
 
@@ -1991,11 +2078,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final boolean preGL(Graphics g) {
+    public final boolean preGL(final Graphics g) {
       final GL2 gl = joglContext.getGL().getGL2();
       // Set up needed state in JOGL context from Java2D context
-      gl.glEnable(GL2.GL_SCISSOR_TEST);
-      Rectangle r = Java2D.getOGLScissorBox(g);
+      gl.glEnable(GL.GL_SCISSOR_TEST);
+      final Rectangle r = Java2D.getOGLScissorBox(g);
 
       if (r == null) {
         if (DEBUG) {
@@ -2008,7 +2095,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
 
       gl.glScissor(r.x, r.y, r.width, r.height);
-      Rectangle oglViewport = Java2D.getOGLViewport(g, panelWidth, panelHeight);
+      final Rectangle oglViewport = Java2D.getOGLViewport(g, panelWidth, panelHeight);
       // If the viewport X or Y changes, in addition to the panel's
       // width or height, we need to send a reshape operation to the
       // client
@@ -2033,13 +2120,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
         // The texture target for Java2D's OpenGL pipeline when using FBOs
         // -- either GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE_ARB
-        int fboTextureTarget = Java2D.getOGLTextureType(g);
+        final int fboTextureTarget = Java2D.getOGLTextureType(g);
 
         if (!checkedForFBObjectWorkarounds) {
           checkedForFBObjectWorkarounds = true;
           gl.glBindTexture(fboTextureTarget, 0);
-          gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, frameBuffer[0]);
-          int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+          gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, frameBuffer[0]);
+          final int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
           if (status != GL.GL_FRAMEBUFFER_COMPLETE) {
               // Need to do workarounds
               fbObjectWorkarounds = true;
@@ -2069,10 +2156,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           }
 
           gl.glBindTexture(fboTextureTarget, frameBufferTexture[0]);
-          int[] width = new int[1];
-          int[] height = new int[1];
-          gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_WIDTH, width, 0);
-          gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_HEIGHT, height, 0);
+          final int[] width = new int[1];
+          final int[] height = new int[1];
+          gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2GL3.GL_TEXTURE_WIDTH, width, 0);
+          gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2GL3.GL_TEXTURE_HEIGHT, height, 0);
 
           gl.glGenRenderbuffers(1, frameBufferDepthBuffer, 0);
           if (DEBUG) {
@@ -2082,9 +2169,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
           gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
           // FIXME: may need a loop here like in Java2D
-          gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2GL3.GL_DEPTH_COMPONENT24, width[0], height[0]);
+          gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT24, width[0], height[0]);
 
-          gl.glBindRenderbuffer(GL2.GL_RENDERBUFFER, 0);
+          gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
           createNewDepthBuffer = false;
         }
 
@@ -2108,7 +2195,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         }
 
         if (DEBUG) {
-          int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+          final int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
           if (status != GL.GL_FRAMEBUFFER_COMPLETE) {
             throw new GLException("Error: framebuffer was incomplete: status = 0x" +
                                   Integer.toHexString(status));
@@ -2141,11 +2228,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public final void postGL(Graphics g, boolean isDisplay) {
+    public final void postGL(final Graphics g, final boolean isDisplay) {
       // Cause OpenGL pipeline to flush its results because
       // otherwise it's possible we will buffer up multiple frames'
       // rendering results, resulting in apparent mouse lag
-      GL gl = joglContext.getGL();
+      final GL gl = joglContext.getGL();
       gl.glFinish();
 
       if (Java2D.isFBOEnabled() &&
@@ -2209,7 +2296,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               // FIXME: add more checks?
 
               j2dContext.makeCurrent();
-              GL gl = j2dContext.getGL();
+              final GL gl = j2dContext.getGL();
               if ((getGLInteger(gl, GL.GL_RED_BITS)         < offscreenCaps.getRedBits())        ||
                   (getGLInteger(gl, GL.GL_GREEN_BITS)       < offscreenCaps.getGreenBits())      ||
                   (getGLInteger(gl, GL.GL_BLUE_BITS)        < offscreenCaps.getBlueBits())       ||
@@ -2247,7 +2334,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             }
             try {
               captureJ2DState(j2dContext.getGL(), g);
-              Object curSurface = Java2D.getOGLSurfaceIdentifier(g);
+              final Object curSurface = Java2D.getOGLSurfaceIdentifier(g);
               if (curSurface != null) {
                 if (j2dSurface != curSurface) {
                   if (joglContext != null) {
@@ -2263,7 +2350,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   j2dSurface = curSurface;
                   if (DEBUG) {
                       System.err.print(getThreadName()+": Surface type: ");
-                      int surfaceType = Java2D.getOGLSurfaceType(g);
+                      final int surfaceType = Java2D.getOGLSurfaceType(g);
                       if (surfaceType == Java2D.UNDEFINED) {
                         System.err.println("UNDEFINED");
                       } else if (surfaceType == Java2D.WINDOW) {
@@ -2282,7 +2369,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   }
                 }
                 if (joglContext == null) {
-                  AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+                  final AbstractGraphicsDevice device = j2dContext.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
                   if (factory.canCreateExternalGLDrawable(device)) {
                     joglDrawable = factory.createExternalGLDrawable();
                     joglContext = joglDrawable.createContext(j2dContext);
@@ -2311,9 +2398,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       helper.invokeGL(joglDrawable, joglContext, updaterPlainDisplayAction, updaterInitAction);
     }
 
-    private final void captureJ2DState(GL gl, Graphics g) {
-      gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuffer, 0);
-      gl.glGetIntegerv(GL2.GL_READ_BUFFER, readBuffer, 0);
+    private final void captureJ2DState(final GL gl, final Graphics g) {
+      gl.glGetIntegerv(GL2GL3.GL_DRAW_BUFFER, drawBuffer, 0);
+      gl.glGetIntegerv(GL2ES3.GL_READ_BUFFER, readBuffer, 0);
       if (Java2D.isFBOEnabled() &&
           Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT) {
         gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, frameBuffer, 0);
@@ -2347,7 +2434,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
         if (!checkedGLVendor) {
           checkedGLVendor = true;
-          String vendor = gl.glGetString(GL.GL_VENDOR);
+          final String vendor = gl.glGetString(GL.GL_VENDOR);
 
           if ((vendor != null) &&
               vendor.startsWith("ATI")) {

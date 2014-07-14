@@ -65,14 +65,14 @@ public class ScreenDriver extends ScreenImpl {
     protected void closeNativeImpl() {
     }
 
-    private final String getAdapterName(int crt_idx) {
+    private final String getAdapterName(final int crt_idx) {
         return getAdapterName0(crt_idx);
     }
-    private final String getActiveMonitorName(String adapterName, int monitor_idx) {
+    private final String getActiveMonitorName(final String adapterName, final int monitor_idx) {
         return getActiveMonitorName0(adapterName, monitor_idx);
     }
 
-    private final MonitorMode getMonitorModeImpl(MonitorModeProps.Cache cache, String adapterName, int crtModeIdx) {
+    private final MonitorMode getMonitorModeImpl(final MonitorModeProps.Cache cache, final String adapterName, final int crtModeIdx) {
         if( null == adapterName ) {
             return null;
         }
@@ -85,7 +85,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
+    protected void collectNativeMonitorModesAndDevicesImpl(final MonitorModeProps.Cache cache) {
         int crtIdx = 0;
         ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
         String adapterName = getAdapterName(crtIdx);
@@ -118,26 +118,28 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected Rectangle getNativeMonitorDeviceViewportImpl(MonitorDevice monitor) {
+    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final Rectangle viewportPU, final Rectangle viewportWU) {
         final String adapterName = getAdapterName(monitor.getId());
         if( null != adapterName ) {
             final String activeMonitorName = getActiveMonitorName(adapterName, 0);
             if( null != activeMonitorName ) {
                 final int[] monitorProps = getMonitorDevice0(adapterName, monitor.getId());
                 int offset = MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT;
-                return new Rectangle(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
+                viewportPU.set(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
+                viewportWU.set(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     @Override
-    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {
+    protected MonitorMode queryCurrentMonitorModeImpl(final MonitorDevice monitor) {
         return getMonitorModeImpl(null, getAdapterName(monitor.getId()), -1);
     }
 
     @Override
-    protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode)  {
+    protected boolean setCurrentMonitorModeImpl(final MonitorDevice monitor, final MonitorMode mode)  {
         return setMonitorMode0(monitor.getId(),
                                -1, -1, // no fixed position!
                                mode.getSurfaceSize().getResolution().getWidth(),
@@ -149,13 +151,13 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected int validateScreenIndex(int idx) {
+    protected int validateScreenIndex(final int idx) {
         return 0; // big-desktop w/ multiple monitor attached, only one screen available
     }
 
     @Override
-    protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
-        vOriginSize.set(getVirtualOriginX0(), getVirtualOriginY0(), getVirtualWidthImpl0(), getVirtualHeightImpl0());
+    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
+        viewport.set(getVirtualOriginX0(), getVirtualOriginY0(), getVirtualWidthImpl0(), getVirtualHeightImpl0());
     }
 
     // Native calls

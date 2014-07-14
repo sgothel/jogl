@@ -56,7 +56,7 @@ public class Registry {
   public Registry() {
   }
 
-  public static String gluGetString(int name) {
+  public static String gluGetString(final int name) {
     if( name == GLU.GLU_VERSION ) {
       return( "1.3" );
     } else if( name == GLU.GLU_EXTENSIONS ) {
@@ -65,7 +65,7 @@ public class Registry {
     return( null );
   }
 
-  public static boolean gluCheckExtension( String extName, String extString ) {
+  public static boolean gluCheckExtension( final String extName, final String extString ) {
     if( extName == null || extString == null ) {
       return( false );
     }

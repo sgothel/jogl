@@ -15,7 +15,7 @@ public class PngChunkGAMA extends PngChunkSingle {
 	// http://www.w3.org/TR/PNG/#11gAMA
 	private double gamma;
 
-	public PngChunkGAMA(ImageInfo info) {
+	public PngChunkGAMA(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -26,22 +26,22 @@ public class PngChunkGAMA extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = createEmptyChunk(4, true);
-		int g = (int) (gamma * 100000 + 0.5);
+		final ChunkRaw c = createEmptyChunk(4, true);
+		final int g = (int) (gamma * 100000 + 0.5);
 		PngHelperInternal.writeInt4tobytes(g, c.data, 0);
 		return c;
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
+	public void parseFromRaw(final ChunkRaw chunk) {
 		if (chunk.len != 4)
 			throw new PngjException("bad chunk " + chunk);
-		int g = PngHelperInternal.readInt4fromBytes(chunk.data, 0);
-		gamma = ((double) g) / 100000.0;
+		final int g = PngHelperInternal.readInt4fromBytes(chunk.data, 0);
+		gamma = (g) / 100000.0;
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
+	public void cloneDataFromRead(final PngChunk other) {
 		gamma = ((PngChunkGAMA) other).gamma;
 	}
 
@@ -49,7 +49,7 @@ public class PngChunkGAMA extends PngChunkSingle {
 		return gamma;
 	}
 
-	public void setGamma(double gamma) {
+	public void setGamma(final double gamma) {
 		this.gamma = gamma;
 	}
 

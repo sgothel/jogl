@@ -57,7 +57,7 @@ public class Extract1555rev implements Extract {
   }
 
   @Override
-  public void extract( boolean isSwap, ByteBuffer packedPixel, float[] extractComponents ) {
+  public void extract( final boolean isSwap, final ByteBuffer packedPixel, final float[] extractComponents ) {
     int ushort = 0;
 
     if( isSwap ) {
@@ -71,14 +71,14 @@ public class Extract1555rev implements Extract {
     // 01111100,00000000 == 0x7C00
     // 10000000,00000000 == 0x8000
 
-    extractComponents[0] = (float)( ( ushort & 0x001F )       ) / 31.0f;
-    extractComponents[1] = (float)( ( ushort & 0x003E ) >>  5 ) / 31.0f;
-    extractComponents[2] = (float)( ( ushort & 0x7C00 ) >>  10) / 31.0f;
-    extractComponents[3] = (float)( ( ushort & 0x8000 ) >>  15);
+    extractComponents[0] = ( ( ushort & 0x001F )       ) / 31.0f;
+    extractComponents[1] = ( ( ushort & 0x003E ) >>  5 ) / 31.0f;
+    extractComponents[2] = ( ( ushort & 0x7C00 ) >>  10) / 31.0f;
+    extractComponents[3] = ( ushort & 0x8000 ) >>  15;
   }
 
   @Override
-  public void shove( float[] shoveComponents, int index, ByteBuffer packedPixel ) {
+  public void shove( final float[] shoveComponents, final int index, final ByteBuffer packedPixel ) {
     // 00000000,00011111 == 0x001F
     // 00000011,11100000 == 0x03E0
     // 01111100,00000000 == 0x7C00

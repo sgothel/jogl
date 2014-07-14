@@ -60,6 +60,7 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -209,8 +210,8 @@ public class TextureIO {
      *         registered texture providers could read the file
      * @throws IOException if an error occurred while reading the file
      */
-    public static TextureData newTextureData(GLProfile glp, File file,
-                                             boolean mipmap,
+    public static TextureData newTextureData(final GLProfile glp, final File file,
+                                             final boolean mipmap,
                                              String fileSuffix) throws IOException {
         if (fileSuffix == null) {
             fileSuffix = IOUtil.getFileSuffix(file);
@@ -239,9 +240,9 @@ public class TextureIO {
      *         registered texture providers could read the stream
      * @throws IOException if an error occurred while reading the stream
      */
-    public static TextureData newTextureData(GLProfile glp, InputStream stream,
-                                             boolean mipmap,
-                                             String fileSuffix) throws IOException {
+    public static TextureData newTextureData(final GLProfile glp, final InputStream stream,
+                                             final boolean mipmap,
+                                             final String fileSuffix) throws IOException {
         return newTextureDataImpl(glp, stream, 0, 0, mipmap, fileSuffix);
     }
 
@@ -266,8 +267,8 @@ public class TextureIO {
      *         registered texture providers could read the URL
      * @throws IOException if an error occurred while reading the URL
      */
-    public static TextureData newTextureData(GLProfile glp, URL url,
-                                             boolean mipmap,
+    public static TextureData newTextureData(final GLProfile glp, final URL url,
+                                             final boolean mipmap,
                                              String fileSuffix) throws IOException {
         if (fileSuffix == null) {
             fileSuffix = IOUtil.getFileSuffix(url.getPath());
@@ -314,10 +315,10 @@ public class TextureIO {
      *                                  pixelFormat was 0
      * @throws IOException if an error occurred while reading the file
      */
-    public static TextureData newTextureData(GLProfile glp, File file,
-                                             int internalFormat,
-                                             int pixelFormat,
-                                             boolean mipmap,
+    public static TextureData newTextureData(final GLProfile glp, final File file,
+                                             final int internalFormat,
+                                             final int pixelFormat,
+                                             final boolean mipmap,
                                              String fileSuffix) throws IOException, IllegalArgumentException {
         if ((internalFormat == 0) || (pixelFormat == 0)) {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
@@ -362,11 +363,11 @@ public class TextureIO {
      *                                  pixelFormat was 0
      * @throws IOException if an error occurred while reading the stream
      */
-    public static TextureData newTextureData(GLProfile glp, InputStream stream,
-                                             int internalFormat,
-                                             int pixelFormat,
-                                             boolean mipmap,
-                                             String fileSuffix) throws IOException, IllegalArgumentException {
+    public static TextureData newTextureData(final GLProfile glp, final InputStream stream,
+                                             final int internalFormat,
+                                             final int pixelFormat,
+                                             final boolean mipmap,
+                                             final String fileSuffix) throws IOException, IllegalArgumentException {
         if ((internalFormat == 0) || (pixelFormat == 0)) {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
         }
@@ -406,10 +407,10 @@ public class TextureIO {
      *                                  pixelFormat was 0
      * @throws IOException if an error occurred while reading the URL
      */
-    public static TextureData newTextureData(GLProfile glp, URL url,
-                                             int internalFormat,
-                                             int pixelFormat,
-                                             boolean mipmap,
+    public static TextureData newTextureData(final GLProfile glp, final URL url,
+                                             final int internalFormat,
+                                             final int pixelFormat,
+                                             final boolean mipmap,
                                              String fileSuffix) throws IOException, IllegalArgumentException {
         if ((internalFormat == 0) || (pixelFormat == 0)) {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
@@ -435,7 +436,7 @@ public class TextureIO {
      *                     OpenGL error occurred
      * @throws IllegalArgumentException if the passed TextureData was null
      */
-    public static Texture newTexture(TextureData data) throws GLException, IllegalArgumentException {
+    public static Texture newTexture(final TextureData data) throws GLException, IllegalArgumentException {
         return newTexture(GLContext.getCurrentGL(), data);
     }
 
@@ -448,7 +449,7 @@ public class TextureIO {
      *                     OpenGL error occurred
      * @throws IllegalArgumentException if the passed TextureData was null
      */
-    public static Texture newTexture(GL gl, TextureData data) throws GLException, IllegalArgumentException {
+    public static Texture newTexture(final GL gl, final TextureData data) throws GLException, IllegalArgumentException {
         if (data == null) {
             throw new IllegalArgumentException("Null TextureData");
         }
@@ -470,11 +471,11 @@ public class TextureIO {
      * @throws GLException if no OpenGL context is current or if an
      *                     OpenGL error occurred
      */
-    public static Texture newTexture(File file, boolean mipmap) throws IOException, GLException {
-        GL gl = GLContext.getCurrentGL();
-        GLProfile glp = gl.getGLProfile();
-        TextureData data = newTextureData(glp, file, mipmap, IOUtil.getFileSuffix(file));
-        Texture texture = newTexture(gl, data);
+    public static Texture newTexture(final File file, final boolean mipmap) throws IOException, GLException {
+        final GL gl = GLContext.getCurrentGL();
+        final GLProfile glp = gl.getGLProfile();
+        final TextureData data = newTextureData(glp, file, mipmap, IOUtil.getFileSuffix(file));
+        final Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
     }
@@ -499,11 +500,11 @@ public class TextureIO {
      * @throws GLException if no OpenGL context is current or if an
      *                     OpenGL error occurred
      */
-    public static Texture newTexture(InputStream stream, boolean mipmap, String fileSuffix) throws IOException, GLException {
-        GL gl = GLContext.getCurrentGL();
-        GLProfile glp = gl.getGLProfile();
-        TextureData data = newTextureData(glp, stream, mipmap, fileSuffix);
-        Texture texture = newTexture(gl, data);
+    public static Texture newTexture(final InputStream stream, final boolean mipmap, final String fileSuffix) throws IOException, GLException {
+        final GL gl = GLContext.getCurrentGL();
+        final GLProfile glp = gl.getGLProfile();
+        final TextureData data = newTextureData(glp, stream, mipmap, fileSuffix);
+        final Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
     }
@@ -528,14 +529,14 @@ public class TextureIO {
      * @throws GLException if no OpenGL context is current or if an
      *                     OpenGL error occurred
      */
-    public static Texture newTexture(URL url, boolean mipmap, String fileSuffix) throws IOException, GLException {
+    public static Texture newTexture(final URL url, final boolean mipmap, String fileSuffix) throws IOException, GLException {
         if (fileSuffix == null) {
             fileSuffix = IOUtil.getFileSuffix(url.getPath());
         }
-        GL gl = GLContext.getCurrentGL();
-        GLProfile glp = gl.getGLProfile();
-        TextureData data = newTextureData(glp, url, mipmap, fileSuffix);
-        Texture texture = newTexture(gl, data);
+        final GL gl = GLContext.getCurrentGL();
+        final GLProfile glp = gl.getGLProfile();
+        final TextureData data = newTextureData(glp, url, mipmap, fileSuffix);
+        final Texture texture = newTexture(gl, data);
         data.flush();
         return texture;
     }
@@ -549,47 +550,8 @@ public class TextureIO {
      * @param target the OpenGL target type, eg GL.GL_TEXTURE_2D,
      *               GL.GL_TEXTURE_RECTANGLE_ARB
      */
-    public static Texture newTexture(int target) {
+    public static Texture newTexture(final int target) {
         return new Texture(target);
-    }
-
-    /**
-     * Wraps an OpenGL texture ID from an external library and allows
-     * some of the base methods from the Texture class, such as
-     * binding and querying of texture coordinates, to be used with
-     * it. Attempts to update such textures' contents will yield
-     * undefined results.
-     *
-     * @param textureID the OpenGL texture object to wrap
-     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
-     *               GL2.GL_TEXTURE_RECTANGLE
-     * @param texWidth the width of the texture in pixels
-     * @param texHeight the height of the texture in pixels
-     * @param imgWidth the width of the image within the texture in
-     *          pixels (if the content is a sub-rectangle in the upper
-     *          left corner); otherwise, pass in texWidth
-     * @param imgHeight the height of the image within the texture in
-     *          pixels (if the content is a sub-rectangle in the upper
-     *          left corner); otherwise, pass in texHeight
-     * @param mustFlipVertically indicates whether the texture
-     *                           coordinates must be flipped vertically
-     *                           in order to properly display the
-     *                           texture
-     */
-    public static Texture newTexture(int textureID,
-                     int target,
-                     int texWidth,
-                     int texHeight,
-                     int imgWidth,
-                     int imgHeight,
-                     boolean mustFlipVertically) {
-    return new Texture(textureID,
-               target,
-               texWidth,
-               texHeight,
-               imgWidth,
-               imgHeight,
-               mustFlipVertically);
     }
 
     /**
@@ -618,31 +580,31 @@ public class TextureIO {
      * @throws GLException if no OpenGL context was current or an
      *   OpenGL-related error occurred
      */
-    public static void write(Texture texture, File file) throws IOException, GLException {
+    public static void write(final Texture texture, final File file) throws IOException, GLException {
         if (texture.getTarget() != GL.GL_TEXTURE_2D) {
             throw new GLException("Only GL_TEXTURE_2D textures are supported");
         }
 
         // First fetch the texture data
-        GL _gl = GLContext.getCurrentGL();
+        final GL _gl = GLContext.getCurrentGL();
         if (!_gl.isGL2GL3()) {
             throw new GLException("Implementation only supports GL2GL3 (Use GLReadBufferUtil and the TextureData variant), have: " + _gl);
         }
-        GL2GL3 gl = _gl.getGL2();
+        final GL2GL3 gl = _gl.getGL2();
 
         texture.bind(gl);
-        int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_INTERNAL_FORMAT);
-        int width  = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_WIDTH);
-        int height = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_HEIGHT);
-        int border = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_BORDER);
+        final int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_INTERNAL_FORMAT);
+        final int width  = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_WIDTH);
+        final int height = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_HEIGHT);
+        final int border = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_BORDER);
         TextureData data = null;
         if (internalFormat == GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
             internalFormat == GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
             internalFormat == GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT ||
             internalFormat == GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT) {
             // Fetch using glGetCompressedTexImage
-            int size   = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
-            ByteBuffer res = ByteBuffer.allocate(size);
+            final int size   = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
+            final ByteBuffer res = ByteBuffer.allocate(size);
             gl.glGetCompressedTexImage(GL.GL_TEXTURE_2D, 0, res);
             data = new TextureData(gl.getGLProfile(), internalFormat, width, height, border, internalFormat, GL.GL_UNSIGNED_BYTE,
                                    false, true, true, res, null);
@@ -651,7 +613,7 @@ public class TextureIO {
             int fetchedFormat = 0;
             switch (internalFormat) {
             case GL.GL_RGB:
-            case GL2.GL_BGR:
+            case GL2GL3.GL_BGR:
             case GL.GL_RGB8:
                 bytesPerPixel = 3;
                 fetchedFormat = GL.GL_RGB;
@@ -668,19 +630,19 @@ public class TextureIO {
             }
 
             // Fetch using glGetTexImage
-            int packAlignment  = glGetInteger(gl, GL.GL_PACK_ALIGNMENT);
-            int packRowLength  = glGetInteger(gl, GL2.GL_PACK_ROW_LENGTH);
-            int packSkipRows   = glGetInteger(gl, GL2.GL_PACK_SKIP_ROWS);
-            int packSkipPixels = glGetInteger(gl, GL2.GL_PACK_SKIP_PIXELS);
-            int packSwapBytes  = glGetInteger(gl, GL2.GL_PACK_SWAP_BYTES);
+            final int packAlignment  = glGetInteger(gl, GL.GL_PACK_ALIGNMENT);
+            final int packRowLength  = glGetInteger(gl, GL2ES3.GL_PACK_ROW_LENGTH);
+            final int packSkipRows   = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_ROWS);
+            final int packSkipPixels = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_PIXELS);
+            final int packSwapBytes  = glGetInteger(gl, GL2GL3.GL_PACK_SWAP_BYTES);
 
             gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
-            gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, 0);
-            gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS, 0);
-            gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, 0);
-            gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES, 0);
+            gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, 0);
+            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, 0);
+            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_PIXELS, 0);
+            gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES, 0);
 
-            ByteBuffer res = ByteBuffer.allocate((width + (2 * border)) *
+            final ByteBuffer res = ByteBuffer.allocate((width + (2 * border)) *
                                                  (height + (2 * border)) *
                                                  bytesPerPixel);
             if (DEBUG) {
@@ -690,10 +652,10 @@ public class TextureIO {
             gl.glGetTexImage(GL.GL_TEXTURE_2D, 0, fetchedFormat, GL.GL_UNSIGNED_BYTE, res);
 
             gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, packAlignment);
-            gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, packRowLength);
-            gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS, packSkipRows);
-            gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, packSkipPixels);
-            gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES, packSwapBytes);
+            gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, packRowLength);
+            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, packSkipRows);
+            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_PIXELS, packSkipPixels);
+            gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES, packSwapBytes);
 
             data = new TextureData(gl.getGLProfile(), internalFormat, width, height, border, fetchedFormat, GL.GL_UNSIGNED_BYTE,
                                    false, false, false, res, null);
@@ -707,9 +669,9 @@ public class TextureIO {
         write(data, file);
     }
 
-    public static void write(TextureData data, File file) throws IOException, GLException {
-        for (Iterator<TextureWriter> iter = textureWriters.iterator(); iter.hasNext(); ) {
-            TextureWriter writer = iter.next();
+    public static void write(final TextureData data, final File file) throws IOException, GLException {
+        for (final Iterator<TextureWriter> iter = textureWriters.iterator(); iter.hasNext(); ) {
+            final TextureWriter writer = iter.next();
             if (writer.write(file, data)) {
                 return;
             }
@@ -728,7 +690,7 @@ public class TextureIO {
      * The last provider added, will be the first provider to be tested.
      * </p>
      */
-    public static void addTextureProvider(TextureProvider provider) {
+    public static void addTextureProvider(final TextureProvider provider) {
         // Must always add at the front so the ImageIO provider is last,
         // so we don't accidentally use it instead of a user's possibly
         // more optimal provider
@@ -741,7 +703,7 @@ public class TextureIO {
      * The last provider added, will be the first provider to be tested.
      * </p>
      */
-    public static void addTextureWriter(TextureWriter writer) {
+    public static void addTextureWriter(final TextureWriter writer) {
         // Must always add at the front so the ImageIO writer is last,
         // so we don't accidentally use it instead of a user's possibly
         // more optimal writer
@@ -766,7 +728,7 @@ public class TextureIO {
         the GL_ARB_texture_rectangle extension to be turned off globally
         for this purpose. The default is that the use of the extension
         is enabled. */
-    public static void setTexRectEnabled(boolean enabled) {
+    public static void setTexRectEnabled(final boolean enabled) {
         texRectEnabled = enabled;
     }
 
@@ -789,10 +751,10 @@ public class TextureIO {
         if(GLProfile.isAWTAvailable()) {
             try {
                 // Use reflection to avoid compile-time dependencies on AWT-related classes
-                TextureProvider provider = (TextureProvider)
+                final TextureProvider provider = (TextureProvider)
                     Class.forName("com.jogamp.opengl.util.texture.spi.awt.IIOTextureProvider").newInstance();
                 addTextureProvider(provider);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (DEBUG) {
                     e.printStackTrace();
                 }
@@ -810,14 +772,14 @@ public class TextureIO {
         if(GLProfile.isAWTAvailable()) {
             try {
                 // Use reflection to avoid compile-time dependencies on AWT-related classes
-                TextureWriter writer = (TextureWriter)
+                final TextureWriter writer = (TextureWriter)
                     Class.forName("com.jogamp.opengl.util.texture.spi.awt.IIOTextureWriter").newInstance();
                 addTextureWriter(writer);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (DEBUG) {
                     e.printStackTrace();
                 }
-            } catch (Error e) {
+            } catch (final Error e) {
                 if (DEBUG) {
                     e.printStackTrace();
                 }
@@ -833,10 +795,10 @@ public class TextureIO {
     }
 
     // Implementation methods
-    private static TextureData newTextureDataImpl(GLProfile glp, File file,
-                                                  int internalFormat,
-                                                  int pixelFormat,
-                                                  boolean mipmap,
+    private static TextureData newTextureDataImpl(final GLProfile glp, final File file,
+                                                  final int internalFormat,
+                                                  final int pixelFormat,
+                                                  final boolean mipmap,
                                                   String fileSuffix) throws IOException {
         if (file == null) {
             throw new IOException("File was null");
@@ -844,9 +806,9 @@ public class TextureIO {
 
         fileSuffix = toLowerCase(fileSuffix);
 
-        for (Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
-            TextureProvider provider = iter.next();
-            TextureData data = provider.newTextureData(glp, file,
+        for (final Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
+            final TextureProvider provider = iter.next();
+            final TextureData data = provider.newTextureData(glp, file,
                                                        internalFormat,
                                                        pixelFormat,
                                                        mipmap,
@@ -859,10 +821,10 @@ public class TextureIO {
         throw new IOException("No suitable reader for given file "+file.getAbsolutePath());
     }
 
-    private static TextureData newTextureDataImpl(GLProfile glp, InputStream stream,
-                                                  int internalFormat,
-                                                  int pixelFormat,
-                                                  boolean mipmap,
+    private static TextureData newTextureDataImpl(final GLProfile glp, InputStream stream,
+                                                  final int internalFormat,
+                                                  final int pixelFormat,
+                                                  final boolean mipmap,
                                                   String fileSuffix) throws IOException {
         if (stream == null) {
             throw new IOException("Stream was null");
@@ -875,9 +837,9 @@ public class TextureIO {
             stream = new BufferedInputStream(stream);
         }
 
-        for (Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
-            TextureProvider provider = iter.next();
-            TextureData data = provider.newTextureData(glp, stream,
+        for (final Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
+            final TextureProvider provider = iter.next();
+            final TextureData data = provider.newTextureData(glp, stream,
                                                        internalFormat,
                                                        pixelFormat,
                                                        mipmap,
@@ -890,10 +852,10 @@ public class TextureIO {
         throw new IOException("No suitable reader for given stream");
     }
 
-    private static TextureData newTextureDataImpl(GLProfile glp, URL url,
-                                                  int internalFormat,
-                                                  int pixelFormat,
-                                                  boolean mipmap,
+    private static TextureData newTextureDataImpl(final GLProfile glp, final URL url,
+                                                  final int internalFormat,
+                                                  final int pixelFormat,
+                                                  final boolean mipmap,
                                                   String fileSuffix) throws IOException {
         if (url == null) {
             throw new IOException("URL was null");
@@ -901,9 +863,9 @@ public class TextureIO {
 
         fileSuffix = toLowerCase(fileSuffix);
 
-        for (Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
-            TextureProvider provider = iter.next();
-            TextureData data = provider.newTextureData(glp, url,
+        for (final Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
+            final TextureProvider provider = iter.next();
+            final TextureData data = provider.newTextureData(glp, url,
                                                        internalFormat,
                                                        pixelFormat,
                                                        mipmap,
@@ -920,14 +882,14 @@ public class TextureIO {
     // DDS provider -- supports files only for now
     static class DDSTextureProvider implements TextureProvider {
         @Override
-        public TextureData newTextureData(GLProfile glp, File file,
-                                          int internalFormat,
-                                          int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
+        public TextureData newTextureData(final GLProfile glp, final File file,
+                                          final int internalFormat,
+                                          final int pixelFormat,
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
             if (DDS.equals(fileSuffix) ||
                 DDS.equals(IOUtil.getFileSuffix(file))) {
-                DDSImage image = DDSImage.read(file);
+                final DDSImage image = DDSImage.read(file);
                 return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
             }
 
@@ -935,16 +897,16 @@ public class TextureIO {
         }
 
         @Override
-        public TextureData newTextureData(GLProfile glp, InputStream stream,
-                                          int internalFormat,
-                                          int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
+        public TextureData newTextureData(final GLProfile glp, final InputStream stream,
+                                          final int internalFormat,
+                                          final int pixelFormat,
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
             if (DDS.equals(fileSuffix) ||
                 DDSImage.isDDSImage(stream)) {
-                byte[] data = IOUtil.copyStream2ByteArray(stream);
-                ByteBuffer buf = ByteBuffer.wrap(data);
-                DDSImage image = DDSImage.read(buf);
+                final byte[] data = IOUtil.copyStream2ByteArray(stream);
+                final ByteBuffer buf = ByteBuffer.wrap(data);
+                final DDSImage image = DDSImage.read(buf);
                 return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
             }
 
@@ -952,12 +914,12 @@ public class TextureIO {
         }
 
         @Override
-        public TextureData newTextureData(GLProfile glp, URL url,
-                                          int internalFormat,
-                                          int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
-            InputStream stream = new BufferedInputStream(url.openStream());
+        public TextureData newTextureData(final GLProfile glp, final URL url,
+                                          final int internalFormat,
+                                          final int pixelFormat,
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
+            final InputStream stream = new BufferedInputStream(url.openStream());
             try {
                 return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
             } finally {
@@ -965,11 +927,11 @@ public class TextureIO {
             }
         }
 
-        private TextureData newTextureData(GLProfile glp, final DDSImage image,
+        private TextureData newTextureData(final GLProfile glp, final DDSImage image,
                                            int internalFormat,
                                            int pixelFormat,
                                            boolean mipmap) {
-            DDSImage.ImageInfo info = image.getMipMap(0);
+            final DDSImage.ImageInfo info = image.getMipMap(0);
             if (pixelFormat == 0) {
                 switch (image.getPixelFormat()) {
                 case DDSImage.D3DFMT_R8G8B8:
@@ -1006,7 +968,7 @@ public class TextureIO {
                     break;
                 }
             }
-            TextureData.Flusher flusher = new TextureData.Flusher() {
+            final TextureData.Flusher flusher = new TextureData.Flusher() {
                     @Override
                     public void flush() {
                         image.close();
@@ -1014,7 +976,7 @@ public class TextureIO {
                 };
             TextureData data;
             if (mipmap && image.getNumMipMaps() > 0) {
-                Buffer[] mipmapData = new Buffer[image.getNumMipMaps()];
+                final Buffer[] mipmapData = new Buffer[image.getNumMipMaps()];
                 for (int i = 0; i < image.getNumMipMaps(); i++) {
                     mipmapData[i] = image.getMipMap(i).getData();
                 }
@@ -1052,12 +1014,12 @@ public class TextureIO {
     // Base class for SGI RGB and TGA image providers
     static abstract class StreamBasedTextureProvider implements TextureProvider {
         @Override
-        public TextureData newTextureData(GLProfile glp, File file,
-                                          int internalFormat,
-                                          int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
-            InputStream inStream = new BufferedInputStream(new FileInputStream(file));
+        public TextureData newTextureData(final GLProfile glp, final File file,
+                                          final int internalFormat,
+                                          final int pixelFormat,
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
+            final InputStream inStream = new BufferedInputStream(new FileInputStream(file));
             try {
                 // The SGIImage and TGAImage implementations use InputStreams
                 // anyway so there isn't much point in having a separate code
@@ -1073,12 +1035,12 @@ public class TextureIO {
         }
 
         @Override
-        public TextureData newTextureData(GLProfile glp, URL url,
-                                          int internalFormat,
-                                          int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
-            InputStream stream = new BufferedInputStream(url.openStream());
+        public TextureData newTextureData(final GLProfile glp, final URL url,
+                                          final int internalFormat,
+                                          final int pixelFormat,
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
+            final InputStream stream = new BufferedInputStream(url.openStream());
             try {
                 return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
             } finally {
@@ -1091,15 +1053,15 @@ public class TextureIO {
     // SGI RGB image provider
     static class SGITextureProvider extends StreamBasedTextureProvider {
         @Override
-        public TextureData newTextureData(GLProfile glp, InputStream stream,
+        public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
             if (SGI.equals(fileSuffix) ||
                 SGI_RGB.equals(fileSuffix) ||
                 SGIImage.isSGIImage(stream)) {
-                SGIImage image = SGIImage.read(stream);
+                final SGIImage image = SGIImage.read(stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getFormat();
                 }
@@ -1127,13 +1089,13 @@ public class TextureIO {
     // TGA (Targa) image provider
     static class TGATextureProvider extends StreamBasedTextureProvider {
         @Override
-        public TextureData newTextureData(GLProfile glp, InputStream stream,
+        public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
             if (TGA.equals(fileSuffix)) {
-                TGAImage image = TGAImage.read(glp, stream);
+                final TGAImage image = TGAImage.read(glp, stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getGLFormat();
                 }
@@ -1165,11 +1127,11 @@ public class TextureIO {
     // PNG image provider
     static class PNGTextureProvider extends StreamBasedTextureProvider {
         @Override
-        public TextureData newTextureData(GLProfile glp, InputStream stream,
+        public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
             if (PNG.equals(fileSuffix)) {
                 final PNGPixelRect image = PNGPixelRect.read(stream, null, true /* directBuffer */, 0 /* destMinStrideInBytes */, true /* destIsGLOriented */);
                 final GLPixelAttributes glpa = GLPixelAttributes.convert(image.getPixelformat(), glp);
@@ -1205,13 +1167,13 @@ public class TextureIO {
     // JPEG image provider
     static class JPGTextureProvider extends StreamBasedTextureProvider {
         @Override
-        public TextureData newTextureData(GLProfile glp, InputStream stream,
+        public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
-                                          boolean mipmap,
-                                          String fileSuffix) throws IOException {
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
             if (JPG.equals(fileSuffix)) {
-                JPEGImage image = JPEGImage.read(/*glp, */ stream);
+                final JPEGImage image = JPEGImage.read(/*glp, */ stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getGLFormat();
                 }
@@ -1244,8 +1206,8 @@ public class TextureIO {
     //
     static class DDSTextureWriter implements TextureWriter {
         @Override
-        public boolean write(File file,
-                             TextureData data) throws IOException {
+        public boolean write(final File file,
+                             final TextureData data) throws IOException {
             if (DDS.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the DDS writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
@@ -1278,7 +1240,7 @@ public class TextureIO {
                     mipmaps = new ByteBuffer[] { (ByteBuffer) data.getBuffer() };
                 }
 
-                DDSImage image = DDSImage.createFromData(d3dFormat,
+                final DDSImage image = DDSImage.createFromData(d3dFormat,
                                                          data.getWidth(),
                                                          data.getHeight(),
                                                          mipmaps);
@@ -1295,9 +1257,9 @@ public class TextureIO {
     //
     static class SGITextureWriter implements TextureWriter {
         @Override
-        public boolean write(File file,
-                             TextureData data) throws IOException {
-            String fileSuffix = IOUtil.getFileSuffix(file);
+        public boolean write(final File file,
+                             final TextureData data) throws IOException {
+            final String fileSuffix = IOUtil.getFileSuffix(file);
             if (SGI.equals(fileSuffix) ||
                 SGI_RGB.equals(fileSuffix)) {
                 // See whether the SGI writer can handle this TextureData
@@ -1308,7 +1270,7 @@ public class TextureIO {
                      pixelFormat == GL.GL_RGBA) &&
                     (pixelType == GL.GL_BYTE ||
                      pixelType == GL.GL_UNSIGNED_BYTE)) {
-                    ByteBuffer buf = ((data.getBuffer() != null) ?
+                    final ByteBuffer buf = ((data.getBuffer() != null) ?
                                       (ByteBuffer) data.getBuffer() :
                                       (ByteBuffer) data.getMipmapData()[0]);
                     byte[] bytes;
@@ -1321,7 +1283,7 @@ public class TextureIO {
                         buf.rewind();
                     }
 
-                    SGIImage image = SGIImage.createFromData(data.getWidth(),
+                    final SGIImage image = SGIImage.createFromData(data.getWidth(),
                                                              data.getHeight(),
                                                              (pixelFormat == GL.GL_RGBA),
                                                              bytes);
@@ -1341,8 +1303,8 @@ public class TextureIO {
 
     static class TGATextureWriter implements TextureWriter {
         @Override
-        public boolean write(File file,
-                             TextureData data) throws IOException {
+        public boolean write(final File file,
+                             final TextureData data) throws IOException {
             if (TGA.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the TGA writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
@@ -1350,7 +1312,7 @@ public class TextureIO {
                 final int pixelType   = pixelAttribs.type;
                 if ((pixelFormat == GL.GL_RGB ||
                      pixelFormat == GL.GL_RGBA ||
-                     pixelFormat == GL2.GL_BGR ||
+                     pixelFormat == GL2GL3.GL_BGR ||
                      pixelFormat == GL.GL_BGRA ) &&
                     (pixelType == GL.GL_BYTE ||
                      pixelType == GL.GL_UNSIGNED_BYTE)) {
@@ -1363,16 +1325,16 @@ public class TextureIO {
 
                     if( pixelFormat == GL.GL_RGB || pixelFormat == GL.GL_RGBA ) {
                         // Must reverse order of red and blue channels to get correct results
-                        int skip = ((pixelFormat == GL.GL_RGB) ? 3 : 4);
+                        final int skip = ((pixelFormat == GL.GL_RGB) ? 3 : 4);
                         for (int i = 0; i < buf.remaining(); i += skip) {
-                            byte red  = buf.get(i + 0);
-                            byte blue = buf.get(i + 2);
+                            final byte red  = buf.get(i + 0);
+                            final byte blue = buf.get(i + 2);
                             buf.put(i + 0, blue);
                             buf.put(i + 2, red);
                         }
                     }
 
-                    TGAImage image = TGAImage.createFromData(data.getWidth(),
+                    final TGAImage image = TGAImage.createFromData(data.getWidth(),
                                                              data.getHeight(),
                                                              (pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA),
                                                              false, buf);
@@ -1392,7 +1354,7 @@ public class TextureIO {
 
     static class PNGTextureWriter implements TextureWriter {
         @Override
-        public boolean write(File file, TextureData data) throws IOException {
+        public boolean write(final File file, final TextureData data) throws IOException {
             if (PNG.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the PNG writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
@@ -1442,19 +1404,19 @@ public class TextureIO {
     // Helper routines
     //
 
-    private static int glGetInteger(GL gl, int pname) {
-        int[] tmp = new int[1];
+    private static int glGetInteger(final GL gl, final int pname) {
+        final int[] tmp = new int[1];
         gl.glGetIntegerv(pname, tmp, 0);
         return tmp[0];
     }
 
-    private static int glGetTexLevelParameteri(GL2GL3 gl, int target, int level, int pname) {
-        int[] tmp = new int[1];
+    private static int glGetTexLevelParameteri(final GL2GL3 gl, final int target, final int level, final int pname) {
+        final int[] tmp = new int[1];
         gl.glGetTexLevelParameteriv(target, 0, pname, tmp, 0);
         return tmp[0];
     }
 
-    private static String toLowerCase(String arg) {
+    private static String toLowerCase(final String arg) {
         if (arg == null) {
             return null;
         }

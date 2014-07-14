@@ -20,11 +20,11 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * The 3.1 compatibility context on Mesa >= 9.0 seems to be broken.
  * <p>
- * This bug lies within Mesa3D (any renderer) and is fixed in 
+ * This bug lies within Mesa3D (any renderer) and is fixed in
  * commit ??? (not yet).
  * </p>
  * <p>
- * Mesa3D Version 9.0 still exposes this bug, 
+ * Mesa3D Version 9.0 still exposes this bug,
  * where 9.?.? has it fixed w/ above commit.
  * </p>
  * <https://jogamp.org/bugzilla/show_bug.cgi?id=658>
@@ -36,25 +36,25 @@ public class TestGLMesaBug658NEWT extends UITestCase {
   public void test00ShowAvailProfiles() {
       System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
   }
-  
+
   @Test
   public void test10GL2PolygonModeFailure() {
       testGLNPolygonModeFailureImpl(GLProfile.GL2);
   }
-  
+
   @Test
   public void test11GL3bcPolygonModeFailure() {
       testGLNPolygonModeFailureImpl(GLProfile.GL3bc);
   }
-  
+
   @Test
   public void test12GL3PolygonModeFailure() {
       testGLNPolygonModeFailureImpl(GLProfile.GL3);
   }
-  
-  private void testGLNPolygonModeFailureImpl(String profile) {
+
+  private void testGLNPolygonModeFailureImpl(final String profile) {
     if(!GLProfile.isAvailable(profile)) { System.err.println(profile+" n/a"); return; }
-        
+
     final GLProfile pro = GLProfile.get(profile);
     final GLCapabilities caps = new GLCapabilities(pro);
     final GLWindow window = GLWindow.create(caps);
@@ -82,7 +82,7 @@ public class TestGLMesaBug658NEWT extends UITestCase {
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
         System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
-        
+
         if( gl.isGL2() || gl.isGLES2() ) { // compatibility profile || ES2
             gl.glPolygonMode(GL.GL_FRONT, GL2GL3.GL_FILL);
         } else {
@@ -113,24 +113,24 @@ public class TestGLMesaBug658NEWT extends UITestCase {
     }
   }
 
-  @Test 
+  @Test
   public void test20GL2BindArrayAttributeFails() {
       testGLNBindArrayAttributeFailsImpl(GLProfile.GL2);
   }
-  
-  @Test 
+
+  @Test
   public void test21GL3bcBindArrayAttributeFails() {
       testGLNBindArrayAttributeFailsImpl(GLProfile.GL3bc);
   }
-  
-  @Test 
+
+  @Test
   public void test22GL3BindArrayAttributeFails() {
       testGLNBindArrayAttributeFailsImpl(GLProfile.GL3);
   }
-  
-  private void testGLNBindArrayAttributeFailsImpl(String profile) {
+
+  private void testGLNBindArrayAttributeFailsImpl(final String profile) {
     if(!GLProfile.isAvailable(profile)) { System.err.println(profile+ " n/a"); return; }
-    
+
     final GLProfile pro = GLProfile.get(profile);
     final GLCapabilities caps = new GLCapabilities(pro);
     final GLWindow window = GLWindow.create(caps);
@@ -172,7 +172,7 @@ public class TestGLMesaBug658NEWT extends UITestCase {
         gl.glEnableVertexAttribArray(1);
         Assert.assertTrue(gl.glGetError() == GL.GL_NO_ERROR);
         gl.glVertexAttribPointer(1, 4, GL.GL_FLOAT, false, 0, 0L);
-        Assert.assertTrue(gl.glGetError() == GL.GL_NO_ERROR); // FIXME On Mesa 9.0.1 w/ GL 3.1 -> GL.GL_INVALID_OPERATION ? 
+        Assert.assertTrue(gl.glGetError() == GL.GL_NO_ERROR); // FIXME On Mesa 9.0.1 w/ GL 3.1 -> GL.GL_INVALID_OPERATION ?
       }
 
       public void dispose(
@@ -194,10 +194,10 @@ public class TestGLMesaBug658NEWT extends UITestCase {
         window.destroy();
     }
   }
-  
-  public static void main(String args[]) {
+
+  public static void main(final String args[]) {
       org.junit.runner.JUnitCore.main(TestGLMesaBug658NEWT.class.getName());
   }
-  
+
 }
 

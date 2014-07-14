@@ -143,7 +143,7 @@ public class GLContextShareSet {
     if (lastContext == null) {
       throw new IllegalArgumentException("Last context is null");
     }
-    ShareSet share = entryFor(lastContext);
+    final ShareSet share = entryFor(lastContext);
     if (share == null) {
       throw new GLException("Last context is unknown: "+lastContext);
     }
@@ -159,8 +159,8 @@ public class GLContextShareSet {
       System.err.println("GLContextShareSet: unregisterSharing: " +
               toHexString(lastContext.getHandle())+", entries: "+s.size());
     }
-    for(Iterator<GLContext> iter = s.iterator() ; iter.hasNext() ; ) {
-        GLContext ctx = iter.next();
+    for(final Iterator<GLContext> iter = s.iterator() ; iter.hasNext() ; ) {
+        final GLContext ctx = iter.next();
         if(null == removeEntry(ctx)) {
             throw new GLException("Removal of shareSet for context failed");
         }
@@ -207,7 +207,7 @@ public class GLContextShareSet {
   }
 
   /** Returns true if the given GLContext has shared and created GLContext left including itself, otherwise false. */
-  public static synchronized boolean hasCreatedSharedLeft(GLContext context) {
+  public static synchronized boolean hasCreatedSharedLeft(final GLContext context) {
       final Set<GLContext> s = getCreatedSharesImpl(context);
       return null != s && s.size() > 0;
   }
@@ -279,7 +279,7 @@ public class GLContextShareSet {
     return shareMap.remove(context);
   }
 
-  private static String toHexString(long hex) {
+  private static String toHexString(final long hex) {
     return "0x" + Long.toHexString(hex);
   }
 }

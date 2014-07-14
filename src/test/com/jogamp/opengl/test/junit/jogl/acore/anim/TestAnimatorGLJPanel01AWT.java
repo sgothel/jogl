@@ -49,7 +49,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
     static final int width = 640;
     static final int height = 480;
 
-    protected GLJPanel createGLJPanel(final GLCapabilities caps, final Frame frame, int x, int y, GearsES2 gears) throws InterruptedException {
+    protected GLJPanel createGLJPanel(final GLCapabilities caps, final Frame frame, final int x, final int y, final GearsES2 gears) throws InterruptedException {
         final GLJPanel glCanvas = new GLJPanel(caps);
         Assert.assertNotNull(glCanvas);
         glCanvas.addGLEventListener(gears);
@@ -60,7 +60,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         return glCanvas;
     }
 
-    static void pauseAnimator(Animator animator, boolean pause) {
+    static void pauseAnimator(final Animator animator, final boolean pause) {
         if(pause) {
             animator.pause();
             Assert.assertEquals(true, animator.isStarted());
@@ -73,7 +73,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
             Assert.assertEquals(true, animator.isAnimating());
         }
     }
-    static void stopAnimator(Animator animator) {
+    static void stopAnimator(final Animator animator) {
         animator.stop();
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isPaused());
@@ -133,7 +133,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -141,7 +141,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -149,7 +149,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -163,7 +163,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
                     f1.dispose();
                     f2.dispose();
                     f3.dispose();
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -235,7 +235,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -245,7 +245,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -255,7 +255,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
         try {
             Thread.sleep(duration/3);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -271,7 +271,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
                     f1.dispose();
                     f2.dispose();
                     f3.dispose();
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -283,13 +283,13 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
 
     static long duration = 3*500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

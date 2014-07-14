@@ -2,6 +2,7 @@ package jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
@@ -9,28 +10,36 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
-import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSizePos;
+import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 
 public class WrappedWindow extends WrappedSurface implements NativeWindow {
     private final InsetsImmutable insets = new Insets(0, 0, 0, 0);
     private long windowHandle;
 
     /**
-     * Utilizes a {@link UpstreamSurfaceHookMutableSizePos} to hold the size and postion information,
+     * Utilizes a {@link UpstreamWindowHookMutableSizePos} to hold the size and position information,
      * which is being passed to the {@link ProxySurface} instance.
      *
      * @param cfg the {@link AbstractGraphicsConfiguration} to be used
      * @param surfaceHandle the wrapped pre-existing native surface handle, maybe 0 if not yet determined
-     * @param initialX
-     * @param initialY
-     * @param initialWidth
-     * @param initialHeight
+     * @param initialWinX
+     * @param initialWinY
+     * @param initialWinWidth
+     * @param initialWinHeight
+     * @param initialPixelWidth FIXME: pixel-dim == window-dim 'for now' ?
+     * @param initialPixelHeight FIXME: pixel-dim == window-dim 'for now' ?
      * @param ownsDevice <code>true</code> if this {@link ProxySurface} instance
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
      */
-    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, int initialX, int initialY, int initialWidth, int initialHeight, boolean ownsDevice, long windowHandle) {
-        this(cfg, surfaceHandle, new UpstreamSurfaceHookMutableSizePos(initialX, initialY, initialWidth, initialHeight), ownsDevice, windowHandle);
+    public WrappedWindow(final AbstractGraphicsConfiguration cfg, final long surfaceHandle,
+                         final int initialWinX, final int initialWinY, final int initialWinWidth, final int initialWinHeight,
+                         final int initialPixelWidth, final int initialPixelHeight,
+                         final boolean ownsDevice, final long windowHandle) {
+        this(cfg, surfaceHandle,
+             new UpstreamWindowHookMutableSizePos(initialWinX, initialWinY, initialWinWidth, initialWinHeight,
+                                                  initialPixelWidth, initialPixelHeight),
+             ownsDevice, windowHandle);
     }
 
     /**
@@ -41,7 +50,7 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>.
      */
-    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, UpstreamSurfaceHookMutableSizePos upstream, boolean ownsDevice, long windowHandle) {
+    public WrappedWindow(final AbstractGraphicsConfiguration cfg, final long surfaceHandle, final UpstreamWindowHookMutableSizePos upstream, final boolean ownsDevice, final long windowHandle) {
         super(cfg, surfaceHandle, upstream, ownsDevice);
         this.windowHandle = windowHandle;
     }
@@ -56,6 +65,9 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
     public void destroy() {
         destroyNotify();
     }
+
+    @Override
+    public final NativeSurface getNativeSurface() { return this; }
 
     @Override
     public NativeWindow getParent() {
@@ -74,16 +86,26 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
 
     @Override
     public int getX() {
-        return ((UpstreamSurfaceHookMutableSizePos)getUpstreamSurfaceHook()).getX();
+        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getX();
     }
 
     @Override
     public int getY() {
-        return ((UpstreamSurfaceHookMutableSizePos)getUpstreamSurfaceHook()).getY();
+        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getY();
     }
 
     @Override
-    public Point getLocationOnScreen(Point point) {
+    public int getWidth() {
+        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getHeight();
+    }
+
+    @Override
+    public Point getLocationOnScreen(final Point point) {
         if(null!=point) {
           return point;
         } else {

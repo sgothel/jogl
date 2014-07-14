@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
@@ -75,20 +75,20 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
         "OpenGL 2.1 LaLa", // 3
         "4.2.11762 Compatibility Profile Context" // 4
     };
-    
+
     public static final VersionNumberString[] glVersionNumbers = new VersionNumberString[] {
-        new VersionNumberString(2, 1, 0, glVersionStrings00[0]), 
-        new VersionNumberString(2, 1, 0, glVersionStrings00[1]), 
+        new VersionNumberString(2, 1, 0, glVersionStrings00[0]),
+        new VersionNumberString(2, 1, 0, glVersionStrings00[1]),
         new VersionNumberString(4, 2, 0, glVersionStrings00[2]),
         new VersionNumberString(4, 2, 0, glVersionStrings00[3]),
-        new VersionNumberString(2, 1, 0, glVersionStrings00[4]), 
+        new VersionNumberString(2, 1, 0, glVersionStrings00[4]),
         new VersionNumberString(4, 2, 0, glVersionStrings00[5]),
         new VersionNumberString(4, 2, 0, glVersionStrings00[6]),
         new VersionNumberString(2, 0, 0, glVersionStrings00[7]),
         new VersionNumberString(2, 0, 0, glVersionStrings00[8]),
         new VersionNumberString(2, 0, 0, glVersionStrings00[9]),
         new VersionNumberString(2, 0, 0, glVersionStrings00[10]),
-        
+
         new VersionNumberString(2, 1, 0, glVersionStrings01[0]),
         new VersionNumberString(2, 1, 0, glVersionStrings01[1]),
         new VersionNumberString(2, 1, 0, glVersionStrings01[2]),
@@ -99,7 +99,7 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
         new VersionNumberString(2, 0, 0, glVersionStrings01[7]),
         new VersionNumberString(2, 0, 0, glVersionStrings01[8]),
         new VersionNumberString(2, 0, 0, glVersionStrings01[9]),
-        
+
         new VersionNumberString(2, 1, 0, glVersionStrings02[0]),
         new VersionNumberString(2, 0, 0, glVersionStrings02[1]),
         new VersionNumberString(2, 0, 0, glVersionStrings02[2]),
@@ -135,10 +135,10 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
         new VersionNumberString(0, 0, 0, glVersionStrings02[0]),
         new VersionNumberString(0, 0, 0, glVersionStrings02[1]),
         new VersionNumberString(0, 0, 0, glVersionStrings02[2]),
-        new VersionNumberString(0, 0, 0, glVersionStrings02[3]),        
-        new VersionNumberString(0, 0, 0, glVersionStrings02[4])        
+        new VersionNumberString(0, 0, 0, glVersionStrings02[3]),
+        new VersionNumberString(0, 0, 0, glVersionStrings02[4])
     };
-    
+
     @Test
     public void test01GLVersion() throws InterruptedException {
         for(int i=0; i<glVersionNumbers.length; i++) {
@@ -166,7 +166,7 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
             Assert.assertTrue(!has.hasMinor());
             Assert.assertTrue(!has.hasSub());
             Assert.assertTrue(!has.isValid());
-        }        
+        }
         {
             final GLVersionNumber has = GLVersionNumber.create("GL Nope");
             System.err.println("Test-X3: "+has+", valid "+has.isValid()+", define ["+has.hasMajor()+":"+has.hasMinor()+":"+has.hasSub()+"]");
@@ -174,10 +174,10 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
             Assert.assertTrue(!has.hasMinor());
             Assert.assertTrue(!has.hasSub());
             Assert.assertTrue(!has.isValid());
-        }        
+        }
     }
 
-    private void testGLVendorVersionImpl(VersionNumberString[] versionNumberString, boolean withMajor, boolean withMinor, boolean withSub) throws InterruptedException {
+    private void testGLVendorVersionImpl(final VersionNumberString[] versionNumberString, final boolean withMajor, final boolean withMinor, final boolean withSub) throws InterruptedException {
         for(int i=0; i<versionNumberString.length; i++) {
             final VersionNumberString exp = versionNumberString[i];
             final VersionNumberString has = GLVersionNumber.createVendorVersion(exp.getVersionString());
@@ -188,16 +188,16 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
             Assert.assertEquals(exp, has);
         }
     }
-    
+
     @Test
     public void test02GLVendorVersion() throws InterruptedException {
         testGLVendorVersionImpl(glVendorVersionNumbersWithSub, true, true, true);
         testGLVendorVersionImpl(glVendorVersionNumbersNoSub, true, true, false);
         testGLVendorVersionImpl(glVendorVersionNumbersNone, false, false, false);
     }
-    
-    public static void main(String args[]) throws IOException {
-        String tstname = TestGLVersionParsing00NEWT.class.getName();
+
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestGLVersionParsing00NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

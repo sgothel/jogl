@@ -49,11 +49,11 @@ public class WindowEvent extends NEWTEvent {
     public static final short EVENT_WINDOW_REPAINT = 105;
     public static final short EVENT_WINDOW_DESTROYED = 106;
 
-    public WindowEvent(short eventType, Object source, long when) {
+    public WindowEvent(final short eventType, final Object source, final long when) {
         super(eventType, source, when);
     }
 
-    public static String getEventTypeString(short type) {
+    public static String getEventTypeString(final short type) {
         switch(type) {
             case EVENT_WINDOW_RESIZED: return "WINDOW_RESIZED";
             case EVENT_WINDOW_MOVED: return "WINDOW_MOVED";

@@ -50,7 +50,7 @@ public class AudioSinkFactory {
         return new NullAudioSink();
     }
 
-    public static AudioSink create(final ClassLoader cl, String implName) {
+    public static AudioSink create(final ClassLoader cl, final String implName) {
         final AudioSink audioSink;
         if(ReflectionUtil.isClassAvailable(implName, cl)){
             try {
@@ -58,8 +58,8 @@ public class AudioSinkFactory {
                 if( audioSink.isInitialized() ) {
                     return audioSink;
                 }
-            } catch (Throwable t) {
-                if(AudioSink.DEBUG) { System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); }
+            } catch (final Throwable t) {
+                if(AudioSink.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); }
             }
         }
         return null;

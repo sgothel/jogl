@@ -95,7 +95,7 @@ public class PointerIconImpl implements PointerIcon {
             try {
                 handle = display.createPointerIconImpl(pixelformat, size.getWidth(), size.getHeight(), pixels, hotspot.getX(), hotspot.getY());
                 return handle;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
                 return 0;
             }
@@ -121,8 +121,8 @@ public class PointerIconImpl implements PointerIcon {
 
     @Override
     public synchronized void destroy() {
-        if(DisplayImpl.DEBUG) {
-            System.err.println("PointerIcon.destroy: "+this+", "+display+", "+DisplayImpl.getThreadName());
+        if(Display.DEBUG) {
+            System.err.println("PointerIcon.destroy: "+this+", "+display+", "+Display.getThreadName());
         }
         if( 0 != handle ) {
             synchronized(display.pointerIconList) {
@@ -143,7 +143,7 @@ public class PointerIconImpl implements PointerIcon {
         handle = 0;
         try {
             display.destroyPointerIconImpl(dpy, h);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }

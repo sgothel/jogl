@@ -29,7 +29,10 @@ package com.jogamp.graph.geom;
 
 import java.util.ArrayList;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -44,45 +47,64 @@ import com.jogamp.opengl.math.geom.AABBox;
  *
  *  @see OutlineShape, Region
  */
-public class Outline implements Cloneable, Comparable<Outline> {
+public class Outline implements Comparable<Outline> {
 
-    private ArrayList<Vertex> vertices = new ArrayList<Vertex>(3);
-    private boolean closed = false;
-    private AABBox bbox = new AABBox();
-    private boolean dirtyBBox = false;
+    private ArrayList<Vertex> vertices;
+    private boolean closed;
+    private final AABBox bbox;
+    private boolean dirtyBBox;
 
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
      * regions in the outline.
      */
     public Outline() {
+        vertices = new ArrayList<Vertex>(3);
+        closed = false;
+        bbox = new AABBox();
+        dirtyBBox = false;
+    }
+
+    /**
+     * Copy ctor
+     */
+    public Outline(final Outline src) {
+        vertices = new ArrayList<Vertex>(src.vertices.size());
+        for(int i=0; i<vertices.size(); i++) {
+            vertices.add( src.vertices.get(i).clone() );
+        }
+        closed = src.closed;
+        bbox = new AABBox(src.bbox);
+        dirtyBBox = src.dirtyBBox;
     }
 
     public final int getVertexCount() {
         return vertices.size();
     }
 
-    /** Appends a vertex to the outline loop/strip.
+    /**
+     * Appends a vertex to the outline loop/strip.
      * @param vertex Vertex to be added
      * @throws NullPointerException if the  {@link Vertex} element is null
      */
-    public final void addVertex(Vertex vertex) throws NullPointerException {
+    public final void addVertex(final Vertex vertex) throws NullPointerException {
         addVertex(vertices.size(), vertex);
     }
 
-    /** Insert the {@link Vertex} element at the given {@code position} to the outline loop/strip.
+    /**
+     * Insert the {@link Vertex} element at the given {@code position} to the outline loop/strip.
      * @param position of the added Vertex
      * @param vertex Vertex object to be added
      * @throws NullPointerException if the  {@link Vertex} element is null
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getVertexNumber())
      */
-    public final void addVertex(int position, Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
+    public final void addVertex(final int position, final Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
         if (null == vertex) {
             throw new NullPointerException("vertex is null");
         }
         vertices.add(position, vertex);
         if(!dirtyBBox) {
-            bbox.resize(vertex.getX(), vertex.getY(), vertex.getZ());
+            bbox.resize(vertex.getCoord());
         }
     }
 
@@ -94,7 +116,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
      * @throws NullPointerException if the  {@link Outline} element is null
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getVertexNumber())
      */
-    public final void setVertex(int position, Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
+    public final void setVertex(final int position, final Vertex vertex) throws NullPointerException, IndexOutOfBoundsException {
         if (null == vertex) {
             throw new NullPointerException("vertex is null");
         }
@@ -102,11 +124,11 @@ public class Outline implements Cloneable, Comparable<Outline> {
         dirtyBBox = true;
     }
 
-    public final Vertex getVertex(int index){
+    public final Vertex getVertex(final int index){
         return vertices.get(index);
     }
 
-    public int getVertexIndex(Vertex vertex){
+    public int getVertexIndex(final Vertex vertex){
         return vertices.indexOf(vertex);
     }
 
@@ -116,7 +138,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
      * @param position of the to be removed Vertex
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getVertexNumber())
      */
-    public final Vertex removeVertex(int position) throws IndexOutOfBoundsException {
+    public final Vertex removeVertex(final int position) throws IndexOutOfBoundsException {
         dirtyBBox = true;
         return vertices.remove(position);
     }
@@ -142,7 +164,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
      *
      * @param vertices the new outline loop/strip
      */
-    public final void setVertices(ArrayList<Vertex> vertices) {
+    public final void setVertices(final ArrayList<Vertex> vertices) {
         this.vertices = vertices;
         validateBoundingBox();
     }
@@ -151,46 +173,53 @@ public class Outline implements Cloneable, Comparable<Outline> {
         return closed;
     }
 
-    /** define if this outline is closed or not.
-     * if set to closed, checks if the last vertex is
-     * equal to the first vertex. If not Equal adds a
-     * vertex at the end to the list.
-     * @param closed
+    /**
+     * Ensure this outline is closed.
+     * <p>
+     * Checks whether the last vertex equals to the first.
+     * If not equal, it either appends a clone of the first vertex
+     * or prepends a clone of the last vertex, depending on <code>closeTail</code>.
+     * </p>
+     * @param closeTail if true, a clone of the first vertex will be appended,
+     *                  otherwise a clone of the last vertex will be prepended.
+     * @return true if closing performed, otherwise false for NOP
      */
-    public final void setClosed(boolean closed) {
-        this.closed = closed;
-        if( closed && !isEmpty() ) {
-            Vertex first = vertices.get(0);
-            Vertex last = getLastVertex();
-            if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){
-                Vertex v = first.clone();
-                vertices.add(v);
+    public final boolean setClosed(final boolean closeTail) {
+        this.closed = true;
+        if( !isEmpty() ) {
+            final Vertex first = vertices.get(0);
+            final Vertex last = getLastVertex();
+            if( !VectorUtil.isVec3Equal( first.getCoord(), 0, last.getCoord(), 0, FloatUtil.EPSILON ) ) {
+                if( closeTail ) {
+                    vertices.add(first.clone());
+                } else {
+                    vertices.add(0, last.clone());
+                }
+                return true;
             }
         }
+        return false;
     }
 
-    /** Compare two outlines with Bounding Box area
-     * as criteria.
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
+    /**
+     * Return a transformed instance with all vertices are copied and transformed.
      */
-    @Override
-    public final int compareTo(Outline outline) {
-        float size = getBounds().getSize();
-        float newSize = outline.getBounds().getSize();
-        if(size < newSize){
-            return -1;
+    public final Outline transform(final AffineTransform t, final Vertex.Factory<? extends Vertex> vertexFactory) {
+        final Outline newOutline = new Outline();
+        final int vsize = vertices.size();
+        for(int i=0; i<vsize; i++) {
+            final Vertex v = vertices.get(i);
+            newOutline.addVertex(t.transform(v, vertexFactory.create()));
         }
-        else if(size > newSize){
-            return 1;
-        }
-        return 0;
+        newOutline.closed = this.closed;
+        return newOutline;
     }
 
     private final void validateBoundingBox() {
         dirtyBBox = false;
         bbox.reset();
         for (int i=0; i<vertices.size(); i++) {
-            bbox.resize(vertices.get(i).getCoord(), 0);
+            bbox.resize(vertices.get(i).getCoord());
         }
     }
 
@@ -202,11 +231,29 @@ public class Outline implements Cloneable, Comparable<Outline> {
     }
 
     /**
+     * Compare two outline's Bounding Box size.
+     * @see AABBox#getSize()
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public final int compareTo(final Outline other) {
+        final float thisSize = getBounds().getSize();
+        final float otherSize = other.getBounds().getSize();
+        if( FloatUtil.isEqual(thisSize, otherSize, FloatUtil.EPSILON) ) {
+            return 0;
+        } else if(thisSize < otherSize){
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    /**
      * @param obj the Object to compare this Outline with
      * @return true if {@code obj} is an Outline, not null, equals bounds and equal vertices in the same order
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if( obj == this) {
             return true;
         }
@@ -227,21 +274,8 @@ public class Outline implements Cloneable, Comparable<Outline> {
         }
         return true;
     }
-
-    /**
-     * @return deep clone of this Outline
-     */
     @Override
-    public Outline clone() {
-        Outline o;
-        try {
-            o = (Outline) super.clone();
-        } catch (CloneNotSupportedException e) { throw new InternalError(); }
-        o.bbox = bbox.clone();
-        o.vertices = new ArrayList<Vertex>(vertices.size());
-        for(int i=0; i<vertices.size(); i++) {
-            o.vertices.add(vertices.get(i).clone());
-        }
-        return o;
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
     }
 }

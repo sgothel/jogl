@@ -39,9 +39,9 @@ import com.jogamp.opengl.util.GLArrayDataWrapper;
  * separately and interleaves many arrays.
  */
 public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
-  private GLArrayDataWrapper ad;
+  private final GLArrayDataWrapper ad;
 
-  public GLFixedArrayHandlerFlat(GLArrayDataWrapper ad) {
+  public GLFixedArrayHandlerFlat(final GLArrayDataWrapper ad) {
     this.ad = ad;
   }
 
@@ -51,7 +51,7 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
   }
 
   @Override
-  public final void syncData(GL gl, Object ext) {
+  public final void syncData(final GL gl, final Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     switch(ad.getIndex()) {
         case GLPointerFunc.GL_VERTEX_ARRAY:
@@ -72,7 +72,7 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
   }
 
   @Override
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
         glp.glEnableClientState(ad.getIndex());

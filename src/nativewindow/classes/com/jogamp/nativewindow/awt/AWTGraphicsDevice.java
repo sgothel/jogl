@@ -48,15 +48,15 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */
 public class AWTGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-  private GraphicsDevice device;
+  private final GraphicsDevice device;
 
-  public AWTGraphicsDevice(GraphicsDevice device, int unitID) {
+  public AWTGraphicsDevice(final GraphicsDevice device, final int unitID) {
     super(NativeWindowFactory.TYPE_AWT, device.getIDstring(), unitID);
     this.device = device;
   }
 
   public static AWTGraphicsDevice createDefault() {
-    GraphicsDevice awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    final GraphicsDevice awtDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     return new AWTGraphicsDevice(awtDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
   }
 

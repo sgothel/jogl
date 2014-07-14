@@ -53,7 +53,7 @@ public enum FilterType {
 	FILTER_UNKNOWN(-100), ;
 	public final int val;
 
-	private FilterType(int val) {
+	private FilterType(final int val) {
 		this.val = val;
 	}
 
@@ -61,12 +61,12 @@ public enum FilterType {
 
 	static {
 		byVal = new HashMap<Integer, FilterType>();
-		for (FilterType ft : values()) {
+		for (final FilterType ft : values()) {
 			byVal.put(ft.val, ft);
 		}
 	}
 
-	public static FilterType getByVal(int i) {
+	public static FilterType getByVal(final int i) {
 		return byVal.get(i);
 	}
 

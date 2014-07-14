@@ -45,22 +45,22 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  */
 public class GLSLArrayHandler extends GLVBOArrayHandler {
 
-  public GLSLArrayHandler(GLArrayDataEditable ad) {
+  public GLSLArrayHandler(final GLArrayDataEditable ad) {
     super(ad);
   }
 
   @Override
-  public final void setSubArrayVBOName(int vboName) {
+  public final void setSubArrayVBOName(final int vboName) {
       throw new UnsupportedOperationException();
   }
 
   @Override
-  public final void addSubHandler(GLArrayHandlerFlat handler) {
+  public final void addSubHandler(final GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
 
   @Override
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
         enableShaderState(glsl, enable, (ShaderState)ext);
@@ -69,7 +69,9 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
     }
   }
 
-  private final void enableShaderState(GL2ES2 glsl, boolean enable, ShaderState st) {
+  private final int[] tempI = new int[1];
+
+  private final void enableShaderState(final GL2ES2 glsl, final boolean enable, final ShaderState st) {
     if(enable) {
         /*
          * This would be the non optimized code path:
@@ -99,9 +101,8 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
             } else if(st.getAttribLocation(glsl, ad) >= 0) {
                 // didn't experience a performance hit on this query ..
                 // (using ShaderState's location query above to validate the location)
-                final int[] qi = new int[1];
-                glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
-                if(ad.getVBOName() != qi[0]) {
+                glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, tempI, 0);
+                if(ad.getVBOName() != tempI[0]) {
                     glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                     st.vertexAttribPointer(glsl, ad);
                     glsl.glBindBuffer(ad.getVBOTarget(), 0);
@@ -117,7 +118,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
     }
   }
 
-  private final void enableSimple(GL2ES2 glsl, boolean enable) {
+  private final void enableSimple(final GL2ES2 glsl, final boolean enable) {
     final int location = ad.getLocation();
     if( 0 > location ) {
         return;
@@ -151,9 +152,8 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
             } else {
                 // didn't experience a performance hit on this query ..
                 // (using ShaderState's location query above to validate the location)
-                final int[] qi = new int[1];
-                glsl.glGetVertexAttribiv(location, GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
-                if(ad.getVBOName() != qi[0]) {
+                glsl.glGetVertexAttribiv(location, GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, tempI, 0);
+                if(ad.getVBOName() != tempI[0]) {
                     glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                     glsl.glVertexAttribPointer(ad);
                     glsl.glBindBuffer(ad.getVBOTarget(), 0);

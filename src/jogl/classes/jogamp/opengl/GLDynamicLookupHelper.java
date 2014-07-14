@@ -32,7 +32,7 @@ import com.jogamp.common.os.DynamicLibraryBundle;
 
 public class GLDynamicLookupHelper extends DynamicLibraryBundle {
 
-    public GLDynamicLookupHelper(GLDynamicLibraryBundleInfo info) {
+    public GLDynamicLookupHelper(final GLDynamicLibraryBundleInfo info) {
         super(info);
     }
 

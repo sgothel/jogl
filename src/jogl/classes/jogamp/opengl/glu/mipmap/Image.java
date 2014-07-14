@@ -46,6 +46,9 @@ package jogamp.opengl.glu.mipmap;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2GL3;
+
 import java.nio.*;
 
 /**
@@ -58,14 +61,14 @@ public class Image {
   public Image() {
   }
 
-  public static short getShortFromByteArray( byte[] array, int index ) {
+  public static short getShortFromByteArray( final byte[] array, final int index ) {
     short s;
     s = (short)(array[index] << 8 );
     s |= (short)(0x00FF & array[index+1]);
     return( s );
   }
 
-  public static int getIntFromByteArray( byte[] array, int index ) {
+  public static int getIntFromByteArray( final byte[] array, final int index ) {
     int i;
     i = ( array[index] << 24 ) & 0xFF000000;
     i |= ( array[index+1] << 16 ) & 0x00FF0000;
@@ -74,8 +77,8 @@ public class Image {
     return( i );
   }
 
-  public static float getFloatFromByteArray( byte[] array, int index ) {
-    int i = getIntFromByteArray( array, index );
+  public static float getFloatFromByteArray( final byte[] array, final int index ) {
+    final int i = getIntFromByteArray( array, index );
     return( Float.intBitsToFloat(i) );
   }
 
@@ -83,9 +86,9 @@ public class Image {
    *  Extract array from user's data applying all pixel store modes.
    *  The internal format used is an array of unsigned shorts.
    */
-  public static void fill_image( PixelStorageModes psm, int width, int height,
-                  int format, int type, boolean index_format, ByteBuffer userdata,
-                  ShortBuffer newimage ) {
+  public static void fill_image( final PixelStorageModes psm, final int width, final int height,
+                  final int format, final int type, final boolean index_format, final ByteBuffer userdata,
+                  final ShortBuffer newimage ) {
     int components;
     int element_size;
     int rowsize;
@@ -102,40 +105,40 @@ public class Image {
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
-      case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
         extract = new Extract332();
         break;
-      case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
         extract = new Extract233rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
         extract = new Extract565();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
         extract = new Extract565rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
         extract = new Extract4444();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
         extract = new Extract4444rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
         extract = new Extract5551();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
         extract = new Extract1555rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
         extract = new Extract8888();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
         extract = new Extract8888rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
         extract = new Extract1010102();
         break;
-      case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
         extract = new Extract2101010rev();
         break;
     }
@@ -214,74 +217,74 @@ public class Image {
         iter = start;
         userdata.position( iter ); //***************************************
         for( j = 0; j < elements_per_line; j++ ) {
-          Type_Widget widget = new Type_Widget();
-          float[] extractComponents = new float[4];
+          final Type_Widget widget = new Type_Widget();
+          final float[] extractComponents = new float[4];
           userdata.position( iter );
           switch( type ) {
-            case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
               extract.extract( false, userdata /*userdata[iter]*/, extractComponents );
               for( k = 0; k < 3; k++ ) {
                 newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
               extract.extract( false, userdata /*userdata[iter]*/, extractComponents );
               for( k = 0; k < 3; k++ ) {
                 newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_BYTE ):
+            case( GL.GL_UNSIGNED_BYTE ):
               if( index_format ) {
                 newimage.put( iter2++, (short)( 0x000000FF & userdata.get() ) );//userdata[iter];
               } else {
                 newimage.put( iter2++, (short)( 0x000000FF & userdata.get()/*userdata[iter]*/ * 257 ) );
               }
               break;
-            case( GL2.GL_BYTE ):
+            case( GL.GL_BYTE ):
               if( index_format ) {
                 newimage.put( iter2++, userdata.get() ); //userdata[iter];
               } else {
                 newimage.put( iter2++, (short)(userdata.get()/*userdata[iter]*/ * 516 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
               extract.extract( myswap_bytes, userdata/*userdata[iter]*/, extractComponents );
               for( k = 0; k < 3; k++ ) {
                 newimage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 3; k++ ) {
                 newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)(extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT ):
-            case( GL2.GL_SHORT ):
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
               if( myswap_bytes ) {
                 widget.setUB1( userdata.get() );
                 widget.setUB0( userdata.get() );
@@ -289,7 +292,7 @@ public class Image {
                 widget.setUB0( userdata.get() );
                 widget.setUB1( userdata.get() );
               }
-              if( type == GL2.GL_SHORT ) {
+              if( type == GL.GL_SHORT ) {
                 if( index_format ) {
                   newimage.put( iter2++, widget.getS0() );
                 } else {
@@ -299,33 +302,33 @@ public class Image {
                 newimage.put( iter2++, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
               extract.extract( myswap_bytes, userdata, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newimage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_INT ):
-            case( GL2.GL_UNSIGNED_INT ):
-            case( GL2.GL_FLOAT ):
+            case( GL2ES2.GL_INT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL.GL_FLOAT ):
               if( myswap_bytes ) {
                 widget.setUB3( userdata.get() );
                 widget.setUB2( userdata.get() );
@@ -337,13 +340,13 @@ public class Image {
                 widget.setUB2( userdata.get() );
                 widget.setUB3( userdata.get() );
               }
-              if( type == GL2.GL_FLOAT ) {
+              if( type == GL.GL_FLOAT ) {
                 if( index_format ) {
                   newimage.put( iter2++, (short)widget.getF() );
                 } else {
                   newimage.put( iter2++, (short)(widget.getF() * 65535 ) );
                 }
-              } else if( type == GL2.GL_UNSIGNED_INT ) {
+              } else if( type == GL.GL_UNSIGNED_INT ) {
                 if( index_format ) {
                   newimage.put( iter2++, (short)( widget.getUI() ) );
                 } else {
@@ -380,9 +383,9 @@ public class Image {
    *  Theinternal format is an array of unsigned shorts.
    *  empty_image() because it is the opposet of fill_image().
    */
-  public static void empty_image( PixelStorageModes psm, int width, int height,
-                                  int format, int type, boolean index_format,
-                                  ShortBuffer oldimage, ByteBuffer userdata ) {
+  public static void empty_image( final PixelStorageModes psm, final int width, final int height,
+                                  final int format, final int type, final boolean index_format,
+                                  final ShortBuffer oldimage, final ByteBuffer userdata ) {
 
     int components;
     int element_size;
@@ -400,40 +403,40 @@ public class Image {
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
-      case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
         extract = new Extract332();
         break;
-      case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
         extract = new Extract233rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
         extract = new Extract565();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
         extract = new Extract565rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
         extract = new Extract4444();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
         extract = new Extract4444rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
         extract = new Extract5551();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
         extract = new Extract1555rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
         extract = new Extract8888();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
         extract = new Extract8888rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
         extract = new Extract1010102();
         break;
-      case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
         extract = new Extract2101010rev();
         break;
     }
@@ -499,7 +502,7 @@ public class Image {
         start += rowsize;
       }
     } else {
-      float shoveComponents[] = new float[4];
+      final float shoveComponents[] = new float[4];
 
       element_size = Mipmap.bytes_per_element( type );
       group_size = element_size * components;
@@ -519,22 +522,22 @@ public class Image {
       for( i = 0; i < height; i++ ) {
         iter = start;
         for( j = 0; j < elements_per_line; j++ ) {
-          Type_Widget widget = new Type_Widget();
+          final Type_Widget widget = new Type_Widget();
 
           switch( type ) {
-            case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
               for( k = 0; k < 3; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
               extract.shove( shoveComponents, 0, userdata );
               break;
-            case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
               for( k = 0; k < 3; k++ ) {
                 shoveComponents[k] = oldimage.get(iter2++) / 65535.0f;
               }
               extract.shove( shoveComponents, 0, userdata );
               break;
-            case( GL2.GL_UNSIGNED_BYTE ):
+            case( GL.GL_UNSIGNED_BYTE ):
               if( index_format ) {
                 //userdata[iter] = (byte)oldimage[iter2++];
                 userdata.put( iter, (byte)oldimage.get(iter2++) );
@@ -543,7 +546,7 @@ public class Image {
                 userdata.put( iter, (byte)( oldimage.get(iter2++) ) );
               }
               break;
-            case( GL2.GL_BYTE ):
+            case( GL.GL_BYTE ):
               if( index_format ) {
                 //userdata[iter] = (byte)oldimage[iter2++];
                 userdata.put( iter, (byte)oldimage.get(iter2++) );
@@ -552,7 +555,7 @@ public class Image {
                 userdata.put( iter, (byte)( oldimage.get(iter2++) ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
               for( k = 0; k < 3; k++ ) {
                 shoveComponents[k] = oldimage.get(iter2++) / 65535.0f;
               }
@@ -569,7 +572,7 @@ public class Image {
                 userdata.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
               for( k = 0; k < 3; k++ ) {
                 shoveComponents[k] = oldimage.get(iter2++) / 65535.0f;
               }
@@ -586,7 +589,7 @@ public class Image {
                 userdata.put( iter, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get(iter2++) / 65535.0f;
               }
@@ -603,7 +606,7 @@ public class Image {
                 userdata.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -620,7 +623,7 @@ public class Image {
                 userdata.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -637,7 +640,7 @@ public class Image {
                 userdata.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -654,9 +657,9 @@ public class Image {
                 userdata.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT ):
-            case( GL2.GL_SHORT ):
-              if( type == GL2.GL_SHORT ) {
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
+              if( type == GL.GL_SHORT ) {
                 if( index_format ) {
                   widget.setS0( oldimage.get( iter2++ ) );
                 } else {
@@ -677,7 +680,7 @@ public class Image {
                 userdata.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -695,7 +698,7 @@ public class Image {
                 userdata.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -713,7 +716,7 @@ public class Image {
                 userdata.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -731,7 +734,7 @@ public class Image {
                 userdata.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldimage.get( iter2++ ) / 65535.0f;
               }
@@ -749,16 +752,16 @@ public class Image {
                 userdata.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_INT ):
-            case( GL2.GL_UNSIGNED_INT ):
-            case( GL2.GL_FLOAT ):
-              if( type == GL2.GL_FLOAT ) {
+            case( GL2ES2.GL_INT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL.GL_FLOAT ):
+              if( type == GL.GL_FLOAT ) {
                 if( index_format ) {
                   widget.setF( oldimage.get( iter2++ ) );
                 } else {
                   widget.setF( oldimage.get( iter2++ ) / 65535.0f );
                 }
-              } else if( type == GL2.GL_UNSIGNED_INT ) {
+              } else if( type == GL.GL_UNSIGNED_INT ) {
                 if( index_format ) {
                   widget.setUI( oldimage.get( iter2++ ) );
                 } else {
@@ -800,9 +803,9 @@ public class Image {
     }
   }
 
-  public static void fillImage3D( PixelStorageModes psm, int width, int height,
-          int depth, int format, int type, boolean indexFormat, ByteBuffer userImage,
-          ShortBuffer newImage ) {
+  public static void fillImage3D( final PixelStorageModes psm, final int width, final int height,
+          final int depth, final int format, final int type, final boolean indexFormat, final ByteBuffer userImage,
+          final ShortBuffer newImage ) {
     boolean myswapBytes;
     int components;
     int groupsPerLine;
@@ -817,46 +820,46 @@ public class Image {
     int iter = 0;
     int iter2 = 0;
     int ww, hh, dd, k;
-    Type_Widget widget = new Type_Widget();
-    float extractComponents[] = new float[4];
+    final Type_Widget widget = new Type_Widget();
+    final float extractComponents[] = new float[4];
 
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
-      case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
         extract = new Extract332();
         break;
-      case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
         extract = new Extract233rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
         extract = new Extract565();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
         extract = new Extract565rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
         extract = new Extract4444();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
         extract = new Extract4444rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
         extract = new Extract5551();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
         extract = new Extract1555rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
         extract = new Extract8888();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
         extract = new Extract8888rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
         extract = new Extract1010102();
         break;
-      case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
         extract = new Extract2101010rev();
         break;
     }
@@ -903,78 +906,78 @@ public class Image {
         for( ww = 0; ww < elementsPerLine; ww++ ) {
 
           switch( type ) {
-            case( GL2.GL_UNSIGNED_BYTE ):
+            case( GL.GL_UNSIGNED_BYTE ):
               if( indexFormat ) {
                 newImage.put( iter2++, (short)(0x000000FF & userImage.get( iter ) ) );
               } else {
                 newImage.put( iter2++, (short)((0x000000FF & userImage.get( iter ) ) * 257 ) );
               }
               break;
-            case( GL2.GL_BYTE ):
+            case( GL.GL_BYTE ):
               if( indexFormat ) {
                 newImage.put( iter2++, userImage.get( iter ) );
               } else {
                 newImage.put( iter2++, (short)(userImage.get( iter ) * 516 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
               userImage.position( iter );
               extract.extract( false, userImage, extractComponents );
               for( k = 0; k < 3; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
               userImage.position( iter );
               extract.extract( false, userImage, extractComponents );
               for( k = 0; k < 3; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)(extractComponents[k] * 65535) );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT ):
-            case( GL2.GL_SHORT ):
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
               if( myswapBytes ) {
                 widget.setUB0( userImage.get( iter + 1 ) );
                 widget.setUB1( userImage.get( iter ) );
@@ -982,7 +985,7 @@ public class Image {
                 widget.setUB0( userImage.get( iter ) );
                 widget.setUB1( userImage.get( iter + 1 ) );
               }
-              if( type == GL2.GL_SHORT ) {
+              if( type == GL.GL_SHORT ) {
                 if( indexFormat ) {
                   newImage.put( iter2++, widget.getUS0() );
                 } else {
@@ -992,36 +995,36 @@ public class Image {
                 newImage.put( iter2++, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
               userImage.position( iter );
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
               extract.extract( myswapBytes, userImage, extractComponents );
               for( k = 0; k < 4; k++ ) {
                 newImage.put( iter2++, (short)( extractComponents[k] * 65535 ) );
               }
               break;
-            case( GL2.GL_INT ):
-            case( GL2.GL_UNSIGNED_INT ):
-            case( GL2.GL_FLOAT ):
+            case( GL2ES2.GL_INT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL.GL_FLOAT ):
               if( myswapBytes ) {
                 widget.setUB0( userImage.get( iter + 3 ) );
                 widget.setUB1( userImage.get( iter + 2 ) );
@@ -1033,13 +1036,13 @@ public class Image {
                 widget.setUB2( userImage.get( iter + 2 ) );
                 widget.setUB3( userImage.get( iter + 3 ) );
               }
-              if( type == GL2.GL_FLOAT ) {
+              if( type == GL.GL_FLOAT ) {
                 if( indexFormat ) {
                   newImage.put( iter2++, (short)widget.getF() );
                 } else {
                   newImage.put( iter2++, (short)( widget.getF() * 65535.0f ) );
                 }
-              } else if( type == GL2.GL_UNSIGNED_INT ) {
+              } else if( type == GL.GL_UNSIGNED_INT ) {
                 if( indexFormat ) {
                   newImage.put( iter2++, (short)widget.getUI() );
                 } else {
@@ -1075,8 +1078,8 @@ public class Image {
             psm.getUnpackSkipImages() * imageSize );
   }
 
-  public static void emptyImage3D( PixelStorageModes psm, int width, int height, int depth,
-          int format, int type, boolean indexFormat, ShortBuffer oldImage, ByteBuffer userImage ) {
+  public static void emptyImage3D( final PixelStorageModes psm, final int width, final int height, final int depth,
+          final int format, final int type, final boolean indexFormat, final ShortBuffer oldImage, final ByteBuffer userImage ) {
     boolean myswapBytes;
     int components;
     int groupsPerLine;
@@ -1090,46 +1093,46 @@ public class Image {
     int ii, jj, dd, k;
     int rowsPerImage;
     int imageSize;
-    Type_Widget widget = new Type_Widget();
-    float[] shoveComponents = new float[4];
+    final Type_Widget widget = new Type_Widget();
+    final float[] shoveComponents = new float[4];
 
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
-      case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
         extract = new Extract332();
         break;
-      case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+      case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
         extract = new Extract233rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+      case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
         extract = new Extract565();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
         extract = new Extract565rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+      case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
         extract = new Extract4444();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
         extract = new Extract4444rev();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+      case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
         extract = new Extract5551();
         break;
-      case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+      case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
         extract = new Extract1555rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
         extract = new Extract8888();
         break;
-      case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+      case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
         extract = new Extract8888rev();
         break;
-      case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+      case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
         extract = new Extract1010102();
         break;
-      case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+      case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
         extract = new Extract2101010rev();
         break;
     }
@@ -1182,33 +1185,33 @@ public class Image {
         for( jj = 0; jj < elementsPerLine; jj++ ) {
 
           switch( type ) {
-            case( GL2.GL_UNSIGNED_BYTE ):
+            case( GL.GL_UNSIGNED_BYTE ):
               if( indexFormat ) {
                 userImage.put( iter, (byte)(oldImage.get( iter2++ ) ) );
               } else {
                 userImage.put( iter, (byte)(oldImage.get( iter2++ ) >> 8 ) );
               }
               break;
-            case( GL2.GL_BYTE ):
+            case( GL.GL_BYTE ):
               if( indexFormat ) {
                 userImage.put( iter, (byte)(oldImage.get(iter2++) ) );
               } else {
                 userImage.put( iter, (byte)(oldImage.get(iter2++) >> 9) );
               }
               break;
-            case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
               for( k = 0; k < 3; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
               extract.shove( shoveComponents, 0, userImage );
               break;
-            case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
               for( k = 0; k < 3; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
               extract.shove( shoveComponents, 0, userImage );
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1220,7 +1223,7 @@ public class Image {
                 userImage.putShort( iter, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1232,7 +1235,7 @@ public class Image {
                 userImage.putShort( iter, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1244,7 +1247,7 @@ public class Image {
                 userImage.putShort( iter, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1256,7 +1259,7 @@ public class Image {
                 userImage.putShort( iter, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1268,7 +1271,7 @@ public class Image {
                 userImage.putShort( iter, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1280,16 +1283,16 @@ public class Image {
                 userImage.putShort( iter, widget.getUS0() );
               }
               break;
-            case( GL2.GL_UNSIGNED_SHORT ):
-            case( GL2.GL_SHORT ):
-              if( type == GL2.GL_SHORT ) {
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
+              if( type == GL.GL_SHORT ) {
                 if( indexFormat ) {
-                  widget.setS0( (short)oldImage.get( iter2++ ) );
+                  widget.setS0( oldImage.get( iter2++ ) );
                 } else {
                   widget.setS0( (short)(oldImage.get( iter2++ ) >> 1) );
                 }
               } else {
-                widget.setUS0( (short)oldImage.get( iter2++ ) );
+                widget.setUS0( oldImage.get( iter2++ ) );
               }
               if( myswapBytes ) {
                 userImage.put( iter, widget.getUB1() );
@@ -1299,7 +1302,7 @@ public class Image {
                 userImage.put( iter + 1, widget.getUB1() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1313,7 +1316,7 @@ public class Image {
                 userImage.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1327,7 +1330,7 @@ public class Image {
                 userImage.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1341,7 +1344,7 @@ public class Image {
                 userImage.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
               for( k = 0; k < 4; k++ ) {
                 shoveComponents[k] = oldImage.get( iter2++ ) / 65535.0f;
               }
@@ -1355,16 +1358,16 @@ public class Image {
                 userImage.putInt( iter, widget.getUI() );
               }
               break;
-            case( GL2.GL_INT ):
-            case( GL2.GL_UNSIGNED_INT ):
-            case( GL2.GL_FLOAT ):
-              if( type == GL2.GL_FLOAT ) {
+            case( GL2ES2.GL_INT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL.GL_FLOAT ):
+              if( type == GL.GL_FLOAT ) {
                 if( indexFormat ) {
                   widget.setF( oldImage.get( iter2++ ) );
                 } else {
                   widget.setF( oldImage.get( iter2++ ) / 65535.0f );
                 }
-              } else if( type == GL2.GL_UNSIGNED_INT ) {
+              } else if( type == GL.GL_UNSIGNED_INT ) {
                 if( indexFormat ) {
                   widget.setUI( oldImage.get( iter2++ ) );
                 } else {

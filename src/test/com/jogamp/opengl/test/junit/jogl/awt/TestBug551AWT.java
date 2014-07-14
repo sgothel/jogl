@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.lang.reflect.InvocationTargetException;
@@ -61,35 +61,35 @@ public class TestBug551AWT extends UITestCase {
 
     static void checkGraphicsEnvironment() {
         Rectangle virtualBounds = new Rectangle();
-        GraphicsEnvironment ge =GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice[] gs = ge.getScreenDevices();
+        final GraphicsEnvironment ge =GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] gs = ge.getScreenDevices();
 
-        //write graphics devices to log 
+        //write graphics devices to log
         System.err.println("number of graphics devices " + gs.length);
         for(int i =0 ; i < gs.length; i++) {
             System.err.println(gs[i].toString());
         }
 
         //check for bounds
-        for (int j = 0; j < gs.length; j++) { 
-            GraphicsDevice gd = gs[j];
-            GraphicsConfiguration[] gc = gd.getConfigurations();
+        for (int j = 0; j < gs.length; j++) {
+            final GraphicsDevice gd = gs[j];
+            final GraphicsConfiguration[] gc = gd.getConfigurations();
             for (int i=0; i < gc.length; i++) {
                 System.err.println("graphics configuration for device " + j + " is: " + gc[i].getBounds());
                 virtualBounds = virtualBounds.union(gc[i].getBounds());
-            }            
+            }
         }
 
     }
-    
+
     protected void runTestGL() throws InterruptedException, InvocationTargetException {
         final Window window = new JFrame(this.getSimpleTestName(" - "));
         final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
-        
+
         // final array as mutable container hack
         final GLCanvas[] glCanvas = new GLCanvas[1];
 
-        Runnable test = new Runnable() {
+        final Runnable test = new Runnable() {
             public void run() {
                 glCanvas[0] = new GLCanvas(caps);
                 glCanvas[0].addGLEventListener(new GearsES2());
@@ -106,13 +106,13 @@ public class TestBug551AWT extends UITestCase {
             }
         };
 
-        Runnable cleanup = new Runnable() {
+        final Runnable cleanup = new Runnable() {
             public void run() {
                 System.out.println("cleaning up...");
                 window.setVisible(false);
                 try {
                     window.removeAll();
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     assumeNoException(t);
                     t.printStackTrace();
                 }
@@ -124,7 +124,7 @@ public class TestBug551AWT extends UITestCase {
         // AWT / Swing on EDT..
         invokeAndWait(test);
 
-        Animator animator = new Animator(glCanvas[0]);
+        final Animator animator = new Animator(glCanvas[0]);
         animator.start();
         Thread.sleep(1000);
         animator.stop();
@@ -144,7 +144,7 @@ public class TestBug551AWT extends UITestCase {
         runTestGL();
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestBug551AWT.class.getName());
     }
 }

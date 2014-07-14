@@ -40,7 +40,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         this(0, 0, 0, 0);
     }
 
-    public Rectangle(int x, int y, int width, int height) {
+    public Rectangle(final int x, final int y, final int width, final int height) {
         this.x=x;
         this.y=y;
         this.width=width;
@@ -56,7 +56,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     protected Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (final CloneNotSupportedException ex) {
             throw new InternalError();
         }
     }
@@ -70,16 +70,16 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     @Override
     public final int getHeight() { return height; }
 
-    public final void set(int x, int y, int width, int height) {
+    public final void set(final int x, final int y, final int width, final int height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
     }
-    public final void setX(int x) { this.x = x; }
-    public final void setY(int y) { this.y = y; }
-    public final void setWidth(int width) { this.width = width; }
-    public final void setHeight(int height) { this.height = height; }
+    public final void setX(final int x) { this.x = x; }
+    public final void setY(final int y) { this.y = y; }
+    public final void setWidth(final int width) { this.width = width; }
+    public final void setHeight(final int height) { this.height = height; }
 
     @Override
     public final RectangleImmutable union(final RectangleImmutable r) {
@@ -113,7 +113,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     }
 
     @Override
-    public final RectangleImmutable intersection(RectangleImmutable r) {
+    public final RectangleImmutable intersection(final RectangleImmutable r) {
         return intersection(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
     }
     @Override
@@ -140,11 +140,41 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         return new Rectangle (ix, iy, iwidth, iheight);
     }
     @Override
-    public final float coverage(RectangleImmutable r) {
+    public final float coverage(final RectangleImmutable r) {
         final RectangleImmutable isect = intersection(r);
-        final float sqI = (float) ( isect.getWidth()*isect.getHeight() );
-        final float sqT = (float) ( width*height );
+        final float sqI = isect.getWidth()*isect.getHeight();
+        final float sqT = width*height;
         return sqI / sqT;
+    }
+
+    /**
+     * Scale this instance's components,
+     * i.e. multiply them by the given scale factors.
+     * @param sx scale factor for x
+     * @param sy scale factor for y
+     * @return this instance for scaling
+     */
+    public final Rectangle scale(final int sx, final int sy) {
+        x *= sx ;
+        y *= sy ;
+        width *= sx ;
+        height *= sy ;
+        return this;
+    }
+
+    /**
+     * Inverse scale this instance's components,
+     * i.e. divide them by the given scale factors.
+     * @param sx inverse scale factor for x
+     * @param sy inverse scale factor for y
+     * @return this instance for scaling
+     */
+    public final Rectangle scaleInv(final int sx, final int sy) {
+        x /= sx ;
+        y /= sy ;
+        width /= sx ;
+        height /= sy ;
+        return this;
     }
 
     @Override
@@ -173,10 +203,10 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Rectangle) {
-            Rectangle rect = (Rectangle)obj;
+            final Rectangle rect = (Rectangle)obj;
             return (y == rect.y) && (x == rect.x) &&
                    (height == rect.height) && (width == rect.width);
         }
@@ -185,11 +215,11 @@ public class Rectangle implements Cloneable, RectangleImmutable {
 
     @Override
     public int hashCode() {
-        int sum1 = x + height;
-        int sum2 = width + y;
-        int val1 = sum1 * (sum1 + 1)/2 + x;
-        int val2 = sum2 * (sum2 + 1)/2 + y;
-        int sum3 = val1 + val2;
+        final int sum1 = x + height;
+        final int sum2 = width + y;
+        final int val1 = sum1 * (sum1 + 1)/2 + x;
+        final int val2 = sum2 * (sum2 + 1)/2 + y;
+        final int sum3 = val1 + val2;
         return sum3 * (sum3 + 1)/2 + val2;
     }
 

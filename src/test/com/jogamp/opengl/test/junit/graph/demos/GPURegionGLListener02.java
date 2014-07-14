@@ -28,97 +28,107 @@
 
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.opengl.util.PMVMatrix;
 
 /** Demonstrate the rendering of multiple OutlineShapes
  *  into one region
  *
  */
-public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
-    OutlineShape[] outlineShapes = new OutlineShape[2];
+public class GPURegionGLListener02 extends GPURendererListenerBase01 {
+    List<OutlineShape> outlineShapes = new ArrayList<OutlineShape>();
 
-    public GPURegionGLListener02 (RenderState rs, int renderModes, int fbosize, boolean debug, boolean trace) {
-        super(rs, renderModes, debug, trace);
-        setMatrix(-20, 00, 0f, -50, fbosize);
+    public GPURegionGLListener02 (final RenderState rs, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
+        super(RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
+        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        setMatrix(-20, 00, -50, 0f, sampleCount);
     }
-        
+
     private void createTestOutline(){
         float offset = 0;
-        outlineShapes[0] = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
-        outlineShapes[0].addVertex(0.0f,-10.0f,true);
-        outlineShapes[0].addVertex(15.0f,-10.0f, true);
-        outlineShapes[0].addVertex(10.0f,5.0f, false);
-        outlineShapes[0].addVertex(15.0f,10.0f, true);
-        outlineShapes[0].addVertex(6.0f,15.0f, false);
-        outlineShapes[0].addVertex(5.0f,8.0f, false);
-        outlineShapes[0].addVertex(0.0f,10.0f,true);
-        outlineShapes[0].closeLastOutline();
-        outlineShapes[0].addEmptyOutline();
-        outlineShapes[0].addVertex(5.0f,-5.0f,true);
-        outlineShapes[0].addVertex(10.0f,-5.0f, false);
-        outlineShapes[0].addVertex(10.0f,0.0f, true);
-        outlineShapes[0].addVertex(5.0f,0.0f, false);
-        outlineShapes[0].closeLastOutline();
-        
+        OutlineShape shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        outlineShapes.add(shape);
+        shape.addVertex(0.0f,-10.0f,true);
+        shape.addVertex(15.0f,-10.0f, true);
+        shape.addVertex(10.0f,5.0f, false);
+        shape.addVertex(15.0f,10.0f, true);
+        shape.addVertex(6.0f,15.0f, false);
+        shape.addVertex(5.0f,8.0f, false);
+        shape.addVertex(0.0f,10.0f,true);
+        shape.closeLastOutline(true);
+        shape.addEmptyOutline();
+        shape.addVertex(5.0f,-5.0f,true);
+        shape.addVertex(10.0f,-5.0f, false);
+        shape.addVertex(10.0f,0.0f, true);
+        shape.addVertex(5.0f,0.0f, false);
+        shape.closeLastOutline(true);
+
         /** Same shape as above but without any off-curve vertices */
-        outlineShapes[1] = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        outlineShapes.add(shape);
         offset = 30;
-        outlineShapes[1].addVertex(offset+0.0f,-10.0f, true);
-        outlineShapes[1].addVertex(offset+17.0f,-10.0f, true);
-        outlineShapes[1].addVertex(offset+11.0f,5.0f, true);
-        outlineShapes[1].addVertex(offset+16.0f,10.0f, true);
-        outlineShapes[1].addVertex(offset+7.0f,15.0f, true);
-        outlineShapes[1].addVertex(offset+6.0f,8.0f, true);
-        outlineShapes[1].addVertex(offset+0.0f,10.0f, true);
-        outlineShapes[1].closeLastOutline();
-        outlineShapes[1].addEmptyOutline();
-        outlineShapes[1].addVertex(offset+5.0f,0.0f, true);
-        outlineShapes[1].addVertex(offset+5.0f,-5.0f, true);
-        outlineShapes[1].addVertex(offset+10.0f,-5.0f, true);
-        outlineShapes[1].addVertex(offset+10.0f,0.0f, true);
-        outlineShapes[1].closeLastOutline();
-        
-        region = GLRegion.create(outlineShapes, getRenderModes());
+        shape.addVertex(offset+0.0f,-10.0f, true);
+        shape.addVertex(offset+17.0f,-10.0f, true);
+        shape.addVertex(offset+11.0f,5.0f, true);
+        shape.addVertex(offset+16.0f,10.0f, true);
+        shape.addVertex(offset+7.0f,15.0f, true);
+        shape.addVertex(offset+6.0f,8.0f, true);
+        shape.addVertex(offset+0.0f,10.0f, true);
+        shape.closeLastOutline(true);
+        shape.addEmptyOutline();
+        shape.addVertex(offset+5.0f,0.0f, true);
+        shape.addVertex(offset+5.0f,-5.0f, true);
+        shape.addVertex(offset+10.0f,-5.0f, true);
+        shape.addVertex(offset+10.0f,0.0f, true);
+        shape.closeLastOutline(true);
+
+        region = GLRegion.create(getRenderModes(), null);
+        region.addOutlineShapes(outlineShapes, null, null);
     }
 
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         super.init(drawable);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final RegionRenderer regionRenderer = (RegionRenderer) getRenderer();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+        final RenderState rs = getRenderer().getRenderState();
 
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
-        regionRenderer.setAlpha(gl, 1.0f);
-        regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_BLEND);
+        rs.setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
+
         createTestOutline();
     }
 
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final RegionRenderer regionRenderer = (RegionRenderer) getRenderer();
-        
-        regionRenderer.resetModelview(null);
-        regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
-        regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
-        if( weight != regionRenderer.getWeight()) {
-            regionRenderer.setWeight(gl, weight);
+        final RegionRenderer regionRenderer = getRenderer();
+
+        final PMVMatrix pmv = regionRenderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(getXTran(), getYTran(), getZTran());
+        pmv.glRotatef(getAngle(), 0, 1, 0);
+        if( weight != regionRenderer.getRenderState().getWeight() ) {
+            regionRenderer.getRenderState().setWeight(weight);
         }
-        regionRenderer.draw(gl, region, getPosition(), getTexSize());            
-        
-    }        
+        region.draw(gl, regionRenderer, getSampleCount());
+
+    }
 }

@@ -33,6 +33,8 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
@@ -49,7 +51,7 @@ import android.widget.TextView;
 public class NewtVersionActivity extends NewtBaseActivity {
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
 
        setFullscreenFeature(getWindow(), true);
@@ -62,7 +64,7 @@ public class NewtVersionActivity extends NewtBaseActivity {
        scroller.addView(tv);
        viewGroup.addView(scroller, new android.widget.FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.TOP|Gravity.LEFT));
 
-       final String info1 = "JOGL Version Info"+Platform.NEWLINE+VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE;
+       final String info1 = "JOGL Version Info"+PlatformPropsImpl.NEWLINE+VersionUtil.getPlatformInfo()+PlatformPropsImpl.NEWLINE+GlueGenVersion.getInstance()+PlatformPropsImpl.NEWLINE+JoglVersion.getInstance()+PlatformPropsImpl.NEWLINE;
        Log.d(MD.TAG, info1);
        tv.setText(info1);
 
@@ -77,24 +79,24 @@ public class NewtVersionActivity extends NewtBaseActivity {
        }
        if( null != glp ) {
            // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-           GLCapabilities caps = new GLCapabilities(glp);
-           GLWindow glWindow = GLWindow.create(caps);
+           final GLCapabilities caps = new GLCapabilities(glp);
+           final GLWindow glWindow = GLWindow.create(caps);
            glWindow.setUndecorated(true);
            glWindow.setSize(32, 32);
            glWindow.setPosition(0, 0);
            final android.view.View androidGLView = ((WindowDriver)glWindow.getDelegatedWindow()).getAndroidView();
-           viewGroup.addView(androidGLView, new android.widget.FrameLayout.LayoutParams(glWindow.getWidth(), glWindow.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+           viewGroup.addView(androidGLView, new android.widget.FrameLayout.LayoutParams(glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight(), Gravity.BOTTOM|Gravity.RIGHT));
            registerNEWTWindow(glWindow);
 
            glWindow.addGLEventListener(new GLEventListener() {
-                public void init(GLAutoDrawable drawable) {
-                    GL gl = drawable.getGL();
+                public void init(final GLAutoDrawable drawable) {
+                    final GL gl = drawable.getGL();
                     final StringBuilder sb = new StringBuilder();
-                    sb.append(JoglVersion.getGLInfo(gl, null, true)).append(Platform.NEWLINE);
-                    sb.append("Requested: ").append(Platform.NEWLINE);
-                    sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
-                    sb.append("Chosen: ").append(Platform.NEWLINE);
-                    sb.append(drawable.getChosenGLCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
+                    sb.append(JoglVersion.getGLInfo(gl, null, true)).append(PlatformPropsImpl.NEWLINE);
+                    sb.append("Requested: ").append(PlatformPropsImpl.NEWLINE);
+                    sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(PlatformPropsImpl.NEWLINE).append(PlatformPropsImpl.NEWLINE);
+                    sb.append("Chosen: ").append(PlatformPropsImpl.NEWLINE);
+                    sb.append(drawable.getChosenGLCapabilities()).append(PlatformPropsImpl.NEWLINE).append(PlatformPropsImpl.NEWLINE);
                     final String info2 = sb.toString();
                     // Log.d(MD.TAG, info2); // too big!
                     System.err.println(info2);
@@ -105,13 +107,13 @@ public class NewtVersionActivity extends NewtBaseActivity {
                         } } );
                 }
 
-                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 }
 
-                public void display(GLAutoDrawable drawable) {
+                public void display(final GLAutoDrawable drawable) {
                 }
 
-                public void dispose(GLAutoDrawable drawable) {
+                public void dispose(final GLAutoDrawable drawable) {
                 }
             });
            glWindow.setVisible(true);

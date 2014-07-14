@@ -11,15 +11,15 @@ public class PngjUnsupportedException extends RuntimeException {
 		super();
 	}
 
-	public PngjUnsupportedException(String message, Throwable cause) {
+	public PngjUnsupportedException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public PngjUnsupportedException(String message) {
+	public PngjUnsupportedException(final String message) {
 		super(message);
 	}
 
-	public PngjUnsupportedException(Throwable cause) {
+	public PngjUnsupportedException(final Throwable cause) {
 		super(cause);
 	}
 }

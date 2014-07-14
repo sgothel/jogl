@@ -149,7 +149,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -162,7 +162,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
         composite3 = null;
     }
 
-    protected GLCanvas createGLCanvas(final Shell shell, final Composite composite, final int x, final int y, GearsES2 gears) throws InterruptedException {
+    protected GLCanvas createGLCanvas(final Shell shell, final Composite composite, final int x, final int y, final GearsES2 gears) throws InterruptedException {
         final GLCanvas glCanvas = GLCanvas.create( composite, 0, caps, null);
         Assert.assertNotNull( glCanvas );
         glCanvas.addGLEventListener(gears);
@@ -241,7 +241,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         // Stopped animator allows native windowing system 'repaint' event
@@ -335,7 +335,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         // Stopped animator allows native windowing system 'repaint' event
@@ -357,13 +357,13 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
 
     static long duration = 1000; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

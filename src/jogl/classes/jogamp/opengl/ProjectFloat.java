@@ -115,13 +115,11 @@
  */
 package jogamp.opengl;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.math.FloatUtil;
 
 /**
@@ -145,193 +143,12 @@ public class ProjectFloat {
   // simpler) to simply have the array-based entry points delegate to
   // the versions taking Buffers by wrapping the arrays.
 
-  // Array-based implementation
-  private final float[] matrix = new float[16];
-  private final float[][] tempInvertMatrix = new float[4][4];
-
-  private final float[] in = new float[4];
-  private final float[] out = new float[4];
-
-  // Buffer-based implementation
-  private FloatBuffer matrixBuf; // 4x4
-
-  private final float[] forward = new float[3];  // 3
-  private final float[] side    = new float[3];  // 3
-  private final float[] up      = new float[3];  // 3
+  private final float[] mat4Tmp1 = new float[16];
+  private final float[] mat4Tmp2 = new float[16];
+  private final float[] mat4Tmp3 = new float[16];
 
   public ProjectFloat() {
-      this(true);
   }
-
-  public ProjectFloat(boolean useBackingArray) {
-      this(useBackingArray ? null : Buffers.newDirectByteBuffer(getRequiredFloatBufferSize() * Buffers.SIZEOF_FLOAT),
-           useBackingArray ? new float[getRequiredFloatBufferSize()] : null,
-           0);
-  }
-
-  /**
-   * @param floatBuffer source buffer, may be ByteBuffer (recommended) or FloatBuffer or <code>null</code>.
-   *                    If used, shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset.
-   *                    Buffer's position is ignored and floatPos is being used.
-   * @param floatArray source float array or <code>null</code>.
-   *                   If used, size shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset.
-   * @param floatOffset Offset for either of the given sources (buffer or array)
-   */
-  public ProjectFloat(Buffer floatBuffer, float[] floatArray, int floatOffset) {
-    matrixBuf = Buffers.slice2Float(floatBuffer, floatArray, floatOffset, 16);
-  }
-
-  public void destroy() {
-    matrixBuf = null;
-  }
-
-  /**
-   * @param src
-   * @param srcOffset
-   * @param inverse
-   * @param inverseOffset
-   * @return
-   */
-  public boolean gluInvertMatrixf(float[] src, int srcOffset, float[] inverse, int inverseOffset) {
-    int i, j, k, swap;
-    float t;
-    final float[][] temp = tempInvertMatrix;
-
-    for (i = 0; i < 4; i++) {
-      for (j = 0; j < 4; j++) {
-        temp[i][j] = src[i*4+j+srcOffset];
-      }
-    }
-    FloatUtil.makeIdentityf(inverse, inverseOffset);
-
-    for (i = 0; i < 4; i++) {
-      //
-      // Look for largest element in column
-      //
-      swap = i;
-      for (j = i + 1; j < 4; j++) {
-        if (Math.abs(temp[j][i]) > Math.abs(temp[i][i])) {
-          swap = j;
-        }
-      }
-
-      if (swap != i) {
-        //
-        // Swap rows.
-        //
-        for (k = 0; k < 4; k++) {
-          t = temp[i][k];
-          temp[i][k] = temp[swap][k];
-          temp[swap][k] = t;
-
-          t = inverse[i*4+k+inverseOffset];
-          inverse[i*4+k+inverseOffset] = inverse[swap*4+k+inverseOffset];
-          inverse[swap*4+k+inverseOffset] = t;
-        }
-      }
-
-      if (temp[i][i] == 0) {
-        //
-        // No non-zero pivot. The matrix is singular, which shouldn't
-        // happen. This means the user gave us a bad matrix.
-        //
-        return false;
-      }
-
-      t = temp[i][i];
-      for (k = 0; k < 4; k++) {
-        temp[i][k] /= t;
-        inverse[i*4+k+inverseOffset] /= t;
-      }
-      for (j = 0; j < 4; j++) {
-        if (j != i) {
-          t = temp[j][i];
-          for (k = 0; k < 4; k++) {
-            temp[j][k] -= temp[i][k] * t;
-            inverse[j*4+k+inverseOffset] -= inverse[i*4+k+inverseOffset]*t;
-          }
-        }
-      }
-    }
-    return true;
-  }
-
-  /**
-   * @param src
-   * @param inverse
-   *
-   * @return
-   */
-  public boolean gluInvertMatrixf(FloatBuffer src, FloatBuffer inverse) {
-    int i, j, k, swap;
-    float t;
-
-    final int srcPos = src.position();
-    final int invPos = inverse.position();
-
-    final float[][] temp = tempInvertMatrix;
-
-    for (i = 0; i < 4; i++) {
-      for (j = 0; j < 4; j++) {
-        temp[i][j] = src.get(i*4+j + srcPos);
-      }
-    }
-    FloatUtil.makeIdentityf(inverse);
-
-    for (i = 0; i < 4; i++) {
-      //
-      // Look for largest element in column
-      //
-      swap = i;
-      for (j = i + 1; j < 4; j++) {
-        if (Math.abs(temp[j][i]) > Math.abs(temp[i][i])) {
-          swap = j;
-        }
-      }
-
-      if (swap != i) {
-        //
-        // Swap rows.
-        //
-        for (k = 0; k < 4; k++) {
-          t = temp[i][k];
-          temp[i][k] = temp[swap][k];
-          temp[swap][k] = t;
-
-          t = inverse.get(i*4+k + invPos);
-          inverse.put(i*4+k + invPos, inverse.get(swap*4+k + invPos));
-          inverse.put(swap*4+k + invPos, t);
-        }
-      }
-
-      if (temp[i][i] == 0) {
-        //
-        // No non-zero pivot. The matrix is singular, which shouldn't
-        // happen. This means the user gave us a bad matrix.
-        //
-        return false;
-      }
-
-      t = temp[i][i];
-      for (k = 0; k < 4; k++) {
-        temp[i][k] /= t;
-        final int z = i*4+k + invPos;
-        inverse.put(z, inverse.get(z) / t);
-      }
-      for (j = 0; j < 4; j++) {
-        if (j != i) {
-          t = temp[j][i];
-          for (k = 0; k < 4; k++) {
-            temp[j][k] -= temp[i][k] * t;
-            final int z = j*4+k + invPos;
-            inverse.put(z, inverse.get(z) - inverse.get(i*4+k + invPos) * t);
-          }
-        }
-      }
-    }
-    return true;
-  }
-
 
   /**
    * Method gluOrtho2D.
@@ -341,41 +158,20 @@ public class ProjectFloat {
    * @param bottom
    * @param top
    */
-  public void gluOrtho2D(GLMatrixFunc gl, float left, float right, float bottom, float top) {
+  public void gluOrtho2D(final GLMatrixFunc gl, final float left, final float right, final float bottom, final float top) {
     gl.glOrthof(left, right, bottom, top, -1, 1);
   }
 
   /**
    * Method gluPerspective.
    *
-   * @param fovy
+   * @param fovy_deg fov angle in degrees
    * @param aspect
    * @param zNear
    * @param zFar
    */
-  public void gluPerspective(GLMatrixFunc gl, float fovy, float aspect, float zNear, float zFar) {
-    final float radians = fovy / 2 * (float) Math.PI / 180;
-    float sine, cotangent, deltaZ;
-
-    deltaZ = zFar - zNear;
-    sine = (float) Math.sin(radians);
-
-    if ((deltaZ == 0) || (sine == 0) || (aspect == 0)) {
-      return;
-    }
-
-    cotangent = (float) Math.cos(radians) / sine;
-
-    FloatUtil.makeIdentityf(matrixBuf);
-    final int mPos = matrixBuf.position();
-    matrixBuf.put(0 * 4 + 0 + mPos, cotangent / aspect);
-    matrixBuf.put(1 * 4 + 1 + mPos, cotangent);
-    matrixBuf.put(2 * 4 + 2 + mPos, - (zFar + zNear) / deltaZ);
-    matrixBuf.put(2 * 4 + 3 + mPos, -1);
-    matrixBuf.put(3 * 4 + 2 + mPos, -2 * zNear * zFar / deltaZ);
-    matrixBuf.put(3 * 4 + 3 + mPos, 0);
-
-    gl.glMultMatrixf(matrixBuf);
+  public void gluPerspective(final GLMatrixFunc gl, final float fovy_deg, final float aspect, final float zNear, final float zFar) {
+    gl.glMultMatrixf(FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_deg * FloatUtil.PI / 180.0f, aspect, zNear, zFar), 0);
   }
 
   /**
@@ -391,117 +187,70 @@ public class ProjectFloat {
    * @param upy
    * @param upz
    */
-  public void gluLookAt(GLMatrixFunc gl,
-                        float eyex, float eyey, float eyez,
-                        float centerx, float centery, float centerz,
-                        float upx, float upy, float upz) {
-    final float[] forward = this.forward;
-    final float[] side = this.side;
-    final float[] up = this.up;
-
-    forward[0] = centerx - eyex;
-    forward[1] = centery - eyey;
-    forward[2] = centerz - eyez;
-
-    up[0] = upx;
-    up[1] = upy;
-    up[2] = upz;
-
-    FloatUtil.normalize(forward);
-
-    /* Side = forward x up */
-    FloatUtil.cross(forward, up, side);
-    FloatUtil.normalize(side);
-
-    /* Recompute up as: up = side x forward */
-    FloatUtil.cross(side, forward, up);
-
-    FloatUtil.makeIdentityf(matrixBuf);
-    final int mPos = matrixBuf.position();
-    matrixBuf.put(0 * 4 + 0 + mPos, side[0]);
-    matrixBuf.put(1 * 4 + 0 + mPos, side[1]);
-    matrixBuf.put(2 * 4 + 0 + mPos, side[2]);
-
-    matrixBuf.put(0 * 4 + 1 + mPos, up[0]);
-    matrixBuf.put(1 * 4 + 1 + mPos, up[1]);
-    matrixBuf.put(2 * 4 + 1 + mPos, up[2]);
-
-    matrixBuf.put(0 * 4 + 2 + mPos, -forward[0]);
-    matrixBuf.put(1 * 4 + 2 + mPos, -forward[1]);
-    matrixBuf.put(2 * 4 + 2 + mPos, -forward[2]);
-
-    gl.glMultMatrixf(matrixBuf);
-    gl.glTranslatef(-eyex, -eyey, -eyez);
+  public void gluLookAt(final GLMatrixFunc gl,
+                        final float eyex, final float eyey, final float eyez,
+                        final float centerx, final float centery, final float centerz,
+                        final float upx, final float upy, final float upz) {
+    mat4Tmp2[0+0] = eyex;
+    mat4Tmp2[1+0] = eyey;
+    mat4Tmp2[2+0] = eyez;
+    mat4Tmp2[0+4] = centerx;
+    mat4Tmp2[1+4] = centery;
+    mat4Tmp2[2+4] = centerz;
+    mat4Tmp2[0+8] = upx;
+    mat4Tmp2[1+8] = upy;
+    mat4Tmp2[2+8] = upz;
+    gl.glMultMatrixf(
+            FloatUtil.makeLookAt(mat4Tmp1, 0, mat4Tmp2 /* eye */, 0, mat4Tmp2 /* center */, 4, mat4Tmp2 /* up */, 8, mat4Tmp3), 0);
   }
 
   /**
    * Map object coordinates to window coordinates.
+   * <p>
+   * Traditional <code>gluProject</code> implementation.
+   * </p>
    *
    * @param objx
    * @param objy
    * @param objz
-   * @param modelMatrix
-   * @param projMatrix
-   * @param viewport
-   * @param win_pos
-   *
-   * @return
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param win_pos 3 component window coordinate, the result
+   * @param win_pos_offset
+   * @return true if successful, otherwise false (z is 1)
    */
-  public boolean gluProject(float objx, float objy, float objz,
-                            float[] modelMatrix, int modelMatrix_offset,
-                            float[] projMatrix, int projMatrix_offset,
-                            int[] viewport, int viewport_offset,
-                            float[] win_pos, int win_pos_offset ) {
-
-    final float[] in = this.in;
-    final float[] out = this.out;
-
-    in[0] = objx;
-    in[1] = objy;
-    in[2] = objz;
-    in[3] = 1.0f;
-
-    FloatUtil.multMatrixVecf(modelMatrix, modelMatrix_offset, in, 0, out, 0);
-    FloatUtil.multMatrixVecf(projMatrix, projMatrix_offset, out, 0, in, 0);
-
-    if (in[3] == 0.0f) {
-      return false;
-    }
-
-    in[3] = (1.0f / in[3]) * 0.5f;
-
-    // Map x, y and z to range 0-1
-    in[0] = in[0] * in[3] + 0.5f;
-    in[1] = in[1] * in[3] + 0.5f;
-    in[2] = in[2] * in[3] + 0.5f;
-
-    // Map x,y to viewport
-    win_pos[0+win_pos_offset] = in[0] * viewport[2+viewport_offset] + viewport[0+viewport_offset];
-    win_pos[1+win_pos_offset] = in[1] * viewport[3+viewport_offset] + viewport[1+viewport_offset];
-    win_pos[2+win_pos_offset] = in[2];
-
-    return true;
+  public boolean gluProject(final float objx, final float objy, final float objz,
+                            final float[] modelMatrix, final int modelMatrix_offset,
+                            final float[] projMatrix, final int projMatrix_offset,
+                            final int[] viewport, final int viewport_offset,
+                            final float[] win_pos, final int win_pos_offset ) {
+    return FloatUtil.mapObjToWinCoords(objx, objy, objz,
+                      modelMatrix, modelMatrix_offset,
+                      projMatrix, projMatrix_offset,
+                      viewport, viewport_offset,
+                      win_pos, win_pos_offset,
+                      mat4Tmp1, mat4Tmp2);
   }
 
   /**
    * Map object coordinates to window coordinates.
    */
-  public boolean gluProject(float objx, float objy, float objz,
-                            FloatBuffer modelMatrix,
-                            FloatBuffer projMatrix,
-                            int[] viewport, int viewport_offset,
-                            float[] win_pos, int win_pos_offset ) {
-
-    final float[] in = this.in;
-    final float[] out = this.out;
+  @SuppressWarnings("deprecation")
+  public boolean gluProject(final float objx, final float objy, final float objz,
+                            final FloatBuffer modelMatrix,
+                            final FloatBuffer projMatrix,
+                            final int[] viewport, final int viewport_offset,
+                            final float[] win_pos, final int win_pos_offset ) {
+    final float[] in = this.mat4Tmp1;
+    final float[] out = this.mat4Tmp2;
 
     in[0] = objx;
     in[1] = objy;
     in[2] = objz;
     in[3] = 1.0f;
 
-    FloatUtil.multMatrixVecf(modelMatrix, in, out);
-    FloatUtil.multMatrixVecf(projMatrix, out, in);
+    FloatUtil.multMatrixVec(modelMatrix, in, out);
+    FloatUtil.multMatrixVec(projMatrix, out, in);
 
     if (in[3] == 0.0f) {
       return false;
@@ -535,22 +284,23 @@ public class ProjectFloat {
    *
    * @return
    */
-  public boolean gluProject(float objx, float objy, float objz,
-                            FloatBuffer modelMatrix,
-                            FloatBuffer projMatrix,
-                            IntBuffer viewport,
-                            FloatBuffer win_pos) {
+  @SuppressWarnings("deprecation")
+  public boolean gluProject(final float objx, final float objy, final float objz,
+                            final FloatBuffer modelMatrix,
+                            final FloatBuffer projMatrix,
+                            final IntBuffer viewport,
+                            final FloatBuffer win_pos) {
 
-    final float[] in = this.in;
-    final float[] out = this.out;
+    final float[] in = this.mat4Tmp1;
+    final float[] out = this.mat4Tmp2;
 
     in[0] = objx;
     in[1] = objy;
     in[2] = objz;
     in[3] = 1.0f;
 
-    FloatUtil.multMatrixVecf(modelMatrix, in, out);
-    FloatUtil.multMatrixVecf(projMatrix, out, in);
+    FloatUtil.multMatrixVec(modelMatrix, in, out);
+    FloatUtil.multMatrixVec(projMatrix, out, in);
 
     if (in[3] == 0.0f) {
       return false;
@@ -576,58 +326,30 @@ public class ProjectFloat {
 
   /**
    * Map window coordinates to object coordinates.
+   * <p>
+   * Traditional <code>gluUnProject</code> implementation.
+   * </p>
    *
    * @param winx
    * @param winy
    * @param winz
-   * @param modelMatrix
-   * @param projMatrix
-   * @param viewport
-   * @param obj_pos
-   *
-   * @return
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param obj_pos 3 component object coordinate, the result
+   * @param obj_pos_offset
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public boolean gluUnProject(float winx, float winy, float winz,
-                              float[] modelMatrix, int modelMatrix_offset,
-                              float[] projMatrix, int projMatrix_offset,
-                              int[] viewport, int viewport_offset,
-                              float[] obj_pos, int obj_pos_offset) {
-    final float[] in = this.in;
-    final float[] out = this.out;
-
-    FloatUtil.multMatrixf(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, matrix, 0);
-
-    if (!gluInvertMatrixf(matrix, 0, matrix, 0)) {
-      return false;
-    }
-
-    in[0] = winx;
-    in[1] = winy;
-    in[2] = winz;
-    in[3] = 1.0f;
-
-    // Map x and y from window coordinates
-    in[0] = (in[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
-    in[1] = (in[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
-
-    // Map to range -1 to 1
-    in[0] = in[0] * 2 - 1;
-    in[1] = in[1] * 2 - 1;
-    in[2] = in[2] * 2 - 1;
-
-    FloatUtil.multMatrixVecf(matrix, in, out);
-
-    if (out[3] == 0.0) {
-      return false;
-    }
-
-    out[3] = 1.0f / out[3];
-
-    obj_pos[0+obj_pos_offset] = out[0] * out[3];
-    obj_pos[1+obj_pos_offset] = out[1] * out[3];
-    obj_pos[2+obj_pos_offset] = out[2] * out[3];
-
-    return true;
+  public boolean gluUnProject(final float winx, final float winy, final float winz,
+                              final float[] modelMatrix, final int modelMatrix_offset,
+                              final float[] projMatrix, final int projMatrix_offset,
+                              final int[] viewport, final int viewport_offset,
+                              final float[] obj_pos, final int obj_pos_offset) {
+    return FloatUtil.mapWinToObjCoords(winx, winy, winz,
+                                   modelMatrix, modelMatrix_offset,
+                                   projMatrix, projMatrix_offset,
+                                   viewport, viewport_offset,
+                                   obj_pos, obj_pos_offset,
+                                   mat4Tmp1, mat4Tmp2);
   }
 
 
@@ -643,47 +365,49 @@ public class ProjectFloat {
    * @param viewport_offset
    * @param obj_pos
    * @param obj_pos_offset
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
-  public boolean gluUnProject(float winx, float winy, float winz,
-                              FloatBuffer modelMatrix,
-                              FloatBuffer projMatrix,
-                              int[] viewport, int viewport_offset,
-                              float[] obj_pos, int obj_pos_offset) {
-    final float[] in = this.in;
-    final float[] out = this.out;
+  @SuppressWarnings("deprecation")
+  public boolean gluUnProject(final float winx, final float winy, final float winz,
+                              final FloatBuffer modelMatrix,
+                              final FloatBuffer projMatrix,
+                              final int[] viewport, final int viewport_offset,
+                              final float[] obj_pos, final int obj_pos_offset) {
+    // mat4Tmp1 = P x M
+    FloatUtil.multMatrix(projMatrix, modelMatrix, mat4Tmp1);
 
-    FloatUtil.multMatrixf(projMatrix, modelMatrix, matrixBuf);
-
-    if (!gluInvertMatrixf(matrixBuf, matrixBuf)) {
+    // mat4Tmp1 = Inv(P x M)
+    if ( null == FloatUtil.invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
 
-    in[0] = winx;
-    in[1] = winy;
-    in[2] = winz;
-    in[3] = 1.0f;
+    mat4Tmp2[0] = winx;
+    mat4Tmp2[1] = winy;
+    mat4Tmp2[2] = winz;
+    mat4Tmp2[3] = 1.0f;
 
     // Map x and y from window coordinates
-    in[0] = (in[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
-    in[1] = (in[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
+    mat4Tmp2[0] = (mat4Tmp2[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    mat4Tmp2[1] = (mat4Tmp2[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
 
     // Map to range -1 to 1
-    in[0] = in[0] * 2 - 1;
-    in[1] = in[1] * 2 - 1;
-    in[2] = in[2] * 2 - 1;
+    mat4Tmp2[0] = mat4Tmp2[0] * 2 - 1;
+    mat4Tmp2[1] = mat4Tmp2[1] * 2 - 1;
+    mat4Tmp2[2] = mat4Tmp2[2] * 2 - 1;
 
-    FloatUtil.multMatrixVecf(matrixBuf, in, out);
+    final int raw_off = 4;
+    // object raw coords = Inv(P x M) *  winPos  -> mat4Tmp2
+    FloatUtil.multMatrixVec(mat4Tmp1, 0, mat4Tmp2, 0, mat4Tmp2, raw_off);
 
-    if (out[3] == 0.0) {
+    if (mat4Tmp2[3+raw_off] == 0.0) {
       return false;
     }
 
-    out[3] = 1.0f / out[3];
+    mat4Tmp2[3+raw_off] = 1.0f / mat4Tmp2[3+raw_off];
 
-    obj_pos[0+obj_pos_offset] = out[0] * out[3];
-    obj_pos[1+obj_pos_offset] = out[1] * out[3];
-    obj_pos[2+obj_pos_offset] = out[2] * out[3];
+    obj_pos[0+obj_pos_offset] = mat4Tmp2[0+raw_off] * mat4Tmp2[3+raw_off];
+    obj_pos[1+obj_pos_offset] = mat4Tmp2[1+raw_off] * mat4Tmp2[3+raw_off];
+    obj_pos[2+obj_pos_offset] = mat4Tmp2[2+raw_off] * mat4Tmp2[3+raw_off];
 
     return true;
   }
@@ -699,49 +423,52 @@ public class ProjectFloat {
    * @param viewport
    * @param obj_pos
    *
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
-  public boolean gluUnProject(float winx, float winy, float winz,
-                              FloatBuffer modelMatrix,
-                              FloatBuffer projMatrix,
-                              IntBuffer viewport,
-                              FloatBuffer obj_pos) {
-    final float[] in = this.in;
-    final float[] out = this.out;
-
-    FloatUtil.multMatrixf(projMatrix, modelMatrix, matrixBuf);
-
-    if (!gluInvertMatrixf(matrixBuf, matrixBuf)) {
-      return false;
-    }
-
-    in[0] = winx;
-    in[1] = winy;
-    in[2] = winz;
-    in[3] = 1.0f;
-
-    // Map x and y from window coordinates
+  @SuppressWarnings("deprecation")
+  public boolean gluUnProject(final float winx, final float winy, final float winz,
+                              final FloatBuffer modelMatrix,
+                              final FloatBuffer projMatrix,
+                              final IntBuffer viewport,
+                              final FloatBuffer obj_pos) {
     final int vPos = viewport.position();
     final int oPos = obj_pos.position();
-    in[0] = (in[0] - viewport.get(0+vPos)) / viewport.get(2+vPos);
-    in[1] = (in[1] - viewport.get(1+vPos)) / viewport.get(3+vPos);
 
-    // Map to range -1 to 1
-    in[0] = in[0] * 2 - 1;
-    in[1] = in[1] * 2 - 1;
-    in[2] = in[2] * 2 - 1;
+    // mat4Tmp1 = P x M
+    FloatUtil.multMatrix(projMatrix, modelMatrix, mat4Tmp1);
 
-    FloatUtil.multMatrixVecf(matrixBuf, in, out);
-
-    if (out[3] == 0.0) {
+    // mat4Tmp1 = Inv(P x M)
+    if ( null == FloatUtil.invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
 
-    out[3] = 1.0f / out[3];
+    mat4Tmp2[0] = winx;
+    mat4Tmp2[1] = winy;
+    mat4Tmp2[2] = winz;
+    mat4Tmp2[3] = 1.0f;
 
-    obj_pos.put(0+oPos, out[0] * out[3]);
-    obj_pos.put(1+oPos, out[1] * out[3]);
-    obj_pos.put(2+oPos, out[2] * out[3]);
+    // Map x and y from window coordinates
+    mat4Tmp2[0] = (mat4Tmp2[0] - viewport.get(0+vPos)) / viewport.get(2+vPos);
+    mat4Tmp2[1] = (mat4Tmp2[1] - viewport.get(1+vPos)) / viewport.get(3+vPos);
+
+    // Map to range -1 to 1
+    mat4Tmp2[0] = mat4Tmp2[0] * 2 - 1;
+    mat4Tmp2[1] = mat4Tmp2[1] * 2 - 1;
+    mat4Tmp2[2] = mat4Tmp2[2] * 2 - 1;
+
+    final int raw_off = 4;
+    // object raw coords = Inv(P x M) *  winPos  -> mat4Tmp2
+    FloatUtil.multMatrixVec(mat4Tmp1, 0, mat4Tmp2, 0, mat4Tmp2, raw_off);
+
+    if (mat4Tmp2[3+raw_off] == 0.0) {
+      return false;
+    }
+
+    mat4Tmp2[3+raw_off] = 1.0f / mat4Tmp2[3+raw_off];
+
+    obj_pos.put(0+oPos, mat4Tmp2[0+raw_off] * mat4Tmp2[3+raw_off]);
+    obj_pos.put(1+oPos, mat4Tmp2[1+raw_off] * mat4Tmp2[3+raw_off]);
+    obj_pos.put(2+oPos, mat4Tmp2[2+raw_off] * mat4Tmp2[3+raw_off]);
 
     return true;
   }
@@ -749,68 +476,39 @@ public class ProjectFloat {
 
   /**
    * Map window coordinates to object coordinates.
+   * <p>
+   * Traditional <code>gluUnProject4</code> implementation.
+   * </p>
    *
    * @param winx
    * @param winy
    * @param winz
    * @param clipw
-   * @param modelMatrix
-   * @param projMatrix
-   * @param viewport
+   * @param modelMatrix 4x4 modelview matrix
+   * @param modelMatrix_offset
+   * @param projMatrix 4x4 projection matrix
+   * @param projMatrix_offset
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
    * @param near
    * @param far
-   * @param obj_pos
-   *
-   * @return
+   * @param obj_pos 4 component object coordinate, the result
+   * @param obj_pos_offset
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public boolean gluUnProject4(float winx,
-                               float winy,
-                               float winz,
-                               float clipw,
-                               float[] modelMatrix,
-                               int modelMatrix_offset,
-                               float[] projMatrix,
-                               int projMatrix_offset,
-                               int[] viewport,
-                               int viewport_offset,
-                               float near,
-                               float far,
-                               float[] obj_pos,
-                               int obj_pos_offset ) {
-    final float[] in = this.in;
-    final float[] out = this.out;
-
-    FloatUtil.multMatrixf(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, matrix, 0);
-
-    if (!gluInvertMatrixf(matrix, 0, matrix, 0))
-      return false;
-
-    in[0] = winx;
-    in[1] = winy;
-    in[2] = winz;
-    in[3] = clipw;
-
-    // Map x and y from window coordinates
-    in[0] = (in[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
-    in[1] = (in[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
-    in[2] = (in[2] - near) / (far - near);
-
-    // Map to range -1 to 1
-    in[0] = in[0] * 2 - 1;
-    in[1] = in[1] * 2 - 1;
-    in[2] = in[2] * 2 - 1;
-
-    FloatUtil.multMatrixVecf(matrix, in, out);
-
-    if (out[3] == 0.0f) {
-      return false;
-    }
-
-    obj_pos[0+obj_pos_offset] = out[0];
-    obj_pos[1+obj_pos_offset] = out[1];
-    obj_pos[2+obj_pos_offset] = out[2];
-    obj_pos[3+obj_pos_offset] = out[3];
-    return true;
+   public boolean gluUnProject4(final float winx, final float winy, final float winz, final float clipw,
+                                final float[] modelMatrix, final int modelMatrix_offset,
+                                final float[] projMatrix, final int projMatrix_offset,
+                                final int[] viewport, final int viewport_offset,
+                                final float near, final float far,
+                                final float[] obj_pos, final int obj_pos_offset ) {
+    return FloatUtil.mapWinToObjCoords(winx, winy, winz, clipw,
+                                       modelMatrix, modelMatrix_offset,
+                                       projMatrix, projMatrix_offset,
+                                       viewport, viewport_offset,
+                                       near, far,
+                                       obj_pos, obj_pos_offset,
+                                       mat4Tmp1, mat4Tmp2);
   }
 
   /**
@@ -827,72 +525,68 @@ public class ProjectFloat {
    * @param far
    * @param obj_pos
    *
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
-  public boolean gluUnProject4(float winx,
-                               float winy,
-                               float winz,
-                               float clipw,
-                               FloatBuffer modelMatrix,
-                               FloatBuffer projMatrix,
-                               IntBuffer viewport,
-                               float near,
-                               float far,
-                               FloatBuffer obj_pos) {
-    final float[] in = this.in;
-    final float[] out = this.out;
+  @SuppressWarnings("deprecation")
+  public boolean gluUnProject4(final float winx, final float winy, final float winz, final float clipw,
+                               final FloatBuffer modelMatrix, final FloatBuffer projMatrix,
+                               final IntBuffer viewport,
+                               final float near, final float far,
+                               final FloatBuffer obj_pos) {
+    FloatUtil.multMatrix(projMatrix, modelMatrix, mat4Tmp1);
 
-    FloatUtil.multMatrixf(projMatrix, modelMatrix, matrixBuf);
-
-    if (!gluInvertMatrixf(matrixBuf, matrixBuf))
+    if ( null == FloatUtil.invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
+    }
 
-    in[0] = winx;
-    in[1] = winy;
-    in[2] = winz;
-    in[3] = clipw;
+    mat4Tmp2[0] = winx;
+    mat4Tmp2[1] = winy;
+    mat4Tmp2[2] = winz;
+    mat4Tmp2[3] = clipw;
 
     // Map x and y from window coordinates
     final int vPos = viewport.position();
-    in[0] = (in[0] - viewport.get(0+vPos)) / viewport.get(2+vPos);
-    in[1] = (in[1] - viewport.get(1+vPos)) / viewport.get(3+vPos);
-    in[2] = (in[2] - near) / (far - near);
+    mat4Tmp2[0] = (mat4Tmp2[0] - viewport.get(0+vPos)) / viewport.get(2+vPos);
+    mat4Tmp2[1] = (mat4Tmp2[1] - viewport.get(1+vPos)) / viewport.get(3+vPos);
+    mat4Tmp2[2] = (mat4Tmp2[2] - near) / (far - near);
 
     // Map to range -1 to 1
-    in[0] = in[0] * 2 - 1;
-    in[1] = in[1] * 2 - 1;
-    in[2] = in[2] * 2 - 1;
+    mat4Tmp2[0] = mat4Tmp2[0] * 2 - 1;
+    mat4Tmp2[1] = mat4Tmp2[1] * 2 - 1;
+    mat4Tmp2[2] = mat4Tmp2[2] * 2 - 1;
 
-    FloatUtil.multMatrixVecf(matrixBuf, in, out);
+    final int raw_off = 4;
+    FloatUtil.multMatrixVec(mat4Tmp1, 0, mat4Tmp2, 0, mat4Tmp2, raw_off);
 
-    if (out[3] == 0.0f) {
+    if (mat4Tmp2[3+raw_off] == 0.0f) {
       return false;
     }
 
     final int oPos = obj_pos.position();
-    obj_pos.put(0+oPos, out[0]);
-    obj_pos.put(1+oPos, out[1]);
-    obj_pos.put(2+oPos, out[2]);
-    obj_pos.put(3+oPos, out[3]);
+    obj_pos.put(0+oPos, mat4Tmp2[0+raw_off]);
+    obj_pos.put(1+oPos, mat4Tmp2[1+raw_off]);
+    obj_pos.put(2+oPos, mat4Tmp2[2+raw_off]);
+    obj_pos.put(3+oPos, mat4Tmp2[3+raw_off]);
     return true;
   }
 
 
   /**
-   * Method gluPickMatrix
-   *
+   * Make given matrix the <i>pick</i> matrix based on given parameters.
+   * <p>
+   * Traditional <code>gluPickMatrix</code> implementation.
+   * </p>
    * @param x
    * @param y
    * @param deltaX
    * @param deltaY
-   * @param viewport
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
    */
-  public void gluPickMatrix(GLMatrixFunc gl,
-                            float x,
-                            float y,
-                            float deltaX,
-                            float deltaY,
-                            IntBuffer viewport) {
+  public void gluPickMatrix(final GLMatrixFunc gl,
+                            final float x, final float y,
+                            final float deltaX, final float deltaY,
+                            final IntBuffer viewport) {
     if (deltaX <= 0 || deltaY <= 0) {
       return;
     }
@@ -906,31 +600,24 @@ public class ProjectFloat {
   }
 
   /**
-   * Method gluPickMatrix
-   *
+   * Make given matrix the <i>pick</i> matrix based on given parameters.
+   * <p>
+   * Traditional <code>gluPickMatrix</code> implementation.
+   * </p>
    * @param x
    * @param y
    * @param deltaX
    * @param deltaY
-   * @param viewport
+   * @param viewport 4 component viewport vector
    * @param viewport_offset
    */
-  public void gluPickMatrix(GLMatrixFunc gl,
-                            float x,
-                            float y,
-                            float deltaX,
-                            float deltaY,
-                            int[] viewport,
-                            int viewport_offset) {
-    if (deltaX <= 0 || deltaY <= 0) {
-      return;
+  public void gluPickMatrix(final GLMatrixFunc gl,
+                            final float x, final float y,
+                            final float deltaX, final float deltaY,
+                            final int[] viewport, final int viewport_offset) {
+    if( null != FloatUtil.makePick(mat4Tmp1, 0, x, y, deltaX, deltaY, viewport, viewport_offset, mat4Tmp2) ) {
+        gl.glMultMatrixf(mat4Tmp1, 0);
     }
-
-    /* Translate and scale the picked region to the entire window */
-    gl.glTranslatef((viewport[2+viewport_offset] - 2 * (x - viewport[0+viewport_offset])) / deltaX,
-                    (viewport[3+viewport_offset] - 2 * (y - viewport[1+viewport_offset])) / deltaY,
-                    0);
-    gl.glScalef(viewport[2+viewport_offset] / deltaX, viewport[3+viewport_offset] / deltaY, 1.0f);
   }
 
 }

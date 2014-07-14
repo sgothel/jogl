@@ -55,12 +55,12 @@ public class ScreenDriver extends ScreenImpl {
     protected void closeNativeImpl() { }
 
     @Override
-    protected int validateScreenIndex(int idx) {
+    protected int validateScreenIndex(final int idx) {
         return 0; // only one screen available
     }
 
     @Override
-    protected final void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
+    protected final void collectNativeMonitorModesAndDevicesImpl(final MonitorModeProps.Cache cache) {
         int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
@@ -79,10 +79,14 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = 0; // crt_idx
         props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
         props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
-        props[i++] = 0; // rotated viewport x
-        props[i++] = 0; // rotated viewport y
-        props[i++] = cachedWidth; // rotated viewport width
-        props[i++] = cachedWidth; // rotated viewport height
+        props[i++] = 0; // rotated viewport x pixel-units
+        props[i++] = 0; // rotated viewport y pixel-units
+        props[i++] = cachedWidth; // rotated viewport width pixel-units
+        props[i++] = cachedWidth; // rotated viewport height pixel-units
+        props[i++] = 0; // rotated viewport x window-units
+        props[i++] = 0; // rotated viewport y window-units
+        props[i++] = cachedWidth; // rotated viewport width window-units
+        props[i++] = cachedWidth; // rotated viewport height window-units
         MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);
     }
 
@@ -97,14 +101,14 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
-        vOriginSize.set(0, 0, cachedWidth, cachedHeight);
+    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
+        viewport.set(0, 0, cachedWidth, cachedHeight);
     }
 
     /** Called from {@link #initNative()}. */
-    protected void setScreenSize(int width, int height) {
-        cachedWidth = width;
-        cachedHeight = height;
+    protected void setScreenSize(final int width, final int height) {
+        cachedWidth = width;   // write to static field intended
+        cachedHeight = height; // write to static field intended
     }
 
     private static int cachedWidth = 0;

@@ -95,17 +95,17 @@ public class TestBug816GLCanvasFrameHoppingB849B889AWT extends UITestCase {
         frame2.setSize(640, 480);
         frame2.setLocation(800, 64);
 
-        GLProfile profile = GLProfile.get(GLProfile.GL2ES2);
-        GLCapabilities glCapabilities = new GLCapabilities(profile);
+        final GLProfile profile = GLProfile.get(GLProfile.GL2ES2);
+        final GLCapabilities glCapabilities = new GLCapabilities(profile);
         final GLCanvas glCanvas = new GLCanvas(glCapabilities);
         glCanvas.setSize(new java.awt.Dimension(640, 480));
         glCanvas.addGLEventListener(new GearsES2(1));
         panel1.add(glCanvas, BorderLayout.CENTER);
 
-        JButton bMoveP1toP2 = new JButton("Move to Panel2");
+        final JButton bMoveP1toP2 = new JButton("Move to Panel2");
         bMoveP1toP2.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            public void actionPerformed(final java.awt.event.ActionEvent evt) {
                 System.err.println("XXXX Move P1 -> P2 - START");
                 dumpGLCanvasStats(glCanvas);
                 panel2.add(glCanvas, BorderLayout.CENTER);
@@ -123,10 +123,10 @@ public class TestBug816GLCanvasFrameHoppingB849B889AWT extends UITestCase {
         });
         panel1.add(bMoveP1toP2, BorderLayout.NORTH);
 
-        JButton bMoveP2toP1 = new JButton("Move to Panel1");
+        final JButton bMoveP2toP1 = new JButton("Move to Panel1");
         bMoveP2toP1.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 System.err.println("XXXX Move P2 -> P1 - START");
                 dumpGLCanvasStats(glCanvas);
                 panel1.add(glCanvas, BorderLayout.CENTER);
@@ -241,14 +241,14 @@ public class TestBug816GLCanvasFrameHoppingB849B889AWT extends UITestCase {
             } });
     }
 
-    private static String id(Object obj) { return "0x"+Integer.toHexString(obj.hashCode()); }
+    private static String id(final Object obj) { return "0x"+Integer.toHexString(obj.hashCode()); }
 
-    static void dumpGLCanvasStats(GLCanvas glCanvas) {
+    static void dumpGLCanvasStats(final GLCanvas glCanvas) {
         System.err.println("XXXX GLCanvas: comp "+glCanvas+", visible "+glCanvas.isVisible()+", showing "+glCanvas.isShowing()+
-                ", displayable "+glCanvas.isDisplayable()+", "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+                ", displayable "+glCanvas.isDisplayable()+", "+glCanvas.getSurfaceWidth()+"x"+glCanvas.getSurfaceHeight());
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);

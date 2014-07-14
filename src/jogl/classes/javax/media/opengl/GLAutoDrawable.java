@@ -199,6 +199,11 @@ public interface GLAutoDrawable extends GLDrawable {
   public int getGLEventListenerCount();
 
   /**
+   * Returns true if all added {@link GLEventListener} are initialized, otherwise false.
+   */
+  boolean areAllGLEventListenerInitialized();
+
+  /**
    * Returns the {@link GLEventListener} at the given index of this drawable queue.
    * @param index Position of the listener to be returned.
    *              Should be within (0 <= index && index < size()).

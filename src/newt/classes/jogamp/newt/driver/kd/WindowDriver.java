@@ -68,9 +68,9 @@ public class WindowDriver extends WindowImpl {
         }
         setGraphicsConfiguration(cfg);
 
-        GLCapabilitiesImmutable eglCaps = (GLCapabilitiesImmutable) cfg.getChosenCapabilities();
-        int eglConfigID = eglCaps.getVisualID(VIDType.EGL_CONFIG);
-        long eglConfig = EGLGraphicsConfiguration.EGLConfigId2EGLConfig(getDisplayHandle(), eglConfigID);
+        final GLCapabilitiesImmutable eglCaps = (GLCapabilitiesImmutable) cfg.getChosenCapabilities();
+        final int eglConfigID = eglCaps.getVisualID(VIDType.EGL_CONFIG);
+        final long eglConfig = EGLGraphicsConfiguration.EGLConfigId2EGLConfig(getDisplayHandle(), eglConfigID);
 
         eglWindowHandle = CreateWindow(getDisplayHandle(), eglConfig);
         if (eglWindowHandle == 0) {
@@ -93,10 +93,10 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void requestFocusImpl(boolean reparented) { }
+    protected void requestFocusImpl(final boolean reparented) { }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(final int x, final int y, int width, int height, final int flags) {
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             setVisible0(eglWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
@@ -130,12 +130,12 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         return new Point(x,y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop ..
     }
 
@@ -151,12 +151,12 @@ public class WindowDriver extends WindowImpl {
     private        native void setSize0(long eglWindowHandle, int width, int height);
     private        native void setFullScreen0(long eglWindowHandle, boolean fullscreen);
 
-    private void windowCreated(long userData) {
+    private void windowCreated(final long userData) {
         windowUserData=userData;
     }
 
     @Override
-    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
+    protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
         if(isFullscreen()) {
             ((ScreenDriver)getScreen()).sizeChanged(getWidth(), getHeight());
         }

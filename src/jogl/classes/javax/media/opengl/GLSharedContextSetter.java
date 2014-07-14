@@ -99,12 +99,6 @@ package javax.media.opengl;
  */
 public interface GLSharedContextSetter extends GLAutoDrawable {
     /**
-     * Returns true if all {@link GLEventListener} are initialized, otherwise false.
-     * @deprecated Promote method to {@link GLAutoDrawable}
-     */
-    boolean areAllGLEventListenerInitialized();
-
-    /**
      * Specifies an {@link GLContext OpenGL context}, which shall be shared by this {@link GLAutoDrawable}'s {@link GLContext}.
      * <p>
      * Since the {@link GLDrawable drawable} and {@link GLContext context} is created
@@ -114,6 +108,12 @@ public interface GLSharedContextSetter extends GLAutoDrawable {
      * <p>
      * A set <i>sharedContext</i> will block context creation, i.e. {@link GLAutoDrawable#initialization GLAutoDrawable initialization},
      * as long it is not {@link GLContext#isCreated() created natively}.
+     * </p>
+     * <p>
+     * The <i>preferred method</i> of assigning a <i>shared context</i> is
+     * to {@link #setSharedAutoDrawable(GLAutoDrawable) set the shared GLAutoDrawable},
+     * since this method also takes the {@link GLEventListener}
+     * {@link GLAutoDrawable#areAllGLEventListenerInitialized() initialization into account}.
      * </p>
      * <p>
      * See <a href="#lifecycle">Lifecycle Considerations</a>.
@@ -135,12 +135,12 @@ public interface GLSharedContextSetter extends GLAutoDrawable {
      * this method shall be called beforehand to have any effect.
      * </p>
      * <p>
-     * A set <i>sharedAutoDrawable</i> will block context creation, i.e. {@link GLAutoDrawable#initialization GLAutoDrawable initialization},
+     * A set <i>sharedAutoDrawable</i> will block context creation, i.e. <a href="GLAutoDrawable.html#initialization">initialization</a>
      * as long it's
      * <ul>
      *   <li>{@link GLContext} is <code>null</code>, or</li>
      *   <li>{@link GLContext} has not been {@link GLContext#isCreated() created natively}, or</li>
-     *   <li>{@link GLEventListener} are <i>not</i> {@link GLSharedContextSetter#areAllGLEventListenerInitialized() completely initialized}</li>
+     *   <li>{@link GLEventListener} are <i>not</i> {@link GLAutoDrawable#areAllGLEventListenerInitialized() completely initialized}</li>
      * </ul>
      * </p>
      * <p>

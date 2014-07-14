@@ -60,7 +60,7 @@ public class TimeFrameI {
         pts = INVALID_PTS;
         duration = 0;
     }
-    public TimeFrameI(int pts, int duration) {
+    public TimeFrameI(final int pts, final int duration) {
         this.pts = pts;
         this.duration = duration;
     }
@@ -68,11 +68,11 @@ public class TimeFrameI {
     /** Get this frame's presentation timestamp (PTS) in milliseconds. */
     public final int getPTS() { return pts; }
     /** Set this frame's presentation timestamp (PTS) in milliseconds. */
-    public final void setPTS(int pts) { this.pts = pts; }
+    public final void setPTS(final int pts) { this.pts = pts; }
     /** Get this frame's duration in milliseconds. */
     public final int getDuration() { return duration; }
     /** Set this frame's duration in milliseconds. */
-    public final void setDuration(int duration) { this.duration = duration; }
+    public final void setDuration(final int duration) { this.duration = duration; }
 
     @Override
     public String toString() {

@@ -15,7 +15,7 @@ package javax.media.opengl;
  * </p>
  */
 public class DebugGLES2 extends DebugGLES3 {
-    public DebugGLES2(GLES2 downstream) {
+    public DebugGLES2(final GLES2 downstream) {
         super((GLES3)downstream);
     }
 }

@@ -14,8 +14,8 @@ public class GLUniformData {
      * Number of objects is 1
      *
      */
-    public GLUniformData(String name, int val) {
-        init(name, 1, new Integer(val));
+    public GLUniformData(final String name, final int val) {
+        initScalar(name, 1, Integer.valueOf(val));
     }
 
     /**
@@ -24,8 +24,8 @@ public class GLUniformData {
      * Number of objects is 1
      *
      */
-    public GLUniformData(String name, float val) {
-        init(name, 1, new Float(val));
+    public GLUniformData(final String name, final float val) {
+        initScalar(name, 1, Float.valueOf(val));
     }
 
     /**
@@ -35,8 +35,8 @@ public class GLUniformData {
      *
      * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
-    public GLUniformData(String name, int components, IntBuffer data) {
-        init(name, components, data);
+    public GLUniformData(final String name, final int components, final IntBuffer data) {
+        initBuffer(name, components, data);
     }
 
     /**
@@ -46,8 +46,20 @@ public class GLUniformData {
      *
      * @param components number of elements of one object, ie 4 for GL_FLOAT_VEC4,
      */
-    public GLUniformData(String name, int components, FloatBuffer data) {
-        init(name, components, data);
+    public GLUniformData(final String name, final int components, final FloatBuffer data) {
+        initBuffer(name, components, data);
+    }
+
+    private GLUniformData(final int components, final String name) {
+        initBuffer(name, components, null);
+    }
+
+    public static GLUniformData creatEmptyVector(final String name, final int components) {
+        return new GLUniformData(components, name);
+    }
+
+    public static GLUniformData creatEmptyMatrix(final String name, final int rows, final int columns) {
+        return new GLUniformData(name, rows, columns, null);
     }
 
     /**
@@ -58,14 +70,14 @@ public class GLUniformData {
      * @param rows the matrix rows
      * @param column the matrix column
      */
-    public GLUniformData(String name, int rows, int columns, FloatBuffer data) {
-        init(name, rows, columns, data);
+    public GLUniformData(final String name, final int rows, final int columns, final FloatBuffer data) {
+        initBuffer(name, rows, columns, data);
     }
 
-    public GLUniformData setData(int data) { init(new Integer(data)); return this; }
-    public GLUniformData setData(float data) { init(new Float(data)); return this; }
-    public GLUniformData setData(IntBuffer data) { init(data); return this; }
-    public GLUniformData setData(FloatBuffer data) { init(data); return this; }
+    public GLUniformData setData(final int data) { initScalar(Integer.valueOf(data)); return this; }
+    public GLUniformData setData(final float data) { initScalar(Float.valueOf(data)); return this; }
+    public GLUniformData setData(final IntBuffer data) { initBuffer(data); return this; }
+    public GLUniformData setData(final FloatBuffer data) { initBuffer(data); return this; }
 
     public int       intValue()   { return ((Integer)data).intValue(); };
     public float     floatValue() { return ((Float)data).floatValue(); };
@@ -102,7 +114,7 @@ public class GLUniformData {
         return toString(null).toString();
     }
 
-    private void init(String name, int rows, int columns, Object data) {
+    private void initBuffer(final String name, final int rows, final int columns, final Buffer buffer) {
         if( 2>rows || rows>4 || 2>columns || columns>4 ) {
             throw new GLException("rowsXcolumns must be within [2..4]X[2..4], is: "+rows+"X"+columns);
         }
@@ -111,10 +123,9 @@ public class GLUniformData {
         this.columns=columns;
         this.isMatrix=true;
         this.location=-1;
-        init(data);
+        initBuffer(buffer);
     }
-
-    private void init(String name, int components, Object data) {
+    private void initScalar(final String name, final int components, final Object data) {
         if( 1>components || components>4 ) {
             throw new GLException("components must be within [1..4], is: "+components);
         }
@@ -123,24 +134,47 @@ public class GLUniformData {
         this.rows=1;
         this.isMatrix=false;
         this.location=-1;
-        init(data);
+        initScalar(data);
+    }
+    private void initBuffer(final String name, final int components, final Buffer buffer) {
+        if( 1>components || components>4 ) {
+            throw new GLException("components must be within [1..4], is: "+components);
+        }
+        this.name=name;
+        this.columns=components;
+        this.rows=1;
+        this.isMatrix=false;
+        this.location=-1;
+        initBuffer(buffer);
     }
 
-    private void init(Object data) {
+    private void initScalar(final Object data) {
         if(data instanceof Buffer) {
-            final int sz = rows*columns;
-            final Buffer buffer = (Buffer)data;
-            if(buffer.remaining()<sz || 0!=buffer.remaining()%sz) {
-                throw new GLException("remaining data buffer size invalid: buffer: "+buffer.toString()+"\n\t"+this);
-            }
-            this.count=buffer.remaining()/(rows*columns);
-        } else {
+            initBuffer((Buffer)data);
+        } else if( null != data ) {
             if(isMatrix) {
                 throw new GLException("Atom type not allowed for matrix : "+this);
             }
             this.count=1;
+            this.data=data;
+        } else {
+            this.count=0;
+            this.data=data;
         }
-        this.data=data;
+    }
+
+    private void initBuffer(final Buffer buffer) {
+        if( null != buffer ) {
+            final int sz = rows*columns;
+            if(buffer.remaining()<sz || 0!=buffer.remaining()%sz) {
+                throw new GLException("remaining data buffer size invalid: buffer: "+buffer.toString()+"\n\t"+this);
+            }
+            this.count=buffer.remaining()/sz;
+            this.data=buffer;
+        } else {
+            this.count=0;
+            this.data=null;
+        }
     }
 
     public String getName() { return name; }
@@ -151,7 +185,7 @@ public class GLUniformData {
      * Sets the given location of the shader uniform.
      * @return the given location
      */
-    public int setLocation(int location) { this.location=location; return location; }
+    public int setLocation(final int location) { this.location=location; return location; }
 
     /**
      * Retrieves the location of the shader uniform from the linked shader program.
@@ -163,7 +197,7 @@ public class GLUniformData {
      * @return &ge;0 denotes a valid uniform location as found and used in the given shader program.
      *         &lt;0 denotes an invalid location, i.e. not found or used in the given shader program.
      */
-    public int setLocation(GL2ES2 gl, int program) {
+    public int setLocation(final GL2ES2 gl, final int program) {
         location = gl.glGetUniformLocation(program, name);
         return location;
     }

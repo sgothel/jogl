@@ -1,5 +1,7 @@
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
+import java.io.IOException;
+
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -12,12 +14,13 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.TextureSequenceDemo01;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureSequenceCubeES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.texture.ImageSequence;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextureSequence01NEWT extends UITestCase {
@@ -28,7 +31,7 @@ public class TestTextureSequence01NEWT extends UITestCase {
     static long duration = 500; // ms
     static GLProfile glp;
     static GLCapabilities caps;
-    
+
     @BeforeClass
     public static void initClass() {
         glp = GLProfile.getGL2ES2();
@@ -42,44 +45,48 @@ public class TestTextureSequence01NEWT extends UITestCase {
         window.setTitle("TestTextureSequence01NEWT");
         // Size OpenGL to Video Surface
         window.setSize(width, height);
-        final TextureSequenceDemo01 texSource = new TextureSequenceDemo01(useBuildInTexLookup);
+        final ImageSequence texSource = new ImageSequence(0, useBuildInTexLookup);
         window.addGLEventListener(new GLEventListener() {
             @Override
-            public void init(GLAutoDrawable drawable) {
-                texSource.initGLResources(drawable.getGL());
+            public void init(final GLAutoDrawable drawable) {
+                try {
+                    texSource.addFrame(drawable.getGL(), TestTextureSequence01NEWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
             }
             @Override
-            public void dispose(GLAutoDrawable drawable) { }
+            public void dispose(final GLAutoDrawable drawable) { }
             @Override
-            public void display(GLAutoDrawable drawable) { }
+            public void display(final GLAutoDrawable drawable) { }
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }            
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
         window.addGLEventListener(new TextureSequenceCubeES2(texSource, false, -2.3f, 0f, 0f));
         final Animator animator = new Animator(window);
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         window.addKeyListener(quitAdapter);
         window.addWindowListener(quitAdapter);
         animator.start();
         window.setVisible(true);
-        
+
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
-        
+
         animator.stop();
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         window.destroy();
     }
-    
+
     @Test
     public void test1() throws InterruptedException {
-        testImpl();        
+        testImpl();
     }
-    
-    public static void main(String[] args) {
+
+    public static void main(final String[] args) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -94,7 +101,7 @@ public class TestTextureSequence01NEWT extends UITestCase {
                 useBuildInTexLookup = true;
             }
         }
-        org.junit.runner.JUnitCore.main(TestTextureSequence01NEWT.class.getName());        
+        org.junit.runner.JUnitCore.main(TestTextureSequence01NEWT.class.getName());
     }
 
 }

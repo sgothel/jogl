@@ -46,12 +46,9 @@ import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.opengl.util.GLBuffers;
@@ -73,7 +70,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   protected int pBufferTexTarget, pBufferTexWidth, pBufferTexHeight;
 
-  public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target) {
+  public MacOSXPbufferCGLDrawable(final GLDrawableFactory factory, final NativeSurface target) {
     super(factory, target, false);
   }
 
@@ -87,7 +84,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new MacOSXCGLContext(this, shareWith);
   }
 
@@ -119,9 +116,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   private void createPbuffer() {
     final MutableSurface ms = (MutableSurface) getNativeSurface();
     final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ms.getGraphicsConfiguration();
-    final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-    final GLProfile glProfile = capabilities.getGLProfile();
-    MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
+    final MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
 
     if (DEBUG) {
         System.out.println(getThreadName()+": Pbuffer config: " + config);
@@ -135,18 +130,18 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
     pBufferTexTarget = GL.GL_TEXTURE_2D;
     if ( null!=sr && sr.isNPOTTextureAvailable() ) {
-      pBufferTexWidth = getWidth();
-      pBufferTexHeight = getHeight();
+      pBufferTexWidth = getSurfaceWidth();
+      pBufferTexHeight = getSurfaceHeight();
     } else {
-      pBufferTexWidth = GLBuffers.getNextPowerOf2(getWidth());
-      pBufferTexHeight = GLBuffers.getNextPowerOf2(getHeight());
+      pBufferTexWidth = GLBuffers.getNextPowerOf2(getSurfaceWidth());
+      pBufferTexHeight = GLBuffers.getNextPowerOf2(getSurfaceHeight());
     }
 
     final int internalFormat = GL.GL_RGBA;
-    final long pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
+    final long pBuffer = impl.create(pBufferTexTarget, internalFormat, getSurfaceWidth(), getSurfaceHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
-                            ", pbufferSize "+getWidth()+"x"+getHeight()+
+                            ", pbufferSize "+getSurfaceWidth()+"x"+getSurfaceHeight()+
                             ", texSize "+pBufferTexWidth+"x"+pBufferTexHeight+
                             ", internal-fmt "+toHexString(internalFormat));
         System.err.println("MacOSXPbufferCGLDrawable pBuffer: "+toHexString(pBuffer));
@@ -160,13 +155,13 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   @Override
-  public void setOpenGLMode(GLBackendType mode) {
+  public void setOpenGLMode(final GLBackendType mode) {
     super.setOpenGLMode(mode);
     createPbuffer(); // recreate
   }
 
   @Override
-  protected void initOpenGLImpl(GLBackendType backend) {
+  protected void initOpenGLImpl(final GLBackendType backend) {
     switch (backend) {
       case NSOPENGL:
         impl = new NSOpenGLImpl();
@@ -180,24 +175,24 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   // NSOpenGLPixelBuffer implementation
-  class NSOpenGLImpl implements GLBackendImpl {
+  static class NSOpenGLImpl implements GLBackendImpl {
     @Override
-    public long create(int renderTarget, int internalFormat, int width, int height) {
+    public long create(final int renderTarget, final int internalFormat, final int width, final int height) {
       return CGL.createPBuffer(renderTarget, internalFormat, width, height);
     }
 
     @Override
-    public void destroy(long pbuffer) {
+    public void destroy(final long pbuffer) {
       CGL.destroyPBuffer(pbuffer);
     }
   }
 
   // CGL implementation
-  class CGLImpl implements GLBackendImpl {
+  static class CGLImpl implements GLBackendImpl {
     @Override
-    public long create(int renderTarget, int internalFormat, int width, int height) {
-      PointerBuffer pbuffer = PointerBuffer.allocateDirect(1);
-      int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer);
+    public long create(final int renderTarget, final int internalFormat, final int width, final int height) {
+      final PointerBuffer pbuffer = PointerBuffer.allocateDirect(1);
+      final int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error creating CGL-based pbuffer: error code " + res);
       }
@@ -205,8 +200,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
 
     @Override
-    public void destroy(long pbuffer) {
-      int res = CGL.CGLDestroyPBuffer(pbuffer);
+    public void destroy(final long pbuffer) {
+      final int res = CGL.CGLDestroyPBuffer(pbuffer);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error destroying CGL-based pbuffer: error code " + res);
       }

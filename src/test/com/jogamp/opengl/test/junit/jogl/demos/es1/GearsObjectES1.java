@@ -26,6 +26,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLBufferStorage;
 import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
@@ -37,13 +38,13 @@ import com.jogamp.opengl.util.GLArrayDataServer;
  */
 public class GearsObjectES1 extends GearsObject {
 
-    public GearsObjectES1(GL gl, boolean useMappedBuffers, FloatBuffer gearColor, float inner_radius,
-            float outer_radius, float width, int teeth, float tooth_depth, boolean validateBuffers) {
+    public GearsObjectES1(final GL gl, final boolean useMappedBuffers, final FloatBuffer gearColor, final float inner_radius,
+            final float outer_radius, final float width, final int teeth, final float tooth_depth, final boolean validateBuffers) {
         super(gl, useMappedBuffers, gearColor, inner_radius, outer_radius, width, teeth, tooth_depth, validateBuffers);
     }
 
     @Override
-    public GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
+    public GLArrayDataServer createInterleaved(final boolean useMappedBuffers, final int comps, final int dataType, final boolean normalized, final int initialSize, final int vboUsage) {
         if( useMappedBuffers ) {
             return GLArrayDataServer.createFixedInterleavedMapped(comps, dataType, normalized, initialSize, vboUsage);
         } else {
@@ -52,12 +53,12 @@ public class GearsObjectES1 extends GearsObject {
     }
 
     @Override
-    public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components) {
+    public void addInterleavedVertexAndNormalArrays(final GLArrayDataServer array, final int components) {
         array.addFixedSubArray(GLPointerFunc.GL_VERTEX_ARRAY, components, GL.GL_ARRAY_BUFFER);
         array.addFixedSubArray(GLPointerFunc.GL_NORMAL_ARRAY, components, GL.GL_ARRAY_BUFFER);
     }
 
-    private void draw(GL2ES1 gl, GLArrayDataServer array, int mode) {
+    private void draw(final GL2ES1 gl, final GLArrayDataServer array, final int mode) {
         if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
             array.enableBuffer(gl, true);
             if( validateBuffers ) {
@@ -80,20 +81,20 @@ public class GearsObjectES1 extends GearsObject {
     }
 
     @Override
-    public void draw(GL _gl, float x, float y, float angle) {
-        GL2ES1 gl = _gl.getGL2ES1();
+    public void draw(final GL _gl, final float x, final float y, final float angle) {
+        final GL2ES1 gl = _gl.getGL2ES1();
         gl.glPushMatrix();
         gl.glTranslatef(x, y, 0f);
         gl.glRotatef(angle, 0f, 0f, 1f);
-        gl.glMaterialfv(GL2ES1.GL_FRONT_AND_BACK, GL2ES1.GL_AMBIENT_AND_DIFFUSE, gearColor);
+        gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, gearColor);
 
-        gl.glShadeModel(GL2ES1.GL_FLAT);
+        gl.glShadeModel(GLLightingFunc.GL_FLAT);
         draw(gl, frontFace, GL.GL_TRIANGLE_STRIP);
         draw(gl, frontSide, GL.GL_TRIANGLES);
         draw(gl, backFace, GL.GL_TRIANGLE_STRIP);
         draw(gl, backSide, GL.GL_TRIANGLES);
         draw(gl, outwardFace, GL.GL_TRIANGLE_STRIP);
-        gl.glShadeModel(GL2ES1.GL_SMOOTH);
+        gl.glShadeModel(GLLightingFunc.GL_SMOOTH);
         draw(gl, insideRadiusCyl, GL.GL_TRIANGLE_STRIP);
         gl.glPopMatrix();
     }

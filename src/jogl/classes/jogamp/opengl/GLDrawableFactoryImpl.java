@@ -59,7 +59,6 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -74,7 +73,6 @@ import com.jogamp.opengl.GLRendererQuirks;
     Independent Bitmaps on Windows, pixmaps on X11). Direct access to
     these GLDrawables is not supplied directly to end users, though
     they may be instantiated by the GLJPanel implementation. */
-@SuppressWarnings("deprecation")
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected static final boolean DEBUG = GLDrawableFactory.DEBUG; // allow package access
 
@@ -95,9 +93,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
           if( null != device) {
               return getOrCreateSharedResourceImpl( device );
           }
-      } catch (GLException gle) {
+      } catch (final GLException gle) {
           if(DEBUG) {
-              System.err.println("Catched Exception on thread "+getThreadName());
+              System.err.println("Caught exception on thread "+getThreadName());
               gle.printStackTrace();
           }
       }
@@ -112,7 +110,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
-  public final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
+  public final GLContext getOrCreateSharedContext(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
       if(null!=sr) {
         return sr.getContext();
@@ -121,7 +119,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  protected final boolean createSharedResourceImpl(AbstractGraphicsDevice device) {
+  protected final boolean createSharedResourceImpl(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
       if(null!=sr) {
           return sr.isValid();
@@ -130,7 +128,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device) {
+  public final GLRendererQuirks getRendererQuirks(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
       if(null!=sr) {
           return sr.getRendererQuirks();
@@ -145,7 +143,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    */
-  protected final AbstractGraphicsDevice getOrCreateSharedDevice(AbstractGraphicsDevice device) {
+  protected final AbstractGraphicsDevice getOrCreateSharedDevice(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
       if(null!=sr) {
         return sr.getDevice();
@@ -164,7 +162,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities
   //
   @Override
-  public final GLDrawable createGLDrawable(NativeSurface target) {
+  public final GLDrawable createGLDrawable(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -251,42 +249,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   @Override
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
-  @Override
-  public final GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
-                                   GLCapabilitiesImmutable capsRequested,
-                                   GLCapabilitiesChooser chooser,
-                                   int width,
-                                   int height,
-                                   GLContext shareWith) {
-    if(width<=0 || height<=0) {
-        throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
-    }
-    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
-    if(null == device) {
-        throw new GLException("No shared device for requested: "+deviceReq);
-    }
-    if ( !canCreateGLPbuffer(device, capsRequested.getGLProfile()) ) {
-        throw new GLException("Pbuffer not available with device: "+device);
-    }
-
-    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(capsRequested);
-    final GLDrawableImpl drawable = createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
-                                                                 new UpstreamSurfaceHookMutableSize(width, height) ) );
-    if(null != drawable) {
-        drawable.setRealized(true);
-    }
-
-    return new GLPbufferImpl( drawable, (GLContextImpl) drawable.createContext(shareWith) );
-  }
-
   //---------------------------------------------------------------------------
   //
   // Offscreen GLDrawable construction
   //
 
   @Override
-  public final boolean canCreateFBO(AbstractGraphicsDevice deviceReq, GLProfile glp) {
-    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+  public final boolean canCreateFBO(final AbstractGraphicsDevice deviceReq, final GLProfile glp) {
+    final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
@@ -294,25 +264,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
-                                                             GLCapabilitiesImmutable capsRequested,
-                                                             GLCapabilitiesChooser chooser,
-                                                             int width, int height,
-                                                             GLContext shareWith) {
-    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
-    drawable.setRealized(true);
-    final GLContext context = drawable.createContext(shareWith);
-    if(drawable instanceof GLFBODrawableImpl) {
-        return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, context, null, null );
-    }
-    return new GLOffscreenAutoDrawableImpl( drawable, context, null, null);
-  }
-
-  @Override
-  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
-                                                             GLCapabilitiesImmutable capsRequested,
-                                                             GLCapabilitiesChooser chooser,
-                                                             int width, int height) {
+  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(final AbstractGraphicsDevice deviceReq,
+                                                             final GLCapabilitiesImmutable capsRequested,
+                                                             final GLCapabilitiesChooser chooser,
+                                                             final int width, final int height) {
     final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
     drawable.setRealized(true);
     if(drawable instanceof GLFBODrawableImpl) {
@@ -322,7 +277,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+  public final GLAutoDrawable createDummyAutoDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
       final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, capsRequested, chooser);
       drawable.setRealized(true);
       final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
@@ -330,10 +285,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
-                                            GLCapabilitiesImmutable capsRequested,
-                                            GLCapabilitiesChooser chooser,
-                                            int width, int height) {
+  public final GLDrawable createOffscreenDrawable(final AbstractGraphicsDevice deviceReq,
+                                            final GLCapabilitiesImmutable capsRequested,
+                                            final GLCapabilitiesChooser chooser,
+                                            final int width, final int height) {
     if(width<=0 || height<=0) {
         throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
     }
@@ -355,7 +310,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+  public final GLDrawable createDummyDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
     final AbstractGraphicsDevice device = createNewDevice ? getOrCreateSharedDevice(deviceReq) : deviceReq;
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
@@ -374,7 +329,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   /** Creates a platform independent unrealized FBO offscreen GLDrawable */
-  protected final GLFBODrawable createFBODrawableImpl(NativeSurface dummySurface, GLCapabilitiesImmutable fboCaps, int textureUnit) {
+  protected final GLFBODrawable createFBODrawableImpl(final NativeSurface dummySurface, final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
     final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
     return new GLFBODrawableImpl(this, dummyDrawable, dummySurface, fboCaps, textureUnit);
   }
@@ -417,15 +372,15 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param deviceReq which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width.
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
    *        The latter is platform specific and small
-   * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
    *        The latter is platform specific and small
    *
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
-  public final ProxySurface createDummySurface(AbstractGraphicsDevice deviceReq, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser,
-                                          int width, int height) {
+  public final ProxySurface createDummySurface(final AbstractGraphicsDevice deviceReq, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser,
+                                          final int width, final int height) {
     final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
@@ -446,9 +401,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param chosenCaps
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width.
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
    *        The latter is platform specific and small
-   * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
    *        The latter is platform specific and small
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
@@ -461,8 +416,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
 
   @Override
-  public ProxySurface createProxySurface(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle,
-                                         GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
+  public ProxySurface createProxySurface(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle,
+                                         final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
     final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
@@ -520,7 +475,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
-  public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {
+  public static GLDrawableFactoryImpl getFactoryImpl(final GLProfile glp) {
     return (GLDrawableFactoryImpl) getFactory(glp);
   }
 
@@ -579,7 +534,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @throws IllegalArgumentException if any of the parameters were
    *   out-of-bounds
    */
-  public boolean setDisplayGamma(float gamma, float brightness, float contrast) throws IllegalArgumentException {
+  public boolean setDisplayGamma(final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
     if ((brightness < -1.0f) || (brightness > 1.0f)) {
       throw new IllegalArgumentException("Brightness must be between -1.0 and 1.0");
     }
@@ -587,13 +542,13 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
       throw new IllegalArgumentException("Contrast must be greater than 0.0");
     }
     // FIXME: ensure gamma is > 1.0? Are smaller / negative values legal?
-    int rampLength = getGammaRampLength();
+    final int rampLength = getGammaRampLength();
     if (rampLength == 0) {
       return false;
     }
-    float[] gammaRamp = new float[rampLength];
+    final float[] gammaRamp = new float[rampLength];
     for (int i = 0; i < rampLength; i++) {
-      float intensity = (float) i / (float) (rampLength - 1);
+      final float intensity = (float) i / (float) (rampLength - 1);
       // apply gamma
       float rampEntry = (float) java.lang.Math.pow(intensity, gamma);
       // apply brightness
@@ -607,7 +562,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         rampEntry = 0.0f;
       gammaRamp[i] = rampEntry;
     }
-    needsGammaRampReset = true;
+    if( !needsGammaRampReset ) {
+        originalGammaRamp = getGammaRamp();
+        needsGammaRampReset = true;
+    }
     return setGammaRamp(gammaRamp);
   }
 
@@ -631,7 +589,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   /** Sets the gamma ramp for the main screen. Returns false if gamma
       ramp changes were not supported. */
-  protected boolean setGammaRamp(float[] ramp) {
+  protected boolean setGammaRamp(final float[] ramp) {
     return false;
   }
 
@@ -644,7 +602,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   /** Resets the gamma ramp, potentially using the specified Buffer as
       data to restore the original values. */
-  protected void resetGammaRamp(Buffer originalGammaRamp) {
+  protected void resetGammaRamp(final Buffer originalGammaRamp) {
   }
 
   // Shutdown hook mechanism for resetting gamma

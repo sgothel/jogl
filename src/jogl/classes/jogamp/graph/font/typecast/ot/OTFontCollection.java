@@ -48,7 +48,7 @@ public class OTFontCollection {
     private String _fileName;
     private TTCHeader _ttcHeader;
     private OTFont[] _fonts;
-    private ArrayList<Table> _tables = new ArrayList<Table>();
+    private final ArrayList<Table> _tables = new ArrayList<Table>();
     private boolean _resourceFork = false;
 
     /** Creates new FontCollection */
@@ -58,8 +58,8 @@ public class OTFontCollection {
     /**
      * @param file The OpenType font file
      */
-    public static OTFontCollection create(File file) throws IOException {
-        OTFontCollection fc = new OTFontCollection();
+    public static OTFontCollection create(final File file) throws IOException {
+        final OTFontCollection fc = new OTFontCollection();
         fc.read(file);
         return fc;
     }
@@ -72,7 +72,7 @@ public class OTFontCollection {
         return _fileName;
     }
 
-    public OTFont getFont(int i) {
+    public OTFont getFont(final int i) {
         return _fonts[i];
     }
 
@@ -84,9 +84,9 @@ public class OTFontCollection {
         return _ttcHeader;
     }
 
-    public Table getTable(DirectoryEntry de) {
+    public Table getTable(final DirectoryEntry de) {
         for (int i = 0; i < _tables.size(); i++) {
-            Table table = _tables.get(i);
+            final Table table = _tables.get(i);
             if ((table.getDirectoryEntry().getTag() == de.getTag()) &&
                 (table.getDirectoryEntry().getOffset() == de.getOffset())) {
                 return table;
@@ -95,7 +95,7 @@ public class OTFontCollection {
         return null;
     }
 
-    public void addTable(Table table) {
+    public void addTable(final Table table) {
         _tables.add(table);
     }
 
@@ -120,7 +120,7 @@ public class OTFontCollection {
             _resourceFork = true;
         }
 
-        DataInputStream dis = new DataInputStream(
+        final DataInputStream dis = new DataInputStream(
             new BufferedInputStream(
                 new FileInputStream(file), (int) file.length()));
         dis.mark((int) file.length());
@@ -128,22 +128,22 @@ public class OTFontCollection {
         if (_resourceFork || _pathName.endsWith(".dfont")) {
 
             // This is a Macintosh font suitcase resource
-            ResourceHeader resourceHeader = new ResourceHeader(dis);
+            final ResourceHeader resourceHeader = new ResourceHeader(dis);
 
             // Seek to the map offset and read the map
             dis.reset();
             dis.skip(resourceHeader.getMapOffset());
-            ResourceMap map = new ResourceMap(dis);
+            final ResourceMap map = new ResourceMap(dis);
 
             // Get the 'sfnt' resources
-            ResourceType resourceType = map.getResourceType("sfnt");
+            final ResourceType resourceType = map.getResourceType("sfnt");
 
             // Load the font data
             _fonts = new OTFont[resourceType.getCount()];
             for (int i = 0; i < resourceType.getCount(); i++) {
-                ResourceReference resourceReference = resourceType.getReference(i);
+                final ResourceReference resourceReference = resourceType.getReference(i);
                 _fonts[i] = new OTFont(this);
-                int offset = resourceHeader.getDataOffset() +
+                final int offset = resourceHeader.getDataOffset() +
                         resourceReference.getDataOffset() + 4;
                 _fonts[i].read(dis, offset, offset);
             }

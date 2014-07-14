@@ -52,7 +52,7 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public abstract class EGLDrawable extends GLDrawableImpl {
 
-    protected EGLDrawable(EGLDrawableFactory factory, NativeSurface component) throws GLException {
+    protected EGLDrawable(final EGLDrawableFactory factory, final NativeSurface component) throws GLException {
         super(factory, component, false);
     }
 
@@ -66,7 +66,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) eglws.getGraphicsConfiguration();
         final NativeSurface upstreamSurface = eglws.getUpstreamSurface();
 
-        long eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), upstreamSurface.getSurfaceHandle());
+        long eglSurface = createSurface(eglConfig, eglws.getSurfaceWidth(), eglws.getSurfaceHeight(), upstreamSurface.getSurfaceHandle());
 
         int eglError0;
         if (EGL.EGL_NO_SURFACE == eglSurface) {
@@ -80,7 +80,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         if(DEBUG) {
                             System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+eglConfig+", error "+toHexString(eglError0)+", retry w/ windowHandle");
                         }
-                        eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), nw.getWindowHandle());
+                        eglSurface = createSurface(eglConfig, eglws.getSurfaceWidth(), eglws.getSurfaceHeight(), nw.getWindowHandle());
                         if (EGL.EGL_NO_SURFACE == eglSurface) {
                             eglError0 = EGL.eglGetError();
                         }
@@ -131,7 +131,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
-    protected static boolean isValidEGLSurface(long eglDisplayHandle, long surfaceHandle) {
+    protected static boolean isValidEGLSurface(final long eglDisplayHandle, final long surfaceHandle) {
         if( 0 == surfaceHandle ) {
             return false;
         }
@@ -154,7 +154,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     @Override
-    protected final void swapBuffersImpl(boolean doubleBuffered) {
+    protected final void swapBuffersImpl(final boolean doubleBuffered) {
         if(doubleBuffered) {
             final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) surface.getGraphicsConfiguration().getScreen().getDevice();
             // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()

@@ -49,10 +49,11 @@ import com.jogamp.opengl.util.av.AudioSinkFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.util.av.AudioSampleFormat;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
-import jogamp.opengl.util.av.impl.FFMPEGNatives.PixelFormat;
-import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
+import jogamp.opengl.util.av.VideoPixelFormat;
 
 /***
  * Implementation utilizes <a href="http://libav.org/">Libav</a>
@@ -79,12 +80,12 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * Implements pixel format conversion to <i>RGB</i> via
  * fragment shader texture-lookup functions:
  * <ul>
- *   <li>{@link PixelFormat#YUV420P}</li>
- *   <li>{@link PixelFormat#YUVJ420P}</li>
- *   <li>{@link PixelFormat#YUV422P}</li>
- *   <li>{@link PixelFormat#YUVJ422P}</li>
- *   <li>{@link PixelFormat#YUYV422}</li>
- *   <li>{@link PixelFormat#BGR24}</li>
+ *   <li>{@link VideoPixelFormat#YUV420P}</li>
+ *   <li>{@link VideoPixelFormat#YUVJ420P}</li>
+ *   <li>{@link VideoPixelFormat#YUV422P}</li>
+ *   <li>{@link VideoPixelFormat#YUVJ422P}</li>
+ *   <li>{@link VideoPixelFormat#YUYV422}</li>
+ *   <li>{@link VideoPixelFormat#BGR24}</li>
  * </ul>
  * </p>
  * <p>
@@ -107,9 +108,9 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * Currently we are binary compatible w/:
  * <table border="1">
  * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr</th>    <th>FFMPEG* class</th></tr>
- * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>  <td></td>        <td>FFMPEGv08</td></tr>
- * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>  <td>01/00</td>   <td>FFMPEGv09</td></tr>
- * <tr><td>10 / 2</td>        <td>55</td>  <td>55</td>  <td>52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
+ * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>     <td></td>        <td>FFMPEGv08</td></tr>
+ * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>     <td>01/00</td>   <td>FFMPEGv09</td></tr>
+ * <tr><td>10 / 2</td>        <td>55</td>  <td>55</td>  <td>53/52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
  * </table>
  * </p>
  * <p>
@@ -138,7 +139,11 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg) <i>recommended, works w/ dshow</i></li>
  *     <li>http://win32.libav.org/releases/  (libav)</li>
  *   </ul></li>
- *   <li>MacOSX: http://ffmpegmac.net/</li>
+ *   <li>MacOSX using Homebrew
+ *   <ul>
+ *   <li>https://github.com/Homebrew/homebrew/wiki/Installation</li>
+ *   <li>https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX</li>
+ *   </ul></li>
  *   <li>OpenIndiana/Solaris:<pre>
  *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
  *       pkt install pkg:/video/ffmpeg
@@ -194,9 +199,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
                 System.err.println("LIB_AV Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
             }
-            libAVVersionGood = avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
-                               avFormatMajorVersionCC == avFormatVersion.getMajor() &&
-                               avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
+            final int avCodecMajor = avCodecVersion.getMajor();
+            final int avFormatMajor = avFormatVersion.getMajor();
+            final int avUtilMajor = avUtilVersion.getMajor();
+            libAVVersionGood = avCodecMajorVersionCC  == avCodecMajor &&
+                               avFormatMajorVersionCC == avFormatMajor &&
+                               ( avUtilMajorVersionCC == avUtilMajor ||
+                                 55 == avCodecMajorVersionCC && 53 == avUtilMajorVersionCC && 52 == avUtilMajor /* ffmpeg 2.x */
+                               ) &&
                                ( !avResampleLoaded || avResampleMajorVersionCC < 0 || avResampleMajorVersionCC  == avResampleVersion.getMajor() ) &&
                                ( !swResampleLoaded || swResampleMajorVersionCC < 0 || swResampleMajorVersionCC  == swResampleVersion.getMajor() ) ;
             if( !libAVVersionGood ) {
@@ -228,7 +238,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     private String texLookupFuncName = "ffmpegTexture2D";
     private boolean usesTexLookupShader = false;
-    private PixelFormat vPixelFmt = null;
+    private VideoPixelFormat vPixelFmt = null;
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
     private int vBytesPerPixelPerPlane = 0;
@@ -256,7 +266,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void destroyImpl(GL gl) {
+    protected final void destroyImpl(final GL gl) {
         if (moviePtr != 0) {
             natives.destroyInstance0(moviePtr);
             moviePtr = 0;
@@ -274,7 +284,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     public static final String dev_video_linux = "/dev/video";
 
     @Override
-    protected final void initStreamImpl(int vid, int aid) throws IOException {
+    protected final void initStreamImpl(final int vid, final int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -282,7 +292,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p1 "+this);
         }
 
-        final String streamLocS = IOUtil.decodeURIIfFilePath(streamLoc);
+        final String streamLocS = IOUtil.decodeURIIfFilePath(getURI());
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
@@ -300,7 +310,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         int rw=-1, rh=-1, rr=-1;
         String sizes = null;
         if( isCameraInput ) {
-            switch(Platform.OS_TYPE) {
+            switch(PlatformPropsImpl.OS_TYPE) {
                 case ANDROID:
                     // ??
                 case FREEBSD:
@@ -335,14 +345,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
         if(DEBUG) {
             System.err.println("initStream: p3 cameraPath "+cameraPath+", isCameraInput "+isCameraInput);
-            System.err.println("initStream: p3 stream "+streamLoc+" -> "+streamLocS+" -> "+resStreamLocS);
+            System.err.println("initStream: p3 stream "+getURI()+" -> "+streamLocS+" -> "+resStreamLocS);
             System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
         }
         natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
     }
 
     @Override
-    protected final void initGLImpl(GL gl) throws IOException, GLException {
+    protected final void initGLImpl(final GL gl) throws IOException, GLException {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -350,7 +360,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             throw new GLException("AudioSink null");
         }
         final int audioQueueLimit;
-        if( null != gl && STREAM_ID_NONE != vid ) {
+        if( null != gl && STREAM_ID_NONE != getVID() ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
@@ -371,7 +381,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
 
-        if( STREAM_ID_NONE == aid ) {
+        if( STREAM_ID_NONE == getAID() ) {
             audioSink.destroy();
             audioSink = AudioSinkFactory.createNull();
             audioSink.init(AudioSink.DefaultFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
@@ -395,9 +405,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p4 chosen "+audioSink);
         }
 
-        if( null != gl && STREAM_ID_NONE != vid ) {
+        if( null != gl && STREAM_ID_NONE != getVID() ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
-            int tt = GL.GL_UNSIGNED_BYTE;
+            final int tt = GL.GL_UNSIGNED_BYTE;
             switch(vBytesPerPixelPerPlane) {
                 case 1:
                     if( gl.isGL3ES3() ) {
@@ -405,22 +415,22 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                         tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
                     } else {
                         // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
-                        tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
+                        tf = GL.GL_ALPHA; tif=GL.GL_ALPHA; singleTexComp = "a";
                     }
                     break;
 
-                case 2: if( vPixelFmt == PixelFormat.YUYV422 ) {
+                case 2: if( vPixelFmt == VideoPixelFormat.YUYV422 ) {
                             // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
                             // Stuffed into RGBA half width texture
-                            tf = GL2ES2.GL_RGBA; tif=GL2ES2.GL_RGBA; break;
+                            tf = GL.GL_RGBA; tif=GL.GL_RGBA; break;
                         } else {
                             tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
                         }
-                case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
-                case 4: if( vPixelFmt == PixelFormat.BGRA ) {
-                            tf = GL2ES2.GL_BGRA;  tif=GL.GL_RGBA;  break;
+                case 3: tf = GL.GL_RGB;   tif=GL.GL_RGB;   break;
+                case 4: if( vPixelFmt == VideoPixelFormat.BGRA ) {
+                            tf = GL.GL_BGRA;  tif=GL.GL_RGBA;  break;
                         } else {
-                            tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
+                            tf = GL.GL_RGBA;  tif=GL.GL_RGBA;  break;
                         }
                 default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
             }
@@ -433,7 +443,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
     }
     @Override
-    protected final TextureFrame createTexImage(GL gl, int texName) {
+    protected final TextureFrame createTexImage(final GL gl, final int texName) {
         return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight) );
     }
 
@@ -451,12 +461,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     /**
      * Native callback
      * Converts the given libav/ffmpeg values to {@link AudioFormat} and returns {@link AudioSink#isSupported(AudioFormat)}.
-     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
+     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link AudioSampleFormat}.
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
      */
-    final boolean isAudioFormatSupported(int audioSampleFmt, int audioSampleRate, int audioChannels) {
-        final SampleFormat avFmt = SampleFormat.valueOf(audioSampleFmt);
+    final boolean isAudioFormatSupported(final int audioSampleFmt, final int audioSampleRate, final int audioChannels) {
+        final AudioSampleFormat avFmt = AudioSampleFormat.valueOf(audioSampleFmt);
         final AudioFormat audioFormat = avAudioFormat2Local(avFmt, audioSampleRate, audioChannels);
         final boolean res = audioSink.isSupported(audioFormat);
         if( DEBUG ) {
@@ -467,11 +477,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     /**
      * Returns {@link AudioFormat} as converted from the given libav/ffmpeg values.
-     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
+     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link AudioSampleFormat}.
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
      */
-    private final AudioFormat avAudioFormat2Local(SampleFormat audioSampleFmt, int audioSampleRate, int audioChannels) {
+    private final AudioFormat avAudioFormat2Local(final AudioSampleFormat audioSampleFmt, final int audioSampleRate, final int audioChannels) {
         final int sampleSize;
         boolean planar = true;
         boolean fixedP = true;
@@ -531,10 +541,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioChannels
      * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
-    void setupFFAttributes(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
-                          int tWd0, int tWd1, int tWd2, int vW, int vH,
-                          int aid, int audioSampleFmt, int audioSampleRate,
-                          int audioChannels, int audioSamplesPerFrameAndChannel) {
+    void setupFFAttributes(final int vid, final int pixFmt, final int planes, final int bitsPerPixel, final int bytesPerPixelPerPlane,
+                          final int tWd0, final int tWd1, final int tWd2, final int vW, final int vH,
+                          final int aid, final int audioSampleFmt, final int audioSampleRate,
+                          final int audioChannels, final int audioSamplesPerFrameAndChannel) {
         // defaults ..
         vPixelFmt = null;
         vPlanes = 0;
@@ -546,7 +556,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final int[] vTexWidth = { 0, 0, 0 }; // per plane
 
         if( STREAM_ID_NONE != vid ) {
-            vPixelFmt = PixelFormat.valueOf(pixFmt);
+            vPixelFmt = VideoPixelFormat.valueOf(pixFmt);
             vPlanes = planes;
             vBitsPerPixel = bitsPerPixel;
             vBytesPerPixelPerPlane = bytesPerPixelPerPlane;
@@ -598,12 +608,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
 
         // defaults ..
-        final SampleFormat aSampleFmt;
+        final AudioSampleFormat aSampleFmt;
         avChosenAudioFormat = null;;
         this.audioSamplesPerFrameAndChannel = 0;
 
         if( STREAM_ID_NONE != aid ) {
-            aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
+            aSampleFmt = AudioSampleFormat.valueOf(audioSampleFmt);
             avChosenAudioFormat = avAudioFormat2Local(aSampleFmt, audioSampleRate, audioChannels);
             this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
         } else {
@@ -632,8 +642,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param tWd1
      * @param tWd2
      */
-    void updateVidAttributes(boolean isInGLOrientation, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
-                             int tWd0, int tWd1, int tWd2, int vW, int vH) {
+    void updateVidAttributes(final boolean isInGLOrientation, final int pixFmt, final int planes, final int bitsPerPixel, final int bytesPerPixelPerPlane,
+                             final int tWd0, final int tWd1, final int tWd2, final int vW, final int vH) {
     }
 
     /**
@@ -644,8 +654,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * Otherwise the call is delegated to it's super class.
      */
     @Override
-    public final String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException {
-        if(State.Uninitialized == state) {
+    public final String getTextureLookupFunctionName(final String desiredFuncName) throws IllegalStateException {
+        if( State.Uninitialized == getState() ) {
             throw new IllegalStateException("Instance not initialized: "+this);
         }
         if( usesTexLookupShader ) {
@@ -665,7 +675,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     @Override
     public final String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
-      if(State.Uninitialized == state) {
+      if( State.Uninitialized == getState() ) {
           throw new IllegalStateException("Instance not initialized: "+this);
       }
       if( !usesTexLookupShader ) {
@@ -677,8 +687,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
               "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
-              "  vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
-              "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
+              "  const vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
+              "  const vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
               "  float y,u,v,r,g,b;\n"+
               "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
@@ -698,8 +708,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUV422P: ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
           return
               "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
-              "  vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
-              "  vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
+              "  const vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
+              "  const vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
               "  float y,u,v,r,g,b;\n"+
               "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
@@ -776,7 +786,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final synchronized int seekImpl(int msec) {
+    protected final synchronized int seekImpl(final int msec) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -784,18 +794,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected void preNextTextureImpl(GL gl) {
+    protected void preNextTextureImpl(final GL gl) {
         psm.setUnpackAlignment(gl, 1); // RGBA ? 4 : 1
         gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
     }
 
     @Override
-    protected void postNextTextureImpl(GL gl) {
+    protected void postNextTextureImpl(final GL gl) {
         psm.restore(gl);
     }
 
     @Override
-    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -808,7 +818,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         /** Try decode up to 10 packets to find one containing video. */
         for(int i=0; TimeFrameI.INVALID_PTS == vPTS && 10 > i; i++) {
-           vPTS = natives.readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
+           vPTS = natives.readNextPacket0(moviePtr, getTextureTarget(), getTextureFormat(), getTextureType());
         }
         if( null != nextFrame ) {
             nextFrame.setPTS(vPTS);
@@ -816,9 +826,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         return vPTS;
     }
 
-    final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
+    final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
         setFirstAudioPTS2SCR( audio_pts );
-        if( 1.0f == playSpeed || audioSinkPlaySpeedSet ) {
+        if( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
     }

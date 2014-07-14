@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,26 +20,28 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
+
 import javax.media.opengl.awt.GLCanvas;
+
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
-
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+
 import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -79,28 +81,28 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
     }
 
     static class Swapper implements GLEventListener {
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             System.err.println("auto-swap: "+drawable.getAutoSwapBufferMode());
         }
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
         }
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             if(!drawable.getAutoSwapBufferMode()) {
-                GL2 gl = drawable.getGL().getGL2();
+                final GL2 gl = drawable.getGL().getGL2();
                 // copy the colored content of the back buffer into the front buffer
                 // gl.glPushAttrib(GL.GL_COLOR_BUFFER_BIT);
                 gl.glReadBuffer(GL.GL_BACK);  // def. in dbl buff mode: GL_BACK
                 gl.glDrawBuffer(GL.GL_FRONT); // def. in dbl buff mode: GL_BACK
-                gl.glCopyPixels(0, 0, drawable.getWidth(), drawable.getHeight(), GL2.GL_COLOR);
+                gl.glCopyPixels(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), GL2ES3.GL_COLOR);
                 // gl.glPopAttrib();
                 gl.glDrawBuffer(GL.GL_BACK); // def. in dbl buff mode: GL_BACK
-            }            
+            }
         }
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width,
-                int height) {
-        }        
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width,
+                final int height) {
+        }
     }
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
@@ -112,18 +114,18 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
         glCanvas.addGLEventListener(new Gears(0));
         glCanvas.addGLEventListener(new Swapper());
 
-        Animator animator = new Animator(glCanvas);
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glCanvas).addTo(glCanvas);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setSize(512, 512);
                 frame.setVisible(true);
             }});
-        animator.setUpdateFPSFrames(60, System.err);        
+
+        final Animator animator = new Animator(glCanvas);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -150,18 +152,18 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // code assumes dbl buffer setup
         runTestGL(caps);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-autoswap")) {
@@ -170,11 +172,11 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
         }
         System.err.println("altSwap "+altSwap);
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsAWTAnalyzeBug455.class.getName());
     }

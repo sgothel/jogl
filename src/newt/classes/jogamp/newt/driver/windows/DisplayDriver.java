@@ -62,7 +62,7 @@ public class DisplayDriver extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
         {
-            long[] _defaultIconHandle = { 0, 0 };
+            final long[] _defaultIconHandle = { 0, 0 };
             if( DisplayImpl.isPNGUtilAvailable() ) {
                 try {
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
@@ -76,7 +76,7 @@ public class DisplayDriver extends DisplayImpl {
                         final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
                         _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -110,7 +110,7 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         sharedClassFactory.releaseSharedClass();
         aDevice.close();
     }
@@ -125,12 +125,12 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+    protected final long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         return createBGRA8888Icon0(pixels, width, height, true, hotX, hotY);
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+    protected final void destroyPointerIconImpl(final long displayHandle, final long piHandle) {
         destroyIcon0(piHandle);
     }
 
@@ -139,7 +139,7 @@ public class DisplayDriver extends DisplayImpl {
     //
     private static native void DispatchMessages0();
 
-    static long createBGRA8888Icon0(Buffer pixels, int width, int height, boolean isCursor, int hotX, int hotY) {
+    static long createBGRA8888Icon0(final Buffer pixels, final int width, final int height, final boolean isCursor, final int hotX, final int hotY) {
         if( null == pixels ) {
             throw new IllegalArgumentException("data buffer/size");
         }

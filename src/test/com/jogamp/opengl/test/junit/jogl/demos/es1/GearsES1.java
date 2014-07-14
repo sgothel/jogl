@@ -31,6 +31,8 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -73,7 +75,7 @@ public class GearsES1 implements GLEventListener {
 
   private int prevMouseX, prevMouseY;
 
-  public GearsES1(int swapInterval) {
+  public GearsES1(final int swapInterval) {
     this.swapInterval = swapInterval;
   }
 
@@ -81,20 +83,20 @@ public class GearsES1 implements GLEventListener {
     this.swapInterval = 1;
   }
 
-  public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+  public void setForceFFPEmu(final boolean forceFFPEmu, final boolean verboseFFPEmu, final boolean debugFFPEmu, final boolean traceFFPEmu) {
     this.forceFFPEmu = forceFFPEmu;
     this.verboseFFPEmu = verboseFFPEmu;
     this.debugFFPEmu = debugFFPEmu;
     this.traceFFPEmu = traceFFPEmu;
   }
 
-  public void setGearsColors(FloatBuffer gear1Color, FloatBuffer gear2Color, FloatBuffer gear3Color) {
+  public void setGearsColors(final FloatBuffer gear1Color, final FloatBuffer gear2Color, final FloatBuffer gear3Color) {
     this.gear1Color = gear1Color;
     this.gear2Color = gear2Color;
     this.gear3Color = gear3Color;
   }
 
-  public void setSharedGearsObjects(GearsObject g1, GearsObject g2, GearsObject g3) {
+  public void setSharedGearsObjects(final GearsObject g1, final GearsObject g2, final GearsObject g3) {
       gear1 = g1;
       gear2 = g2;
       gear3 = g3;
@@ -117,10 +119,10 @@ public class GearsES1 implements GLEventListener {
 
   public boolean usesSharedGears() { return usesSharedGears; }
 
-  public void setUseMappedBuffers(boolean v) { useMappedBuffers = v; }
-  public void setValidateBuffers(boolean v) { validateBuffers = v; }
+  public void setUseMappedBuffers(final boolean v) { useMappedBuffers = v; }
+  public void setValidateBuffers(final boolean v) { validateBuffers = v; }
 
-  public void init(GLAutoDrawable drawable) {
+  public void init(final GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.init ...");
 
     // Use debug pipeline
@@ -144,13 +146,13 @@ public class GearsES1 implements GLEventListener {
         try {
             // Debug ..
             gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
-        } catch (Exception e) {e.printStackTrace();}
+        } catch (final Exception e) {e.printStackTrace();}
     }
     if(trace) {
         try {
             // Trace ..
             gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
-        } catch (Exception e) {e.printStackTrace();}
+        } catch (final Exception e) {e.printStackTrace();}
     }
 
     System.err.println("GearsES1 init on "+Thread.currentThread());
@@ -158,11 +160,11 @@ public class GearsES1 implements GLEventListener {
     System.err.println("INIT GL IS: " + gl.getClass().getName());
     System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
 
-    gl.glLightfv(GL2ES1.GL_LIGHT0, GL2ES1.GL_POSITION, pos, 0);
+    gl.glLightfv(GLLightingFunc.GL_LIGHT0, GLLightingFunc.GL_POSITION, pos, 0);
     gl.glEnable(GL.GL_CULL_FACE);
-    gl.glEnable(GL2ES1.GL_LIGHTING);
-    gl.glEnable(GL2ES1.GL_LIGHT0);
-    gl.glEnable(GL2ES1.GL_DEPTH_TEST);
+    gl.glEnable(GLLightingFunc.GL_LIGHTING);
+    gl.glEnable(GLLightingFunc.GL_LIGHT0);
+    gl.glEnable(GL.GL_DEPTH_TEST);
 
     /* make the gears */
     if(null == gear1) {
@@ -189,7 +191,7 @@ public class GearsES1 implements GLEventListener {
         System.err.println("gear3 reused: "+gear3);
     }
 
-    gl.glEnable(GL2ES1.GL_NORMALIZE);
+    gl.glEnable(GLLightingFunc.GL_NORMALIZE);
 
     final Object upstreamWidget = drawable.getUpstreamWidget();
     if (upstreamWidget instanceof Window) {
@@ -198,35 +200,35 @@ public class GearsES1 implements GLEventListener {
         window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
         final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-        new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
-        new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
+        new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
+        new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
     }
     System.err.println(Thread.currentThread()+" GearsES1.init FIN");
   }
 
-  public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+  public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     System.err.println(Thread.currentThread()+" GearsES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
-    GL2ES1 gl = drawable.getGL().getGL2ES1();
+    final GL2ES1 gl = drawable.getGL().getGL2ES1();
 
     gl.setSwapInterval(swapInterval);
 
-    gl.glMatrixMode(GL2ES1.GL_PROJECTION);
+    gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 
     gl.glLoadIdentity();
     if(height>width) {
-        float h = (float)height / (float)width;
+        final float h = (float)height / (float)width;
         gl.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
     } else {
-        float h = (float)width / (float)height;
+        final float h = (float)width / (float)height;
         gl.glFrustumf(-h, h, -1.0f, 1.0f, 5.0f, 60.0f);
     }
-    gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
+    gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
     System.err.println(Thread.currentThread()+" GearsES1.reshape FIN");
   }
 
-  public void dispose(GLAutoDrawable drawable) {
+  public void dispose(final GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
     final Object upstreamWidget = drawable.getUpstreamWidget();
     if (upstreamWidget instanceof Window) {
@@ -234,7 +236,7 @@ public class GearsES1 implements GLEventListener {
         window.removeMouseListener(gearsMouse);
         window.removeKeyListener(gearsKeys);
     }
-    GL gl = drawable.getGL();
+    final GL gl = drawable.getGL();
     gear1.destroy(gl);
     gear1 = null;
     gear2.destroy(gl);
@@ -244,12 +246,12 @@ public class GearsES1 implements GLEventListener {
     System.err.println(Thread.currentThread()+" GearsES1.dispose FIN");
   }
 
-  public void display(GLAutoDrawable drawable) {
+  public void display(final GLAutoDrawable drawable) {
     // Turn the gears' teeth
     angle += 2.0f;
 
     // Get the GL corresponding to the drawable we are animating
-    GL2ES1 gl = drawable.getGL().getGL2ES1();
+    final GL2ES1 gl = drawable.getGL().getGL2ES1();
 
     final boolean hasFocus;
     final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -295,8 +297,8 @@ public class GearsES1 implements GLEventListener {
 
 
   class GearsKeyAdapter extends KeyAdapter {
-    public void keyPressed(KeyEvent e) {
-        int kc = e.getKeyCode();
+    public void keyPressed(final KeyEvent e) {
+        final int kc = e.getKeyCode();
         if(KeyEvent.VK_LEFT == kc) {
             view_roty -= 1;
         } else if(KeyEvent.VK_RIGHT == kc) {
@@ -310,32 +312,36 @@ public class GearsES1 implements GLEventListener {
   }
 
   class GearsMouseAdapter extends MouseAdapter {
-      public void mousePressed(MouseEvent e) {
+      public void mousePressed(final MouseEvent e) {
         prevMouseX = e.getX();
         prevMouseY = e.getY();
       }
 
-      public void mouseReleased(MouseEvent e) {
+      public void mouseReleased(final MouseEvent e) {
       }
 
-      public void mouseDragged(MouseEvent e) {
-        int x = e.getX();
-        int y = e.getY();
+      public void mouseDragged(final MouseEvent e) {
+        final int x = e.getX();
+        final int y = e.getY();
         int width=0, height=0;
-        Object source = e.getSource();
+        final Object source = e.getSource();
         if(source instanceof Window) {
-            Window window = (Window) source;
-            width=window.getWidth();
-            height=window.getHeight();
+            final Window window = (Window) source;
+            width=window.getSurfaceWidth();
+            height=window.getSurfaceHeight();
+        } else if (source instanceof GLAutoDrawable) {
+            final GLAutoDrawable glad = (GLAutoDrawable) source;
+            width = glad.getSurfaceWidth();
+            height = glad.getSurfaceHeight();
         } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
-            java.awt.Component comp = (java.awt.Component) source;
-            width=comp.getWidth();
+            final java.awt.Component comp = (java.awt.Component) source;
+            width=comp.getWidth();     // FIXME HiDPI: May need to convert window units -> pixel units!
             height=comp.getHeight();
         } else {
             throw new RuntimeException("Event source neither Window nor Component: "+source);
         }
-        float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
-        float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
+        final float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
+        final float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
 
         prevMouseX = x;
         prevMouseY = y;

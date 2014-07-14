@@ -75,11 +75,11 @@ abstract class PriorityQ {
 //    #else
 /* Violates modularity, but a little faster */
 //    #include "geom.h"
-    public static boolean LEQ(Leq leq, Object x, Object y) {
+    public static boolean LEQ(final Leq leq, final Object x, final Object y) {
         return jogamp.opengl.glu.tessellator.Geom.VertLeq((jogamp.opengl.glu.tessellator.GLUvertex) x, (jogamp.opengl.glu.tessellator.GLUvertex) y);
     }
 
-    static PriorityQ pqNewPriorityQ(Leq leq) {
+    static PriorityQ pqNewPriorityQ(final Leq leq) {
         return new PriorityQSort(leq);
     }
 

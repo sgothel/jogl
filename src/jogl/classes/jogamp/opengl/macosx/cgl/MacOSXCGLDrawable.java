@@ -91,7 +91,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
 
     public final int id;
 
-    GLBackendType(int id){
+    GLBackendType(final int id){
         this.id = id;
     }
   }
@@ -100,7 +100,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
 
-  public MacOSXCGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
+  public MacOSXCGLDrawable(final GLDrawableFactory factory, final NativeSurface comp, final boolean realized) {
     super(factory, comp, realized);
     initOpenGLImpl(getOpenGLMode());
   }
@@ -110,7 +110,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   }
 
   @Override
-  protected void associateContext(GLContext ctx, boolean bound) {
+  protected void associateContext(final GLContext ctx, final boolean bound) {
     // NOTE: we need to keep track of the created contexts in order to
     // implement swapBuffers() because of how Mac OS X implements its
     // OpenGL window interface
@@ -132,7 +132,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   }
 
   @Override
-  protected final void swapBuffersImpl(boolean doubleBuffered) {
+  protected final void swapBuffersImpl(final boolean doubleBuffered) {
     if(doubleBuffered) {
         synchronized (createdContexts) {
             for(int i=0; i<createdContexts.size(); ) {
@@ -154,7 +154,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   }
 
   // Support for "mode switching" as described in MacOSXCGLDrawable
-  public void setOpenGLMode(GLBackendType mode) {
+  public void setOpenGLMode(final GLBackendType mode) {
       if (mode == openGLMode) {
         return;
       }
@@ -171,6 +171,6 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   }
   public final GLBackendType getOpenGLMode() { return openGLMode; }
 
-  protected void initOpenGLImpl(GLBackendType backend) { /* nop */ }
+  protected void initOpenGLImpl(final GLBackendType backend) { /* nop */ }
 
 }

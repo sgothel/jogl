@@ -31,6 +31,7 @@ package jogamp.nativewindow;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
@@ -40,8 +41,9 @@ import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
  *
  * @see ProxySurface
  */
-public class WrappedSurface extends ProxySurfaceImpl {
-  protected long surfaceHandle;
+public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface {
+  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private long surfaceHandle;
 
   /**
    * Utilizes a {@link UpstreamSurfaceHook.MutableSize} to hold the size information,
@@ -55,7 +57,7 @@ public class WrappedSurface extends ProxySurfaceImpl {
    *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
    *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
    */
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle, int initialWidth, int initialHeight, boolean ownsDevice) {
+  public WrappedSurface(final AbstractGraphicsConfiguration cfg, final long handle, final int initialWidth, final int initialHeight, final boolean ownsDevice) {
       super(cfg, new UpstreamSurfaceHookMutableSize(initialWidth, initialHeight), ownsDevice);
       surfaceHandle=handle;
   }
@@ -68,7 +70,7 @@ public class WrappedSurface extends ProxySurfaceImpl {
    *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
    *                  otherwise <code>false</code>.
    */
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle, UpstreamSurfaceHook upstream, boolean ownsDevice) {
+  public WrappedSurface(final AbstractGraphicsConfiguration cfg, final long handle, final UpstreamSurfaceHook upstream, final boolean ownsDevice) {
       super(cfg, upstream, ownsDevice);
       surfaceHandle=handle;
   }
@@ -76,6 +78,8 @@ public class WrappedSurface extends ProxySurfaceImpl {
   @Override
   protected void invalidateImpl() {
     surfaceHandle = 0;
+    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
   }
 
   @Override
@@ -84,7 +88,7 @@ public class WrappedSurface extends ProxySurfaceImpl {
   }
 
   @Override
-  public final void setSurfaceHandle(long surfaceHandle) {
+  public final void setSurfaceHandle(final long surfaceHandle) {
     this.surfaceHandle=surfaceHandle;
   }
 
@@ -95,6 +99,75 @@ public class WrappedSurface extends ProxySurfaceImpl {
 
   @Override
   protected final void unlockSurfaceImpl() {
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[]) given pixelScale} directly.
+   * </p>
+   */
+  @Override
+  public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+      pixelUnitsAndResult[0] /= hasPixelScale[0];
+      pixelUnitsAndResult[1] /= hasPixelScale[1];
+      return pixelUnitsAndResult;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[]) given pixelScale} directly.
+   * </p>
+   */
+  @Override
+  public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+      windowUnitsAndResult[0] *= hasPixelScale[0];
+      windowUnitsAndResult[1] *= hasPixelScale[1];
+      return windowUnitsAndResult;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * {@link WrappedSurface}'s implementation is to simply pass the given pixelScale
+   * from the caller <i>down</i> to this instance without validation to be applied in the {@link #convertToPixelUnits(int[]) conversion} {@link #convertToWindowUnits(int[]) methods} <b>only</b>.<br/>
+   * This allows the caller to pass down knowledge about window- and pixel-unit conversion and utilize mentioned conversion methods.
+   * </p>
+   * <p>
+   * The given pixelScale will not impact the actual {@link #getSurfaceWidth()} and {@link #getSurfaceHeight()},
+   * which is determinated by this instances {@link #getUpstreamSurface() upstream surface}.
+   * </p>
+   * <p>
+   * Implementation uses the default pixelScale {@link ScalableSurface#IDENTITY_PIXELSCALE}
+   * and resets to default values on {@link #invalidateImpl()}, i.e. {@link #destroyNotify()}.
+   * </p>
+   * <p>
+   * Implementation returns the given pixelScale array.
+   * </p>
+   */
+  @Override
+  public final void setSurfaceScale(final int[] pixelScale) {
+      hasPixelScale[0] = pixelScale[0];
+      hasPixelScale[1] = pixelScale[1];
+  }
+
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public final int[] getCurrentSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public final int[] getNativeSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
   }
 
 }

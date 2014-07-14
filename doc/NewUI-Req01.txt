@@ -61,6 +61,6 @@ rendered UI elements, the application may add on a 2D place in the scene
 and propagates events to the UI TK event dispatcher.
 
 Additionally we could just offer such a 'realizer' adapter for simple applications,
-ie render the UI textures and propagating catched events on it's plane.
+ie render the UI textures and propagating caught events on it's plane.
 
 

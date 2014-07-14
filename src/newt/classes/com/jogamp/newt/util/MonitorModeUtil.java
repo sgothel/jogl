@@ -43,11 +43,11 @@ import javax.media.nativewindow.util.SurfaceSize;
  */
 public class MonitorModeUtil {
 
-    public static int getIndex(List<MonitorMode> monitorModes, MonitorMode search) {
+    public static int getIndex(final List<MonitorMode> monitorModes, final MonitorMode search) {
         return monitorModes.indexOf(search);
     }
 
-    public static int getIndexByHashCode(List<MonitorMode> monitorModes, MonitorMode search) {
+    public static int getIndexByHashCode(final List<MonitorMode> monitorModes, final MonitorMode search) {
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; i<monitorModes.size(); i++) {
                 if ( search.hashCode() == monitorModes.get(i).hashCode() ) {
@@ -58,7 +58,7 @@ public class MonitorModeUtil {
         return -1;
     }
 
-    public static MonitorMode getByNativeSizeRateIdAndRotation(List<MonitorMode> monitorModes, MonitorMode.SizeAndRRate sizeAndRate, int modeId, int rotation) {
+    public static MonitorMode getByNativeSizeRateIdAndRotation(final List<MonitorMode> monitorModes, final MonitorMode.SizeAndRRate sizeAndRate, final int modeId, final int rotation) {
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; i<monitorModes.size(); i++) {
                 final MonitorMode mode = monitorModes.get(i);
@@ -71,7 +71,7 @@ public class MonitorModeUtil {
     }
 
     /** Sort the given {@link MonitorMode} collection w/ {@link MonitorMode#compareTo(MonitorMode)} function. */
-    public static void sort(List<MonitorMode> monitorModes, boolean ascendingOrder) {
+    public static void sort(final List<MonitorMode> monitorModes, final boolean ascendingOrder) {
         if( ascendingOrder ) {
             Collections.sort(monitorModes);
         } else {
@@ -85,7 +85,7 @@ public class MonitorModeUtil {
      * @param surfaceSize
      * @return modes with exact {@link SurfaceSize}. May return zero sized list for non.
      */
-    public static List<MonitorMode> filterBySurfaceSize(List<MonitorMode> monitorModes, SurfaceSize surfaceSize) {
+    public static List<MonitorMode> filterBySurfaceSize(final List<MonitorMode> monitorModes, final SurfaceSize surfaceSize) {
         final List<MonitorMode> out = new ArrayList<MonitorMode>();
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; null!=monitorModes && i<monitorModes.size(); i++) {
@@ -104,7 +104,7 @@ public class MonitorModeUtil {
      * @param rotation
      * @return modes with exact rotation. May return zero sized list for non.
      */
-    public static List<MonitorMode> filterByRotation(List<MonitorMode> monitorModes, int rotation) {
+    public static List<MonitorMode> filterByRotation(final List<MonitorMode> monitorModes, final int rotation) {
         final List<MonitorMode> out = new ArrayList<MonitorMode>();
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; null!=monitorModes && i<monitorModes.size(); i++) {
@@ -123,7 +123,7 @@ public class MonitorModeUtil {
      * @param bitsPerPixel
      * @return modes with exact bpp. May return zero sized list for non.
      */
-    public static List<MonitorMode> filterByBpp(List<MonitorMode> monitorModes, int bitsPerPixel) {
+    public static List<MonitorMode> filterByBpp(final List<MonitorMode> monitorModes, final int bitsPerPixel) {
         final List<MonitorMode> out = new ArrayList<MonitorMode>();
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; null!=monitorModes && i<monitorModes.size(); i++) {
@@ -142,7 +142,7 @@ public class MonitorModeUtil {
      * @param flags
      * @return modes with exact flags. May return zero sized list for non.
      */
-    public static List<MonitorMode> filterByFlags(List<MonitorMode> monitorModes, int flags) {
+    public static List<MonitorMode> filterByFlags(final List<MonitorMode> monitorModes, final int flags) {
         final List<MonitorMode> out = new ArrayList<MonitorMode>();
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; null!=monitorModes && i<monitorModes.size(); i++) {
@@ -157,10 +157,10 @@ public class MonitorModeUtil {
 
     /**
      * @param monitorModes
-     * @param resolution
+     * @param resolution in pixel units
      * @return modes with nearest resolution, or matching ones. May return zero sized list for non.
      */
-    public static List<MonitorMode> filterByResolution(List<MonitorMode> monitorModes, DimensionImmutable resolution) {
+    public static List<MonitorMode> filterByResolution(final List<MonitorMode> monitorModes, final DimensionImmutable resolution) {
         final List<MonitorMode> out = new ArrayList<MonitorMode>();
         if( null!=monitorModes && monitorModes.size()>0 ) {
             final int resolution_sq = resolution.getHeight()*resolution.getWidth();
@@ -192,14 +192,14 @@ public class MonitorModeUtil {
      * @param refreshRate
      * @return modes with nearest refreshRate, or matching ones. May return zero sized list for non.
      */
-    public static List<MonitorMode> filterByRate(List<MonitorMode> monitorModes, float refreshRate) {
+    public static List<MonitorMode> filterByRate(final List<MonitorMode> monitorModes, final float refreshRate) {
         final List<MonitorMode> out = new ArrayList<MonitorMode>();
         if( null!=monitorModes && monitorModes.size()>0 ) {
             float mode_dr = Float.MAX_VALUE;
             int mode_dr_idx = -1;
             for (int i=0; null!=monitorModes && i<monitorModes.size(); i++) {
                 final MonitorMode mode = monitorModes.get(i);
-                float dr = Math.abs(refreshRate - mode.getRefreshRate());
+                final float dr = Math.abs(refreshRate - mode.getRefreshRate());
                 if(dr<mode_dr) {
                     mode_dr = dr;
                     mode_dr_idx = i;
@@ -220,7 +220,7 @@ public class MonitorModeUtil {
      * @param monitorModes
      * @return modes with highest available bpp (color depth). May return zero sized list for non.
      */
-    public static List<MonitorMode> getHighestAvailableBpp(List<MonitorMode> monitorModes) {
+    public static List<MonitorMode> getHighestAvailableBpp(final List<MonitorMode> monitorModes) {
         if( null!=monitorModes && monitorModes.size()>0 ) {
             int highest = -1;
             for (int i=0; null!=monitorModes && i < monitorModes.size(); i++) {
@@ -240,7 +240,7 @@ public class MonitorModeUtil {
      * @param monitorModes
      * @return modes with highest available refresh rate. May return zero sized list for non.
      */
-    public static List<MonitorMode> getHighestAvailableRate(List<MonitorMode> monitorModes) {
+    public static List<MonitorMode> getHighestAvailableRate(final List<MonitorMode> monitorModes) {
         if( null!=monitorModes && monitorModes.size()>0 ) {
             float highest = -1;
             for (int i=0; null!=monitorModes && i < monitorModes.size(); i++) {

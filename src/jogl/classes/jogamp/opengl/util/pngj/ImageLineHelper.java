@@ -33,28 +33,28 @@ public class ImageLineHelper {
 	 * @return R G B (A), one sample 0-255 per array element. Ready for
 	 *         pngw.writeRowInt()
 	 */
-	public static int[] palette2rgb(ImageLine line, PngChunkPLTE pal, PngChunkTRNS trns, int[] buf) {
-		boolean isalpha = trns != null;
-		int channels = isalpha ? 4 : 3;
-		int nsamples = line.imgInfo.cols * channels;
+	public static int[] palette2rgb(ImageLine line, final PngChunkPLTE pal, final PngChunkTRNS trns, int[] buf) {
+		final boolean isalpha = trns != null;
+		final int channels = isalpha ? 4 : 3;
+		final int nsamples = line.imgInfo.cols * channels;
 		if (buf == null || buf.length < nsamples)
 			buf = new int[nsamples];
 		if (!line.samplesUnpacked)
 			line = line.unpackToNewImageLine();
-		boolean isbyte = line.sampleType == SampleType.BYTE;
-		int nindexesWithAlpha = trns != null ? trns.getPalletteAlpha().length : 0;
+		final boolean isbyte = line.sampleType == SampleType.BYTE;
+		final int nindexesWithAlpha = trns != null ? trns.getPalletteAlpha().length : 0;
 		for (int c = 0; c < line.imgInfo.cols; c++) {
-			int index = isbyte ? (line.scanlineb[c] & 0xFF) : line.scanline[c];
+			final int index = isbyte ? (line.scanlineb[c] & 0xFF) : line.scanline[c];
 			pal.getEntryRgb(index, buf, c * channels);
 			if (isalpha) {
-				int alpha = index < nindexesWithAlpha ? trns.getPalletteAlpha()[index] : 255;
+				final int alpha = index < nindexesWithAlpha ? trns.getPalletteAlpha()[index] : 255;
 				buf[c * channels + 3] = alpha;
 			}
 		}
 		return buf;
 	}
 
-	public static int[] palette2rgb(ImageLine line, PngChunkPLTE pal, int[] buf) {
+	public static int[] palette2rgb(final ImageLine line, final PngChunkPLTE pal, final int[] buf) {
 		return palette2rgb(line, pal, null, buf);
 	}
 
@@ -65,7 +65,7 @@ public class ImageLineHelper {
 	 * Just for basic info or debugging. Shows values for first and last pixel.
 	 * Does not include alpha
 	 */
-	public static String infoFirstLastPixels(ImageLine line) {
+	public static String infoFirstLastPixels(final ImageLine line) {
 		return line.imgInfo.channels == 1 ? String.format("first=(%d) last=(%d)", line.scanline[0],
 				line.scanline[line.scanline.length - 1]) : String.format("first=(%d %d %d) last=(%d %d %d)",
 				line.scanline[0], line.scanline[1], line.scanline[2], line.scanline[line.scanline.length
@@ -73,8 +73,8 @@ public class ImageLineHelper {
 				line.scanline[line.scanline.length - line.imgInfo.channels + 2]);
 	}
 
-	public static String infoFull(ImageLine line) {
-		ImageLineStats stats = new ImageLineStats(line);
+	public static String infoFull(final ImageLine line) {
+		final ImageLineStats stats = new ImageLineStats(line);
 		return "row=" + line.getRown() + " " + stats.toString() + "\n  " + infoFirstLastPixels(line);
 	}
 
@@ -104,7 +104,7 @@ public class ImageLineHelper {
 					+ String.format(" maxdif=(%.1f %.1f %.1f %.1f)", maxdif[0], maxdif[1], maxdif[2], maxdif[3]);
 		}
 
-		public ImageLineStats(ImageLine line) {
+		public ImageLineStats(final ImageLine line) {
 			this.channels = line.channels;
 			if (line.channels < 3)
 				throw new PngjException("ImageLineStats only works for RGB - RGBA");
@@ -146,18 +146,18 @@ public class ImageLineHelper {
 	 * integer packed R G B only for bitdepth=8! (does not check!)
 	 *
 	 **/
-	public static int getPixelRGB8(ImageLine line, int column) {
-		int offset = column * line.channels;
+	public static int getPixelRGB8(final ImageLine line, final int column) {
+		final int offset = column * line.channels;
 		return (line.scanline[offset] << 16) + (line.scanline[offset + 1] << 8) + (line.scanline[offset + 2]);
 	}
 
-	public static int getPixelARGB8(ImageLine line, int column) {
-		int offset = column * line.channels;
+	public static int getPixelARGB8(final ImageLine line, final int column) {
+		final int offset = column * line.channels;
 		return (line.scanline[offset + 3] << 24) + (line.scanline[offset] << 16) + (line.scanline[offset + 1] << 8)
 				+ (line.scanline[offset + 2]);
 	}
 
-	public static void setPixelsRGB8(ImageLine line, int[] rgb) {
+	public static void setPixelsRGB8(final ImageLine line, final int[] rgb) {
 		for (int i = 0, j = 0; i < line.imgInfo.cols; i++) {
 			line.scanline[j++] = ((rgb[i] >> 16) & 0xFF);
 			line.scanline[j++] = ((rgb[i] >> 8) & 0xFF);
@@ -165,18 +165,18 @@ public class ImageLineHelper {
 		}
 	}
 
-	public static void setPixelRGB8(ImageLine line, int col, int r, int g, int b) {
+	public static void setPixelRGB8(final ImageLine line, int col, final int r, final int g, final int b) {
 		col *= line.channels;
 		line.scanline[col++] = r;
 		line.scanline[col++] = g;
 		line.scanline[col] = b;
 	}
 
-	public static void setPixelRGB8(ImageLine line, int col, int rgb) {
+	public static void setPixelRGB8(final ImageLine line, final int col, final int rgb) {
 		setPixelRGB8(line, col, (rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
 	}
 
-	public static void setPixelsRGBA8(ImageLine line, int[] rgb) {
+	public static void setPixelsRGBA8(final ImageLine line, final int[] rgb) {
 		for (int i = 0, j = 0; i < line.imgInfo.cols; i++) {
 			line.scanline[j++] = ((rgb[i] >> 16) & 0xFF);
 			line.scanline[j++] = ((rgb[i] >> 8) & 0xFF);
@@ -185,7 +185,7 @@ public class ImageLineHelper {
 		}
 	}
 
-	public static void setPixelRGBA8(ImageLine line, int col, int r, int g, int b, int a) {
+	public static void setPixelRGBA8(final ImageLine line, int col, final int r, final int g, final int b, final int a) {
 		col *= line.channels;
 		line.scanline[col++] = r;
 		line.scanline[col++] = g;
@@ -193,53 +193,53 @@ public class ImageLineHelper {
 		line.scanline[col] = a;
 	}
 
-	public static void setPixelRGBA8(ImageLine line, int col, int rgb) {
+	public static void setPixelRGBA8(final ImageLine line, final int col, final int rgb) {
 		setPixelRGBA8(line, col, (rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, (rgb >> 24) & 0xFF);
 	}
 
-	public static void setValD(ImageLine line, int i, double d) {
+	public static void setValD(final ImageLine line, final int i, final double d) {
 		line.scanline[i] = double2int(line, d);
 	}
 
-	public static int interpol(int a, int b, int c, int d, double dx, double dy) {
+	public static int interpol(final int a, final int b, final int c, final int d, final double dx, final double dy) {
 		// a b -> x (0-1)
 		// c d
 		//
-		double e = a * (1.0 - dx) + b * dx;
-		double f = c * (1.0 - dx) + d * dx;
+		final double e = a * (1.0 - dx) + b * dx;
+		final double f = c * (1.0 - dx) + d * dx;
 		return (int) (e * (1 - dy) + f * dy + 0.5);
 	}
 
-	public static double int2double(ImageLine line, int p) {
+	public static double int2double(final ImageLine line, final int p) {
 		return line.bitDepth == 16 ? p / 65535.0 : p / 255.0;
 		// TODO: replace my multiplication? check for other bitdepths
 	}
 
-	public static double int2doubleClamped(ImageLine line, int p) {
+	public static double int2doubleClamped(final ImageLine line, final int p) {
 		// TODO: replace my multiplication?
-		double d = line.bitDepth == 16 ? p / 65535.0 : p / 255.0;
+		final double d = line.bitDepth == 16 ? p / 65535.0 : p / 255.0;
 		return d <= 0.0 ? 0 : (d >= 1.0 ? 1.0 : d);
 	}
 
-	public static int double2int(ImageLine line, double d) {
+	public static int double2int(final ImageLine line, double d) {
 		d = d <= 0.0 ? 0 : (d >= 1.0 ? 1.0 : d);
 		return line.bitDepth == 16 ? (int) (d * 65535.0 + 0.5) : (int) (d * 255.0 + 0.5); //
 	}
 
-	public static int double2intClamped(ImageLine line, double d) {
+	public static int double2intClamped(final ImageLine line, double d) {
 		d = d <= 0.0 ? 0 : (d >= 1.0 ? 1.0 : d);
 		return line.bitDepth == 16 ? (int) (d * 65535.0 + 0.5) : (int) (d * 255.0 + 0.5); //
 	}
 
-	public static int clampTo_0_255(int i) {
+	public static int clampTo_0_255(final int i) {
 		return i > 255 ? 255 : (i < 0 ? 0 : i);
 	}
 
-	public static int clampTo_0_65535(int i) {
+	public static int clampTo_0_65535(final int i) {
 		return i > 65535 ? 65535 : (i < 0 ? 0 : i);
 	}
 
-	public static int clampTo_128_127(int x) {
+	public static int clampTo_128_127(final int x) {
 		return x > 127 ? 127 : (x < -128 ? -128 : x);
 	}
 
@@ -255,9 +255,9 @@ public class ImageLineHelper {
 	 * You probably should use {@link ImageLine#unpackToNewImageLine()}
 	 *
 	 */
-	public static int[] unpack(ImageInfo imgInfo, int[] src, int[] dst, boolean scale) {
-		int len1 = imgInfo.samplesPerRow;
-		int len0 = imgInfo.samplesPerRowPacked;
+	public static int[] unpack(final ImageInfo imgInfo, final int[] src, int[] dst, final boolean scale) {
+		final int len1 = imgInfo.samplesPerRow;
+		final int len0 = imgInfo.samplesPerRowPacked;
 		if (dst == null || dst.length < len1)
 			dst = new int[len1];
 		if (imgInfo.packed)
@@ -267,9 +267,9 @@ public class ImageLineHelper {
 		return dst;
 	}
 
-	public static byte[] unpack(ImageInfo imgInfo, byte[] src, byte[] dst, boolean scale) {
-		int len1 = imgInfo.samplesPerRow;
-		int len0 = imgInfo.samplesPerRowPacked;
+	public static byte[] unpack(final ImageInfo imgInfo, final byte[] src, byte[] dst, final boolean scale) {
+		final int len1 = imgInfo.samplesPerRow;
+		final int len0 = imgInfo.samplesPerRowPacked;
 		if (dst == null || dst.length < len1)
 			dst = new byte[len1];
 		if (imgInfo.packed)
@@ -286,8 +286,8 @@ public class ImageLineHelper {
 	 *
 	 * You probably should use {@link ImageLine#packToNewImageLine()}
 	 */
-	public static int[] pack(ImageInfo imgInfo, int[] src, int[] dst, boolean scale) {
-		int len0 = imgInfo.samplesPerRowPacked;
+	public static int[] pack(final ImageInfo imgInfo, final int[] src, int[] dst, final boolean scale) {
+		final int len0 = imgInfo.samplesPerRowPacked;
 		if (dst == null || dst.length < len0)
 			dst = new int[len0];
 		if (imgInfo.packed)
@@ -297,8 +297,8 @@ public class ImageLineHelper {
 		return dst;
 	}
 
-	public static byte[] pack(ImageInfo imgInfo, byte[] src, byte[] dst, boolean scale) {
-		int len0 = imgInfo.samplesPerRowPacked;
+	public static byte[] pack(final ImageInfo imgInfo, final byte[] src, byte[] dst, final boolean scale) {
+		final int len0 = imgInfo.samplesPerRowPacked;
 		if (dst == null || dst.length < len0)
 			dst = new byte[len0];
 		if (imgInfo.packed)
@@ -308,7 +308,7 @@ public class ImageLineHelper {
 		return dst;
 	}
 
-	static int getMaskForPackedFormats(int bitDepth) { // Utility function for pack/unpack
+	static int getMaskForPackedFormats(final int bitDepth) { // Utility function for pack/unpack
 		if (bitDepth == 4)
 			return 0xf0;
 		else if (bitDepth == 2)
@@ -317,7 +317,7 @@ public class ImageLineHelper {
 			return 0x80; // bitDepth == 1
 	}
 
-	static int getMaskForPackedFormatsLs(int bitDepth) { // Utility function for pack/unpack
+	static int getMaskForPackedFormatsLs(final int bitDepth) { // Utility function for pack/unpack
 		if (bitDepth == 4)
 			return 0x0f;
 		else if (bitDepth == 2)

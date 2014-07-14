@@ -41,6 +41,7 @@
 package jogamp.nativewindow.jawt.windows;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
@@ -56,7 +57,7 @@ import jogamp.nativewindow.windows.GDIUtil;
 
 public class WindowsJAWTWindow extends JAWTWindow {
 
-  public WindowsJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+  public WindowsJAWTWindow(final Object comp, final AbstractGraphicsConfiguration config) {
     super(comp, config);
   }
 
@@ -72,14 +73,14 @@ public class WindowsJAWTWindow extends JAWTWindow {
 
   @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
-    int ret = NativeWindow.LOCK_SUCCESS;
+    int ret = NativeSurface.LOCK_SUCCESS;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    int res = ds.Lock();
+    final int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
       unlockSurfaceImpl();
@@ -98,7 +99,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    updateBounds(dsi.getBounds());
+    updateLockedData(dsi.getBounds());
     win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo(getJAWT());
     if (win32dsi == null) {
       unlockSurfaceImpl();
@@ -136,7 +137,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
   }
 
   @Override
-  protected Point getLocationOnScreenNativeImpl(int x, int y) {
+  protected Point getLocationOnScreenNativeImpl(final int x, final int y) {
     return GDIUtil.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
   }
 

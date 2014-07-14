@@ -44,6 +44,9 @@ public class OSXUtil implements ToolkitProperties {
     private static boolean isInit = false;
     private static final boolean DEBUG = Debug.debug("OSXUtil");
 
+    /** FIXME HiDPI: OSX unique and maximum value {@value} */
+    public static final int MAX_PIXELSCALE = 2;
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
@@ -82,66 +85,60 @@ public class OSXUtil implements ToolkitProperties {
      */
     public static final boolean hasThreadingIssues() { return false; }
 
-    public static boolean isNSView(long object) {
+    public static boolean isNSView(final long object) {
         return 0 != object ? isNSView0(object) : false;
     }
 
-    public static boolean isNSWindow(long object) {
+    public static boolean isNSWindow(final long object) {
         return 0 != object ? isNSWindow0(object) : false;
     }
 
     /**
-     * In case the <code>windowOrView</code> is top-level,
-     * you shall set <code>topLevel</code> to true where
-     * insets gets into account to compute the client position as follows:
-     * <pre>
-      if(topLevel) {
-          // top-level position -> client window position
-          final Insets insets = GetInsets(windowOrView);
-          los.setX(los.getX() + insets.getLeftWidth());
-          los.setY(los.getY() + insets.getTopHeight());
-      }
-     * </pre>
      * @param windowOrView
-     * @param topLevel
      * @param src_x
      * @param src_y
-     * @return the client position
+     * @return top-left client-area position in window units
      */
-    public static Point GetLocationOnScreen(long windowOrView, boolean topLevel, int src_x, int src_y) {
-      final Point los = (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
-      if(topLevel) {
-          // top-level position -> client window position
-          final Insets insets = GetInsets(windowOrView);
-          los.set(los.getX() + insets.getLeftWidth(), los.getY() + insets.getTopHeight());
-      }
-      return los;
+    public static Point GetLocationOnScreen(final long windowOrView, final int src_x, final int src_y) {
+      return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
     }
 
-    public static Insets GetInsets(long windowOrView) {
+    public static Insets GetInsets(final long windowOrView) {
       return (Insets) GetInsets0(windowOrView);
     }
 
-    public static long CreateNSWindow(int x, int y, int width, int height) {
+    public static double GetPixelScale(final int screenIndex) {
+      return GetPixelScale0(screenIndex);
+    }
+
+    public static double GetPixelScale(final long windowOrView) {
+      return GetPixelScale1(windowOrView);
+    }
+
+    public static long CreateNSWindow(final int x, final int y, final int width, final int height) {
       return CreateNSWindow0(x, y, width, height);
     }
-    public static void DestroyNSWindow(long nsWindow) {
+    public static void DestroyNSWindow(final long nsWindow) {
         DestroyNSWindow0(nsWindow);
     }
-    public static long GetNSView(long nsWindow) {
+    public static long GetNSView(final long nsWindow) {
       return GetNSView0(nsWindow);
     }
-    public static long GetNSWindow(long nsView) {
+    public static long GetNSWindow(final long nsView) {
       return GetNSWindow0(nsView);
     }
 
     /**
      * Create a CALayer suitable to act as a root CALayer.
+     * @param width width of the CALayer in window units (points)
+     * @param height height of the CALayer in window units (points)
+     * @param contentsScale scale for HiDPI support: pixel-dim = window-dim x scale
+     * @return the new CALayer object
      * @see #DestroyCALayer(long)
      * @see #AddCASublayer(long, long)
      */
-    public static long CreateCALayer(final int width, final int height) {
-      final long l = CreateCALayer0(width, height);
+    public static long CreateCALayer(final int width, final int height, final float contentsScale) {
+      final long l = CreateCALayer0(width, height, contentsScale);
       if(DEBUG) {
           System.err.println("OSXUtil.CreateCALayer: 0x"+Long.toHexString(l)+" - "+Thread.currentThread().getName());
       }
@@ -158,18 +155,27 @@ public class OSXUtil implements ToolkitProperties {
      * Hence it is important that related resources are not locked <i>if</i>
      * they will be used for creation.
      * </p>
-     * @param caLayerQuirks TODO
-     * @see #CreateCALayer(int, int)
+     * @param rootCALayer
+     * @param subCALayer
+     * @param x x-coord of the sub-CALayer in window units (points)
+     * @param y y-coord of the sub-CALayer in window units (points)
+     * @param width width of the sub-CALayer in window units (points)
+     * @param height height of the sub-CALayer in window units (points)
+     * @param contentsScale scale for HiDPI support: pixel-dim = window-dim x scale
+     * @param caLayerQuirks
+     * @see #CreateCALayer(int, int, float)
      * @see #RemoveCASublayer(long, long, boolean)
      */
-    public static void AddCASublayer(final long rootCALayer, final long subCALayer, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
+    public static void AddCASublayer(final long rootCALayer, final long subCALayer,
+                                     final int x, final int y, final int width, final int height,
+                                     final float contentsScale, final int caLayerQuirks) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
         if(DEBUG) {
             System.err.println("OSXUtil.AttachCALayer: caLayerQuirks "+caLayerQuirks+", 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
         }
-        AddCASublayer0(rootCALayer, subCALayer, x, y, width, height, caLayerQuirks);
+        AddCASublayer0(rootCALayer, subCALayer, x, y, width, height, contentsScale, caLayerQuirks);
     }
 
     /**
@@ -186,8 +192,8 @@ public class OSXUtil implements ToolkitProperties {
      * @param rootCALayer the root surface layer, maybe null.
      * @param subCALayer the client surface layer, maybe null.
      * @param visible TODO
-     * @param width the expected width
-     * @param height the expected height
+     * @param width the expected width in window units (points)
+     * @param height the expected height in window units (points)
      * @param caLayerQuirks TODO
      */
     public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final boolean visible, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
@@ -195,6 +201,20 @@ public class OSXUtil implements ToolkitProperties {
             return;
         }
         FixCALayerLayout0(rootCALayer, subCALayer, visible, x, y, width, height, caLayerQuirks);
+    }
+
+    /**
+     * Set root and sub CALayer pixelScale / contentScale for HiDPI
+     *
+     * @param rootCALayer the root surface layer, maybe null.
+     * @param subCALayer the client surface layer, maybe null.
+     * @param contentsScale scale for HiDPI support: pixel-dim = window-dim x scale
+     */
+    public static void SetCALayerPixelScale(final long rootCALayer, final long subCALayer, final float contentsScale) {
+        if( 0==rootCALayer && 0==subCALayer ) {
+            return;
+        }
+        SetCALayerPixelScale0(rootCALayer, subCALayer, contentsScale);
     }
 
     /**
@@ -212,7 +232,7 @@ public class OSXUtil implements ToolkitProperties {
 
     /**
      * Destroy a CALayer.
-     * @see #CreateCALayer(int, int)
+     * @see #CreateCALayer(int, int, float)
      */
     public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
@@ -231,9 +251,10 @@ public class OSXUtil implements ToolkitProperties {
      * </p>
      *
      * @param waitUntilDone
+     * @param kickNSApp if <code>true</code> issues {@link #KickNSApp()}
      * @param runnable
      */
-    public static void RunOnMainThread(boolean waitUntilDone, Runnable runnable) {
+    public static void RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Runnable runnable) {
         if( IsMainThread0() ) {
             runnable.run(); // don't leave the JVM
         } else {
@@ -243,11 +264,11 @@ public class OSXUtil implements ToolkitProperties {
             final Object sync = new Object();
             final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
-                RunOnMainThread0(rt);
+                RunOnMainThread0(kickNSApp, rt);
                 if( waitUntilDone ) {
                     try {
                         sync.wait();
-                    } catch (InterruptedException ie) {
+                    } catch (final InterruptedException ie) {
                         throwable = ie;
                     }
                     if(null==throwable) {
@@ -267,15 +288,34 @@ public class OSXUtil implements ToolkitProperties {
      * @param runnable
      * @param delay delay to run the runnable in milliseconds
      */
-    public static void RunLater(boolean onMain, Runnable runnable, int delay) {
-        RunLater0(onMain, new RunnableTask( runnable, null, true, System.err ), delay);
+    public static void RunLater(final boolean onMain, final Runnable runnable, final int delay) {
+        RunLater0(onMain, false /* kickNSApp */, new RunnableTask( runnable, null, true, System.err ), delay);
+    }
+
+    /**
+     * Wakes up NSApp thread by sending an empty NSEvent ..
+     * <p>
+     * This is deemed important <i>sometimes</i> where resources shall get freed ASAP, e.g. GL context etc.
+     * </p>
+     * <p>
+     * The following scenarios requiring this <i>wake-up</i> are currently known:
+     * <ul>
+     *   <li>Destruction of an OpenGL context</li>
+     *   <li>Destruction of Windows .. ?</li>
+     *   <li>Stopping the NSApp</li>
+     * </ul>
+     * </p>
+     * FIXME: Complete list of scenarios and reason it.
+     */
+    public static void KickNSApp() {
+        KickNSApp0();
     }
 
     private static Runnable _nop = new Runnable() { @Override public void run() {}; };
 
-    /** Issues a {@link #RunOnMainThread(boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done. */
+    /** Issues a {@link #RunOnMainThread(boolean, boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done and issuing {@link #KickNSApp()}. */
     public static void WaitUntilFinish() {
-        RunOnMainThread(true, _nop);
+        RunOnMainThread(true, true /* kickNSApp */, _nop);
     }
 
     /**
@@ -285,9 +325,10 @@ public class OSXUtil implements ToolkitProperties {
      * </p>
      *
      * @param waitUntilDone
+     * @param kickNSApp if <code>true</code> issues {@link #KickNSApp()}
      * @param func
      */
-    public static <R,A> R RunOnMainThread(boolean waitUntilDone, Function<R,A> func, A... args) {
+    public static <R,A> R RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Function<R,A> func, final A... args) {
         if( IsMainThread0() ) {
             return func.eval(args); // don't leave the JVM
         } else {
@@ -298,11 +339,11 @@ public class OSXUtil implements ToolkitProperties {
             final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
                 rt.setArgs(args);
-                RunOnMainThread0(rt);
+                RunOnMainThread0(kickNSApp, rt);
                 if( waitUntilDone ) {
                     try {
                         sync.wait();
-                    } catch (InterruptedException ie) {
+                    } catch (final InterruptedException ie) {
                         throwable = ie;
                     }
                     if(null==throwable) {
@@ -322,7 +363,7 @@ public class OSXUtil implements ToolkitProperties {
     }
 
     /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
-    public static int GetScreenRefreshRate(int scrn_idx) {
+    public static int GetScreenRefreshRate(final int scrn_idx) {
         return GetScreenRefreshRate0(scrn_idx);
     }
 
@@ -352,17 +393,21 @@ public class OSXUtil implements ToolkitProperties {
     private static native boolean isNSWindow0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native Object GetInsets0(long windowOrView);
+    private static native double GetPixelScale0(int screenIndex);
+    private static native double GetPixelScale1(long windowOrView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
     private static native long GetNSView0(long nsWindow);
     private static native long GetNSWindow0(long nsView);
-    private static native long CreateCALayer0(int width, int height);
-    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, int caLayerQuirks);
+    private static native long CreateCALayer0(int width, int height, float contentsScale);
+    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, float contentsScale, int caLayerQuirks);
     private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, boolean visible, int x, int y, int width, int height, int caLayerQuirks);
+    private static native void SetCALayerPixelScale0(long rootCALayer, long subCALayer, float contentsScale);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
-    private static native void RunOnMainThread0(Runnable runnable);
-    private static native void RunLater0(boolean onMain, Runnable runnable, int delay);
+    private static native void RunOnMainThread0(boolean kickNSApp, Runnable runnable);
+    private static native void RunLater0(boolean onMain, boolean kickNSApp, Runnable runnable, int delay);
+    private static native void KickNSApp0();
     private static native boolean IsMainThread0();
     private static native int GetScreenRefreshRate0(int scrn_idx);
 }

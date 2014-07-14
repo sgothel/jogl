@@ -81,7 +81,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested, final CapabilitiesChooser chooser, final AbstractGraphicsScreen absScreen, final int nativeVisualID) {
 
         if (! (capsChosen instanceof GLCapabilitiesImmutable) ) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - chosen");
@@ -98,14 +98,14 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)chooser, absScreen);
     }
 
-    static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLCapabilitiesImmutable caps,
-                                                                              AbstractGraphicsScreen absScreen) {
+    static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(final GLCapabilitiesImmutable caps,
+                                                                              final AbstractGraphicsScreen absScreen) {
         return chooseGraphicsConfigurationStatic(caps, caps, null, absScreen);
     }
 
     static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
-                                                                             GLCapabilitiesImmutable capsReq,
-                                                                             GLCapabilitiesChooser chooser,
+                                                                             final GLCapabilitiesImmutable capsReq,
+                                                                             final GLCapabilitiesChooser chooser,
                                                                              AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
@@ -115,7 +115,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return new WindowsWGLGraphicsConfiguration( absScreen, capsChosen, capsReq, chooser );
     }
 
-    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(WindowsWGLDrawableFactory factory, AbstractGraphicsDevice device) {
+    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(final WindowsWGLDrawableFactory factory, final AbstractGraphicsDevice device) {
         final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
@@ -136,7 +136,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             sharedDrawable.lockSurface();
         }
         try {
-            long hdc = sharedDrawable.getHandle();
+            final long hdc = sharedDrawable.getHandle();
             if (0 == hdc) {
                 throw new GLException("Error: HDC is null");
             }
@@ -164,17 +164,17 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return availableCaps;
     }
 
-    private static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesARB(WindowsWGLDrawableFactory.SharedResource sharedResource, AbstractGraphicsDevice device, GLProfile glProfile, long hdc) {
+    private static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesARB(final WindowsWGLDrawableFactory.SharedResource sharedResource, final AbstractGraphicsDevice device, final GLProfile glProfile, final long hdc) {
         final int pfdIDCount = WindowsWGLGraphicsConfiguration.wglARBPFDIDCount((WindowsWGLContext)sharedResource.getContext(), hdc);
         final int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFDIDs(pfdIDCount);
         return WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedResource, device, glProfile, hdc, pformats,
                 GLGraphicsConfigurationUtil.ALL_BITS & ~GLGraphicsConfigurationUtil.BITMAP_BIT, false); // w/o BITMAP
     }
 
-    private static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesGDI(AbstractGraphicsDevice device, GLProfile glProfile, long hdc, boolean bitmapOnly) {
-        int[] pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
-        int numFormats = pformats.length;
-        List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(numFormats);
+    private static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesGDI(final AbstractGraphicsDevice device, final GLProfile glProfile, final long hdc, final boolean bitmapOnly) {
+        final int[] pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
+        final int numFormats = pformats.length;
+        final List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(numFormats);
         for (int i = 0; i < numFormats; i++) {
             final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, pformats[i],
                  bitmapOnly ? GLGraphicsConfigurationUtil.BITMAP_BIT : GLGraphicsConfigurationUtil.ALL_BITS );
@@ -192,8 +192,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
      * @param ns
      * @param pfIDs optional pool of preselected PixelFormat IDs, maybe null for unrestricted selection
      */
-    static void updateGraphicsConfiguration(CapabilitiesChooser chooser,
-                                            GLDrawableFactory factory, NativeSurface ns, int[] pfdIDs) {
+    static void updateGraphicsConfiguration(final CapabilitiesChooser chooser,
+                                            final GLDrawableFactory factory, final NativeSurface ns, final int[] pfdIDs) {
         if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
@@ -208,11 +208,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             throw new GLException("Surface not ready (lockSurface)");
         }
         try {
-            long hdc = ns.getSurfaceHandle();
+            final long hdc = ns.getSurfaceHandle();
             if (0 == hdc) {
                 throw new GLException("Error: HDC is null");
             }
-            WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration();
+            final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration();
 
             if( !config.isExternal() ) {
                 if( !config.isDetermined() ) {
@@ -239,9 +239,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
     }
 
-    static void preselectGraphicsConfiguration(CapabilitiesChooser chooser,
-                                               GLDrawableFactory _factory, AbstractGraphicsDevice device,
-                                               WindowsWGLGraphicsConfiguration config, int[] pfdIDs) {
+    static void preselectGraphicsConfiguration(final CapabilitiesChooser chooser,
+                                               final GLDrawableFactory _factory, final AbstractGraphicsDevice device,
+                                               final WindowsWGLGraphicsConfiguration config, final int[] pfdIDs) {
         if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
@@ -254,8 +254,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         if ( !(_factory instanceof WindowsWGLDrawableFactory) ) {
             throw new GLException("GLDrawableFactory is not a WindowsWGLDrawableFactory, but: "+_factory.getClass().getSimpleName());
         }
-        WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
-        WindowsWGLDrawable sharedDrawable = factory.getOrCreateSharedDrawable(device);
+        final WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
+        final WindowsWGLDrawable sharedDrawable = factory.getOrCreateSharedDrawable(device);
         if(null == sharedDrawable) {
             throw new IllegalArgumentException("Shared Drawable is null");
         }
@@ -264,7 +264,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             throw new GLException("Shared Surface not ready (lockSurface): "+device+" -> "+sharedDrawable);
         }
         try {
-            long hdc = sharedDrawable.getHandle();
+            final long hdc = sharedDrawable.getHandle();
             if (0 == hdc) {
                 throw new GLException("Error: HDC is null");
             }
@@ -274,8 +274,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
     }
 
-    private static void updateGraphicsConfiguration(WindowsWGLGraphicsConfiguration config, CapabilitiesChooser chooser,
-                                                    GLDrawableFactory factory, long hdc, boolean extHDC, int[] pfdIDs) {
+    private static void updateGraphicsConfiguration(final WindowsWGLGraphicsConfiguration config, final CapabilitiesChooser chooser,
+                                                    final GLDrawableFactory factory, final long hdc, final boolean extHDC, final int[] pfdIDs) {
         if (DEBUG) {
             if(extHDC) {
                 System.err.println("updateGraphicsConfiguration(using shared): hdc "+toHexString(hdc));
@@ -284,8 +284,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             System.err.println("user chosen caps " + config.getChosenCapabilities());
         }
-        AbstractGraphicsDevice device = config.getScreen().getDevice();
-        WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(device);
+        final AbstractGraphicsDevice device = config.getScreen().getDevice();
+        final WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(device);
         final GLContext sharedContext;
         if ( factory.hasRendererQuirk(device, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
             sharedContext = sharedResource.getContext();
@@ -311,8 +311,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
     }
 
-    private static boolean updateGraphicsConfigurationARB(WindowsWGLDrawableFactory factory, WindowsWGLGraphicsConfiguration config, CapabilitiesChooser chooser,
-                                                          long hdc, boolean extHDC, int[] pformats) {
+    private static boolean updateGraphicsConfigurationARB(final WindowsWGLDrawableFactory factory, final WindowsWGLGraphicsConfiguration config, final CapabilitiesChooser chooser,
+                                                          final long hdc, final boolean extHDC, int[] pformats) {
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
         final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
 
@@ -462,8 +462,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return true;
     }
 
-    private static boolean updateGraphicsConfigurationGDI(WindowsWGLGraphicsConfiguration config, CapabilitiesChooser chooser, long hdc,
-                                                          boolean extHDC, int[] pformats) {
+    private static boolean updateGraphicsConfigurationGDI(final WindowsWGLGraphicsConfiguration config, final CapabilitiesChooser chooser, final long hdc,
+                                                          final boolean extHDC, int[] pformats) {
         final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         if( !capsChosen.isOnscreen() && capsChosen.isPBuffer() ) {
             if (DEBUG) {
@@ -557,7 +557,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                             System.err.println("updateGraphicsConfigurationGDI: availableCaps["+i+" -> "+j+"]: "+caps);
                         }
                     } else if(DEBUG) {
-                        GLCapabilitiesImmutable skipped = WindowsWGLGraphicsConfiguration.PFD2GLCapabilitiesNoCheck(device, glProfile, hdc, pformats[i]);
+                        final GLCapabilitiesImmutable skipped = WindowsWGLGraphicsConfiguration.PFD2GLCapabilitiesNoCheck(device, glProfile, hdc, pformats[i]);
                         System.err.println("updateGraphicsConfigurationGDI: availableCaps["+i+" -> skip]: pfdID "+pformats[i]+", "+skipped);
                     }
                 }

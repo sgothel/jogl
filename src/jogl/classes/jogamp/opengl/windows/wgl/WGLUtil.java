@@ -27,6 +27,8 @@
  */
 package jogamp.opengl.windows.wgl;
 
+import com.jogamp.common.util.PropertyAccess;
+
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.Debug;
@@ -52,41 +54,41 @@ public class WGLUtil {
 
     static {
         Debug.initSingleton();
-        USE_WGLVersion_Of_5WGLGDIFuncSet = Debug.isPropertyDefined("jogl.windows.useWGLVersionOf5WGLGDIFuncSet", true);
+        USE_WGLVersion_Of_5WGLGDIFuncSet = PropertyAccess.isPropertyDefined("jogl.windows.useWGLVersionOf5WGLGDIFuncSet", true);
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             System.err.println("Use WGL version of 5 WGL/GDI functions.");
         }
     }
 
-    public static int ChoosePixelFormat(long hdc, PIXELFORMATDESCRIPTOR pfd)  {
+    public static int ChoosePixelFormat(final long hdc, final PIXELFORMATDESCRIPTOR pfd)  {
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             return WGL.wglChoosePixelFormat(hdc, pfd);
         } else {
             return GDI.ChoosePixelFormat(hdc, pfd);
         }
     }
-    public static int DescribePixelFormat(long hdc, int pfdid, int pfdSize, PIXELFORMATDESCRIPTOR pfd)  {
+    public static int DescribePixelFormat(final long hdc, final int pfdid, final int pfdSize, final PIXELFORMATDESCRIPTOR pfd)  {
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             return WGL.wglDescribePixelFormat(hdc, pfdid, pfdSize, pfd);
         } else {
             return GDI.DescribePixelFormat(hdc, pfdid, pfdSize, pfd);
         }
     }
-    public static int GetPixelFormat(long hdc)  {
+    public static int GetPixelFormat(final long hdc)  {
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             return WGL.wglGetPixelFormat(hdc);
         } else {
             return GDI.GetPixelFormat(hdc);
         }
     }
-    public static boolean SetPixelFormat(long hdc, int pfdid, PIXELFORMATDESCRIPTOR pfd)  {
+    public static boolean SetPixelFormat(final long hdc, final int pfdid, final PIXELFORMATDESCRIPTOR pfd)  {
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             return WGL.wglSetPixelFormat(hdc, pfdid, pfd);
         } else {
             return GDI.SetPixelFormat(hdc, pfdid, pfd);
         }
     }
-    public static boolean SwapBuffers(long hdc)  {
+    public static boolean SwapBuffers(final long hdc)  {
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             return WGL.wglSwapBuffers(hdc);
         } else {

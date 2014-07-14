@@ -86,7 +86,7 @@ public class GLWorkerThread {
             thread.start();
             try {
               lock.wait();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
             }
           }
 
@@ -149,7 +149,7 @@ public class GLWorkerThread {
     }
   }
 
-  public static void invoke(boolean wait, Runnable runnable)
+  public static void invoke(final boolean wait, final Runnable runnable)
       throws InvocationTargetException, InterruptedException {
       if(wait) {
           invokeAndWait(runnable);
@@ -158,13 +158,13 @@ public class GLWorkerThread {
       }
   }
 
-  public static void invokeAndWait(Runnable runnable)
+  public static void invokeAndWait(final Runnable runnable)
     throws InvocationTargetException, InterruptedException {
     if (!started) {
       throw new RuntimeException(getThreadName()+": May not invokeAndWait on worker thread without starting it first");
     }
 
-    Object lockTemp = lock;
+    final Object lockTemp = lock;
     if (lockTemp == null) {
       return; // Terminating
     }
@@ -179,19 +179,19 @@ public class GLWorkerThread {
       lockTemp.notifyAll();
       lockTemp.wait();
       if (exception != null) {
-        Throwable localException = exception;
+        final Throwable localException = exception;
         exception = null;
         throw new InvocationTargetException(localException);
       }
     }
   }
 
-  public static void invokeLater(Runnable runnable) {
+  public static void invokeLater(final Runnable runnable) {
     if (!started) {
       throw new RuntimeException(getThreadName()+": May not invokeLater on worker thread without starting it first");
     }
 
-    Object lockTemp = lock;
+    final Object lockTemp = lock;
     if (lockTemp == null) {
       return; // Terminating
     }
@@ -237,7 +237,7 @@ public class GLWorkerThread {
             try {
               // Avoid race conditions with wanting to release contexts on this thread
               lock.wait(1000);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
             }
 
             if (GLContext.getCurrent() != null) {
@@ -256,7 +256,7 @@ public class GLWorkerThread {
           if (work != null) {
             try {
               work.run();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
               exception = t;
             } finally {
               work = null;
@@ -266,19 +266,19 @@ public class GLWorkerThread {
 
           while (!queue.isEmpty()) {
             try {
-              Runnable curAsync = queue.remove(0);
+              final Runnable curAsync = queue.remove(0);
               curAsync.run();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
               System.err.println(getThreadName()+": Exception occurred on JOGL OpenGL worker thread:");
               t.printStackTrace();
             }
           }
 
           // See about releasing current context
-          GLContext curContext = GLContext.getCurrent();
+          final GLContext curContext = GLContext.getCurrent();
           if (curContext != null &&
               (curContext instanceof GLContextImpl)) {
-            GLContextImpl impl = (GLContextImpl) curContext;
+            final GLContextImpl impl = (GLContextImpl) curContext;
             if (impl.hasWaiters()) {
               impl.release();
             }

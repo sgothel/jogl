@@ -72,7 +72,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         }
     }
 
-    static void validate(GLProfile glp) {
+    static void validate(final GLProfile glp) {
         final boolean gles3CompatAvail = GLContext.isGLES3CompatibleAvailable(GLProfile.getDefaultDevice());
         if( glp.getImplName().equals(GLProfile.GL4bc) ) {
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL4bc));
@@ -169,7 +169,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         }
     }
 
-    static void validate(GL gl) {
+    static void validate(final GL gl) {
         final GLContext ctx = gl.getContext();
         final boolean gles3CompatAvail = ctx.isGLES3Compatible();
 
@@ -282,7 +282,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     public void test01GLProfileDefault() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
-        GLProfile glp = GLProfile.getDefault();
+        final GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile.getDefault(): "+glp);
         validate(glp);
         dumpVersion(glp);
@@ -291,7 +291,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     @Test
     public void test02GLProfileMaxProgrammable() throws InterruptedException {
         // Assuming at least one programmable profile is available
-        GLProfile glp = GLProfile.getMaxProgrammable(true);
+        final GLProfile glp = GLProfile.getMaxProgrammable(true);
         System.out.println("GLProfile.getMaxProgrammable(): "+glp);
         validate(glp);
         dumpVersion(glp);
@@ -300,7 +300,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     @Test
     public void test03GLProfileMaxFixedFunc() throws InterruptedException {
         // Assuming at least one fixed function profile is available
-        GLProfile glp = GLProfile.getMaxFixedFunc(true);
+        final GLProfile glp = GLProfile.getMaxFixedFunc(true);
         System.out.println("GLProfile.getMaxFixedFunc(): "+glp);
         validate(glp);
         dumpVersion(glp);
@@ -312,7 +312,7 @@ public class TestGLProfile01NEWT extends UITestCase {
             System.out.println("GLProfile GL2ES1 n/a");
             return;
         }
-        GLProfile glp = GLProfile.getGL2ES1();
+        final GLProfile glp = GLProfile.getGL2ES1();
         System.out.println("GLProfile GL2ES1: "+glp);
         validate(glp);
         dumpVersion(glp);
@@ -324,7 +324,7 @@ public class TestGLProfile01NEWT extends UITestCase {
             System.out.println("GLProfile GL2ES2 n/a");
             return;
         }
-        GLProfile glp = GLProfile.getGL2ES2();
+        final GLProfile glp = GLProfile.getGL2ES2();
         System.out.println("GLProfile GL2ES2: "+glp);
         validate(glp);
         dumpVersion(glp);
@@ -336,15 +336,15 @@ public class TestGLProfile01NEWT extends UITestCase {
             System.out.println("GLProfile GL4ES3 n/a");
             return;
         }
-        GLProfile glp = GLProfile.getGL4ES3();
+        final GLProfile glp = GLProfile.getGL4ES3();
         System.out.println("GLProfile GL4ES3: "+glp);
         validate(glp);
         dumpVersion(glp);
     }
 
-    void testSpecificProfile(String glps) throws InterruptedException {
+    void testSpecificProfile(final String glps) throws InterruptedException {
         if(GLProfile.isAvailable(glps)) {
-            GLProfile glp = GLProfile.get(glps);
+            final GLProfile glp = GLProfile.get(glps);
             validate(glp);
             dumpVersion(glp);
         } else {
@@ -392,15 +392,15 @@ public class TestGLProfile01NEWT extends UITestCase {
         testSpecificProfile(GLProfile.GLES3);
     }
 
-    protected void dumpVersion(GLProfile glp) throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        GLWindow glWindow = GLWindow.create(caps);
+    protected void dumpVersion(final GLProfile glp) throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("TestGLProfile01NEWT");
 
         glWindow.addGLEventListener(new GLEventListener() {
 
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 final GL gl = drawable.getGL();
                 System.err.println(JoglVersion.getGLStrings(gl, null, true));
 
@@ -446,13 +446,13 @@ public class TestGLProfile01NEWT extends UITestCase {
                 }
             }
 
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
             }
 
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
             }
 
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
             }
         });
 
@@ -464,8 +464,8 @@ public class TestGLProfile01NEWT extends UITestCase {
         glWindow.destroy();
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestGLProfile01NEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestGLProfile01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

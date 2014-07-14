@@ -6,15 +6,15 @@ package jogamp.opengl.util.pngj;
 public class PngjBadCrcException extends PngjInputException {
 	private static final long serialVersionUID = 1L;
 
-	public PngjBadCrcException(String message, Throwable cause) {
+	public PngjBadCrcException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public PngjBadCrcException(String message) {
+	public PngjBadCrcException(final String message) {
 		super(message);
 	}
 
-	public PngjBadCrcException(Throwable cause) {
+	public PngjBadCrcException(final Throwable cause) {
 		super(cause);
 	}
 }

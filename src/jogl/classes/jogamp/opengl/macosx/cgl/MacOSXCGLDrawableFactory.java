@@ -89,7 +89,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             DesktopGLDynamicLookupHelper tmp = null;
             try {
                 tmp = new DesktopGLDynamicLookupHelper(new MacOSXCGLDynamicLibraryBundleInfo());
-            } catch (GLException gle) {
+            } catch (final GLException gle) {
                 if(DEBUG) {
                     gle.printStackTrace();
                 }
@@ -113,7 +113,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             try {
               ReflectionUtil.callStaticMethod("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
                                               "registerFactory", null, null, getClass().getClassLoader());
-            } catch (Exception jre) { /* n/a .. */ }
+            } catch (final Exception jre) { /* n/a .. */ }
         }
 
         sharedMap = new HashMap<String, SharedResource>();
@@ -144,7 +144,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(final int profile) {
       return macOSXCGLDynamicLookupHelper;
   }
 
@@ -161,9 +161,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       boolean hasRECTTextures;
       boolean hasAppleFloatPixels;
 
-      SharedResource(MacOSXGraphicsDevice device, boolean valid,
-                     boolean hasNPOTTextures, boolean hasRECTTextures, boolean hasAppletFloatPixels
-                     /* MacOSXCGLDrawable draw, MacOSXCGLContext ctx */, GLRendererQuirks glRendererQuirks) {
+      SharedResource(final MacOSXGraphicsDevice device, final boolean valid,
+                     final boolean hasNPOTTextures, final boolean hasRECTTextures, final boolean hasAppletFloatPixels
+                     /* MacOSXCGLDrawable draw, MacOSXCGLContext ctx */, final GLRendererQuirks glRendererQuirks) {
           // drawable = draw;
           // this.context = ctx;
           this.glRendererQuirks = glRendererQuirks;
@@ -207,7 +207,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+  public final boolean getIsDeviceCompatible(final AbstractGraphicsDevice device) {
       if(null!=macOSXCGLDynamicLookupHelper && device instanceof MacOSXGraphicsDevice) {
           return true;
       }
@@ -216,24 +216,24 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   private final HashSet<String> devicesTried = new HashSet<String>();
 
-  private boolean getDeviceTried(String connection) {
+  private boolean getDeviceTried(final String connection) {
       synchronized (devicesTried) {
           return devicesTried.contains(connection);
       }
   }
-  private void addDeviceTried(String connection) {
+  private void addDeviceTried(final String connection) {
       synchronized (devicesTried) {
           devicesTried.add(connection);
       }
   }
-  private void removeDeviceTried(String connection) {
+  private void removeDeviceTried(final String connection) {
       synchronized (devicesTried) {
           devicesTried.remove(connection);
       }
   }
 
   @Override
-  protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice adevice) {
+  protected final SharedResource getOrCreateSharedResourceImpl(final AbstractGraphicsDevice adevice) {
     final String connection = adevice.getConnection();
     SharedResource sr;
     synchronized(sharedMap) {
@@ -248,7 +248,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         boolean hasRECTTextures = false;
         boolean hasAppleFloatPixels = false;
         {
-            GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
+            final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
             if (null == glp) {
                 throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
             }
@@ -265,23 +265,23 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                 sharedContext.makeCurrent(); // could cause exception
                 isValid = sharedContext.isCurrent();
                 if(isValid) {
-                    GL gl = sharedContext.getGL();
+                    final GL gl = sharedContext.getGL();
                     hasNPOTTextures = gl.isNPOTTextureAvailable();
                     hasRECTTextures = gl.isExtensionAvailable(GLExtensions.EXT_texture_rectangle);
                     hasAppleFloatPixels = gl.isExtensionAvailable(GLExtensions.APPLE_float_pixels);
                     glRendererQuirks = sharedContext.getRendererQuirks();
                 }
-            } catch (GLException gle) {
+            } catch (final GLException gle) {
                 if (DEBUG) {
-                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent catched exception:");
+                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent caught exception:");
                     gle.printStackTrace();
                 }
             } finally {
                 try {
                     sharedContext.destroy();
-                } catch (GLException gle) {
+                } catch (final GLException gle) {
                     if (DEBUG) {
-                        System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy catched exception:");
+                        System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy caught exception:");
                         gle.printStackTrace();
                     }
                 }
@@ -308,12 +308,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(final AbstractGraphicsDevice device) {
       return MacOSXCGLGraphicsConfiguration.getAvailableCapabilities(this, device);
   }
 
   @Override
-  protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
+  protected GLDrawableImpl createOnscreenDrawableImpl(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -321,7 +321,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
+  protected GLDrawableImpl createOffscreenDrawableImpl(final NativeSurface target) {
     final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration();
     final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if(!caps.isPBuffer()) {
@@ -336,7 +336,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
+  public boolean canCreateGLPbuffer(final AbstractGraphicsDevice device, final GLProfile glp) {
     if( glp.isGL2() ) {
         // OSX only supports pbuffer w/ compatible, non-core, context.
         return true;
@@ -346,9 +346,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
-                                                  GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                                  GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
+  protected ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                  final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                                  final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
     final MacOSXGraphicsDevice device;
     if( createNewDevice || !(deviceReq instanceof MacOSXGraphicsDevice) ) {
         device = new MacOSXGraphicsDevice(deviceReq.getUnitID());
@@ -364,15 +364,15 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
-                                                   GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+  public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                   GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
     return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser,
                                     new OSXDummyUpstreamSurfaceHook(width, height));
   }
 
   @Override
-  protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
+  protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
     final MacOSXGraphicsDevice device = new MacOSXGraphicsDevice(deviceReq.getUnitID());
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
     final MacOSXCGLGraphicsConfiguration config = MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, true);
@@ -385,7 +385,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
+  public boolean canCreateExternalGLDrawable(final AbstractGraphicsDevice device) {
     return false;
   }
 
@@ -409,7 +409,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected boolean setGammaRamp(float[] ramp) {
+  protected boolean setGammaRamp(final float[] ramp) {
     final FloatBuffer rampNIO = Buffers.newDirectFloatBuffer(ramp);
 
     return CGL.setGammaRamp(ramp.length, rampNIO, rampNIO, rampNIO);
@@ -421,7 +421,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected void resetGammaRamp(Buffer originalGammaRamp) {
+  protected void resetGammaRamp(final Buffer originalGammaRamp) {
     CGL.resetGammaRamp();
   }
 }

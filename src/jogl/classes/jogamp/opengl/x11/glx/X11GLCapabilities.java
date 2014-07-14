@@ -41,14 +41,14 @@ public class X11GLCapabilities extends GLCapabilities {
   final private long fbcfg;
   final private int  fbcfgid;
 
-  public X11GLCapabilities(XVisualInfo xVisualInfo, long fbcfg, int fbcfgid, GLProfile glp) {
+  public X11GLCapabilities(final XVisualInfo xVisualInfo, final long fbcfg, final int fbcfgid, final GLProfile glp) {
       super(glp);
       this.xVisualInfo = xVisualInfo;
       this.fbcfg = fbcfg;
       this.fbcfgid = fbcfgid;
   }
 
-  public X11GLCapabilities(XVisualInfo xVisualInfo, GLProfile glp) {
+  public X11GLCapabilities(final XVisualInfo xVisualInfo, final GLProfile glp) {
       super(glp);
       this.xVisualInfo = xVisualInfo;
       this.fbcfg = 0;
@@ -64,7 +64,7 @@ public class X11GLCapabilities extends GLCapabilities {
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new GLException(e);
     }
   }
@@ -78,7 +78,7 @@ public class X11GLCapabilities extends GLCapabilities {
   final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid!=VisualIDHolder.VID_UNDEFINED; }
 
   @Override
-  final public int getVisualID(VIDType type) throws NativeWindowException {
+  final public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
           case INTRINSIC:
           case NATIVE:

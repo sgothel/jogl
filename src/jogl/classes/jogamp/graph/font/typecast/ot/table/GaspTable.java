@@ -18,13 +18,13 @@ import java.io.IOException;
  */
 public class GaspTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private int numRanges;
-    private GaspRange[] gaspRange;
+    private final DirectoryEntry de;
+    private final int version;
+    private final int numRanges;
+    private final GaspRange[] gaspRange;
 
     /** Creates new GaspTable */
-    protected GaspTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected GaspTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readUnsignedShort();
         numRanges = di.readUnsignedShort();
@@ -41,7 +41,7 @@ public class GaspTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'gasp' Table - Grid-fitting And Scan-conversion Procedure\n---------------------------------------------------------");
         sb.append("\n  'gasp' version:      ").append(version);
         sb.append("\n  numRanges:           ").append(numRanges);

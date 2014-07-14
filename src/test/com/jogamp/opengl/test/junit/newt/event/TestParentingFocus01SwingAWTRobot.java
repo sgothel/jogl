@@ -93,26 +93,26 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
 
     @Test
     public void testFocus02RobotFocus() throws AWTException, InterruptedException, InvocationTargetException {
-        Robot robot = new Robot();
+        final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
         testFocus01ProgrFocusImpl(robot);
     }
 
-    private void testFocus01ProgrFocusImpl(Robot robot) throws AWTException,
+    private void testFocus01ProgrFocusImpl(final Robot robot) throws AWTException,
             InvocationTargetException, InterruptedException {
-        ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
+        final ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
 
         // Create a window.
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("testNewtChildFocus");
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         TestListenerCom01AWT.setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        final NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
         glWindow1.addWindowListener(glWindow1FA);
 
         // Monitor NEWT focus and keyboard events.
-        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        final NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         eventCountAdapters.add(glWindow1KA);
         glWindow1.addKeyListener(glWindow1KA);
 
@@ -121,10 +121,10 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
         // newtCanvasAWT.setShallUseOffscreenLayer(true);
 
         // Monitor AWT focus and keyboard events.
-        AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
+        final AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(newtCanvasAWTKA);
         eventCountAdapters.add(newtCanvasAWTKA);
-        AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
+        final AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
         newtCanvasAWT.addFocusListener(newtCanvasAWTFA);
 
         // Add the canvas to a frame, and make it all visible.
@@ -132,12 +132,12 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
                                          + glWindow1.getTitle());
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
         final Button button = new Button("Click me ..");
-        AWTFocusAdapter buttonFA = new AWTFocusAdapter("Button");
+        final AWTFocusAdapter buttonFA = new AWTFocusAdapter("Button");
         button.addFocusListener(buttonFA);
-        AWTKeyAdapter buttonKA = new AWTKeyAdapter("Button");
+        final AWTKeyAdapter buttonKA = new AWTKeyAdapter("Button");
         button.addKeyListener(buttonKA);
         eventCountAdapters.add(buttonKA);
-        AWTMouseAdapter buttonMA = new AWTMouseAdapter("Button");
+        final AWTMouseAdapter buttonMA = new AWTMouseAdapter("Button");
         button.addMouseListener(buttonMA);
         eventCountAdapters.add(buttonMA);
 
@@ -161,7 +161,7 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
         Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
 
         // Continuous animation ..
-        Animator animator = new Animator(glWindow1);
+        final Animator animator = new Animator(glWindow1);
         animator.start();
 
         // Button Focus
@@ -212,7 +212,7 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
                     frame1.setVisible(false);
                     frame1.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -220,15 +220,15 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, false));
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -240,7 +240,7 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
         System.err.println(stdin.readLine());
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestParentingFocus01SwingAWTRobot.class.getName();
+        final String tstname = TestParentingFocus01SwingAWTRobot.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

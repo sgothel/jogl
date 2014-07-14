@@ -83,11 +83,16 @@ static {
     Class _gl2Class=null;
     Class _gl2es1Class=null;
     try {
-        _gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2");
-        _gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1");
+        final ClassLoader cl = GLU.class.getClassLoader();
+        _gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2", false, cl);
+        _gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1", false, cl);
     } catch (Throwable t) {}
     gl2Class = _gl2Class;
     gl2es1Class = _gl2es1Class;
+    /** Not required nor forced
+    if( !initializeImpl() ) {
+        throw new RuntimeException("Initialization failure");
+    } */
 }
 
 /**
@@ -123,14 +128,7 @@ public static final GLU createGLU(GL gl) throws GLException {
 
 public GLU()
 {
-  this.project = new ProjectFloat();
-}
-
-public void destroy() {
-  if(null!=this.project) {
-      this.project.destroy();
-      this.project=null;
-  }
+  project = new ProjectFloat();
 }
 
 public static final GL getCurrentGL() throws GLException {
@@ -1310,7 +1308,7 @@ public final void gluSphere(GLUquadric quad, double radius, int slices, int stac
 // Projection routines
 //
 
-private ProjectFloat project;
+private final ProjectFloat project;
 
 public void gluOrtho2D(float left, float right, float bottom, float top) {
   project.gluOrtho2D(getCurrentGL().getGL2ES1(), left, right, bottom, top);

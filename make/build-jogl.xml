@@ -93,7 +93,7 @@
 
         <property name="java.part.core" 
                   value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* com/jogamp/opengl/* com/jogamp/opengl/math/** jogamp/opengl/* ${java.part.core.util}"/>
-        <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl*"/>
+        <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl* com/jogamp/opengl/util/PNG*"/>
 
         <property name="java.part.nv-cg"
                   value="com/jogamp/opengl/cg com/jogamp/opengl/cg/* jogamp/opengl/cg/*"/>
@@ -153,7 +153,7 @@
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** jogamp/opengl/util/av/** jogamp/opengl/util/jpeg/** jogamp/opengl/util/pngj/**"/>
+                  value="com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** com/jogamp/opengl/util/PNG* com/jogamp/opengl/util/stereo/** jogamp/opengl/util/av/** jogamp/opengl/util/jpeg/** jogamp/opengl/util/pngj/** jogamp/opengl/util/stereo/**"/>
 
         <property name="java.part.util.awt"
                   value="com/jogamp/opengl/util/**/awt/**"/>
@@ -173,6 +173,9 @@
         <property name="java.part.core.shadercode"
                   value="jogamp/opengl/shader/* jogamp/opengl/shader/bin/**"/>
 
+        <property name="java.part.util.shadercode"
+                  value="jogamp/opengl/util/stereo/shader/*"/>
+
         <property name="java.part.util.graph.shadercode"
                   value="jogamp/graph/curve/opengl/shader/* jogamp/graph/curve/opengl/shader/bin/**"/>
 
@@ -183,7 +186,7 @@
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
         <property name="java.part.nonjava" 
-                  value="${java.part.core.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+                  value="${java.part.core.shadercode} ${java.part.util.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <property name="java.part.all-desktop" 
                   value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glu.gldesktop} ${java.part.util.gldesktop}"/>
@@ -822,9 +825,7 @@
                      includes="${java.part.gluegen-gl-rt} ${java.part.gluegen-gl}"/>
         </jar>
 
-        <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
+        <!-- Add the BuildStaticGLInfo tasks to ANT -->
         <taskdef name="staticglgen" classname="com.jogamp.gluegen.opengl.ant.StaticGLGenTask"
                  classpathref="gluegen-gl.classpath" />
     </target>
@@ -1510,7 +1511,7 @@
         <patternset id="c.obj.files.ffmpeg.inject">
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc53_lavf53_lavu51.*"/>
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc54_lavf54_lavu52_lavr01.*"/>
-          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu52_lavr01.*"/>
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu53_lavr01.*"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
@@ -1665,7 +1666,7 @@
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
 
-      <c.build.ffmpeg version.lav="lavc55_lavf55_lavu52_lavr01"
+      <c.build.ffmpeg version.lav="lavc55_lavf55_lavu53_lavr01"
                output.lib.name="jogl_ffmpegv10"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
@@ -1721,7 +1722,7 @@
             <srcfileset dir="${src.java}"
                      includes="${java.part.nonjava}"/>
             <targetfileset dir="."
-                     includes="${jogl-core.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
+                     includes="${jogl.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
         </dependset>
     </target>
     <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
@@ -1730,6 +1731,18 @@
         <property name="manifestfile" value="joglversion"/>
         <copy file="${manifestfile}"
             tofile="${build.jogl}/manifest.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
+        <copy file="${manifestfile}-natives"
+            tofile="${build.jogl}/manifest-natives.mf"
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogamp.version}"/>
@@ -1816,7 +1829,7 @@
 
     <target name="build-jars-javase" depends="setup-manifestfile, build-jars-android, build-jars-mobile-javase, 
                                               build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-core.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.core.exclude}"/>
@@ -1856,17 +1869,18 @@
             <fileset dir="${classes}"
                      includes="${java.part.nv-cg}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.jogl}">
-              <include name="*.${native.library.suffix}" />
-              <exclude name="*jogl_cg.${native.library.suffix}" />
-            </fileset>
-        </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-cg-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.jogl}">
-              <include name="*jogl_cg.${native.library.suffix}" />
-            </fileset>
-        </jar>
+        <native.tag.jar objdir="${obj.jogl}"
+                        nativejarfile="${build.jogl}/jogl-natives-${os.and.arch}.jar"
+                        manifestfile="${build.jogl}/manifest-natives.mf"
+                        module="opengl"
+                        includelibs="*.${native.library.suffix}" 
+                        excludelibs="*jogl_cg.${native.library.suffix}" />
+
+        <native.tag.jar objdir="${obj.jogl}"
+                        nativejarfile="${build.jogl}/jogl-cg-natives-${os.and.arch}.jar"
+                        manifestfile="${build.jogl}/manifest-natives.mf"
+                        module="cg"
+                        includelibs="*jogl_cg.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->

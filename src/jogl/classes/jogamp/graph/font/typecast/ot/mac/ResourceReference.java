@@ -30,15 +30,15 @@ import java.io.IOException;
  */
 public class ResourceReference {
 
-    private int id;
-    private short nameOffset;
-    private short attributes;
-    private int dataOffset;
-    private int handle;
+    private final int id;
+    private final short nameOffset;
+    private final short attributes;
+    private final int dataOffset;
+    private final int handle;
     private String name;
 
     /** Creates new ResourceReference */
-    protected ResourceReference(DataInput di) throws IOException {
+    protected ResourceReference(final DataInput di) throws IOException {
         id = di.readUnsignedShort();
         nameOffset = di.readShort();
         attributes = (short) di.readUnsignedByte();
@@ -46,10 +46,10 @@ public class ResourceReference {
         handle = di.readInt();
     }
 
-    protected void readName(DataInput di) throws IOException {
+    protected void readName(final DataInput di) throws IOException {
         if (nameOffset > -1) {
-            int len = di.readUnsignedByte();
-            byte[] buf = new byte[len];
+            final int len = di.readUnsignedByte();
+            final byte[] buf = new byte[len];
             di.readFully(buf);
             name = new String(buf);
         }

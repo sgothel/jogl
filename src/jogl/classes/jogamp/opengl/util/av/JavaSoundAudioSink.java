@@ -31,7 +31,7 @@ public class JavaSoundAudioSink implements AudioSink {
     private DataLine.Info info;
     private SourceDataLine auline;
     private int bufferCount;
-    private byte [] sampleData = new byte[BUFFER_SIZE];
+    private final byte [] sampleData = new byte[BUFFER_SIZE];
     private boolean initialized = false;
     private AudioSink.AudioFormat chosenFormat = null;
 
@@ -43,7 +43,7 @@ public class JavaSoundAudioSink implements AudioSink {
         try {
             AudioSystem.getAudioFileTypes();
             ok = true;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
 
         }
         staticAvailable=ok;
@@ -59,7 +59,7 @@ public class JavaSoundAudioSink implements AudioSink {
     public final float getPlaySpeed() { return 1.0f; } // FIXME
 
     @Override
-    public final boolean setPlaySpeed(float rate) {
+    public final boolean setPlaySpeed(final float rate) {
         return false; // FIXME
     }
 
@@ -70,7 +70,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean setVolume(float v) {
+    public final boolean setVolume(final float v) {
         // FIXME
         volume = v;
         return true;
@@ -87,12 +87,12 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean isSupported(AudioSink.AudioFormat format) {
+    public final boolean isSupported(final AudioSink.AudioFormat format) {
         return true;
     }
 
     @Override
-    public boolean init(AudioSink.AudioFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+    public boolean init(final AudioSink.AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         if( !staticAvailable ) {
             return false;
         }
@@ -112,10 +112,15 @@ public class JavaSoundAudioSink implements AudioSink {
             System.out.println("JavaSound audio sink");
             initialized=true;
             chosenFormat = requestedFormat;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             initialized=false;
         }
         return true;
+    }
+
+    @Override
+    public final AudioFormat getChosenFormat() {
+        return chosenFormat;
     }
 
     @Override
@@ -181,28 +186,22 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioFrame enqueueData(AudioDataFrame audioDataFrame) {
-        int byteSize = audioDataFrame.getByteSize();
-        final ByteBuffer byteBuffer = audioDataFrame.getData();
-        final byte[] bytes = new byte[byteSize];
+    public AudioFrame enqueueData(final int pts, final ByteBuffer byteBuffer, final int byteCount) {
+        final byte[] bytes = new byte[byteCount];
         final int p = byteBuffer.position();
-        byteBuffer.get(bytes, 0, byteSize);
+        byteBuffer.get(bytes, 0, byteCount);
         byteBuffer.position(p);
 
         int written = 0;
         int len;
-        while (byteSize > 0) {
-            len = auline.write(bytes, written, byteSize);
-            byteSize -= len;
+        int bytesLeft = byteCount;
+        while (bytesLeft > 0) {
+            len = auline.write(bytes, written, byteCount);
+            bytesLeft -= len;
             written += len;
         }
         playImpl();
-        return audioDataFrame;
-    }
-
-    @Override
-    public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount) {
-        return enqueueData(new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), bytes, byteCount));
+        return new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), byteBuffer, byteCount);
     }
 
     @Override
@@ -219,7 +218,7 @@ public class JavaSoundAudioSink implements AudioSink {
     public int getQueuedTime() {
         return getQueuedTimeImpl( getQueuedByteCount() );
     }
-    private final int getQueuedTimeImpl(int byteCount) {
+    private final int getQueuedTimeImpl(final int byteCount) {
         final int bytesPerSample = chosenFormat.sampleSize >>> 3; // /8
         return byteCount / ( chosenFormat.channelCount * bytesPerSample * ( chosenFormat.sampleRate / 1000 ) );
     }

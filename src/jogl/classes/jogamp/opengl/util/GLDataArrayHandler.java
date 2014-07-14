@@ -40,22 +40,22 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  */
 public class GLDataArrayHandler extends GLVBOArrayHandler {
 
-  public GLDataArrayHandler(GLArrayDataEditable ad) {
+  public GLDataArrayHandler(final GLArrayDataEditable ad) {
     super(ad);
   }
 
   @Override
-  public final void setSubArrayVBOName(int vboName) {
+  public final void setSubArrayVBOName(final int vboName) {
       throw new UnsupportedOperationException();
   }
 
   @Override
-  public final void addSubHandler(GLArrayHandlerFlat handler) {
+  public final void addSubHandler(final GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
 
   @Override
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     if(enable) {
         if(!ad.isVBO()) {
             // makes no sense otherwise

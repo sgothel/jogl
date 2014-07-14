@@ -50,14 +50,14 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
 
         public final int id;
 
-        TextureType(int id){
+        TextureType(final int id){
             this.id = id;
         }
     }
 
     public static class EGLTextureFrame extends TextureSequence.TextureFrame {
 
-        public EGLTextureFrame(Buffer clientBuffer, Texture t, long khrImage, long khrSync) {
+        public EGLTextureFrame(final Buffer clientBuffer, final Texture t, final long khrImage, final long khrSync) {
             super(t);
             this.clientBuffer = clientBuffer;
             this.image = khrImage;
@@ -78,15 +78,15 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
 
 
-    protected EGLMediaPlayerImpl(TextureType texType, boolean useKHRSync) {
+    protected EGLMediaPlayerImpl(final TextureType texType, final boolean useKHRSync) {
         super();
         this.texType = texType;
         this.useKHRSync = useKHRSync;
     }
 
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
-        final Texture texture = super.createTexImageImpl(gl, texName, width, height);
+    protected TextureSequence.TextureFrame createTexImage(final GL gl, final int texName) {
+        final Texture texture = super.createTexImageImpl(gl, texName, getWidth(), getHeight());
         final Buffer clientBuffer;
         final long image;
         final long sync;
@@ -106,7 +106,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         }
 
         if(TextureType.KHRImage == texType) {
-            IntBuffer nioTmp = Buffers.newDirectIntBuffer(1);
+            final IntBuffer nioTmp = Buffers.newDirectIntBuffer(1);
             // create EGLImage from texture
             clientBuffer = null; // FIXME
             nioTmp.put(0, EGL.EGL_NONE);
@@ -122,7 +122,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         }
 
         if(useKHRSync) {
-            IntBuffer tmp = Buffers.newDirectIntBuffer(1);
+            final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
             // Create sync object so that we can be sure that gl has finished
             // rendering the EGLImage texture before we tell OpenMAX to fill
             // it with a new frame.
@@ -138,7 +138,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
+    protected void destroyTexFrame(final GL gl, final TextureSequence.TextureFrame frame) {
         final boolean eglUsage = TextureType.KHRImage == texType || useKHRSync ;
         final EGLContext eglCtx;
         final EGLExt eglExt;

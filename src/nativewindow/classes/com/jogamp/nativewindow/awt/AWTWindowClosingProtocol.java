@@ -53,7 +53,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
    * @param closingOperationClose mandatory closing operation, triggered if windowClosing and {@link WindowClosingMode#DISPOSE_ON_CLOSE}
    * @param closingOperationNOP optional closing operation, triggered if windowClosing and {@link WindowClosingMode#DO_NOTHING_ON_CLOSE}
    */
-  public AWTWindowClosingProtocol(Component comp, Runnable closingOperationClose, Runnable closingOperationNOP) {
+  public AWTWindowClosingProtocol(final Component comp, final Runnable closingOperationClose, final Runnable closingOperationNOP) {
       this.comp = comp;
       this.listenTo = null;
       this.closingOperationClose = closingOperationClose;
@@ -62,7 +62,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
 
   class WindowClosingAdapter extends WindowAdapter {
     @Override
-    public void windowClosing(WindowEvent e) {
+    public void windowClosing(final WindowEvent e) {
       final WindowClosingMode op = AWTWindowClosingProtocol.this.getDefaultCloseOperation();
 
       if( WindowClosingMode.DISPOSE_ON_CLOSE == op ) {
@@ -128,7 +128,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   }
 
   @Override
-  public final WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+  public final WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
       synchronized(closingListenerLock) {
           final WindowClosingMode _op = defaultCloseOperation;
           defaultCloseOperation = op;

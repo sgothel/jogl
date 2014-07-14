@@ -115,9 +115,9 @@ class Mesh {
  * depending on whether a and b belong to different face or vertex rings.
  * For more explanation see __gl_meshSplice() below.
  */
-    static void Splice(jogamp.opengl.glu.tessellator.GLUhalfEdge a, jogamp.opengl.glu.tessellator.GLUhalfEdge b) {
-        jogamp.opengl.glu.tessellator.GLUhalfEdge aOnext = a.Onext;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge bOnext = b.Onext;
+    static void Splice(final jogamp.opengl.glu.tessellator.GLUhalfEdge a, final jogamp.opengl.glu.tessellator.GLUhalfEdge b) {
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge aOnext = a.Onext;
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge bOnext = b.Onext;
 
         aOnext.Sym.Lnext = b;
         bOnext.Sym.Lnext = a;
@@ -131,11 +131,11 @@ class Mesh {
  * the new vertex *before* vNext so that algorithms which walk the vertex
  * list will not see the newly created vertices.
  */
-    static void MakeVertex(jogamp.opengl.glu.tessellator.GLUvertex newVertex,
-                           jogamp.opengl.glu.tessellator.GLUhalfEdge eOrig, jogamp.opengl.glu.tessellator.GLUvertex vNext) {
+    static void MakeVertex(final jogamp.opengl.glu.tessellator.GLUvertex newVertex,
+                           final jogamp.opengl.glu.tessellator.GLUhalfEdge eOrig, final jogamp.opengl.glu.tessellator.GLUvertex vNext) {
         jogamp.opengl.glu.tessellator.GLUhalfEdge e;
         jogamp.opengl.glu.tessellator.GLUvertex vPrev;
-        jogamp.opengl.glu.tessellator.GLUvertex vNew = newVertex;
+        final jogamp.opengl.glu.tessellator.GLUvertex vNew = newVertex;
 
         assert (vNew != null);
 
@@ -164,10 +164,10 @@ class Mesh {
  * the new face *before* fNext so that algorithms which walk the face
  * list will not see the newly created faces.
  */
-    static void MakeFace(jogamp.opengl.glu.tessellator.GLUface newFace, jogamp.opengl.glu.tessellator.GLUhalfEdge eOrig, jogamp.opengl.glu.tessellator.GLUface fNext) {
+    static void MakeFace(final jogamp.opengl.glu.tessellator.GLUface newFace, final jogamp.opengl.glu.tessellator.GLUhalfEdge eOrig, final jogamp.opengl.glu.tessellator.GLUface fNext) {
         jogamp.opengl.glu.tessellator.GLUhalfEdge e;
         jogamp.opengl.glu.tessellator.GLUface fPrev;
-        jogamp.opengl.glu.tessellator.GLUface fNew = newFace;
+        final jogamp.opengl.glu.tessellator.GLUface fNew = newFace;
 
         assert (fNew != null);
 
@@ -218,8 +218,9 @@ class Mesh {
 /* KillVertex( vDel ) destroys a vertex and removes it from the global
  * vertex list.  It updates the vertex loop to point to a given new vertex.
  */
-    static void KillVertex(jogamp.opengl.glu.tessellator.GLUvertex vDel, jogamp.opengl.glu.tessellator.GLUvertex newOrg) {
-        jogamp.opengl.glu.tessellator.GLUhalfEdge e, eStart = vDel.anEdge;
+    static void KillVertex(final jogamp.opengl.glu.tessellator.GLUvertex vDel, final jogamp.opengl.glu.tessellator.GLUvertex newOrg) {
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e;
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eStart = vDel.anEdge;
         jogamp.opengl.glu.tessellator.GLUvertex vPrev, vNext;
 
         /* change the origin of all affected edges */
@@ -239,8 +240,9 @@ class Mesh {
 /* KillFace( fDel ) destroys a face and removes it from the global face
  * list.  It updates the face loop to point to a given new face.
  */
-    static void KillFace(jogamp.opengl.glu.tessellator.GLUface fDel, jogamp.opengl.glu.tessellator.GLUface newLface) {
-        jogamp.opengl.glu.tessellator.GLUhalfEdge e, eStart = fDel.anEdge;
+    static void KillFace(final jogamp.opengl.glu.tessellator.GLUface fDel, final jogamp.opengl.glu.tessellator.GLUface newLface) {
+        jogamp.opengl.glu.tessellator.GLUhalfEdge e;
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eStart = fDel.anEdge;
         jogamp.opengl.glu.tessellator.GLUface fPrev, fNext;
 
         /* change the left face of all affected edges */
@@ -263,10 +265,10 @@ class Mesh {
 /* __gl_meshMakeEdge creates one edge, two vertices, and a loop (face).
  * The loop consists of the two new half-edges.
  */
-    public static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshMakeEdge(jogamp.opengl.glu.tessellator.GLUmesh mesh) {
-        jogamp.opengl.glu.tessellator.GLUvertex newVertex1 = new jogamp.opengl.glu.tessellator.GLUvertex();
-        jogamp.opengl.glu.tessellator.GLUvertex newVertex2 = new jogamp.opengl.glu.tessellator.GLUvertex();
-        jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
+    public static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshMakeEdge(final jogamp.opengl.glu.tessellator.GLUmesh mesh) {
+        final jogamp.opengl.glu.tessellator.GLUvertex newVertex1 = new jogamp.opengl.glu.tessellator.GLUvertex();
+        final jogamp.opengl.glu.tessellator.GLUvertex newVertex2 = new jogamp.opengl.glu.tessellator.GLUvertex();
+        final jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
         jogamp.opengl.glu.tessellator.GLUhalfEdge e;
 
         e = MakeEdge(mesh.eHead);
@@ -302,7 +304,7 @@ class Mesh {
  * If eDst == eOrg->Onext, the new vertex will have a single edge.
  * If eDst == eOrg->Oprev, the old vertex will have a single edge.
  */
-    public static boolean __gl_meshSplice(jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg, jogamp.opengl.glu.tessellator.GLUhalfEdge eDst) {
+    public static boolean __gl_meshSplice(final jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg, final jogamp.opengl.glu.tessellator.GLUhalfEdge eDst) {
         boolean joiningLoops = false;
         boolean joiningVertices = false;
 
@@ -323,7 +325,7 @@ class Mesh {
         Splice(eDst, eOrg);
 
         if (!joiningVertices) {
-            jogamp.opengl.glu.tessellator.GLUvertex newVertex = new jogamp.opengl.glu.tessellator.GLUvertex();
+            final jogamp.opengl.glu.tessellator.GLUvertex newVertex = new jogamp.opengl.glu.tessellator.GLUvertex();
 
             /* We split one vertex into two -- the new vertex is eDst.Org.
              * Make sure the old vertex points to a valid half-edge.
@@ -332,7 +334,7 @@ class Mesh {
             eOrg.Org.anEdge = eOrg;
         }
         if (!joiningLoops) {
-            jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
+            final jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
 
             /* We split one loop into two -- the new loop is eDst.Lface.
              * Make sure the old face points to a valid half-edge.
@@ -355,8 +357,8 @@ class Mesh {
  * plus a few calls to memFree, but this would allocate and delete
  * unnecessary vertices and faces.
  */
-    static boolean __gl_meshDelete(jogamp.opengl.glu.tessellator.GLUhalfEdge eDel) {
-        jogamp.opengl.glu.tessellator.GLUhalfEdge eDelSym = eDel.Sym;
+    static boolean __gl_meshDelete(final jogamp.opengl.glu.tessellator.GLUhalfEdge eDel) {
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eDelSym = eDel.Sym;
         boolean joiningLoops = false;
 
         /* First step: disconnect the origin vertex eDel.Org.  We make all
@@ -377,7 +379,7 @@ class Mesh {
 
             Splice(eDel, eDel.Sym.Lnext);
             if (!joiningLoops) {
-                jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
+                final jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
 
                 /* We are splitting one loop into two -- create a new loop for eDel. */
                 MakeFace(newFace, eDel, eDel.Lface);
@@ -415,9 +417,9 @@ class Mesh {
  * eNew == eOrg.Lnext, and eNew.Dst is a newly created vertex.
  * eOrg and eNew will have the same left face.
  */
-    static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshAddEdgeVertex(jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg) {
+    static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshAddEdgeVertex(final jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg) {
         jogamp.opengl.glu.tessellator.GLUhalfEdge eNewSym;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge eNew = MakeEdge(eOrg);
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eNew = MakeEdge(eOrg);
 
         eNewSym = eNew.Sym;
 
@@ -427,7 +429,7 @@ class Mesh {
         /* Set the vertex and face information */
         eNew.Org = eOrg.Sym.Org;
         {
-            jogamp.opengl.glu.tessellator.GLUvertex newVertex = new jogamp.opengl.glu.tessellator.GLUvertex();
+            final jogamp.opengl.glu.tessellator.GLUvertex newVertex = new jogamp.opengl.glu.tessellator.GLUvertex();
 
             MakeVertex(newVertex, eNewSym, eNew.Org);
         }
@@ -441,9 +443,9 @@ class Mesh {
  * such that eNew == eOrg.Lnext.  The new vertex is eOrg.Sym.Org == eNew.Org.
  * eOrg and eNew will have the same left face.
  */
-    public static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshSplitEdge(jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg) {
+    public static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshSplitEdge(final jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg) {
         jogamp.opengl.glu.tessellator.GLUhalfEdge eNew;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge tempHalfEdge = __gl_meshAddEdgeVertex(eOrg);
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge tempHalfEdge = __gl_meshAddEdgeVertex(eOrg);
 
         eNew = tempHalfEdge.Sym;
 
@@ -472,10 +474,10 @@ class Mesh {
  * If (eOrg.Lnext == eDst), the old face is reduced to a single edge.
  * If (eOrg.Lnext.Lnext == eDst), the old face is reduced to two edges.
  */
-    static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshConnect(jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg, jogamp.opengl.glu.tessellator.GLUhalfEdge eDst) {
+    static jogamp.opengl.glu.tessellator.GLUhalfEdge __gl_meshConnect(final jogamp.opengl.glu.tessellator.GLUhalfEdge eOrg, final jogamp.opengl.glu.tessellator.GLUhalfEdge eDst) {
         jogamp.opengl.glu.tessellator.GLUhalfEdge eNewSym;
         boolean joiningLoops = false;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge eNew = MakeEdge(eOrg);
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eNew = MakeEdge(eOrg);
 
         eNewSym = eNew.Sym;
 
@@ -498,7 +500,7 @@ class Mesh {
         eOrg.Lface.anEdge = eNewSym;
 
         if (!joiningLoops) {
-            jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
+            final jogamp.opengl.glu.tessellator.GLUface newFace = new jogamp.opengl.glu.tessellator.GLUface();
 
             /* We split one loop into two -- the new loop is eNew.Lface */
             MakeFace(newFace, eNew, eOrg.Lface);
@@ -516,8 +518,8 @@ class Mesh {
  * An entire mesh can be deleted by zapping its faces, one at a time,
  * in any order.  Zapped faces cannot be used in further mesh operations!
  */
-    static void __gl_meshZapFace(jogamp.opengl.glu.tessellator.GLUface fZap) {
-        jogamp.opengl.glu.tessellator.GLUhalfEdge eStart = fZap.anEdge;
+    static void __gl_meshZapFace(final jogamp.opengl.glu.tessellator.GLUface fZap) {
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eStart = fZap.anEdge;
         jogamp.opengl.glu.tessellator.GLUhalfEdge e, eNext, eSym;
         jogamp.opengl.glu.tessellator.GLUface fPrev, fNext;
 
@@ -566,7 +568,7 @@ class Mesh {
         jogamp.opengl.glu.tessellator.GLUface f;
         jogamp.opengl.glu.tessellator.GLUhalfEdge e;
         jogamp.opengl.glu.tessellator.GLUhalfEdge eSym;
-        jogamp.opengl.glu.tessellator.GLUmesh mesh = new jogamp.opengl.glu.tessellator.GLUmesh();
+        final jogamp.opengl.glu.tessellator.GLUmesh mesh = new jogamp.opengl.glu.tessellator.GLUmesh();
 
         v = mesh.vHead;
         f = mesh.fHead;
@@ -609,13 +611,13 @@ class Mesh {
 /* __gl_meshUnion( mesh1, mesh2 ) forms the union of all structures in
  * both meshes, and returns the new mesh (the old meshes are destroyed).
  */
-    static jogamp.opengl.glu.tessellator.GLUmesh __gl_meshUnion(jogamp.opengl.glu.tessellator.GLUmesh mesh1, jogamp.opengl.glu.tessellator.GLUmesh mesh2) {
-        jogamp.opengl.glu.tessellator.GLUface f1 = mesh1.fHead;
-        jogamp.opengl.glu.tessellator.GLUvertex v1 = mesh1.vHead;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge e1 = mesh1.eHead;
-        jogamp.opengl.glu.tessellator.GLUface f2 = mesh2.fHead;
-        jogamp.opengl.glu.tessellator.GLUvertex v2 = mesh2.vHead;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge e2 = mesh2.eHead;
+    static jogamp.opengl.glu.tessellator.GLUmesh __gl_meshUnion(final jogamp.opengl.glu.tessellator.GLUmesh mesh1, final jogamp.opengl.glu.tessellator.GLUmesh mesh2) {
+        final jogamp.opengl.glu.tessellator.GLUface f1 = mesh1.fHead;
+        final jogamp.opengl.glu.tessellator.GLUvertex v1 = mesh1.vHead;
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge e1 = mesh1.eHead;
+        final jogamp.opengl.glu.tessellator.GLUface f2 = mesh2.fHead;
+        final jogamp.opengl.glu.tessellator.GLUvertex v2 = mesh2.vHead;
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge e2 = mesh2.eHead;
 
         /* Add the faces, vertices, and edges of mesh2 to those of mesh1 */
         if (f2.next != f2) {
@@ -645,8 +647,8 @@ class Mesh {
 
 /* __gl_meshDeleteMesh( mesh ) will free all storage for any valid mesh.
  */
-    static void __gl_meshDeleteMeshZap(jogamp.opengl.glu.tessellator.GLUmesh mesh) {
-        jogamp.opengl.glu.tessellator.GLUface fHead = mesh.fHead;
+    static void __gl_meshDeleteMeshZap(final jogamp.opengl.glu.tessellator.GLUmesh mesh) {
+        final jogamp.opengl.glu.tessellator.GLUface fHead = mesh.fHead;
 
         while (fHead.next != fHead) {
             __gl_meshZapFace(fHead.next);
@@ -656,7 +658,7 @@ class Mesh {
 
 /* __gl_meshDeleteMesh( mesh ) will free all storage for any valid mesh.
  */
-    public static void __gl_meshDeleteMesh(jogamp.opengl.glu.tessellator.GLUmesh mesh) {
+    public static void __gl_meshDeleteMesh(final jogamp.opengl.glu.tessellator.GLUmesh mesh) {
         jogamp.opengl.glu.tessellator.GLUface f, fNext;
         jogamp.opengl.glu.tessellator.GLUvertex v, vNext;
         jogamp.opengl.glu.tessellator.GLUhalfEdge e, eNext;
@@ -677,10 +679,10 @@ class Mesh {
 
 /* __gl_meshCheckMesh( mesh ) checks a mesh for self-consistency.
  */
-    public static void __gl_meshCheckMesh(jogamp.opengl.glu.tessellator.GLUmesh mesh) {
-        jogamp.opengl.glu.tessellator.GLUface fHead = mesh.fHead;
-        jogamp.opengl.glu.tessellator.GLUvertex vHead = mesh.vHead;
-        jogamp.opengl.glu.tessellator.GLUhalfEdge eHead = mesh.eHead;
+    public static void __gl_meshCheckMesh(final jogamp.opengl.glu.tessellator.GLUmesh mesh) {
+        final jogamp.opengl.glu.tessellator.GLUface fHead = mesh.fHead;
+        final jogamp.opengl.glu.tessellator.GLUvertex vHead = mesh.vHead;
+        final jogamp.opengl.glu.tessellator.GLUhalfEdge eHead = mesh.eHead;
         jogamp.opengl.glu.tessellator.GLUface f, fPrev;
         jogamp.opengl.glu.tessellator.GLUvertex v, vPrev;
         jogamp.opengl.glu.tessellator.GLUhalfEdge e, ePrev;

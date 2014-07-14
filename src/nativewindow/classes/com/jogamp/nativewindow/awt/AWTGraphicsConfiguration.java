@@ -54,19 +54,19 @@ import jogamp.nativewindow.Debug;
     handled in a toolkit-independent manner. */
 
 public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration implements Cloneable {
-  private GraphicsConfiguration config;
+  private final GraphicsConfiguration config;
   AbstractGraphicsConfiguration encapsulated;
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen,
-                                  CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-                                  GraphicsConfiguration config, AbstractGraphicsConfiguration encapsulated) {
+  public AWTGraphicsConfiguration(final AWTGraphicsScreen screen,
+                                  final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+                                  final GraphicsConfiguration config, final AbstractGraphicsConfiguration encapsulated) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=encapsulated;
   }
 
-  private AWTGraphicsConfiguration(AWTGraphicsScreen screen, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-                                   GraphicsConfiguration config) {
+  private AWTGraphicsConfiguration(final AWTGraphicsScreen screen, final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+                                   final GraphicsConfiguration config) {
     super(screen, capsChosen, capsRequested);
     this.config = config;
     this.encapsulated=null;
@@ -78,7 +78,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
    *        Otherwise the <code>capsChosen</code> is used.
    * @param capsRequested if null, default {@link Capabilities} are used, otherwise the given values.
    */
-  public static AWTGraphicsConfiguration create(Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
+  public static AWTGraphicsConfiguration create(final Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
       final GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
       if(null==awtGfxConfig) {
           throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsConfiguration @ "+awtComp);
@@ -96,7 +96,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
           capsRequested = new Capabilities();
       }
       if(null==capsChosen) {
-          GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
+          final GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
           capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsRequested, gc);
       }
       final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(awtDevice, capsChosen);
@@ -110,7 +110,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
 
   // open access to superclass method
   @Override
-  public void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
+  public void setChosenCapabilities(final CapabilitiesImmutable capsChosen) {
       super.setChosenCapabilities(capsChosen);
   }
 
@@ -136,16 +136,16 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
    * @param gc the GraphicsConfiguration from which to derive the RGBA bit depths
    * @return the passed Capabilities
    */
-  public static CapabilitiesImmutable setupCapabilitiesRGBABits(CapabilitiesImmutable capabilitiesIn, GraphicsConfiguration gc) {
-    Capabilities capabilities = (Capabilities) capabilitiesIn.cloneMutable();
+  public static CapabilitiesImmutable setupCapabilitiesRGBABits(final CapabilitiesImmutable capabilitiesIn, final GraphicsConfiguration gc) {
+    final Capabilities capabilities = (Capabilities) capabilitiesIn.cloneMutable();
 
-    ColorModel cm = gc.getColorModel();
+    final ColorModel cm = gc.getColorModel();
     if(null==cm) {
         throw new NativeWindowException("Could not determine AWT ColorModel");
     }
-    int cmBitsPerPixel = cm.getPixelSize();
+    final int cmBitsPerPixel = cm.getPixelSize();
     int bitsPerPixel = 0;
-    int[] bitesPerComponent = cm.getComponentSize();
+    final int[] bitesPerComponent = cm.getComponentSize();
     if(bitesPerComponent.length>=3) {
         capabilities.setRedBits(bitesPerComponent[0]);
         bitsPerPixel += bitesPerComponent[0];

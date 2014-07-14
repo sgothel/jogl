@@ -30,6 +30,8 @@ package com.jogamp.newt.event.awt;
 
 import java.awt.Dimension;
 
+import javax.media.nativewindow.NativeSurfaceHolder;
+
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 public class AWTWindowAdapter
@@ -38,24 +40,25 @@ public class AWTWindowAdapter
 {
     WindowClosingListener windowClosingListener;
 
-    public AWTWindowAdapter(com.jogamp.newt.event.WindowListener newtListener) {
-        super(newtListener);
+    public AWTWindowAdapter(final com.jogamp.newt.event.WindowListener newtListener, final NativeSurfaceHolder nsProxy) {
+        super(newtListener, nsProxy);
     }
 
-    public AWTWindowAdapter(com.jogamp.newt.event.WindowListener newtListener, com.jogamp.newt.Window newtProxy) {
+    public AWTWindowAdapter(final com.jogamp.newt.event.WindowListener newtListener, final com.jogamp.newt.Window newtProxy) {
         super(newtListener, newtProxy);
     }
 
-    public AWTWindowAdapter(com.jogamp.newt.Window downstream) {
+    public AWTWindowAdapter(final com.jogamp.newt.Window downstream) {
         super(downstream);
     }
+
     public AWTWindowAdapter() {
         super();
     }
 
     @Override
-    public synchronized AWTAdapter addTo(java.awt.Component awtComponent) {
-        java.awt.Window win = getWindow(awtComponent);
+    public synchronized AWTAdapter addTo(final java.awt.Component awtComponent) {
+        final java.awt.Window win = getWindow(awtComponent);
         awtComponent.addComponentListener(this);
         awtComponent.addFocusListener(this);
         if( null != win && null == windowClosingListener ) {
@@ -68,8 +71,8 @@ public class AWTWindowAdapter
         return this;
     }
 
-    public synchronized AWTAdapter removeWindowClosingFrom(java.awt.Component awtComponent) {
-        java.awt.Window win = getWindow(awtComponent);
+    public synchronized AWTAdapter removeWindowClosingFrom(final java.awt.Component awtComponent) {
+        final java.awt.Window win = getWindow(awtComponent);
         if( null != win && null != windowClosingListener ) {
             win.removeWindowListener(windowClosingListener);
         }
@@ -77,7 +80,7 @@ public class AWTWindowAdapter
     }
 
     @Override
-    public synchronized AWTAdapter removeFrom(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter removeFrom(final java.awt.Component awtComponent) {
         awtComponent.removeFocusListener(this);
         awtComponent.removeComponentListener(this);
         removeWindowClosingFrom(awtComponent);
@@ -91,44 +94,37 @@ public class AWTWindowAdapter
         while( null != comp && !(comp instanceof java.awt.Window) ) {
             comp = comp.getParent();
         }
-        if(comp instanceof java.awt.Window) {
-            return (java.awt.Window) comp;
-        }
-        return null;
+        return (java.awt.Window) comp; // either null or a 'java.awt.Window'
     }
 
     @Override
-    public synchronized void focusGained(java.awt.event.FocusEvent e) {
+    public synchronized void focusGained(final java.awt.event.FocusEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+        final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusGained: "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowGainedFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void focusLost(java.awt.event.FocusEvent e) {
+    public synchronized void focusLost(final java.awt.event.FocusEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+        final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusLost: "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowLostFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void componentResized(java.awt.event.ComponentEvent e) {
+    public synchronized void componentResized(final java.awt.event.ComponentEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+        final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
         if(DEBUG_IMPLEMENTATION) {
             final java.awt.Component c = e.getComponent();
             final java.awt.Dimension sz = c.getSize();
@@ -144,29 +140,25 @@ public class AWTWindowAdapter
             }
             System.err.println("AWT: componentResized: "+sz+" ( "+insets+", "+sz2+" ), "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowResized(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void componentMoved(java.awt.event.ComponentEvent e) {
+    public synchronized void componentMoved(final java.awt.event.ComponentEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+        final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentMoved: "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowMoved(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void componentShown(java.awt.event.ComponentEvent e) {
+    public synchronized void componentShown(final java.awt.event.ComponentEvent e) {
         if( !isSetup ) { return; }
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
@@ -185,7 +177,7 @@ public class AWTWindowAdapter
     }
 
     @Override
-    public synchronized void componentHidden(java.awt.event.ComponentEvent e) {
+    public synchronized void componentHidden(final java.awt.event.ComponentEvent e) {
         if( !isSetup ) { return; }
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
@@ -204,78 +196,70 @@ public class AWTWindowAdapter
     }
 
     @Override
-    public synchronized void windowActivated(java.awt.event.WindowEvent e) {
+    public synchronized void windowActivated(final java.awt.event.WindowEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-        if(null!=newtListener) {
+        final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowGainedFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void windowClosed(java.awt.event.WindowEvent e) { }
+    public synchronized void windowClosed(final java.awt.event.WindowEvent e) { }
 
     @Override
-    public synchronized void windowClosing(java.awt.event.WindowEvent e) { }
+    public synchronized void windowClosing(final java.awt.event.WindowEvent e) { }
 
     @Override
-    public synchronized void windowDeactivated(java.awt.event.WindowEvent e) {
+    public synchronized void windowDeactivated(final java.awt.event.WindowEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-        if(null!=newtListener) {
+        final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowLostFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void windowDeiconified(java.awt.event.WindowEvent e) { }
+    public synchronized void windowDeiconified(final java.awt.event.WindowEvent e) { }
 
     @Override
-    public synchronized void windowIconified(java.awt.event.WindowEvent e) { }
+    public synchronized void windowIconified(final java.awt.event.WindowEvent e) { }
 
     @Override
-    public synchronized void windowOpened(java.awt.event.WindowEvent e) { }
+    public synchronized void windowOpened(final java.awt.event.WindowEvent e) { }
 
     class WindowClosingListener implements java.awt.event.WindowListener {
         @Override
-        public void windowClosing(java.awt.event.WindowEvent e) {
+        public void windowClosing(final java.awt.event.WindowEvent e) {
             synchronized( AWTWindowAdapter.this ) {
                 if( !isSetup ) { return; }
-                com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-                if(null!=newtListener) {
+                final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
+                if( EventProcRes.DISPATCH == processEvent(true, event) ) {
                     ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyNotify(event);
-                } else {
-                    enqueueEvent(true, event);
                 }
             }
         }
         @Override
-        public void windowClosed(java.awt.event.WindowEvent e) {
+        public void windowClosed(final java.awt.event.WindowEvent e) {
             synchronized( AWTWindowAdapter.this ) {
                 if( !isSetup ) { return; }
-                com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-                if(null!=newtListener) {
+                final com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, nsHolder);
+                if( EventProcRes.DISPATCH == processEvent(true, event) ) {
                     ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyed(event);
-                } else {
-                    enqueueEvent(true, event);
                 }
             }
         }
 
         @Override
-        public void windowActivated(java.awt.event.WindowEvent e) { }
+        public void windowActivated(final java.awt.event.WindowEvent e) { }
         @Override
-        public void windowDeactivated(java.awt.event.WindowEvent e) { }
+        public void windowDeactivated(final java.awt.event.WindowEvent e) { }
         @Override
-        public void windowDeiconified(java.awt.event.WindowEvent e) { }
+        public void windowDeiconified(final java.awt.event.WindowEvent e) { }
         @Override
-        public void windowIconified(java.awt.event.WindowEvent e) { }
+        public void windowIconified(final java.awt.event.WindowEvent e) { }
         @Override
-        public void windowOpened(java.awt.event.WindowEvent e) { }
+        public void windowOpened(final java.awt.event.WindowEvent e) { }
     }
 }
 

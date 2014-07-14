@@ -20,16 +20,16 @@ public class TTCHeader {
 
     public static final int ttcf = 0x74746366;
 
-    private int ttcTag;
-    private int version;
-    private int directoryCount;
-    private int[] tableDirectory;
+    private final int ttcTag;
+    private final int version;
+    private final int directoryCount;
+    private final int[] tableDirectory;
     private int dsigTag;
-    private int dsigLength;
-    private int dsigOffset;
+    private final int dsigLength;
+    private final int dsigOffset;
 
     /** Creates new TTCHeader */
-    public TTCHeader(DataInput di) throws IOException {
+    public TTCHeader(final DataInput di) throws IOException {
         ttcTag = di.readInt();
         version = di.readInt();
         directoryCount = di.readInt();
@@ -48,12 +48,12 @@ public class TTCHeader {
         return directoryCount;
     }
 
-    public int getTableDirectory(int i) {
+    public int getTableDirectory(final int i) {
         return tableDirectory[i];
     }
 
-    public static boolean isTTC(DataInput di) throws IOException {
-        int ttcTag = di.readInt();
+    public static boolean isTTC(final DataInput di) throws IOException {
+        final int ttcTag = di.readInt();
         return ttcTag == ttcf;
     }
 }

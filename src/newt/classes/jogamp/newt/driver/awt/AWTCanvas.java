@@ -65,11 +65,17 @@ public class AWTCanvas extends Canvas {
   private AWTGraphicsConfiguration awtConfig;
   private volatile JAWTWindow jawtWindow=null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private CapabilitiesChooser chooser=null;
-  private CapabilitiesImmutable capabilities;
+  private final CapabilitiesImmutable capabilities;
+  private final UpstreamScalable upstreamScale;
+
+  public static interface UpstreamScalable {
+      int[] getReqPixelScale();
+      void setHasPixelScale(final int[] pixelScale);
+  }
 
   private boolean displayConfigChanged=false;
 
-  public AWTCanvas(CapabilitiesImmutable capabilities, CapabilitiesChooser chooser) {
+  public AWTCanvas(final CapabilitiesImmutable capabilities, final CapabilitiesChooser chooser, final UpstreamScalable upstreamScale) {
     super();
 
     if(null==capabilities) {
@@ -77,6 +83,7 @@ public class AWTCanvas extends Canvas {
     }
     this.capabilities=capabilities;
     this.chooser=chooser;
+    this.upstreamScale = upstreamScale;
   }
 
   public AWTGraphicsConfiguration getAWTGraphicsConfiguration() {
@@ -88,7 +95,7 @@ public class AWTCanvas extends Canvas {
    * canvas from interfering with the OpenGL rendering.
    */
   @Override
-  public void update(Graphics g) {
+  public void update(final Graphics g) {
     // paint(g);
   }
 
@@ -98,11 +105,11 @@ public class AWTCanvas extends Canvas {
       properly.
    */
   @Override
-  public void paint(Graphics g) {
+  public void paint(final Graphics g) {
   }
 
   public boolean hasDeviceChanged() {
-    boolean res = displayConfigChanged;
+    final boolean res = displayConfigChanged;
     displayConfigChanged=false;
     return res;
   }
@@ -139,11 +146,13 @@ public class AWTCanvas extends Canvas {
     {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         // trigger initialization cycle
+        jawtWindow.setSurfaceScale(upstreamScale.getReqPixelScale() );
         jawtWindow.lockSurface();
+        upstreamScale.setHasPixelScale(jawtWindow.getCurrentSurfaceScale(new int[2]));
         jawtWindow.unlockSurface();
     }
 
-    GraphicsConfiguration gc = super.getGraphicsConfiguration();
+    final GraphicsConfiguration gc = super.getGraphicsConfiguration();
     if(null!=gc) {
         device = gc.getDevice();
     }
@@ -179,12 +188,12 @@ public class AWTCanvas extends Canvas {
         jawtWindow=null;
     }
     if(null != awtConfig) {
-        AbstractGraphicsDevice adevice = awtConfig.getNativeGraphicsConfiguration().getScreen().getDevice();
+        final AbstractGraphicsDevice adevice = awtConfig.getNativeGraphicsConfiguration().getScreen().getDevice();
         String adeviceMsg=null;
         if(Window.DEBUG_IMPLEMENTATION) {
             adeviceMsg = adevice.toString();
         }
-        boolean closed = adevice.close();
+        final boolean closed = adevice.close();
         if(Window.DEBUG_IMPLEMENTATION) {
             System.err.println(getThreadName()+": AWTCanvas.dispose(): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
         }
@@ -246,11 +255,11 @@ public class AWTCanvas extends Canvas {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        AWTGraphicsConfiguration config = chooseGraphicsConfiguration(
+        final AWTGraphicsConfiguration config = chooseGraphicsConfiguration(
                 awtConfig.getChosenCapabilities(), awtConfig.getRequestedCapabilities(), chooser, gc.getDevice());
         final GraphicsConfiguration compatible = (null!=config)?config.getAWTGraphicsConfiguration():null;
         if(Window.DEBUG_IMPLEMENTATION) {
-            Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
+            final Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
             e.printStackTrace();
             System.err.println("Created Config (n): HAVE    GC "+chosen);
             System.err.println("Created Config (n): THIS    GC "+gc);
@@ -298,14 +307,14 @@ public class AWTCanvas extends Canvas {
     return gc;
   }
 
-  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(CapabilitiesImmutable capsChosen,
-                                                                      CapabilitiesImmutable capsRequested,
-                                                                      CapabilitiesChooser chooser,
-                                                                      GraphicsDevice device) {
+  private static AWTGraphicsConfiguration chooseGraphicsConfiguration(final CapabilitiesImmutable capsChosen,
+                                                                      final CapabilitiesImmutable capsRequested,
+                                                                      final CapabilitiesChooser chooser,
+                                                                      final GraphicsDevice device) {
     final AbstractGraphicsScreen aScreen = null != device ?
             AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT):
             AWTGraphicsScreen.createDefault();
-    AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
+    final AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
       GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, capsChosen.getClass()).chooseGraphicsConfiguration(capsChosen,
                                                                                                    capsRequested,
                                                                                                    chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
@@ -337,16 +346,16 @@ public class AWTCanvas extends Canvas {
                       clazz.getDeclaredMethod("disableBackgroundErase",
                                               new Class[] { Canvas.class });
                     disableBackgroundEraseMethod.setAccessible(true);
-                  } catch (Exception e) {
+                  } catch (final Exception e) {
                     clazz = clazz.getSuperclass();
                   }
                 }
-              } catch (Exception e) {
+              } catch (final Exception e) {
               }
               return null;
             }
           });
-      } catch (Exception e) {
+      } catch (final Exception e) {
       }
       disableBackgroundEraseInitialized = true;
       if(Window.DEBUG_IMPLEMENTATION) {
@@ -358,7 +367,7 @@ public class AWTCanvas extends Canvas {
       Throwable t=null;
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
-      } catch (Exception e) {
+      } catch (final Exception e) {
         // FIXME: workaround for 6504460 (incorrect backport of 6333613 in 5.0u10)
         // throw new GLException(e);
         t = e;

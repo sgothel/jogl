@@ -8,6 +8,10 @@ static {
         if (val != null && !val.toLowerCase().equals("false")) {
           useJavaMipmapCode = false;
         }
+        // Not required nor forced
+        // if( !initializeImpl() ) {
+        //     throw new RuntimeException("Initialization failure");
+        // }
         return null;
       }
     });
@@ -34,10 +38,6 @@ static {
 public GLUgl2es1()
 {
   super();
-}
-
-public void destroy() {
-  super.destroy();
 }
 
 //----------------------------------------------------------------------

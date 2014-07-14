@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.event;
 
 import org.junit.After;
@@ -83,35 +83,35 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
     @AfterClass
     public static void release() {
     }
-    
+
     @Before
-    public void initTest() {        
+    public void initTest() {
     }
 
     @After
-    public void releaseTest() {        
+    public void releaseTest() {
     }
-    
+
     @Test(timeout=180000) // TO 3 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
-        GLWindow glWindow = GLWindow.create(glCaps);
+        final GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
-        
+
         testImpl(glWindow);
-        
+
         glWindow.destroy();
     }
-        
-    private void testNewtCanvasAWT_Impl(boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
-        GLWindow glWindow = GLWindow.create(glCaps);
-        
+
+    private void testNewtCanvasAWT_Impl(final boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
+        final GLWindow glWindow = GLWindow.create(glCaps);
+
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         if( !onscreen ) {
             newtCanvasAWT.setShallUseOffscreenLayer(true);
         }
-        
+
         // Add the canvas to a frame, and make it all visible.
         final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "+ glWindow.getTitle());
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
@@ -120,24 +120,24 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
             public void run() {
                 frame1.setVisible(true);
             } } );
-        
+
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame1, true));
-        
+
         testImpl(glWindow);
-        
+
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame1.setVisible(false);
                     frame1.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }        
+        }
         glWindow.destroy();
     }
-    
+
     @Test(timeout=180000) // TO 3 min
     public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( JAWTUtil.isOffscreenLayerRequired() ) {
@@ -146,7 +146,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         }
         testNewtCanvasAWT_Impl(true);
     }
-        
+
     @Test(timeout=180000) // TO 3 min
     public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( !JAWTUtil.isOffscreenLayerSupported() ) {
@@ -155,25 +155,25 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         }
         testNewtCanvasAWT_Impl(false);
     }
-    
-    void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
+
+    void testImpl(final GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
         final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         glWindow.addGLEventListener(demo1);
 
-        SimpleKeyPressRelease simpleKeyPressRelease = new SimpleKeyPressRelease();
+        final SimpleKeyPressRelease simpleKeyPressRelease = new SimpleKeyPressRelease();
         glWindow.addKeyListener(simpleKeyPressRelease);
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));
 
         // Continuous animation ..
-        Animator animator = new Animator(glWindow);
+        final Animator animator = new Animator(glWindow);
         animator.start();
 
         Thread.sleep(durationPerTest); // manual testing
-        
+
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
         AWTRobotUtil.requestFocus(robot, glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
 
@@ -184,27 +184,27 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         animator.stop();
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
-    
+
     static class SimpleKeyPressRelease implements KeyListener {
         int seq;
 
         SimpleKeyPressRelease() {
             reset();
         }
-        
+
         public void reset() {
             seq=0;
         }
-        
+
         @Override
-        public void keyPressed(KeyEvent e) {
+        public void keyPressed(final KeyEvent e) {
             if( 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) ) {
                 seq++;
                 System.err.println(seq+": "+e);
@@ -212,7 +212,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         }
 
         @Override
-        public void keyReleased(KeyEvent e) {
+        public void keyReleased(final KeyEvent e) {
             if( 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) ) {
                 seq++;
                 System.err.println(seq+": "+e);
@@ -220,7 +220,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -229,10 +229,10 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); 
+        System.err.println(stdin.readLine());
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestNewtKeyPressReleaseUnmaskRepeatAWT.class.getName();
+        final String tstname = TestNewtKeyPressReleaseUnmaskRepeatAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

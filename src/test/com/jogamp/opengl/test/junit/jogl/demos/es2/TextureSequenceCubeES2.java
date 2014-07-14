@@ -57,7 +57,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 public class TextureSequenceCubeES2 implements GLEventListener {
-    public TextureSequenceCubeES2 (TextureSequence texSource, boolean innerCube, float zoom0, float rotx, float roty) {
+    public TextureSequenceCubeES2 (final TextureSequence texSource, final boolean innerCube, final float zoom0, final float rotx, final float roty) {
         this.texSeq = texSource;
         this.innerCube = innerCube;
         this.zoom      = zoom0;
@@ -84,23 +84,27 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         int ly = 0;
         boolean first = false;
 
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
             first = true;
         }
-        public void mouseMoved(MouseEvent e) {
+        public void mouseMoved(final MouseEvent e) {
             first = false;
         }
-        public void mouseDragged(MouseEvent e) {
+        public void mouseDragged(final MouseEvent e) {
             int width, height;
-            Object source = e.getSource();
+            final Object source = e.getSource();
             Window window = null;
             if(source instanceof Window) {
                 window = (Window) source;
-                width=window.getWidth();
-                height=window.getHeight();
+                width=window.getSurfaceWidth();
+                height=window.getSurfaceHeight();
+            } else if (source instanceof GLAutoDrawable) {
+                final GLAutoDrawable glad = (GLAutoDrawable) source;
+                width = glad.getSurfaceWidth();
+                height = glad.getSurfaceHeight();
             } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
-                java.awt.Component comp = (java.awt.Component) source;
-                width=comp.getWidth();
+                final java.awt.Component comp = (java.awt.Component) source;
+                width=comp.getWidth(); // FIXME HiDPI: May need to convert window units -> pixel units!
                 height=comp.getHeight();
             } else {
                 throw new RuntimeException("Event source neither Window nor Component: "+source);
@@ -112,8 +116,8 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                     first=false;
                     return;
                 }
-                int nv = Math.abs(e.getY(0)-e.getY(1));
-                int dy = nv - lx;
+                final int nv = Math.abs(e.getY(0)-e.getY(1));
+                final int dy = nv - lx;
 
                 {
                     final float o = zoom;
@@ -131,15 +135,15 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                     first=false;
                     return;
                 }
-                int nx = e.getX();
-                int ny = e.getY();
+                final int nx = e.getX();
+                final int ny = e.getY();
                 view_roty += 360f * ( (float)( nx - lx ) / (float)width );
                 view_rotx += 360f * ( (float)( ny - ly ) / (float)height );
                 lx = nx;
                 ly = ny;
             }
         }
-        public void mouseWheelMoved(MouseEvent e) {
+        public void mouseWheelMoved(final MouseEvent e) {
             // System.err.println("XXX "+e);
             if( !e.isShiftDown() ) {
                 final float o = zoom;
@@ -153,11 +157,11 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     static final String shaderBasename = "texsequence_xxx";
     static final String myTextureLookupName = "myTexture2D";
 
-    private void initShader(GL2ES2 gl) {
+    private void initShader(final GL2ES2 gl) {
         // Create & Compile the shader objects
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
                                             "shader", "shader/bin", shaderBasename, true);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
                                             "shader", "shader/bin", shaderBasename, true);
 
         boolean preludeGLSLVersion = true;
@@ -176,7 +180,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         int rsFpPos = preludeGLSLVersion ? rsFp.addGLSLVersion(gl) : 0;
         rsFpPos = rsFp.insertShaderSource(0, rsFpPos, texSeq.getRequiredExtensionsShaderStub());
-        rsFpPos = rsFp.addDefaultShaderPrecision(gl, rsFpPos);
+        rsFp.addDefaultShaderPrecision(gl, rsFpPos);
 
         final String texLookupFuncName = texSeq.getTextureLookupFunctionName(myTextureLookupName);
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
@@ -188,7 +192,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         rsFp.insertShaderSource(0, "TEXTURE-SEQUENCE-CODE-BEGIN", 0, sFpIns);
 
         // Create & Link the shader program
-        ShaderProgram sp = new ShaderProgram();
+        final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
         if(!sp.link(gl, System.err)) {
@@ -202,8 +206,8 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
     GLArrayDataServer interleavedVBO, cubeIndicesVBO;
 
-    public void init(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void init(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
         final TextureFrame frame = texSeq.getLastTexture();
         if( null == frame ) {
@@ -217,7 +221,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         st.useProgram(gl, true);
 
         pmvMatrix = new PMVMatrix();
-        reshapePMV(drawable.getWidth(), drawable.getHeight());
+        reshapePMV(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
@@ -228,7 +232,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
 
         // calculate centered tex coords w/ aspect ratio
-        float[] fixedCubeTexCoords = new float[s_cubeTexCoords.length];
+        final float[] fixedCubeTexCoords = new float[s_cubeTexCoords.length];
         {
             final float aspect = tex.getAspectRatio();
             final TextureCoords tc = tex.getImageTexCoords();
@@ -260,7 +264,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             //interleavedVBO.addGLSLSubArray("mgl_Normal",        3, GL.GL_ARRAY_BUFFER);
             interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
 
-            FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
+            final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
 
             for(int i=0; i<6*4; i++) {
                 ib.put(s_cubeVertices,  i*3, 3);
@@ -282,7 +286,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         st.ownAttribute(cubeIndicesVBO, true);
 
 
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
 
         st.useProgram(gl, false);
 
@@ -292,7 +296,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             window.addMouseListener(mouseAction);
         } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
             final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-            new com.jogamp.newt.event.awt.AWTMouseAdapter(mouseAction).addTo(comp);
+            new com.jogamp.newt.event.awt.AWTMouseAdapter(mouseAction, drawable).addTo(comp);
         }
 
         // Let's show the completed shader state ..
@@ -300,18 +304,10 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         System.out.println(st);
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glViewport(0, 0, width, height);
-
-        if(innerCube) {
-            // Clear background to white
-            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.4f);
-        } else {
-            // Clear background to blue
-            gl.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-        }
 
         if(!innerCube) {
             // lights on
@@ -330,7 +326,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     }
 
 
-    private void reshapePMV(int width, int height) {
+    private void reshapePMV(final int width, final int height) {
         if(null != pmvMatrix) {
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmvMatrix.glLoadIdentity();
@@ -351,15 +347,12 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void dispose(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         texSeq = null;
         pmvMatrixUniform = null;
-        if( null != pmvMatrix ) {
-            pmvMatrix.destroy();
-            pmvMatrix=null;
-        }
+        pmvMatrix=null;
         if( null != st ) {
             st.destroy(gl);
             st=null;
@@ -367,9 +360,16 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
+        if(innerCube) {
+            // Clear background to white
+            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.4f);
+        } else {
+            // Clear background to blue
+            gl.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        }
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         if( null == st ) {
@@ -397,7 +397,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             }
         }
         cubeIndicesVBO.bindBuffer(gl, true); // keeps VBO binding
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, cubeIndicesVBO.getElementCount() * cubeIndicesVBO.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        gl.glDrawElements(GL.GL_TRIANGLES, cubeIndicesVBO.getElementCount() * cubeIndicesVBO.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
         cubeIndicesVBO.bindBuffer(gl, false);
 
         if(null != tex) {

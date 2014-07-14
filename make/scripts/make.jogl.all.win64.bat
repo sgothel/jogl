@@ -19,4 +19,4 @@ set TARGET_RT_JAR=c:\jre1.6.0_30\lib\rt.jar
 REM set JOGAMP_JAR_CODEBASE=Codebase: *.jogamp.org
 set JOGAMP_JAR_CODEBASE=Codebase: *.goethel.localnet
 
-ant -Dc.compiler.debug=true -Drootrel.build=build-win64 %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win64.log 2>&1
+ant -Drootrel.build=build-win64 %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win64.log 2>&1

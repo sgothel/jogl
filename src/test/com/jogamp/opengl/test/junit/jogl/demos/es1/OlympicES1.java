@@ -10,6 +10,8 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
@@ -28,10 +30,10 @@ public class OlympicES1 implements GLEventListener
     private boolean debug = false ;
     private boolean trace = false ;
 
-    // private static final double M_PI= 3.141592654;
-    private static final double M_2PI= 2*3.141592654;
+    // private static final double M_PI= Math.PI;
+    private static final double M_2PI = 2.0*Math.PI;
 
-    private static final int 
+    private static final int
     // XSIZE=   100,
     // YSIZE=   75,
     RINGS= 5,
@@ -60,36 +62,36 @@ public class OlympicES1 implements GLEventListener
     private int iters[];
     private ImmModeSink theTorus;
 
-    private float lmodel_ambient[] = {0.0f, 0.0f, 0.0f, 0.0f};
-    private float lmodel_twoside[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    private final float lmodel_ambient[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    private final float lmodel_twoside[] = {0.0f, 0.0f, 0.0f, 0.0f};
     // private float lmodel_local[] = {0.0f, 0.0f, 0.0f, 0.0f};
-    private float light0_ambient[] = {0.1f, 0.1f, 0.1f, 1.0f};
-    private float light0_diffuse[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    private float light0_position[] = {0.8660254f, 0.5f, 1f, 0f};
-    private float light0_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    private float bevel_mat_ambient[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    private float bevel_mat_shininess[] = {40.0f, 0f, 0f, 0f};
-    private float bevel_mat_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    private float bevel_mat_diffuse[] = {1.0f, 0.0f, 0.0f, 0.0f};
-    private int swapInterval;
+    private final float light0_ambient[] = {0.1f, 0.1f, 0.1f, 1.0f};
+    private final float light0_diffuse[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    private final float light0_position[] = {0.8660254f, 0.5f, 1f, 0f};
+    private final float light0_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    private final float bevel_mat_ambient[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    private final float bevel_mat_shininess[] = {40.0f, 0f, 0f, 0f};
+    private final float bevel_mat_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    private final float bevel_mat_diffuse[] = {1.0f, 0.0f, 0.0f, 0.0f};
+    private final int swapInterval;
     private GLU glu;
 
     public OlympicES1() {
         swapInterval = 1;
     }
 
-    public OlympicES1(int swapInterval) {
+    public OlympicES1(final int swapInterval) {
         this.swapInterval = swapInterval;
     }
 
-    public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+    public void setForceFFPEmu(final boolean forceFFPEmu, final boolean verboseFFPEmu, final boolean debugFFPEmu, final boolean traceFFPEmu) {
         this.forceFFPEmu = forceFFPEmu;
         this.verboseFFPEmu = verboseFFPEmu;
         this.debugFFPEmu = debugFFPEmu;
         this.traceFFPEmu = traceFFPEmu;
     }
-    
-    public void init(GLAutoDrawable drawable) 
+
+    public void init(final GLAutoDrawable drawable)
     {
         GL _gl = drawable.getGL();
 
@@ -109,13 +111,13 @@ public class OlympicES1 implements GLEventListener
             try {
                 // Debug ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (final Exception e) {e.printStackTrace();}
         }
         if(trace) {
             try {
                 // Trace ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
-            } catch (Exception e) {e.printStackTrace();}
+            } catch (final Exception e) {e.printStackTrace();}
         }
 
         System.err.println("OlympicES1 init on "+Thread.currentThread());
@@ -129,7 +131,8 @@ public class OlympicES1 implements GLEventListener
         System.err.println("GL Profile: "+gl.getGLProfile());
         System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
 
-        glu = GLUgl2es1.createGLU(gl);
+        glu = GLU.createGLU(gl);
+        System.err.println("GLU:" + glu.getClass().getName());
 
         rgb_colors=new byte[RINGS][3];
         mapped_colors=new int [RINGS];
@@ -140,11 +143,11 @@ public class OlympicES1 implements GLEventListener
         iters=new int[RINGS];
 
         int i;
-        float top_y = 1.0f;
-        float bottom_y = 0.0f;
-        float top_z = 0.15f;
-        float bottom_z = 0.69f;
-        float spacing = 2.5f;
+        final float top_y = 1.0f;
+        final float bottom_y = 0.0f;
+        final float top_z = 0.15f;
+        final float bottom_z = 0.69f;
+        final float spacing = 2.5f;
 
         for (i = 0; i < RINGS; i++) {
             rgb_colors[i][0] = rgb_colors[i][1] = rgb_colors[i][2] = (byte)0;
@@ -180,11 +183,11 @@ public class OlympicES1 implements GLEventListener
         dests[GREENRING][1] = bottom_y;
         dests[GREENRING][2] = bottom_z;
 
-        theTorus = ImmModeSink.createFixed(40, 
+        theTorus = ImmModeSink.createFixed(40,
                 3, GL.GL_FLOAT, // vertex
                 0, GL.GL_FLOAT, // color
                 3, GL.GL_FLOAT, // normal
-                0, GL.GL_FLOAT, // texCoords 
+                0, GL.GL_FLOAT, // texCoords
                 GL.GL_STATIC_DRAW);
         FillTorus(gl, theTorus, 0.1f, 8, 1.0f, 25);
 
@@ -193,58 +196,57 @@ public class OlympicES1 implements GLEventListener
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glClearDepth(1.0);
 
-        gl.glLightfv(GL2ES1.GL_LIGHT0, GL2ES1.GL_AMBIENT, light0_ambient, 0);
-        gl.glLightfv(GL2ES1.GL_LIGHT0, GL2ES1.GL_DIFFUSE, light0_diffuse, 0);
-        gl.glLightfv(GL2ES1.GL_LIGHT0, GL2ES1.GL_SPECULAR, light0_specular, 0);
-        gl.glLightfv(GL2ES1.GL_LIGHT0, GL2ES1.GL_POSITION, light0_position, 0);
-        gl.glEnable(GL2ES1.GL_LIGHT0);
+        gl.glLightfv(GLLightingFunc.GL_LIGHT0, GLLightingFunc.GL_AMBIENT, light0_ambient, 0);
+        gl.glLightfv(GLLightingFunc.GL_LIGHT0, GLLightingFunc.GL_DIFFUSE, light0_diffuse, 0);
+        gl.glLightfv(GLLightingFunc.GL_LIGHT0, GLLightingFunc.GL_SPECULAR, light0_specular, 0);
+        gl.glLightfv(GLLightingFunc.GL_LIGHT0, GLLightingFunc.GL_POSITION, light0_position, 0);
+        gl.glEnable(GLLightingFunc.GL_LIGHT0);
 
         // gl.glLightModelfv(GL2.GL_LIGHT_MODEL_LOCAL_VIEWER, lmodel_local, 0);
         gl.glLightModelfv(GL2ES1.GL_LIGHT_MODEL_TWO_SIDE, lmodel_twoside, 0);
         gl.glLightModelfv(GL2ES1.GL_LIGHT_MODEL_AMBIENT, lmodel_ambient, 0);
-        gl.glEnable(GL2ES1.GL_LIGHTING);
+        gl.glEnable(GLLightingFunc.GL_LIGHTING);
 
         gl.glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 
-        gl.glMaterialfv(GL.GL_FRONT, GL2ES1.GL_AMBIENT, bevel_mat_ambient, 0);
-        gl.glMaterialfv(GL.GL_FRONT, GL2ES1.GL_SHININESS, bevel_mat_shininess, 0);
-        gl.glMaterialfv(GL.GL_FRONT, GL2ES1.GL_SPECULAR, bevel_mat_specular, 0);
-        gl.glMaterialfv(GL.GL_FRONT, GL2ES1.GL_DIFFUSE, bevel_mat_diffuse, 0);
+        gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT, bevel_mat_ambient, 0);
+        gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_SHININESS, bevel_mat_shininess, 0);
+        gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_SPECULAR, bevel_mat_specular, 0);
+        gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_DIFFUSE, bevel_mat_diffuse, 0);
 
         // gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL2ES1.GL_DIFFUSE);
-        gl.glEnable(GL2ES1.GL_COLOR_MATERIAL);
-        gl.glShadeModel(GL2ES1.GL_SMOOTH);
+        gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
+        gl.glShadeModel(GLLightingFunc.GL_SMOOTH);
 
-        ReInit();        
+        ReInit();
         t0 = System.currentTimeMillis();
         tL = t0;
     }
 
 
     @Override
-    public void dispose(GLAutoDrawable glad) {
-        glu.destroy();
+    public void dispose(final GLAutoDrawable glad) {
         glu = null;
         theTorus.destroy(glad.getGL());
-        theTorus = null;        
+        theTorus = null;
     }
 
 
     @Override
-    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
-        final GL2ES1 gl = glad.getGL().getGL2ES1();        
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
+        final GL2ES1 gl = glad.getGL().getGL2ES1();
         gl.setSwapInterval(swapInterval);
 
-        gl.glMatrixMode(GL2ES1.GL_PROJECTION);
+        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         glu.gluPerspective(45f, (float) width / (float) height, 0.1f, 100.0f);
-        gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
+        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         gl.glLoadIdentity();
         glu.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0);
     }
 
     @Override
-    public void display(GLAutoDrawable glad) {
+    public void display(final GLAutoDrawable glad) {
         final GL2ES1 gl = glad.getGL().getGL2ES1();
         int i;
 
@@ -254,7 +256,7 @@ public class OlympicES1 implements GLEventListener
         for (i = 0; i < RINGS; i++) {
             gl.glColor4ub(rgb_colors[i][0], rgb_colors[i][1], rgb_colors[i][2], (byte)1);
             gl.glPushMatrix();
-            gl.glTranslatef(dests[i][0] + offsets[i][0], 
+            gl.glTranslatef(dests[i][0] + offsets[i][0],
                     dests[i][1] + offsets[i][1],
                     dests[i][2] + offsets[i][2]);
             gl.glRotatef(angs[i], rotAxis[i][0], rotAxis[i][1], rotAxis[i][2]);
@@ -267,11 +269,11 @@ public class OlympicES1 implements GLEventListener
 
     long t0, tL;
 
-    protected void animationCalc() 
+    protected void animationCalc()
     {
         int i, j;
 
-        long t1 = System.currentTimeMillis();
+        final long t1 = System.currentTimeMillis();
         if( t1 - tL < 50 ) {
             return;
         }
@@ -311,7 +313,7 @@ public class OlympicES1 implements GLEventListener
         }
     }
 
-    protected static void FillTorus(GL gl, ImmModeSink immModeSink, float rc, int numc, float rt, int numt)
+    protected static void FillTorus(final GL gl, final ImmModeSink immModeSink, final float rc, final int numc, final float rt, final int numt)
     {
         int i, j, k;
         double s, t;
@@ -339,7 +341,7 @@ public class OlympicES1 implements GLEventListener
         }
     }
 
-    protected float Clamp(int iters_left, float t)
+    protected float Clamp(final int iters_left, final float t)
     {
         if (iters_left < 3) {
             return 0.0f;

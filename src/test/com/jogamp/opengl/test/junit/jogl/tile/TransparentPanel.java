@@ -11,7 +11,7 @@ public class TransparentPanel extends JPanel {
     }
 
     @Override
-        public void setOpaque(boolean isOpaque) {
+        public void setOpaque(final boolean isOpaque) {
         // Don't let this panel become opaque
     }
 
@@ -31,18 +31,18 @@ public class TransparentPanel extends JPanel {
      * @param c The Component on which to set the cut out shape.
      * @param s The shape to cut out of the given Component.
      */
-    public void setMixingCutoutShape(Shape s) 
+    public void setMixingCutoutShape(final Shape s)
     {
         // Get the cut out shape method
         if (mSetComponentMixing == null) {
             try {
-                Class<?> awtUtilitiesClass = 
+                final Class<?> awtUtilitiesClass =
                     Class.forName("com.sun.awt.AWTUtilities");
-                mSetComponentMixing = 
+                mSetComponentMixing =
                     awtUtilitiesClass.getMethod(
-                        "setComponentMixingCutoutShape", 
+                        "setComponentMixingCutoutShape",
                         Component.class, Shape.class);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 ex.printStackTrace();
             }
         }
@@ -51,7 +51,7 @@ public class TransparentPanel extends JPanel {
         if (mSetComponentMixing != null) {
             try {
                 mSetComponentMixing.invoke( null, this, s );
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 ex.printStackTrace();
             }
         }

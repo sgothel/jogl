@@ -28,21 +28,23 @@
 
 package com.jogamp.newt.event.awt;
 
+import javax.media.nativewindow.NativeSurfaceHolder;
+
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseListener,
                                                            java.awt.event.MouseMotionListener,
                                                            java.awt.event.MouseWheelListener
 {
-    public AWTMouseAdapter(com.jogamp.newt.event.MouseListener newtListener) {
-        super(newtListener);
+    public AWTMouseAdapter(final com.jogamp.newt.event.MouseListener newtListener, final NativeSurfaceHolder nsProxy) {
+        super(newtListener, nsProxy);
     }
 
-    public AWTMouseAdapter(com.jogamp.newt.event.MouseListener newtListener, com.jogamp.newt.Window newtProxy) {
+    public AWTMouseAdapter(final com.jogamp.newt.event.MouseListener newtListener, final com.jogamp.newt.Window newtProxy) {
         super(newtListener, newtProxy);
     }
 
-    public AWTMouseAdapter(com.jogamp.newt.Window downstream) {
+    public AWTMouseAdapter(final com.jogamp.newt.Window downstream) {
         super(downstream);
     }
 
@@ -51,7 +53,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public synchronized AWTAdapter addTo(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter addTo(final java.awt.Component awtComponent) {
         awtComponent.addMouseListener(this);
         awtComponent.addMouseMotionListener(this);
         awtComponent.addMouseWheelListener(this);
@@ -59,7 +61,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public synchronized AWTAdapter removeFrom(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter removeFrom(final java.awt.Component awtComponent) {
         awtComponent.removeMouseListener(this);
         awtComponent.removeMouseMotionListener(this);
         awtComponent.removeMouseWheelListener(this);
@@ -67,114 +69,98 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public synchronized void mouseClicked(java.awt.event.MouseEvent e) {
+    public synchronized void mouseClicked(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseClicked(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mouseEntered(java.awt.event.MouseEvent e) {
+    public synchronized void mouseEntered(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseEntered(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mouseExited(java.awt.event.MouseEvent e) {
+    public synchronized void mouseExited(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseExited(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mousePressed(java.awt.event.MouseEvent e) {
+    public synchronized void mousePressed(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mousePressed(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mouseReleased(java.awt.event.MouseEvent e) {
+    public synchronized void mouseReleased(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseReleased(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mouseDragged(java.awt.event.MouseEvent e) {
+    public synchronized void mouseDragged(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseDragged(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mouseMoved(java.awt.event.MouseEvent e) {
+    public synchronized void mouseMoved(final java.awt.event.MouseEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseMoved(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
     @Override
-    public synchronized void mouseWheelMoved(java.awt.event.MouseWheelEvent e) {
+    public synchronized void mouseWheelMoved(final java.awt.event.MouseWheelEvent e) {
         if( !isSetup ) { return; }
-        com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        final com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, nsHolder);
         if( consumeAWTEvent ) {
             e.consume();
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseWheelMoved(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 }

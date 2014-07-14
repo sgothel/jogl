@@ -84,8 +84,8 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         }
     }
 
-    protected GLWindow createGLWindow(int x, int y, GearsES2 gears) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected GLWindow createGLWindow(final int x, final int y, final GearsES2 gears) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setPosition(x, y);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared true");
@@ -105,12 +105,12 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         syncedOneAnimator(false);
     }
 
-    public void syncedOneAnimator(boolean destroyCleanOrder) throws InterruptedException {
+    public void syncedOneAnimator(final boolean destroyCleanOrder) throws InterruptedException {
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
         final GLWindow f1 = createGLWindow(0, 0, g1);
         animator.add(f1);
-        InsetsImmutable insets = f1.getInsets();
+        final InsetsImmutable insets = f1.getInsets();
 
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGears(g1);
@@ -127,13 +127,12 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         // f1's shared GLContext is ready !
         f1.invoke(false, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
-                final GLContext ctx1 = f1.getContext();
-                Assert.assertTrue("Ctx is shared before shared creation", !ctx1.isShared());
-                f2.setSharedContext(ctx1);
+            public boolean run(final GLAutoDrawable drawable) {
+                Assert.assertTrue("Ctx is shared before shared creation", !f1.getContext().isShared());
+                f2.setSharedAutoDrawable(f1);
                 f2.setVisible(true);
                 f2.display(); // kick off GLContext ..
-                f3.setSharedContext(ctx1);
+                f3.setSharedAutoDrawable(f1);
                 f3.setVisible(true);
                 f3.display(); // kick off GLContext ..
                 return true;
@@ -188,7 +187,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         animator.stop();
@@ -223,7 +222,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         asyncEachAnimator(false);
     }
 
-    public void asyncEachAnimator(boolean destroyCleanOrder) throws InterruptedException {
+    public void asyncEachAnimator(final boolean destroyCleanOrder) throws InterruptedException {
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
         final GLWindow f1 = createGLWindow(0, 0, g1);
@@ -231,7 +230,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         a1.start();
         f1.setVisible(true);
 
-        InsetsImmutable insets = f1.getInsets();
+        final InsetsImmutable insets = f1.getInsets();
 
         final Animator a2 = new Animator();
         final GearsES2 g2 = new GearsES2(0);
@@ -252,12 +251,11 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         // f1's shared GLContext is ready !
         f1.invoke(false, new GLRunnable() {
             @Override
-            public boolean run(GLAutoDrawable drawable) {
-                final GLContext ctx1 = f1.getContext();
-                Assert.assertTrue("Ctx is shared before shared creation", !ctx1.isShared());
-                f2.setSharedContext(ctx1);
+            public boolean run(final GLAutoDrawable drawable) {
+                Assert.assertTrue("Ctx is shared before shared creation", !f1.getContext().isShared());
+                f2.setSharedAutoDrawable(f1);
                 f2.setVisible(true);
-                f3.setSharedContext(ctx1);
+                f3.setSharedAutoDrawable(f1);
                 f3.setVisible(true);
                 return true;
             }
@@ -305,7 +303,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         // Stopped animator allows native windowing system 'repaint' event
@@ -338,13 +336,13 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
     static long duration = 1000; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

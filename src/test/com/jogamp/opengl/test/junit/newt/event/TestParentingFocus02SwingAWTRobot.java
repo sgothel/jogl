@@ -42,9 +42,12 @@ import java.awt.Button;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Robot;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+
 import java.util.ArrayList;
 
 import javax.media.opengl.*;
@@ -97,41 +100,41 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
     public static void release() {
     }
 
-    private void testFocus01ProgrFocusImpl(Robot robot)
+    private void testFocus01ProgrFocusImpl(final Robot robot)
         throws AWTException, InterruptedException, InvocationTargetException {
 
-        ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
+        final ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
-        GLEventListener demo1 = new GearsES2();
+        final GLEventListener demo1 = new GearsES2();
         glWindow1.addGLEventListener(demo1);
-        NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        final NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
         glWindow1.addWindowListener(glWindow1FA);
-        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        final NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1.addKeyListener(glWindow1KA);
         eventCountAdapters.add(glWindow1KA);
-        NEWTMouseAdapter glWindow1MA = new NEWTMouseAdapter("GLWindow1");
+        final NEWTMouseAdapter glWindow1MA = new NEWTMouseAdapter("GLWindow1");
         glWindow1.addMouseListener(glWindow1MA);
         eventCountAdapters.add(glWindow1MA);
 
-        NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
-        AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
+        final AWTFocusAdapter newtCanvasAWTFA = new AWTFocusAdapter("NewtCanvasAWT");
         newtCanvasAWT.addFocusListener(newtCanvasAWTFA);
-        AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
+        final AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(newtCanvasAWTKA);
         eventCountAdapters.add(newtCanvasAWTKA);
-        AWTMouseAdapter newtCanvasAWTMA = new AWTMouseAdapter("NewtCanvasAWT");
+        final AWTMouseAdapter newtCanvasAWTMA = new AWTMouseAdapter("NewtCanvasAWT");
         newtCanvasAWT.addMouseListener(newtCanvasAWTMA);
         eventCountAdapters.add(newtCanvasAWTMA);
 
-        Button buttonNorthInner = new Button("north");
-        AWTFocusAdapter buttonNorthInnerFA = new AWTFocusAdapter("ButtonNorthInner");
+        final Button buttonNorthInner = new Button("north");
+        final AWTFocusAdapter buttonNorthInnerFA = new AWTFocusAdapter("ButtonNorthInner");
         buttonNorthInner.addFocusListener(buttonNorthInnerFA);
-        AWTKeyAdapter buttonNorthInnerKA = new AWTKeyAdapter("ButtonNorthInner");
+        final AWTKeyAdapter buttonNorthInnerKA = new AWTKeyAdapter("ButtonNorthInner");
         buttonNorthInner.addKeyListener(buttonNorthInnerKA);
         eventCountAdapters.add(buttonNorthInnerKA);
-        AWTMouseAdapter buttonNorthInnerMA = new AWTMouseAdapter("ButtonNorthInner");
+        final AWTMouseAdapter buttonNorthInnerMA = new AWTMouseAdapter("ButtonNorthInner");
         buttonNorthInner.addMouseListener(buttonNorthInnerMA);
         eventCountAdapters.add(buttonNorthInnerMA);
         final Container container1 = new Container();
@@ -142,13 +145,13 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
         container1.add(new Button("west"), BorderLayout.WEST);
         container1.add(newtCanvasAWT, BorderLayout.CENTER);
 
-        Button buttonNorthOuter = new Button("north");
-        AWTFocusAdapter buttonNorthOuterFA = new AWTFocusAdapter("ButtonNorthOuter");
+        final Button buttonNorthOuter = new Button("north");
+        final AWTFocusAdapter buttonNorthOuterFA = new AWTFocusAdapter("ButtonNorthOuter");
         buttonNorthOuter.addFocusListener(buttonNorthOuterFA);
-        AWTKeyAdapter buttonNorthOuterKA = new AWTKeyAdapter("ButtonNorthOuter");
+        final AWTKeyAdapter buttonNorthOuterKA = new AWTKeyAdapter("ButtonNorthOuter");
         buttonNorthOuter.addKeyListener(buttonNorthOuterKA);
         eventCountAdapters.add(buttonNorthOuterKA);
-        AWTMouseAdapter buttonNorthOuterMA = new AWTMouseAdapter("ButtonNorthOuter");
+        final AWTMouseAdapter buttonNorthOuterMA = new AWTMouseAdapter("ButtonNorthOuter");
         buttonNorthOuter.addMouseListener(buttonNorthOuterMA);
         eventCountAdapters.add(buttonNorthOuterMA);
         final JPanel jPanel1 = new JPanel();
@@ -161,7 +164,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
 
         final JFrame jFrame1 = new JFrame("Swing Parent JFrame");
         // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
+        jFrame1.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -180,7 +183,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
         Assert.assertTrue(0 < glWindow1.getTotalFPSFrames());
 
         // Continuous animation ..
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.start();
 
         Thread.sleep(durationPerTest); // manual testing
@@ -287,21 +290,21 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
 
     @Test
     public void testFocus02RobotFocus() throws AWTException, InterruptedException, InvocationTargetException {
-        Robot robot = new Robot();
+        final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
         testFocus01ProgrFocusImpl(robot);
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
     @SuppressWarnings("unused")
-    public static void main(String args[])
+    public static void main(final String args[])
         throws IOException, AWTException, InterruptedException, InvocationTargetException
     {
         for(int i=0; i<args.length; i++) {
@@ -310,11 +313,11 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
             }
         }
         if(true) {
-            String tstname = TestParentingFocus02SwingAWTRobot.class.getName();
+            final String tstname = TestParentingFocus02SwingAWTRobot.class.getName();
             org.junit.runner.JUnitCore.main(tstname);
         } else {
             TestParentingFocus02SwingAWTRobot.initClass();
-            TestParentingFocus02SwingAWTRobot test = new TestParentingFocus02SwingAWTRobot();
+            final TestParentingFocus02SwingAWTRobot test = new TestParentingFocus02SwingAWTRobot();
             test.testFocus01ProgrFocus();
             test.testFocus02RobotFocus();
             TestParentingFocus02SwingAWTRobot.release();

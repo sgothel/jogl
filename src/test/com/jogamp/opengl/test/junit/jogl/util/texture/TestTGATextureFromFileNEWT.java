@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -61,27 +61,34 @@ import com.jogamp.opengl.util.texture.TextureIO;
 public class TestTGATextureFromFileNEWT extends UITestCase {
     static boolean showFPS = false;
     static long duration = 100; // ms
-    
+
     InputStream testTextureStream01U32;
     InputStream testTextureStream02RLE32;
-    
+    InputStream testTextureStream03RLE32;
+
     @Before
     public void initTest() throws IOException {
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-u32.tga");
+            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-u32.tga");
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream01U32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream01U32);
         }
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug744-rle32.tga");
+            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug744-rle32.tga");
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream02RLE32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream02RLE32);
         }
+        {
+            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug982.rle32.256x256.tga");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStream03RLE32 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStream03RLE32);
+        }
     }
-    
-    public void testImpl(boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
+
+    public void testImpl(final boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         GLProfile glp;
         if(useFFP && GLProfile.isAvailable(GLProfile.GL2)) {
@@ -94,39 +101,39 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
         }
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(1);
-        
+
         final TextureData texData = TextureIO.newTextureData(glp, istream, false /* mipmap */, TextureIO.TGA);
-        System.err.println("TextureData: "+texData);        
-        
+        System.err.println("TextureData: "+texData);
+
         final GLWindow glad = GLWindow.create(caps);
         glad.setTitle("TestTGATextureGL2FromFileNEWT");
         // Size OpenGL to Video Surface
         glad.setSize(texData.getWidth(), texData.getHeight());
-        
+
         // load texture from file inside current GL context to match the way
         // the bug submitter was doing it
         final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData, 0 ) ;
         glad.addGLEventListener(gle);
-        glad.addGLEventListener(new GLEventListener() {                    
+        glad.addGLEventListener(new GLEventListener() {
             boolean shot = false;
-            
-            @Override public void init(GLAutoDrawable drawable) {}
-            
-            public void display(GLAutoDrawable drawable) {
+
+            @Override public void init(final GLAutoDrawable drawable) {}
+
+            public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
                     snapshot(0, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                 }
             }
-            
-            @Override public void dispose(GLAutoDrawable drawable) { }
-            @Override public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+
+            @Override public void dispose(final GLAutoDrawable drawable) { }
+            @Override public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
 
-        Animator animator = new Animator(glad);
+        final Animator animator = new Animator(glad);
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         glad.addKeyListener(quitAdapter);
         glad.addWindowListener(quitAdapter);
         glad.setVisible(true);
@@ -135,34 +142,40 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
-        
+
         animator.stop();
         glad.destroy();
     }
-    
+
     @Test
     public void test01U32__GL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStream01U32);        
+        testImpl(true, testTextureStream01U32);
     }
-    
+
     @Test
     public void test02RLE32__GL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStream02RLE32);        
+        testImpl(true, testTextureStream02RLE32);
     }
-    
+
+    @Test
+    public void test03RLE32__GL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStream03RLE32);
+    }
+
     @After
     public void cleanupTest() {
         testTextureStream01U32 = null;
         testTextureStream02RLE32 = null;
+        testTextureStream03RLE32 = null;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
             }
         }
-        org.junit.runner.JUnitCore.main(TestTGATextureFromFileNEWT.class.getName());        
+        org.junit.runner.JUnitCore.main(TestTGATextureFromFileNEWT.class.getName());
     }
 }

@@ -113,13 +113,13 @@ public interface GLMatrixFunc {
     public void glLoadMatrixf(float[] m, int m_offset);
 
     /**
-     * Multiply the current matrix
+     * Multiply the current matrix: [c] = [c] x [m]
      * @param m the FloatBuffer's position remains unchanged,
      *        which is the same behavior than the native JOGL GL impl
      */
     public void glMultMatrixf(java.nio.FloatBuffer m) ;
     /**
-     * Multiply the current matrix
+     * Multiply the current matrix: [c] = [c] x [m]
      */
     public void glMultMatrixf(float[] m, int m_offset);
 

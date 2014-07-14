@@ -2,6 +2,7 @@ REM scripts\java-win.bat jogamp.newt.awt.opengl.VersionApplet
 REM scripts\java-win.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win.bat javax.media.opengl.awt.GLCanvas
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
+scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
@@ -10,6 +11,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGe
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.DemoGLJPanelPerf02AWT %*
@@ -97,7 +99,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimat
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAWTCardLayoutAnimatorStartStopBug532 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
@@ -111,6 +113,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMi
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT

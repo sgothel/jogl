@@ -33,6 +33,7 @@ import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.Robot;
@@ -61,7 +62,7 @@ public class AWTRobotUtil {
 
     static class OurUncaughtExceptionHandler implements UncaughtExceptionHandler {
         @Override
-        public void uncaughtException(Thread t, Throwable e) {
+        public void uncaughtException(final Thread t, final Throwable e) {
             System.err.println("*** AWTRobotUtil: UncaughtException (this Thread "+Thread.currentThread().getName()+") : Thread <"+t.getName()+">, "+e.getClass().getName()+": "+e.getMessage());
             e.printStackTrace();
         }
@@ -83,7 +84,7 @@ public class AWTRobotUtil {
             for (int wait=0; wait<POLL_DIVIDER && !awtEDTAliveFlag; wait++) {
                 try {
                     Thread.sleep(TIME_SLICE);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -102,7 +103,7 @@ public class AWTRobotUtil {
     }
 
     /** Issuing {@link #validateAWTEDTIsAlive()} before calling {@link Robot#waitForIdle()}. */
-    public static void waitForIdle(Robot robot) {
+    public static void waitForIdle(final Robot robot) {
         validateAWTEDTIsAlive();
         robot.waitForIdle();
     }
@@ -121,7 +122,7 @@ public class AWTRobotUtil {
         System.err.println("******** clearAWTFocus.X");
     }
 
-    public static int[] getCenterLocation(Object obj, boolean onTitleBarIfWindow)
+    public static int[] getCenterLocation(final Object obj, final boolean onTitleBarIfWindow)
         throws InterruptedException, InvocationTargetException {
         if(obj instanceof com.jogamp.newt.Window) {
             return getCenterLocationNEWT((com.jogamp.newt.Window)obj, onTitleBarIfWindow);
@@ -131,26 +132,26 @@ public class AWTRobotUtil {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
     }
-    private static int[] getCenterLocationNEWT(com.jogamp.newt.Window win, boolean onTitleBarIfWindow)
+    private static int[] getCenterLocationNEWT(final com.jogamp.newt.Window win, final boolean onTitleBarIfWindow)
         throws InterruptedException, InvocationTargetException {
 
-        javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
+        final javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
         if( onTitleBarIfWindow ) {
-            javax.media.nativewindow.util.InsetsImmutable insets = win.getInsets();
+            final javax.media.nativewindow.util.InsetsImmutable insets = win.getInsets();
             p0.translate(win.getWidth()/2, insets.getTopHeight()/2);
         } else {
             p0.translate(win.getWidth()/2, win.getHeight()/2);
         }
         return new int[] { p0.getX(), p0.getY() };
     }
-    private static int[] getCenterLocationAWT(java.awt.Component comp, boolean onTitleBarIfWindow)
+    private static int[] getCenterLocationAWT(final java.awt.Component comp, final boolean onTitleBarIfWindow)
         throws InterruptedException, InvocationTargetException {
         int x0, y0;
-        java.awt.Point p0 = comp.getLocationOnScreen();
-        java.awt.Rectangle r0 = comp.getBounds();
+        final java.awt.Point p0 = comp.getLocationOnScreen();
+        final java.awt.Rectangle r0 = comp.getBounds();
         if( onTitleBarIfWindow && comp instanceof java.awt.Window) {
-            java.awt.Window window = (java.awt.Window) comp;
-            java.awt.Insets insets = window.getInsets();
+            final java.awt.Window window = (java.awt.Window) comp;
+            final java.awt.Insets insets = window.getInsets();
             y0 = (int) ( p0.getY() +    insets.top / 2.0 + .5 ) ;
         } else {
             y0 = (int) ( p0.getY() + r0.getHeight() / 2.0 + .5 ) ;
@@ -159,7 +160,7 @@ public class AWTRobotUtil {
         return new int[] { x0, y0 };
     }
 
-    public static int[] getClientLocation(Object obj, int x, int y)
+    public static int[] getClientLocation(final Object obj, final int x, final int y)
         throws InterruptedException, InvocationTargetException {
         if(obj instanceof com.jogamp.newt.Window) {
             return getClientLocationNEWT((com.jogamp.newt.Window)obj, x, y);
@@ -169,18 +170,18 @@ public class AWTRobotUtil {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
     }
-    private static int[] getClientLocationNEWT(com.jogamp.newt.Window win, int x, int y)
+    private static int[] getClientLocationNEWT(final com.jogamp.newt.Window win, final int x, final int y)
         throws InterruptedException, InvocationTargetException {
-        javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
+        final javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
         return new int[] { p0.getX(), p0.getY() };
     }
-    private static int[] getClientLocationAWT(java.awt.Component comp, int x, int y)
+    private static int[] getClientLocationAWT(final java.awt.Component comp, final int x, final int y)
         throws InterruptedException, InvocationTargetException {
-        java.awt.Point p0 = comp.getLocationOnScreen();
+        final java.awt.Point p0 = comp.getLocationOnScreen();
         return new int[] { (int)p0.getX(), (int)p0.getY() };
     }
 
-    public static void awtRobotMouseMove(Robot robot, int x, int y) {
+    public static void awtRobotMouseMove(final Robot robot, final int x, final int y) {
         robot.mouseMove( x, y );
         robot.delay(ROBOT_DELAY);
     }
@@ -196,14 +197,14 @@ public class AWTRobotUtil {
         throws AWTException, InterruptedException, InvocationTargetException {
 
         // just for event tracing ..
-        AWTWindowFocusAdapter winFA = new AWTWindowFocusAdapter("window");
+        final AWTWindowFocusAdapter winFA = new AWTWindowFocusAdapter("window");
         window.addWindowFocusListener(winFA);
 
         if(null == robot) {
             robot = new Robot();
             robot.setAutoWaitForIdle(true);
         }
-        int[] p0 = getCenterLocation(window, false);
+        final int[] p0 = getCenterLocation(window, false);
         System.err.println("toFront: robot pos: "+p0[0]+"/"+p0[1]);
         awtRobotMouseMove(robot, p0[0], p0[1] );
 
@@ -237,7 +238,7 @@ public class AWTRobotUtil {
      * centerMouse
      * @param onTitleBarIfWindow TODO
      */
-    public static void centerMouse(Robot robot, Object obj, boolean onTitleBarIfWindow)
+    public static void centerMouse(Robot robot, final Object obj, final boolean onTitleBarIfWindow)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -245,12 +246,12 @@ public class AWTRobotUtil {
             robot.setAutoWaitForIdle(true);
         }
 
-        int[] p0 = getCenterLocation(obj, onTitleBarIfWindow);
+        final int[] p0 = getCenterLocation(obj, onTitleBarIfWindow);
         System.err.println("centerMouse: robot pos: "+p0[0]+"x"+p0[1]+", onTitleBarIfWindow: "+onTitleBarIfWindow);
         awtRobotMouseMove(robot, p0[0], p0[1] );
     }
 
-    public static void setMouseToClientLocation(Robot robot, Object obj, int x, int y)
+    public static void setMouseToClientLocation(Robot robot, final Object obj, final int x, final int y)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -258,11 +259,11 @@ public class AWTRobotUtil {
             robot.setAutoWaitForIdle(true);
         }
 
-        int[] p0 = getClientLocation(obj, x, y);
+        final int[] p0 = getClientLocation(obj, x, y);
         awtRobotMouseMove(robot, p0[0], p0[1] );
     }
 
-    public static int getClickTimeout(Object obj) {
+    public static int getClickTimeout(final Object obj) {
         if(obj instanceof com.jogamp.newt.Window) {
             return com.jogamp.newt.event.MouseEvent.getClickTimeout();
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
@@ -283,7 +284,7 @@ public class AWTRobotUtil {
      * requestFocus, if robot is valid, use mouse operation,
      * otherwise programmatic, ie call requestFocus
      */
-    public static void requestFocus(Robot robot, Object obj)
+    public static void requestFocus(final Robot robot, final Object obj)
         throws AWTException, InterruptedException, InvocationTargetException {
         requestFocus(robot, obj, true);
     }
@@ -292,7 +293,7 @@ public class AWTRobotUtil {
      * requestFocus, if robot is valid, use mouse operation,
      * otherwise programmatic, ie call requestFocus
      */
-    public static void requestFocus(Robot robot, Object obj, boolean onTitleBarIfWindow)
+    public static void requestFocus(final Robot robot, final Object obj, final boolean onTitleBarIfWindow)
         throws AWTException, InterruptedException, InvocationTargetException {
         if(null != robot) {
             final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;
@@ -314,12 +315,12 @@ public class AWTRobotUtil {
             }
         }
     }
-    private static void requestFocusNEWT(com.jogamp.newt.Window win, boolean onTitleBarIfWindow)
+    private static void requestFocusNEWT(final com.jogamp.newt.Window win, final boolean onTitleBarIfWindow)
         throws AWTException, InterruptedException, InvocationTargetException {
         win.requestFocus();
         System.err.println("requestFocus: NEWT Component");
     }
-    private static void requestFocusAWT(final java.awt.Component comp, boolean onTitleBarIfWindow)
+    private static void requestFocusAWT(final java.awt.Component comp, final boolean onTitleBarIfWindow)
         throws AWTException, InterruptedException, InvocationTargetException {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -328,7 +329,7 @@ public class AWTRobotUtil {
             }});
     }
 
-    public static void requestFocus(Robot robot, Object obj, int x, int y)
+    public static void requestFocus(final Robot robot, final Object obj, final int x, final int y)
         throws AWTException, InterruptedException, InvocationTargetException {
         validateAWTEDTIsAlive();
 
@@ -338,7 +339,7 @@ public class AWTRobotUtil {
         if( idling ) {
             robot.waitForIdle();
         } else {
-            try { Thread.sleep(50); } catch (InterruptedException e) { }
+            try { Thread.sleep(50); } catch (final InterruptedException e) { }
         }
         robot.mousePress(mouseButton);
         robot.mouseRelease(mouseButton);
@@ -346,7 +347,7 @@ public class AWTRobotUtil {
         robot.delay( d );
     }
 
-    public static boolean hasFocus(Object obj) {
+    public static boolean hasFocus(final Object obj) {
         if(obj instanceof com.jogamp.newt.Window) {
             return ((com.jogamp.newt.Window) obj).hasFocus();
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
@@ -362,7 +363,7 @@ public class AWTRobotUtil {
      *
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean waitForFocus(Object obj) throws InterruptedException {
+    public static boolean waitForFocus(final Object obj) throws InterruptedException {
         int wait;
         if(obj instanceof com.jogamp.newt.Window) {
             final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
@@ -385,8 +386,8 @@ public class AWTRobotUtil {
      *
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean waitForFocus(FocusEventCountAdapter gain,
-                                       FocusEventCountAdapter lost) throws InterruptedException {
+    public static boolean waitForFocus(final FocusEventCountAdapter gain,
+                                       final FocusEventCountAdapter lost) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER; wait++) {
             if( ( null == lost || lost.focusLost() ) && ( null == gain || gain.focusGained() ) ) {
@@ -401,16 +402,16 @@ public class AWTRobotUtil {
      *
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean waitForFocus(Object obj, FocusEventCountAdapter gain,
-                                                   FocusEventCountAdapter lost) throws InterruptedException {
+    public static boolean waitForFocus(final Object obj, final FocusEventCountAdapter gain,
+                                                   final FocusEventCountAdapter lost) throws InterruptedException {
         if(!waitForFocus(obj)) {
             return false;
         }
         return waitForFocus(gain, lost);
     }
 
-    public static void assertRequestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus,
-                                              FocusEventCountAdapter gain, FocusEventCountAdapter lost)
+    public static void assertRequestFocusAndWait(final Robot robot, final Object requestFocus, final Object waitForFocus,
+                                              final FocusEventCountAdapter gain, final FocusEventCountAdapter lost)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         int i = 0;
@@ -455,8 +456,8 @@ public class AWTRobotUtil {
         robot.delay(msDelay);
     }
 
-    public static int keyType(int i, Robot robot, int keyCode,
-                              Object obj, KeyEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException
+    public static int keyType(final int i, final Robot robot, final int keyCode,
+                              final Object obj, final KeyEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException
     {
         int tc = 0;
         int j;
@@ -489,7 +490,7 @@ public class AWTRobotUtil {
     }
 
     /** No validation is performed .. */
-    public static int keyPress(int i, Robot robot, boolean press, int keyCode, int msDelay) {
+    public static int keyPress(final int i, final Robot robot, final boolean press, final int keyCode, final int msDelay) {
         final long t0 = System.currentTimeMillis();
         if(press) {
             awtRobotKeyPress(robot, keyCode, msDelay);
@@ -501,7 +502,7 @@ public class AWTRobotUtil {
     }
 
     /** No validation is performed .. */
-    public static int newtKeyPress(int i, Robot robot, boolean press, short newtKeyCode, int msDelay) {
+    public static int newtKeyPress(final int i, final Robot robot, final boolean press, final short newtKeyCode, final int msDelay) {
         final int keyCode = AWTNewtEventFactory.newtKeyCode2AWTKeyCode(newtKeyCode);
         final long t0 = System.currentTimeMillis();
         if(press) {
@@ -517,8 +518,8 @@ public class AWTRobotUtil {
      * @param keyCode TODO
      * @param counter shall return the number of keys typed (press + release)
      */
-    public static void assertKeyType(Robot robot, int keyCode, int typeCount,
-                                     Object obj, KeyEventCountAdapter counter)
+    public static void assertKeyType(Robot robot, final int keyCode, final int typeCount,
+                                     final Object obj, final KeyEventCountAdapter counter)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -549,8 +550,8 @@ public class AWTRobotUtil {
      * @param keyCode TODO
      * @param counter shall return the number of keys typed (press + release)
      */
-    public static void assertKeyPress(Robot robot, int keyCode, int typeCount,
-                                      Object obj, KeyEventCountAdapter counter)
+    public static void assertKeyPress(Robot robot, final int keyCode, final int typeCount,
+                                      final Object obj, final KeyEventCountAdapter counter)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -577,8 +578,8 @@ public class AWTRobotUtil {
         Assert.assertEquals("Wrong key count", typeCount, counter.getCount()-c0);
     }
 
-    static int mouseClick(int i, Robot robot, int mouseButton,
-                          Object obj, InputEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException
+    static int mouseClick(final int i, final Robot robot, final int mouseButton,
+                          final Object obj, final InputEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException
     {
         int j;
         int tc = 0;
@@ -611,8 +612,8 @@ public class AWTRobotUtil {
      * @param mouseButton ie InputEvent.BUTTON1_MASK
      * @param clickCount ie 1, or 2
      */
-    public static void assertMouseClick(Robot robot, int mouseButton, int clickCount,
-                                        Object obj, InputEventCountAdapter counter)
+    public static void assertMouseClick(Robot robot, final int mouseButton, final int clickCount,
+                                        final Object obj, final InputEventCountAdapter counter)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -647,15 +648,15 @@ public class AWTRobotUtil {
      *
      * @return True if the Component becomes <code>visible</code> within TIME_OUT
      */
-    public static boolean waitForVisible(Object obj, boolean visible) throws InterruptedException {
+    public static boolean waitForVisible(final Object obj, final boolean visible) throws InterruptedException {
         int wait;
         if(obj instanceof com.jogamp.newt.Window) {
-            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
             for (wait=0; wait<POLL_DIVIDER && visible != win.isVisible(); wait++) {
                 Thread.sleep(TIME_SLICE);
             }
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
-            java.awt.Component comp = (java.awt.Component) obj;
+            final java.awt.Component comp = (java.awt.Component) obj;
             for (wait=0; wait<POLL_DIVIDER && visible != comp.isShowing(); wait++) {
                 Thread.sleep(TIME_SLICE);
             }
@@ -669,9 +670,9 @@ public class AWTRobotUtil {
      *
      * @return True if the GLDrawable receives the expected size within TIME_OUT
      */
-    public static boolean waitForSize(GLDrawable drawable, int width, int height) throws InterruptedException {
+    public static boolean waitForSize(final GLDrawable drawable, final int width, final int height) throws InterruptedException {
         int wait;
-        for (wait=0; wait<POLL_DIVIDER && ( width != drawable.getWidth() || height != drawable.getHeight() ) ; wait++) {
+        for (wait=0; wait<POLL_DIVIDER && ( width != drawable.getSurfaceWidth() || height != drawable.getSurfaceHeight() ) ; wait++) {
             Thread.sleep(TIME_SLICE);
         }
         return wait<POLL_DIVIDER;
@@ -683,7 +684,7 @@ public class AWTRobotUtil {
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitForRealized(Object obj, boolean realized) throws InterruptedException {
+    public static boolean waitForRealized(final Object obj, final boolean realized) throws InterruptedException {
         return waitForRealized(obj, null, realized);
     }
 
@@ -694,11 +695,11 @@ public class AWTRobotUtil {
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitForRealized(Object obj, Runnable waitAction, boolean realized) throws InterruptedException {
+    public static boolean waitForRealized(final Object obj, final Runnable waitAction, final boolean realized) throws InterruptedException {
         long t0 = System.currentTimeMillis();
         long t1 = t0;
         if(obj instanceof com.jogamp.newt.Screen) {
-            com.jogamp.newt.Screen screen = (com.jogamp.newt.Screen) obj;
+            final com.jogamp.newt.Screen screen = (com.jogamp.newt.Screen) obj;
             while( (t1-t0) < TIME_OUT && realized != screen.isNativeValid() ) {
                 if( null != waitAction ) {
                     waitAction.run();
@@ -708,7 +709,7 @@ public class AWTRobotUtil {
                 t1 = System.currentTimeMillis();
             }
         } else if(obj instanceof com.jogamp.newt.Window) {
-            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
             while( (t1-t0) < TIME_OUT && realized != win.isNativeValid() ) {
                 if( null != waitAction ) {
                     waitAction.run();
@@ -718,7 +719,7 @@ public class AWTRobotUtil {
                 t1 = System.currentTimeMillis();
             }
         } else if (NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
-            java.awt.Component comp = (java.awt.Component) obj;
+            final java.awt.Component comp = (java.awt.Component) obj;
             while( (t1-t0) < TIME_OUT && realized != comp.isShowing() ) {
                 if( null != waitAction ) {
                     waitAction.run();
@@ -729,7 +730,7 @@ public class AWTRobotUtil {
             }
             // if GLCanvas, ensure it got also painted -> drawable.setRealized(true);
             if( (t1-t0) < TIME_OUT && comp instanceof GLAutoDrawable) {
-                GLAutoDrawable glad = (GLAutoDrawable) comp;
+                final GLAutoDrawable glad = (GLAutoDrawable) comp;
                 t0 = System.currentTimeMillis();
                 while( (t1-t0) < TIME_OUT && realized != glad.isRealized() ) {
                     if( null != waitAction ) {
@@ -756,7 +757,7 @@ public class AWTRobotUtil {
                 }
             }
         } else if(obj instanceof GLAutoDrawable) {
-            GLAutoDrawable glad = (GLAutoDrawable) obj;
+            final GLAutoDrawable glad = (GLAutoDrawable) obj;
             while( (t1-t0) < TIME_OUT && realized != glad.isRealized() ) {
                 if( null != waitAction ) {
                     waitAction.run();
@@ -775,7 +776,7 @@ public class AWTRobotUtil {
      *
      * @return True if the GLContext becomes created or not within TIME_OUT
      */
-    public static boolean waitForContextCreated(GLAutoDrawable autoDrawable, boolean created) throws InterruptedException {
+    public static boolean waitForContextCreated(final GLAutoDrawable autoDrawable, final boolean created) throws InterruptedException {
         if( null == autoDrawable ) {
             return !created;
         }
@@ -808,18 +809,18 @@ public class AWTRobotUtil {
      * @return True if the Window is closing and closed (if willClose is true), each within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean closeWindow(Object obj, boolean willClose, WindowClosingListener closingListener) throws InterruptedException {
+    public static boolean closeWindow(final Object obj, final boolean willClose, final WindowClosingListener closingListener) throws InterruptedException {
         closingListener.reset();
         if(obj instanceof java.awt.Window) {
             final java.awt.Window win = (java.awt.Window) obj;
-            java.awt.Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
+            final java.awt.Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
             final java.awt.EventQueue evtQ = tk.getSystemEventQueue();
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                 public void run() {
                     evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
                 } });
         } else if(obj instanceof com.jogamp.newt.Window) {
-            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
             WindowImplAccess.windowDestroyNotify(win);
         }
         int wait;
@@ -834,7 +835,7 @@ public class AWTRobotUtil {
         return wait<POLL_DIVIDER;
     }
 
-    public static WindowClosingListener addClosingListener(Object obj) {
+    public static WindowClosingListener addClosingListener(final Object obj) {
         WindowClosingListener cl = null;
         if(obj instanceof java.awt.Window) {
             final java.awt.Window win = (java.awt.Window) obj;
@@ -845,8 +846,8 @@ public class AWTRobotUtil {
                 } } );
             cl = acl;
         } else if(obj instanceof com.jogamp.newt.Window) {
-            com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
-            NEWTWindowClosingAdapter ncl = new NEWTWindowClosingAdapter();
+            final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
+            final NEWTWindowClosingAdapter ncl = new NEWTWindowClosingAdapter();
             win.addWindowListener(ncl);
             cl = ncl;
         } else {
@@ -864,31 +865,31 @@ public class AWTRobotUtil {
     static class AWTWindowClosingAdapter
             extends java.awt.event.WindowAdapter implements WindowClosingListener
     {
-        volatile int closing = 0;
-        volatile int closed = 0;
+        AtomicInteger closing = new AtomicInteger(0);
+        AtomicInteger closed = new AtomicInteger(0);
 
         public void reset() {
-            closing = 0;
-            closed = 0;
+            closing.set(0);
+            closed.set(0);
         }
         public int getWindowClosingCount() {
-            return closing;
+            return closing.get();
         }
         public int getWindowClosedCount() {
-            return closed;
+            return closed.get();
         }
         public boolean isWindowClosing() {
-            return 0 < closing;
+            return 0 < closing.get();
         }
         public boolean isWindowClosed() {
-            return 0 < closed;
+            return 0 < closed.get();
         }
-        public void windowClosing(java.awt.event.WindowEvent e) {
-            closing++;
+        public void windowClosing(final java.awt.event.WindowEvent e) {
+            closing.incrementAndGet();
             System.err.println("AWTWindowClosingAdapter.windowClosing: "+this);
         }
-        public void windowClosed(java.awt.event.WindowEvent e) {
-            closed++;
+        public void windowClosed(final java.awt.event.WindowEvent e) {
+            closed.incrementAndGet();
             System.err.println("AWTWindowClosingAdapter.windowClosed: "+this);
         }
         public String toString() {
@@ -898,31 +899,31 @@ public class AWTRobotUtil {
     static class NEWTWindowClosingAdapter
             extends com.jogamp.newt.event.WindowAdapter implements WindowClosingListener
     {
-        volatile int closing = 0;
-        volatile int closed = 0;
+        AtomicInteger closing = new AtomicInteger(0);
+        AtomicInteger closed = new AtomicInteger(0);
 
         public void reset() {
-            closing = 0;
-            closed = 0;
+            closing.set(0);
+            closed.set(0);
         }
         public int getWindowClosingCount() {
-            return closing;
+            return closing.get();
         }
         public int getWindowClosedCount() {
-            return closed;
+            return closed.get();
         }
         public boolean isWindowClosing() {
-            return 0 < closing;
+            return 0 < closing.get();
         }
         public boolean isWindowClosed() {
-            return 0 < closed;
+            return 0 < closed.get();
         }
-        public void windowDestroyNotify(WindowEvent e) {
-            closing++;
+        public void windowDestroyNotify(final WindowEvent e) {
+            closing.incrementAndGet();
             System.err.println("NEWTWindowClosingAdapter.windowDestroyNotify: "+this);
         }
-        public void windowDestroyed(WindowEvent e) {
-            closed++;
+        public void windowDestroyed(final WindowEvent e) {
+            closed.incrementAndGet();
             System.err.println("NEWTWindowClosingAdapter.windowDestroyed: "+this);
         }
         public String toString() {

@@ -28,6 +28,7 @@
 
         <property name="java.part.test.all"   value="com/jogamp/** jogamp/**"/>
         <property name="java.part.test.android" value="com/jogamp/opengl/test/android/**"/>
+        <property name="java.part.test.oculusvr" value="com/jogamp/opengl/test/junit/jogl/stereo/ovr/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
         <property name="java.dir.junit"       value="${java.dir.test}/junit"/>
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
@@ -53,6 +54,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
             <fileset file="${jogl-test.jar}" />
         </delete>
     </target>
@@ -61,10 +63,10 @@
     <!--
        - Build/run tests/junit.
       -->
-    <target name="test.compile.javase">
-        <!-- Perform the junit pass Java SE compile -->
+
+    <target name="test.compile.javase.generic">
         <javac destdir="${classes}"
-               excludes="${java.part.test.android}"
+               excludes="${java.part.test.android} ${java.part.test.oculusvr}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -76,6 +78,24 @@
             <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
         </javac>
+    </target>
+    <target name="test.compile.javase.oculusvr" if="oculusvr.sdk.available">
+        <javac destdir="${classes}"
+               includes="${java.part.test.oculusvr}"
+               excludes="${java.part.test.android}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit_jogl_newt_oculusvr.compile.classpath"/>
+            <src path="${src.test}" />
+        </javac>
+    </target>
+    <target name="test.compile.javase" depends="test.compile.javase.generic, test.compile.javase.oculusvr">
         <copy file="joglversion-test"
             tofile="${build.test}/manifest-test.mf"
             overwrite="true">
@@ -103,6 +123,7 @@
     <target name="test.compile.android" if="android-jars.available">
         <!-- Perform the junit pass Java Android compile -->
         <javac destdir="${classes}"
+               excludes="${java.part.test.oculusvr}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -744,6 +765,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <move todir="${build}/test/results-x32">
             <fileset dir="${results.test}" includes="**" />
@@ -770,6 +792,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <move todir="${build}/test/results-java7">
             <fileset dir="${results.test}" includes="**" />
@@ -1105,6 +1128,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </delete>
         <mkdir dir="${results.test}" />
     </target>
@@ -1124,6 +1148,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -1136,6 +1161,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -1148,6 +1174,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -1160,6 +1187,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>

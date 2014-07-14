@@ -78,7 +78,7 @@ public class StaticGLGenTask extends Task
      * <p>The {@link org.apache.tools.ant.types.CommandlineJava} that is used
      * to execute {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo}.</p>
      */
-    private CommandlineJava glgenCommandline;
+    private final CommandlineJava glgenCommandline;
 
     // =========================================================================
     /**
@@ -94,7 +94,7 @@ public class StaticGLGenTask extends Task
     /**
      * <p>The {@link org.apache.tools.ant.types.FileSet} of GL headers.</p>
      */
-    private FileSet headerSet = new FileSet();
+    private final FileSet headerSet = new FileSet();
 
     // =========================================================================
     /**
@@ -117,7 +117,7 @@ public class StaticGLGenTask extends Task
      *
      * @param  packageName the name of the package for the generated files
      */
-    public void setPackage(String packageName)
+    public void setPackage(final String packageName)
     {
         log( ("Setting package name to: " + packageName), Project.MSG_VERBOSE);
         this.packageName = packageName;
@@ -128,7 +128,7 @@ public class StaticGLGenTask extends Task
      *
      * @param  directory the output directory
      */
-    public void setOutputDir(String directory)
+    public void setOutputDir(final String directory)
     {
         log( ("Setting output directory to: " + directory),
               Project.MSG_VERBOSE);
@@ -163,7 +163,7 @@ public class StaticGLGenTask extends Task
      *
      * @param  headers the string containing the header patterns
      */
-    public void setHeaders(String headers)
+    public void setHeaders(final String headers)
     {
         headerSet.setIncludes(headers);
     }
@@ -236,7 +236,7 @@ public class StaticGLGenTask extends Task
      * @return <code>true</code> if the string is valid.  <code>false</code>
      *         otherwise.
      */
-    private boolean isValid(String string)
+    private boolean isValid(final String string)
     {
         // check for null
         if(string == null)
@@ -265,8 +265,8 @@ public class StaticGLGenTask extends Task
 
         // add the header -files- from the FileSet
         headerSet.setDir(getProject().getBaseDir());
-        DirectoryScanner directoryScanner = headerSet.getDirectoryScanner(getProject());
-        String[] directoryFiles = directoryScanner.getIncludedFiles();
+        final DirectoryScanner directoryScanner = headerSet.getDirectoryScanner(getProject());
+        final String[] directoryFiles = directoryScanner.getIncludedFiles();
         for(int i=0; i<directoryFiles.length; i++)
         {
             glgenCommandline.createArgument().setValue(directoryFiles[i]);
@@ -279,11 +279,11 @@ public class StaticGLGenTask extends Task
      *
      * @throws BuildException
      */
-    private int execute(String[] command)
+    private int execute(final String[] command)
         throws BuildException
     {
         // create the object that will perform the command execution
-        Execute execute = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
+        final Execute execute = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
                                                            Project.MSG_WARN),
                                       null);
 
@@ -296,7 +296,7 @@ public class StaticGLGenTask extends Task
         try
         {
             return execute.execute();
-        } catch(IOException ioe)
+        } catch(final IOException ioe)
         {
             throw new BuildException(ioe, location);
         }

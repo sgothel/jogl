@@ -53,7 +53,7 @@ import javax.media.opengl.GLException;
 import com.jogamp.common.nio.Buffers;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
-  protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
+  protected X11PbufferGLXDrawable(final GLDrawableFactory factory, final NativeSurface target) {
                                   /* GLCapabilities caps,
                                   GLCapabilitiesChooser chooser,
                                   int width, int height */
@@ -70,12 +70,12 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new X11GLXContext(this, shareWith);
   }
 
   protected void destroyPbuffer() {
-    NativeSurface ns = getNativeSurface();
+    final NativeSurface ns = getNativeSurface();
     if (ns.getSurfaceHandle() != 0) {
       GLX.glXDestroyPbuffer(ns.getDisplayHandle(), ns.getSurfaceHandle());
     }
@@ -102,17 +102,17 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       // Create the p-buffer.
       int niattribs = 0;
-      IntBuffer iattributes = Buffers.newDirectIntBuffer(7);
+      final IntBuffer iattributes = Buffers.newDirectIntBuffer(7);
 
       iattributes.put(niattribs++, GLX.GLX_PBUFFER_WIDTH);
-      iattributes.put(niattribs++, ms.getWidth());
+      iattributes.put(niattribs++, ms.getSurfaceWidth());
       iattributes.put(niattribs++, GLX.GLX_PBUFFER_HEIGHT);
-      iattributes.put(niattribs++, ms.getHeight());
+      iattributes.put(niattribs++, ms.getSurfaceHeight());
       iattributes.put(niattribs++, GLX.GLX_LARGEST_PBUFFER); // exact
       iattributes.put(niattribs++, 0);
       iattributes.put(niattribs++, 0);
 
-      long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes);
+      final long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes);
       if (pbuffer == 0) {
         // FIXME: query X error code for detail error message
         throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");

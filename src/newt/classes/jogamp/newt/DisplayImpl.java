@@ -142,7 +142,7 @@ public abstract class DisplayImpl extends Display {
                             System.err.println("createPointerIconPNG.0: "+res[0]);
                         }
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             } } );
@@ -199,7 +199,7 @@ public abstract class DisplayImpl extends Display {
                             res[0] = new PointerIconImpl(DisplayImpl.this, fpixelrect, new Point(hotX, hotY), handle);
                         }
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             } } );
@@ -222,7 +222,7 @@ public abstract class DisplayImpl extends Display {
      * @param hotY the PointerIcon's hot-spot x-coord
      * @return if successful a valid handle (not null), otherwise null.
      */
-    protected final long createPointerIconImplChecked(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+    protected final long createPointerIconImplChecked(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         if( getNativePointerIconPixelFormat() != pixelformat ) {
             throw new IllegalArgumentException("Pixelformat no "+getNativePointerIconPixelFormat()+", but "+pixelformat);
         }
@@ -243,17 +243,17 @@ public abstract class DisplayImpl extends Display {
      * @param hotY the PointerIcon's hot-spot x-coord
      * @return if successful a valid handle (not null), otherwise null.
      */
-    protected long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+    protected long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         return 0;
     }
 
     /** Executed from EDT! */
-    protected void destroyPointerIconImpl(final long displayHandle, long piHandle) { }
+    protected void destroyPointerIconImpl(final long displayHandle, final long piHandle) { }
 
     /** Ensure static init has been run. */
     /* pp */static void initSingleton() { }
 
-    private static Class<?> getDisplayClass(String type)
+    private static Class<?> getDisplayClass(final String type)
         throws ClassNotFoundException
     {
         final Class<?> displayClass = NewtFactory.getCustomClass(type, "DisplayDriver");
@@ -264,7 +264,7 @@ public abstract class DisplayImpl extends Display {
     }
 
     /** Make sure to reuse a Display with the same name */
-    public static Display create(String type, String name, final long handle, boolean reuse) {
+    public static Display create(final String type, String name, final long handle, final boolean reuse) {
         try {
             final Class<?> displayClass = getDisplayClass(type);
             final DisplayImpl display = (DisplayImpl) displayClass.newInstance();
@@ -294,13 +294,13 @@ public abstract class DisplayImpl extends Display {
                 System.err.println("Display.create() NEW: "+display+" "+getThreadName());
             }
             return display;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -340,7 +340,7 @@ public abstract class DisplayImpl extends Display {
                     public void run() {
                         f_dpy.createNativeImpl();
                     }});
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 throw new NativeWindowException(t);
             }
             if( null == aDevice ) {
@@ -409,7 +409,7 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
-    public void runOnEDTIfAvail(boolean wait, final Runnable task) {
+    public void runOnEDTIfAvail(final boolean wait, final Runnable task) {
         final EDTUtil _edtUtil = edtUtil;
         if( !_edtUtil.isRunning() ) { // start EDT if not running yet
             synchronized( this ) {
@@ -516,7 +516,7 @@ public abstract class DisplayImpl extends Display {
                     }
                     try {
                         Thread.sleep( coopSleep < 50 ? coopSleep : 50 );
-                    } catch (InterruptedException e) { }
+                    } catch (final InterruptedException e) { }
                 } else {
                     closeNativeTask.run();
                 }
@@ -527,7 +527,7 @@ public abstract class DisplayImpl extends Display {
     @Override
     public synchronized final int addReference() {
         if(DEBUG) {
-            System.err.println("Display.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
+            System.err.println("Display.addReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount+1));
         }
         if ( 0 == refCount ) {
             createNative();
@@ -542,7 +542,7 @@ public abstract class DisplayImpl extends Display {
     @Override
     public synchronized final int removeReference() {
         if(DEBUG) {
-            System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
+            System.err.println("Display.removeReference() ("+Display.getThreadName()+"): "+refCount+" -> "+(refCount-1));
         }
         refCount--; // could become < 0, in case of manual destruction without actual creation/addReference
         if(0>=refCount) {
@@ -587,17 +587,17 @@ public abstract class DisplayImpl extends Display {
 
     public static final String nilString = "nil" ;
 
-    public String validateDisplayName(String name, long handle) {
+    public String validateDisplayName(String name, final long handle) {
         if(null==name && 0!=handle) {
             name="wrapping-"+toHexString(handle);
         }
         return ( null == name ) ? nilString : name ;
     }
 
-    private static String getFQName(String type, String name, int id) {
+    private static String getFQName(String type, String name, final int id) {
         if(null==type) type=nilString;
         if(null==name) name=nilString;
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(type);
         sb.append("_");
         sb.append(name);
@@ -668,7 +668,7 @@ public abstract class DisplayImpl extends Display {
             } else {
                 throw new RuntimeException("Event source not NEWT: "+source.getClass().getName()+", "+source);
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             final RuntimeException re;
             if(t instanceof RuntimeException) {
                 re = (RuntimeException) t;
@@ -689,7 +689,7 @@ public abstract class DisplayImpl extends Display {
                 return;
             }
             dispatchMessage(event);
-        } catch (RuntimeException re) {
+        } catch (final RuntimeException re) {
             if( eventTask.isCallerWaiting() ) {
                 // propagate exception to caller
                 eventTask.setException(re);
@@ -733,7 +733,7 @@ public abstract class DisplayImpl extends Display {
         dispatchMessagesNative();
     }
 
-    public void enqueueEvent(boolean wait, NEWTEvent e) {
+    public void enqueueEvent(final boolean wait, final NEWTEvent e) {
         final EDTUtil _edtUtil = edtUtil;
         if( !_edtUtil.isRunning() ) {
             // oops .. we are already dead
@@ -761,7 +761,7 @@ public abstract class DisplayImpl extends Display {
             if( wait ) {
                 try {
                     lock.wait();
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throw new RuntimeException(ie);
                 }
                 if( null != eTask.getException() ) {
@@ -774,7 +774,7 @@ public abstract class DisplayImpl extends Display {
     public interface DisplayRunnable<T> {
         T run(long dpy);
     }
-    public static final <T> T runWithLockedDevice(AbstractGraphicsDevice device, DisplayRunnable<T> action) {
+    public static final <T> T runWithLockedDevice(final AbstractGraphicsDevice device, final DisplayRunnable<T> action) {
         T res;
         device.lock();
         try {
@@ -784,7 +784,7 @@ public abstract class DisplayImpl extends Display {
         }
         return res;
     }
-    public final <T> T runWithLockedDisplayDevice(DisplayRunnable<T> action) {
+    public final <T> T runWithLockedDisplayDevice(final DisplayRunnable<T> action) {
         final AbstractGraphicsDevice device = getGraphicsDevice();
         if(null == device) {
             throw new RuntimeException("null device - not initialized: "+this);

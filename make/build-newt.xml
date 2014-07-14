@@ -745,6 +745,18 @@
               <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
           </filterset>
         </copy>
+        <copy file="${manifestfile}-natives"
+          tofile="${build.newt}/manifest-natives.mf"
+          overwrite="true">
+          <filterset>
+              <filter token="VERSION" value="${jogamp.version}"/>
+              <filter token="BUILD_VERSION" value="${jogl.version}"/>
+              <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+              <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+              <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+              <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+          </filterset>
+        </copy>
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
@@ -804,7 +816,7 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-driver">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-core.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
             <fileset dir="resources/assets" includes="newt/data/**" />
@@ -829,11 +841,11 @@
     </target>
 
     <target name="build-jars-native" depends="gluegen.cpptasks.detect.os,setup-manifestfile">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${build.newt}/newt-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.newt}">
-              <include name="*.${native.library.suffix}" />
-            </fileset>
-        </jar>
+        <native.tag.jar objdir="${obj.newt}"
+                        nativejarfile="${build.newt}/newt-natives-${os.and.arch}.jar"
+                        manifestfile="${build.newt}/manifest-natives.mf"
+                        module="newt"
+                        includelibs="*.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->

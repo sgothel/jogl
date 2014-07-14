@@ -38,8 +38,8 @@ import com.jogamp.newt.Screen;
 
 public class MonitorDeviceImpl extends MonitorDevice {
 
-    public MonitorDeviceImpl(ScreenImpl screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewport, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
-        super(screen, nativeId, sizeMM, viewport, currentMode, supportedModes);
+    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId, final DimensionImmutable sizeMM, final Rectangle viewportPU, final Rectangle viewportWU, final MonitorMode currentMode, final ArrayHashSet<MonitorMode> supportedModes) {
+        super(screen, nativeId, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
     }
 
     @Override
-    public final boolean setCurrentMode(MonitorMode mode) {
+    public final boolean setCurrentMode(final MonitorMode mode) {
         if(Screen.DEBUG) {
             System.err.println("Screen.setCurrentMode.0: "+this+" -> "+mode);
         }
@@ -132,15 +132,14 @@ public class MonitorDeviceImpl extends MonitorDevice {
         }
     }
 
-    private final void setCurrentModeValue(MonitorMode currentMode) {
+    private final void setCurrentModeValue(final MonitorMode currentMode) {
         this.currentMode = currentMode;
     }
 
-    /* pp */ final void setViewportValue(Rectangle viewport) {
-        this.viewport = viewport;
-    }
+    /* pp */ final Rectangle getMutuableViewportPU() { return viewportPU; }
+    /* pp */ final Rectangle getMutuableViewportWU() { return viewportWU; }
 
-    /* pp */ ArrayHashSet<MonitorMode> getSupportedModesImpl() {
+    /* pp */ final ArrayHashSet<MonitorMode> getSupportedModesImpl() {
         return supportedModes;
     }
 

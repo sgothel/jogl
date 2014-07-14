@@ -29,7 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.shader;
 
 public class RedSquareShader {
-    public static String VERTEX_SHADER_TEXT =
+    public static final String VERTEX_SHADER_TEXT =
                 " #ifdef GL_ES\n" +
                 "  precision mediump float;\n" +
                 "  precision mediump int;\n" +
@@ -38,7 +38,7 @@ public class RedSquareShader {
                 "#if __VERSION__ >= 130\n" +
                 "  #define attribute in\n" +
                 "  #define varying out\n" +
-                "#endif\n"+               
+                "#endif\n"+
                 "\n" +
                 "uniform mat4    mgl_PMVMatrix[2];\n" +
                 "attribute vec4    mgl_Vertex;\n" +
@@ -51,7 +51,7 @@ public class RedSquareShader {
                 "  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * mgl_Vertex;\n" +
                 "}\n" ;
 
-    public static String FRAGMENT_SHADER_TEXT =
+    public static final String FRAGMENT_SHADER_TEXT =
                 " #ifdef GL_ES\n" +
                 "  precision mediump float;\n" +
                 "  precision mediump int;\n" +
@@ -61,7 +61,7 @@ public class RedSquareShader {
                 "  #define varying in\n" +
                 "  out vec4 mgl_FragColor;\n" +
                 "#else\n" +
-                "  #define mgl_FragColor gl_FragColor\n" +   
+                "  #define mgl_FragColor gl_FragColor\n" +
                 "#endif\n" +
                 "\n" +
                 "varying   vec4    frontColor;\n" +

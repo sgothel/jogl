@@ -57,7 +57,7 @@ public class Extract4444 implements Extract {
   }
 
   @Override
-  public void extract( boolean isSwap, ByteBuffer packedPixel, float[] extractComponents ) {
+  public void extract( final boolean isSwap, final ByteBuffer packedPixel, final float[] extractComponents ) {
     int ushort = 0;
 
     if( isSwap ) {
@@ -71,14 +71,14 @@ public class Extract4444 implements Extract {
     // 00000000,11110000 == 0x00F0
     // 00000000,00001111 == 0x000F
 
-    extractComponents[0] = (float)( ( ushort & 0xF000 ) >> 12 ) / 15.0f;
-    extractComponents[1] = (float)( ( ushort & 0x0F00 ) >> 8  ) / 15.0f;
-    extractComponents[2] = (float)( ( ushort & 0x00F0 ) >> 4  ) / 15.0f;
-    extractComponents[3] = (float)( ( ushort & 0x000F )       ) / 15.0f;
+    extractComponents[0] = ( ( ushort & 0xF000 ) >> 12 ) / 15.0f;
+    extractComponents[1] = ( ( ushort & 0x0F00 ) >> 8  ) / 15.0f;
+    extractComponents[2] = ( ( ushort & 0x00F0 ) >> 4  ) / 15.0f;
+    extractComponents[3] = ( ( ushort & 0x000F )       ) / 15.0f;
   }
 
   @Override
-  public void shove( float[] shoveComponents, int index, ByteBuffer packedPixel ) {
+  public void shove( final float[] shoveComponents, final int index, final ByteBuffer packedPixel ) {
     // 11110000,00000000 == 0xF000
     // 00001111,00000000 == 0x0F00
     // 00000000,11110000 == 0x00F0

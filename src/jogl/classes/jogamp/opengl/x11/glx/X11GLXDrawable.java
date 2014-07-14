@@ -47,7 +47,7 @@ import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
-  protected X11GLXDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
+  protected X11GLXDrawable(final GLDrawableFactory factory, final NativeSurface comp, final boolean realized) {
     super(factory, comp, realized);
   }
 
@@ -59,7 +59,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
   @Override
   protected void setRealizedImpl() {
     if(realized) {
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
+        final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
         config.updateGraphicsConfiguration();
 
         if (DEBUG) {
@@ -69,7 +69,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
   }
 
   @Override
-  protected final void swapBuffersImpl(boolean doubleBuffered) {
+  protected final void swapBuffersImpl(final boolean doubleBuffered) {
     if(doubleBuffered) {
         GLX.glXSwapBuffers(getNativeSurface().getDisplayHandle(), getHandle());
     }

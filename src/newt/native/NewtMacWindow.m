@@ -174,6 +174,7 @@ static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
+static jmethodID updatePixelScaleID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
@@ -330,8 +331,8 @@ static jmethodID windowRepaintID = NULL;
     NSRect viewFrame = [self frame];
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE, // defer ..
-        dirtyRect.origin.x, viewFrame.size.height - dirtyRect.origin.y, 
-        dirtyRect.size.width, dirtyRect.size.height);
+        (int)dirtyRect.origin.x, (int)viewFrame.size.height - (int)dirtyRect.origin.y, 
+        (int)dirtyRect.size.width, (int)dirtyRect.size.height);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -476,14 +477,26 @@ static jmethodID windowRepaintID = NULL;
     }
 }
 
+/**
+ * p abs screen position w/ bottom-left origin
+ */
 - (void) setMousePosition:(NSPoint)p
 {
     NSWindow* nsWin = [self window];
     if( NULL != nsWin ) {
         NSScreen* screen = [nsWin screen];
-        NSRect screenRect = [screen frame];
 
-        CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
+        CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+        CGRect frameTL = CGDisplayBounds (display); // origin top-left
+        NSRect frameBL = [screen frame]; // origin bottom-left
+        CGPoint pt = { p.x, frameTL.origin.y + frameTL.size.height - ( p.y - frameBL.origin.y ) }; // y-flip from BL-screen -> TL-screen
+
+        DBG_PRINT( "setMousePosition: point-in[%d/%d], screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] -> %d/%d\n",
+            (int)p.x, (int)p.y,
+            (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+            (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+            (int)pt.x, (int)pt.y);
+
         CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
         CGEventPost (kCGHIDEventTap, ev);
     }
@@ -761,6 +774,35 @@ static jmethodID windowRepaintID = NULL;
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
+- (void)viewDidChangeBackingProperties
+{
+    [super viewDidChangeBackingProperties];
+
+    // HiDPI scaling
+    BOOL useHiDPI = [self wantsBestResolutionOpenGLSurface];
+    CGFloat pixelScaleNative = [[self window] backingScaleFactor];
+    CGFloat pixelScaleUse = useHiDPI ? pixelScaleNative : 1.0;
+    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, native %f -> use %f\n", useHiDPI, (float)pixelScaleNative, (float)pixelScaleUse);
+    [[self layer] setContentsScale: pixelScaleUse];
+
+    if (javaWindowObject == NULL) {
+        DBG_PRINT("viewDidChangeBackingProperties: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("viewDidChangeBackingProperties: null JNIEnv\n");
+        return;
+    }
+
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScaleUse, (jfloat)pixelScaleNative); // defer 
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
+}
+
+
 @end
 
 @implementation NewtMacWindow
@@ -769,7 +811,8 @@ static jmethodID windowRepaintID = NULL;
 {
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISCC)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
@@ -777,7 +820,7 @@ static jmethodID windowRepaintID = NULL;
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
+    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && insetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
         CKCH_CreateDictionaries();
@@ -824,10 +867,12 @@ static jmethodID windowRepaintID = NULL;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
     [self setDelegate: self];
+
     cachedInsets[0] = 0; // l
     cachedInsets[1] = 0; // r
     cachedInsets[2] = 0; // t
     cachedInsets[3] = 0; // b
+
     realized = YES;
     DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
         res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
@@ -927,19 +972,20 @@ static jmethodID windowRepaintID = NULL;
 {
     int totalHeight = nsz.height + cachedInsets[3]; // height + insets.bottom
 
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: given %d/%d %dx%d, insets bottom %d -> totalHeight %d\n", 
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: point-in[%d/%d], size-in[%dx%d], insets bottom %d -> totalHeight %d\n", 
         (int)p.x, (int)p.y, (int)nsz.width, (int)nsz.height, cachedInsets[3], totalHeight);
 
     NSScreen* screen = [self screen];
-    NSRect screenFrame = [screen frame];
 
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: screen %d/%d %dx%d\n", 
-        (int)screenFrame.origin.x, (int)screenFrame.origin.y, (int)screenFrame.size.width, (int)screenFrame.size.height);
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    CGRect frameTL = CGDisplayBounds (display); // origin top-left
+    NSRect frameBL = [screen frame]; // origin bottom-left
+    NSPoint r = NSMakePoint(p.x, frameBL.origin.y + frameBL.size.height - ( p.y - frameTL.origin.y ) - totalHeight); // y-flip from TL-screen -> BL-screen
 
-    NSPoint r = NSMakePoint(screenFrame.origin.x + p.x,
-                            screenFrame.origin.y + screenFrame.size.height - p.y - totalHeight);
-
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: result %d/%d\n", (int)r.x, (int)r.y); 
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: screen tl[%d/%d %dx%d] bl[%d/%d %dx%d ->  %d/%d\n",
+        (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+        (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+        (int)r.x, (int)r.y);
 
     return r;
 }
@@ -954,9 +1000,16 @@ static jmethodID windowRepaintID = NULL;
 
     NSView* mView = [self contentView];
     NSRect mViewFrame = [mView frame]; 
+    NSPoint r = NSMakePoint(winFrame.origin.x + p.x,
+                            winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
 
-    return NSMakePoint(winFrame.origin.x + p.x,
-                       winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
+    DBG_PRINT( "newtRelClientTLWinPos2AbsBLScreenPos: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d] -> %d/%d\n",
+        (int)p.x, (int)p.y,
+        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+        (int)mViewFrame.origin.x, (int)mViewFrame.origin.y, (int)mViewFrame.size.width, (int)mViewFrame.size.height,
+        (int)r.x, (int)r.y);
+
+    return r;
 }
 
 - (NSSize) newtClientSize2TLSize: (NSSize) nsz
@@ -972,20 +1025,33 @@ static jmethodID windowRepaintID = NULL;
  */
 - (NSPoint) getLocationOnScreen: (NSPoint) p
 {
-    NSScreen* screen = [self screen];
-    NSRect screenRect = [screen frame];
-
     NSView* view = [self contentView];
     NSRect viewFrame = [view frame];
-
     NSRect r;
     r.origin.x = p.x;
     r.origin.y = viewFrame.size.height - p.y; // y-flip
     r.size.width = 0;
     r.size.height = 0;
-    // NSRect rS = [win convertRectToScreen: r]; // 10.7
-    NSPoint oS = [self convertBaseToScreen: r.origin];
-    oS.y = screenRect.origin.y + screenRect.size.height - oS.y;
+    // NSRect rS = [self convertRectToScreen: r]; // 10.7
+    NSPoint oS = [self convertBaseToScreen: r.origin]; // BL-screen
+
+    NSScreen* screen = [self screen];
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    CGRect frameTL = CGDisplayBounds (display); // origin top-left
+    NSRect frameBL = [screen frame]; // origin bottom-left
+    oS.y = frameTL.origin.y + frameTL.size.height - ( oS.y - frameBL.origin.y ); // y-flip from BL-screen -> TL-screen
+
+#ifdef VERBOSE_ON
+    NSRect winFrame = [self frame];
+    DBG_PRINT( "getLocationOnScreen: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d], screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] -> %d/%d\n",
+        (int)p.x, (int)p.y,
+        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+        (int)viewFrame.origin.x, (int)viewFrame.origin.y, (int)viewFrame.size.width, (int)viewFrame.size.height,
+        (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+        (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+        (int)oS.x, (int)oS.y);
+#endif
+
     return oS;
 }
 
@@ -1123,7 +1189,7 @@ static jmethodID windowRepaintID = NULL;
         NSRect frameRect = [self frame];
         NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
-        (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_FALSE,
+        (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_TRUE, // defer 
                                (jint) contentRect.size.width,
                                (jint) contentRect.size.height, JNI_FALSE);
     }

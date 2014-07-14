@@ -28,8 +28,6 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import java.io.IOException;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -73,7 +71,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_Demo1_SingleBuffer_Normal() throws InterruptedException {
+    public void test01_GL2ES2_Demo1_SingleBuffer_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
@@ -81,7 +79,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_Demo1_DoubleBuffer_Normal() throws InterruptedException {
+    public void test02_GL2ES2_Demo1_DoubleBuffer_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // default
@@ -89,7 +87,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_Demo2MSAA4() throws InterruptedException {
+    public void test03_GL2ES2_Demo2MSAA4() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
@@ -98,7 +96,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_FBODemoMSAA4() throws InterruptedException {
+    public void test04_GL2ES2_FBODemoMSAA4() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final FBOMix2DemosES2 demo = new FBOMix2DemosES2(0);
         demo.setDoRotation(false);
@@ -109,7 +107,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testEGLES2_Demo0Normal() throws InterruptedException {
+    public void test05_EGLES2_Demo0Normal() throws InterruptedException {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
@@ -120,7 +118,18 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testEGLES2_Demo0MSAA4() throws InterruptedException {
+    public void test06_GL3_Demo0Normal() throws InterruptedException {
+        if( GLProfile.isAvailable(GLProfile.GL3) )  {
+            final GLProfile glp = GLProfile.get(GLProfile.GL3);
+            final GLCapabilities caps = new GLCapabilities(glp);
+            testGLFBODrawableImpl(caps, new GearsES2(0));
+        } else {
+            System.err.println("GL3 n/a");
+        }
+    }
+
+    @Test
+    public void test07_EGLES2_Demo0MSAA4() throws InterruptedException {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
@@ -132,7 +141,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         }
     }
 
-    void testGLFBODrawableImpl(GLCapabilities caps, GLEventListener demo) throws InterruptedException {
+    void testGLFBODrawableImpl(final GLCapabilities caps, final GLEventListener demo) throws InterruptedException {
         caps.setFBO(true);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLOffscreenAutoDrawable.FBO glad = (GLOffscreenAutoDrawable.FBO)
@@ -224,24 +233,24 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
 
         if( chosenCaps.getNumSamples() > 0 ) {
             // MSAA
-            FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
-            FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
+            final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
+            final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
             Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront.equals(_fboFront));
             Assert.assertSame(fboFront, _fboFront);
             Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboBack, fboBack.equals(_fboBack));
             Assert.assertSame(fboBack, _fboBack);
         } else if( chosenCaps.getDoubleBuffered() ) {
             // real double buffer
-            FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
-            FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
+            final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
+            final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
             Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack.equals(_fboFront));
             Assert.assertSame(fboBack, _fboFront);
             Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboBack, fboFront.equals(_fboBack));
             Assert.assertSame(fboFront, _fboBack);
         } else {
             // single buffer
-            FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
-            FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
+            final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
+            final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
             Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront.equals(_fboFront));
             Assert.assertSame(fboFront, _fboFront);
             Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack.equals(_fboFront));
@@ -265,8 +274,8 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
 
         // 2, 3 (resize + display)
         szStep = 1;
-        glad.setSize(widthStep*szStep, heightStep*szStep); // SWAP_EVEN
-        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getWidth()+"x"+glad.getHeight(),
+        glad.setSurfaceSize(widthStep*szStep, heightStep*szStep); // SWAP_EVEN
+        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
                           AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();  //  - SWAP_ODD
@@ -309,8 +318,8 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
 
         // 4, 5 (resize + display)
         szStep = 4;
-        glad.setSize(widthStep*szStep, heightStep*szStep); // SWAP_ODD
-        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getWidth()+"x"+glad.getHeight(),
+        glad.setSurfaceSize(widthStep*szStep, heightStep*szStep); // SWAP_ODD
+        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
                           AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display(); //  - SWAP_EVEN
@@ -361,8 +370,8 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
 
         // 8, 9 (resize + samples + display)
         szStep = 3;
-        glad.setSize(widthStep*szStep, heightStep*szStep);
-        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getWidth()+"x"+glad.getHeight(),
+        glad.setSurfaceSize(widthStep*szStep, heightStep*szStep);
+        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
                           AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
@@ -371,7 +380,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         System.out.println("Fin: "+glad);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws Exception {
         org.junit.runner.JUnitCore.main(TestFBOAutoDrawableFactoryNEWT.class.getName());
     }
 

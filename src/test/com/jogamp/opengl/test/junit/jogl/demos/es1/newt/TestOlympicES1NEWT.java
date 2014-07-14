@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es1.newt;
 
 import com.jogamp.newt.opengl.GLWindow;
@@ -33,8 +33,8 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OlympicES1;
-
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -65,34 +65,34 @@ public class TestOlympicES1NEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Olympic NEWT Test");
 
-        OlympicES1 demo = new OlympicES1( swapInterval );
-        demo.setForceFFPEmu(forceFFPEmu, verboseFFPEmu, false, false);        
-        glWindow.addGLEventListener(demo);        
+        final OlympicES1 demo = new OlympicES1( swapInterval );
+        demo.setForceFFPEmu(forceFFPEmu, verboseFFPEmu, false, false);
+        glWindow.addGLEventListener(demo);
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
 
-        Animator animator = new Animator();
-        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator();
+        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.setExclusiveContext(exclusiveContext);
-        
-        QuitAdapter quitAdapter = new QuitAdapter();
+
+        final QuitAdapter quitAdapter = new QuitAdapter();
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
-        
+
         animator.add(glWindow);
         animator.start();
         animator.setUpdateFPSFrames(60, System.err);
         Assert.assertTrue(animator.isStarted());
         Assert.assertTrue(animator.isAnimating());
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
-        
+
         snap.setMakeSnapshot();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -109,19 +109,19 @@ public class TestOlympicES1NEWT extends UITestCase {
 
     @Test
     public void test00() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES1());
+        final GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES1());
         runTestGL(caps);
     }
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);

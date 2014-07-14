@@ -54,7 +54,7 @@ import jogamp.nativewindow.x11.XVisualInfo;
 public class X11PixmapGLXDrawable extends X11GLXDrawable {
   private long pixmap;
 
-  protected X11PixmapGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
+  protected X11PixmapGLXDrawable(final GLDrawableFactory factory, final NativeSurface target) {
     super(factory, target, false);
   }
 
@@ -68,26 +68,26 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new X11GLXContext(this, shareWith);
   }
 
   private void createPixmap() {
-    NativeSurface ns = getNativeSurface();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ns.getGraphicsConfiguration();
-    XVisualInfo vis = config.getXVisualInfo();
-    int bitsPerPixel = vis.getDepth();
-    AbstractGraphicsScreen aScreen = config.getScreen();
-    AbstractGraphicsDevice aDevice = aScreen.getDevice();
-    long dpy = aDevice.getHandle();
-    int screen = aScreen.getIndex();
+    final NativeSurface ns = getNativeSurface();
+    final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ns.getGraphicsConfiguration();
+    final XVisualInfo vis = config.getXVisualInfo();
+    final int bitsPerPixel = vis.getDepth();
+    final AbstractGraphicsScreen aScreen = config.getScreen();
+    final AbstractGraphicsDevice aDevice = aScreen.getDevice();
+    final long dpy = aDevice.getHandle();
+    final int screen = aScreen.getIndex();
 
     pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
-                                  surface.getWidth(), surface.getHeight(), bitsPerPixel);
+                                  surface.getSurfaceWidth(), surface.getSurfaceHeight(), bitsPerPixel);
     if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
     }
-    long drawable = GLX.glXCreateGLXPixmap(dpy, vis, pixmap);
+    final long drawable = GLX.glXCreateGLXPixmap(dpy, vis, pixmap);
     if (drawable == 0) {
         X11Lib.XFreePixmap(dpy, pixmap);
         pixmap = 0;
@@ -104,7 +104,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
   protected void destroyPixmap() {
     if (pixmap == 0) return;
 
-    NativeSurface ns = getNativeSurface();
+    final NativeSurface ns = getNativeSurface();
     long display = ns.getDisplayHandle();
 
     long drawable = ns.getSurfaceHandle();
@@ -117,7 +117,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     // Must destroy pixmap and GLXPixmap
 
     if (DEBUG) {
-        long cur = GLX.glXGetCurrentContext();
+        final long cur = GLX.glXGetCurrentContext();
         if (cur != 0) {
           System.err.println("WARNING: found context " + toHexString(cur) + " current during pixmap destruction");
         }

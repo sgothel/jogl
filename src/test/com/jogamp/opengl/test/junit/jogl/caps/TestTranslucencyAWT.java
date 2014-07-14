@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.caps;
 
 import java.awt.BorderLayout;
@@ -73,23 +73,23 @@ public class TestTranslucencyAWT extends UITestCase {
 
     static Frame getTranslucentFrame() {
         GraphicsConfiguration gc=null;
-        GraphicsDevice[] devices= GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+        final GraphicsDevice[] devices= GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
         for (int i = 0; i < devices.length ; i++)
         {
-            GraphicsConfiguration[] configs = devices[i].getConfigurations();
+            final GraphicsConfiguration[] configs = devices[i].getConfigurations();
             for (int j = 0; j < configs.length ; j++) {
-                GraphicsConfiguration config = configs[j];
-                ColorModel tcm = config.getColorModel(Transparency.TRANSLUCENT);
-                boolean capable1 = ( null != tcm ) ? tcm.getTransparency() == Transparency.TRANSLUCENT : false;
+                final GraphicsConfiguration config = configs[j];
+                final ColorModel tcm = config.getColorModel(Transparency.TRANSLUCENT);
+                final boolean capable1 = ( null != tcm ) ? tcm.getTransparency() == Transparency.TRANSLUCENT : false;
                 boolean capable2 = false;
                 try {
                     capable2 = ((Boolean)ReflectionUtil.callStaticMethod(
-                                                "com.sun.awt.AWTUtilities", "isTranslucencyCapable", 
-                                                new Class<?>[] { GraphicsConfiguration.class }, 
-                                                new Object[] { config } , 
+                                                "com.sun.awt.AWTUtilities", "isTranslucencyCapable",
+                                                new Class<?>[] { GraphicsConfiguration.class },
+                                                new Object[] { config } ,
                                                 GraphicsConfiguration.class.getClassLoader())).booleanValue();
                     System.err.println("com.sun.awt.AWTUtilities.isTranslucencyCapable(config) passed: "+capable2);
-                } catch (RuntimeException re) {
+                } catch (final RuntimeException re) {
                     System.err.println("com.sun.awt.AWTUtilities.isTranslucencyCapable(config) failed: "+re.getMessage());
                 }
                 System.err.println(i+":"+j+" "+config+", "+tcm+", capable "+capable1+"/"+capable2);
@@ -108,18 +108,18 @@ public class TestTranslucencyAWT extends UITestCase {
         frame.setTitle("AWT Parent Frame (opaque: "+(null==gc)+")");
         return frame;
     }
-    
+
     @Test
     public void test() throws InterruptedException, InvocationTargetException {
         final Frame frame1 = getTranslucentFrame();
         final GLCanvas glCanvas= new GLCanvas(glCaps);
-        
+
         glCanvas.setPreferredSize(size);
 
-        GLEventListener demo1 = new GearsES2(1);
+        final GLEventListener demo1 = new GearsES2(1);
         // setDemoFields(demo1, glCanvas, false);
         glCanvas.addGLEventListener(demo1);
-        GLAnimatorControl animator1 = new Animator(glCanvas);
+        final GLAnimatorControl animator1 = new Animator(glCanvas);
         animator1.start();
 
         final Container cont1 = new Container();
@@ -155,21 +155,21 @@ public class TestTranslucencyAWT extends UITestCase {
         frame1.dispose();
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        String tstname = TestTranslucencyAWT.class.getName();
+        final String tstname = TestTranslucencyAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

@@ -49,9 +49,9 @@ public class ArcTesselator {
    * @param t1 minimum t param
    * @param t2 maximum s param
    */
-  public void bezier(Arc arc, float s1, float s2, float t1, float t2) {
+  public void bezier(final Arc arc, final float s1, final float s2, final float t1, final float t2) {
     // DONE
-    TrimVertex[] p = new TrimVertex[2];
+    final TrimVertex[] p = new TrimVertex[2];
     p[0] = new TrimVertex();
     p[1] = new TrimVertex();
     arc.pwlArc = new PwlArc(2, p);
@@ -70,7 +70,7 @@ public class ArcTesselator {
    * @param t1 third tail
    * @param f stepsize
    */
-  public void pwl_right(Arc newright, float s, float t1, float t2, float f) {
+  public void pwl_right(final Arc newright, final float s, final float t1, final float t2, final float f) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO arctesselator.pwl_right");
   }
@@ -83,7 +83,7 @@ public class ArcTesselator {
    * @param t1 third tail
    * @param f stepsize
    */
-  public void pwl_left(Arc newright, float s, float t2, float t1, float f) {
+  public void pwl_left(final Arc newright, final float s, final float t2, final float t1, final float f) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO arctesselator.pwl_left");
   }

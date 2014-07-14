@@ -1,0 +1,17 @@
+//Copyright 2010 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+#include uniforms.glsl
+#include attributes.glsl
+#include varyings.glsl
+
+void main(void)
+{
+    // gl_Position = gcu_PMVMatrix01[0] * gcu_PMVMatrix01[1] * vec4(gca_FboVertices, 1);
+    gl_Position = gcu_PMVMatrix01[0] * gcu_PMVMatrix01[1] * gca_FboVertices;
+    gcv_FboTexCoord = gca_FboTexCoords;
+}

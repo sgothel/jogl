@@ -29,10 +29,13 @@ package com.jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLConnection;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.JavaFontLoader;
@@ -50,10 +53,10 @@ public class FontFactory {
     private static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
     private static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
 
-    /** Ubuntu is the default font family */
+    /** Ubuntu is the default font family, {@value} */
     public static final int UBUNTU = 0;
 
-    /** Java fonts are optional */
+    /** Java fonts are optional, {@value} */
     public static final int JAVA = 1;
 
     private static final FontConstructor fontConstr;
@@ -75,7 +78,7 @@ public class FontFactory {
         return get(UBUNTU);
     }
 
-    public static final FontSet get(int font) {
+    public static final FontSet get(final int font) {
         switch (font) {
             case JAVA:
                 return JavaFontLoader.get();
@@ -84,7 +87,7 @@ public class FontFactory {
         }
     }
 
-    public static final Font get(File file) throws IOException {
+    public static final Font get(final File file) throws IOException {
         return fontConstr.create(file);
     }
 
@@ -92,7 +95,25 @@ public class FontFactory {
         return fontConstr.create(conn);
     }
 
-    public static boolean isPrintableChar( char c ) {
+    public static final Font get(final Class<?> context, final String fname, final boolean useTempJarCache) throws IOException {
+        URLConnection conn = null;
+        if( useTempJarCache ) {
+            try {
+                final URI uri = TempJarCache.getResource(fname);
+                conn = null != uri ? uri.toURL().openConnection() : null;
+            } catch (final Exception e) {
+                throw new IOException(e);
+            }
+        } else {
+            conn = IOUtil.getResource(context, fname);
+        }
+        if(null != conn) {
+            return FontFactory.get ( conn ) ;
+        }
+        return null;
+    }
+
+    public static boolean isPrintableChar( final char c ) {
         if( Character.isWhitespace(c) ) {
             return true;
         }

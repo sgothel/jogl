@@ -39,8 +39,6 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 
-import jogamp.opengl.GLDrawableFactoryImpl;
-
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -48,35 +46,13 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLExtensionQueryOffscreen {
 
-    public static void main(String[] args) {
-        TestGLExtensionQueryOffscreen instance = new TestGLExtensionQueryOffscreen();
-        instance.testJogl2ExtensionCheck1();
-        instance.testJogl2ExtensionCheck2();
-    }
-
-    /**
-     * @deprecated This test uses a non public API in jogamp.opengl.* and hence is not recommended
-     */
-    @Test
-    public void testJogl2ExtensionCheck1() {
-        GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getDesktopFactory();
-        GLContext sharedContext = factory.getOrCreateSharedContext(null);
-        sharedContext.makeCurrent();
-        String extensions;
-        try {
-            extensions = sharedContext.getGL().glGetString(GL.GL_EXTENSIONS);
-        } finally {
-            sharedContext.release();
-        }
-        String[] tabExtensions = extensions.split(" ");
-        SortedSet<String> setExtensions = new TreeSet<String>();
-        Collections.addAll(setExtensions, tabExtensions);
-        System.out.println("SharedContext: "+sharedContext);
-        System.out.println("SharedContext: "+setExtensions);
+    public static void main(final String[] args) {
+        final TestGLExtensionQueryOffscreen instance = new TestGLExtensionQueryOffscreen();
+        instance.testJogl2ExtensionCheck();
     }
 
     @Test
-    public void testJogl2ExtensionCheck2() {
+    public void testJogl2ExtensionCheck() {
         final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLOffscreenAutoDrawable drawable = factory.createOffscreenAutoDrawable(null, caps, null, 256, 256);
@@ -89,8 +65,8 @@ public class TestGLExtensionQueryOffscreen {
         } finally {
             context.release();
         }
-        String[] tabExtensions = extensions.split(" ");
-        SortedSet<String> setExtensions = new TreeSet<String>();
+        final String[] tabExtensions = extensions.split(" ");
+        final SortedSet<String> setExtensions = new TreeSet<String>();
         Collections.addAll(setExtensions, tabExtensions);
         System.out.println("DefaultContext: "+context);
         System.out.println("DefaultContext: "+setExtensions);

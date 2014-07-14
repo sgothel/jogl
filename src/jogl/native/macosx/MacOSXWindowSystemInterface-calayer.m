@@ -112,39 +112,14 @@ extern GLboolean glIsVertexArray (GLuint array);
 
 #endif
 
-#ifdef VERBOSE_ON
-    #define CGLRETAINCOUNT(c) (NULL!=c?(int)CGLGetContextRetainCount(c):-1)
-#else
-    #define CGLRETAINCOUNT(c)
-#endif
-
 - (void)dealloc
 {
-    /**
-     * The explicit CGLContext destruction below
-     * ensures that it is not left behind.
-     * Tests show that w/o these gymnastics, the CGLContext is not freed immediately after calling dealloc.
-     * The retain, release and dealloc ensures [super dealloc] won't message 'invalid context'.
-     */
-    CGLContextObj cglCtx = [self CGLContextObj];
-
-    DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d) - CGL-Ctx %p\n", self, (int)[self retainCount], cglCtx, CGLRETAINCOUNT(cglCtx));
+    DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
     // NSLog(@"MyNSOpenGLContext::dealloc: %@",[NSThread callStackSymbols]);
 
     [self clearDrawable];
-    DBG_PRINT("MyNSOpenGLContext::dealloc.1 %d\n", CGLRETAINCOUNT(cglCtx));
-    if( NULL != cglCtx ) {
-        CGLRetainContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext::dealloc.2 %d\n", CGLRETAINCOUNT(cglCtx));
-    }
+
     [super dealloc];
-    DBG_PRINT("MyNSOpenGLContext::dealloc.3 %d\n", CGLRETAINCOUNT(cglCtx));
-    if( NULL != cglCtx ) {
-        CGLReleaseContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext::dealloc.4 %d\n", CGLRETAINCOUNT(cglCtx));
-        CGLDestroyContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext::dealloc.5 %d\n", CGLRETAINCOUNT(cglCtx));
-    }
     DBG_PRINT("MyNSOpenGLContext::dealloc.X\n");
 }
 
@@ -194,7 +169,9 @@ extern GLboolean glIsVertexArray (GLuint array);
        texIDArg: (GLuint) texID
        opaque: (Bool) opaque
        texWidth: (int) texWidth 
-       texHeight: (int) texHeight;
+       texHeight: (int) texHeight
+       winWidth: (int)winWidth 
+       winHeight: (int)winHeight;
 
 - (void)releaseLayer;
 - (void)deallocPBuffer;
@@ -206,7 +183,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (Bool)isGLSourceValid;
 
 - (void) setGLEnabled: (Bool) enable;
-- (Bool) validateTexSize: (CGRect) lRect;
+- (Bool) validateTexSize: (int)newTexWidth height:(int)newTexHeight;
 - (void) setTextureID: (int) _texID;
 
 - (Bool) isSamePBuffer: (NSOpenGLPixelBuffer*) p;
@@ -274,7 +251,9 @@ static const GLfloat gl_verts[] = {
        texIDArg: (GLuint) texID
        opaque: (Bool) opaque
        texWidth: (int) _texWidth 
-       texHeight: (int) _texHeight;
+       texHeight: (int) _texHeight
+       winWidth: (int) _winWidth 
+       winHeight: (int) _winHeight
 {
     pthread_mutexattr_t renderLockAttr;
     pthread_mutexattr_init(&renderLockAttr);
@@ -288,6 +267,17 @@ static const GLfloat gl_verts[] = {
             gl_texCoords[i] = 0.0f;
         }
     }
+    /** 
+     * Set via 
+     *   - OSXUtil_SetCALayerPixelScale0
+     *   - OSXUtil_AddCASublayer0 
+NS_DURING
+    // Available >= 10.7
+    [self setContentsScale: (CGFloat)_texWidth/(CGFloat)_winWidth];
+NS_HANDLER
+NS_ENDHANDLER
+    */
+
     parentPixelFmt = [_parentPixelFmt retain]; // until destruction
     glContext = [[MyNSOpenGLContext alloc] initWithFormat:parentPixelFmt shareContext:parentCtx];
     gl3ShaderProgramName = _gl3ShaderProgramName;
@@ -301,8 +291,8 @@ static const GLfloat gl_verts[] = {
     shallDraw = NO;
     isGLEnabled = YES;
     dedicatedFrameSet = NO;
-    dedicatedFrame = CGRectMake(0, 0, _texWidth, _texHeight);
-    [self validateTexSize: dedicatedFrame];
+    dedicatedFrame = CGRectMake(0, 0, _winWidth, _winHeight);
+    [self validateTexSize: _texWidth height:_texHeight];
     [self setTextureID: texID];
 
     newPBuffer = NULL;
@@ -383,15 +373,17 @@ static const GLfloat gl_verts[] = {
     isGLEnabled = enable;
 }
 
-- (Bool) validateTexSize: (CGRect) lRect
+- (Bool) validateTexSize: (int)newTexWidth height:(int)newTexHeight
 {
-    const int lRectW = (int) (lRect.size.width + 0.5f);
-    const int lRectH = (int) (lRect.size.height + 0.5f);
     Bool changed;
 
-    if( lRectH != texHeight || lRectW != texWidth ) {
-        texWidth = lRectW;
-        texHeight = lRectH;
+    if( newTexHeight != texHeight || newTexWidth != texWidth ) {
+        #ifdef VERBOSE_ON
+        const int oldTexWidth = texWidth;
+        const int oldTexHeight = texHeight;
+        #endif
+        texWidth = newTexWidth;
+        texHeight = newTexHeight;
         changed = YES;
 
         GLfloat texCoordWidth, texCoordHeight;
@@ -415,10 +407,14 @@ static const GLfloat gl_verts[] = {
         gl_texCoords[4] = texCoordWidth;
         gl_texCoords[6] = texCoordWidth;
         #ifdef VERBOSE_ON
-        DBG_PRINT("MyNSOpenGLLayer::validateTexSize %p -> tex %dx%d, bounds: %lf/%lf %lfx%lf (%dx%d), dedicatedFrame set:%d %lf/%lf %lfx%lf\n", 
-            self, texWidth, texHeight,
-            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, lRectW, lRectH, 
-            dedicatedFrameSet, dedicatedFrame.origin.x, dedicatedFrame.origin.y, dedicatedFrame.size.width, dedicatedFrame.size.height);
+NS_DURING
+        // Available >= 10.7
+        DBG_PRINT("MyNSOpenGLLayer::validateTexSize %p: tex %dx%d -> %dx%d, dedicatedFrame set:%d %lf/%lf %lfx%lf scale %lf\n", 
+            self, oldTexWidth, oldTexHeight, newTexWidth, newTexHeight, 
+            dedicatedFrameSet, dedicatedFrame.origin.x, dedicatedFrame.origin.y, dedicatedFrame.size.width, dedicatedFrame.size.height, 
+            [self contentsScale]);
+NS_HANDLER
+NS_ENDHANDLER
         #endif
     } else {
         changed = NO;
@@ -638,7 +634,15 @@ static const GLfloat gl_verts[] = {
 
         GLenum textureTarget;
 
-        Bool texSizeChanged = [self validateTexSize: ( dedicatedFrameSet ? dedicatedFrame : [self bounds] ) ];
+        CGRect texDim = dedicatedFrameSet ? dedicatedFrame : [self bounds];
+        CGFloat _contentsScale = 1;
+NS_DURING
+        // Available >= 10.7
+        _contentsScale = [self contentsScale];
+NS_HANDLER
+NS_ENDHANDLER
+        Bool texSizeChanged = [self validateTexSize: (int)(texDim.size.width  * _contentsScale  + 0.5f) 
+                                              height:(int)(texDim.size.height * _contentsScale  + 0.5f)];
         if( texSizeChanged ) {
             [context update];
         }
@@ -873,9 +877,10 @@ static const GLfloat gl_verts[] = {
 
 @end
 
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, int gl3ShaderProgramName, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight) {
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, int gl3ShaderProgramName, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight, int winWidth, int winHeight) {
   return [[[MyNSOpenGLLayer alloc] init] setupWithContext:ctx gl3ShaderProgramName: (GLuint)gl3ShaderProgramName pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
-                                                              opaque: opaque texWidth: texWidth texHeight: texHeight];
+                                                              opaque: opaque texWidth: texWidth texHeight: texHeight
+                                                              winWidth: winWidth winHeight: winHeight];
 }
  
 void setNSOpenGLLayerEnabled(NSOpenGLLayer* layer, Bool enable) {

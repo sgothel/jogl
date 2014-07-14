@@ -56,7 +56,7 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
         //Layout
         setMinimumSize(new Dimension(640, 480));
         getContentPane().setLayout(new BorderLayout());
-        GLCanvas panel = new GLCanvas(new GLCapabilities(GLProfile.getMaxProgrammable(true)));
+        final GLCanvas panel = new GLCanvas(new GLCapabilities(GLProfile.getMaxProgrammable(true)));
         getContentPane().add(panel, BorderLayout.CENTER);
         pack();
         //Animator
@@ -69,19 +69,19 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
             long step = 1;
 
             @Override
-            public void init(GLAutoDrawable glad) {
+            public void init(final GLAutoDrawable glad) {
                 startTime = System.currentTimeMillis();
             }
 
             @Override
-            public void dispose(GLAutoDrawable glad) {
+            public void dispose(final GLAutoDrawable glad) {
             }
 
             @Override
-            public void display(GLAutoDrawable glad) {
-                long time = System.currentTimeMillis();
+            public void display(final GLAutoDrawable glad) {
+                final long time = System.currentTimeMillis();
                 if (animator.isAnimating() && step * 2000 < time - startTime) {
-                    long td = time - lastTime;
+                    final long td = time - lastTime;
                     lastTime = time;
                     animator.pause();
                     System.out.println(Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.pause(): paused "+animator);
@@ -89,13 +89,13 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
                         public void run() {
                             try {
                                 Thread.sleep(1000);
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                             SwingUtilities.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    long td = System.currentTimeMillis() - lastTime;
+                                    final long td = System.currentTimeMillis() - lastTime;
                                     if (animator.isPaused()) {
                                         animator.resume(); //Doesn't work on v2.0.2 or higher
                                         System.out.println(Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.resume(): animating "+animator);
@@ -110,7 +110,7 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
             }
 
             @Override
-            public void reshape(GLAutoDrawable glad, int i, int i1, int i2, int i3) {
+            public void reshape(final GLAutoDrawable glad, final int i, final int i1, final int i2, final int i3) {
             }
         });
         //Start animation
@@ -118,7 +118,7 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
         System.out.println("animator.start()");
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {

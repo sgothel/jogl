@@ -58,7 +58,7 @@ class RandR13 implements RandR {
 
     @Override
     public void dumpInfo(final long dpy, final int screen_idx) {
-        long screenResources = getScreenResources0(dpy, screen_idx);
+        final long screenResources = getScreenResources0(dpy, screen_idx);
         if(0 == screenResources) {
             return;
         }
@@ -73,7 +73,7 @@ class RandR13 implements RandR {
     IntLongHashMap crtInfoHandleMap = null;
 
     @Override
-    public boolean beginInitialQuery(long dpy, ScreenDriver screen) {
+    public boolean beginInitialQuery(final long dpy, final ScreenDriver screen) {
         final int screen_idx = screen.getIndex();
         sessionScreenResources = getScreenResources0(dpy, screen_idx);
         if( 0 != sessionScreenResources ) {
@@ -86,9 +86,9 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public void endInitialQuery(long dpy, ScreenDriver screen) {
+    public void endInitialQuery(final long dpy, final ScreenDriver screen) {
         if( null != crtInfoHandleMap ) {
-            for(Iterator<IntLongHashMap.Entry> iter = crtInfoHandleMap.iterator(); iter.hasNext(); ) {
+            for(final Iterator<IntLongHashMap.Entry> iter = crtInfoHandleMap.iterator(); iter.hasNext(); ) {
                 final IntLongHashMap.Entry entry = iter.next();
                 freeMonitorInfoHandle0(entry.value);
             }
@@ -113,7 +113,7 @@ class RandR13 implements RandR {
         }
     }
 
-    private final long getMonitorInfoHandle(final long dpy, final int screen_idx, long screenResources, final int monitor_idx) {
+    private final long getMonitorInfoHandle(final long dpy, final int screen_idx, final long screenResources, final int monitor_idx) {
         if( null != crtInfoHandleMap ) {
             long h = crtInfoHandleMap.get(monitor_idx);
             if( 0 == h ) {
@@ -174,7 +174,7 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_idx) {
+    public int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, final MonitorModeProps.Cache cache, final int crt_idx) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
@@ -222,7 +222,7 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode) {
+    public boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, final MonitorDevice monitor, final MonitorMode mode) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         final boolean res;

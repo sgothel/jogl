@@ -44,7 +44,7 @@ public class NWJNILibLoader extends JNILibLoaderBase {
                 Platform.initSingleton();
                 final String libName = "nativewindow_"+ossuffix ;
                 if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-                    JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { NWJNILibLoader.class });
+                    JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class });
                 }
                 return Boolean.valueOf(loadLibrary(libName, false, NWJNILibLoader.class.getClassLoader()));
             }

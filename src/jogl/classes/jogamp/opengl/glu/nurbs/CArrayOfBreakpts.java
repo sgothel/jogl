@@ -10,7 +10,7 @@ public class CArrayOfBreakpts {
   /**
    * Underlaying array
    */
-  private Breakpt[] pole;
+  private final Breakpt[] pole;
 
   /**
    * Pointer to array member
@@ -25,7 +25,7 @@ public class CArrayOfBreakpts {
    * @param pointer
    *            pointer (index) to array
    */
-  public CArrayOfBreakpts(Breakpt[] array, int pointer) {
+  public CArrayOfBreakpts(final Breakpt[] array, final int pointer) {
     this.pole = array;
     this.pointer = pointer;
   }
@@ -36,7 +36,7 @@ public class CArrayOfBreakpts {
    * @param carray
    *            reference array
    */
-  public CArrayOfBreakpts(CArrayOfBreakpts carray) {
+  public CArrayOfBreakpts(final CArrayOfBreakpts carray) {
     this.pole = carray.pole;
     this.pointer = carray.pointer;
   }
@@ -63,7 +63,7 @@ public class CArrayOfBreakpts {
    * @param f
    *            desired value
    */
-  public void set(Breakpt f) {
+  public void set(final Breakpt f) {
     pole[pointer] = f;
 
   }
@@ -75,7 +75,7 @@ public class CArrayOfBreakpts {
    *            array index
    * @return element at index
    */
-  public Breakpt get(int i) {
+  public Breakpt get(final int i) {
     return pole[i];
   }
 
@@ -85,7 +85,7 @@ public class CArrayOfBreakpts {
    * @param i
    *            lessen by
    */
-  public void lessenPointerBy(int i) {
+  public void lessenPointerBy(final int i) {
     pointer -= i;
 
   }
@@ -105,7 +105,7 @@ public class CArrayOfBreakpts {
    * @param pointer
    *            pointer value to be set
    */
-  public void setPointer(int pointer) {
+  public void setPointer(final int pointer) {
     this.pointer = pointer;
   }
 
@@ -115,7 +115,7 @@ public class CArrayOfBreakpts {
    * @param i
    *            raise by
    */
-  public void raisePointerBy(int i) {
+  public void raisePointerBy(final int i) {
     pointer += i;
 
   }

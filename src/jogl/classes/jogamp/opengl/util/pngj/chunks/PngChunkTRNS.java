@@ -21,7 +21,7 @@ public class PngChunkTRNS extends PngChunkSingle {
 	private int red, green, blue;
 	private int[] paletteAlpha = new int[] {};
 
-	public PngChunkTRNS(ImageInfo info) {
+	public PngChunkTRNS(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -51,14 +51,14 @@ public class PngChunkTRNS extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (imgInfo.greyscale) {
 			gray = PngHelperInternal.readInt2fromBytes(c.data, 0);
 		} else if (imgInfo.indexed) {
-			int nentries = c.data.length;
+			final int nentries = c.data.length;
 			paletteAlpha = new int[nentries];
 			for (int n = 0; n < nentries; n++) {
-				paletteAlpha[n] = (int) (c.data[n] & 0xff);
+				paletteAlpha[n] = c.data[n] & 0xff;
 			}
 		} else {
 			red = PngHelperInternal.readInt2fromBytes(c.data, 0);
@@ -68,8 +68,8 @@ public class PngChunkTRNS extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkTRNS otherx = (PngChunkTRNS) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkTRNS otherx = (PngChunkTRNS) other;
 		gray = otherx.gray;
 		red = otherx.red;
 		green = otherx.green;
@@ -84,7 +84,7 @@ public class PngChunkTRNS extends PngChunkSingle {
 	 * Set rgb values
 	 *
 	 */
-	public void setRGB(int r, int g, int b) {
+	public void setRGB(final int r, final int g, final int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)
 			throw new PngjException("only rgb or rgba images support this");
 		red = r;
@@ -98,7 +98,7 @@ public class PngChunkTRNS extends PngChunkSingle {
 		return new int[] { red, green, blue };
 	}
 
-	public void setGray(int g) {
+	public void setGray(final int g) {
 		if (!imgInfo.greyscale)
 			throw new PngjException("only grayscale images support this");
 		gray = g;
@@ -113,7 +113,7 @@ public class PngChunkTRNS extends PngChunkSingle {
 	/**
 	 * WARNING: non deep copy
 	 */
-	public void setPalletteAlpha(int[] palAlpha) {
+	public void setPalletteAlpha(final int[] palAlpha) {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed images support this");
 		paletteAlpha = palAlpha;
@@ -122,7 +122,7 @@ public class PngChunkTRNS extends PngChunkSingle {
 	/**
 	 * to use when only one pallete index is set as totally transparent
 	 */
-	public void setIndexEntryAsTransparent(int palAlphaIndex) {
+	public void setIndexEntryAsTransparent(final int palAlphaIndex) {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed images support this");
 		paletteAlpha = new int[] { palAlphaIndex + 1 };

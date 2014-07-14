@@ -29,6 +29,8 @@ package com.jogamp.newt.event;
 
 import javax.media.nativewindow.NativeSurface;
 
+import com.jogamp.newt.event.MouseEvent.PointerClass;
+
 import jogamp.newt.Debug;
 
 /**
@@ -48,17 +50,39 @@ public class PinchToZoomGesture implements GestureHandler {
     /** A {@link GestureHandler.GestureEvent} denominating zoom. */
     @SuppressWarnings("serial")
     public static class ZoomEvent extends GestureEvent {
-        private final MouseEvent pe;
         private final float zoom;
-        public ZoomEvent(Object source, long when, int modifiers, GestureHandler handler, MouseEvent pe, float zoom) {
-            super(source, when, modifiers, handler);
-            this.pe = pe;
+        private final float delta;
+        private final float scale;
+        public ZoomEvent(final Object source, final long when, final int modifiers, final GestureHandler handler, final MouseEvent pe,
+                         final float zoom, final float delta, final float scale) {
+            super(source, when, modifiers, handler, pe);
             this.zoom = zoom;
+            this.delta = delta;
+            this.scale = scale;
         }
-        /** Triggering {@link MouseEvent} */
-        public final MouseEvent getTrigger() { return pe; }
         /** Zoom value lies within [0..2], with 1 as <i>1:1</i>. */
         public final float getZoom() { return zoom; }
+        /** Delta to last zoom value lies within [-1..1]. */
+        public final float getDelta() { return delta; }
+        /**
+         * Returns the scale used to determine the {@link #getZoom() zoom}
+         * and hence it's {@link #getDelta() delta} value,
+         * which semantics depends on the {@link #getPointerType() pointer type's} {@link PointerClass}.
+         * <p>
+         * For {@link PointerClass#Offscreen}, the scale is usually <code>1.0f</code> and denominates
+         * an abstract value without association to a physical value.
+         * </p>
+         * <p>
+         * For {@link PointerClass#Onscreen}, the scale varies and denominates
+         * the divisor of the distance the finger[s] have moved on the screen.
+         * Hence <code>scale * delta</code> reproduces the screen distance in pixels the finger[s] have moved.
+         * </p>
+         */
+        public final float getScale() { return scale; }
+
+        public final String toString() {
+            return "ZoomEvent[zoom "+zoom+", delta "+delta+", scale "+scale+", trigger "+getTrigger()+", handler "+getHandler()+"]";
+        }
     }
 
     private final NativeSurface surface;
@@ -74,7 +98,7 @@ public class PinchToZoomGesture implements GestureHandler {
      * @param surface the {@link NativeSurface}, which size is used to compute the relative zoom factor
      * @param allowMorePointer if false, allow only 2 pressed pointers (safe and recommended), otherwise accept other pointer to be pressed.
      */
-    public PinchToZoomGesture(NativeSurface surface, boolean allowMorePointer) {
+    public PinchToZoomGesture(final NativeSurface surface, final boolean allowMorePointer) {
         clear(true);
         this.surface = surface;
         this.allowMorePointer = allowMorePointer;
@@ -100,7 +124,7 @@ public class PinchToZoomGesture implements GestureHandler {
     }
 
     @Override
-    public void clear(boolean clearStarted) {
+    public void clear(final boolean clearStarted) {
         zoomEvent = null;
         if( clearStarted ) {
             zoomLastEdgeDist = 0;
@@ -131,7 +155,7 @@ public class PinchToZoomGesture implements GestureHandler {
         return zoom;
     }
     /** Set zoom value within [0..2], with 1 as <i>1:1</i>. */
-    public final void setZoom(float zoom) {
+    public final void setZoom(final float zoom) {
         this.zoom=zoom;
     }
 
@@ -149,7 +173,7 @@ public class PinchToZoomGesture implements GestureHandler {
         }
 
         final int eventType = pe.getEventType();
-        final boolean useY = surface.getWidth() >= surface.getHeight(); // use smallest dimension
+        final boolean useY = surface.getSurfaceWidth() >= surface.getSurfaceHeight(); // use smallest dimension
         switch ( eventType ) {
             case MouseEvent.EVENT_MOUSE_PRESSED: {
                 if( 1 == pointerDownCount ) {
@@ -197,13 +221,13 @@ public class PinchToZoomGesture implements GestureHandler {
                             } else if( zoomMode ) {
                                 final int d = Math.abs(edge0-edge1);
                                 final int dd = d - zoomLastEdgeDist;
-                                final float screenEdge = useY ? surface.getHeight() : surface.getWidth();
-                                final float incr = dd / screenEdge; // [-1..1]
+                                final float screenEdge = useY ? surface.getSurfaceHeight() : surface.getSurfaceWidth();
+                                final float delta = dd / screenEdge; // [-1..1]
                                 if(DEBUG) {
                                     System.err.println("XXX2: id0 "+pIds[0]+" -> idx0 "+p0Idx+", id1 "+pIds[1]+" -> idx1 "+p1Idx);
-                                    System.err.println("XXX3: d "+d+", ld "+zoomLastEdgeDist+", dd "+dd+", screen "+screenEdge+" -> incr "+incr+", zoom "+zoom+" -> "+(zoom+incr));
+                                    System.err.println("XXX3: d "+d+", ld "+zoomLastEdgeDist+", dd "+dd+", screen "+screenEdge+" -> incr "+delta+", zoom "+zoom+" -> "+(zoom+delta));
                                 }
-                                zoom += incr;
+                                zoom += delta;
                                 // clip value
                                 if( 2f < zoom ) {
                                     zoom = 2f;
@@ -211,7 +235,7 @@ public class PinchToZoomGesture implements GestureHandler {
                                     zoom = 0;
                                 }
                                 zoomLastEdgeDist = d;
-                                zoomEvent = new ZoomEvent(pe.getSource(), pe.getWhen(), pe.getModifiers(), this, pe, zoom);
+                                zoomEvent = new ZoomEvent(pe.getSource(), pe.getWhen(), pe.getModifiers(), this, pe, zoom, delta, screenEdge);
                             }
                         }
                     }

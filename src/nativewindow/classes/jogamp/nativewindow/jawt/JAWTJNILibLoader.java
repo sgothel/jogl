@@ -64,7 +64,7 @@ public class JAWTJNILibLoader extends NWJNILibLoader {
         if ( NativeWindowFactory.TYPE_MACOSX != NativeWindowFactory.getNativeWindowType(false) ) {
             try {
                 loadLibrary("jawt", null, true, JAWTJNILibLoader.class.getClassLoader());
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // It might be ok .. if it's already loaded
                 if(DEBUG) {
                     t.printStackTrace();

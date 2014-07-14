@@ -18,7 +18,7 @@ public class PngChunkCHRM extends PngChunkSingle {
 	private double greenx, greeny;
 	private double bluex, bluey;
 
-	public PngChunkCHRM(ImageInfo info) {
+	public PngChunkCHRM(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -43,7 +43,7 @@ public class PngChunkCHRM extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw c) {
+	public void parseFromRaw(final ChunkRaw c) {
 		if (c.len != 32)
 			throw new PngjException("bad chunk " + c);
 		whitex = PngHelperInternal.intToDouble100000(PngHelperInternal.readInt4fromBytes(c.data, 0));
@@ -57,8 +57,8 @@ public class PngChunkCHRM extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkCHRM otherx = (PngChunkCHRM) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkCHRM otherx = (PngChunkCHRM) other;
 		whitex = otherx.whitex;
 		whitey = otherx.whitex;
 		redx = otherx.redx;
@@ -69,8 +69,8 @@ public class PngChunkCHRM extends PngChunkSingle {
 		bluey = otherx.bluey;
 	}
 
-	public void setChromaticities(double whitex, double whitey, double redx, double redy, double greenx, double greeny,
-			double bluex, double bluey) {
+	public void setChromaticities(final double whitex, final double whitey, final double redx, final double redy, final double greenx, final double greeny,
+			final double bluex, final double bluey) {
 		this.whitex = whitex;
 		this.redx = redx;
 		this.greenx = greenx;

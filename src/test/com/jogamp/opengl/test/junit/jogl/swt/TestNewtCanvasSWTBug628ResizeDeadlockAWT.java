@@ -49,6 +49,7 @@ import javax.media.opengl.GLAutoDrawable ;
 import javax.media.opengl.GLCapabilities ;
 import javax.media.opengl.GLEventListener ;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
@@ -72,9 +73,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
     {
         float r = 0f, g = 0f, b = 0f;
 
-        public void init( GLAutoDrawable drawable )
+        public void init( final GLAutoDrawable drawable )
         {
-            GL2 gl = drawable.getGL().getGL2() ;
+            final GL2 gl = drawable.getGL().getGL2() ;
 
             gl.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f ) ;
 
@@ -83,32 +84,32 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             gl.glBlendFunc( GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA ) ;
         }
 
-        public void reshape( GLAutoDrawable drawable, int x, int y, int width, int height )
+        public void reshape( final GLAutoDrawable drawable, final int x, final int y, final int width, final int height )
         {
             // System.err.println( ">>>>>>>> reshape " + x + ", " + y + ", " + width + ", " +height ) ;
-            GL2 gl = drawable.getGL().getGL2() ;
+            final GL2 gl = drawable.getGL().getGL2() ;
 
             gl.glViewport( 0, 0, width, height ) ;
 
-            gl.glMatrixMode( GL2.GL_PROJECTION ) ;
+            gl.glMatrixMode( GLMatrixFunc.GL_PROJECTION ) ;
             gl.glLoadIdentity() ;
             gl.glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 ) ;
 
-            gl.glMatrixMode( GL2.GL_MODELVIEW ) ;
+            gl.glMatrixMode( GLMatrixFunc.GL_MODELVIEW ) ;
             gl.glLoadIdentity() ;
         }
 
-        public void display( GLAutoDrawable drawable )
+        public void display( final GLAutoDrawable drawable )
         {
             // System.err.println( ">>>> display" ) ;
-            GL2 gl = drawable.getGL().getGL2() ;
+            final GL2 gl = drawable.getGL().getGL2() ;
 
             // Sven: I could have been seeing things, but it seemed that if this
             // glClear is in here twice it seems aggravates the problem.  Not
             // sure why other than it just takes longer, but this is pretty
             // fast operation.
-            gl.glClear( GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT ) ;
-            gl.glClear( GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT ) ;
+            gl.glClear( GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT ) ;
+            gl.glClear( GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT ) ;
 
             gl.glColor4f( r, g, b, 1.0f ) ;
 
@@ -135,7 +136,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             }
         }
 
-        public void dispose( GLAutoDrawable drawable )
+        public void dispose( final GLAutoDrawable drawable )
         {
         }
     }
@@ -147,7 +148,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         private final Shell _shell ;
         private int _n ;
 
-        public ResizeThread( Shell shell )
+        public ResizeThread( final Shell shell )
         {
             super();
             _shell = shell ;
@@ -166,7 +167,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     } else {
                         _shell.setSize( 400, 450 ) ;
                     }
-                } catch (Exception e0) {
+                } catch (final Exception e0) {
                     e0.printStackTrace();
                     Assert.assertTrue("Deadlock @ setSize: "+e0, false);
                 }
@@ -196,7 +197,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     display.wake();
 
                     Thread.sleep( 50L ) ;
-                } catch( InterruptedException e ) {
+                } catch( final InterruptedException e ) {
                     break ;
                 }
             }
@@ -213,7 +214,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         Robot _robot;
         int _n = 0;
 
-        public KeyfireThread(Robot robot, Display display)
+        public KeyfireThread(final Robot robot, final Display display)
         {
             _robot = robot;
             _display = display;
@@ -235,7 +236,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     if(!_display.isDisposed()) {
                         _display.wake();
                     }
-                } catch( InterruptedException e ) {
+                } catch( final InterruptedException e ) {
                     break ;
                 }
             }
@@ -287,7 +288,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     display.dispose();
                    }});
             }
-            catch( Throwable throwable ) {
+            catch( final Throwable throwable ) {
                 throwable.printStackTrace();
                 Assume.assumeNoException( throwable );
             }
@@ -299,7 +300,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         class WaitAction implements Runnable {
             private final long sleepMS;
 
-            WaitAction(long sleepMS) {
+            WaitAction(final long sleepMS) {
                 this.sleepMS = sleepMS;
             }
             public void run() {
@@ -307,7 +308,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     // blocks on linux .. display.sleep();
                     try {
                         Thread.sleep(sleepMS);
-                    } catch (InterruptedException e) { }
+                    } catch (final InterruptedException e) { }
                 }
             }
         }
@@ -325,12 +326,12 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         {
             final GLProfile gl2Profile = GLProfile.get( GLProfile.GL2 ) ;
             final GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
-            com.jogamp.newt.Screen screen = NewtFactory.createScreen(dsc.swtNewtDisplay, 0);
+            final com.jogamp.newt.Screen screen = NewtFactory.createScreen(dsc.swtNewtDisplay, 0);
             glWindow = GLWindow.create( screen, caps ) ;
             glWindow.addGLEventListener( new BigFlashingX() ) ;
             glWindow.addKeyListener(new KeyAdapter() {
                 @Override
-                public void keyReleased(com.jogamp.newt.event.KeyEvent e) {
+                public void keyReleased(final com.jogamp.newt.event.KeyEvent e) {
                     if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                         return;
                     }
@@ -372,17 +373,17 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                 public void run() {
                     try {
                         Thread.sleep(duration);
-                    } catch (InterruptedException e) {}
+                    } catch (final InterruptedException e) {}
                     resizer.shallStop = true;
                     keyfire.shallStop = true;
                     try
                     {
                         resizer.join();
-                    } catch( InterruptedException e ) { }
+                    } catch( final InterruptedException e ) { }
                     try
                     {
                         keyfire.join();
-                    } catch( InterruptedException e ) { }
+                    } catch( final InterruptedException e ) { }
                     shallStop = true;
                     if( null != dsc.display && !dsc.display.isDisposed() )  {
                         dsc.display.wake();
@@ -400,11 +401,11 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                            // blocks on linux .. dsc.display.sleep();
                            try {
                                Thread.sleep(10);
-                           } catch (InterruptedException ie) { ie.printStackTrace(); }
+                           } catch (final InterruptedException ie) { ie.printStackTrace(); }
                        }
                     } } );
             }
-        } catch (Exception e0) {
+        } catch (final Exception e0) {
             e0.printStackTrace();
             Assert.assertTrue("Deadlock @ dispatch: "+e0, false);
         }
@@ -414,7 +415,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         dsc.dispose();
     }
 
-    public static void main( String[] args ) {
+    public static void main( final String[] args ) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = MiscUtils.atoi(args[++i],  duration);

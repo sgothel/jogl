@@ -104,7 +104,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private boolean newtChildAttached = false;
     private boolean isOnscreen = true;
     private WindowClosingMode newtChildCloseOp;
-    private final AWTParentWindowAdapter awtAdapter;
+    private final AWTParentWindowAdapter awtWinAdapter;
     private final AWTAdapter awtMouseAdapter;
     private final AWTAdapter awtKeyAdapter;
 
@@ -140,47 +140,47 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         super();
         awtMouseAdapter = new AWTMouseAdapter().addTo(this);
         awtKeyAdapter = new AWTKeyAdapter().addTo(this);
-        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
-        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
+        awtWinAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtWinAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
     }
 
     /**
      * Instantiates a NewtCanvas without a NEWT child.<br>
      */
-    public NewtCanvasAWT(GraphicsConfiguration gc) {
+    public NewtCanvasAWT(final GraphicsConfiguration gc) {
         super(gc);
         awtMouseAdapter = new AWTMouseAdapter().addTo(this);
         awtKeyAdapter = new AWTKeyAdapter().addTo(this);
-        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
-        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
+        awtWinAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtWinAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
     }
 
     /**
      * Instantiates a NewtCanvas with a NEWT child.
      */
-    public NewtCanvasAWT(Window child) {
+    public NewtCanvasAWT(final Window child) {
         super();
         awtMouseAdapter = new AWTMouseAdapter().addTo(this);
         awtKeyAdapter = new AWTKeyAdapter().addTo(this);
-        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
-        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
+        awtWinAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtWinAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
         setNEWTChild(child);
     }
 
     /**
      * Instantiates a NewtCanvas with a NEWT child.
      */
-    public NewtCanvasAWT(GraphicsConfiguration gc, Window child) {
+    public NewtCanvasAWT(final GraphicsConfiguration gc, final Window child) {
         super(gc);
         awtMouseAdapter = new AWTMouseAdapter().addTo(this);
         awtKeyAdapter = new AWTKeyAdapter().addTo(this);
-        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
-        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
+        awtWinAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtWinAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
         setNEWTChild(child);
     }
 
     @Override
-    public void setShallUseOffscreenLayer(boolean v) {
+    public void setShallUseOffscreenLayer(final boolean v) {
         shallUseOffscreenLayer = v;
     }
 
@@ -253,11 +253,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     };
     private final WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
           @Override
-          public void windowResized(WindowEvent e) {
+          public void windowResized(final WindowEvent e) {
               updateLayoutSize();
           }
           @Override
-          public void windowGainedFocus(WindowEvent arg0) {
+          public void windowGainedFocus(final WindowEvent arg0) {
               if( isParent() && !isFullscreen() ) {
                   AWTEDTExecutor.singleton.invoke(false, awtClearSelectedMenuPath);
               }
@@ -266,19 +266,19 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     class FocusTraversalKeyListener implements KeyListener {
          @Override
-         public void keyPressed(KeyEvent e) {
+         public void keyPressed(final KeyEvent e) {
              if( isParent() && !isFullscreen() ) {
                  handleKey(e, false);
              }
          }
          @Override
-         public void keyReleased(KeyEvent e) {
+         public void keyReleased(final KeyEvent e) {
              if( isParent() && !isFullscreen() ) {
                  handleKey(e, true);
              }
          }
 
-         void handleKey(KeyEvent evt, boolean onRelease) {
+         void handleKey(final KeyEvent evt, final boolean onRelease) {
              if(null == keyboardFocusManager) {
                  throw new InternalError("XXX");
              }
@@ -317,7 +317,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     class FocusPropertyChangeListener implements PropertyChangeListener {
         @Override
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChange(final PropertyChangeEvent evt) {
             final Object oldF = evt.getOldValue();
             final Object newF = evt.getNewValue();
             final boolean isParent = isParent();
@@ -374,7 +374,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * </p>
      * @return the previous attached newt child.
      */
-    public Window setNEWTChild(Window newChild) {
+    public Window setNEWTChild(final Window newChild) {
         synchronized(sync) {
             final Window prevChild = newtChild;
             if(DEBUG) {
@@ -400,7 +400,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         final Window w = newtChild;
         if( null != w ) {
             // use NEWT child's size for min/pref size!
-            java.awt.Dimension minSize = new java.awt.Dimension(w.getWidth(), w.getHeight());
+            final java.awt.Dimension minSize = new java.awt.Dimension(w.getWidth(), w.getHeight());
             setMinimumSize(minSize);
             setPreferredSize(minSize);
         }
@@ -421,7 +421,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     @Override
-    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+    public WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
@@ -435,7 +435,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * which finally will perform the pending JAWT destruction.
      * </p>
      */
-    public final void setSkipJAWTDestroy(boolean v) { skipJAWTDestroy = v; }
+    public final void setSkipJAWTDestroy(final boolean v) { skipJAWTDestroy = v; }
     /** See {@link #setSkipJAWTDestroy(boolean)}. */
     public final boolean getSkipJAWTDestroy() { return skipJAWTDestroy; }
 
@@ -524,7 +524,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             } } );
     }
 
-    private final void destroyImpl(boolean removeNotify, boolean windowClosing) {
+    private final void destroyImpl(final boolean removeNotify, final boolean windowClosing) {
         synchronized(sync) {
             final java.awt.Container cont = AWTMisc.getContainer(this);
             if(DEBUG) {
@@ -562,7 +562,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     @Override
-    public void paint(Graphics g) {
+    public void paint(final Graphics g) {
         synchronized(sync) {
             if( validateComponent(true) && !printActive ) {
                 newtChild.windowRepaint(0, 0, getWidth(), getHeight());
@@ -570,13 +570,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
     @Override
-    public void update(Graphics g) {
+    public void update(final Graphics g) {
         paint(g);
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void reshape(int x, int y, int width, int height) {
+    public void reshape(final int x, final int y, final int width, final int height) {
         synchronized (getTreeLock()) { // super.reshape(..) claims tree lock, so we do extend it's lock over reshape
             synchronized(sync) {
                 super.reshape(x, y, width, height);
@@ -603,7 +603,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     @Override
-    public void setupPrint(double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
+    public void setupPrint(final double scaleMatX, final double scaleMatY, final int numSamples, final int tileWidth, final int tileHeight) {
         printActive = true;
         final int componentCount = isOpaque() ? 3 : 4;
         final TileRenderer printRenderer = new TileRenderer();
@@ -645,8 +645,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 final int printNumSamples = printAWTTiles.getNumSamples(caps);
                 GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
                 final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
-                final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getWidth() ||
-                                               printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getHeight();
+                final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                               printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
                 final boolean reqNewGLADOnscrn = caps.isOnscreen();
 
                 // It is desired to use a new offscreen GLAD, however Bug 830 forbids this for AA onscreen context.
@@ -654,7 +654,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 final boolean reqNewGLAD = !caps.getSampleBuffers() && ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize );
                 if( DEBUG ) {
                     System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
-                            ", drawableSize "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+
+                            ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
                             ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
                             ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
                             ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
@@ -674,13 +674,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     printDrawable = printGLAD.getDelegatedDrawable();
                 }
                 printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
-                printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
+                printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
                 printAWTTiles.renderer.attachAutoDrawable(printGLAD);
                 if( DEBUG ) {
                     System.err.println("AWT print.setup "+printAWTTiles);
                     System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-                    System.err.println("AWT print.setup printGLAD: "+printGLAD.getWidth()+"x"+printGLAD.getHeight()+", "+printGLAD);
-                    System.err.println("AWT print.setup printDraw: "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+", "+printDrawable);
+                    System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+                    System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
                 }
             }
         }
@@ -720,7 +720,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     };
 
     @Override
-    public void print(Graphics graphics) {
+    public void print(final Graphics graphics) {
         synchronized(sync) {
             if( !printActive || null == printGLAD ) {
                 throw new IllegalStateException("setupPrint() not called");
@@ -750,8 +750,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                         printAWTTiles.resetGraphics2D();
                     }
                 }
-            } catch (NoninvertibleTransformException nte) {
-                System.err.println("Catched: Inversion failed of: "+g2d.getTransform());
+            } catch (final NoninvertibleTransformException nte) {
+                System.err.println("Caught: Inversion failed of: "+g2d.getTransform());
                 nte.printStackTrace();
             }
             if( DEBUG ) {
@@ -760,7 +760,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
-    private final boolean validateComponent(boolean attachNewtChild) {
+    private final boolean validateComponent(final boolean attachNewtChild) {
         if( Beans.isDesignTime() || !isDisplayable() ) {
             return false;
         }
@@ -778,12 +778,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return true;
     }
 
-    private final void configureNewtChild(boolean attach) {
-        awtAdapter.clear();
+    private final void configureNewtChild(final boolean attach) {
+        awtWinAdapter.clear();
+        awtKeyAdapter.clear();
         awtMouseAdapter.clear();
-        awtKeyAdapter.setConsumeAWTEvent(false);
-        awtMouseAdapter.clear();
-        awtKeyAdapter.setConsumeAWTEvent(false);
 
         if(null != keyboardFocusManager) {
             keyboardFocusManager.removePropertyChangeListener("focusOwner", focusPropertyChangeListener);
@@ -797,7 +795,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     throw new InternalError("XXX");
                 }
                 isOnscreen = jawtWindow.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
-                awtAdapter.setDownstream(jawtWindow, newtChild);
+                awtWinAdapter.setDownstream(jawtWindow, newtChild);
                 newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(focusAction); // enable AWT focus traversal
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
@@ -862,11 +860,19 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       final int w = getWidth();
       final int h = getHeight();
+      final boolean isNValid = newtChild.isNativeValid();
       if(DEBUG) {
-          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h+", isNValid "+isNValid);
       }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
+      final int[] reqSurfaceScale = new int[2];
+      if( isNValid ) {
+          newtChild.getCurrentSurfaceScale(reqSurfaceScale);
+      } else {
+          newtChild.getRequestedSurfaceScale(reqSurfaceScale);
+      }
+      jawtWindow.setSurfaceScale(reqSurfaceScale);
       newtChild.reparentWindow(jawtWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
       if( jawtWindow.isOffscreenLayerSurfaceEnabled() &&
@@ -898,7 +904,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             }
         }  };
 
-    private final void detachNewtChild(java.awt.Container cont) {
+    private final void detachNewtChild(final java.awt.Container cont) {
       if( null == newtChild || null == jawtWindow || !newtChildAttached ) {
           return; // nop
       }
@@ -945,16 +951,16 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                       clazz.getDeclaredMethod("disableBackgroundErase",
                                               new Class[] { Canvas.class });
                     disableBackgroundEraseMethod.setAccessible(true);
-                  } catch (Exception e) {
+                  } catch (final Exception e) {
                     clazz = clazz.getSuperclass();
                   }
                 }
-              } catch (Exception e) {
+              } catch (final Exception e) {
               }
               return null;
             }
           });
-      } catch (Exception e) {
+      } catch (final Exception e) {
       }
       disableBackgroundEraseInitialized = true;
       if(DEBUG) {
@@ -966,7 +972,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       Throwable t=null;
       try {
         disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
-      } catch (Exception e) {
+      } catch (final Exception e) {
         t = e;
       }
       if(DEBUG) {
@@ -977,10 +983,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
   protected static String currentThreadName() { return "["+Thread.currentThread().getName()+", isAWT-EDT "+EventQueue.isDispatchThread()+"]"; }
 
-  static String newtWinHandleToHexString(Window w) {
+  static String newtWinHandleToHexString(final Window w) {
       return null != w ? toHexString(w.getWindowHandle()) : "nil";
   }
-  static String toHexString(long l) {
+  static String toHexString(final long l) {
       return "0x"+Long.toHexString(l);
   }
 }

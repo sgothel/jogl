@@ -34,19 +34,16 @@ import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
 public class MovieSimpleActivityLauncher00c extends LauncherUtil.BaseActivityLauncher {
 
-    static String demo = "com.jogamp.opengl.test.android.MovieSimpleActivity1";
+    static String demo = "com.jogamp.opengl.test.android.MovieSimpleActivity0";
     static String[] sys_pkgs = new String[] { "com.jogamp.common", "javax.media.opengl" };
     static String[] usr_pkgs = new String[] { "com.jogamp.opengl.test" };
 
     @Override
     public void init() {
        final OrderedProperties props = getProperties();
-       props.setProperty("jnlp.mplayer.nozoom",     "false");
-       props.setProperty("jnlp.mplayer.hud",        "false");
-       props.setProperty("jnlp.mplayer.hud.shared", "false");
-       props.setProperty("jnlp.media0_url2", "camera:/0");
-       props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
-       props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
+       props.setProperty("jnlp.media0_url0", "camera:/0");
+       props.setProperty("jnlp.media0_url1", "");
+       props.setProperty("jnlp.media0_url2", "");
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
        // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");

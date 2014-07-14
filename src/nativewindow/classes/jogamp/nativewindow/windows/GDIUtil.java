@@ -40,7 +40,7 @@ public class GDIUtil implements ToolkitProperties {
 
     private static final String dummyWindowClassNameBase = "_dummyWindow_clazz" ;
     private static RegisteredClassFactory dummyWindowClassFactory;
-    private static boolean isInit = false;
+    private static volatile boolean isInit = false;
 
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
@@ -93,7 +93,7 @@ public class GDIUtil implements ToolkitProperties {
     private static RegisteredClass dummyWindowClass = null;
     private static Object dummyWindowSync = new Object();
 
-    public static long CreateDummyWindow(int x, int y, int width, int height) {
+    public static long CreateDummyWindow(final int x, final int y, final int width, final int height) {
         synchronized(dummyWindowSync) {
             dummyWindowClass = dummyWindowClassFactory.getSharedClass();
             if(DEBUG) {
@@ -104,7 +104,7 @@ public class GDIUtil implements ToolkitProperties {
         }
     }
 
-    public static boolean DestroyDummyWindow(long hwnd) {
+    public static boolean DestroyDummyWindow(final long hwnd) {
         boolean res;
         synchronized(dummyWindowSync) {
             if( null == dummyWindowClass ) {
@@ -116,15 +116,15 @@ public class GDIUtil implements ToolkitProperties {
         return res;
     }
 
-    public static Point GetRelativeLocation(long src_win, long dest_win, int src_x, int src_y) {
+    public static Point GetRelativeLocation(final long src_win, final long dest_win, final int src_x, final int src_y) {
         return (Point) GetRelativeLocation0(src_win, dest_win, src_x, src_y);
     }
 
-    public static boolean IsUndecorated(long win) {
+    public static boolean IsUndecorated(final long win) {
         return IsUndecorated0(win);
     }
 
-    public static boolean IsChild(long win) {
+    public static boolean IsChild(final long win) {
         return IsChild0(win);
     }
 

@@ -46,15 +46,15 @@ public class ScreenMonitorState {
     private final RecursiveLock lock = LockFactory.createRecursiveLock();
     private final ArrayHashSet<MonitorDevice> allMonitors;
     private final ArrayHashSet<MonitorMode> allMonitorModes;
-    private ArrayList<MonitorModeListener> listener = new ArrayList<MonitorModeListener>();
+    private final ArrayList<MonitorModeListener> listener = new ArrayList<MonitorModeListener>();
 
     private static HashMap<String, ScreenMonitorState> screenFQN2ScreenMonitorState = new HashMap<String, ScreenMonitorState>();
     private static RecursiveLock screen2ScreenMonitorState = LockFactory.createRecursiveLock();
 
-    protected static void mapScreenMonitorState(String screenFQN, ScreenMonitorState sms) {
+    protected static void mapScreenMonitorState(final String screenFQN, final ScreenMonitorState sms) {
         screen2ScreenMonitorState.lock();
         try {
-            ScreenMonitorState _sms = screenFQN2ScreenMonitorState.get(screenFQN);
+            final ScreenMonitorState _sms = screenFQN2ScreenMonitorState.get(screenFQN);
             if( null != _sms ) {
                 throw new RuntimeException("ScreenMonitorState "+_sms+" already mapped to "+screenFQN);
             }
@@ -71,7 +71,7 @@ public class ScreenMonitorState {
      * @param screen the prev user
      * @return true if mapping is empty, ie no more usage of the mapped ScreenMonitorState
      */
-    protected static void unmapScreenMonitorState(String screenFQN) {
+    protected static void unmapScreenMonitorState(final String screenFQN) {
         screen2ScreenMonitorState.lock();
         try {
             unmapScreenMonitorStateUnlocked(screenFQN);
@@ -79,14 +79,14 @@ public class ScreenMonitorState {
             screen2ScreenMonitorState.unlock();
         }
     }
-    protected static void unmapScreenMonitorStateUnlocked(String screenFQN) {
-        ScreenMonitorState sms = screenFQN2ScreenMonitorState.remove(screenFQN);
+    protected static void unmapScreenMonitorStateUnlocked(final String screenFQN) {
+        final ScreenMonitorState sms = screenFQN2ScreenMonitorState.remove(screenFQN);
         if(DEBUG) {
             System.err.println("ScreenMonitorState.unmap "+screenFQN+" -> "+sms);
         }
     }
 
-    protected static ScreenMonitorState getScreenMonitorState(String screenFQN) {
+    protected static ScreenMonitorState getScreenMonitorState(final String screenFQN) {
         screen2ScreenMonitorState.lock();
         try {
             return getScreenMonitorStateUnlocked(screenFQN);
@@ -94,7 +94,7 @@ public class ScreenMonitorState {
             screen2ScreenMonitorState.unlock();
         }
     }
-    protected static ScreenMonitorState getScreenMonitorStateUnlocked(String screenFQN) {
+    protected static ScreenMonitorState getScreenMonitorStateUnlocked(final String screenFQN) {
         return screenFQN2ScreenMonitorState.get(screenFQN);
     }
 
@@ -106,8 +106,8 @@ public class ScreenMonitorState {
         screen2ScreenMonitorState.unlock();
     }
 
-    public ScreenMonitorState(ArrayHashSet<MonitorDevice> allMonitors,
-                              ArrayHashSet<MonitorMode> allMonitorModes) {
+    public ScreenMonitorState(final ArrayHashSet<MonitorDevice> allMonitors,
+                              final ArrayHashSet<MonitorMode> allMonitorModes) {
         this.allMonitors = allMonitors;
         this.allMonitorModes = allMonitorModes;
     }
@@ -120,7 +120,7 @@ public class ScreenMonitorState {
         return allMonitorModes;
     }
 
-    protected final int addListener(MonitorModeListener l) {
+    protected final int addListener(final MonitorModeListener l) {
         lock();
         try {
             listener.add(l);
@@ -133,7 +133,7 @@ public class ScreenMonitorState {
         }
     }
 
-    protected final int removeListener(MonitorModeListener l) {
+    protected final int removeListener(final MonitorModeListener l) {
         lock();
         try {
             if(!listener.remove(l)) {
@@ -148,18 +148,18 @@ public class ScreenMonitorState {
         }
     }
 
-    protected final MonitorDevice getMonitor(MonitorDevice monitor) {
+    protected final MonitorDevice getMonitor(final MonitorDevice monitor) {
         return allMonitors.get(monitor);
     }
 
-    protected final void validateMonitor(MonitorDevice monitor) {
+    protected final void validateMonitor(final MonitorDevice monitor) {
         final MonitorDevice md = allMonitors.get(monitor);
         if( null == md ) {
             throw new InternalError("Monitor unknown: "+monitor);
         }
     }
 
-    protected final void fireMonitorModeChangeNotify(MonitorDevice monitor, MonitorMode desiredMode) {
+    protected final void fireMonitorModeChangeNotify(final MonitorDevice monitor, final MonitorMode desiredMode) {
         lock();
         try {
             validateMonitor(monitor);
@@ -172,7 +172,7 @@ public class ScreenMonitorState {
         }
     }
 
-    protected void fireMonitorModeChanged(MonitorDevice monitor, MonitorMode currentMode, boolean success) {
+    protected void fireMonitorModeChanged(final MonitorDevice monitor, final MonitorMode currentMode, final boolean success) {
         lock();
         try {
             validateMonitor(monitor);

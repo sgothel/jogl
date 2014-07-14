@@ -66,7 +66,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         synchronized(WindowDriver.class) {
             setWindowHandle(nextWindowHandle++); // just a marker
 
-            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(), getX(), getY(), getWidth(), getHeight());
+            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(),
+                                          getX(), getY(), getSurfaceWidth(), getSurfaceHeight());
             if (surfaceHandle == 0) {
                 throw new NativeWindowException("Error creating window");
             }
@@ -85,9 +86,10 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        ScreenDriver  screen = (ScreenDriver) getScreen();
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, final int flags) {
+        final ScreenDriver  screen = (ScreenDriver) getScreen();
 
+        // Note for GDL: window units == pixel units
         if(width>screen.getWidth()) {
             width=screen.getWidth();
         }
@@ -116,7 +118,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected void requestFocusImpl(boolean reparented) {
+    protected void requestFocusImpl(final boolean reparented) {
         ((DisplayDriver)getScreen().getDisplay()).setFocus(this);
     }
 
@@ -126,12 +128,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         return new Point(x,y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop ..
     }
 
@@ -144,7 +146,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     private        native void CloseSurface(long displayHandle, long surfaceHandle);
     private        native void SetBounds0(long surfaceHandle, int scrn_width, int scrn_height, int x, int y, int width, int height);
 
-    private void updateBounds(int x, int y, int width, int height) {
+    private void updateBounds(final int x, final int y, final int width, final int height) {
         definePosition(x, y);
         defineSize(width, height);
     }

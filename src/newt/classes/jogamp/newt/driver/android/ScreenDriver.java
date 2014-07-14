@@ -60,11 +60,11 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     protected void closeNativeImpl() { }
 
     @Override
-    protected int validateScreenIndex(int idx) {
+    protected int validateScreenIndex(final int idx) {
         return 0; // FIXME: only one screen available ?
     }
 
-    private final MonitorMode getModeImpl(final Cache cache, final android.view.Display aDisplay, DisplayMetrics outMetrics, int modeIdx, int screenSizeNRot, int nrot) {
+    private final MonitorMode getModeImpl(final Cache cache, final android.view.Display aDisplay, final DisplayMetrics outMetrics, final int modeIdx, final int screenSizeNRot, final int nrot) {
         final int[] props = new int[MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
@@ -78,7 +78,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     }
 
     @Override
-    protected void collectNativeMonitorModesAndDevicesImpl(Cache cache) {
+    protected void collectNativeMonitorModesAndDevicesImpl(final Cache cache) {
         // FIXME: Multi Monitor Implementation missing [for newer Android version ?]
 
         final Context ctx = jogamp.common.os.android.StaticContext.getContext();
@@ -94,7 +94,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         MonitorMode currentMode = null;
         for(int r=0; r<4; r++) { // for all rotations
             final int nrot_i = r*MonitorMode.ROTATE_90;
-            MonitorMode mode = getModeImpl(cache, aDisplay, outMetrics, modeIdx, 0, nrot_i);
+            final MonitorMode mode = getModeImpl(cache, aDisplay, outMetrics, modeIdx, 0, nrot_i);
             if( nrot == nrot_i ) {
                 currentMode = mode;
             }
@@ -105,15 +105,19 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         props[i++] = props.length;
         props[i++] = 0; // crt_idx
         i = getScreenSizeMM(outMetrics, props, i); // sizeMM
-        props[i++] = 0; // rotated viewport x
-        props[i++] = 0; // rotated viewport y
-        props[i++] = outMetrics.widthPixels; // rotated viewport width
-        props[i++] = outMetrics.heightPixels; // rotated viewport height
+        props[i++] = 0; // rotated viewport x pixel-units
+        props[i++] = 0; // rotated viewport y pixel-units
+        props[i++] = outMetrics.widthPixels; // rotated viewport width pixel-units
+        props[i++] = outMetrics.heightPixels; // rotated viewport height pixel-units
+        props[i++] = 0; // rotated viewport x window-units
+        props[i++] = 0; // rotated viewport y window-units
+        props[i++] = outMetrics.widthPixels; // rotated viewport width window-units
+        props[i++] = outMetrics.heightPixels; // rotated viewport height window-units
         MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);
     }
 
     @Override
-    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {
+    protected MonitorMode queryCurrentMonitorModeImpl(final MonitorDevice monitor) {
         final Context ctx = jogamp.common.os.android.StaticContext.getContext();
         final WindowManager wmgr = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
         final DisplayMetrics outMetrics = new DisplayMetrics();
@@ -125,14 +129,14 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     }
 
     @Override
-    protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode) {
+    protected boolean setCurrentMonitorModeImpl(final MonitorDevice monitor, final MonitorMode mode) {
         return false;
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //
-    static int androidRotation2NewtRotation(int arot) {
+    static int androidRotation2NewtRotation(final int arot) {
         switch(arot) {
             case Surface.ROTATION_270: return MonitorMode.ROTATE_270;
             case Surface.ROTATION_180: return MonitorMode.ROTATE_180;
@@ -141,7 +145,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         }
         return MonitorMode.ROTATE_0;
     }
-    static int getScreenSize(DisplayMetrics outMetrics, int nrot, int[] props, int offset) {
+    static int getScreenSize(final DisplayMetrics outMetrics, final int nrot, final int[] props, int offset) {
         // swap width and height, since Android reflects rotated dimension, we don't
         if (MonitorMode.ROTATE_90 == nrot || MonitorMode.ROTATE_270 == nrot) {
             props[offset++] = outMetrics.heightPixels;
@@ -152,7 +156,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         }
         return offset;
     }
-    static int getBpp(android.view.Display aDisplay, int[] props, int offset) {
+    static int getBpp(final android.view.Display aDisplay, final int[] props, int offset) {
         int bpp;
         switch(aDisplay.getPixelFormat()) {
             case PixelFormat.RGBA_8888: bpp=32; break;
@@ -167,7 +171,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         props[offset++] = bpp;
         return offset;
     }
-    static int getScreenSizeMM(DisplayMetrics outMetrics, int[] props, int offset) {
+    static int getScreenSizeMM(final DisplayMetrics outMetrics, final int[] props, int offset) {
         final float inW = outMetrics.widthPixels / outMetrics.xdpi;
         final float inH = outMetrics.heightPixels / outMetrics.ydpi;
         final float mmpi = 25.4f;

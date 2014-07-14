@@ -74,7 +74,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         if(0==displayHandle) {
             throw new NativeWindowException("displayHandle null; initCnt "+initCounter);
         }
@@ -96,7 +96,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         }
     }
 
-    protected void setFocus(WindowDriver focus) {
+    protected void setFocus(final WindowDriver focus) {
         focusedWindow = focus;
     }
 

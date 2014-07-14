@@ -60,11 +60,11 @@ import java.io.IOException;
  */
 public class LangSysRecord {
 
-    private int _tag;
-    private int _offset;
+    private final int _tag;
+    private final int _offset;
 
     /** Creates new LangSysRecord */
-    public LangSysRecord(DataInput di) throws IOException {
+    public LangSysRecord(final DataInput di) throws IOException {
         _tag = di.readInt();
         _offset = di.readUnsignedShort();
     }

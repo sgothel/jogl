@@ -70,9 +70,9 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 public class GLEventListenerState {
     private static final boolean DEBUG = Debug.debug("GLDrawable") || Debug.debug("GLEventListenerState");
 
-    private GLEventListenerState(AbstractGraphicsDevice upstreamDevice, boolean proxyOwnsUpstreamDevice, AbstractGraphicsDevice device,
-                                 GLCapabilitiesImmutable caps,
-                                 GLContext context, int count, GLAnimatorControl anim, boolean animStarted) {
+    private GLEventListenerState(final AbstractGraphicsDevice upstreamDevice, final boolean proxyOwnsUpstreamDevice, final AbstractGraphicsDevice device,
+                                 final GLCapabilitiesImmutable caps,
+                                 final GLContext context, final int count, final GLAnimatorControl anim, final boolean animStarted) {
         this.upstreamDevice = upstreamDevice;
         this.proxyOwnsUpstreamDevice = proxyOwnsUpstreamDevice;
         this.device = device;
@@ -124,7 +124,7 @@ public class GLEventListenerState {
         }
     }
 
-    private static AbstractGraphicsDevice cloneDevice(AbstractGraphicsDevice aDevice) {
+    private static AbstractGraphicsDevice cloneDevice(final AbstractGraphicsDevice aDevice) {
         return (AbstractGraphicsDevice) aDevice.clone();
     }
 
@@ -148,7 +148,7 @@ public class GLEventListenerState {
      *
      * @see #moveTo(GLAutoDrawable)
      */
-    public static GLEventListenerState moveFrom(GLAutoDrawable a) {
+    public static GLEventListenerState moveFrom(final GLAutoDrawable a) {
         final GLAnimatorControl aAnim = a.getAnimator();
         final boolean aAnimStarted;
         if( null != aAnim ) {
@@ -251,7 +251,7 @@ public class GLEventListenerState {
      * @see #moveFrom(GLAutoDrawable)
      * @see #isOwner()
      */
-    public final void moveTo(GLAutoDrawable a) {
+    public final void moveTo(final GLAutoDrawable a) {
         final GLAnimatorControl aAnim = a.getAnimator();
         final boolean hasAnimator = null != aAnim;
         final boolean aPaused;
@@ -405,30 +405,30 @@ public class GLEventListenerState {
         }
     }
 
-    public static GLRunnable setViewport = new GLRunnable() {
+    public static final GLRunnable setViewport = new GLRunnable() {
         @Override
-        public boolean run(GLAutoDrawable drawable) {
-            drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+        public boolean run(final GLAutoDrawable drawable) {
+            drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             return true;
         }
     };
 
-    public static GLRunnable glFinish = new GLRunnable() {
+    public static final GLRunnable glFinish = new GLRunnable() {
         @Override
-        public boolean run(GLAutoDrawable drawable) {
+        public boolean run(final GLAutoDrawable drawable) {
             drawable.getGL().glFinish();
             return true;
         }
     };
 
     public static class ReshapeGLEventListener implements GLRunnable {
-        private GLEventListener listener;
-        public ReshapeGLEventListener(GLEventListener listener) {
+        private final GLEventListener listener;
+        public ReshapeGLEventListener(final GLEventListener listener) {
             this.listener = listener;
         }
         @Override
-        public boolean run(GLAutoDrawable drawable) {
-            listener.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+        public boolean run(final GLAutoDrawable drawable) {
+            listener.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             return true;
         }
     }

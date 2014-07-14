@@ -96,7 +96,7 @@ public class ShaderCode {
      *
      * @throws IllegalArgumentException if <code>count</count> and <code>source.length</code> do not match
      */
-    public ShaderCode(int type, int count, CharSequence[][] source) {
+    public ShaderCode(final int type, final int count, final CharSequence[][] source) {
         if(source.length != count) {
             throw new IllegalArgumentException("shader number ("+count+") and sourceFiles array ("+source.length+") of different lenght.");
         }
@@ -126,7 +126,7 @@ public class ShaderCode {
      * @param count number of shaders
      * @param binary binary buffer containing the shader binaries,
      */
-    public ShaderCode(int type, int count, int binFormat, Buffer binary) {
+    public ShaderCode(final int type, final int count, final int binFormat, final Buffer binary) {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
@@ -162,7 +162,7 @@ public class ShaderCode {
      * @throws IllegalArgumentException if <code>count</count> and <code>sourceFiles.length</code> do not match
      * @see #readShaderSource(Class, String)
      */
-    public static ShaderCode create(GL2ES2 gl, int type, int count, Class<?> context, String[] sourceFiles, boolean mutableStringBuilder) {
+    public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context, final String[] sourceFiles, final boolean mutableStringBuilder) {
         if(null != gl && !ShaderUtil.isShaderCompilerAvailable(gl)) {
             return null;
         }
@@ -174,7 +174,7 @@ public class ShaderCode {
             for(int i=0; i<sourceFiles.length; i++) {
                 try {
                     shaderSources[i][0] = readShaderSource(context, sourceFiles[i], mutableStringBuilder);
-                } catch (IOException ioe) {
+                } catch (final IOException ioe) {
                     throw new RuntimeException("readShaderSource("+sourceFiles[i]+") error: ", ioe);
                 }
                 if(null == shaderSources[i][0]) {
@@ -201,12 +201,12 @@ public class ShaderCode {
      * @see #readShaderBinary(Class, String)
      * @see ShaderUtil#getShaderBinaryFormats(GL)
      */
-    public static ShaderCode create(int type, int count, Class<?> context, int binFormat, String binaryFile) {
+    public static ShaderCode create(final int type, final int count, final Class<?> context, int binFormat, final String binaryFile) {
         ByteBuffer shaderBinary = null;
         if(null!=binaryFile && 0<=binFormat) {
             try {
                 shaderBinary = readShaderBinary(context, binaryFile);
-            } catch (IOException ioe) {
+            } catch (final IOException ioe) {
                 throw new RuntimeException("readShaderBinary("+binaryFile+") error: ", ioe);
             }
             if(null == shaderBinary) {
@@ -238,7 +238,7 @@ public class ShaderCode {
      *
      * @see #create(GL2ES2, int, Class, String, String, String, boolean)
      */
-    public static String getFileSuffix(boolean binary, int type) {
+    public static String getFileSuffix(final boolean binary, final int type) {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
                 return binary?SUFFIX_VERTEX_BINARY:SUFFIX_VERTEX_SOURCE;
@@ -261,7 +261,7 @@ public class ShaderCode {
      *
      * @see #create(GL2ES2, int, Class, String, String, String, boolean)
      */
-    public static String getBinarySubPath(int binFormat) {
+    public static String getBinarySubPath(final int binFormat) {
         switch (binFormat) {
             case GLES2.GL_NVIDIA_PLATFORM_BINARY_NV:
                 return SUB_PATH_NVIDIA;
@@ -327,7 +327,7 @@ public class ShaderCode {
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param context class used to help resolving the source and binary location
-     * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code>
+     * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code> optional
      * @param srcBasenames basenames w/o path or suffix relative to <code>srcRoot</code> for the shader's source code
      * @param binRoot relative <i>root</i> path for <code>binBasenames</code>
      * @param binBasename basename w/o path or suffix relative to <code>binRoot</code> for the shader's binary code
@@ -347,19 +347,25 @@ public class ShaderCode {
      * @see ShaderUtil#getShaderBinaryFormats(GL)
      * @see #getBinarySubPath(int)
      */
-    public static ShaderCode create(GL2ES2 gl, int type, int count, Class<?> context,
-                                    String srcRoot, String[] srcBasenames, String binRoot, String binBasename,
-                                    boolean mutableStringBuilder) {
+    public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context,
+                                    final String srcRoot, final String[] srcBasenames, final String binRoot, final String binBasename,
+                                    final boolean mutableStringBuilder) {
         ShaderCode res = null;
         final String srcPath[];
         String srcPathString = null;
         String binFileName = null;
 
-        if(null!=srcRoot && null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl)) {
+        if( null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl) ) {
             srcPath = new String[srcBasenames.length];
             final String srcSuffix = getFileSuffix(false, type);
-            for(int i=0; i<srcPath.length; i++) {
-                srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
+            if( null != srcRoot && srcRoot.length() > 0 ) {
+                for(int i=0; i<srcPath.length; i++) {
+                    srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
+                }
+            } else {
+                for(int i=0; i<srcPath.length; i++) {
+                    srcPath[i] = srcBasenames[i] + "." + srcSuffix;
+                }
             }
             res = create(gl, type, count, context, srcPath, mutableStringBuilder);
             if(null!=res) {
@@ -369,12 +375,12 @@ public class ShaderCode {
         } else {
             srcPath = null;
         }
-        if(null!=binRoot && null!=binBasename) {
-            Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
+        if( null!=binBasename ) {
+            final Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
             final String binSuffix = getFileSuffix(true, type);
-            for(Iterator<Integer> iter=binFmts.iterator(); iter.hasNext(); ) {
-                int bFmt = iter.next().intValue();
-                String bFmtPath = getBinarySubPath(bFmt);
+            for(final Iterator<Integer> iter=binFmts.iterator(); iter.hasNext(); ) {
+                final int bFmt = iter.next().intValue();
+                final String bFmtPath = getBinarySubPath(bFmt);
                 if(null==bFmtPath) continue;
                 binFileName = binRoot + '/' + bFmtPath + '/' + binBasename + "." + binSuffix;
                 res = create(type, count, context, bFmt, binFileName);
@@ -426,7 +432,7 @@ public class ShaderCode {
      *           or to determine the shader binary format (if <code>binary</code> is used).
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param context class used to help resolving the source and binary location
-     * @param srcRoot relative <i>root</i> path for <code>basename</code>
+     * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
      * @param binRoot relative <i>root</i> path for <code>basename</code>
      * @param mutableStringBuilder TODO
      * @param basenames basename w/o path or suffix relative to <code>srcRoot</code> and <code>binRoot</code>
@@ -441,8 +447,8 @@ public class ShaderCode {
      *
      * @see #create(GL2ES2, int, int, Class, String, String[], String, String)
      */
-    public static ShaderCode create(GL2ES2 gl, int type, Class<?> context,
-                                    String srcRoot, String binRoot, String basename, boolean mutableStringBuilder) {
+    public static ShaderCode create(final GL2ES2 gl, final int type, final Class<?> context,
+                                    final String srcRoot, final String binRoot, final String basename, final boolean mutableStringBuilder) {
         return create(gl, type, 1, context, srcRoot, new String[] { basename }, binRoot, basename, mutableStringBuilder );
     }
 
@@ -454,7 +460,7 @@ public class ShaderCode {
     public int        shaderType() { return shaderType; }
     public String     shaderTypeStr() { return shaderTypeStr(shaderType); }
 
-    public static String shaderTypeStr(int type) {
+    public static String shaderTypeStr(final int type) {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
                 return "VERTEX_SHADER";
@@ -474,10 +480,10 @@ public class ShaderCode {
 
     public IntBuffer  shader() { return shader; }
 
-    public boolean compile(GL2ES2 gl) {
+    public boolean compile(final GL2ES2 gl) {
         return compile(gl, null);
     }
-    public boolean compile(GL2ES2 gl, PrintStream verboseOut) {
+    public boolean compile(final GL2ES2 gl, final PrintStream verboseOut) {
         if(isValid()) return true;
 
         // Create & Compile the vertex/fragment shader objects
@@ -497,7 +503,7 @@ public class ShaderCode {
         return valid;
     }
 
-    public void destroy(GL2ES2 gl) {
+    public void destroy(final GL2ES2 gl) {
         if(isValid()) {
             if(null!=gl) {
                 ShaderUtil.deleteShader(gl, shader());
@@ -515,7 +521,7 @@ public class ShaderCode {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this==obj) { return true; }
         if(obj instanceof ShaderCode) {
             return id()==((ShaderCode)obj).id();
@@ -528,7 +534,7 @@ public class ShaderCode {
     }
     @Override
     public String toString() {
-        StringBuilder buf = new StringBuilder("ShaderCode[id="+id+", type="+shaderTypeStr()+", valid="+valid+", shader: ");
+        final StringBuilder buf = new StringBuilder("ShaderCode[id="+id+", type="+shaderTypeStr()+", valid="+valid+", shader: ");
         for(int i=0; i<shader.remaining(); i++) {
             buf.append(" "+shader.get(i));
         }
@@ -540,12 +546,12 @@ public class ShaderCode {
         return buf.toString();
     }
 
-    public void dumpShaderSource(PrintStream out) {
+    public void dumpShaderSource(final PrintStream out) {
         if(null==shaderSource) {
             out.println("<no shader source>");
             return;
         }
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         final int shaderCount = (null!=shader)?shader.capacity():0;
         for(int i=0; i<shaderCount; i++) {
             out.println("");
@@ -554,7 +560,7 @@ public class ShaderCode {
             if(i>=sourceCount) {
                 out.println("<no shader source>");
             } else {
-                CharSequence[] src = shaderSource[i];
+                final CharSequence[] src = shaderSource[i];
                 int lineno=0;
 
                 for(int j=0; j<src.length; j++) {
@@ -566,7 +572,7 @@ public class ShaderCode {
                             lineno++;
                             out.printf("%4d: %s\n", lineno, line);
                         }
-                    } catch (IOException e) { /* impossible .. StringReader */ }
+                    } catch (final IOException e) { /* impossible .. StringReader */ }
                 }
             }
             out.println("--------------------------------------------------------------");
@@ -587,7 +593,7 @@ public class ShaderCode {
      *
      * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
      */
-    public int insertShaderSource(int shaderIdx, String tag, int fromIndex, CharSequence data) {
+    public int insertShaderSource(final int shaderIdx, final String tag, final int fromIndex, final CharSequence data) {
         if(null==shaderSource) {
             throw new IllegalStateException("no shader source");
         }
@@ -595,7 +601,7 @@ public class ShaderCode {
         if(0>shaderIdx || shaderIdx>=shaderCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within shader bounds [0.."+(shaderCount-1)+"]: "+shaderIdx);
         }
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         if(shaderIdx>=sourceCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within source bounds [0.."+(sourceCount-1)+"]: "+shaderIdx);
         }
@@ -644,7 +650,7 @@ public class ShaderCode {
      *
      * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
      */
-    public int replaceInShaderSource(String oldName, String newName) {
+    public int replaceInShaderSource(final String oldName, final String newName) {
         if(null==shaderSource) {
             throw new IllegalStateException("no shader source");
         }
@@ -654,7 +660,7 @@ public class ShaderCode {
         final int oldNameLen = oldName.length();
         final int newNameLen = newName.length();
         int num = 0;
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         for(int shaderIdx = 0; shaderIdx<sourceCount; shaderIdx++) {
             final CharSequence[] src = shaderSource[shaderIdx];
             for(int j=0; j<src.length; j++) {
@@ -664,9 +670,9 @@ public class ShaderCode {
                 final StringBuilder sb = (StringBuilder)src[j];
                 int curPos = 0;
                 while(curPos<sb.length()-oldNameLen+1) {
-                    int startIdx = sb.indexOf(oldName, curPos);
+                    final int startIdx = sb.indexOf(oldName, curPos);
                     if(0<=startIdx) {
-                        int endIdx = startIdx + oldNameLen;
+                        final int endIdx = startIdx + oldNameLen;
                         sb.replace(startIdx, endIdx, newName);
                         curPos = startIdx + newNameLen;
                         num++;
@@ -680,19 +686,19 @@ public class ShaderCode {
     }
 
     /**
-     * Adds <code>data</code> at <code>offset</code> in shader source for shader <code>shaderIdx</code>.
+     * Adds <code>data</code> at <code>position</code> in shader source for shader <code>shaderIdx</code>.
      * <p>
      * Note: The shader source to be edit must be created using a mutable StringBuilder.
      * </p>
      *
      * @param shaderIdx the shader index to be used.
-     * @param position in shader source segments of shader <code>shaderIdx</code>
+     * @param position in shader source segments of shader <code>shaderIdx</code>, -1 will append data
      * @param data the text to be inserted. Shall end with an EOL '\n' character
      * @return index after the inserted <code>data</code>
      *
      * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
      */
-    public int insertShaderSource(int shaderIdx, int position, CharSequence data) {
+    public int insertShaderSource(final int shaderIdx, int position, final CharSequence data) {
         if(null==shaderSource) {
             throw new IllegalStateException("no shader source");
         }
@@ -700,7 +706,7 @@ public class ShaderCode {
         if(0>shaderIdx || shaderIdx>=shaderCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within shader bounds [0.."+(shaderCount-1)+"]: "+shaderIdx);
         }
-        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        final int sourceCount = shaderSource.length;
         if(shaderIdx>=sourceCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within source bounds [0.."+(sourceCount-1)+"]: "+shaderIdx);
         }
@@ -712,16 +718,49 @@ public class ShaderCode {
             }
             final StringBuilder sb = (StringBuilder)src[j];
             curEndIndex += sb.length();
-            if(position < curEndIndex) {
+            if( 0 > position && j == src.length - 1 ) {
+                position = curEndIndex;
+            }
+            if(0 <= position && position <= curEndIndex ) {
                 sb.insert(position, data);
                 return position+data.length();
             }
         }
-        return -1;
+        return position;
+    }
+
+    /**
+     * Adds shader source located in <code>path</code>,
+     * either relative to the <code>context</code> class or absolute <i>as-is</i>
+     * at <code>position</code> in shader source for shader <code>shaderIdx</code>.
+     * <p>
+     * Final location lookup is performed via {@link ClassLoader#getResource(String)} and {@link ClassLoader#getSystemResource(String)},
+     * see {@link IOUtil#getResource(Class, String)}.
+     * </p>
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     *
+     * @param shaderIdx the shader index to be used.
+     * @param position in shader source segments of shader <code>shaderIdx</code>, -1 will append data
+     * @param context class used to help resolve the source location
+     * @param path location of shader source
+     * @return index after the inserted code.
+     * @throws IOException
+     * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
+     * @see IOUtil#getResource(Class, String)
+     */
+    public int insertShaderSource(final int shaderIdx, final int position, final Class<?> context, final String path) throws IOException {
+        final CharSequence data = readShaderSource(context, path, true);
+        if( null != data ) {
+            return insertShaderSource(shaderIdx, position, data);
+        } else {
+            return position;
+        }
     }
 
     @SuppressWarnings("resource")
-    private static int readShaderSource(Class<?> context, URLConnection conn, StringBuilder result, int lineno) throws IOException  {
+    private static int readShaderSource(final Class<?> context, final URLConnection conn, final StringBuilder result, int lineno) throws IOException  {
         if(DEBUG_CODE) {
             if(0 == lineno) {
                 result.append("// "+conn.getURL().toExternalForm()+"\n");
@@ -735,7 +774,7 @@ public class ShaderCode {
             while ((line = reader.readLine()) != null) {
                 lineno++;
                 if (line.startsWith("#include ")) {
-                    String includeFile = line.substring(9).trim();
+                    final String includeFile = line.substring(9).trim();
                     URLConnection nextConn = null;
 
                     // Try relative of current shader location
@@ -766,7 +805,7 @@ public class ShaderCode {
      * @param result
      * @throws IOException
      */
-    public static void readShaderSource(Class<?> context, URLConnection conn, StringBuilder result) throws IOException {
+    public static void readShaderSource(final Class<?> context, final URLConnection conn, final StringBuilder result) throws IOException {
         readShaderSource(context, conn, result, 0);
     }
 
@@ -790,12 +829,12 @@ public class ShaderCode {
      *
      * @see IOUtil#getResource(Class, String)
      */
-    public static CharSequence readShaderSource(Class<?> context, String path, boolean mutableStringBuilder) throws IOException {
-        URLConnection conn = IOUtil.getResource(context, path);
+    public static CharSequence readShaderSource(final Class<?> context, final String path, final boolean mutableStringBuilder) throws IOException {
+        final URLConnection conn = IOUtil.getResource(context, path);
         if (conn == null) {
             return null;
         }
-        StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder();
         readShaderSource(context, conn, result);
         return mutableStringBuilder ? result : result.toString();
     }
@@ -814,7 +853,7 @@ public class ShaderCode {
      *
      * @see IOUtil#getResource(Class, String)
      */
-    public static ByteBuffer readShaderBinary(Class<?> context, String path) throws IOException {
+    public static ByteBuffer readShaderBinary(final Class<?> context, final String path) throws IOException {
         final URLConnection conn = IOUtil.getResource(context, path);
         if (conn == null) {
             return null;
@@ -862,8 +901,8 @@ public class ShaderCode {
      * @param behavior shall be either {@link #REQUIRE}, {@link #ENABLE}, {@link #DISABLE} or {@link #WARN}
      * @return the complete extension directive
      */
-    public static String createExtensionDirective(String extensionName, String behavior) {
-        return "#extension " + extensionName + " : " + behavior;
+    public static String createExtensionDirective(final String extensionName, final String behavior) {
+        return "#extension " + extensionName + " : " + behavior + "\n";
     }
 
     /**
@@ -874,7 +913,7 @@ public class ShaderCode {
      * @param gl a GL context, which must have been made current once
      * @return the index after the inserted data, maybe 0 if nothing has be inserted.
      */
-    public final int addGLSLVersion(GL2ES2 gl) {
+    public final int addGLSLVersion(final GL2ES2 gl) {
         return insertShaderSource(0, 0, gl.getContext().getGLSLVersionString());
     }
 
@@ -890,24 +929,24 @@ public class ShaderCode {
      * @param pos position within this mutable shader source.
      * @return the index after the inserted data, maybe 0 if nothing has be inserted.
      */
-    public final int addDefaultShaderPrecision(GL2ES2 gl, int pos) {
+    public final int addDefaultShaderPrecision(final GL2ES2 gl, int pos) {
         final String defaultPrecision;
-        if( gl.isGLES2() ) {
-            switch ( shaderType ) {
-                case GL2ES2.GL_VERTEX_SHADER:
-                    defaultPrecision = es2_default_precision_vp; break;
-                case GL2ES2.GL_FRAGMENT_SHADER:
-                    defaultPrecision = es2_default_precision_fp; break;
-                default:
-                    defaultPrecision = null;
-                    break;
-            }
-        } else if( gl.isGLES3() ) {
+        if( gl.isGLES3() ) {
             switch ( shaderType ) {
                 case GL2ES2.GL_VERTEX_SHADER:
                     defaultPrecision = es3_default_precision_vp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
                     defaultPrecision = es3_default_precision_fp; break;
+                default:
+                    defaultPrecision = null;
+                    break;
+            }
+        } else if( gl.isGLES2() ) {
+            switch ( shaderType ) {
+                case GL2ES2.GL_VERTEX_SHADER:
+                    defaultPrecision = es2_default_precision_vp; break;
+                case GL2ES2.GL_FRAGMENT_SHADER:
+                    defaultPrecision = es2_default_precision_fp; break;
                 default:
                     defaultPrecision = null;
                     break;
@@ -934,7 +973,7 @@ public class ShaderCode {
     }
 
     /** Returns true, if GLSL version requires default precision, i.e. ES2 or GLSL [1.30 .. 1.50[. */
-    public static final boolean requiresDefaultPrecision(GL2ES2 gl) {
+    public static final boolean requiresDefaultPrecision(final GL2ES2 gl) {
         if( gl.isGLES() ) {
             return true;
         }
@@ -942,7 +981,7 @@ public class ShaderCode {
     }
 
     /** Returns true, if GL3 GLSL version requires default precision, i.e. GLSL [1.30 .. 1.50[. */
-    public static final boolean requiresGL3DefaultPrecision(GL2ES2 gl) {
+    public static final boolean requiresGL3DefaultPrecision(final GL2ES2 gl) {
         if( gl.isGL3() ) {
             final VersionNumber glslVersion = gl.getContext().getGLSLVersionNumber();
             return glslVersion.compareTo(GLContext.Version130) >= 0 && glslVersion.compareTo(GLContext.Version150) < 0 ;
@@ -966,7 +1005,7 @@ public class ShaderCode {
      * @see #addGLSLVersion(GL2ES2)
      * @see #addDefaultShaderPrecision(GL2ES2, int)
      */
-    public final int defaultShaderCustomization(GL2ES2 gl, boolean preludeVersion, boolean addDefaultPrecision) {
+    public final int defaultShaderCustomization(final GL2ES2 gl, final boolean preludeVersion, final boolean addDefaultPrecision) {
         int pos;
         if( preludeVersion ) {
             pos = addGLSLVersion(gl);
@@ -992,7 +1031,7 @@ public class ShaderCode {
      * @see #addGLSLVersion(GL2ES2)
      * @see #addDefaultShaderPrecision(GL2ES2, int)
      */
-    public final int defaultShaderCustomization(GL2ES2 gl, boolean preludeVersion, String esDefaultPrecision) {
+    public final int defaultShaderCustomization(final GL2ES2 gl, final boolean preludeVersion, final String esDefaultPrecision) {
         int pos;
         if( preludeVersion ) {
             pos = addGLSLVersion(gl);

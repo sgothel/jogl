@@ -19,18 +19,13 @@
  */
 package jogamp.graph.geom.plane;
 
-import java.io.IOException;
-import java.io.Serializable;
-
 // import jogamp.opengl.util.HashCode;
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 
-public class AffineTransform implements Cloneable, Serializable {
-
-    private static final long serialVersionUID = 1330973210523860834L;
+public class AffineTransform implements Cloneable {
 
     static final String determinantIsZero = "Determinant is zero";
 
@@ -55,8 +50,6 @@ public class AffineTransform implements Cloneable, Serializable {
      */
     static final float ZERO = (float) 1E-10;
 
-    private final Vertex.Factory<? extends Vertex> pointFactory;
-
     /**
      * The values of transformation matrix
      */
@@ -73,21 +66,10 @@ public class AffineTransform implements Cloneable, Serializable {
     transient int type;
 
     public AffineTransform() {
-        pointFactory = null;
-        type = TYPE_IDENTITY;
-        m00 = m11 = 1.0f;
-        m10 = m01 = m02 = m12 = 0.0f;
+        setToIdentity();
     }
 
-    public AffineTransform(Factory<? extends Vertex> factory) {
-        pointFactory = factory;
-        type = TYPE_IDENTITY;
-        m00 = m11 = 1.0f;
-        m10 = m01 = m02 = m12 = 0.0f;
-    }
-
-    public AffineTransform(AffineTransform t) {
-        this.pointFactory = t.pointFactory;
+    public AffineTransform(final AffineTransform t) {
         this.type = t.type;
         this.m00 = t.m00;
         this.m10 = t.m10;
@@ -97,8 +79,7 @@ public class AffineTransform implements Cloneable, Serializable {
         this.m12 = t.m12;
     }
 
-    public AffineTransform(Vertex.Factory<? extends Vertex> factory, float m00, float m10, float m01, float m11, float m02, float m12) {
-        pointFactory = factory;
+    public AffineTransform(final float m00, final float m10, final float m01, final float m11, final float m02, final float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -108,8 +89,7 @@ public class AffineTransform implements Cloneable, Serializable {
         this.m12 = m12;
     }
 
-    public AffineTransform(Vertex.Factory<? extends Vertex> factory, float[] matrix) {
-        pointFactory = factory;
+    public AffineTransform(final float[] matrix) {
         this.type = TYPE_UNKNOWN;
         m00 = matrix[0];
         m10 = matrix[1];
@@ -164,8 +144,8 @@ public class AffineTransform implements Cloneable, Serializable {
             type |= TYPE_FLIP;
         }
 
-        float dx = m00 * m00 + m10 * m10;
-        float dy = m01 * m01 + m11 * m11;
+        final float dx = m00 * m00 + m10 * m10;
+        final float dy = m01 * m01 + m11 * m11;
         if (dx != dy) {
             type |= TYPE_GENERAL_SCALE;
         } else
@@ -185,35 +165,35 @@ public class AffineTransform implements Cloneable, Serializable {
         return type;
     }
 
-    public float getScaleX() {
+    public final float getScaleX() {
         return m00;
     }
 
-    public float getScaleY() {
+    public final float getScaleY() {
         return m11;
     }
 
-    public float getShearX() {
+    public final float getShearX() {
         return m01;
     }
 
-    public float getShearY() {
+    public final float getShearY() {
         return m10;
     }
 
-    public float getTranslateX() {
+    public final float getTranslateX() {
         return m02;
     }
 
-    public float getTranslateY() {
+    public final float getTranslateY() {
         return m12;
     }
 
-    public boolean isIdentity() {
+    public final boolean isIdentity() {
         return getType() == TYPE_IDENTITY;
     }
 
-    public void getMatrix(float[] matrix) {
+    public final void getMatrix(final float[] matrix) {
         matrix[0] = m00;
         matrix[1] = m10;
         matrix[2] = m01;
@@ -224,11 +204,11 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public float getDeterminant() {
+    public final float getDeterminant() {
         return m00 * m11 - m01 * m10;
     }
 
-    public void setTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
+    public final AffineTransform setTransform(final float m00, final float m10, final float m01, final float m11, final float m02, final float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -236,20 +216,23 @@ public class AffineTransform implements Cloneable, Serializable {
         this.m11 = m11;
         this.m02 = m02;
         this.m12 = m12;
+        return this;
     }
 
-    public void setTransform(AffineTransform t) {
+    public final AffineTransform setTransform(final AffineTransform t) {
         type = t.type;
         setTransform(t.m00, t.m10, t.m01, t.m11, t.m02, t.m12);
+        return this;
     }
 
-    public void setToIdentity() {
+    public final AffineTransform setToIdentity() {
         type = TYPE_IDENTITY;
         m00 = m11 = 1.0f;
         m10 = m01 = m02 = m12 = 0.0f;
+        return this;
     }
 
-    public void setToTranslation(float mx, float my) {
+    public final AffineTransform setToTranslation(final float mx, final float my) {
         m00 = m11 = 1.0f;
         m01 = m10 = 0.0f;
         m02 = mx;
@@ -259,9 +242,10 @@ public class AffineTransform implements Cloneable, Serializable {
         } else {
             type = TYPE_TRANSLATION;
         }
+        return this;
     }
 
-    public void setToScale(float scx, float scy) {
+    public final AffineTransform setToScale(final float scx, final float scy) {
         m00 = scx;
         m11 = scy;
         m10 = m01 = m02 = m12 = 0.0f;
@@ -270,9 +254,10 @@ public class AffineTransform implements Cloneable, Serializable {
         } else {
             type = TYPE_IDENTITY;
         }
+        return this;
     }
 
-    public void setToShear(float shx, float shy) {
+    public final AffineTransform setToShear(final float shx, final float shy) {
         m00 = m11 = 1.0f;
         m02 = m12 = 0.0f;
         m01 = shx;
@@ -282,9 +267,10 @@ public class AffineTransform implements Cloneable, Serializable {
         } else {
             type = TYPE_IDENTITY;
         }
+        return this;
     }
 
-    public void setToRotation(float angle) {
+    public final AffineTransform setToRotation(final float angle) {
         float sin = FloatUtil.sin(angle);
         float cos = FloatUtil.cos(angle);
         if (FloatUtil.abs(cos) < ZERO) {
@@ -300,98 +286,108 @@ public class AffineTransform implements Cloneable, Serializable {
         m10 = sin;
         m02 = m12 = 0.0f;
         type = TYPE_UNKNOWN;
+        return this;
     }
 
-    public void setToRotation(float angle, float px, float py) {
+    public final AffineTransform setToRotation(final float angle, final float px, final float py) {
         setToRotation(angle);
         m02 = px * (1.0f - m00) + py * m10;
         m12 = py * (1.0f - m00) - px * m10;
         type = TYPE_UNKNOWN;
+        return this;
     }
 
-    public static <T extends Vertex> AffineTransform getTranslateInstance(Vertex.Factory<? extends Vertex> factory, float mx, float my) {
-        AffineTransform t = new AffineTransform(factory);
-        t.setToTranslation(mx, my);
-        return t;
+    public final AffineTransform translate(final float mx, final float my, final AffineTransform tmp) {
+        return concatenate(tmp.setToTranslation(mx, my));
     }
 
-    public static <T extends Vertex> AffineTransform getScaleInstance(Vertex.Factory<? extends Vertex> factory, float scx, float scY) {
-        AffineTransform t = new AffineTransform(factory);
-        t.setToScale(scx, scY);
-        return t;
+    public final AffineTransform scale(final float scx, final float scy, final AffineTransform tmp) {
+        return concatenate(tmp.setToScale(scx, scy));
     }
 
-    public static <T extends Vertex> AffineTransform getShearInstance(Vertex.Factory<? extends Vertex> factory, float shx, float shy) {
-        AffineTransform t = new AffineTransform(factory);
-        t.setToShear(shx, shy);
-        return t;
+    public final AffineTransform shear(final float shx, final float shy, final AffineTransform tmp) {
+        return concatenate(tmp.setToShear(shx, shy));
     }
 
-    public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle) {
-        AffineTransform t = new AffineTransform(factory);
-        t.setToRotation(angle);
-        return t;
+    public final AffineTransform rotate(final float angle, final AffineTransform tmp) {
+        return concatenate(tmp.setToRotation(angle));
     }
 
-    public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle, float x, float y) {
-        AffineTransform t = new AffineTransform(factory);
-        t.setToRotation(angle, x, y);
-        return t;
-    }
-
-    public void translate(float mx, float my) {
-        concatenate(AffineTransform.getTranslateInstance(pointFactory, mx, my));
-    }
-
-    public void scale(float scx, float scy) {
-        concatenate(AffineTransform.getScaleInstance(pointFactory, scx, scy));
-    }
-
-    public void shear(float shx, float shy) {
-        concatenate(AffineTransform.getShearInstance(pointFactory, shx, shy));
-    }
-
-    public void rotate(float angle) {
-        concatenate(AffineTransform.getRotateInstance(pointFactory, angle));
-    }
-
-    public void rotate(float angle, float px, float py) {
-        concatenate(AffineTransform.getRotateInstance(pointFactory, angle, px, py));
+    public final AffineTransform rotate(final float angle, final float px, final float py, final AffineTransform tmp) {
+        return concatenate(tmp.setToRotation(angle, px, py));
     }
 
     /**
      * Multiply matrix of two AffineTransform objects.
-     * The first argument's {@link Vertex.Factory} is being used.
+     * @param tL - the AffineTransform object is a multiplicand (left argument)
+     * @param tR - the AffineTransform object is a multiplier (right argument)
      *
-     * @param t1 - the AffineTransform object is a multiplicand
-     * @param t2 - the AffineTransform object is a multiplier
-     * @return an AffineTransform object that is a result of t1 multiplied by matrix t2.
+     * @return A new AffineTransform object containing the result of [tL] X [tR].
      */
-    AffineTransform multiply(AffineTransform t1, AffineTransform t2) {
-        return new AffineTransform(t1.pointFactory,
-                t1.m00 * t2.m00 + t1.m10 * t2.m01,          // m00
-                t1.m00 * t2.m10 + t1.m10 * t2.m11,          // m01
-                t1.m01 * t2.m00 + t1.m11 * t2.m01,          // m10
-                t1.m01 * t2.m10 + t1.m11 * t2.m11,          // m11
-                t1.m02 * t2.m00 + t1.m12 * t2.m01 + t2.m02, // m02
-                t1.m02 * t2.m10 + t1.m12 * t2.m11 + t2.m12);// m12
+    public final static AffineTransform multiply(final AffineTransform tL, final AffineTransform tR) {
+        return new AffineTransform(
+                tR.m00 * tL.m00 + tR.m10 * tL.m01,          // m00
+                tR.m00 * tL.m10 + tR.m10 * tL.m11,          // m10
+                tR.m01 * tL.m00 + tR.m11 * tL.m01,          // m01
+                tR.m01 * tL.m10 + tR.m11 * tL.m11,          // m11
+                tR.m02 * tL.m00 + tR.m12 * tL.m01 + tL.m02, // m02
+                tR.m02 * tL.m10 + tR.m12 * tL.m11 + tL.m12);// m12
     }
 
-    public void concatenate(AffineTransform t) {
-        setTransform(multiply(t, this));
+    /**
+     * Concatenates the given matrix to this.
+     * <p>
+     * Implementations performs the matrix multiplication:
+     * <pre>
+     *   [this] = [this] X [tR]
+     * </pre>
+     * </p>
+     * @param tR the right-argument of the matrix multiplication
+     * @return this transform for chaining
+     */
+    public final AffineTransform concatenate(final AffineTransform tR) {
+        // setTransform(multiply(this, tR));
+        type = TYPE_UNKNOWN;
+        setTransform(
+                tR.m00 * m00 + tR.m10 * m01,       // m00
+                tR.m00 * m10 + tR.m10 * m11,       // m10
+                tR.m01 * m00 + tR.m11 * m01,       // m01
+                tR.m01 * m10 + tR.m11 * m11,       // m11
+                tR.m02 * m00 + tR.m12 * m01 + m02, // m02
+                tR.m02 * m10 + tR.m12 * m11 + m12);// m12
+        return this;
     }
 
-    public void preConcatenate(AffineTransform t) {
-        setTransform(multiply(this, t));
+    /**
+     * Pre-concatenates the given matrix to this.
+     * <p>
+     * Implementations performs the matrix multiplication:
+     * <pre>
+     *   [this] = [tL] X [this]
+     * </pre>
+     * </p>
+     * @param tL the left-argument of the matrix multiplication
+     * @return this transform for chaining
+     */
+    public final AffineTransform preConcatenate(final AffineTransform tL) {
+        // setTransform(multiply(tL, this));
+        type = TYPE_UNKNOWN;
+        setTransform(
+                m00 * tL.m00 + m10 * tL.m01,          // m00
+                m00 * tL.m10 + m10 * tL.m11,          // m10
+                m01 * tL.m00 + m11 * tL.m01,          // m01
+                m01 * tL.m10 + m11 * tL.m11,          // m11
+                m02 * tL.m00 + m12 * tL.m01 + tL.m02, // m02
+                m02 * tL.m10 + m12 * tL.m11 + tL.m12);// m12
+        return this;
     }
 
-    public AffineTransform createInverse() throws NoninvertibleTransformException {
-        float det = getDeterminant();
+    public final AffineTransform createInverse() throws NoninvertibleTransformException {
+        final float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         return new AffineTransform(
-                this.pointFactory,
                  m11 / det, // m00
                 -m10 / det, // m10
                 -m01 / det, // m01
@@ -401,33 +397,67 @@ public class AffineTransform implements Cloneable, Serializable {
         );
     }
 
-    public Vertex transform(Vertex src, Vertex dst) {
-        if (dst == null) {
-            dst = pointFactory.create();
-        }
-
-        float x = src.getX();
-        float y = src.getY();
-
-        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return dst for chaining
+     */
+    public final AABBox transform(final AABBox src, final AABBox dst) {
+        final float[] srcLo = src.getLow();
+        final float[] srcHi = src.getHigh();
+        dst.setSize(srcLo[0] * m00 + srcLo[1] * m01 + m02, srcLo[0] * m10 + srcLo[1] * m11 + m12, srcLo[2],
+                    srcHi[0] * m00 + srcHi[1] * m01 + m02, srcHi[0] * m10 + srcHi[1] * m11 + m12, srcHi[2]);
         return dst;
     }
 
-    public void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
+    /**
+     * @param src
+     * @param dst
+     * @return dst for chaining
+     */
+    public final Vertex transform(final Vertex src, final Vertex dst) {
+        final float x = src.getX();
+        final float y = src.getY();
+        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, src.getZ());
+        return dst;
+    }
+
+    public final void transform(final Vertex[] src, int srcOff, final Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
-            Vertex srcPoint = src[srcOff++];
-            float x = srcPoint.getX();
-            float y = srcPoint.getY();
-            Vertex dstPoint = dst[dstOff];
+            final Vertex srcPoint = src[srcOff++];
+            final Vertex dstPoint = dst[dstOff];
             if (dstPoint == null) {
                 throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
-            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
+            final float x = srcPoint.getX();
+            final float y = srcPoint.getY();
+            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, srcPoint.getZ());
             dst[dstOff++] = dstPoint;
         }
     }
 
-    public void transform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
+    /**
+     * @param src float[2] source of transformation
+     * @param dst float[2] destination of transformation, maybe be equal to <code>src</code>
+     * @return dst for chaining
+     */
+    public final float[] transform(final float[] src, final float[] dst) {
+        final float x = src[0];
+        final float y = src[1];
+        dst[0] = x * m00 + y * m01 + m02;
+        dst[1] = x * m10 + y * m11 + m12;
+        return dst;
+    }
+
+    public final void transform(final float[] src, final int srcOff, final float[] dst, final int dstOff) {
+        final float x = src[srcOff + 0];
+        final float y = src[srcOff + 1];
+        dst[dstOff + 0] = x * m00 + y * m01 + m02;
+        dst[dstOff + 1] = x * m10 + y * m11 + m12;
+    }
+
+    public final void transform(final float[] src, int srcOff, final float[] dst, int dstOff, int length) {
         int step = 2;
         if (src == dst && srcOff < dstOff && dstOff < srcOff + length * 2) {
             srcOff = srcOff + length * 2 - 2;
@@ -435,8 +465,8 @@ public class AffineTransform implements Cloneable, Serializable {
             step = -2;
         }
         while (--length >= 0) {
-            float x = src[srcOff + 0];
-            float y = src[srcOff + 1];
+            final float x = src[srcOff + 0];
+            final float y = src[srcOff + 1];
             dst[dstOff + 0] = x * m00 + y * m01 + m02;
             dst[dstOff + 1] = x * m10 + y * m11 + m12;
             srcOff += step;
@@ -444,74 +474,78 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public Vertex deltaTransform(Vertex src, Vertex dst) {
-        if (dst == null) {
-            dst = pointFactory.create();
-        }
-
-        float x = src.getX();
-        float y = src.getY();
-
-        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, 0f);
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return return dst for chaining
+     */
+    public final Vertex deltaTransform(final Vertex src, final Vertex dst) {
+        final float x = src.getX();
+        final float y = src.getY();
+        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, src.getZ());
         return dst;
     }
 
-    public void deltaTransform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
+    public final void deltaTransform(final float[] src, int srcOff, final float[] dst, int dstOff, int length) {
         while (--length >= 0) {
-            float x = src[srcOff++];
-            float y = src[srcOff++];
+            final float x = src[srcOff++];
+            final float y = src[srcOff++];
             dst[dstOff++] = x * m00 + y * m01;
             dst[dstOff++] = x * m10 + y * m11;
         }
     }
 
-    public Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
-        float det = getDeterminant();
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return return dst for chaining
+     * @throws NoninvertibleTransformException
+     */
+    public final Vertex inverseTransform(final Vertex src, final Vertex dst) throws NoninvertibleTransformException {
+        final float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
-        if (dst == null) {
-            dst = pointFactory.create();
-        }
-
-        float x = src.getX() - m02;
-        float y = src.getY() - m12;
-
-        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, 0f);
+        final float x = src.getX() - m02;
+        final float y = src.getY() - m12;
+        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, src.getZ());
         return dst;
     }
 
-    public void inverseTransform(float[] src, int srcOff, float[] dst, int dstOff, int length)
+    public final void inverseTransform(final float[] src, int srcOff, final float[] dst, int dstOff, int length)
         throws NoninvertibleTransformException
     {
-        float det = getDeterminant();
+        final float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
 
         while (--length >= 0) {
-            float x = src[srcOff++] - m02;
-            float y = src[srcOff++] - m12;
+            final float x = src[srcOff++] - m02;
+            final float y = src[srcOff++] - m12;
             dst[dstOff++] = (x * m11 - y * m01) / det;
             dst[dstOff++] = (y * m00 - x * m10) / det;
         }
     }
 
-    public Path2D createTransformedShape(Path2D src) {
+    public final Path2D createTransformedShape(final Path2D src) {
         if (src == null) {
             return null;
         }
-        if (src instanceof Path2D) {
-            return ((Path2D)src).createTransformedShape(this);
-        }
-        PathIterator path = src.iterator(this);
-        Path2D dst = new Path2D(path.getWindingRule());
-        dst.append(path, false);
-        return dst;
+        return src.createTransformedShape(this);
+        /**
+         * If !(src instanceof Path2D): (but here it always is)
+            final PathIterator path = src.iterator(this);
+            final Path2D dst = new Path2D(path.getWindingRule());
+            dst.append(path, false);
+            return dst;
+         */
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return
             getClass().getName() +
             "[[" + m00 + ", " + m01 + ", " + m02 + "], [" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -519,10 +553,10 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     @Override
-    public AffineTransform clone() {
+    public final AffineTransform clone() {
         try {
             return (AffineTransform) super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new InternalError();
         }
     }
@@ -540,12 +574,12 @@ public class AffineTransform implements Cloneable, Serializable {
     } */
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (obj == this) {
             return true;
         }
         if (obj instanceof AffineTransform) {
-            AffineTransform t = (AffineTransform)obj;
+            final AffineTransform t = (AffineTransform)obj;
             return
                 m00 == t.m00 && m01 == t.m01 &&
                 m02 == t.m02 && m10 == t.m10 &&
@@ -553,28 +587,9 @@ public class AffineTransform implements Cloneable, Serializable {
         }
         return false;
     }
-
-
-    /**
-     * Write AffineTrasform object to the output steam.
-     * @param stream - the output stream
-     * @throws IOException - if there are I/O errors while writing to the output strem
-     */
-    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
     }
-
-
-    /**
-     * Read AffineTransform object from the input stream
-     * @param stream - the input steam
-     * @throws IOException - if there are I/O errors while reading from the input strem
-     * @throws ClassNotFoundException - if class could not be found
-     */
-    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
-        type = TYPE_UNKNOWN;
-    }
-
 }
 

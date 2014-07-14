@@ -59,12 +59,12 @@ import java.io.IOException;
  */
 public class CmapIndexEntry implements Comparable {
 
-    private int _platformId;
-    private int _encodingId;
-    private int _offset;
+    private final int _platformId;
+    private final int _encodingId;
+    private final int _offset;
     private CmapFormat _format;
 
-    protected CmapIndexEntry(DataInput di) throws IOException {
+    protected CmapIndexEntry(final DataInput di) throws IOException {
         _platformId = di.readUnsignedShort();
         _encodingId = di.readUnsignedShort();
         _offset = di.readInt();
@@ -86,7 +86,7 @@ public class CmapIndexEntry implements Comparable {
         return _format;
     }
 
-    public void setFormat(CmapFormat format) {
+    public void setFormat(final CmapFormat format) {
         _format = format;
     }
 
@@ -106,8 +106,8 @@ public class CmapIndexEntry implements Comparable {
     }
 
     @Override
-    public int compareTo(java.lang.Object obj) {
-        CmapIndexEntry entry = (CmapIndexEntry) obj;
+    public int compareTo(final java.lang.Object obj) {
+        final CmapIndexEntry entry = (CmapIndexEntry) obj;
         if (getOffset() < entry.getOffset()) {
             return -1;
         } else if (getOffset() > entry.getOffset()) {

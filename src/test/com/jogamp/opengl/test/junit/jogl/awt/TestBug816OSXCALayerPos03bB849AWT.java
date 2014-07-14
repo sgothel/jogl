@@ -93,14 +93,14 @@ public class TestBug816OSXCALayerPos03bB849AWT extends UITestCase {
 
         final Animator animator = new Animator();
         animator.add(glCanvas1);
-        QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas1).addTo(frame);
 
         // Create a check box that hides / shows canvas
         final Checkbox checkbox = new Checkbox("Visible canvas", true);
         checkbox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent ev) {
+            public void itemStateChanged(final ItemEvent ev) {
                 final boolean visible = checkbox.getState();
                 System.err.println("XXXX Panel setVisible "+visible);
                 panel.setVisible(visible);
@@ -159,7 +159,7 @@ public class TestBug816OSXCALayerPos03bB849AWT extends UITestCase {
         return GLProfile.getMaxProgrammableCore(true);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

@@ -13,18 +13,18 @@ class PngIDatChunkOutputStream extends ProgressiveOutputStream {
 	private static final int SIZE_DEFAULT = 32768; // 32k
 	private final OutputStream outputStream;
 
-	PngIDatChunkOutputStream(OutputStream outputStream) {
+	PngIDatChunkOutputStream(final OutputStream outputStream) {
 		this(outputStream, 0);
 	}
 
-	PngIDatChunkOutputStream(OutputStream outputStream, int size) {
+	PngIDatChunkOutputStream(final OutputStream outputStream, final int size) {
 		super(size > 0 ? size : SIZE_DEFAULT);
 		this.outputStream = outputStream;
 	}
 
 	@Override
-	protected final void flushBuffer(byte[] b, int len) {
-		ChunkRaw c = new ChunkRaw(len, ChunkHelper.b_IDAT, false);
+	protected final void flushBuffer(final byte[] b, final int len) {
+		final ChunkRaw c = new ChunkRaw(len, ChunkHelper.b_IDAT, false);
 		c.data = b;
 		c.writeChunk(outputStream);
 	}

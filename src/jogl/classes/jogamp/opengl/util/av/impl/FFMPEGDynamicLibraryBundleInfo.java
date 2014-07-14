@@ -188,12 +188,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         GLProfile.initSingleton();
         boolean _ready = false;
         /** util, format, codec, device, avresample, swresample */
-        boolean[] _loaded= new boolean[6];
+        final boolean[] _loaded= new boolean[6];
         /** util, format, codec, avresample, swresample */
-        VersionNumber[] _versions = new VersionNumber[5];
+        final VersionNumber[] _versions = new VersionNumber[5];
         try {
             _ready = initSymbols(_loaded, _versions);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             t.printStackTrace();
         }
         libsUFCLoaded = _loaded[LIB_IDX_UTI] && _loaded[LIB_IDX_FMT] && _loaded[LIB_IDX_COD];
@@ -214,14 +214,17 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             natives = null;
             ready = false;
         } else {
-            if( avCodecVersion.getMajor() == 53 && avFormatVersion.getMajor() == 53 && avUtilVersion.getMajor() == 51 ) {
+            final int avCodecMajor = avCodecVersion.getMajor();
+            final int avFormatMajor = avFormatVersion.getMajor();
+            final int avUtilMajor = avUtilVersion.getMajor();
+            if(        avCodecMajor == 53 && avFormatMajor == 53 && avUtilMajor == 51 ) {
                 // lavc53.lavf53.lavu51
                 natives = new FFMPEGv08Natives();
-            } else if( avCodecVersion.getMajor() == 54 && avFormatVersion.getMajor() == 54 && avUtilVersion.getMajor() == 52 ) {
+            } else if( avCodecMajor == 54 && avFormatMajor == 54 && avUtilMajor == 52 ) {
                 // lavc54.lavf54.lavu52.lavr01
                 natives = new FFMPEGv09Natives();
-            } else if( avCodecVersion.getMajor() == 55 && avFormatVersion.getMajor() == 55 && avUtilVersion.getMajor() == 52 ) {
-                // lavc55.lavf55.lavu52.lavr01
+            } else if( avCodecMajor == 55 && avFormatMajor == 55 && ( avUtilMajor == 52 || avUtilMajor == 53 ) ) {
+                // lavc55.lavf55.lavu52.lavr01 (ffmpeg) or lavc55.lavf55.lavu53.lavr01 (libav)
                 natives = new FFMPEGv10Natives();
             } else {
                 System.err.println("LIB_AV No Version/Native-Impl Match");
@@ -247,7 +250,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
      * @param versions 5: util, format, codec, avresample, swresample
      * @return
      */
-    private static final boolean initSymbols(boolean[] loaded, VersionNumber[] versions) {
+    private static final boolean initSymbols(final boolean[] loaded, final VersionNumber[] versions) {
         for(int i=0; i<6; i++) {
             loaded[i] = false;
         }
@@ -328,7 +331,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     @Override
     public final List<List<String>> getToolLibNames() {
-        List<List<String>> libsList = new ArrayList<List<String>>();
+        final List<List<String>> libsList = new ArrayList<List<String>>();
 
         // 6: util, format, codec, device, avresample, swresample
 
@@ -421,12 +424,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
 
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return 0;
     }
 
     @Override
-    public final boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(final String funcName) {
         return false;
     }
 

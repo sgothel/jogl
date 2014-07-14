@@ -44,6 +44,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
+import com.jogamp.common.util.PropertyAccess;
+
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableImpl;
@@ -55,22 +57,22 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
 
   static {
       Debug.initSingleton();
-      PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true);
+      PROFILING = PropertyAccess.isPropertyDefined("jogl.debug.GLDrawable.profiling", true);
   }
 
   private static final int PROFILING_TICKS = 200;
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;
 
-  public WindowsWGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
+  public WindowsWGLDrawable(final GLDrawableFactory factory, final NativeSurface comp, final boolean realized) {
     super(factory, comp, realized);
   }
 
   @Override
   protected void setRealizedImpl() {
     if(realized) {
-        NativeSurface ns = getNativeSurface();
-        WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
+        final NativeSurface ns = getNativeSurface();
+        final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
         config.updateGraphicsConfiguration(getFactory(), ns, null);
         if (DEBUG) {
           System.err.println(getThreadName()+": WindowsWGLDrawable.setRealized(true): "+config);
@@ -79,7 +81,7 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   }
 
   @Override
-  protected final void swapBuffersImpl(boolean doubleBuffered) {
+  protected final void swapBuffersImpl(final boolean doubleBuffered) {
     if(doubleBuffered) {
         final long t0;
         if (PROFILING) {

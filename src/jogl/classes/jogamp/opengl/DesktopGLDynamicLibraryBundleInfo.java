@@ -49,7 +49,7 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
     }
 
     @Override
-    public final boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(final String funcName) {
         return true;
     }
 

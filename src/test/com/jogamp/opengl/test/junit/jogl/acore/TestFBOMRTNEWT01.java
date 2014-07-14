@@ -52,6 +52,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -73,17 +74,17 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             return;
         }
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
-                new GLCapabilities(GLProfile.getGL2GL3()), width/step, height/step, true);        
+                new GLCapabilities(GLProfile.getGL2GL3()), width/step, height/step, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
-        GL2GL3 gl = winctx.context.getGL().getGL2GL3();
+        final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         // gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2GL3();
         System.err.println(winctx.context);
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        // test code ..        
+        // test code ..
         final ShaderState st = new ShaderState();
         // st.setVerbose(true);
-        
+
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
                 "shader/bin", "fbo-mrt-1", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
@@ -93,12 +94,12 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);
-        Assert.assertTrue(0 != sp0.program()); 
+        Assert.assertTrue(0 != sp0.program());
         Assert.assertTrue(!sp0.inUse());
         Assert.assertTrue(!sp0.linked());
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.attachShaderProgram(gl, sp0, false);
-        
+
         final ShaderCode vp1 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
                 "shader/bin", "fbo-mrt-2", true);
         final ShaderCode fp1 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
@@ -107,20 +108,20 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         fp1.defaultShaderCustomization(gl, true, true);
         final ShaderProgram sp1 = new ShaderProgram();
         sp1.add(gl, vp1, System.err);
-        sp1.add(gl, fp1, System.err);       
-        Assert.assertTrue(0 != sp1.program()); 
+        sp1.add(gl, fp1, System.err);
+        Assert.assertTrue(0 != sp1.program());
         Assert.assertTrue(!sp1.inUse());
         Assert.assertTrue(!sp1.linked());
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.attachShaderProgram(gl, sp1, true);
-                        
+
         final PMVMatrix pmvMatrix = new PMVMatrix();
         final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        st.ownUniform(pmvMatrixUniform);       
+        st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        
+
         final GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL("gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 0, vertices0);
         vertices0.putf(0); vertices0.putf(1);  vertices0.putf(0);
@@ -131,7 +132,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         st.ownAttribute(vertices0, true);
         vertices0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        
+
         final GLArrayDataServer colors0 = GLArrayDataServer.createGLSL("gca_Colors", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 1, colors0);
         colors0.putf(1); colors0.putf(0);  colors0.putf(1); colors0.putf(1);
@@ -142,20 +143,20 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         st.ownAttribute(colors0, true);
         colors0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        
+
         final GLUniformData texUnit0 = new GLUniformData("gcs_TexUnit0", 0);
-        st.ownUniform(texUnit0);       
+        st.ownUniform(texUnit0);
         st.uniform(gl, texUnit0);
         final GLUniformData texUnit1 = new GLUniformData("gcs_TexUnit1", 1);
-        st.ownUniform(texUnit1);       
+        st.ownUniform(texUnit1);
         st.uniform(gl, texUnit1);
-                
+
         final GLArrayDataServer texCoords0 = GLArrayDataServer.createGLSL("gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 2, texCoords0);
         texCoords0.putf(0f); texCoords0.putf(1f);
         texCoords0.putf(1f);  texCoords0.putf(1f);
         texCoords0.putf(0f); texCoords0.putf(0f);
-        texCoords0.putf(1f);  texCoords0.putf(0f);        
+        texCoords0.putf(1f);  texCoords0.putf(0f);
         texCoords0.seal(gl, true);
         st.ownAttribute(texCoords0, true);
         texCoords0.enableBuffer(gl, false);
@@ -163,10 +164,10 @@ public class TestFBOMRTNEWT01 extends UITestCase {
 
         final int texA0Point = 0; // attachment point for texA0
         final int texA1Point = 1; // attachment point for texA1
-        
+
         // FBO w/ 2 texture2D color buffers
         final FBObject fbo_mrt = new FBObject();
-        fbo_mrt.reset(gl, drawable.getWidth(), drawable.getHeight());
+        fbo_mrt.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final TextureAttachment texA0 = fbo_mrt.attachTexture2D(gl, texA0Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
         final TextureAttachment texA1;
         if(fbo_mrt.getMaxColorAttachments() > 1) {
@@ -178,44 +179,44 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         fbo_mrt.attachRenderbuffer(gl, Type.DEPTH, 24);
         Assert.assertTrue( fbo_mrt.isStatusValid() ) ;
         fbo_mrt.unbind(gl);
-        
+
         // misc GL setup
         gl.glClearColor(1, 1, 1, 1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         // reshape
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glOrthof(0f, 1f, 0f, 1f, -10f, 10f);
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         st.uniform(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        
+
         final int[] two_buffers = new int[] { GL.GL_COLOR_ATTACHMENT0+texA0Point, GL.GL_COLOR_ATTACHMENT0+texA1Point };
         final int[] bck_buffers = new int[] { GL2GL3.GL_BACK_LEFT };
-        
+
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         int step_i = 0;
-        int[] last_snap_size = new int[] { 0, 0 };
-        
+        final int[] last_snap_size = new int[] { 0, 0 };
+
         for(int i=0; i<durationPerTest; i+=50) {
             // pass 1 - MRT: Red -> buffer0, Green -> buffer1
-            st.attachShaderProgram(gl, sp0, true);           
+            st.attachShaderProgram(gl, sp0, true);
             vertices0.enableBuffer(gl, true);
             colors0.enableBuffer(gl, true);
-            
+
             fbo_mrt.bind(gl);
             gl.glDrawBuffers(2, two_buffers, 0);
-            gl.glViewport(0, 0, fbo_mrt.getWidth(), fbo_mrt.getHeight());        
-            
+            gl.glViewport(0, 0, fbo_mrt.getWidth(), fbo_mrt.getHeight());
+
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
             fbo_mrt.unbind(gl);
             vertices0.enableBuffer(gl, false);
             colors0.enableBuffer(gl, false);
-            
+
             // pass 2 - mix buffer0, buffer1 and blue
             // rg = buffer0.rg + buffer1.rg, b = Blue - length(rg);
             st.attachShaderProgram(gl, sp1, true);
@@ -223,10 +224,10 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             colors0.enableBuffer(gl, true);
             texCoords0.enableBuffer(gl, true);
             gl.glDrawBuffers(1, bck_buffers, 0);
-            
-            gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-            
-            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());            
+
+            gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+
+            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());
             fbo_mrt.use(gl, texA0);
             if(null != texA1) {
                 gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit1.intValue());
@@ -238,43 +239,43 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             vertices0.enableBuffer(gl, false);
             colors0.enableBuffer(gl, false);
             texCoords0.enableBuffer(gl, false);
-            
+
             {
                 final NativeSurface ns = gl.getContext().getGLReadDrawable().getNativeSurface();
-                if(last_snap_size[0] != ns.getWidth() && last_snap_size[1] != ns.getHeight()) {
+                if(last_snap_size[0] != ns.getSurfaceWidth() && last_snap_size[1] != ns.getSurfaceHeight()) {
                     gl.glFinish(); // sync .. no swap buffers yet!
                     snapshot(step_i, null, gl, screenshot, TextureIO.PNG, null); // overwrite ok
-                    last_snap_size[0] = ns.getWidth();
-                    last_snap_size[1] = ns.getHeight();
+                    last_snap_size[0] = ns.getSurfaceWidth();
+                    last_snap_size[1] = ns.getSurfaceHeight();
                 }
             }
-            
+
             drawable.swapBuffers();
             Thread.sleep(50);
-            int j = (int) ( (long)i / (durationPerTest/(long)step) ) + 1;
+            final int j = (int) ( i / (durationPerTest/step) ) + 1;
             if(j>step_i) {
-                int w = width/step * j;
-                int h = height/step * j;
+                final int w = width/step * j;
+                final int h = height/step * j;
                 System.err.println("resize: "+step_i+" -> "+j+" - "+w+"x"+h);
                 fbo_mrt.reset(gl, w, h);
                 winctx.window.setSize(w, h);
                 step_i = j;
             }
         }
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
-    
-    public static void main(String args[]) throws IOException {
+
+    public static void main(final String args[]) throws IOException {
         System.err.println("main - start");
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);
             }
         }
-        String tstname = TestFBOMRTNEWT01.class.getName();
+        final String tstname = TestFBOMRTNEWT01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
         System.err.println("main - end");
-    }    
+    }
 }
 

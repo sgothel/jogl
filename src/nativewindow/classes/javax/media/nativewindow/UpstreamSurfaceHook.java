@@ -38,15 +38,29 @@ public interface UpstreamSurfaceHook {
     /** called within {@link ProxySurface#destroyNotify()} within lock, before clearing fields. */
     public void destroy(ProxySurface s);
 
-    /** Returns the width of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
-    public int getWidth(ProxySurface s);
-    /** Returns the height of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
-    public int getHeight(ProxySurface s);
+    /**
+     * Returns the optional upstream {@link NativeSurface} if used by implementation, otherwise <code>null</code>.
+     * <p>
+     * One example is the JOGL EGLWrappedSurface, which might be backed up by a
+     * native platform NativeSurface (X11, WGL, CGL, ..).
+     * </p>
+     */
+    public NativeSurface getUpstreamSurface();
+
+    /** Returns the width of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
+    public int getSurfaceWidth(ProxySurface s);
+    /** Returns the height of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
+    public int getSurfaceHeight(ProxySurface s);
 
     /**
      * {@link UpstreamSurfaceHook} w/ mutable size, allowing it's {@link ProxySurface} user to resize.
      */
     public interface MutableSize extends UpstreamSurfaceHook {
-        public void setSize(int width, int height);
+        /**
+         * Resizes the upstream surface.
+         * @param width new width in pixel units
+         * @param height new height in pixel units
+         */
+        public void setSurfaceSize(int width, int height);
     }
 }

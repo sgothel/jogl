@@ -43,11 +43,11 @@ public class GearsObjectES2 extends GearsObject {
     final GLUniformData colorUniform;
     final ShaderState st;
 
-    public GearsObjectES2(GL gl, boolean useMappedBuffers, ShaderState st, FloatBuffer gearColor,
-                          float inner_radius, float outer_radius,
-                          float width,
-                          int teeth,
-                          float tooth_depth, PMVMatrix pmvMatrix, GLUniformData pmvMatrixUniform, GLUniformData colorUniform, boolean validateBuffers)
+    public GearsObjectES2(final GL gl, final boolean useMappedBuffers, final ShaderState st, final FloatBuffer gearColor,
+                          final float inner_radius, final float outer_radius,
+                          final float width,
+                          final int teeth,
+                          final float tooth_depth, final PMVMatrix pmvMatrix, final GLUniformData pmvMatrixUniform, final GLUniformData colorUniform, final boolean validateBuffers)
     {
         super(gl, useMappedBuffers, gearColor, inner_radius, outer_radius, width, teeth, tooth_depth, validateBuffers);
         this.pmvMatrix = pmvMatrix;
@@ -57,10 +57,10 @@ public class GearsObjectES2 extends GearsObject {
         associate(st);
     }
 
-    public GearsObjectES2(GearsObjectES2 shared,
-                          ShaderState st,
-                          PMVMatrix pmvMatrix,
-                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform)
+    public GearsObjectES2(final GearsObjectES2 shared,
+                          final ShaderState st,
+                          final PMVMatrix pmvMatrix,
+                          final GLUniformData pmvMatrixUniform, final GLUniformData colorUniform)
     {
         super(shared);
         this.pmvMatrix = pmvMatrix;
@@ -70,7 +70,7 @@ public class GearsObjectES2 extends GearsObject {
         associate(st);
     }
 
-    private void associate(ShaderState st) {
+    private void associate(final ShaderState st) {
         frontFace.associate(st, true);
         frontSide.associate(st, true);
         backFace.associate(st, true);
@@ -80,7 +80,7 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     @Override
-    public GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
+    public GLArrayDataServer createInterleaved(final boolean useMappedBuffers, final int comps, final int dataType, final boolean normalized, final int initialSize, final int vboUsage) {
         if( useMappedBuffers ) {
             return GLArrayDataServer.createGLSLInterleavedMapped(comps, dataType, normalized, initialSize, vboUsage);
         } else {
@@ -89,12 +89,12 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     @Override
-    public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components) {
+    public void addInterleavedVertexAndNormalArrays(final GLArrayDataServer array, final int components) {
         array.addGLSLSubArray("vertices", components, GL.GL_ARRAY_BUFFER);
         array.addGLSLSubArray("normals", components, GL.GL_ARRAY_BUFFER);
     }
 
-    private void draw(GL2ES2 gl, GLArrayDataServer array, int mode, int face) {
+    private void draw(final GL2ES2 gl, final GLArrayDataServer array, final int mode, final int face) {
         if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
             if( validateBuffers ) {
                 array.bindBuffer(gl, true);
@@ -119,7 +119,7 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     @Override
-    public void draw(GL _gl, float x, float y, float angle) {
+    public void draw(final GL _gl, final float x, final float y, final float angle) {
         final GL2ES2 gl = _gl.getGL2ES2();
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);

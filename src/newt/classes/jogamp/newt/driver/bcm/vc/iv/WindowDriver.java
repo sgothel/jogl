@@ -149,34 +149,34 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void requestFocusImpl(boolean reparented) {
+    protected void requestFocusImpl(final boolean reparented) {
         focusChanged(false, true);
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         reconfigure0(nativeWindowHandle, x, y, width, height, flags);
         return true;
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         return new Point(x,y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop ..
     }
 
     @Override
-    public final void sendMouseEvent(final short eventType, final int modifiers,
-                                     final int x, final int y, final short button, final float rotation) {
+    protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
+                                      final int x, final int y, final short button, final float[] rotationXYZ, final float rotationScale) {
         if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             display.moveActivePointerIcon(x, y);
         }
-        super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+        super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
     }
 
     @Override

@@ -28,14 +28,20 @@
 
 package javax.media.nativewindow;
 
-/** Provides low-level information required for
-    hardware-accelerated rendering using a surface in a platform-independent manner.<P>
-
-    A NativeSurface created for a particular on- or offscreen component is
-    expected to have the same lifetime as that component. As long as
-    the component is alive and realized/visible, NativeSurface must be able
-    provide information such as the surface handle while it is locked.<P>
-*/
+/**
+ * Provides low-level information required for
+ * hardware-accelerated rendering using a surface in a platform-independent manner.
+ * <p>
+ * All values of this interface are represented in pixel units, if not stated otherwise.
+ * See {@link NativeWindow}.
+ * </p>
+ * <p>
+ * A NativeSurface created for a particular on- or offscreen component is
+ * expected to have the same lifetime as that component. As long as
+ * the component is alive and realized/visible, NativeSurface must be able
+ * provide information such as the surface handle while it is locked.
+ * </p>
+ */
 public interface NativeSurface extends SurfaceUpdatedListener {
   /** Unlocked state */
   public static final int LOCK_SURFACE_UNLOCKED = 0;
@@ -172,16 +178,36 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   public long getSurfaceHandle();
 
   /**
-   * Returns the width of the client area excluding insets (window decorations).
-   * @return width of the client area
+   * Returns the width of the client area excluding insets (window decorations) in pixel units.
+   * @return width of the client area in pixel units
+   * @see NativeWindow#getWidth()
+   * @see #convertToWindowUnits(int[])
    */
-  public int getWidth();
+  public int getSurfaceWidth();
 
   /**
-   * Returns the height of the client area excluding insets (window decorations).
-   * @return height of the client area
+   * Returns the height of the client area excluding insets (window decorations) in pixel units.
+   * @return height of the client area in pixel units
+   * @see NativeWindow#getHeight()
+   * @see #convertToWindowUnits(int[])
    */
-  public int getHeight();
+  public int getSurfaceHeight();
+
+  /**
+   * Converts the given pixel units into window units <i>in place</i>.
+   * @param pixelUnitsAndResult int[2] storage holding the pixel units for the x- and y-coord to convert
+   *                             and the resulting values.
+   * @return result int[2] storage pixelUnitsAndResult for chaining holding the converted values
+   */
+  public int[] convertToWindowUnits(final int[] pixelUnitsAndResult);
+
+  /**
+   * Converts the given window units into pixel units <i>in place</i>.
+   * @param windowUnitsAndResult int[2] storage holding the window units for the x- and y-coord to convert
+   *                             and the resulting values.
+   * @return result int[2] storage windowUnitsAndResult for chaining holding the converted values
+   */
+  public int[] convertToPixelUnits(final int[] windowUnitsAndResult);
 
   /**
    * Returns the graphics configuration corresponding to this window.

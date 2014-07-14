@@ -61,7 +61,7 @@ public interface AudioSink {
          * @param planar true for planar data package (each channel in own data buffer), false for packed data channels interleaved in one buffer.
          * @param littleEndian true for little-endian, false for big endian
          */
-        public AudioFormat(int sampleRate, int sampleSize, int channelCount, boolean signed, boolean fixedP, boolean planar, boolean littleEndian) {
+        public AudioFormat(final int sampleRate, final int sampleSize, final int channelCount, final boolean signed, final boolean fixedP, final boolean planar, final boolean littleEndian) {
             this.sampleRate = sampleRate;
             this.sampleSize = sampleSize;
             this.channelCount = channelCount;
@@ -104,7 +104,7 @@ public interface AudioSink {
          * Time -> Byte Count
          * </p>
          */
-        public final int getDurationsByteSize(int millisecs) {
+        public final int getDurationsByteSize(final int millisecs) {
             final int bytesPerSample = sampleSize >>> 3; // /8
             return millisecs * ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
         }
@@ -116,7 +116,7 @@ public interface AudioSink {
          * Byte Count -> Time
          * </p>
          */
-        public final int getBytesDuration(int byteCount) {
+        public final int getBytesDuration(final int byteCount) {
             final int bytesPerSample = sampleSize >>> 3; // /8
             return byteCount / ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
         }
@@ -132,8 +132,8 @@ public interface AudioSink {
          * </p>
          * @param sampleCount sample count per frame and channel
          */
-        public final float getSamplesDuration(int sampleCount) {
-            return ( 1000f * (float) sampleCount ) / (float)sampleRate;
+        public final float getSamplesDuration(final int sampleCount) {
+            return ( 1000f * sampleCount ) / sampleRate;
         }
 
         /**
@@ -151,8 +151,8 @@ public interface AudioSink {
          * @param millisecs time in milliseconds
          * @param frameDuration duration per frame in milliseconds.
          */
-        public final int getFrameCount(int millisecs, float frameDuration) {
-            return Math.max(1, (int) ( (float)millisecs / frameDuration + 0.5f ));
+        public final int getFrameCount(final int millisecs, final float frameDuration) {
+            return Math.max(1, (int) ( millisecs / frameDuration + 0.5f ));
         }
 
         /**
@@ -170,7 +170,7 @@ public interface AudioSink {
          * </p>
          * @param sampleCount sample count
          */
-        public final int getSamplesByteCount(int sampleCount) {
+        public final int getSamplesByteCount(final int sampleCount) {
             return sampleCount * ( sampleSize >>> 3 );
         }
 
@@ -187,9 +187,9 @@ public interface AudioSink {
          * <p>
          * Byte Count -> Sample Count
          * </p>
-         * @param sampleCount sample count
+         * @param byteCount number of bytes
          */
-        public final int getBytesSampleCount(int byteCount) {
+        public final int getBytesSampleCount(final int byteCount) {
             return ( byteCount << 3 ) / sampleSize;
         }
 
@@ -208,7 +208,7 @@ public interface AudioSink {
         public AudioFrame() {
             this.byteSize = 0;
         }
-        public AudioFrame(int pts, int duration, int byteCount) {
+        public AudioFrame(final int pts, final int duration, final int byteCount) {
             super(pts, duration);
             this.byteSize=byteCount;
         }
@@ -216,7 +216,7 @@ public interface AudioSink {
         /** Get this frame's size in bytes. */
         public final int getByteSize() { return byteSize; }
         /** Set this frame's size in bytes. */
-        public final void setByteSize(int size) { this.byteSize=size; }
+        public final void setByteSize(final int size) { this.byteSize=size; }
 
         @Override
         public String toString() {
@@ -226,7 +226,7 @@ public interface AudioSink {
     public static class AudioDataFrame extends AudioFrame {
         protected final ByteBuffer data;
 
-        public AudioDataFrame(int pts, int duration, ByteBuffer bytes, int byteCount) {
+        public AudioDataFrame(final int pts, final int duration, final ByteBuffer bytes, final int byteCount) {
             super(pts, duration, byteCount);
             if( byteCount > bytes.remaining() ) {
                 throw new IllegalArgumentException("Give size "+byteCount+" exceeds remaining bytes in ls "+bytes+". "+this);
@@ -335,6 +335,12 @@ public interface AudioSink {
                         int initialQueueSize, int queueGrowAmount, int queueLimit);
 
     /**
+     * Returns the {@link AudioFormat} as chosen by {@link #init(AudioFormat, float, int, int, int)},
+     * i.e. it shall match the <i>requestedFormat</i>.
+     */
+    public AudioFormat getChosenFormat();
+
+    /**
      * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
      * otherwise false.
      */
@@ -415,20 +421,6 @@ public interface AudioSink {
      * </p>
      */
     public int getFreeFrameCount();
-
-    /**
-     * Enqueue the remaining bytes of the given {@link AudioDataFrame}'s direct ByteBuffer to this sink.
-     * <p>
-     * The data must comply with the chosen {@link AudioFormat} as returned by {@link #initSink(AudioFormat)}.
-     * </p>
-     * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
-     * </p>
-     * @returns the enqueued internal {@link AudioFrame}, which may differ from the input <code>audioDataFrame</code>.
-     * @deprecated User shall use {@link #enqueueData(int, ByteBuffer, int)}, which allows implementation
-     *             to reuse specialized {@link AudioFrame} instances.
-     */
-    public AudioFrame enqueueData(AudioDataFrame audioDataFrame);
 
     /**
      * Enqueue <code>byteCount</code> bytes of the remaining bytes of the given NIO {@link ByteBuffer} to this sink.

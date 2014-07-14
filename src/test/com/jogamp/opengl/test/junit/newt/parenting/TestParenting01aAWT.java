@@ -75,7 +75,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -165,7 +165,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -194,7 +194,7 @@ public class TestParenting01aAWT extends UITestCase {
         });
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
@@ -212,8 +212,8 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void test03WindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException, InvocationTargetException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -237,7 +237,7 @@ public class TestParenting01aAWT extends UITestCase {
            }
         });
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Assert.assertEquals(true, animator1.isStarted());
@@ -257,8 +257,8 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void test04WindowParenting03ReparentNewtWin2Top() throws InterruptedException, InvocationTargetException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -282,7 +282,7 @@ public class TestParenting01aAWT extends UITestCase {
 
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
 
@@ -316,8 +316,8 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void test05WindowParenting04ReparentNewtWin2TopLayouted() throws InterruptedException, InvocationTargetException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -347,7 +347,7 @@ public class TestParenting01aAWT extends UITestCase {
 
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
 
@@ -381,9 +381,9 @@ public class TestParenting01aAWT extends UITestCase {
 
     @Test
     public void test06WindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
 
@@ -426,7 +426,7 @@ public class TestParenting01aAWT extends UITestCase {
 
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        Animator animator1 = new Animator(glWindow1);
+        final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
 
@@ -469,7 +469,7 @@ public class TestParenting01aAWT extends UITestCase {
         glWindow1.destroy();
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
         if(debug) {
@@ -481,15 +481,15 @@ public class TestParenting01aAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -497,7 +497,7 @@ public class TestParenting01aAWT extends UITestCase {
                 waitReparent = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting01aAWT.class.getName();
+        final String tstname = TestParenting01aAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

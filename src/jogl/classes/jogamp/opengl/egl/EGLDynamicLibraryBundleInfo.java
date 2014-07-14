@@ -33,6 +33,7 @@ import com.jogamp.common.os.Platform;
 
 import java.util.*;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.*;
 
 /**
@@ -61,7 +62,7 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
      */
     @Override
     public final boolean shallLookupGlobal() {
-        if ( Platform.OSType.ANDROID == Platform.OS_TYPE ) {
+        if ( Platform.OSType.ANDROID == PlatformPropsImpl.OS_TYPE ) {
             // Android requires global symbol lookup
             return true;
         }
@@ -71,18 +72,18 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
 
     @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
-        List<String> res = new ArrayList<String>();
+        final List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
         return res;
     }
 
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
     @Override
-    public final boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(final String funcName) {
         if ( AndroidVersion.isAvailable ) {
             // Android requires global dlsym lookup
             return false;
@@ -92,7 +93,7 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     }
 
     protected final List<String> getEGLLibNamesList() {
-        List<String> eglLibNames = new ArrayList<String>();
+        final List<String> eglLibNames = new ArrayList<String>();
 
         // this is the default EGL lib name, according to the spec
         eglLibNames.add("libEGL.so.1");

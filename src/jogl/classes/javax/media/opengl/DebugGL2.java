@@ -15,7 +15,7 @@ package javax.media.opengl;
  * </p>
  */
 public class DebugGL2 extends DebugGL4bc {
-    public DebugGL2(GL2 downstream) {
+    public DebugGL2(final GL2 downstream) {
         super((GL4bc)downstream);
     }
 }

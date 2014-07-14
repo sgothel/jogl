@@ -60,12 +60,12 @@ import java.io.IOException;
  */
 public class FeatureList {
 
-    private int _featureCount;
-    private FeatureRecord[] _featureRecords;
-    private Feature[] _features;
+    private final int _featureCount;
+    private final FeatureRecord[] _featureRecords;
+    private final Feature[] _features;
 
     /** Creates new FeatureList */
-    public FeatureList(DataInputStream dis, int offset) throws IOException {
+    public FeatureList(final DataInputStream dis, final int offset) throws IOException {
 
         // Ensure we're in the right place
         dis.reset();
@@ -89,19 +89,19 @@ public class FeatureList {
         return _featureCount;
     }
 
-    public FeatureRecord getFeatureRecord(int i) {
+    public FeatureRecord getFeatureRecord(final int i) {
         return _featureRecords[i];
     }
 
-    public Feature getFeature(int i) {
+    public Feature getFeature(final int i) {
         return _features[i];
     }
 
-    public Feature findFeature(LangSys langSys, String tag) {
+    public Feature findFeature(final LangSys langSys, final String tag) {
         if (tag.length() != 4) {
             return null;
         }
-        int tagVal = ((tag.charAt(0)<<24)
+        final int tagVal = ((tag.charAt(0)<<24)
             | (tag.charAt(1)<<16)
             | (tag.charAt(2)<<8)
             | tag.charAt(3));

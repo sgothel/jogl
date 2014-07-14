@@ -27,17 +27,16 @@
  */
 package com.jogamp.graph.curve.opengl;
 
-
-import java.util.ArrayList;
-
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import com.jogamp.opengl.util.PMVMatrix;
 
-import com.jogamp.graph.curve.OutlineShape;
+import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
+import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
+import jogamp.graph.curve.opengl.VBORegionSPES2;
+
+import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.Vertex;
-import jogamp.graph.curve.opengl.RegionFactory;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
  *  Defined by its vertices and generated triangles. The Region
@@ -51,79 +50,100 @@ import jogamp.graph.curve.opengl.RegionFactory;
  */
 public abstract class GLRegion extends Region {
 
-    /** Create an ogl {@link GLRegion} defining the list of {@link OutlineShape}.
-     * Combining the Shapes into single buffers.
-     * @return the resulting Region inclusive the generated region
+    /**
+     * Create a GLRegion using the passed render mode
+     *
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
+     * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
      */
-    public static GLRegion create(OutlineShape[] outlineShapes, int renderModes) {
-        final GLRegion region = RegionFactory.create(renderModes);
-
-        int numVertices = region.getNumVertices();
-
-        for(int index=0; index<outlineShapes.length; index++) {
-            OutlineShape outlineShape = outlineShapes[index];
-            outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-
-            ArrayList<Triangle> triangles = outlineShape.triangulate();
-            region.addTriangles(triangles);
-
-            ArrayList<Vertex> vertices = outlineShape.getVertices();
-            for(int pos=0; pos < vertices.size(); pos++){
-                Vertex vert = vertices.get(pos);
-                vert.setId(numVertices++);
-            }
-            region.addVertices(vertices);
+    public static GLRegion create(int renderModes, final TextureSequence colorTexSeq) {
+        if( null != colorTexSeq ) {
+            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
+        } else if( Region.hasColorTexture(renderModes) ) {
+            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
         }
+        if( isVBAA(renderModes) ) {
+            return new VBORegion2PVBAAES2(renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
+        } else if( isMSAA(renderModes) ) {
+            return new VBORegion2PMSAAES2(renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
+        } else {
+            return new VBORegionSPES2(renderModes, colorTexSeq);
+        }
+    }
 
-        return region;
+    protected final TextureSequence colorTexSeq;
+
+    protected GLRegion(final int renderModes, final TextureSequence colorTexSeq) {
+        super(renderModes);
+        this.colorTexSeq = colorTexSeq;
     }
 
     /**
-     * Create an ogl {@link GLRegion} defining this {@link OutlineShape}
-     * @return the resulting Region.
+     * Updates a graph region by updating the ogl related
+     * objects for use in rendering if {@link #isShapeDirty()}.
+     * <p>Allocates the ogl related data and initializes it the 1st time.<p>
+     * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      */
-    public static GLRegion create(OutlineShape outlineShape, int renderModes) {
-        final GLRegion region = RegionFactory.create(renderModes);
+    protected abstract void updateImpl(final GL2ES2 gl);
 
-        outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-        ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate();
-        ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
-        region.addVertices(vertices);
-        region.addTriangles(triangles);
-        return region;
+    protected abstract void destroyImpl(final GL2ES2 gl);
+
+    protected abstract void clearImpl(final GL2ES2 gl);
+
+    /**
+     * Clears all data, i.e. triangles, vertices etc.
+     */
+    public void clear(final GL2ES2 gl) {
+        clearImpl(gl);
+        clearImpl();
     }
 
-    protected GLRegion(int renderModes) {
-        super(renderModes);
+    /**
+     * Delete and clear the associated OGL objects.
+     */
+    public final void destroy(final GL2ES2 gl) {
+        clear(gl);
+        destroyImpl(gl);
     }
 
-    /** Updates a graph region by updating the ogl related
-     *  objects for use in rendering if {@link #isDirty()}.
-     *  <p>Allocates the ogl related data and initializes it the 1st time.<p>
-     *  <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
-     * @param rs TODO
-     */
-    protected abstract void update(GL2ES2 gl, RenderState rs);
-
-    /** Delete and clean the associated OGL
-     *  objects
-     */
-    public abstract void destroy(GL2ES2 gl, RenderState rs);
-
-    /** Renders the associated OGL objects specifying
+    /**
+     * Renders the associated OGL objects specifying
      * current width/hight of window for multi pass rendering
      * of the region.
+     * <p>
+     * User shall consider {@link RegionRenderer#enable(GL2ES2, boolean) enabling}
+     * the renderer beforehand and {@link RegionRenderer#enable(GL2ES2, boolean) disabling}
+     * it afterwards when used in conjunction with other renderer.
+     * </p>
+     * <p>
+     * Users shall also consider setting the {@link GL#glClearColor(float, float, float, float) Clear Color}
+     * appropriately:
+     * <ul>
+     *   <li>If {@link GL#GL_BLEND blending} is enabled, <i>RGB</i> shall be set to text color, otherwise
+     *       blending will reduce the alpha seam's contrast and the font will appear thinner.</li>
+     *   <li>If {@link GL#GL_BLEND blending} is disabled, <i>RGB</i> shall be set to the actual desired background.</li>
+     * </ul>
+     * The <i>alpha</i> component shall be set to zero.
+     * Note: If {@link GL#GL_BLEND blending} is enabled, the
+     * {@link RegionRenderer} might need to be
+     * {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
+     * with the appropriate {@link {@link RegionRenderer.GLCallback callbacks}.
+     * </p>
      * @param matrix current {@link PMVMatrix}.
-     * @param rs the RenderState to be used
-     * @param vp_width current screen width
-     * @param vp_height current screen height
-     * @param texWidth desired texture width for multipass-rendering.
-     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
+     * @param renderer the {@link RegionRenderer} to be used
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @see RegionRenderer#enable(GL2ES2, boolean)
      */
-    public final void draw(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
-        update(gl, rs);
-        drawImpl(gl, rs, vp_width, vp_height, texWidth);
+    public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+        if( isShapeDirty() ) {
+            updateImpl(gl);
+        }
+        drawImpl(gl, renderer, sampleCount);
+        clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
     }
 
-    protected abstract void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth);
+    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount);
 }

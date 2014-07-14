@@ -84,56 +84,56 @@ public abstract class InputEvent extends NEWTEvent
   * null is returned.
   * </p>
   */
- public static final int getButtonMask(int button)  {
+ public static final int getButtonMask(final int button)  {
      if( 0 < button && button <= MouseEvent.BUTTON_COUNT ) {
          return 1 << ( 4 + button ) ;
      }
      return 0;
  }
 
- protected InputEvent(short eventType, Object source, long when, int modifiers) {
+ protected InputEvent(final short eventType, final Object source, final long when, final int modifiers) {
     super(eventType, source, when);
     this.modifiers=modifiers;
  }
 
  /** Return the modifier bits of this event, e.g. see {@link #SHIFT_MASK} .. etc. */
- public int getModifiers() {
+ public final int getModifiers() {
     return modifiers;
  }
  /** {@link #getModifiers()} contains {@link #ALT_MASK}. */
- public boolean isAltDown() {
+ public final boolean isAltDown() {
     return (modifiers&ALT_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #ALT_GRAPH_MASK}. */
- public boolean isAltGraphDown() {
+ public final boolean isAltGraphDown() {
     return (modifiers&ALT_GRAPH_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #CTRL_MASK}. */
- public boolean isControlDown() {
+ public final boolean isControlDown() {
     return (modifiers&CTRL_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #META_MASK}. */
- public boolean isMetaDown() {
+ public final boolean isMetaDown() {
     return (modifiers&META_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #SHIFT_MASK}. */
- public boolean isShiftDown()  {
+ public final boolean isShiftDown()  {
     return (modifiers&SHIFT_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #AUTOREPEAT_MASK}. */
- public boolean isAutoRepeat()  {
+ public final boolean isAutoRepeat()  {
     return (modifiers&AUTOREPEAT_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #CONFINED_MASK}. Pointer is confined, see {@link Window#confinePointer(boolean)}. */
- public boolean isConfined()  {
+ public final boolean isConfined()  {
     return (modifiers&CONFINED_MASK)!=0;
  }
  /** {@link #getModifiers()} contains {@link #INVISIBLE_MASK}. Pointer is invisible, see {@link Window#setPointerVisible(boolean)}. */
- public boolean isInvisible()  {
+ public final boolean isInvisible()  {
     return (modifiers&INVISIBLE_MASK)!=0;
  }
 
- public StringBuilder getModifiersString(StringBuilder sb) {
+ public final StringBuilder getModifiersString(StringBuilder sb) {
     if(null == sb) {
         sb = new StringBuilder();
     }
@@ -176,7 +176,7 @@ public abstract class InputEvent extends NEWTEvent
   * @param button the button to test
   * @return true if the given button is down
   */
- public final boolean isButtonDown(int button)  {
+ public final boolean isButtonDown(final int button)  {
     return ( modifiers & getButtonMask(button) ) != 0;
  }
 

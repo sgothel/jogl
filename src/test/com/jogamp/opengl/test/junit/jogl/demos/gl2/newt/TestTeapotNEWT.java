@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.newt;
 
 import com.jogamp.newt.opengl.GLWindow;
@@ -67,11 +67,11 @@ public class TestTeapotNEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps, boolean withAnimator) throws InterruptedException {
+    protected void runTestGL(final GLCapabilities caps, final boolean withAnimator) throws InterruptedException {
         final GLWindow glWindow = GLWindow.create(caps);
-        
+
         glWindow.setTitle("Teapot NEWT Test");
-        Teapot demo = new Teapot();
+        final Teapot demo = new Teapot();
         if( !withAnimator ) {
             demo.rotIncr *= 10f;
         }
@@ -119,13 +119,13 @@ public class TestTeapotNEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc(true));
         runTestGL(caps, true);
     }
-    
+
     @Test
     public void test02_DefCaps_NoAnim() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc(true));
         runTestGL(caps, false);
     }
-    
+
     @Test
     public void test12_FBOCaps_NoAnim() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc(true));
@@ -148,13 +148,13 @@ public class TestTeapotNEWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         org.junit.runner.JUnitCore.main(TestTeapotNEWT.class.getName());

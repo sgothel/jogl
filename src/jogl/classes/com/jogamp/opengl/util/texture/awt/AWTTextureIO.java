@@ -59,8 +59,8 @@ public class AWTTextureIO extends TextureIO {
      *
      * @see #newTextureData(GLProfile, BufferedImage, boolean)
      */
-    public static TextureData newTextureData(GLProfile glp, BufferedImage image,
-                                             boolean mipmap) {
+    public static TextureData newTextureData(final GLProfile glp, final BufferedImage image,
+                                             final boolean mipmap) {
         return newTextureDataImpl(glp, image, 0, 0, mipmap);
     }
 
@@ -89,10 +89,10 @@ public class AWTTextureIO extends TextureIO {
      * @throws IllegalArgumentException if either internalFormat or
      *                                  pixelFormat was 0
      */
-    public static TextureData newTextureData(GLProfile glp, BufferedImage image,
-                                             int internalFormat,
-                                             int pixelFormat,
-                                             boolean mipmap) throws IllegalArgumentException {
+    public static TextureData newTextureData(final GLProfile glp, final BufferedImage image,
+                                             final int internalFormat,
+                                             final int pixelFormat,
+                                             final boolean mipmap) throws IllegalArgumentException {
         if ((internalFormat == 0) || (pixelFormat == 0)) {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
         }
@@ -112,18 +112,18 @@ public class AWTTextureIO extends TextureIO {
      * @throws GLException if no OpenGL context is current or if an
      *                     OpenGL error occurred
      */
-    public static Texture newTexture(GLProfile glp, BufferedImage image, boolean mipmap) throws GLException {
-        TextureData data = newTextureData(glp, image, mipmap);
-        Texture texture = newTexture(data);
+    public static Texture newTexture(final GLProfile glp, final BufferedImage image, final boolean mipmap) throws GLException {
+        final TextureData data = newTextureData(glp, image, mipmap);
+        final Texture texture = newTexture(data);
         data.flush();
         return texture;
     }
 
-    private static TextureData newTextureDataImpl(GLProfile glp,
-                                                  BufferedImage image,
-                                                  int internalFormat,
-                                                  int pixelFormat,
-                                                  boolean mipmap) {
+    private static TextureData newTextureDataImpl(final GLProfile glp,
+                                                  final BufferedImage image,
+                                                  final int internalFormat,
+                                                  final int pixelFormat,
+                                                  final boolean mipmap) {
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, image);
     }
 }

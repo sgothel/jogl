@@ -28,6 +28,9 @@
 
 package jogamp.newt.awt.event;
 
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeSurfaceHolder;
+
 import com.jogamp.newt.event.MouseEvent;
 
 /**
@@ -98,7 +101,7 @@ public class AWTNewtEventFactory {
         }
     }
 
-    public static final short eventTypeAWT2NEWT(int awtType) {
+    public static final short eventTypeAWT2NEWT(final int awtType) {
         switch( awtType ) {
             // n/a case java.awt.event.WindowEvent.WINDOW_OPENED: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_OPENED;
             case java.awt.event.WindowEvent.WINDOW_CLOSING: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY;
@@ -133,7 +136,7 @@ public class AWTNewtEventFactory {
         return (short)0;
     }
 
-    private static int getAWTButtonDownMaskImpl(int button) {
+    private static int getAWTButtonDownMaskImpl(final int button) {
         /**
          * java.awt.event.InputEvent.getMaskForButton(button);
          *
@@ -170,7 +173,7 @@ public class AWTNewtEventFactory {
      * @param button
      * @return
      */
-    public static int getAWTButtonDownMask(int button) {
+    public static int getAWTButtonDownMask(final int button) {
         if( 0 < button && button <= awtButtonDownMasks.length ) {
             return awtButtonDownMasks[button-1];
         } else {
@@ -178,7 +181,7 @@ public class AWTNewtEventFactory {
         }
     }
 
-    public static final short awtButton2Newt(int awtButton) {
+    public static final short awtButton2Newt(final int awtButton) {
         if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
             return (short)awtButton;
         } else {
@@ -414,7 +417,7 @@ public class AWTNewtEventFactory {
     }
 
     public static int newtKeyCode2AWTKeyCode(final short newtKeyCode) {
-        final int defAwtKeyCode = 0xFFFF & (int)newtKeyCode;
+        final int defAwtKeyCode = 0xFFFF & newtKeyCode;
         switch (newtKeyCode) {
             case com.jogamp.newt.event.KeyEvent.VK_HOME          : return java.awt.event.KeyEvent.VK_HOME;
             case com.jogamp.newt.event.KeyEvent.VK_END           : return java.awt.event.KeyEvent.VK_END;
@@ -590,31 +593,31 @@ public class AWTNewtEventFactory {
         return defAwtKeyCode;
     }
 
-    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.WindowEvent event, com.jogamp.newt.Window newtSource) {
+    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(final java.awt.event.WindowEvent event, final NativeSurfaceHolder sourceHolder) {
         final short newtType = eventTypeAWT2NEWT(event.getID());
         if( (short)0 != newtType ) {
-            return new com.jogamp.newt.event.WindowEvent(newtType, ((null==newtSource)?(Object)event.getComponent():(Object)newtSource), System.currentTimeMillis());
+            return new com.jogamp.newt.event.WindowEvent(newtType, sourceHolder, System.currentTimeMillis());
         }
         return null; // no mapping ..
     }
 
-    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.ComponentEvent event, com.jogamp.newt.Window newtSource) {
+    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(final java.awt.event.ComponentEvent event, final NativeSurfaceHolder sourceHolder) {
         final short newtType = eventTypeAWT2NEWT(event.getID());
         if( (short)0 != newtType ) {
-            return new com.jogamp.newt.event.WindowEvent(newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, System.currentTimeMillis());
+            return new com.jogamp.newt.event.WindowEvent(newtType, sourceHolder, System.currentTimeMillis());
         }
         return null; // no mapping ..
     }
 
-    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.FocusEvent event, com.jogamp.newt.Window newtSource) {
+    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(final java.awt.event.FocusEvent event, final NativeSurfaceHolder sourceHolder) {
         final short newtType = eventTypeAWT2NEWT(event.getID());
         if( (short)0 != newtType ) {
-            return new com.jogamp.newt.event.WindowEvent(newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, System.currentTimeMillis());
+            return new com.jogamp.newt.event.WindowEvent(newtType, sourceHolder, System.currentTimeMillis());
         }
         return null; // no mapping ..
     }
 
-    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(java.awt.event.MouseEvent event, com.jogamp.newt.Window newtSource) {
+    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(final java.awt.event.MouseEvent event, final NativeSurfaceHolder sourceHolder) {
         final short newtType = eventTypeAWT2NEWT(event.getID());
         if( (short)0 != newtType ) {
             float rotation = 0;
@@ -626,31 +629,40 @@ public class AWTNewtEventFactory {
             final short newtButton = awtButton2Newt(event.getButton());
             int mods = awtModifiers2Newt(event.getModifiers(), event.getModifiersEx());
             mods |= com.jogamp.newt.event.InputEvent.getButtonMask(newtButton); // always include NEWT BUTTON_MASK
-            if(null!=newtSource) {
-                if(newtSource.isPointerConfined()) {
-                    mods |= com.jogamp.newt.event.InputEvent.CONFINED_MASK;
+            final NativeSurface source = sourceHolder.getNativeSurface();
+            final int[] pixelPos;
+            if( null != source ) {
+                if( source instanceof com.jogamp.newt.Window ) {
+                    final com.jogamp.newt.Window newtSource = (com.jogamp.newt.Window) source;
+                    if(newtSource.isPointerConfined()) {
+                        mods |= com.jogamp.newt.event.InputEvent.CONFINED_MASK;
+                    }
+                    if(!newtSource.isPointerVisible()) {
+                        mods |= com.jogamp.newt.event.InputEvent.INVISIBLE_MASK;
+                    }
                 }
-                if(!newtSource.isPointerVisible()) {
-                    mods |= com.jogamp.newt.event.InputEvent.INVISIBLE_MASK;
-                }
+                pixelPos = source.convertToPixelUnits(new int[] { event.getX(), event.getY() });
+            } else {
+                pixelPos = new int[] { event.getX(), event.getY() };
             }
+
             return new com.jogamp.newt.event.MouseEvent(
-                           newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
-                           mods, event.getX(), event.getY(), (short)event.getClickCount(),
+                           newtType, sourceHolder, event.getWhen(),
+                           mods, pixelPos[0], pixelPos[1], (short)event.getClickCount(),
                            newtButton, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
     }
 
-    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(java.awt.event.KeyEvent event, com.jogamp.newt.Window newtSource) {
-        return createKeyEvent(eventTypeAWT2NEWT(event.getID()), event, newtSource);
+    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(final java.awt.event.KeyEvent event, final NativeSurfaceHolder sourceHolder) {
+        return createKeyEvent(eventTypeAWT2NEWT(event.getID()), event, sourceHolder);
     }
 
-    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(short newtType, java.awt.event.KeyEvent event, com.jogamp.newt.Window newtSource) {
+    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(final short newtType, final java.awt.event.KeyEvent event, final NativeSurfaceHolder sourceHolder) {
         if( (short)0 != newtType ) {
             final short newtKeyCode = awtKeyCode2NewtKeyCode( event.getKeyCode() );
             return com.jogamp.newt.event.KeyEvent.create(
-                           newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
+                           newtType, sourceHolder, event.getWhen(),
                            awtModifiers2Newt(event.getModifiers(), event.getModifiersEx()),
                            newtKeyCode, newtKeyCode, event.getKeyChar());
         }

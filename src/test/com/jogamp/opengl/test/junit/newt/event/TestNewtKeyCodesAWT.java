@@ -95,7 +95,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
 
     @Test(timeout=180000) // TO 3 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
-        GLWindow glWindow = GLWindow.create(glCaps);
+        final GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
 
@@ -104,8 +104,8 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         glWindow.destroy();
     }
 
-    private void testNewtCanvasAWT_Impl(boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
-        GLWindow glWindow = GLWindow.create(glCaps);
+    private void testNewtCanvasAWT_Impl(final boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
+        final GLWindow glWindow = GLWindow.create(glCaps);
 
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
@@ -132,7 +132,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                     frame1.setVisible(false);
                     frame1.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -188,7 +188,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
       // new CodeSeg(KeyEvent.VK_WINDOWS, KeyEvent.VK_HELP, "windows, meta, hlp"),
     };
 
-    static void testKeyCodes(Robot robot, Object obj, NEWTKeyAdapter keyAdapter) throws InterruptedException, InvocationTargetException {
+    static void testKeyCodes(final Robot robot, final Object obj, final NEWTKeyAdapter keyAdapter) throws InterruptedException, InvocationTargetException {
         final List<List<EventObject>> cse = new ArrayList<List<EventObject>>();
 
         keyAdapter.setVerbose(true); // FIXME
@@ -204,14 +204,14 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                 // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
                 try {
                     AWTRobotUtil.newtKeyPress(0, robot, true, c, 10);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     System.err.println("Exception @ AWT Robot.PRESS "+MiscUtils.toHexString(c)+" - "+e.getMessage());
                     break;
                 }
                 eventCount++;
                 try {
                     AWTRobotUtil.newtKeyPress(0, robot, false, c, 100);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     System.err.println("Exception @ AWT Robot.RELEASE "+MiscUtils.toHexString(c)+" - "+e.getMessage());
                     break;
                 }
@@ -230,23 +230,23 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         Assert.assertEquals("KeyCode impl. incomplete", true, NEWTKeyUtil.validateKeyCodes(codeSegments, cse, true));
     }
 
-    void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
+    void testImpl(final GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
         final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         glWindow.addGLEventListener(demo1);
 
         // NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
         // glWindow.addWindowListener(glWindow1FA);
-        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        final NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1KA.setVerbose(false);
         glWindow.addKeyListener(glWindow1KA);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));
 
         // Continuous animation ..
-        Animator animator = new Animator(glWindow);
+        final Animator animator = new Animator(glWindow);
         animator.start();
 
         Thread.sleep(durationPerTest); // manual testing
@@ -264,15 +264,15 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         animator.stop();
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -284,7 +284,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         System.err.println(stdin.readLine());
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestNewtKeyCodesAWT.class.getName();
+        final String tstname = TestNewtKeyCodesAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

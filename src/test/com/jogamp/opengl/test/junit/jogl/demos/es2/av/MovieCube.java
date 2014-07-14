@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -43,6 +44,8 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -77,13 +80,15 @@ public class MovieCube implements GLEventListener {
     private long lastPerfPos = 0;
     private volatile boolean resetGLState = false;
 
-    /** Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream. */
+    /** Blender's Big Buck Bunny: 24f 416p H.264,  AAC 48000 Hz, 2 ch, mpeg stream. */
     public static final URI defURI;
     static {
         URI _defURI = null;
         try {
-            _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
-        } catch (URISyntaxException e) {
+            // Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream.
+            // _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+            _defURI = new URI("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
+        } catch (final URISyntaxException e) {
             e.printStackTrace();
         }
         defURI = _defURI;
@@ -98,14 +103,14 @@ public class MovieCube implements GLEventListener {
      * </p>
      */
     public MovieCube() throws IOException, URISyntaxException {
-        this(zoom_def, 0f, 0f);
+        this(zoom_def, 0f, 0f, true);
 
         mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                 System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                 System.err.println("MovieCube State: "+mp);
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
@@ -126,7 +131,7 @@ public class MovieCube implements GLEventListener {
         while( null == se && GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
             try {
                 Thread.sleep(16);
-            } catch (InterruptedException e) { }
+            } catch (final InterruptedException e) { }
             se = mPlayer.getStreamException();
         }
         if( null != se ) {
@@ -135,20 +140,23 @@ public class MovieCube implements GLEventListener {
         }
     }
 
-    /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
-    public MovieCube(float zoom0, float rotx, float roty) throws IOException {
+    /**
+     * Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards.
+     */
+    public MovieCube(final float zoom0, final float rotx, final float roty, final boolean showText) throws IOException {
         this.zoom0 = zoom0;
         this.rotx = rotx;
         this.roty = roty;
+        this.showText = showText;
         mPlayer = GLMediaPlayerFactory.createDefault();
     }
 
-    public void initStream(URI streamLoc, int vid, int aid, int textureCount) {
+    public void initStream(final URI streamLoc, final int vid, final int aid, final int textureCount) {
         mPlayer.initStream(streamLoc, vid, aid, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
 
-    public void setSwapInterval(int v) { this.swapInterval = v; }
+    public void setSwapInterval(final int v) { this.swapInterval = v; }
 
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
 
@@ -156,40 +164,59 @@ public class MovieCube implements GLEventListener {
         resetGLState = true;
     }
 
+    final int[] textSampleCount = { 4 };
+
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
-        static final float z_diff = 0.001f;
-        final float underlineSize;
+        private static final float z_diff = 0.001f;
+        private final Font font = getFont(0, 0, 0);
+        private final float fontSize1 = 12;
+        private final float fontSize2 = 10;
+        private final GLRegion regionFPS;
+        private float pixelSize1, pixelSize2, underlineSize;
 
-        InfoTextRendererGLELBase() {
+        InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT);
-            texSizeScale = 2;
-
-            fontSize = 1;
-            pixelScale = 1.0f / ( fontSize * 20f );
-
-            // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
-            final Font.Metrics metrics = font.getMetrics();
-            final float lineGap = metrics.getLineGap(fontSize);
-            final float descent = metrics.getDescent(fontSize);
-            underlineSize = descent - lineGap;
-            // System.err.println("XXX: fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
-
-            staticRGBAColor[0] = 0.0f;
-            staticRGBAColor[1] = 0.0f;
-            staticRGBAColor[2] = 0.0f;
+            super(rmode, MovieCube.this.textSampleCount);
+            this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+            if( lowPerfDevice ) {
+                regionFPS = null;
+            } else {
+                regionFPS = GLRegion.create(renderModes, null);
+                System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
+            }
+            staticRGBAColor[0] = 0.1f;
+            staticRGBAColor[1] = 0.1f;
+            staticRGBAColor[2] = 0.1f;
             staticRGBAColor[3] = 1.0f;
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             // non-exclusive mode!
-            this.usrPMVMatrix = cube.pmvMatrix;
+            this.setSharedPMVMatrix(cube.pmvMatrix);
             super.init(drawable);
+
+            pixelSize1 = font.getPixelSize(fontSize1, dpiH);
+            pixelSize2 = font.getPixelSize(fontSize2, dpiH);
+            pixelScale = 1.0f / ( pixelSize1 * 20f );
+            // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
+            final Font.Metrics metrics = font.getMetrics();
+            final float lineGap = metrics.getLineGap(pixelSize1);
+            final float descent = metrics.getDescent(pixelSize1);
+            underlineSize = descent - lineGap;
+            System.err.println("XXX: dpiH "+dpiH+", fontSize "+fontSize1+", pixelSize "+pixelSize1+", pixelScale "+pixelScale+", fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
+            if( null != regionFPS ) {
+                regionFPS.destroy(drawable.getGL().getGL2ES2());
+            }
+            super.dispose(drawable);
+        }
+
+        @Override
+        public void display(final GLAutoDrawable drawable) {
             final GLAnimatorControl anim = drawable.getAnimator();
             final float lfps = null != anim ? anim.getLastFPS() : 0f;
             final float tfps = null != anim ? anim.getTotalFPS() : 0f;
@@ -215,9 +242,9 @@ public class MovieCube implements GLEventListener {
                                "; underlineSize "+underlineSize+" "+(pixelScale*underlineSize)+
                                "; yoff "+yoff1+", yoff2 "+yoff2); */
 
-            // FIXME: Graph TextRenderer does not scale well, i.e. text update per 1/10s cause too much recompute of regions!
-            // final String text1 = String.format("%03.1f/%03.1f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
-            final String text1 = String.format("%03.0f/%03.0f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
+            final GL gl = drawable.getGL();
+            final String ptsPrec = null != regionFPS ? "3.1" : "3.0";
+            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
                     aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
@@ -227,17 +254,23 @@ public class MovieCube implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
-                renderString(drawable, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff);
-                renderString(drawable, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff);
-                renderString(drawable, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff);
-                renderString(drawable, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff);
+                gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+                if( null != regionFPS ) {
+                    renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
+                } else {
+                    renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, true);
+                }
+                renderString(drawable, font, pixelSize2, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize2, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize2, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
             }
         } };
-    private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();
+    private InfoTextRendererGLELBase textRendererGLEL = null;
+    final boolean showText;
     private boolean displayOSD = true;
 
     private final KeyListener keyAction = new KeyAdapter() {
-        public void keyReleased(KeyEvent e)  {
+        public void keyReleased(final KeyEvent e)  {
             if( e.isAutoRepeat() ) {
                 return;
             }
@@ -312,7 +345,7 @@ public class MovieCube implements GLEventListener {
     };
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         if(null == mPlayer) {
             throw new InternalError("mPlayer null");
         }
@@ -324,7 +357,7 @@ public class MovieCube implements GLEventListener {
         }
         resetGLState = false;
 
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
         cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);
@@ -336,7 +369,7 @@ public class MovieCube implements GLEventListener {
         if( GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
             try {
                 mPlayer.initGL(gl);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
                 if(null != mPlayer) {
                     mPlayer.destroy(gl);
@@ -357,23 +390,32 @@ public class MovieCube implements GLEventListener {
             added = true;
         } else { added = false; }
         System.err.println("MC.init: kl-added "+added+", "+drawable.getClass().getName());
-        drawable.addGLEventListener(textRendererGLEL);
+
+        if( showText ) {
+            final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
+            final boolean lowPerfDevice = gl.isGLES();
+            textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
+            drawable.addGLEventListener(textRendererGLEL);
+        }
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         if(null == mPlayer) { return; }
         cube.reshape(drawable, x, y, width, height);
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" MovieCube.dispose ... ");
-        drawable.disposeGLEventListener(textRendererGLEL, true);
+        if( null != textRendererGLEL ) {
+            drawable.disposeGLEventListener(textRendererGLEL, true);
+            textRendererGLEL = null;
+        }
         disposeImpl(drawable, true);
     }
 
-    private void disposeImpl(GLAutoDrawable drawable, boolean disposePlayer) {
+    private void disposeImpl(final GLAutoDrawable drawable, final boolean disposePlayer) {
         if(null == mPlayer) { return; }
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {
@@ -391,7 +433,7 @@ public class MovieCube implements GLEventListener {
 
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         if(-1 != swapInterval) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
@@ -406,7 +448,7 @@ public class MovieCube implements GLEventListener {
             System.err.println("XXX resetGLState");
             disposeImpl(drawable, false);
             init(drawable);
-            reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+            reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
 
         final long currentPos = System.currentTimeMillis();
@@ -417,10 +459,10 @@ public class MovieCube implements GLEventListener {
         cube.display(drawable);
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
+    public static void main(final String[] args) throws IOException, InterruptedException, URISyntaxException {
         int swapInterval = 1;
-        int width = 510;
-        int height = 300;
+        int width = 800;
+        int height = 600;
         int textureCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT; // default - threaded
 
         boolean forceES2 = false;
@@ -494,7 +536,7 @@ public class MovieCube implements GLEventListener {
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("swapInterval "+swapInterval);
 
-        final MovieCube mc = new MovieCube(zoom_def, 0f, 0f);
+        final MovieCube mc = new MovieCube(zoom_def, 0f, 0f, true);
         mc.setSwapInterval(swapInterval);
 
         final GLProfile glp;
@@ -510,29 +552,32 @@ public class MovieCube implements GLEventListener {
             glp = GLProfile.getGL2ES2();
         }
         System.err.println("GLProfile: "+glp);
-        final GLWindow window = GLWindow.create(new GLCapabilities(glp));
+        final GLCapabilities caps = new GLCapabilities(glp);
+        // caps.setAlphaBits(4); // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
+        final GLWindow window = GLWindow.create(caps);
         final Animator anim = new Animator(window);
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 anim.stop();
             }
         });
         window.setSize(width, height);
         window.setVisible(true);
+        System.err.println("Chosen: "+window.getChosenGLCapabilities());
         anim.start();
 
         mc.mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
             }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                 System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                 System.err.println("MovieCube State: "+mp);
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
                     if( origSize ) {
-                        window.setSize(mp.getWidth(), mp.getHeight());
+                        window.setSurfaceSize(mp.getWidth(), mp.getHeight());
                     }
                     // window.disposeGLEventListener(ms, false /* remove */ );
                     mc.resetGLState();

@@ -80,19 +80,19 @@ public class TestBug816OSXCALayerPos02AWT extends UITestCase {
 
         final Animator animator = new Animator();
         animator.add(glCanvas1);
-        QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas1).addTo(frame);
 
         // Build a GUI where the canvas 3D is located at top right of the frame
         // and can be resized with split panes dividers
-        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+        final JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
             true, new JScrollPane(), glCanvas1);
         verticalSplitPane.setResizeWeight(0.5);
-        JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+        final JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
             true, new JScrollPane(), verticalSplitPane);
         horizontalSplitPane.setResizeWeight(0.5);
-        JRootPane intermediateRootPane = new JRootPane();
+        final JRootPane intermediateRootPane = new JRootPane();
         intermediateRootPane.setContentPane(horizontalSplitPane);
         frame.add(intermediateRootPane);
 
@@ -139,7 +139,7 @@ public class TestBug816OSXCALayerPos02AWT extends UITestCase {
         return GLProfile.getMaxProgrammableCore(true);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

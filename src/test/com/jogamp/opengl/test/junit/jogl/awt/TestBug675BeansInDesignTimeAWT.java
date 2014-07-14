@@ -97,7 +97,7 @@ public class TestBug675BeansInDesignTimeAWT extends UITestCase {
         } );
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atol(args[++i], durationPerTest);

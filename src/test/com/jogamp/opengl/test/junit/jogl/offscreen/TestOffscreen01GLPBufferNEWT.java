@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.offscreen;
 
 import com.jogamp.newt.Display;
@@ -72,22 +72,22 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
     public void init() {
         capsDefault = new GLCapabilities(glpDefault);
         Assert.assertNotNull(capsDefault);
-        capsDefault.setAlphaBits(1); // req. alpha channel        
+        capsDefault.setAlphaBits(1); // req. alpha channel
     }
 
-    private void do01OffscreenWindowPBuffer(GLCapabilities caps) {
-        Display display = NewtFactory.createDisplay(null); // local display
+    private void do01OffscreenWindowPBuffer(final GLCapabilities caps) {
+        final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps);
+        final Window window = NewtFactory.createWindow(screen, caps);
         Assert.assertNotNull(window);
         window.setSize(width, height);
-        GLWindow glWindow = GLWindow.create(window);
+        final GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        GLEventListener demo = new RedSquareES2();
+        final GLEventListener demo = new RedSquareES2();
         WindowUtilNEWT.setDemoFields(demo, window, glWindow, false);
         glWindow.addGLEventListener(demo);
 
@@ -115,7 +115,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         do01OffscreenWindowPBuffer(caps2);
     }
 
@@ -125,7 +125,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setStencilBits(8);
         do01OffscreenWindowPBuffer(caps2);
     }
@@ -136,7 +136,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setStencilBits(8);
         caps2.setAlphaBits(8);
         do01OffscreenWindowPBuffer(caps2);
@@ -148,7 +148,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
         caps2.setRedBits(5);
         caps2.setGreenBits(5);
         caps2.setBlueBits(5);
@@ -161,15 +161,16 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
-        int winnum = 3, i;
-        Window windows[] = new Window[winnum];
-        GLWindow glWindows[] = new GLWindow[winnum];
-        GLEventListener demos[] = new GLEventListener[winnum];
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final int winnum = 3;
+        int i;
+        final Window windows[] = new Window[winnum];
+        final GLWindow glWindows[] = new GLWindow[winnum];
+        final GLEventListener demos[] = new GLEventListener[winnum];
 
-        Display display = NewtFactory.createDisplay(null); // local display
+        final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
 
         for(i=0; i<winnum; i++) {
@@ -214,13 +215,14 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
-        int winnum = 3, i;
-        Display displays[] = new Display[winnum];
-        Screen screens[] = new Screen[winnum];
-        Window windows[] = new Window[winnum];
-        GLWindow glWindows[] = new GLWindow[winnum];
-        GLEventListener demos[] = new GLEventListener[winnum];
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final int winnum = 3;
+        int i;
+        final Display displays[] = new Display[winnum];
+        final Screen screens[] = new Screen[winnum];
+        final Window windows[] = new Window[winnum];
+        final GLWindow glWindows[] = new GLWindow[winnum];
+        final GLEventListener demos[] = new GLEventListener[winnum];
 
         for(i=0; i<winnum; i++) {
             System.out.println("Create Window "+i);
@@ -267,21 +269,21 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
-        GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(capsDefault, false, true, false);
 
         System.out.println("Create Window 1");
-        Display display = NewtFactory.createDisplay(null); // local display
+        final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window = NewtFactory.createWindow(screen, caps2);
+        final Window window = NewtFactory.createWindow(screen, caps2);
         Assert.assertNotNull(window);
         window.setSize(width, height);
-        GLWindow glWindow = GLWindow.create(window);
+        final GLWindow glWindow = GLWindow.create(window);
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        WindowUtilNEWT.run(getSimpleTestName("."), glWindow, new RedSquareES2(), null, null, null, null, 
+        WindowUtilNEWT.run(getSimpleTestName("."), glWindow, new RedSquareES2(), null, null, null, null,
                            2 /* frames */, true /*snapshot*/, false /*debug*/);
 
         if(null!=glWindow) {
@@ -298,8 +300,8 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestOffscreen01GLPBufferNEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestOffscreen01GLPBufferNEWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

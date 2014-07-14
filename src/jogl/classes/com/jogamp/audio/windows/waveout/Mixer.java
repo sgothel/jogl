@@ -48,12 +48,12 @@ public class Mixer {
     private volatile boolean shutdownDone;
 
     // Windows Event object
-    private long event;
+    private final long event;
 
     private volatile ArrayList<Track> tracks = new ArrayList<Track>();
 
-    private Vec3f leftSpeakerPosition  = new Vec3f(-1, 0, 0);
-    private Vec3f rightSpeakerPosition = new Vec3f( 1, 0, 0);
+    private final Vec3f leftSpeakerPosition  = new Vec3f(-1, 0, 0);
+    private final Vec3f rightSpeakerPosition = new Vec3f( 1, 0, 0);
 
     private float falloffFactor = 1.0f;
 
@@ -64,7 +64,7 @@ public class Mixer {
     private Mixer() {
         event = CreateEvent();
         new FillerThread().start();
-        MixerThread m = new MixerThread();
+        final MixerThread m = new MixerThread();
         m.setPriority(Thread.MAX_PRIORITY - 1);
         m.start();
     }
@@ -73,14 +73,14 @@ public class Mixer {
         return mixer;
     }
 
-    synchronized void add(Track track) {
-        ArrayList<Track> newTracks = new ArrayList<Track>(tracks);
+    synchronized void add(final Track track) {
+        final ArrayList<Track> newTracks = new ArrayList<Track>(tracks);
         newTracks.add(track);
         tracks = newTracks;
     }
 
-    synchronized void remove(Track track) {
-        ArrayList<Track> newTracks = new ArrayList<Track>(tracks);
+    synchronized void remove(final Track track) {
+        final ArrayList<Track> newTracks = new ArrayList<Track>(tracks);
         newTracks.remove(track);
         tracks = newTracks;
     }
@@ -88,14 +88,14 @@ public class Mixer {
     // NOTE: due to a bug on the APX device, we only have mono sounds,
     // so we currently only pay attention to the position of the left
     // speaker
-    public void setLeftSpeakerPosition(float x, float y, float z) {
+    public void setLeftSpeakerPosition(final float x, final float y, final float z) {
         leftSpeakerPosition.set(x, y, z);
     }
 
     // NOTE: due to a bug on the APX device, we only have mono sounds,
     // so we currently only pay attention to the position of the left
     // speaker
-    public void setRightSpeakerPosition(float x, float y, float z) {
+    public void setRightSpeakerPosition(final float x, final float y, final float z) {
         rightSpeakerPosition.set(x, y, z);
     }
 
@@ -109,7 +109,7 @@ public class Mixer {
   falloffFactor + r^2
 </PRE>
 */
-    public void setFalloffFactor(float factor) {
+    public void setFalloffFactor(final float factor) {
         falloffFactor = factor;
     }
 
@@ -119,7 +119,7 @@ public class Mixer {
             SetEvent(event);
             try {
                 shutdownLock.wait();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
             }
         }
     }
@@ -132,13 +132,13 @@ public class Mixer {
         @Override
         public void run() {
             while (!shutdown) {
-                List<Track> curTracks = tracks;
+                final List<Track> curTracks = tracks;
 
-                for (Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
-                    Track track = iter.next();
+                for (final Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
+                    final Track track = iter.next();
                     try {
                         track.fill();
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         e.printStackTrace();
                         remove(track);
                     }
@@ -147,7 +147,7 @@ public class Mixer {
                 try {
                     // Run ten times per second
                     Thread.sleep(100);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -158,7 +158,7 @@ public class Mixer {
         // Temporary mixing buffer
         // Interleaved left and right channels
         float[] mixingBuffer;
-        private Vec3f temp = new Vec3f();
+        private final Vec3f temp = new Vec3f();
 
         MixerThread() {
             super("Mixer Thread");
@@ -171,7 +171,7 @@ public class Mixer {
         public void run() {
             while (!shutdown) {
                 // Get the next buffer
-                long mixerBuffer = getNextMixerBuffer();
+                final long mixerBuffer = getNextMixerBuffer();
                 if (mixerBuffer != 0) {
                     ByteBuffer buf = getMixerBufferData(mixerBuffer);
 
@@ -203,27 +203,27 @@ public class Mixer {
 
                     // This assertion should be in place if we have stereo
                     if ((mixingBuffer.length % 2) != 0) {
-                        String msg = "FATAL ERROR: odd number of samples in the mixing buffer";
+                        final String msg = "FATAL ERROR: odd number of samples in the mixing buffer";
                         System.out.println(msg);
                         throw new InternalError(msg);
                     }
 
                     // Run down all of the registered tracks mixing them in
-                    List<Track> curTracks = tracks;
+                    final List<Track> curTracks = tracks;
 
-                    for (Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
-                        Track track = iter.next();
+                    for (final Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
+                        final Track track = iter.next();
                         // Consider only playing tracks
                         if (track.isPlaying()) {
                             // First recompute its gain
-                            Vec3f pos = track.getPosition();
-                            float leftGain  = gain(pos, leftSpeakerPosition);
-                            float rightGain = gain(pos, rightSpeakerPosition);
+                            final Vec3f pos = track.getPosition();
+                            final float leftGain  = gain(pos, leftSpeakerPosition);
+                            final float rightGain = gain(pos, rightSpeakerPosition);
                             // Now mix it in
                             int i = 0;
                             while (i < mixingBuffer.length) {
                                 if (track.hasNextSample()) {
-                                    float sample = track.nextSample();
+                                    final float sample = track.nextSample();
                                     mixingBuffer[i++] = sample * leftGain;
                                     mixingBuffer[i++] = sample * rightGain;
                                 } else {
@@ -240,7 +240,7 @@ public class Mixer {
                     // Now that we have our data, send it down to the card
                     int outPos = 0;
                     for (int i = 0; i < mixingBuffer.length; i++) {
-                        short val = (short) mixingBuffer[i];
+                        final short val = (short) mixingBuffer[i];
                         buf.put(outPos++, (byte)  val);
                         buf.put(outPos++, (byte) (val >> 8));
                     }
@@ -279,9 +279,9 @@ public class Mixer {
         //    falloffFactor
         // -------------------
         // falloffFactor + r^2
-        private float gain(Vec3f pos, Vec3f speakerPos) {
+        private float gain(final Vec3f pos, final Vec3f speakerPos) {
             temp.sub(pos, speakerPos);
-            float dotp = temp.dot(temp);
+            final float dotp = temp.dot(temp);
             return (falloffFactor / (falloffFactor + dotp));
         }
     }
@@ -321,8 +321,8 @@ public class Mixer {
     private static Constructor directByteBufferConstructor;
     private static Map createdBuffers = new HashMap(); // Map Long, ByteBuffer
 
-    private static ByteBuffer newDirectByteBuffer(long address, long capacity) {
-        Long key = new Long(address);
+    private static ByteBuffer newDirectByteBuffer(final long address, final long capacity) {
+        final Long key = Long.valueOf(address);
         ByteBuffer buf = (ByteBuffer) createdBuffers.get(key);
         if (buf == null) {
             buf = newDirectByteBufferImpl(address, capacity);
@@ -332,17 +332,17 @@ public class Mixer {
         }
         return buf;
     }
-    private static ByteBuffer newDirectByteBufferImpl(long address, long capacity) {
+    private static ByteBuffer newDirectByteBufferImpl(final long address, final long capacity) {
         if (directByteBufferClass == null) {
             try {
                 directByteBufferClass = Class.forName("java.nio.DirectByteBuffer");
-                byte[] tmp = new byte[0];
+                final byte[] tmp = new byte[0];
                 directByteBufferConstructor =
                     directByteBufferClass.getDeclaredConstructor(new Class[] { Integer.TYPE,
                                                                                tmp.getClass(),
                                                                                Integer.TYPE });
                 directByteBufferConstructor.setAccessible(true);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }
@@ -351,11 +351,11 @@ public class Mixer {
             try {
                 return (ByteBuffer)
                     directByteBufferConstructor.newInstance(new Object[] {
-                            new Integer((int) capacity),
+                            Integer.valueOf((int) capacity),
                             null,
-                            new Integer((int) address)
+                            Integer.valueOf((int) address)
                         });
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }

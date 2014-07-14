@@ -60,12 +60,12 @@ import java.io.IOException;
  */
 public class LookupList {
 
-    private int _lookupCount;
-    private int[] _lookupOffsets;
-    private Lookup[] _lookups;
+    private final int _lookupCount;
+    private final int[] _lookupOffsets;
+    private final Lookup[] _lookups;
 
     /** Creates new LookupList */
-    public LookupList(DataInputStream dis, int offset, LookupSubtableFactory factory)
+    public LookupList(final DataInputStream dis, final int offset, final LookupSubtableFactory factory)
     throws IOException {
 
         // Ensure we're in the right place
@@ -88,17 +88,17 @@ public class LookupList {
         return _lookupCount;
     }
 
-    public int getLookupOffset(int i) {
+    public int getLookupOffset(final int i) {
         return _lookupOffsets[i];
     }
 
-    public Lookup getLookup(int i) {
+    public Lookup getLookup(final int i) {
         return _lookups[i];
     }
 
-    public Lookup getLookup(Feature feature, int index) {
+    public Lookup getLookup(final Feature feature, final int index) {
         if (feature.getLookupCount() > index) {
-            int i = feature.getLookupListIndex(index);
+            final int i = feature.getLookupListIndex(index);
             return _lookups[i];
         }
         return null;

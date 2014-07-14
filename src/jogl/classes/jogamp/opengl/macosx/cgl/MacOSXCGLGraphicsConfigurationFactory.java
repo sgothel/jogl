@@ -61,8 +61,8 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, final AbstractGraphicsScreen absScreen, final int nativeVisualID) {
 
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
@@ -84,15 +84,15 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
     }
 
     static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
-                                                                            GLCapabilitiesImmutable capsRequested,
-                                                                            GLCapabilitiesChooser chooser,
-                                                                            AbstractGraphicsScreen absScreen, boolean usePBuffer) {
+                                                                            final GLCapabilitiesImmutable capsRequested,
+                                                                            final GLCapabilitiesChooser chooser,
+                                                                            final AbstractGraphicsScreen absScreen, final boolean usePBuffer) {
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
         final AbstractGraphicsDevice device = absScreen.getDevice();
         capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLDrawableFactory.getDesktopFactory(), device);
 
-        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested);
+        return new MacOSXCGLGraphicsConfiguration(absScreen, capsChosen, capsRequested);
     }
 }

@@ -18,12 +18,12 @@ import java.io.IOException;
  */
 public class KerningPair {
 
-    private int left;
-    private int right;
-    private short value;
+    private final int left;
+    private final int right;
+    private final short value;
 
     /** Creates new KerningPair */
-    protected KerningPair(DataInput di) throws IOException {
+    protected KerningPair(final DataInput di) throws IOException {
         left = di.readUnsignedShort();
         right = di.readUnsignedShort();
         value = di.readShort();

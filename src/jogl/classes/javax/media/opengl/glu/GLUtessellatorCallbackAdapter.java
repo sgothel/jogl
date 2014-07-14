@@ -65,32 +65,32 @@ package javax.media.opengl.glu;
 
 public class GLUtessellatorCallbackAdapter implements GLUtessellatorCallback {
     @Override
-    public void begin(int type) {}
+    public void begin(final int type) {}
     @Override
-    public void edgeFlag(boolean boundaryEdge) {}
+    public void edgeFlag(final boolean boundaryEdge) {}
     @Override
-    public void vertex(Object vertexData) {}
+    public void vertex(final Object vertexData) {}
     @Override
     public void end() {}
 //  public void mesh(jogamp.opengl.tessellator.GLUmesh mesh) {}
     @Override
-    public void error(int errnum) {}
+    public void error(final int errnum) {}
     @Override
-    public void combine(double[] coords, Object[] data,
-                            float[] weight, Object[] outData) {}
+    public void combine(final double[] coords, final Object[] data,
+                            final float[] weight, final Object[] outData) {}
     @Override
-    public void beginData(int type, Object polygonData) {}
+    public void beginData(final int type, final Object polygonData) {}
     @Override
-    public void edgeFlagData(boolean boundaryEdge,
-                                 Object polygonData) {}
+    public void edgeFlagData(final boolean boundaryEdge,
+                                 final Object polygonData) {}
     @Override
-    public void vertexData(Object vertexData, Object polygonData) {}
+    public void vertexData(final Object vertexData, final Object polygonData) {}
     @Override
-    public void endData(Object polygonData) {}
+    public void endData(final Object polygonData) {}
     @Override
-    public void errorData(int errnum, Object polygonData) {}
+    public void errorData(final int errnum, final Object polygonData) {}
     @Override
-    public void combineData(double[] coords, Object[] data,
-                                float[] weight, Object[] outData,
-                                Object polygonData) {}
+    public void combineData(final double[] coords, final Object[] data,
+                                final float[] weight, final Object[] outData,
+                                final Object polygonData) {}
 }

@@ -43,15 +43,41 @@ package javax.media.nativewindow;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
-/** Extend the {@link NativeSurface} interface with windowing
-    information such as window handle and position.<P>
+/**
+ * Extend the {@link NativeSurface} interface with windowing
+ * information such as {@link #getWindowHandle() window-handle},
+ * {@link #getWidth() window-size} and {@link #getX() window-position}.
+ * <p>
+ * All values of this interface are represented in window units, if not stated otherwise.
+ * See {@link NativeSurface}.
+ * </p>
+ *
+ * <a name="coordinateSystem"><h5>Coordinate System</h5></a>
+ * <p>
+ *  <ul>
+ *      <li>Abstract screen space has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *      <li>Window origin is in it's top-left corner, see {@link #getX()} and {@link #getY()}. </li>
+ *      <li>Window client-area excludes {@link #getInsets() insets}, i.e. window decoration.</li>
+ *      <li>Window origin is relative to it's parent window if exist, or the screen position (top-level).</li>
+ *  </ul>
+ * </p>
+ * <p>
+ * A window toolkit such as the AWT may either implement this interface
+ * directly with one of its components, or provide and register an
+ * implementation of {@link NativeWindowFactory NativeWindowFactory}
+ * which can create NativeWindow objects for its components.
+ * </p>
+ */
+public interface NativeWindow extends NativeSurface, NativeSurfaceHolder {
 
-    A window toolkit such as the AWT may either implement this interface
-    directly with one of its components, or provide and register an
-    implementation of {@link NativeWindowFactory NativeWindowFactory}
-    which can create NativeWindow objects for its components. <P>
-*/
-public interface NativeWindow extends NativeSurface {
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Returns this instance, which <i>is-a</i> {@link NativeSurface}.
+   * </p>
+   */
+  @Override
+  public NativeSurface getNativeSurface();
 
   /**
    * Destroys this window incl. releasing all related resources.
@@ -76,8 +102,10 @@ public interface NativeWindow extends NativeSurface {
 
   /**
    * Returns the insets defined as the width and height of the window decoration
-   * on the left, right, top and bottom.<br>
+   * on the left, right, top and bottom in window units.
+   * <p>
    * Insets are zero if the window is undecorated, including child windows.
+   * </p>
    *
    * <p>
    * Insets are available only after the native window has been created,
@@ -85,14 +113,14 @@ public interface NativeWindow extends NativeSurface {
    *
    * The top-level window area's top-left corner is located at
    * <pre>
-   *   getX() - getInsets().{@link InsetsImmutable#getLeftWidth() getLeftWidth()}
-   *   getY() - getInsets().{@link InsetsImmutable#getTopHeight() getTopHeight()}
+   *   {@link #getX()} - getInsets().{@link InsetsImmutable#getLeftWidth() getLeftWidth()}
+   *   {@link #getY()} - getInsets().{@link InsetsImmutable#getTopHeight() getTopHeight()}
    * </pre>
    *
    * The top-level window size is
    * <pre>
-   *   getWidth()  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()}
-   *   getHeight() + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
+   *   {@link #getWidth()}  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()}
+   *   {@link #getHeight()} + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
    * </pre>
    *
    * @return insets
@@ -102,32 +130,71 @@ public interface NativeWindow extends NativeSurface {
   /** Returns the current x position of this window, relative to it's parent. */
 
   /**
-   * @return the current x position of the top-left corner
-   *         of the client area relative to it's parent.
-   *         Since the position reflects the client area, it does not include the insets.
+   * Returns the x position of the top-left corner
+   * of the client area relative to it's parent in window units.
+   * <p>
+   * If no parent exist (top-level window), this coordinate equals the screen coordinate.
+   * </p>
+   * <p>
+   * Since the position reflects the client area, it does not include the insets.
+   * </p>
+   * <p>
+   * See <a href="#coordinateSystem"> Coordinate System</a>.
+   * </p>
    * @see #getInsets()
+   * @see #getLocationOnScreen(Point)
    */
   public int getX();
 
   /**
-   * @return the current y position of the top-left corner
-   *         of the client area relative to it's parent.
-   *         Since the position reflects the client area, it does not include the insets.
+   * Returns the current y position of the top-left corner
+   * of the client area relative to it's parent in window units.
+   * <p>
+   * If no parent exist (top-level window), this coordinate equals the screen coordinate.
+   * </p>
+   * <p>
+   * Since the position reflects the client area, it does not include the insets.
+   * </p>
+   * <p>
+   * See <a href="#coordinateSystem"> Coordinate System</a>.
+   * </p>
    * @see #getInsets()
+   * @see #getLocationOnScreen(Point)
    */
   public int getY();
 
   /**
-   * Returns the current position of the top-left corner
-   * of the client area in screen coordinates.
+   * Returns the width of the client area excluding insets (window decorations) in window units.
+   * @return width of the client area in window units
+   * @see NativeSurface#getSurfaceWidth()
+   */
+  public int getWidth();
+
+  /**
+   * Returns the height of the client area excluding insets (window decorations) in window units.
+   * @return height of the client area in window units
+   * @see NativeSurface#getSurfaceHeight()
+   */
+  public int getHeight();
+
+  /**
+   * Returns the window's top-left client-area position in the screen.
+   * <p>
+   * If {@link Point} is not <code>null</code>, it is translated about the resulting screen position
+   * and returned.
+   * </p>
+   * <p>
+   * See <a href="#coordinateSystem"> Coordinate System</a>.
+   * </p>
    * <p>
    * Since the position reflects the client area, it does not include the insets.
    * </p>
-   * @param point if not null,
-   *        {@link javax.media.nativewindow.util.Point#translate(javax.media.nativewindow.util.Point)}
-   *        the passed {@link javax.media.nativewindow.util.Point} by this location on the screen and return it.
-   * @return either the passed non null translated point by the screen location of this NativeWindow,
-   *         or a new instance with the screen location of this NativeWindow.
+   * @param point Optional {@link Point} storage.
+   *              If not null, <code>null</code>, it is translated about the resulting screen position
+   *              and returned.
+   * @see #getX()
+   * @see #getY()
+   * @see #getInsets()
    */
   public Point getLocationOnScreen(Point point);
 

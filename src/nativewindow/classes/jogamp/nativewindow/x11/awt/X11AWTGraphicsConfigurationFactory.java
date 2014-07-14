@@ -68,8 +68,8 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, final int nativeVisualID) {
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
             throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only AWTGraphicsScreen objects");
@@ -82,8 +82,8 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
     }
 
     public static AWTGraphicsConfiguration chooseGraphicsConfigurationStatic(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AWTGraphicsScreen awtScreen, int nativeVisualID) {
+            CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, final AWTGraphicsScreen awtScreen, final int nativeVisualID) {
         if(DEBUG) {
             System.err.println("X11AWTGraphicsConfigurationFactory: got "+awtScreen);
         }
@@ -143,7 +143,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         int visualID = aConfig.getVisualID(VIDType.NATIVE);
         if(VisualIDHolder.VID_UNDEFINED != visualID) {
             for (int i = 0; i < configs.length; i++) {
-                GraphicsConfiguration gc = configs[i];
+                final GraphicsConfiguration gc = configs[i];
                 if (gc != null) {
                     if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
                         if(DEBUG) {

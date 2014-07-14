@@ -11,6 +11,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.opengl.FBObject;
@@ -43,7 +44,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     static {
         Debug.initSingleton();
         DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
-        DEBUG_SWAP = DEBUG || Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+        DEBUG_SWAP = DEBUG || PropertyAccess.isPropertyDefined("jogl.debug.FBObject.Swap", true);
     }
 
     private final GLDrawableImpl parent;
@@ -84,8 +85,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
      * @param fboCaps the requested FBO capabilities
      * @param textureUnit
      */
-    protected GLFBODrawableImpl(GLDrawableFactoryImpl factory, GLDrawableImpl parent, NativeSurface surface,
-                                GLCapabilitiesImmutable fboCaps, int textureUnit) {
+    protected GLFBODrawableImpl(final GLDrawableFactoryImpl factory, final GLDrawableImpl parent, final NativeSurface surface,
+                                final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
         super(factory, surface, fboCaps, false);
         this.initialized = false;
 
@@ -101,7 +102,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         this.swapBufferContext = null;
     }
 
-    private final void initialize(boolean realize, GL gl) {
+    private final void initialize(final boolean realize, final GL gl) {
         if( !initialized && !realize ) {
             if( DEBUG ) {
                 System.err.println("GLFBODrawableImpl.initialize(): WARNING - Already unrealized!");
@@ -139,7 +140,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
             for(int i=0; i<fbosN; i++) {
                 fbos[i] = new FBObject();
-                fbos[i].reset(gl, getWidth(), getHeight(), samples, false);
+                fbos[i].reset(gl, getSurfaceWidth(), getSurfaceHeight(), samples, false);
                 if(fbos[i].getNumSamples() != samples) {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+i+"] "+fbos[i]);
                 }
@@ -175,11 +176,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         }
     }
 
-    public final void setSwapBufferContext(SwapBufferContext sbc) {
+    public final void setSwapBufferContext(final SwapBufferContext sbc) {
         swapBufferContext = sbc;
     }
 
-    private final void reset(GL gl, int idx, int width, int height, int samples, int alphaBits, int stencilBits) {
+    private final void reset(final GL gl, final int idx, final int width, final int height, final int samples, final int alphaBits, final int stencilBits) {
         if( !fboResetQuirk ) {
             try {
                 fbos[idx].reset(gl, width, height, samples, false);
@@ -187,7 +188,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
                 }
                 return;
-            } catch (GLException e) {
+            } catch (final GLException e) {
                 fboResetQuirk = true;
                 if(DEBUG) {
                     if(!resetQuirkInfoDumped) {
@@ -211,7 +212,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // resetQuirk fallback
         fbos[idx].destroy(gl);
         fbos[idx] = new FBObject();
-        fbos[idx].reset(gl, getWidth(), getHeight(), samples, false);
+        fbos[idx].reset(gl, getSurfaceWidth(), getSurfaceHeight(), samples, false);
         if(fbos[idx].getNumSamples() != samples) {
             throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
         }
@@ -227,7 +228,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         }
     }
 
-    private final void reset(GL gl, int newSamples) throws GLException {
+    private final void reset(final GL gl, int newSamples) throws GLException {
         if(!initialized) {
             // NOP if not yet initializes
             return;
@@ -262,8 +263,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 if(DEBUG) {
                     System.err.println("GLFBODrawableImpl.reset(): simple reconfig: "+samples+" -> "+newSamples+"/"+maxSamples);
                 }
-                final int nWidth = getWidth();
-                final int nHeight = getHeight();
+                final int nWidth = getSurfaceWidth();
+                final int nHeight = getSurfaceHeight();
                 samples = newSamples;
                 pendingFBOReset = ( 1 < fbos.length ) ? fboIFront : -1; // pending-front reset only w/ double buffering (or zero samples)
                 final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
@@ -275,7 +276,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final GLCapabilities fboCapsNative = (GLCapabilities) surface.getGraphicsConfiguration().getChosenCapabilities();
                 fbos[0].formatToGLCapabilities(fboCapsNative);
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             tFBO = t;
         } finally {
             try {
@@ -283,7 +284,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 if(ctxSwitch) {
                     curContext.makeCurrent();
                 }
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 tGL = t;
             }
         }
@@ -303,7 +304,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     //
 
     @Override
-    public final GLContext createContext(GLContext shareWith) {
+    public final GLContext createContext(final GLContext shareWith) {
         final GLContext ctx = parent.createContext(shareWith);
         ctx.setGLDrawable(this, false);
         return ctx;
@@ -325,7 +326,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected final int getDefaultReadFramebuffer() { return initialized ? fbos[fboIFront].getReadFramebuffer() : 0; }
 
     @Override
-    protected final int getDefaultReadBuffer(GL gl, boolean hasDedicatedDrawableRead) {
+    protected final int getDefaultReadBuffer(final GL gl, final boolean hasDedicatedDrawableRead) {
         return initialized ? fbos[fboIFront].getDefaultReadBuffer() : GL.GL_COLOR_ATTACHMENT0 ;
     }
 
@@ -335,8 +336,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if(realized) {
             parent.setRealized(true);
             origParentChosenCaps = (GLCapabilitiesImmutable) msConfig.getChosenCapabilities();
-            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable();
-            chosenFBOCaps.copyFrom(getRequestedGLCapabilities());
+            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable(); // incl. <Type>GLCapabilities, e.g. X11GLCapabilities
+            chosenFBOCaps.copyFrom(getRequestedGLCapabilities()); // copy user values
             msConfig.setChosenCapabilities(chosenFBOCaps);
         } else {
             msConfig.setChosenCapabilities(origParentChosenCaps);
@@ -345,12 +346,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     @Override
-    protected void associateContext(GLContext glc, boolean bound) {
+    protected void associateContext(final GLContext glc, final boolean bound) {
         initialize(bound, glc.getGL());
     }
 
     @Override
-    protected final void contextMadeCurrent(GLContext glc, boolean current) {
+    protected final void contextMadeCurrent(final GLContext glc, final boolean current) {
         final GL gl = glc.getGL();
         if(current) {
             if( !initialized ) {
@@ -371,7 +372,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     @Override
-    protected void swapBuffersImpl(boolean doubleBuffered) {
+    protected void swapBuffersImpl(final boolean doubleBuffered) {
         final GLContext ctx = GLContext.getCurrent();
         boolean doPostSwap;
         if( null != ctx && ctx.getGLDrawable() == this && fboBound ) {
@@ -392,21 +393,21 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         }
     }
 
-    private final void swapFBOImplPost(GLContext glc) {
+    private final void swapFBOImplPost(final GLContext glc) {
         // Safely reset the previous front FBO - after completing propagating swap
         if(0 <= pendingFBOReset) {
             final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
-            reset(glc.getGL(), pendingFBOReset, getWidth(), getHeight(), samples, caps.getAlphaBits(), caps.getStencilBits());
+            reset(glc.getGL(), pendingFBOReset, getSurfaceWidth(), getSurfaceHeight(), samples, caps.getAlphaBits(), caps.getStencilBits());
             pendingFBOReset = -1;
         }
     }
 
-    private final void swapFBOImpl(GLContext glc) {
+    private final void swapFBOImpl(final GLContext glc) {
         final GL gl = glc.getGL();
         fbos[fboIBack].markUnbound(); // fast path, use(gl,..) is called below
 
         if(DEBUG) {
-            int _fboIFront = ( fboIFront + 1 ) % fbos.length;
+            final int _fboIFront = ( fboIFront + 1 ) % fbos.length;
             if(_fboIFront != fboIBack) { throw new InternalError("XXX: "+_fboIFront+"!="+fboIBack); }
         }
         fboIFront = fboIBack;
@@ -446,7 +447,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     @Override
-    public final void resetSize(GL gl) throws GLException {
+    public final void resetSize(final GL gl) throws GLException {
         reset(gl, samples);
     }
 
@@ -454,20 +455,20 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     public final int getTextureUnit() { return texUnit; }
 
     @Override
-    public final void setTextureUnit(int u) { texUnit = u; }
+    public final void setTextureUnit(final int u) { texUnit = u; }
 
     @Override
     public final int getNumSamples() { return samples; }
 
     @Override
-    public void setNumSamples(GL gl, int newSamples) throws GLException {
+    public void setNumSamples(final GL gl, final int newSamples) throws GLException {
         if(samples != newSamples) {
             reset(gl, newSamples);
         }
     }
 
     @Override
-    public final int setNumBuffers(int bufferCount) throws GLException {
+    public final int setNumBuffers(final int bufferCount) throws GLException {
         // FIXME: Implement
         return bufferCount;
     }
@@ -495,7 +496,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     } */
 
     @Override
-    public FBObject getFBObject(int bufferName) throws IllegalArgumentException {
+    public FBObject getFBObject(final int bufferName) throws IllegalArgumentException {
         if(!initialized) {
             return null;
         }
@@ -518,7 +519,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     @Override
-    public final TextureAttachment getTextureBuffer(int bufferName) throws IllegalArgumentException {
+    public final TextureAttachment getTextureBuffer(final int bufferName) throws IllegalArgumentException {
         if(!initialized) {
             return null;
         }
@@ -559,17 +560,17 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     public static class ResizeableImpl extends GLFBODrawableImpl implements GLFBODrawable.Resizeable {
-        protected ResizeableImpl(GLDrawableFactoryImpl factory, GLDrawableImpl parent, ProxySurface surface,
-                                 GLCapabilitiesImmutable fboCaps, int textureUnit) {
+        protected ResizeableImpl(final GLDrawableFactoryImpl factory, final GLDrawableImpl parent, final ProxySurface surface,
+                                 final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
             super(factory, parent, surface, fboCaps, textureUnit);
         }
 
         @Override
-        public final void setSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException {
+        public final void setSurfaceSize(final GLContext context, final int newWidth, final int newHeight) throws NativeWindowException, GLException {
             if(DEBUG) {
                 System.err.println("GLFBODrawableImpl.ResizeableImpl setSize: ("+getThreadName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
             }
-            int lockRes = lockSurface();
+            final int lockRes = lockSurface();
             if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
                 throw new NativeWindowException("Could not lock surface: "+this);
             }
@@ -578,7 +579,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final ProxySurface ps = (ProxySurface) getNativeSurface();
                 final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
                 if(ush instanceof UpstreamSurfaceHook.MutableSize) {
-                    ((UpstreamSurfaceHook.MutableSize)ush).setSize(newWidth, newHeight);
+                    ((UpstreamSurfaceHook.MutableSize)ush).setSurfaceSize(newWidth, newHeight);
                 } else {
                     throw new InternalError("GLFBODrawableImpl.ResizableImpl's ProxySurface doesn't hold a UpstreamSurfaceHookMutableSize but "+ush.getClass().getName()+", "+ps+", ush");
                 }

@@ -32,7 +32,7 @@ import java.io.IOException;
 public class CmapFormatUnknown extends CmapFormat {
 
     /** Creates a new instance of CmapFormatUnknown */
-    protected CmapFormatUnknown(int format, DataInput di) throws IOException {
+    protected CmapFormatUnknown(final int format, final DataInput di) throws IOException {
         super(di);
         _format = format;
 
@@ -46,12 +46,12 @@ public class CmapFormatUnknown extends CmapFormat {
     }
 
     @Override
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }
 
     @Override
-    public int mapCharCode(int charCode) {
+    public int mapCharCode(final int charCode) {
         return 0;
     }
 }

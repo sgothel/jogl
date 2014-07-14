@@ -72,6 +72,7 @@ public class GLExtensions {
   public static final String OES_read_format                 = "GL_OES_read_format";
   public static final String OES_single_precision            = "GL_OES_single_precision";
   public static final String OES_EGL_image_external          = "GL_OES_EGL_image_external";
+  /** Required to be requested for OpenGL ES 2.0, <i>not</i> ES 3.0! */
   public static final String OES_standard_derivatives        = "GL_OES_standard_derivatives";
 
   public static final String ARB_gpu_shader_fp64             = "GL_ARB_gpu_shader_fp64";

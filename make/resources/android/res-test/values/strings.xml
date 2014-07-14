@@ -29,7 +29,8 @@
     <string name="activity_moviesimple1b_name">MovieSimple1b</string>
     <string name="activity_moviesimple2_name">MovieSimple2</string>
     <string name="activity_moviesimple_descr">MovieSimple</string>
-    <string name="activity_moviecube0_name">MovieCube0</string>
+    <string name="activity_moviecube0a_name">MovieCube0</string>
+    <string name="activity_moviecube0b_name">MovieCube1</string>
     <string name="activity_moviecube1a_name">CamCube0</string>
     <string name="activity_moviecube1b_name">CamCube1</string>
     <string name="activity_moviecube_descr">MovieCube</string>

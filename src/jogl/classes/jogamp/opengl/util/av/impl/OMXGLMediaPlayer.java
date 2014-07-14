@@ -74,19 +74,19 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+    protected TextureSequence.TextureFrame createTexImage(final GL gl, final int texName) {
         final EGLTextureFrame eglTex = (EGLTextureFrame) super.createTexImage(gl, texName);
         _setStreamEGLImageTexture2D(moviePtr, texName, eglTex.getImage(), eglTex.getSync());
         return eglTex;
     }
 
     @Override
-    protected void destroyTexFrame(GL gl, TextureSequence.TextureFrame imgTex) {
+    protected void destroyTexFrame(final GL gl, final TextureSequence.TextureFrame imgTex) {
         super.destroyTexFrame(gl, imgTex);
     }
 
     @Override
-    protected void destroyImpl(GL gl) {
+    protected void destroyImpl(final GL gl) {
         if (moviePtr != 0) {
             _stop(moviePtr);
             _detachVideoRenderer(moviePtr);
@@ -96,14 +96,14 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected void initStreamImpl(int vid, int aid) throws IOException {
+    protected void initStreamImpl(final int vid, final int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        if(!streamLoc.getScheme().equals("file")) {
-            throw new IOException("Only file schemes are allowed: "+streamLoc);
+        if(!getURI().getScheme().equals("file")) {
+            throw new IOException("Only file schemes are allowed: "+getURI());
         }
-        final String path=streamLoc.getPath();
+        final String path=getURI().getPath();
         if(DEBUG) {
             System.out.println("initGLStream: clean path "+path);
         }
@@ -111,15 +111,15 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(DEBUG) {
             System.out.println("initGLStream: p1 "+this);
         }
-        _setStream(moviePtr, textureCount, path);
+        _setStream(moviePtr, getTextureCount(), path);
         if(DEBUG) {
             System.out.println("initGLStream: p2 "+this);
         }
     }
     @Override
-    protected final void initGLImpl(GL gl) throws IOException, GLException {
+    protected final void initGLImpl(final GL gl) throws IOException, GLException {
         // NOP
-        isInGLOrientation = true;
+        setIsGLOriented(true);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected boolean setPlaySpeedImpl(float rate) {
+    protected boolean setPlaySpeedImpl(final float rate) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -157,7 +157,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
 
     /** @return time position after issuing the command */
     @Override
-    protected int seekImpl(int msec) {
+    protected int seekImpl(final int msec) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -165,7 +165,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -182,8 +182,8 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         return 0; // FIXME: return pts
     }
 
-    private String replaceAll(String orig, String search, String repl) {
-        StringBuilder dest = new StringBuilder();
+    private String replaceAll(final String orig, final String search, final String repl) {
+        final StringBuilder dest = new StringBuilder();
         // In case replaceAll / java.util.regex.* is not supported (-> CVM)
         int i=0,j;
         while((j=orig.indexOf(search, i))>=0) {
@@ -194,7 +194,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         return dest.append(orig.substring(i, orig.length())).toString();
     }
 
-    private void errorCheckEGL(String s) {
+    private void errorCheckEGL(final String s) {
         int e;
         if( (e=EGL.eglGetError()) != EGL.EGL_SUCCESS ) {
             System.out.println("EGL Error: ("+s+"): 0x"+Integer.toHexString(e));

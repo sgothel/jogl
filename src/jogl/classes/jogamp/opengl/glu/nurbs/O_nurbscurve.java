@@ -70,7 +70,7 @@ public class O_nurbscurve {
    * Makes new O_nurbscurve
    * @param realType type of curve
    */
-  public O_nurbscurve(int realType) {
+  public O_nurbscurve(final int realType) {
     // DONE
     this.type = realType;
     this.owner = null;

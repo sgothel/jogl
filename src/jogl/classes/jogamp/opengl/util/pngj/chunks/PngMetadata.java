@@ -19,7 +19,7 @@ public class PngMetadata {
 	private final ChunksList chunkList;
 	private final boolean readonly;
 
-	public PngMetadata(ChunksList chunks) {
+	public PngMetadata(final ChunksList chunks) {
 		this.chunkList = chunks;
 		if (chunks instanceof ChunksListForWrite) {
 			this.readonly = false;
@@ -35,14 +35,14 @@ public class PngMetadata {
 	 * and if so, overwrites it. However if that not check for already written
 	 * chunks.
 	 */
-	public void queueChunk(final PngChunk c, boolean lazyOverwrite) {
-		ChunksListForWrite cl = getChunkListW();
+	public void queueChunk(final PngChunk c, final boolean lazyOverwrite) {
+		final ChunksListForWrite cl = getChunkListW();
 		if (readonly)
 			throw new PngjException("cannot set chunk : readonly metadata");
 		if (lazyOverwrite) {
 			ChunkHelper.trimList(cl.getQueuedChunks(), new ChunkPredicate() {
 				@Override
-				public boolean match(PngChunk c2) {
+				public boolean match(final PngChunk c2) {
 					return ChunkHelper.equivalent(c, c2);
 				}
 			});
@@ -66,19 +66,19 @@ public class PngMetadata {
 	 * returns -1 if not found or dimension unknown
 	 */
 	public double[] getDpi() {
-		PngChunk c = chunkList.getById1(ChunkHelper.pHYs, true);
+		final PngChunk c = chunkList.getById1(ChunkHelper.pHYs, true);
 		if (c == null)
 			return new double[] { -1, -1 };
 		else
 			return ((PngChunkPHYS) c).getAsDpi2();
 	}
 
-	public void setDpi(double x) {
+	public void setDpi(final double x) {
 		setDpi(x, x);
 	}
 
-	public void setDpi(double x, double y) {
-		PngChunkPHYS c = new PngChunkPHYS(chunkList.imageInfo);
+	public void setDpi(final double x, final double y) {
+		final PngChunkPHYS c = new PngChunkPHYS(chunkList.imageInfo);
 		c.setAsDpi2(x, y);
 		queueChunk(c);
 	}
@@ -92,8 +92,8 @@ public class PngMetadata {
 	 * @return Returns the created-queued chunk, just in case you want to
 	 *         examine or modify it
 	 */
-	public PngChunkTIME setTimeNow(int secsAgo) {
-		PngChunkTIME c = new PngChunkTIME(chunkList.imageInfo);
+	public PngChunkTIME setTimeNow(final int secsAgo) {
+		final PngChunkTIME c = new PngChunkTIME(chunkList.imageInfo);
 		c.setNow(secsAgo);
 		queueChunk(c);
 		return c;
@@ -110,8 +110,8 @@ public class PngMetadata {
 	 * @return Returns the created-queued chunk, just in case you want to
 	 *         examine or modify it
 	 */
-	public PngChunkTIME setTimeYMDHMS(int yearx, int monx, int dayx, int hourx, int minx, int secx) {
-		PngChunkTIME c = new PngChunkTIME(chunkList.imageInfo);
+	public PngChunkTIME setTimeYMDHMS(final int yearx, final int monx, final int dayx, final int hourx, final int minx, final int secx) {
+		final PngChunkTIME c = new PngChunkTIME(chunkList.imageInfo);
 		c.setYMDHMS(yearx, monx, dayx, hourx, minx, secx);
 		queueChunk(c, true);
 		return c;
@@ -125,7 +125,7 @@ public class PngMetadata {
 	}
 
 	public String getTimeAsString() {
-		PngChunkTIME c = getTime();
+		final PngChunkTIME c = getTime();
 		return c == null ? "" : c.getAsString();
 	}
 
@@ -144,7 +144,7 @@ public class PngMetadata {
 	 * @return Returns the created-queued chunks, just in case you want to
 	 *         examine, touch it
 	 */
-	public PngChunkTextVar setText(String k, String val, boolean useLatin1, boolean compress) {
+	public PngChunkTextVar setText(final String k, final String val, final boolean useLatin1, final boolean compress) {
 		if (compress && !useLatin1)
 			throw new PngjException("cannot compress non latin text");
 		PngChunkTextVar c;
@@ -163,7 +163,7 @@ public class PngMetadata {
 		return c;
 	}
 
-	public PngChunkTextVar setText(String k, String val) {
+	public PngChunkTextVar setText(final String k, final String val) {
 		return setText(k, val, false, false);
 	}
 
@@ -175,8 +175,9 @@ public class PngMetadata {
 	 * Warning: this does not check the "lang" key of iTxt
 	 */
 	@SuppressWarnings("unchecked")
-	public List<? extends PngChunkTextVar> getTxtsForKey(String k) {
+	public List<? extends PngChunkTextVar> getTxtsForKey(final String k) {
 		@SuppressWarnings("rawtypes")
+        final
 		List c = new ArrayList();
 		c.addAll(chunkList.getById(ChunkHelper.tEXt, k));
 		c.addAll(chunkList.getById(ChunkHelper.zTXt, k));
@@ -190,12 +191,12 @@ public class PngMetadata {
 	 * <p>
 	 * Use getTxtsForKey() if you don't want this behaviour
 	 */
-	public String getTxtForKey(String k) {
-		List<? extends PngChunkTextVar> li = getTxtsForKey(k);
+	public String getTxtForKey(final String k) {
+		final List<? extends PngChunkTextVar> li = getTxtsForKey(k);
 		if (li.isEmpty())
 			return "";
-		StringBuilder t = new StringBuilder();
-		for (PngChunkTextVar c : li)
+		final StringBuilder t = new StringBuilder();
+		for (final PngChunkTextVar c : li)
 			t.append(c.getVal()).append("\n");
 		return t.toString().trim();
 	}
@@ -214,7 +215,7 @@ public class PngMetadata {
 	 * the caller, who should fill its entries
 	 */
 	public PngChunkPLTE createPLTEChunk() {
-		PngChunkPLTE plte = new PngChunkPLTE(chunkList.imageInfo);
+		final PngChunkPLTE plte = new PngChunkPLTE(chunkList.imageInfo);
 		queueChunk(plte);
 		return plte;
 	}
@@ -233,7 +234,7 @@ public class PngMetadata {
 	 * caller, who should fill its entries
 	 */
 	public PngChunkTRNS createTRNSChunk() {
-		PngChunkTRNS trns = new PngChunkTRNS(chunkList.imageInfo);
+		final PngChunkTRNS trns = new PngChunkTRNS(chunkList.imageInfo);
 		queueChunk(trns);
 		return trns;
 	}

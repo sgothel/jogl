@@ -68,7 +68,7 @@ public class Flist {
    * Grows list
    * @param maxpts maximum desired size
    */
-  public void grow(int maxpts) {
+  public void grow(final int maxpts) {
     // DONE
     if (npts < maxpts) {
       // npts=2*maxpts;
@@ -106,7 +106,7 @@ public class Flist {
    * @param from start from
    * @param to end at
    */
-  public void taper(float from, float to) {
+  public void taper(final float from, final float to) {
     // DONE
 
     while (pts[start] != from) {
@@ -123,7 +123,7 @@ public class Flist {
    * Adds breakpoint value
    * @param f value
    */
-  public void add(float f) {
+  public void add(final float f) {
     //DONE
     pts[end++] = f;
   }

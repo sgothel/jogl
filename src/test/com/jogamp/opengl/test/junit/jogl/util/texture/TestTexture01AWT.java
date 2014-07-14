@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 
@@ -67,8 +67,8 @@ import org.junit.runners.MethodSorters;
 /**
  * Demonstrates TextureData w/ AWT usage in both directions,
  * i.e. generating a texture based on an AWT BufferedImage data
- * as well as reading out GL framebuffer and displaying it 
- * as an BufferedImage. 
+ * as well as reading out GL framebuffer and displaying it
+ * as an BufferedImage.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTexture01AWT extends UITestCase {
@@ -102,7 +102,7 @@ public class TestTexture01AWT extends UITestCase {
         g.dispose();
 
         // create texture image
-        int imageType = BufferedImage.TYPE_3BYTE_BGR;
+        final int imageType = BufferedImage.TYPE_3BYTE_BGR;
         textureImage = new BufferedImage(baseImage.getWidth(),
                                          baseImage.getHeight(),
                                          imageType);
@@ -129,26 +129,26 @@ public class TestTexture01AWT extends UITestCase {
         final Frame frame0 = new Frame("GL -> AWT");
         final Canvas canvas = new Canvas();
         frame0.add(canvas);
-        
+
         final GLCanvas glCanvas = new GLCanvas(caps);
         final Frame frame1 = new Frame("AWT -> Texture");
         Assert.assertNotNull(frame1);
         frame1.add(glCanvas);
 
-        // create texture    
-        TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
+        // create texture
+        final TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
         glCanvas.addGLEventListener(new TextureDraw01GL2Listener(textureData));
         glCanvas.addGLEventListener(new GLEventListener() {
-            
+
             @Override
-            public void init(GLAutoDrawable drawable) { }
+            public void init(final GLAutoDrawable drawable) { }
             @Override
-            public void dispose(GLAutoDrawable drawable) { }
+            public void dispose(final GLAutoDrawable drawable) { }
             @Override
-            public void display(GLAutoDrawable drawable) {
-                BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), true /* awtOrientation */);
-                ImageIcon imageIcon = new ImageIcon(outputImage);
-                final JLabel imageLabel = new JLabel(imageIcon);        
+            public void display(final GLAutoDrawable drawable) {
+                final BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), true /* awtOrientation */);
+                final ImageIcon imageIcon = new ImageIcon(outputImage);
+                final JLabel imageLabel = new JLabel(imageIcon);
                 try {
                     AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                         public void run() {
@@ -156,17 +156,17 @@ public class TestTexture01AWT extends UITestCase {
                             frame0.add(imageLabel);
                             frame0.validate();
                         }});
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
-                }                
+                }
             }
 
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 frame0.setSize(frame1.getWidth(), frame1.getHeight());
                 frame0.setLocation(frame1.getX()+frame1.getWidth()+32, frame0.getY());
                 frame0.validate();
-            }            
+            }
         });
 
         try {
@@ -179,11 +179,11 @@ public class TestTexture01AWT extends UITestCase {
                     frame0.setLocation(frame1.getX()+frame1.getWidth()+32, frame0.getY());
                     frame0.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }                
-        
+        }
+
         Thread.sleep(durationPerTest);
 
         try {
@@ -194,19 +194,19 @@ public class TestTexture01AWT extends UITestCase {
                     frame1.setVisible(false);
                     frame1.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }                
+        }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
             }
         }
-        String tstname = TestTexture01AWT.class.getName();
+        final String tstname = TestTexture01AWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

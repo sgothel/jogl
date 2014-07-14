@@ -72,7 +72,7 @@ public class WindowDriver extends WindowImpl {
         return new Class<?>[] { Container.class } ;
     }
 
-    public WindowDriver(Container container) {
+    public WindowDriver(final Container container) {
         super();
         this.awtContainer = container;
         if(container instanceof Frame) {
@@ -87,7 +87,7 @@ public class WindowDriver extends WindowImpl {
     private AWTCanvas awtCanvas;
 
     @Override
-    protected void requestFocusImpl(boolean reparented) {
+    protected void requestFocusImpl(final boolean reparented) {
         awtContainer.requestFocus();
     }
 
@@ -97,6 +97,18 @@ public class WindowDriver extends WindowImpl {
             awtFrame.setTitle(title);
         }
     }
+
+    private final AWTCanvas.UpstreamScalable upstreamScalable = new AWTCanvas.UpstreamScalable() {
+        @Override
+        public int[] getReqPixelScale() {
+            return WindowDriver.this.reqPixelScale;
+        }
+
+        @Override
+        public void setHasPixelScale(final int[] pixelScale) {
+            System.arraycopy(pixelScale, 0, WindowDriver.this.hasPixelScale, 0, 2);
+        }
+    };
 
     @Override
     protected void createNativeImpl() {
@@ -119,7 +131,7 @@ public class WindowDriver extends WindowImpl {
         awtContainer.setLayout(new BorderLayout());
 
         if( null == awtCanvas ) {
-            awtCanvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser);
+            awtCanvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser, upstreamScalable);
 
             // canvas.addComponentListener(listener);
             awtContainer.add(awtCanvas, BorderLayout.CENTER);
@@ -162,7 +174,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     public boolean hasDeviceChanged() {
-        boolean res = awtCanvas.hasDeviceChanged();
+        final boolean res = awtCanvas.hasDeviceChanged();
         if(res) {
             final AWTGraphicsConfiguration cfg = awtCanvas.getAWTGraphicsConfiguration();
             if (null == cfg) {
@@ -180,12 +192,12 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void updateInsetsImpl(javax.media.nativewindow.util.Insets insets) {
+    protected void updateInsetsImpl(final javax.media.nativewindow.util.Insets insets) {
         final Insets contInsets = awtContainer.getInsets();
         insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
     }
 
-    private void setCanvasSizeImpl(int width, int height) {
+    private void setCanvasSizeImpl(final int width, final int height) {
         final Dimension szClient = new Dimension(width, height);
         final java.awt.Window awtWindow = AWTMisc.getWindow(awtCanvas);
         final Container c= null != awtWindow ? awtWindow : awtContainer;
@@ -205,7 +217,7 @@ public class WindowDriver extends WindowImpl {
             awtContainer.validate();
         }
     }
-    private void setFrameSizeImpl(int width, int height) {
+    private void setFrameSizeImpl(final int width, final int height) {
         final Insets insets = awtContainer.getInsets();
         final Dimension szContainer = new Dimension(width + insets.left + insets.right,
                                                     height + insets.top + insets.bottom);
@@ -219,7 +231,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWTWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
@@ -272,8 +284,8 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
-        java.awt.Point ap = awtCanvas.getLocationOnScreen();
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
+        final java.awt.Point ap = awtCanvas.getLocationOnScreen();
         ap.translate(x, y);
         return new Point((int)(ap.getX()+0.5),(int)(ap.getY()+0.5));
     }
@@ -285,44 +297,44 @@ public class WindowDriver extends WindowImpl {
 
     class LocalWindowListener implements com.jogamp.newt.event.WindowListener {
         @Override
-        public void windowMoved(com.jogamp.newt.event.WindowEvent e) {
+        public void windowMoved(final com.jogamp.newt.event.WindowEvent e) {
             if(null!=awtContainer) {
                 WindowDriver.this.positionChanged(false, awtContainer.getX(), awtContainer.getY());
             }
         }
         @Override
-        public void windowResized(com.jogamp.newt.event.WindowEvent e) {
+        public void windowResized(final com.jogamp.newt.event.WindowEvent e) {
             if(null!=awtCanvas) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window Resized: "+awtCanvas);
                 }
                 WindowDriver.this.sizeChanged(false, awtCanvas.getWidth(), awtCanvas.getHeight(), true);
-                WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());
+                WindowDriver.this.windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());
             }
         }
         @Override
-        public void windowDestroyNotify(WindowEvent e) {
+        public void windowDestroyNotify(final WindowEvent e) {
             WindowDriver.this.windowDestroyNotify(false);
         }
         @Override
-        public void windowDestroyed(WindowEvent e) {
+        public void windowDestroyed(final WindowEvent e) {
             // Not fwd by AWTWindowAdapter, synthesized by NEWT
         }
         @Override
-        public void windowGainedFocus(WindowEvent e) {
+        public void windowGainedFocus(final WindowEvent e) {
             WindowDriver.this.focusChanged(false, true);
         }
         @Override
-        public void windowLostFocus(WindowEvent e) {
+        public void windowLostFocus(final WindowEvent e) {
             WindowDriver.this.focusChanged(false, false);
         }
         @Override
-        public void windowRepaint(WindowUpdateEvent e) {
+        public void windowRepaint(final WindowUpdateEvent e) {
             if(null!=awtCanvas) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window Repaint: "+awtCanvas);
                 }
-                WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());
+                WindowDriver.this.windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());
             }
         }
     }

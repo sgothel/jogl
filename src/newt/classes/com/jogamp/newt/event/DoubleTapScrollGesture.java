@@ -27,6 +27,8 @@
  */
 package com.jogamp.newt.event;
 
+import com.jogamp.common.util.PropertyAccess;
+
 import jogamp.newt.Debug;
 
 /**
@@ -83,10 +85,10 @@ public class DoubleTapScrollGesture implements GestureHandler {
     static {
         Debug.initSingleton();
 
-        SCROLL_SLOP_PIXEL = Debug.getIntProperty("newt.event.scroll_slop_pixel", true, 16);
-        DOUBLE_TAP_SLOP_PIXEL = Debug.getIntProperty("newt.event.double_tap_slop_pixel", true, 104);
-        SCROLL_SLOP_MM = Debug.getIntProperty("newt.event.scroll_slop_mm", true, 3);
-        DOUBLE_TAP_SLOP_MM = Debug.getIntProperty("newt.event.double_tap_slop_mm", true, 20);
+        SCROLL_SLOP_PIXEL = PropertyAccess.getIntProperty("newt.event.scroll_slop_pixel", true, 16);
+        DOUBLE_TAP_SLOP_PIXEL = PropertyAccess.getIntProperty("newt.event.double_tap_slop_pixel", true, 104);
+        SCROLL_SLOP_MM = PropertyAccess.getIntProperty("newt.event.scroll_slop_mm", true, 3);
+        DOUBLE_TAP_SLOP_MM = PropertyAccess.getIntProperty("newt.event.double_tap_slop_mm", true, 20);
     }
 
     private static final int ST_NONE = 0;
@@ -97,7 +99,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
 
     private final int scrollSlop, scrollSlopSquare, doubleTapSlop, doubleTapSlopSquare;
     private final float[] scrollDistance = new float[] { 0f, 0f };
-    private int[] pIds = new int[] { -1, -1 };
+    private final int[] pIds = new int[] { -1, -1 };
     /** See class docu */
     private int gestureState;
     private int sqStartDist;
@@ -105,7 +107,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
     private int pointerDownCount;
     private MouseEvent hitGestureEvent;
 
-    private static final int getSquareDistance(float x1, float y1, float x2, float y2) {
+    private static final int getSquareDistance(final float x1, final float y1, final float x2, final float y2) {
         final int deltaX = (int) x1 - (int) x2;
         final int deltaY = (int) y1 - (int) y2;
         return deltaX * deltaX + deltaY * deltaY;
@@ -129,7 +131,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
      * @param scaledScrollSlop Distance a pointer can wander before we think the user is scrolling in <i>pixels</i>.
      * @param scaledDoubleTapSlop Distance in <i>pixels</i> between the first touch and second touch to still be considered a double tap.
      */
-    public DoubleTapScrollGesture(int scaledScrollSlop, int scaledDoubleTapSlop) {
+    public DoubleTapScrollGesture(final int scaledScrollSlop, final int scaledDoubleTapSlop) {
         scrollSlop = scaledScrollSlop;
         scrollSlopSquare = scaledScrollSlop * scaledScrollSlop;
         doubleTapSlop = scaledDoubleTapSlop;
@@ -148,7 +150,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
     }
 
     @Override
-    public void clear(boolean clearStarted) {
+    public void clear(final boolean clearStarted) {
         scrollDistance[0] = 0f;
         scrollDistance[1] = 0f;
         hitGestureEvent = null;

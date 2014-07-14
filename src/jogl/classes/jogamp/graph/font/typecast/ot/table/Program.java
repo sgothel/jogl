@@ -23,7 +23,7 @@ public abstract class Program {
         return instructions;
     }
 
-    protected void readInstructions(DataInput di, int count) throws IOException {
+    protected void readInstructions(final DataInput di, final int count) throws IOException {
         instructions = new short[count];
         for (int i = 0; i < count; i++) {
             instructions[i] = (short) di.readUnsignedByte();

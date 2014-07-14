@@ -63,7 +63,7 @@ public class DefaultEDTUtil implements EDTUtil {
     private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
-    public DefaultEDTUtil(ThreadGroup tg, String name, Runnable dispatchMessages) {
+    public DefaultEDTUtil(final ThreadGroup tg, final String name, final Runnable dispatchMessages) {
         this.threadGroup = tg;
         this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
         this.dispatchMessages=dispatchMessages;
@@ -77,12 +77,12 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    final public void setPollPeriod(long ms) {
-        pollPeriod = ms;
+    final public void setPollPeriod(final long ms) {
+        pollPeriod = ms; // writing to static field is intended
     }
 
     @Override
-    public final boolean start() throws IllegalStateException {
+    public final void start() throws IllegalStateException {
         synchronized(edtLock) {
             if( edt.isRunning() ) {
                 throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", EDT "+edt.getName()+", isRunning "+edt.isRunning+", shouldStop "+edt.shouldStop);
@@ -103,7 +103,9 @@ public class DefaultEDTUtil implements EDTUtil {
             }
             startImpl();
         }
-        return invoke(true, nullTask);
+        if( !edt.isRunning() ) {
+            throw new RuntimeException("EDT could not be started: "+edt);
+        }
     }
 
     private final void startImpl() {
@@ -139,7 +141,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean invokeStop(boolean wait, Runnable task) {
+    public final boolean invokeStop(final boolean wait, final Runnable task) {
         if(DEBUG) {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
             Thread.dumpStack();
@@ -147,7 +149,7 @@ public class DefaultEDTUtil implements EDTUtil {
         return invokeImpl(wait, task, true /* stop */, false /* provokeError */);
     }
 
-    public final boolean invokeAndWaitError(Runnable task) {
+    public final boolean invokeAndWaitError(final Runnable task) {
         if(DEBUG) {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeAndWaitError");
             Thread.dumpStack();
@@ -156,7 +158,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean invoke(boolean wait, Runnable task) {
+    public final boolean invoke(final boolean wait, final Runnable task) {
         return invokeImpl(wait, task, false /* stop */, false /* provokeError */);
     }
 
@@ -165,7 +167,7 @@ public class DefaultEDTUtil implements EDTUtil {
         public void run() { }
     };
 
-    private final boolean invokeImpl(boolean wait, Runnable task, boolean stop, boolean provokeError) {
+    private final boolean invokeImpl(boolean wait, Runnable task, final boolean stop, final boolean provokeError) {
         Throwable throwable = null;
         RunnableTask rTask = null;
         final Object rTaskLock = new Object();
@@ -233,7 +235,7 @@ public class DefaultEDTUtil implements EDTUtil {
             if( wait ) {
                 try {
                     rTaskLock.wait(); // free lock, allow execution of rTask
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -269,7 +271,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 try {
                     _edt.tasks.notifyAll();
                     _edt.tasks.wait();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -284,7 +286,7 @@ public class DefaultEDTUtil implements EDTUtil {
                 while( edt.isRunning ) {
                     try {
                         edtLock.wait();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -300,7 +302,7 @@ public class DefaultEDTUtil implements EDTUtil {
         volatile boolean isRunning = false;
         final ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
 
-        public NEDT(ThreadGroup tg, String name) {
+        public NEDT(final ThreadGroup tg, final String name) {
             super(tg, name);
         }
 
@@ -347,7 +349,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         if(!shouldStop && tasks.size()==0) {
                             try {
                                 tasks.wait(pollPeriod);
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -372,12 +374,12 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                         if(!task.hasWaiter() && null != task.getThrowable()) {
                             // at least dump stack-trace in case nobody waits for result
-                            System.err.println("DefaultEDT.run(): Catched exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
+                            System.err.println("DefaultEDT.run(): Caught exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
                             task.getThrowable().printStackTrace();
                         }
                     }
                 } while(!shouldStop) ;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // handle errors ..
                 shouldStop = true;
                 if(t instanceof RuntimeException) {

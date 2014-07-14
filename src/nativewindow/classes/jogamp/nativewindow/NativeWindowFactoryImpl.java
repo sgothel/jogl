@@ -52,7 +52,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in
     @Override
-    protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
+    protected NativeWindow getNativeWindowImpl(final Object winObj, final AbstractGraphicsConfiguration config) throws IllegalArgumentException {
         if (winObj instanceof NativeWindow) {
             // Use the NativeWindow directly
             return (NativeWindow) winObj;
@@ -73,7 +73,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
 
     private Constructor<?> nativeWindowConstructor = null;
 
-    private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
+    private NativeWindow getAWTNativeWindow(final Object winObj, final AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {
             try {
                 final String windowingType = getNativeWindowType(true);
@@ -95,15 +95,15 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
 
                 nativeWindowConstructor = ReflectionUtil.getConstructor(
                                             windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class },
-                                            getClass().getClassLoader());
-            } catch (Exception e) {
+                                            true, getClass().getClassLoader());
+            } catch (final Exception e) {
                 throw new IllegalArgumentException(e);
             }
         }
 
         try {
             return (NativeWindow) nativeWindowConstructor.newInstance(new Object[] { winObj, config });
-        } catch (Exception ie) {
+        } catch (final Exception ie) {
             throw new IllegalArgumentException(ie);
         }
     }

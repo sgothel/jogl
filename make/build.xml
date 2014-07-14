@@ -8,13 +8,13 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,one.dir,tag.build,test.compile,developer-zip-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
 
-    <target name="all.debug" description="Debug build nativewindow, jogl and newt projects, incl. all junit tests " depends="init.debug,build.nativewindow,build.jogl,build.newt,one.dir,tag.build,test.compile,developer-zip-archive" />
+    <target name="all.debug" description="Debug build nativewindow, jogl and newt projects, incl. all junit tests " depends="init.debug,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
 
-    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,one.dir,tag.build,test.compile" />
+    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile" />
 
-    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,one.dir,test.compile" />
+    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,test.compile" />
 
     <target name="test.compile">
       <ant antfile="build-test.xml" target="test.compile" inheritRefs="true" inheritAll="true"/>
@@ -47,10 +47,10 @@
 
     <target name="clean" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="build-test.xml"                       target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${jogl.build.xml}"     dir="${jogl.make}"     target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${newt.build.xml}"     dir="${newt.make}"     target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="build-test.xml"                               target="clean" inheritRefs="true" inheritAll="true"/>
         <delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" />
             <fileset dir="." includes="*.tga" />
@@ -79,12 +79,17 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="build.oculusvr" depends="init" if="oculusvr.sdk.available">
+        <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="all" inheritRefs="true" inheritAll="true"/>
+    </target>
+
     <target name="one.lib.dir" depends="init,gluegen.cpptasks.detect.os" unless="one.dir.skip">
         <mkdir dir="${lib}" />
         <copy todir="${lib}">
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
             <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix}" />
             <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
+            <!-- fileset dir="${build}/oculusvr/obj" includes="*.${native.library.suffix}" /-->
         </copy>
     </target>
 
@@ -95,10 +100,23 @@
             <fileset dir="${build.jogl}" includes="*.jar" />
             <fileset dir="${build.nativewindow}" includes="*.jar" />
             <fileset dir="${build.newt}" includes="*.jar" />
+            <fileset dir="${build.oculusvr}" includes="*.jar" erroronmissingdir="false"/> <!-- optional -->
         </copy>
 
         <copy file="joglversion-all"
             tofile="${build}/manifest-all.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
+        <copy file="joglversion-all-natives"
+            tofile="${build}/manifest-all-natives.mf"
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogamp.version}"/>
@@ -130,6 +148,7 @@
                     <path refid="nativewindow_all_atoms.classpath"/>
                     <path refid="jogl_all_atoms.classpath"/>
                     <path refid="newt_all_atoms.classpath"/>
+                    <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
         </jar>
@@ -139,6 +158,7 @@
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-noawt_atoms.classpath"/>
                     <path refid="newt_all-noawt_atoms.classpath"/>
+                    <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
         </jar>
@@ -148,15 +168,20 @@
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-mobile_atoms.classpath"/>
                     <path refid="newt_all-mobile_atoms.classpath"/>
+                    <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
         </jar>
-        <jar manifest="${build}/manifest-all.mf" destfile="${jar}/jogl-all-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${lib}">
-              <include name="*.${native.library.suffix}" />
-              <exclude name="*jogl_cg.${native.library.suffix}" />
-            </fileset>
-        </jar>
+        <native.tag.jar objdir="${lib}"
+                        nativejarfile="${jar}/jogl-all-natives-${os.and.arch}.jar"
+                        manifestfile="${build}/manifest-all-natives.mf"
+                        module="opengl"
+                        includelibs="*.${native.library.suffix}" 
+                        excludelibs="*jogl_cg.${native.library.suffix}" />
+        <!-- Produce duplicates for diff 'all' configuration, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
+        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-noawt-natives-${os.and.arch}.jar" />
+        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-mobile-natives-${os.and.arch}.jar" />
+        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-android-natives-${os.and.arch}.jar" />
     </target>
 
     <target name="android.package.jogl.skip.check" depends="init,gluegen.cpptasks.detect.os">
@@ -196,11 +221,15 @@
         <srcfiles dir="${build.jogl}" includes="*.jar"/>
         <srcfiles dir="${build.newt}" includes="*.jar"/>
       </uptodate>
+      <uptodate property="one.dir.skip.oculusvr" targetfile="${oculusvr.jar}">
+        <srcfiles dir="${build.oculusvr}" includes="*.jar"/>
+      </uptodate>
       <condition property="one.dir.skip">
           <and>
               <isset property="one.dir.skip.native"/>
               <isset property="one.dir.skip.all"/>
               <isset property="one.dir.skip.android"/>
+              <isset property="one.dir.skip.oculusvr"/>
           </and>
       </condition>
     </target>
@@ -234,12 +263,18 @@
         <!--delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" includes="jogl-java-src.zip" />
         </delete-->
+        <mkdir dir="${build}/oculusvr/gensrc/classes"/> <!-- just in case it was _not_ build -->
         <zip destfile="${build}/jogl-java-src.zip" level="0">
             <fileset dir="${src}/nativewindow/classes"/>
             <fileset dir="${build}/nativewindow/gensrc/classes"/>
             <fileset dir="${src}/jogl/classes"/>
             <fileset dir="${build}/jogl/gensrc/classes"/>
             <fileset dir="${src}/newt/classes"/>
+            <fileset dir="${src}/oculusvr/classes"/>
+            <fileset dir="${build}/oculusvr/gensrc/classes"/>
+        </zip>
+        <zip destfile="${build}/jogl-test-java-src.zip" level="0">
+            <fileset dir="${src}/test"/>
         </zip>
     </target>
 
@@ -281,6 +316,7 @@
         <copy todir="${archive}">
             <fileset dir="${build}">
                 <include name="jogl-java-src.zip"/>
+                <include name="jogl-test-java-src.zip"/>
             </fileset>
         </copy>
         <archive.7z destfile="${build}/${archive.name}.7z"
@@ -366,7 +402,7 @@
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.* com.jogamp.oculusvr.*" />
 
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*, jogamp.nativewindow.*, jogamp.opengl.*, jogamp.newt.*" />
 

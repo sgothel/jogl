@@ -31,13 +31,13 @@ import java.io.IOException;
  */
 public class HdmxTable implements Table {
 
-    public class DeviceRecord {
+    public static class DeviceRecord {
 
-        private short _pixelSize;
-        private short _maxWidth;
-        private short[] _widths;
+        private final short _pixelSize;
+        private final short _maxWidth;
+        private final short[] _widths;
 
-        protected DeviceRecord(int numGlyphs, DataInput di) throws IOException {
+        protected DeviceRecord(final int numGlyphs, final DataInput di) throws IOException {
             _pixelSize = di.readByte();
             _maxWidth = di.readByte();
             _widths = new short[numGlyphs];
@@ -58,20 +58,20 @@ public class HdmxTable implements Table {
             return _widths;
         }
 
-        public short getWidth(int glyphidx) {
+        public short getWidth(final int glyphidx) {
             return _widths[glyphidx];
         }
 
     }
 
-    private DirectoryEntry _de;
-    private int _version;
-    private short _numRecords;
-    private int _sizeDeviceRecords;
-    private DeviceRecord[] _records;
+    private final DirectoryEntry _de;
+    private final int _version;
+    private final short _numRecords;
+    private final int _sizeDeviceRecords;
+    private final DeviceRecord[] _records;
 
     /** Creates a new instance of HdmxTable */
-    protected HdmxTable(DirectoryEntry de, DataInput di, MaxpTable maxp)
+    protected HdmxTable(final DirectoryEntry de, final DataInput di, final MaxpTable maxp)
     throws IOException {
         _de = (DirectoryEntry) de.clone();
         _version = di.readUnsignedShort();
@@ -89,7 +89,7 @@ public class HdmxTable implements Table {
         return _numRecords;
     }
 
-    public DeviceRecord getRecord(int i) {
+    public DeviceRecord getRecord(final int i) {
         return _records[i];
     }
 
@@ -100,7 +100,7 @@ public class HdmxTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");
         sb.append("Size = ").append(_de.getLength()).append(" bytes\n")
             .append("\t'hdmx' version:         ").append(_version).append("\n")

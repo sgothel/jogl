@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -57,77 +57,79 @@ import android.util.Log;
 
 public class MovieSimpleActivity0 extends NewtBaseActivity {
    static String TAG = "MovieSimpleActivity0";
-   
+
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
-       public void mouseClicked(MouseEvent e) {
-           Object src = e.getSource();
+       public void mouseClicked(final MouseEvent e) {
+           final Object src = e.getSource();
            if(src instanceof Window) {
                ((Window)src).requestFocus(false);
            }
        } };
-   
+
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
-       
-       final String[] streamLocs = new String[] {                    
-               System.getProperty("jnlp.media0_url2"),
+
+       final String[] streamLocs = new String[] {
+               System.getProperty("jnlp.media0_url0"),
                System.getProperty("jnlp.media0_url1"),
-               System.getProperty("jnlp.media0_url0") };       
+               System.getProperty("jnlp.media0_url2") };
        final URI streamLoc = getURI(streamLocs, 0, false);
        if(null == streamLoc) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
-       
+
        // also initializes JOGL
        final GLCapabilities capsMain = new GLCapabilities(GLProfile.getGL2ES2());
+       capsMain.setNumSamples(4);
+       capsMain.setSampleBuffers(true);
        capsMain.setBackgroundOpaque(false);
 
        // screen for layout params ..
        final com.jogamp.newt.Display dpy = NewtFactory.createDisplay(null);
        final com.jogamp.newt.Screen scrn = NewtFactory.createScreen(dpy, 0);
        scrn.addReference();
-              
+
        final Animator anim = new Animator();
-       
-       // Main           
+
+       // Main
        final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
        glWindowMain.setFullscreen(true);
        setContentView(getWindow(), glWindowMain);
        anim.add(glWindowMain);
        glWindowMain.setVisible(true);
-       
+
        final MovieSimple demoMain = new MovieSimple(null);
        demoMain.setScaleOrig(true);
        final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
-       mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {            
+       mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
            @Override
-           public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
-            
+           public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
+
            @Override
-           public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
+           public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                System.err.println("MovieSimpleActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                System.err.println("MovieSimpleActivity0 State: "+mp);
                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
                    glWindowMain.addGLEventListener(demoMain);
-                   anim.setUpdateFPSFrames(60, System.err);
+                   anim.setUpdateFPSFrames(60*5, System.err);
                    anim.resetFPSCounter();
                }
                if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
                    final StreamException se = mPlayer.getStreamException();
                    if( null != se ) {
-                       se.printStackTrace();                        
+                       se.printStackTrace();
                    }
                    getActivity().finish();
                }
            }
        });
        demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
-       
+
        scrn.removeReference();
 
        Log.d(TAG, "onCreate - X");
    }
-   
-   static URI getURI(String path[], int off, boolean checkAvail) {
+
+   static URI getURI(final String path[], final int off, final boolean checkAvail) {
        URI uri = null;
        for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
@@ -136,7 +138,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
                    if( null != uc ) {
                        try {
                            uri = uc.getURL().toURI();
-                       } catch (URISyntaxException e) {
+                       } catch (final URISyntaxException e) {
                            uri = null;
                        }
                        if( uc instanceof HttpURLConnection ) {
@@ -146,7 +148,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
                } else {
                    try {
                        uri = new URI(path[i]);
-                   } catch (URISyntaxException e) {
+                   } catch (final URISyntaxException e) {
                        uri = null;
                    }
                }

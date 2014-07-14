@@ -47,13 +47,13 @@ public final class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLi
 
     @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
-        List<String> res = new ArrayList<String>();
+        final List<String> res = new ArrayList<String>();
         res.add("wglGetProcAddress");
         return res;
     }
 
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return WGL.wglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 }

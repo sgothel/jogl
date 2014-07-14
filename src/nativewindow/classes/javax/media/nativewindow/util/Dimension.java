@@ -37,7 +37,11 @@ public class Dimension implements Cloneable, DimensionImmutable {
         this(0, 0);
     }
 
-    public Dimension(int width, int height) {
+    public Dimension(final int[] size) {
+        this(size[0], size[1]);
+    }
+
+    public Dimension(final int width, final int height) {
         if(width<0 || height<0) {
             throw new IllegalArgumentException("width and height must be within: ["+0+".."+Integer.MAX_VALUE+"]");
         }
@@ -54,7 +58,7 @@ public class Dimension implements Cloneable, DimensionImmutable {
     public Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (final CloneNotSupportedException ex) {
             throw new InternalError();
         }
     }
@@ -64,22 +68,22 @@ public class Dimension implements Cloneable, DimensionImmutable {
     @Override
     public final int getHeight() { return height; }
 
-    public final void set(int width, int height) {
+    public final void set(final int width, final int height) {
         this.width = width;
         this.height = height;
     }
-    public final void setWidth(int width) {
+    public final void setWidth(final int width) {
         this.width = width;
     }
-    public final void setHeight(int height) {
+    public final void setHeight(final int height) {
         this.height = height;
     }
-    public final Dimension scale(int s) {
+    public final Dimension scale(final int s) {
         width *= s;
         height *= s;
         return this;
     }
-    public final Dimension add(Dimension pd) {
+    public final Dimension add(final Dimension pd) {
         width += pd.width ;
         height += pd.height ;
         return this;
@@ -104,10 +108,10 @@ public class Dimension implements Cloneable, DimensionImmutable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Dimension) {
-            Dimension p = (Dimension)obj;
+            final Dimension p = (Dimension)obj;
             return height == p.height &&
                    width == p.width ;
         }
@@ -117,7 +121,7 @@ public class Dimension implements Cloneable, DimensionImmutable {
     @Override
     public int hashCode() {
         // 31 * x == (x << 5) - x
-        int hash = 31 + width;
+        final int hash = 31 + width;
         return ((hash << 5) - hash) + height;
     }
 }

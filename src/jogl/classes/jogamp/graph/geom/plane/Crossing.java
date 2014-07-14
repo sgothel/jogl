@@ -51,10 +51,10 @@ public class Crossing {
      * @param res - the roots of the equation
      * @return a number of roots
      */
-    public static int solveQuad(float eqn[], float res[]) {
-        float a = eqn[2];
-        float b = eqn[1];
-        float c = eqn[0];
+    public static int solveQuad(final float eqn[], final float res[]) {
+        final float a = eqn[2];
+        final float b = eqn[1];
+        final float c = eqn[0];
         int rc = 0;
         if (a == 0.0) {
             if (b == 0.0) {
@@ -83,26 +83,26 @@ public class Crossing {
      * @param res - the roots of the equation
      * @return a number of roots
      */
-    public static int solveCubic(float eqn[], float res[]) {
-        float d = eqn[3];
+    public static int solveCubic(final float eqn[], final float res[]) {
+        final float d = eqn[3];
         if (d == 0) {
             return solveQuad(eqn, res);
         }
-        float a = eqn[2] / d;
-        float b = eqn[1] / d;
-        float c = eqn[0] / d;
+        final float a = eqn[2] / d;
+        final float b = eqn[1] / d;
+        final float c = eqn[0] / d;
         int rc = 0;
 
-        float Q = (a * a - 3.0f * b) / 9.0f;
-        float R = (2.0f * a * a * a - 9.0f * a * b + 27.0f * c) / 54.0f;
-        float Q3 = Q * Q * Q;
-        float R2 = R * R;
-        float n = - a / 3.0f;
+        final float Q = (a * a - 3.0f * b) / 9.0f;
+        final float R = (2.0f * a * a * a - 9.0f * a * b + 27.0f * c) / 54.0f;
+        final float Q3 = Q * Q * Q;
+        final float R2 = R * R;
+        final float n = - a / 3.0f;
 
         if (R2 < Q3) {
-            float t = FloatUtil.acos(R / FloatUtil.sqrt(Q3)) / 3.0f;
-            float p = 2.0f * FloatUtil.PI / 3.0f;
-            float m = -2.0f * FloatUtil.sqrt(Q);
+            final float t = FloatUtil.acos(R / FloatUtil.sqrt(Q3)) / 3.0f;
+            final float p = 2.0f * FloatUtil.PI / 3.0f;
+            final float m = -2.0f * FloatUtil.sqrt(Q);
             res[rc++] = m * FloatUtil.cos(t) + n;
             res[rc++] = m * FloatUtil.cos(t + p) + n;
             res[rc++] = m * FloatUtil.cos(t - p) + n;
@@ -116,10 +116,10 @@ public class Crossing {
             if (-ROOT_DELTA < A && A < ROOT_DELTA) {
                 res[rc++] = n;
             } else {
-                float B = Q / A;
+                final float B = Q / A;
                 res[rc++] = A + B + n;
 //              if (R2 == Q3) {
-                float delta = R2 - Q3;
+                final float delta = R2 - Q3;
                 if (-ROOT_DELTA < delta && delta < ROOT_DELTA) {
                     res[rc++] = - (A + B) / 2.0f + n;
                 }
@@ -135,7 +135,7 @@ public class Crossing {
      * @param rc - the roots count
      * @return new roots count
      */
-    static int fixRoots(float res[], int rc) {
+    static int fixRoots(final float res[], final int rc) {
         int tc = 0;
         for(int i = 0; i < rc; i++) {
             out: {
@@ -158,7 +158,7 @@ public class Crossing {
         float ax, ay, bx, by;
         float Ax, Ay, Bx, By;
 
-        public QuadCurve(float x1, float y1, float cx, float cy, float x2, float y2) {
+        public QuadCurve(final float x1, final float y1, final float cx, final float cy, final float x2, final float y2) {
             ax = x2 - x1;
             ay = y2 - y1;
             bx = cx - x1;
@@ -171,11 +171,11 @@ public class Crossing {
             Ay = ay - By;   // Ay = ay - 2.0 * by
         }
 
-        int cross(float res[], int rc, float py1, float py2) {
+        int cross(final float res[], final int rc, final float py1, final float py2) {
             int cross = 0;
 
             for (int i = 0; i < rc; i++) {
-                float t = res[i];
+                final float t = res[i];
 
                 // CURVE-OUTSIDE
                 if (t < -DELTA || t > 1 + DELTA) {
@@ -190,16 +190,17 @@ public class Crossing {
                 }
                 // CURVE-END
                 if (t > 1 - DELTA) {
+                    // FIXME: consider using FloatUtil.isEqual(ax, bx, epsilon), ...
                     if (py1 < ay && (ax != bx ? ax - bx : bx) > 0.0) {
                         cross++;
                     }
                     continue;
                 }
                 // CURVE-INSIDE
-                float ry = t * (t * Ay + By);
+                final float ry = t * (t * Ay + By);
                 // ry = t * t * Ay + t * By
                 if (ry > py2) {
-                    float rxt = t * Ax + bx;
+                    final float rxt = t * Ax + bx;
                     // rxt = 2.0 * t * Ax + Bx = 2.0 * t * Ax + 2.0 * bx
                     if (rxt > -DELTA && rxt < DELTA) {
                         continue;
@@ -211,12 +212,12 @@ public class Crossing {
             return cross;
         }
 
-        int solvePoint(float res[], float px) {
-            float eqn[] = {-px, Bx, Ax};
+        int solvePoint(final float res[], final float px) {
+            final float eqn[] = {-px, Bx, Ax};
             return solveQuad(eqn, res);
         }
 
-        int solveExtrem(float res[]) {
+        int solveExtrem(final float res[]) {
             int rc = 0;
             if (Ax != 0.0) {
                 res[rc++] = - Bx / (Ax + Ax);
@@ -227,11 +228,11 @@ public class Crossing {
             return rc;
         }
 
-        int addBound(float bound[], int bc, float res[], int rc, float minX, float maxX, boolean changeId, int id) {
+        int addBound(final float bound[], int bc, final float res[], final int rc, final float minX, final float maxX, final boolean changeId, int id) {
             for(int i = 0; i < rc; i++) {
-                float t = res[i];
+                final float t = res[i];
                 if (t > -DELTA && t < 1 + DELTA) {
-                    float rx = t * (t * Ax + Bx);
+                    final float rx = t * (t * Ax + Bx);
                     if (minX <= rx && rx <= maxX) {
                         bound[bc++] = t;
                         bound[bc++] = rx;
@@ -257,7 +258,7 @@ public class Crossing {
         float Ax, Ay, Bx, By, Cx, Cy;
         float Ax3, Bx2;
 
-        public CubicCurve(float x1, float y1, float cx1, float cy1, float cx2, float cy2, float x2, float y2) {
+        public CubicCurve(final float x1, final float y1, final float cx1, final float cy1, final float cx2, final float cy2, final float x2, final float y2) {
             ax = x2 - x1;
             ay = y2 - y1;
             bx = cx1 - x1;
@@ -277,10 +278,10 @@ public class Crossing {
             Bx2 = Bx + Bx;
         }
 
-        int cross(float res[], int rc, float py1, float py2) {
+        int cross(final float res[], final int rc, final float py1, final float py2) {
             int cross = 0;
             for (int i = 0; i < rc; i++) {
-                float t = res[i];
+                final float t = res[i];
 
                 // CURVE-OUTSIDE
                 if (t < -DELTA || t > 1 + DELTA) {
@@ -288,6 +289,7 @@ public class Crossing {
                 }
                 // CURVE-START
                 if (t < DELTA) {
+                    // FIXME: consider using FloatUtil.isZero(bx, epsilon), ...
                     if (py1 < 0.0 && (bx != 0.0 ? bx : (cx != bx ? cx - bx : ax - cx)) < 0.0) {
                         cross--;
                     }
@@ -301,7 +303,7 @@ public class Crossing {
                     continue;
                 }
                 // CURVE-INSIDE
-                float ry = t * (t * (t * Ay + By) + Cy);
+                final float ry = t * (t * (t * Ay + By) + Cy);
                 // ry = t * t * t * Ay + t * t * By + t * Cy
                 if (ry > py2) {
                     float rxt = t * (t * Ax3 + Bx2) + Cx;
@@ -322,26 +324,26 @@ public class Crossing {
             return cross;
         }
 
-        int solvePoint(float res[], float px) {
-            float eqn[] = {-px, Cx, Bx, Ax};
+        int solvePoint(final float res[], final float px) {
+            final float eqn[] = {-px, Cx, Bx, Ax};
             return solveCubic(eqn, res);
         }
 
-        int solveExtremX(float res[]) {
-            float eqn[] = {Cx, Bx2, Ax3};
+        int solveExtremX(final float res[]) {
+            final float eqn[] = {Cx, Bx2, Ax3};
             return solveQuad(eqn, res);
         }
 
-        int solveExtremY(float res[]) {
-            float eqn[] = {Cy, By + By, Ay + Ay + Ay};
+        int solveExtremY(final float res[]) {
+            final float eqn[] = {Cy, By + By, Ay + Ay + Ay};
             return solveQuad(eqn, res);
         }
 
-        int addBound(float bound[], int bc, float res[], int rc, float minX, float maxX, boolean changeId, int id) {
+        int addBound(final float bound[], int bc, final float res[], final int rc, final float minX, final float maxX, final boolean changeId, int id) {
             for(int i = 0; i < rc; i++) {
-                float t = res[i];
+                final float t = res[i];
                 if (t > -DELTA && t < 1 + DELTA) {
-                    float rx = t * (t * (t * Ax + Bx) + Cx);
+                    final float rx = t * (t * (t * Ax + Bx) + Cx);
                     if (minX <= rx && rx <= maxX) {
                         bound[bc++] = t;
                         bound[bc++] = rx;
@@ -361,7 +363,7 @@ public class Crossing {
     /**
      * Returns how many times ray from point (x,y) cross line.
      */
-    public static int crossLine(float x1, float y1, float x2, float y2, float x, float y) {
+    public static int crossLine(final float x1, final float y1, final float x2, final float y2, final float x, final float y) {
 
         // LEFT/RIGHT/UP/EMPTY
         if ((x < x1 && x < x2) ||
@@ -399,7 +401,7 @@ public class Crossing {
     /**
      * Returns how many times ray from point (x,y) cross quard curve
      */
-    public static int crossQuad(float x1, float y1, float cx, float cy, float x2, float y2, float x, float y) {
+    public static int crossQuad(final float x1, final float y1, final float cx, final float cy, final float x2, final float y2, final float x, final float y) {
 
         // LEFT/RIGHT/UP/EMPTY
         if ((x < x1 && x < cx && x < x2) ||
@@ -419,11 +421,11 @@ public class Crossing {
         }
 
         // INSIDE
-        QuadCurve c = new QuadCurve(x1, y1, cx, cy, x2, y2);
-        float px = x - x1;
-        float py = y - y1;
-        float res[] = new float[3];
-        int rc = c.solvePoint(res, px);
+        final QuadCurve c = new QuadCurve(x1, y1, cx, cy, x2, y2);
+        final float px = x - x1;
+        final float py = y - y1;
+        final float res[] = new float[3];
+        final int rc = c.solvePoint(res, px);
 
         return c.cross(res, rc, py, py);
     }
@@ -431,7 +433,7 @@ public class Crossing {
     /**
      * Returns how many times ray from point (x,y) cross cubic curve
      */
-    public static int crossCubic(float x1, float y1, float cx1, float cy1, float cx2, float cy2, float x2, float y2, float x, float y) {
+    public static int crossCubic(final float x1, final float y1, final float cx1, final float cy1, final float cx2, final float cy2, final float x2, final float y2, final float x, final float y) {
 
         // LEFT/RIGHT/UP/EMPTY
         if ((x < x1 && x < cx1 && x < cx2 && x < x2) ||
@@ -451,18 +453,18 @@ public class Crossing {
         }
 
         // INSIDE
-        CubicCurve c = new CubicCurve(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
-        float px = x - x1;
-        float py = y - y1;
-        float res[] = new float[3];
-        int rc = c.solvePoint(res, px);
+        final CubicCurve c = new CubicCurve(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+        final float px = x - x1;
+        final float py = y - y1;
+        final float res[] = new float[3];
+        final int rc = c.solvePoint(res, px);
         return c.cross(res, rc, py, py);
     }
 
     /**
      * Returns how many times ray from point (x,y) cross path
      */
-    public static int crossPath(PathIterator p, float x, float y) {
+    public static int crossPath(final PathIterator p, final float x, final float y) {
         int cross = 0;
         float mx, my, cx, cy;
         mx = my = cx = cy = 0.0f;
@@ -513,7 +515,7 @@ public class Crossing {
     /**
      * Returns how many times ray from point (x,y) cross shape
      */
-    public static int crossShape(Path2D s, float x, float y) {
+    public static int crossShape(final Path2D s, final float x, final float y) {
         if (!s.getBounds2D().contains(x, y)) {
             return 0;
         }
@@ -523,14 +525,14 @@ public class Crossing {
     /**
      * Returns true if value enough small
      */
-    public static boolean isZero(float val) {
+    public static boolean isZero(final float val) {
         return -DELTA < val && val < DELTA;
     }
 
     /**
      * Sort bound array
      */
-    static void sortBound(float bound[], int bc) {
+    static void sortBound(final float bound[], final int bc) {
         for(int i = 0; i < bc - 4; i += 4) {
             int k = i;
             for(int j = i + 4; j < bc; j += 4) {
@@ -558,7 +560,7 @@ public class Crossing {
     /**
      * Returns are bounds intersect or not intersect rectangle
      */
-    static int crossBound(float bound[], int bc, float py1, float py2) {
+    static int crossBound(final float bound[], final int bc, final float py1, final float py2) {
 
         // LEFT/RIGHT
         if (bc == 0) {
@@ -590,7 +592,7 @@ public class Crossing {
             sortBound(bound, bc);
             boolean sign = bound[2] > py2;
             for(int i = 6; i < bc; i += 4) {
-                boolean sign2 = bound[i] > py2;
+                final boolean sign2 = bound[i] > py2;
                 if (sign != sign2 && bound[i + 1] != bound[i - 3]) {
                     return CROSSING;
                 }
@@ -603,7 +605,7 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross line or the are intersect
      */
-    public static int intersectLine(float x1, float y1, float x2, float y2, float rx1, float ry1, float rx2, float ry2) {
+    public static int intersectLine(final float x1, final float y1, final float x2, final float y2, final float rx1, final float ry1, final float rx2, final float ry2) {
 
         // LEFT/RIGHT/UP
         if ((rx2 < x1 && rx2 < x2) ||
@@ -631,9 +633,9 @@ public class Crossing {
                 bx1 = x2 < rx1 ? rx1 : x2;
                 bx2 = x1 < rx2 ? x1 : rx2;
             }
-            float k = (y2 - y1) / (x2 - x1);
-            float by1 = k * (bx1 - x1) + y1;
-            float by2 = k * (bx2 - x1) + y1;
+            final float k = (y2 - y1) / (x2 - x1);
+            final float by1 = k * (bx1 - x1) + y1;
+            final float by2 = k * (bx2 - x1) + y1;
 
             // BOUND-UP
             if (by1 < ry1 && by2 < ry1) {
@@ -672,7 +674,7 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross quad curve or the are intersect
      */
-    public static int intersectQuad(float x1, float y1, float cx, float cy, float x2, float y2, float rx1, float ry1, float rx2, float ry2) {
+    public static int intersectQuad(final float x1, final float y1, final float cx, final float cy, final float x2, final float y2, final float rx1, final float ry1, final float rx2, final float ry2) {
 
         // LEFT/RIGHT/UP ------------------------------------------------------
         if ((rx2 < x1 && rx2 < cx && rx2 < x2) ||
@@ -691,15 +693,15 @@ public class Crossing {
         }
 
         // INSIDE -------------------------------------------------------------
-        QuadCurve c = new QuadCurve(x1, y1, cx, cy, x2, y2);
-        float px1 = rx1 - x1;
-        float py1 = ry1 - y1;
-        float px2 = rx2 - x1;
-        float py2 = ry2 - y1;
+        final QuadCurve c = new QuadCurve(x1, y1, cx, cy, x2, y2);
+        final float px1 = rx1 - x1;
+        final float py1 = ry1 - y1;
+        final float px2 = rx2 - x1;
+        final float py2 = ry2 - y1;
 
-        float res1[] = new float[3];
-        float res2[] = new float[3];
-        int rc1 = c.solvePoint(res1, px1);
+        final float res1[] = new float[3];
+        final float res2[] = new float[3];
+        final int rc1 = c.solvePoint(res1, px1);
         int rc2 = c.solvePoint(res2, px2);
 
         // INSIDE-LEFT/RIGHT
@@ -708,9 +710,9 @@ public class Crossing {
         }
 
         // Build bound --------------------------------------------------------
-        float minX = px1 - DELTA;
-        float maxX = px2 + DELTA;
-        float bound[] = new float[28];
+        final float minX = px1 - DELTA;
+        final float maxX = px2 + DELTA;
+        final float bound[] = new float[28];
         int bc = 0;
         // Add roots
         bc = c.addBound(bound, bc, res1, rc1, minX, maxX, false, 0);
@@ -733,7 +735,7 @@ public class Crossing {
         }
         // End build bound ----------------------------------------------------
 
-        int cross = crossBound(bound, bc, py1, py2);
+        final int cross = crossBound(bound, bc, py1, py2);
         if (cross != UNKNOWN) {
             return cross;
         }
@@ -743,7 +745,7 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross cubic curve or the are intersect
      */
-    public static int intersectCubic(float x1, float y1, float cx1, float cy1, float cx2, float cy2, float x2, float y2, float rx1, float ry1, float rx2, float ry2) {
+    public static int intersectCubic(final float x1, final float y1, final float cx1, final float cy1, final float cx2, final float cy2, final float x2, final float y2, final float rx1, final float ry1, final float rx2, final float ry2) {
 
         // LEFT/RIGHT/UP
         if ((rx2 < x1 && rx2 < cx1 && rx2 < cx2 && rx2 < x2) ||
@@ -762,15 +764,15 @@ public class Crossing {
         }
 
         // INSIDE
-        CubicCurve c = new CubicCurve(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
-        float px1 = rx1 - x1;
-        float py1 = ry1 - y1;
-        float px2 = rx2 - x1;
-        float py2 = ry2 - y1;
+        final CubicCurve c = new CubicCurve(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+        final float px1 = rx1 - x1;
+        final float py1 = ry1 - y1;
+        final float px2 = rx2 - x1;
+        final float py2 = ry2 - y1;
 
-        float res1[] = new float[3];
-        float res2[] = new float[3];
-        int rc1 = c.solvePoint(res1, px1);
+        final float res1[] = new float[3];
+        final float res2[] = new float[3];
+        final int rc1 = c.solvePoint(res1, px1);
         int rc2 = c.solvePoint(res2, px2);
 
         // LEFT/RIGHT
@@ -778,11 +780,11 @@ public class Crossing {
             return 0;
         }
 
-        float minX = px1 - DELTA;
-        float maxX = px2 + DELTA;
+        final float minX = px1 - DELTA;
+        final float maxX = px2 + DELTA;
 
         // Build bound --------------------------------------------------------
-        float bound[] = new float[40];
+        final float bound[] = new float[40];
         int bc = 0;
         // Add roots
         bc = c.addBound(bound, bc, res1, rc1, minX, maxX, false, 0);
@@ -807,7 +809,7 @@ public class Crossing {
         }
         // End build bound ----------------------------------------------------
 
-        int cross = crossBound(bound, bc, py1, py2);
+        final int cross = crossBound(bound, bc, py1, py2);
         if (cross != UNKNOWN) {
             return cross;
         }
@@ -817,7 +819,7 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross path or the are intersect
      */
-    public static int intersectPath(PathIterator p, float x, float y, float w, float h) {
+    public static int intersectPath(final PathIterator p, final float x, final float y, final float w, final float h) {
 
         int cross = 0;
         int count;
@@ -825,10 +827,10 @@ public class Crossing {
         mx = my = cx = cy = 0.0f;
         final float coords[] = new float[6];
 
-        float rx1 = x;
-        float ry1 = y;
-        float rx2 = x + w;
-        float ry2 = y + h;
+        final float rx1 = x;
+        final float ry1 = y;
+        final float rx2 = x + w;
+        final float ry2 = y + h;
 
         while (!p.isDone()) {
             count = 0;
@@ -879,8 +881,8 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross shape or the are intersect
      */
-    public static int intersectShape(Path2D s, float x, float y, float w, float h) {
-        if (!s.getBounds2D().intersects(x, y, w, h)) {
+    public static int intersectShape(final Path2D s, final float x, final float y, final float w, final float h) {
+        if (!s.getBounds2D().intersects2DRegion(x, y, w, h)) {
             return 0;
         }
         return intersectPath(s.iterator(null), x, y, w, h);
@@ -889,14 +891,14 @@ public class Crossing {
     /**
      * Returns true if cross count correspond inside location for non zero path rule
      */
-    public static boolean isInsideNonZero(int cross) {
+    public static boolean isInsideNonZero(final int cross) {
         return cross != 0;
     }
 
     /**
      * Returns true if cross count correspond inside location for even-odd path rule
      */
-    public static boolean isInsideEvenOdd(int cross) {
+    public static boolean isInsideEvenOdd(final int cross) {
         return (cross & 1) != 0;
     }
 }

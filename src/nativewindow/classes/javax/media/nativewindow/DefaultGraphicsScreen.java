@@ -36,12 +36,12 @@ public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen 
     private final AbstractGraphicsDevice device;
     private final int idx;
 
-    public DefaultGraphicsScreen(AbstractGraphicsDevice device, int idx) {
+    public DefaultGraphicsScreen(final AbstractGraphicsDevice device, final int idx) {
         this.device = device;
         this.idx = idx;
     }
 
-    public static AbstractGraphicsScreen createDefault(String type) {
+    public static AbstractGraphicsScreen createDefault(final String type) {
         return new DefaultGraphicsScreen(new DefaultGraphicsDevice(type, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT), 0);
     }
 
@@ -49,7 +49,7 @@ public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen 
     public Object clone() {
         try {
           return super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
           throw new NativeWindowException(e);
         }
     }

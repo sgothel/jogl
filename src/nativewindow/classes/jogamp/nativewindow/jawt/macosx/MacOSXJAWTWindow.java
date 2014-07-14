@@ -47,11 +47,13 @@ import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 
 import jogamp.nativewindow.Debug;
@@ -70,10 +72,10 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
 
   static {
       Debug.initSingleton();
-      DEBUG_CALAYER_POS_CRITICAL = Debug.isPropertyDefined("nativewindow.debug.JAWT.OSXCALayerPos", true /* jnlpAlias */);
+      DEBUG_CALAYER_POS_CRITICAL = PropertyAccess.isPropertyDefined("nativewindow.debug.JAWT.OSXCALayerPos", true /* jnlpAlias */);
   }
 
-  public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+  public MacOSXJAWTWindow(final Object comp, final AbstractGraphicsConfiguration config) {
     super(comp, config);
     if(DEBUG) {
         dumpInfo();
@@ -96,7 +98,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           if(0 != windowHandle) {
               OSXUtil.DestroyNSWindow(windowHandle);
           }
-          OSXUtil.RunOnMainThread(false, new Runnable() {
+          OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
               @Override
               public void run() {
                   if( 0 != rootSurfaceLayer ) {
@@ -114,41 +116,63 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  protected void attachSurfaceLayerImpl(final long layerHandle) {
-      OSXUtil.RunOnMainThread(false, new Runnable() {
-          @Override
-          public void run() {
-              // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
-              // Determine p0: components location on screen w/o insets.
-              // CALayer position will be determined in native code.
-              // See detailed description in {@link JAWTUtil#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
-              final Point p0 = new Point();
-              final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
-              final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
-              final Point p1 = (Point)p0.cloneMutable();
-              p1.translate(-outterComp.getX(), -outterComp.getY());
-              if( null != outterInsets ) {
-                  p1.translate(-outterInsets.left, -outterInsets.top);
-              }
+  public void setSurfaceScale(final int[] pixelScale) {
+      super.setSurfaceScale(pixelScale);
+      if( 0 != getWindowHandle() ) { // locked at least once !
+          final int hadPixelScaleX = getPixelScaleX();
+          updatePixelScale();
 
-              if( DEBUG_CALAYER_POS_CRITICAL ) {
-                  final java.awt.Point pA0 = component.getLocationOnScreen();
-                  final Point pA1 = new Point(pA0.x, pA0.y);
-                  pA1.translate(-outterComp.getX(), -outterComp.getY());
-                  if( null != outterInsets ) {
-                      pA1.translate(-outterInsets.left, -outterInsets.top);
+          if( hadPixelScaleX != getPixelScaleX() && 0 != getAttachedSurfaceLayer() ) {
+              OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                  @Override
+                  public void run() {
+                      final long osl = getAttachedSurfaceLayer();
+                      if( 0 != osl ) {
+                          OSXUtil.SetCALayerPixelScale(rootSurfaceLayer, osl, getPixelScaleX());
+                      }
                   }
-                  System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
-                          ", p0 "+p0+" -> "+p1+", bounds "+bounds);
-              } else if( DEBUG ) {
-                  System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
-              }
-              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
-          } } );
+              });
+          }
+      }
   }
 
   @Override
-  protected void layoutSurfaceLayerImpl(long layerHandle, boolean visible) {
+  protected void attachSurfaceLayerImpl(final long layerHandle) {
+      OSXUtil.RunOnMainThread(false, false /* kickNSApp */, new Runnable() {
+              @Override
+              public void run() {
+                  // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
+                  // Determine p0: components location on screen w/o insets.
+                  // CALayer position will be determined in native code.
+                  // See detailed description in {@link JAWTUtil#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
+                  final Point p0 = new Point();
+                  final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
+                  final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
+                  final Point p1 = (Point)p0.cloneMutable();
+                  p1.translate(-outterComp.getX(), -outterComp.getY());
+                  if( null != outterInsets ) {
+                      p1.translate(-outterInsets.left, -outterInsets.top);
+                  }
+
+                  if( DEBUG_CALAYER_POS_CRITICAL ) {
+                      final java.awt.Point pA0 = component.getLocationOnScreen();
+                      final Point pA1 = new Point(pA0.x, pA0.y);
+                      pA1.translate(-outterComp.getX(), -outterComp.getY());
+                      if( null != outterInsets ) {
+                          pA1.translate(-outterInsets.left, -outterInsets.top);
+                      }
+                      System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
+                              ", p0 "+p0+" -> "+p1+", bounds "+bounds);
+                  } else if( DEBUG ) {
+                      System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
+                  }
+                  // HiDPI: uniform pixel scale
+                  OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), getPixelScaleX(), JAWTUtil.getOSXCALayerQuirks());
+              } } );
+  }
+
+  @Override
+  protected void layoutSurfaceLayerImpl(final long layerHandle, final boolean visible) {
       final int caLayerQuirks = JAWTUtil.getOSXCALayerQuirks();
       // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
       // Determine p0: components location on screen w/o insets.
@@ -182,12 +206,12 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
 
   @Override
   protected void detachSurfaceLayerImpl(final long layerHandle, final Runnable detachNotify) {
-      OSXUtil.RunOnMainThread(false, new Runnable() {
-          @Override
-          public void run() {
-              detachNotify.run();
-              OSXUtil.RemoveCASublayer(rootSurfaceLayer, layerHandle);
-          } } );
+      OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
+              @Override
+              public void run() {
+                  detachNotify.run();
+                  OSXUtil.RemoveCASublayer(rootSurfaceLayer, layerHandle);
+              } });
   }
 
   @Override
@@ -201,7 +225,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  public void setSurfaceHandle(long surfaceHandle) {
+  public void setSurfaceHandle(final long surfaceHandle) {
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new java.lang.UnsupportedOperationException("Not using CALAYER");
       }
@@ -220,14 +244,14 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
 
   @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
-    int ret = NativeWindow.LOCK_SURFACE_NOT_READY;
+    int ret = NativeSurface.LOCK_SURFACE_NOT_READY;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       unlockSurfaceImpl();
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
+      return NativeSurface.LOCK_SURFACE_NOT_READY;
     }
-    int res = ds.Lock();
+    final int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
       unlockSurfaceImpl();
@@ -239,7 +263,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     // conditions can cause this code to be triggered -- should test
     // more)
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
-      ret = NativeWindow.LOCK_SURFACE_CHANGED;
+      ret = NativeSurface.LOCK_SURFACE_CHANGED;
     }
     if (firstLock) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -254,9 +278,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     }
     if (dsi == null) {
       unlockSurfaceImpl();
-      return NativeWindow.LOCK_SURFACE_NOT_READY;
+      return NativeSurface.LOCK_SURFACE_NOT_READY;
     }
-    updateBounds(dsi.getBounds());
+    updateLockedData(dsi.getBounds());
     if (DEBUG && firstLock ) {
       dumpInfo();
     }
@@ -265,16 +289,16 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
         macosxdsi = (JAWT_MacOSXDrawingSurfaceInfo) dsi.platformInfo(getJAWT());
         if (macosxdsi == null) {
           unlockSurfaceImpl();
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
+          return NativeSurface.LOCK_SURFACE_NOT_READY;
         }
         drawable = macosxdsi.getCocoaViewRef();
 
         if (drawable == 0) {
           unlockSurfaceImpl();
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
+          return NativeSurface.LOCK_SURFACE_NOT_READY;
         } else {
           windowHandle = OSXUtil.GetNSWindow(drawable);
-          ret = NativeWindow.LOCK_SUCCESS;
+          ret = NativeSurface.LOCK_SUCCESS;
         }
     } else {
         /**
@@ -304,30 +328,30 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
         }
         if(null == errMsg) {
             jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
-            OSXUtil.RunOnMainThread(false, new Runnable() {
-                @Override
-                public void run() {
-                    String errMsg = null;
-                    if(0 == rootSurfaceLayer && 0 != jawtSurfaceLayersHandle) {
-                        rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getWidth(), bounds.getHeight());
-                        if(0 == rootSurfaceLayer) {
-                          errMsg = "Could not create root CALayer";
-                        } else {
-                            try {
-                                SetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
-                            } catch(Exception e) {
-                                errMsg = "Could not set JAWT rootSurfaceLayerHandle "+toHexString(rootSurfaceLayer)+", cause: "+e.getMessage();
+            OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        String errMsg = null;
+                        if(0 == rootSurfaceLayer && 0 != jawtSurfaceLayersHandle) {
+                            rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getWidth(), bounds.getHeight(), getPixelScaleX()); // HiDPI: uniform pixel scale
+                            if(0 == rootSurfaceLayer) {
+                              errMsg = "Could not create root CALayer";
+                            } else {
+                                try {
+                                    SetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
+                                } catch(final Exception e) {
+                                    errMsg = "Could not set JAWT rootSurfaceLayerHandle "+toHexString(rootSurfaceLayer)+", cause: "+e.getMessage();
+                                }
+                            }
+                            if(null != errMsg) {
+                                if(0 != rootSurfaceLayer) {
+                                  OSXUtil.DestroyCALayer(rootSurfaceLayer);
+                                  rootSurfaceLayer = 0;
+                                }
+                                throw new NativeWindowException(errMsg+": "+MacOSXJAWTWindow.this);
                             }
                         }
-                        if(null != errMsg) {
-                            if(0 != rootSurfaceLayer) {
-                              OSXUtil.DestroyCALayer(rootSurfaceLayer);
-                              rootSurfaceLayer = 0;
-                            }
-                            throw new NativeWindowException(errMsg+": "+MacOSXJAWTWindow.this);
-                        }
-                    }
-                } } );
+                    } } );
         }
         if(null != errMsg) {
             if(0 != windowHandle) {
@@ -338,7 +362,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
             unlockSurfaceImpl();
             throw new NativeWindowException(errMsg+": "+this);
         }
-        ret = NativeWindow.LOCK_SUCCESS;
+        ret = NativeSurface.LOCK_SUCCESS;
     }
 
     return ret;

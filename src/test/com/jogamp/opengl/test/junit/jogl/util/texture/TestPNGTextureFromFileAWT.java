@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 
@@ -51,7 +51,6 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 
 import java.awt.Dimension;
 import java.awt.Frame;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -87,7 +86,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         grayTextureStream = TestPNGTextureFromFileAWT.class.getResourceAsStream( "grayscale_texture.png" );
         Assert.assertNotNull(grayTextureStream);
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream);
@@ -100,8 +99,8 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         testTextureStream = null;
     }
 
-    public void testImpl(boolean useFFP, final InputStream istream, final boolean useAWTIIOP) 
-            throws InterruptedException, IOException 
+    public void testImpl(final boolean useFFP, final InputStream istream, final boolean useAWTIIOP)
+            throws InterruptedException, IOException
     {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         GLProfile glp;
@@ -122,9 +121,9 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
             texData = TextureIO.newTextureData(glp, istream, false /* mipmap */, TextureIO.PNG);
         }
         System.err.println("TextureData: "+texData);
-        
+
         final GLCanvas glc = new GLCanvas(caps);
-        Dimension glc_sz = new Dimension(texData.getWidth(), texData.getHeight());
+        final Dimension glc_sz = new Dimension(texData.getWidth(), texData.getHeight());
         glc.setMinimumSize(glc_sz);
         glc.setPreferredSize(glc_sz);
         final Frame frame = new Frame("TestPNGTextureGL2FromFileAWT");
@@ -135,13 +134,13 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         // the bug submitter was doing it
         final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData, 0 ) ;
         glc.addGLEventListener(gle);
-        glc.addGLEventListener(new GLEventListener() {            
+        glc.addGLEventListener(new GLEventListener() {
             boolean shot = false;
-            
-            @Override public void init(GLAutoDrawable drawable) {}
-            
+
+            @Override public void init(final GLAutoDrawable drawable) {}
+
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
@@ -149,31 +148,33 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
                 }
             }
 
-            @Override public void dispose(GLAutoDrawable drawable) { }
-            @Override public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+            @Override public void dispose(final GLAutoDrawable drawable) { }
+            @Override public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
 
-        Animator animator = new Animator(glc);
-        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        QuitAdapter quitAdapter = new QuitAdapter();
-        new com.jogamp.newt.event.awt.AWTKeyAdapter(quitAdapter).addTo(glc);
-        new com.jogamp.newt.event.awt.AWTWindowAdapter(quitAdapter).addTo(glc);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new com.jogamp.newt.event.awt.AWTKeyAdapter(quitAdapter, glc).addTo(glc);
+        new com.jogamp.newt.event.awt.AWTWindowAdapter(quitAdapter, glc).addTo(glc);
+
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.pack();
                     frame.setVisible(true);
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }        
+        }
+
+        final Animator animator = new Animator(glc);
+        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
-        
+
         animator.stop();
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -182,55 +183,55 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
                     frame.remove(glc);
                     frame.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }        
+        }
     }
-    
+
     @Test
     public void testGrayAWTILoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, grayTextureStream, true);        
-    }    
+        testImpl(true, grayTextureStream, true);
+    }
     @Test
     public void testGrayAWTILoaderES2() throws InterruptedException, IOException {
-        testImpl(false, grayTextureStream, true);        
+        testImpl(false, grayTextureStream, true);
     }
-    
+
     @Test
     public void testGrayPNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, grayTextureStream, false);        
+        testImpl(true, grayTextureStream, false);
     }
     @Test
     public void testGrayPNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, grayTextureStream, false);        
+        testImpl(false, grayTextureStream, false);
     }
-    
+
     @Test
     public void testTestAWTILoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStream, true);        
+        testImpl(true, testTextureStream, true);
     }
     @Test
     public void testTestAWTILoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStream, true);        
+        testImpl(false, testTextureStream, true);
     }
-    
+
     @Test
     public void testTestPNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStream, false);        
+        testImpl(true, testTextureStream, false);
     }
     @Test
     public void testTestPNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStream, false);        
+        testImpl(false, testTextureStream, false);
     }
-    
-    public static void main(String args[]) throws IOException {
+
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
             }
         }
-        org.junit.runner.JUnitCore.main(TestPNGTextureFromFileAWT.class.getName());        
+        org.junit.runner.JUnitCore.main(TestPNGTextureFromFileAWT.class.getName());
     }
 }

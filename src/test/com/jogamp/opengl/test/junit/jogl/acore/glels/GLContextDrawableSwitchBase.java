@@ -76,7 +76,7 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
 
     static int width, height;
 
-    static GLCapabilities getCaps(String profile) {
+    static GLCapabilities getCaps(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -98,7 +98,7 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
                     glc.setPreferredSize(new_sz);
                     glc.setSize(new_sz);
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -111,7 +111,7 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
                 frame.pack();
                 frame.setVisible(true);
             }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -123,18 +123,18 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
             public void run() {
                 frame.dispose();
             }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
     }
 
-    private GLOffscreenAutoDrawable createGLOffscreenAutoDrawable(GLCapabilities caps, int width, int height) throws InterruptedException {
+    private GLOffscreenAutoDrawable createGLOffscreenAutoDrawable(final GLCapabilities caps, final int width, final int height) throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         return factory.createOffscreenAutoDrawable(null, caps, null, width, height);
     }
 
-    protected static boolean validateOnOffscreenLayer(GLADType gladType1, GLADType gladType2) {
+    protected static boolean validateOnOffscreenLayer(final GLADType gladType1, final GLADType gladType2) {
         final boolean useOffscreenLayer = GLADType.GLCanvasOffscreen == gladType1 || GLADType.GLCanvasOffscreen == gladType2 ;
         final boolean useOnscreenLayer = GLADType.GLCanvasOnscreen == gladType1 || GLADType.GLCanvasOnscreen == gladType2 ;
         if( useOffscreenLayer ) {
@@ -151,9 +151,9 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         return true;
     }
 
-    protected void testGLADOneLifecycle(Screen screen, GLCapabilities caps, GLADType gladType, int width,
-                                        int height, GLEventListenerCounter glelTracker,
-                                        SnapshotGLEventListener snapshotGLEventListener, final GLEventListenerState glelsIn, final GLEventListenerState glelsOut[], GLAnimatorControl animator)
+    protected void testGLADOneLifecycle(final Screen screen, final GLCapabilities caps, final GLADType gladType, final int width,
+                                        final int height, final GLEventListenerCounter glelTracker,
+                                        final SnapshotGLEventListener snapshotGLEventListener, final GLEventListenerState glelsIn, final GLEventListenerState glelsOut[], final GLAnimatorControl animator)
             throws InterruptedException {
 
         System.err.println("GLAD Lifecycle.0 "+gladType+", restoring "+((null!=glelsIn)?true:false)+", preserving "+((null!=glelsOut)?true:false));

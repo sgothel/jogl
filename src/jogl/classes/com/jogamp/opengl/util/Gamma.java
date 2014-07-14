@@ -87,7 +87,7 @@ public class Gamma {
    * @throws IllegalArgumentException if any of the parameters were
    *   out-of-bounds
    */
-  public static boolean setDisplayGamma(GL gl, float gamma, float brightness, float contrast) throws IllegalArgumentException {
+  public static boolean setDisplayGamma(final GL gl, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
     return GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).setDisplayGamma(gamma, brightness, contrast);
   }
 
@@ -101,7 +101,7 @@ public class Gamma {
    * exiting, calling it is recommended because of the inevitable
    * unspecified behavior during JVM teardown.
    */
-  public static void resetDisplayGamma(GL gl) {
+  public static void resetDisplayGamma(final GL gl) {
     GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).resetDisplayGamma();
   }
 }

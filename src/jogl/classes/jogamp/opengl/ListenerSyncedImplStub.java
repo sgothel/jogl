@@ -58,18 +58,18 @@ public class ListenerSyncedImplStub<E> {
     return listeners.size();
   }
 
-  public synchronized final void addListener(E listener) {
+  public synchronized final void addListener(final E listener) {
     addListener(-1, listener);
   }
 
-  public synchronized final void addListener(int index, E listener) {
+  public synchronized final void addListener(int index, final E listener) {
     if(0>index) {
         index = listeners.size();
     }
     listeners.add(index, listener);
   }
 
-  public synchronized final void removeListener(E listener) {
+  public synchronized final void removeListener(final E listener) {
     listeners.remove(listener);
   }
 

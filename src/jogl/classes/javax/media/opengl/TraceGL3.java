@@ -17,7 +17,7 @@ import java.io.PrintStream;
  * </p>
  */
 public class TraceGL3 extends TraceGL4bc {
-    public TraceGL3(GL3 downstream, PrintStream stream) {
+    public TraceGL3(final GL3 downstream, final PrintStream stream) {
         super((GL4bc)downstream, stream);
     }
 }

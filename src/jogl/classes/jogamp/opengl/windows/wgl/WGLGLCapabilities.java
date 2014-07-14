@@ -44,7 +44,7 @@ public class WGLGLCapabilities extends GLCapabilities {
   final private int pfdID;
   private int arb_pixelformat; // -1 PFD, 0 NOP, 1 ARB
 
-  public WGLGLCapabilities(PIXELFORMATDESCRIPTOR pfd, int pfdID, GLProfile glp) {
+  public WGLGLCapabilities(final PIXELFORMATDESCRIPTOR pfd, final int pfdID, final GLProfile glp) {
       super(glp);
       this.pfd = pfd;
       this.pfdID = pfdID;
@@ -78,9 +78,9 @@ public class WGLGLCapabilities extends GLCapabilities {
       return true;
   }
 
-  public static final String PFD2String(PIXELFORMATDESCRIPTOR pfd, int pfdID) {
+  public static final String PFD2String(final PIXELFORMATDESCRIPTOR pfd, final int pfdID) {
       final int dwFlags = pfd.getDwFlags();
-      StringBuilder sb = new StringBuilder();
+      final StringBuilder sb = new StringBuilder();
       boolean sep = false;
 
       if( 0 != (GDI.PFD_DRAW_TO_WINDOW & dwFlags ) ) {
@@ -224,7 +224,7 @@ public class WGLGLCapabilities extends GLCapabilities {
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new GLException(e);
     }
   }
@@ -237,7 +237,7 @@ public class WGLGLCapabilities extends GLCapabilities {
   final public boolean isSet()      { return 0 != arb_pixelformat; }
 
   @Override
-  final public int getVisualID(VIDType type) throws NativeWindowException {
+  final public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
           case INTRINSIC:
           case NATIVE:

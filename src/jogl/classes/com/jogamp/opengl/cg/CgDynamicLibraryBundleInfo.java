@@ -49,7 +49,7 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
 
                 if(TempJarCache.isInitialized()) {
                    // only: jogl-cg.jar -> jogl-cg-natives-<os.and.arch>.jar [atomic JAR files only]
-                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { CgDynamicLibraryBundleInfo.class }, null, null );
+                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.opengl.cg.CgPackagePlaceholder.class }, null);
                 }
                 return null;
             }
@@ -89,12 +89,12 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
 
     /** Tool has none **/
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return 0;
     }
 
     @Override
-    public final boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(final String funcName) {
         return false;
     }
 

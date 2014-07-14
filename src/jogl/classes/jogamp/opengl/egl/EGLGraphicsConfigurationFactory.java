@@ -77,7 +77,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     static GraphicsConfigurationFactory fallbackGraphicsConfigurationFactory = null;
 
     static void registerFactory() {
-        GraphicsConfigurationFactory eglFactory = new EGLGraphicsConfigurationFactory();
+        final GraphicsConfigurationFactory eglFactory = new EGLGraphicsConfigurationFactory();
 
         // become the pre-selector for X11/.. to match the native visual id w/ EGL, if native ES is selected
         final String nwType = NativeWindowFactory.getNativeWindowType(false);
@@ -117,8 +117,8 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl (
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, final AbstractGraphicsScreen absScreen, final int nativeVisualID) {
         if (absScreen == null) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only AbstractGraphicsDevice objects");
         }
@@ -137,7 +137,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
-        AbstractGraphicsDevice absDevice = absScreen.getDevice();
+        final AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice) {
             throw new GLException("Null AbstractGraphicsDevice");
         }
@@ -181,7 +181,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return cfg;
     }
 
-    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(EGLDrawableFactory factory, AbstractGraphicsDevice device) {
+    protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(final EGLDrawableFactory factory, final AbstractGraphicsDevice device) {
         final EGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
@@ -192,7 +192,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             throw new GLException("null eglDisplay");
         }
         List<GLCapabilitiesImmutable> availableCaps = null;
-        IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
+        final IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
 
         if(!EGL.eglGetConfigs(eglDisplay, null, 0, numConfigs)) {
             throw new GLException("Graphics configuration get maxConfigs (eglGetConfigs) call failed, error "+toHexString(EGL.eglGetError()));
@@ -201,7 +201,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             throw new GLException("Graphics configuration get maxConfigs (eglGetConfigs) no configs");
         }
 
-        PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
+        final PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
 
         if(!EGL.eglGetConfigs(eglDisplay, configs, configs.capacity(), numConfigs)) {
             throw new GLException("Graphics configuration get all configs (eglGetConfigs) call failed, error "+toHexString(EGL.eglGetError()));
@@ -216,10 +216,10 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     }
 
     public static EGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
-                                                                             GLCapabilitiesImmutable capsReq,
-                                                                             GLCapabilitiesChooser chooser,
-                                                                             AbstractGraphicsScreen absScreen, int nativeVisualID,
-                                                                             boolean forceTransparentFlag) {
+                                                                             final GLCapabilitiesImmutable capsReq,
+                                                                             final GLCapabilitiesChooser chooser,
+                                                                             final AbstractGraphicsScreen absScreen, final int nativeVisualID,
+                                                                             final boolean forceTransparentFlag) {
         if (capsChosen == null) {
             capsChosen = new GLCapabilities(null);
         }
@@ -227,7 +227,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if(null==absScreen) {
             throw new GLException("Null AbstractGraphicsScreen");
         }
-        AbstractGraphicsDevice absDevice = absScreen.getDevice();
+        final AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice) {
             throw new GLException("Null AbstractGraphicsDevice");
         }
@@ -323,18 +323,17 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     }
 
 
-    static EGLGraphicsConfiguration eglChooseConfig(EGLGraphicsDevice device,
-                                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                                    GLCapabilitiesChooser chooser,
-                                                    AbstractGraphicsScreen absScreen,
-                                                    int nativeVisualID, boolean forceTransparentFlag) {
+    static EGLGraphicsConfiguration eglChooseConfig(final EGLGraphicsDevice device,
+                                                    final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                                    final GLCapabilitiesChooser chooser,
+                                                    final AbstractGraphicsScreen absScreen,
+                                                    final int nativeVisualID, final boolean forceTransparentFlag) {
         final long eglDisplay = device.getHandle();
         final GLProfile glp = capsChosen.getGLProfile();
         final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen);
         List<GLCapabilitiesImmutable> availableCaps = null;
         int recommendedIndex = -1;
-        long recommendedEGLConfig = -1;
-        IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
+        final IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
 
         if(!EGL.eglGetConfigs(eglDisplay, null, 0, numConfigs)) {
             throw new GLException("EGLGraphicsConfiguration.eglChooseConfig: Get maxConfigs (eglGetConfigs) call failed, error "+toHexString(EGL.eglGetError()));
@@ -353,7 +352,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         }
 
         final IntBuffer attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen);
-        PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
+        final PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
 
         // 1st choice: get GLCapabilities based on users GLCapabilities
         //             setting recommendedIndex as preferred choice
@@ -380,7 +379,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if( hasEGLChosenCaps ) {
             availableCaps = eglConfigs2GLCaps(device, glp, configs, numConfigs.get(0), winattrmask, forceTransparentFlag, skipCapsChooser /* onlyFirsValid */);
             if(availableCaps.size() > 0) {
-                recommendedEGLConfig =  configs.get(0);
+                final long recommendedEGLConfig =  configs.get(0);
                 recommendedIndex = 0;
                 if (DEBUG) {
                     System.err.println("EGLGraphicsConfiguration.eglChooseConfig: #1 eglChooseConfig: recommended fbcfg " + toHexString(recommendedEGLConfig) + ", idx " + recommendedIndex);
@@ -399,7 +398,6 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
         if( null == availableCaps || 0 == availableCaps.size() ) {
             // reset ..
-            recommendedEGLConfig = -1;
             recommendedIndex = -1;
 
             if(!EGL.eglGetConfigs(eglDisplay, configs, configs.capacity(), numConfigs)) {
@@ -428,7 +426,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         }
 
         if( VisualIDHolder.VID_UNDEFINED != nativeVisualID ) { // implies !hasEGLChosenCaps
-            List<GLCapabilitiesImmutable> removedCaps = new ArrayList<GLCapabilitiesImmutable>();
+            final List<GLCapabilitiesImmutable> removedCaps = new ArrayList<GLCapabilitiesImmutable>();
             for(int i=0; i<availableCaps.size(); ) {
                 final GLCapabilitiesImmutable aCap = availableCaps.get(i);
                 if(aCap.getVisualID(VIDType.NATIVE) != nativeVisualID) {
@@ -475,9 +473,9 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return res;
     }
 
-    static List<GLCapabilitiesImmutable> eglConfigs2GLCaps(EGLGraphicsDevice device, GLProfile glp, PointerBuffer configs, int num, int winattrmask, boolean forceTransparentFlag, boolean onlyFirstValid) {
+    static List<GLCapabilitiesImmutable> eglConfigs2GLCaps(final EGLGraphicsDevice device, final GLProfile glp, final PointerBuffer configs, final int num, final int winattrmask, final boolean forceTransparentFlag, final boolean onlyFirstValid) {
         final GLRendererQuirks defaultQuirks = GLRendererQuirks.getStickyDeviceQuirks( GLDrawableFactory.getEGLFactory().getDefaultDevice() );
-        List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(num);
+        final List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(num);
         for(int i=0; i<num; i++) {
             final GLCapabilitiesImmutable caps = EGLGraphicsConfiguration.EGLConfig2Capabilities(defaultQuirks, device, glp, configs.get(i), winattrmask, forceTransparentFlag);
             if(null != caps) {
@@ -490,7 +488,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return bucket;
     }
 
-    static void printCaps(String prefix, List<GLCapabilitiesImmutable> caps, PrintStream out) {
+    static void printCaps(final String prefix, final List<GLCapabilitiesImmutable> caps, final PrintStream out) {
         for(int i=0; i<caps.size(); i++) {
             out.println(prefix+"["+i+"] "+caps.get(i));
         }

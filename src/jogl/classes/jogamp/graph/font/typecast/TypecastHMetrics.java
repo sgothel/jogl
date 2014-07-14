@@ -45,46 +45,44 @@ class TypecastHMetrics implements Metrics {
     // VheaTable (for horizontal fonts)
     // private final VheaTable vheaTable;
 
-    public TypecastHMetrics(TypecastFont fontImpl) {
+    public TypecastHMetrics(final TypecastFont fontImpl) {
         this.fontImpl = fontImpl;
         headTable = this.fontImpl.font.getHeadTable();
         hheaTable = this.fontImpl.font.getHheaTable();
         // vheaTable = this.fontImpl.font.getVheaTable();
-        unitsPerEM_Inv = 1.0f / ( (float) headTable.getUnitsPerEm() );
+        unitsPerEM_Inv = 1.0f / ( headTable.getUnitsPerEm() );
 
-        int maxWidth = headTable.getXMax() - headTable.getXMin();
-        int maxHeight = headTable.getYMax() - headTable.getYMin();
-        float lowx= headTable.getXMin();
-        float lowy = -(headTable.getYMin()+maxHeight);
-        float highx = lowx + maxWidth;
-        float highy = lowy + maxHeight;
+        final int maxWidth = headTable.getXMax() - headTable.getXMin();
+        final int maxHeight = headTable.getYMax() - headTable.getYMin();
+        final float lowx= headTable.getXMin();
+        final float lowy = -(headTable.getYMin()+maxHeight);
+        final float highx = lowx + maxWidth;
+        final float highy = lowy + maxHeight;
         bbox = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
     }
 
     @Override
-    public final float getAscent(float pixelSize) {
+    public final float getAscent(final float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getAscender(); // invert
     }
     @Override
-    public final float getDescent(float pixelSize) {
+    public final float getDescent(final float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getDescender(); // invert
     }
     @Override
-    public final float getLineGap(float pixelSize) {
+    public final float getLineGap(final float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getLineGap(); // invert
     }
     @Override
-    public final float getMaxExtend(float pixelSize) {
+    public final float getMaxExtend(final float pixelSize) {
         return getScale(pixelSize) * hheaTable.getXMaxExtent();
     }
     @Override
-    public final float getScale(float pixelSize) {
+    public final float getScale(final float pixelSize) {
         return pixelSize * unitsPerEM_Inv;
     }
     @Override
-    public final AABBox getBBox(float pixelSize) {
-        AABBox res = new AABBox(bbox.getLow(), bbox.getHigh());
-        res.scale(getScale(pixelSize));
-        return res;
+    public final AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3) {
+        return dest.setSize(bbox.getLow(), bbox.getHigh()).scale(getScale(pixelSize), tmpV3);
     }
 }

@@ -16,7 +16,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 	private long pixelsxUnitY;
 	private int units; // 0: unknown 1:metre
 
-	public PngChunkPHYS(ImageInfo info) {
+	public PngChunkPHYS(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -27,7 +27,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = createEmptyChunk(9, true);
+		final ChunkRaw c = createEmptyChunk(9, true);
 		PngHelperInternal.writeInt4tobytes((int) pixelsxUnitX, c.data, 0);
 		PngHelperInternal.writeInt4tobytes((int) pixelsxUnitY, c.data, 4);
 		c.data[8] = (byte) units;
@@ -35,7 +35,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
+	public void parseFromRaw(final ChunkRaw chunk) {
 		if (chunk.len != 9)
 			throw new PngjException("bad chunk length " + chunk);
 		pixelsxUnitX = PngHelperInternal.readInt4fromBytes(chunk.data, 0);
@@ -48,8 +48,8 @@ public class PngChunkPHYS extends PngChunkSingle {
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkPHYS otherx = (PngChunkPHYS) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkPHYS otherx = (PngChunkPHYS) other;
 		this.pixelsxUnitX = otherx.pixelsxUnitX;
 		this.pixelsxUnitY = otherx.pixelsxUnitY;
 		this.units = otherx.units;
@@ -59,7 +59,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 		return pixelsxUnitX;
 	}
 
-	public void setPixelsxUnitX(long pixelsxUnitX) {
+	public void setPixelsxUnitX(final long pixelsxUnitX) {
 		this.pixelsxUnitX = pixelsxUnitX;
 	}
 
@@ -67,7 +67,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 		return pixelsxUnitY;
 	}
 
-	public void setPixelsxUnitY(long pixelsxUnitY) {
+	public void setPixelsxUnitY(final long pixelsxUnitY) {
 		this.pixelsxUnitY = pixelsxUnitY;
 	}
 
@@ -75,7 +75,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 		return units;
 	}
 
-	public void setUnits(int units) {
+	public void setUnits(final int units) {
 		this.units = units;
 	}
 
@@ -87,7 +87,7 @@ public class PngChunkPHYS extends PngChunkSingle {
 	public double getAsDpi() {
 		if (units != 1 || pixelsxUnitX != pixelsxUnitY)
 			return -1;
-		return ((double) pixelsxUnitX) * 0.0254;
+		return (pixelsxUnitX) * 0.0254;
 	}
 
 	/**
@@ -96,16 +96,16 @@ public class PngChunkPHYS extends PngChunkSingle {
 	public double[] getAsDpi2() {
 		if (units != 1)
 			return new double[] { -1, -1 };
-		return new double[] { ((double) pixelsxUnitX) * 0.0254, ((double) pixelsxUnitY) * 0.0254 };
+		return new double[] { (pixelsxUnitX) * 0.0254, (pixelsxUnitY) * 0.0254 };
 	}
 
-	public void setAsDpi(double dpi) {
+	public void setAsDpi(final double dpi) {
 		units = 1;
 		pixelsxUnitX = (long) (dpi / 0.0254 + 0.5);
 		pixelsxUnitY = pixelsxUnitX;
 	}
 
-	public void setAsDpi2(double dpix, double dpiy) {
+	public void setAsDpi2(final double dpix, final double dpiy) {
 		units = 1;
 		pixelsxUnitX = (long) (dpix / 0.0254 + 0.5);
 		pixelsxUnitY = (long) (dpiy / 0.0254 + 0.5);

@@ -78,10 +78,10 @@ import java.nio.IntBuffer;
  */
 public abstract class GLBufferStorage {
         private final int name;
-        private final long size;
-        private final int mutableUsage;
-        private final int immutableFlags;
-        protected ByteBuffer mappedBuffer;
+        private /* final */ long size;
+        private /* final */ int mutableUsage;
+        private /* final */ int immutableFlags;
+        private ByteBuffer mappedBuffer;
 
         protected GLBufferStorage(final int name, final long size, final int mutableUsage, final int immutableFlags) {
             this.name = name;
@@ -89,6 +89,16 @@ public abstract class GLBufferStorage {
             this.mutableUsage = mutableUsage;
             this.immutableFlags = immutableFlags;
             this.mappedBuffer = null;
+        }
+
+        protected void reset(final long size, final int mutableUsage, final int immutableFlags) {
+            this.size = size;
+            this.mutableUsage = mutableUsage;
+            this.immutableFlags = immutableFlags;
+            this.mappedBuffer = null;
+        }
+        protected void setMappedBuffer(final ByteBuffer buffer) {
+            this.mappedBuffer = buffer;
         }
 
         /** Return the buffer name */
@@ -146,5 +156,5 @@ public abstract class GLBufferStorage {
                 return s0+", mapped "+mappedBuffer+"]";
             }
         }
-        private final String msgClazzName = "GLBufferStorage";
+        private static final String msgClazzName = "GLBufferStorage";
 }

@@ -33,6 +33,7 @@ import java.util.List;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
@@ -76,14 +77,14 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         }
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, GearsES2 gears, GLContext sharedContext) throws InterruptedException {
-        final boolean useShared = null != sharedContext;
-        GLWindow glWindow = GLWindow.create(caps);
+    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final GearsES2 gears, final GLAutoDrawable sharedDrawable) throws InterruptedException {
+        final boolean useShared = null != sharedDrawable;
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setPosition(x, y);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
         if(useShared) {
-            glWindow.setSharedContext(sharedContext);
+            glWindow.setSharedAutoDrawable(sharedDrawable);
         }
         glWindow.setSize(width, height);
         glWindow.addGLEventListener(gears);
@@ -107,7 +108,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
     public void test02CommonAnimatorMapBuffer() throws InterruptedException {
         testCommonAnimatorSharedImpl(true);
     }
-    private void testCommonAnimatorSharedImpl(boolean useMappedBuffers) throws InterruptedException {
+    private void testCommonAnimatorSharedImpl(final boolean useMappedBuffers) throws InterruptedException {
         final Animator animator = new Animator();
 
         //
@@ -130,7 +131,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGearsObjects(g1.getGear1(), g1.getGear2(), g1.getGear3());
         final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
-                                                f1.getY()+0, g2, f1.getContext());
+                                                f1.getY()+0, g2, f1);
         final GLContext ctx2 = f2.getContext();
         Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
         Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
@@ -153,7 +154,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGearsObjects(g1.getGear1(), g1.getGear2(), g1.getGear3());
         final GLWindow f3 = runTestGL(animator, f1.getX()+0,
-                                                f1.getY()+height+insets.getTotalHeight(), g3, f1.getContext());
+                                                f1.getY()+height+insets.getTotalHeight(), g3, f1);
 
         final GLContext ctx3 = f3.getContext();
         Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
@@ -184,7 +185,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
 
@@ -210,7 +211,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 1, ctx2Shares.size());
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 2, ctx3Shares.size());
         }
-        try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+        try { Thread.sleep(durationPostDestroy); } catch(final Exception e) { e.printStackTrace(); }
 
         f2.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
@@ -234,7 +235,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 1, ctx2Shares.size());
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 1, ctx3Shares.size());
         }
-        try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+        try { Thread.sleep(durationPostDestroy); } catch(final Exception e) { e.printStackTrace(); }
 
         f1.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
@@ -258,7 +259,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 0, ctx2Shares.size());
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 0, ctx3Shares.size());
         }
-        try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+        try { Thread.sleep(durationPostDestroy); } catch(final Exception e) { e.printStackTrace(); }
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
@@ -267,13 +268,13 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
     static long duration = 1000; // ms
     static long durationPostDestroy = 1000; // ms - ~60 frames post destroy
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

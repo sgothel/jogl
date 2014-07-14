@@ -83,11 +83,11 @@ public class AWTTilePainter {
     private Graphics2D g2d = null;
     private AffineTransform saveAT = null;
 
-    public static void dumpHintsAndScale(Graphics2D g2d) {
+    public static void dumpHintsAndScale(final Graphics2D g2d) {
           final RenderingHints rHints = g2d.getRenderingHints();
           final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
           int count = 0;
-          for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+          for(final Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
               final Entry<Object, Object> rEntry = rEntryIter.next();
               System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
           }
@@ -105,7 +105,7 @@ public class AWTTilePainter {
     /**
      * @return resulting number of samples by comparing w/ {@link #customNumSamples} and the caps-config, 0 if disabled
      */
-    public int getNumSamples(GLCapabilitiesImmutable caps) {
+    public int getNumSamples(final GLCapabilitiesImmutable caps) {
           if( 0 > customNumSamples ) {
               return 0;
           } else if( 0 < customNumSamples ) {
@@ -137,7 +137,7 @@ public class AWTTilePainter {
      * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param verbose
      */
-    public AWTTilePainter(TileRenderer renderer, int componentCount, double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight, boolean verbose) {
+    public AWTTilePainter(final TileRenderer renderer, final int componentCount, final double scaleMatX, final double scaleMatY, final int numSamples, final int tileWidth, final int tileHeight, final boolean verbose) {
         this.renderer = renderer;
         this.renderer.setGLEventListener(preTileGLEL, postTileGLEL);
         this.componentCount = componentCount;
@@ -160,16 +160,16 @@ public class AWTTilePainter {
      * @param flipVertical if <code>true</code>, the image will be flipped vertically (Default for OpenGL).
      * @param originBottomLeft if <code>true</code>, the image's origin is on the bottom left (Default for OpenGL).
      */
-    public void setGLOrientation(boolean flipVertical, boolean originBottomLeft) {
+    public void setGLOrientation(final boolean flipVertical, final boolean originBottomLeft) {
         this.flipVertical = flipVertical;
         this.originBottomLeft = originBottomLeft;
     }
 
-    private static Rectangle2D getClipBounds2D(Graphics2D g) {
+    private static Rectangle2D getClipBounds2D(final Graphics2D g) {
         final Shape shape = g.getClip();
         return null != shape ? shape.getBounds2D() : null;
     }
-    private static Rectangle2D clipNegative(Rectangle2D in) {
+    private static Rectangle2D clipNegative(final Rectangle2D in) {
         if( null == in ) { return null; }
         double x=in.getX(), y=in.getY(), width=in.getWidth(), height=in.getHeight();
         if( 0 > x ) {
@@ -201,7 +201,7 @@ public class AWTTilePainter {
      * @throws NoninvertibleTransformException if the {@link Graphics2D}'s {@link AffineTransform} {@link AffineTransform#invert() inversion} fails.
      *                                         Since inversion is tested before scaling the given {@link Graphics2D}, caller shall ignore the whole <i>term</i>.
      */
-    public void setupGraphics2DAndClipBounds(Graphics2D g2d, int width, int height) throws NoninvertibleTransformException {
+    public void setupGraphics2DAndClipBounds(final Graphics2D g2d, final int width, final int height) throws NoninvertibleTransformException {
         this.g2d = g2d;
         saveAT = g2d.getTransform();
         if( null == saveAT ) {
@@ -278,11 +278,11 @@ public class AWTTilePainter {
 
     final GLEventListener preTileGLEL = new GLEventListener() {
         @Override
-        public void init(GLAutoDrawable drawable) {}
+        public void init(final GLAutoDrawable drawable) {}
         @Override
-        public void dispose(GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {}
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();
             if( null == tBuffer ) {
                 final int tWidth = renderer.getParam(TileRenderer.TR_TILE_WIDTH);
@@ -302,17 +302,17 @@ public class AWTTilePainter {
             }
         }
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
     };
     static int _counter = 0;
     final GLEventListener postTileGLEL = new GLEventListener() {
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
         }
         @Override
-        public void dispose(GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {}
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             final DimensionImmutable cis = renderer.getClippedImageSize();
             final int tWidth = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
             final int tHeight = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
@@ -337,7 +337,7 @@ public class AWTTilePainter {
                 final File fout = new File(fname);
                 try {
                     ImageIO.write(tBuffer.image, "png", fout);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -368,7 +368,7 @@ public class AWTTilePainter {
                 final File fout = new File(fname);
                 try {
                     ImageIO.write(dstImage, "png", fout);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
                 _counter++;
@@ -395,6 +395,6 @@ public class AWTTilePainter {
             }
         }
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
     };
 }

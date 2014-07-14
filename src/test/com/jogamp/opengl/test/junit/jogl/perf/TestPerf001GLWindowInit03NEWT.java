@@ -28,6 +28,7 @@
 package com.jogamp.opengl.test.junit.jogl.perf;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -60,7 +61,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
         GLProfile.initSingleton();
     }
 
-    public void test(final GLCapabilitiesImmutable caps, final boolean useGears, final int width, final int height, final int frameCount, boolean reuseDevice) {
+    public void test(final GLCapabilitiesImmutable caps, final boolean useGears, final int width, final int height, final int frameCount, final boolean reuseDevice) {
         final int cols = (int)Math.round(Math.sqrt(frameCount));
         final int rows = frameCount / cols;
         final int eWidth = width/cols;
@@ -72,7 +73,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START");
-        initCount = 0;
+        initCount.set(0);
 
         t[0] = Platform.currentTimeMillis();
         int x = 32, y = 32;
@@ -92,15 +93,15 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
             }
             frame[i].addGLEventListener(new GLEventListener() {
                 @Override
-                public void init(GLAutoDrawable drawable) {
-                    initCount++;
+                public void init(final GLAutoDrawable drawable) {
+                    initCount.incrementAndGet();
                 }
                 @Override
-                public void dispose(GLAutoDrawable drawable) {}
+                public void dispose(final GLAutoDrawable drawable) {}
                 @Override
-                public void display(GLAutoDrawable drawable) {}
+                public void display(final GLAutoDrawable drawable) {}
                 @Override
-                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
             });
         }
         t[1] = Platform.currentTimeMillis();
@@ -111,19 +112,19 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
 
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while( frameCount > initCount && INIT_TIMEOUT > t1 - t0 ) {
+        while( frameCount > initCount.get() && INIT_TIMEOUT > t1 - t0 ) {
             try {
                 Thread.sleep(100);
                 System.err.println("Sleep initialized: "+initCount+"/"+frameCount);
-            } catch (InterruptedException e1) {
+            } catch (final InterruptedException e1) {
                 e1.printStackTrace();
             }
             t1 = System.currentTimeMillis();
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = initCount;
+        final double panelCountF = initCount.get();
         System.err.printf("P: %d GLWindow:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                initCount,
+                initCount.get(),
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
                 t[3]-t[0], (t[3]-t[0])/panelCountF);
@@ -134,7 +135,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
         }
         try {
             Thread.sleep(duration);
-        } catch (InterruptedException e1) {
+        } catch (final InterruptedException e1) {
             e1.printStackTrace();
         }
         t[4] = Platform.currentTimeMillis();
@@ -169,9 +170,9 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
     static boolean wait = false, mainRun = false;
     static int width = 800, height = 600, frameCount = 25;
 
-    volatile int initCount = 0;
+    AtomicInteger initCount = new AtomicInteger(0);
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         mainRun = true;
         boolean useGears = false, manual=false;
         boolean waitMain = false;
@@ -203,7 +204,7 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
         }
         if( manual ) {
             GLProfile.initSingleton();
-            TestPerf001GLWindowInit03NEWT demo = new TestPerf001GLWindowInit03NEWT();
+            final TestPerf001GLWindowInit03NEWT demo = new TestPerf001GLWindowInit03NEWT();
             demo.test(null, useGears, width, height, frameCount, false /* reuseDevice */);
         } else {
             org.junit.runner.JUnitCore.main(TestPerf001GLWindowInit03NEWT.class.getName());

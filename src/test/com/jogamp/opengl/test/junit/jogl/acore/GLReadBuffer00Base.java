@@ -41,6 +41,9 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -51,28 +54,37 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public abstract class GLReadBuffer00Base extends UITestCase {
 
     public static class TextRendererGLEL extends TextRendererGLELBase {
+        final Font font = getFont(0, 0, 0);
         public int frameNo = 0;
         public int userCounter = 0;
+        private final GLRegion regionFPS;
 
         public TextRendererGLEL() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT);
-            texSizeScale = 2;
+            super(Region.VBAA_RENDERING_BIT, new int[] { 4 });
+            this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+            regionFPS = GLRegion.create(renderModes, null);
 
-            fontSize = 24;
-
-            staticRGBAColor[0] = 1.0f;
-            staticRGBAColor[1] = 1.0f;
-            staticRGBAColor[2] = 1.0f;
+            staticRGBAColor[0] = 0.9f;
+            staticRGBAColor[1] = 0.9f;
+            staticRGBAColor[2] = 0.9f;
             staticRGBAColor[3] = 0.99f;
         }
 
         @Override
-        public void display(GLAutoDrawable drawable) {
-            final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getWidth(), drawable.getHeight());
+        public void dispose(final GLAutoDrawable drawable) {
+            regionFPS.destroy(drawable.getGL().getGL2ES2());
+            super.dispose(drawable);
+        }
+
+        @Override
+        public void display(final GLAutoDrawable drawable) {
+            final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
-                renderString(drawable, text, 0 /* col */, 0 /* row */, 0, 0, -1);
+                final float pixelSize = font.getPixelSize(14f, dpiH);
+                drawable.getGL().glClearColor(1f, 1f, 1f, 0f);
+                renderString(drawable, font, pixelSize, text, 0 /* col */, 0 /* row */, 0, 0, -1, regionFPS);
             } else {
                 System.err.println(text);
             }

@@ -51,10 +51,10 @@ class StrokeCharRec {
   public float center;
   public float right;
 
-  public StrokeCharRec(int num_strokes,
-                StrokeRec[] stroke,
-                float center,
-                float right) {
+  public StrokeCharRec(final int num_strokes,
+                final StrokeRec[] stroke,
+                final float center,
+                final float right) {
     this.num_strokes = num_strokes;
     this.stroke = stroke;
     this.center = center;

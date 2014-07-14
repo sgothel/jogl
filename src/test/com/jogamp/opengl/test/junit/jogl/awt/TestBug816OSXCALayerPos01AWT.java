@@ -101,7 +101,7 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
                         frame.pack();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -115,13 +115,13 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
                         frame.validate();
                     }
                 } } );
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
     }
 
-    protected void runTestGL(GLCapabilities caps, FrameLayout frameLayout, final boolean twoCanvas, final boolean resizeByComp) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps, final FrameLayout frameLayout, final boolean twoCanvas, final boolean resizeByComp) throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("Bug816: "+this.getTestMethodName());
         Assert.assertNotNull(frame);
         final Container framePane = frame.getContentPane();
@@ -191,33 +191,33 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
                 }
                 break;
             case Split: {
-                    Dimension sbDim = new Dimension(16, 16);
-                    JScrollPane vsp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                    final Dimension sbDim = new Dimension(16, 16);
+                    final JScrollPane vsp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                     {
-                        JScrollBar vsb = vsp.getVerticalScrollBar();
+                        final JScrollBar vsb = vsp.getVerticalScrollBar();
                         vsb.setPreferredSize(sbDim);
-                        BoundedRangeModel model = vsb.getModel();
+                        final BoundedRangeModel model = vsb.getModel();
                         model.setMinimum(0);
                         model.setMaximum(100);
                         model.setValue(50);
                         model.setExtent(1);
                         vsb.setEnabled(true);
                     }
-                    JScrollPane hsp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    final JScrollPane hsp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
                     {
-                        JScrollBar hsb = hsp.getHorizontalScrollBar();
+                        final JScrollBar hsb = hsp.getHorizontalScrollBar();
                         hsb.setPreferredSize(sbDim);
-                        BoundedRangeModel model = hsb.getModel();
+                        final BoundedRangeModel model = hsb.getModel();
                         model.setMinimum(0);
                         model.setMaximum(100);
                         model.setValue(50);
                         model.setExtent(1);
                         hsb.setEnabled(true);
                     }
-                    JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true,
+                    final JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true,
                             twoCanvas ? glCanvas2 : vsp, glCanvas1 );
                     horizontalSplitPane.setResizeWeight(0.5);
-                    JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                    final JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                         true, horizontalSplitPane, hsp);
                     verticalSplitPane.setResizeWeight(0.5);
                     framePane.add(verticalSplitPane);
@@ -236,9 +236,8 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
         if( twoCanvas ) {
             animator.add(glCanvas2);
         }
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas1).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -259,9 +258,9 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
         Assert.assertTrue(animator.isStarted());
         Assert.assertTrue(animator.isAnimating());
 
-        System.err.println("canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
+        System.err.println("canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getSurfaceWidth()+"x"+glCanvas1.getSurfaceHeight());
         if( twoCanvas ) {
-            System.err.println("canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
+            System.err.println("canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getSurfaceWidth()+"x"+glCanvas2.getSurfaceHeight());
         }
 
         Thread.sleep(Math.max(1000, duration/2));
@@ -273,9 +272,9 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
             } else {
                setFrameSize(frame, true, frameRSizeHalf);
             }
-            System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
+            System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getSurfaceWidth()+"x"+glCanvas1.getSurfaceHeight());
             if( twoCanvas ) {
-                System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
+                System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getSurfaceWidth()+"x"+glCanvas2.getSurfaceHeight());
             }
         }
 
@@ -446,7 +445,7 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
 
     static int testNum = -1;
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

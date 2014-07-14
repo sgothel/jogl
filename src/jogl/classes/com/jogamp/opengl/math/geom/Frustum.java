@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl.math.geom;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import com.jogamp.common.os.Platform;
 
 /**
@@ -68,7 +70,7 @@ import com.jogamp.common.os.Platform;
  */
 public class Frustum {
     /** Normalized planes[l, r, b, t, n, f] */
-	protected Plane[] planes = new Plane[6];
+	protected final Plane[] planes = new Plane[6];
 
 	/**
 	 * Creates an undefined instance w/o calculating the frustum.
@@ -113,12 +115,12 @@ public class Frustum {
          * Negative halfspace is the <i>other side</i> of the plane, i.e. *-1
          * </p>
          **/
-        public final float distanceTo(float x, float y, float z) {
+        public final float distanceTo(final float x, final float y, final float z) {
             return n[0] * x + n[1] * y + n[2] * z + d;
         }
 
         /** Return distance of plane to given point, see {@link #distanceTo(float, float, float)}. */
-        public final float distanceTo(float[] p) {
+        public final float distanceTo(final float[] p) {
             return n[0] * p[0] + n[1] * p[1] + n[2] * p[2] + d;
         }
 
@@ -164,7 +166,7 @@ public class Frustum {
      * Copy the given <code>src</code> planes into this this instance's planes.
      * @param src the 6 source planes
      */
-    public final void updateByPlanes(Plane[] src) {
+    public final void updateByPlanes(final Plane[] src) {
         for (int i = 0; i < 6; ++i) {
             final Plane p0 = planes[i];
             final float[] p0_n = p0.n;
@@ -185,9 +187,9 @@ public class Frustum {
      * as required by this class.
      * </p>
      */
-    public void updateByPMV(float[] pmv, int pmv_off) {
-        // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] row-major
-        // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] row-major
+    public void updateByPMV(final float[] pmv, final int pmv_off) {
+        // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] column-major
+        // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] column-major
         {
             final Plane p = planes[LEFT];
             final float[] p_n = p.n;
@@ -197,8 +199,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 0 + 3 * 4 ];
         }
 
-        // Right:  a = m41 - m11, b = m42 - m12, c = m43 - m13, d = m44 - m14  - [1..4] row-major
-        // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] row-major
+        // Right:  a = m41 - m11, b = m42 - m12, c = m43 - m13, d = m44 - m14  - [1..4] column-major
+        // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] column-major
         {
             final Plane p = planes[RIGHT];
             final float[] p_n = p.n;
@@ -208,8 +210,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 0 + 3 * 4 ];
         }
 
-        // Bottom: a = m41 + m21, b = m42 + m22, c = m43 + m23, d = m44 + m24  - [1..4] row-major
-        // Bottom: a = m30 + m10, b = m31 + m11, c = m32 + m12, d = m33 + m13  - [0..3] row-major
+        // Bottom: a = m41 + m21, b = m42 + m22, c = m43 + m23, d = m44 + m24  - [1..4] column-major
+        // Bottom: a = m30 + m10, b = m31 + m11, c = m32 + m12, d = m33 + m13  - [0..3] column-major
         {
             final Plane p = planes[BOTTOM];
             final float[] p_n = p.n;
@@ -219,8 +221,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 1 + 3 * 4 ];
         }
 
-        // Top:   a = m41 - m21, b = m42 - m22, c = m43 - m23, d = m44 - m24  - [1..4] row-major
-        // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] row-major
+        // Top:   a = m41 - m21, b = m42 - m22, c = m43 - m23, d = m44 - m24  - [1..4] column-major
+        // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] column-major
         {
             final Plane p = planes[TOP];
             final float[] p_n = p.n;
@@ -230,8 +232,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 1 + 3 * 4 ];
         }
 
-        // Near:  a = m41 + m31, b = m42 + m32, c = m43 + m33, d = m44 + m34  - [1..4] row-major
-        // Near:  a = m30 + m20, b = m31 + m21, c = m32 + m22, d = m33 + m23  - [0..3] row-major
+        // Near:  a = m41 + m31, b = m42 + m32, c = m43 + m33, d = m44 + m34  - [1..4] column-major
+        // Near:  a = m30 + m20, b = m31 + m21, c = m32 + m22, d = m33 + m23  - [0..3] column-major
         {
             final Plane p = planes[NEAR];
             final float[] p_n = p.n;
@@ -241,8 +243,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 2 + 3 * 4 ];
         }
 
-        // Far:   a = m41 - m31, b = m42 - m32, c = m43 - m33, d = m44 - m34  - [1..4] row-major
-        // Far:   a = m30 - m20, b = m31 - m21, c = m32 + m22, d = m33 + m23  - [0..3] row-major
+        // Far:   a = m41 - m31, b = m42 - m32, c = m43 - m33, d = m44 - m34  - [1..4] column-major
+        // Far:   a = m30 - m20, b = m31 - m21, c = m32 + m22, d = m33 + m23  - [0..3] column-major
         {
             final Plane p = planes[FAR];
             final float[] p_n = p.n;
@@ -265,7 +267,7 @@ public class Frustum {
         }
     }
 
-	private static final boolean isOutsideImpl(Plane p, AABBox box) {
+	private static final boolean isOutsideImpl(final Plane p, final AABBox box) {
 	    final float[] low = box.getLow();
 	    final float[] high = box.getHigh();
 
@@ -288,7 +290,7 @@ public class Frustum {
 	 * Note: If method returns false, the box may only be partially inside.
 	 * </p>
 	 */
-    public final boolean isAABBoxOutside(AABBox box) {
+    public final boolean isAABBoxOutside(final AABBox box) {
         for (int i = 0; i < 6; ++i) {
             if ( isOutsideImpl(planes[i], box) ) {
                 // fully outside
@@ -308,7 +310,7 @@ public class Frustum {
      * @param p the point
      * @return {@link Location} of point related to frustum planes
      */
-    public final Location classifyPoint(float[] p) {
+    public final Location classifyPoint(final float[] p) {
         Location res = Location.INSIDE;
 
         for (int i = 0; i < 6; ++i) {
@@ -328,7 +330,7 @@ public class Frustum {
      * @param p the point
      * @return true if outside of the frustum, otherwise inside or on a plane
      */
-    public final boolean isPointOutside(float[] p) {
+    public final boolean isPointOutside(final float[] p) {
         return Location.OUTSIDE == classifyPoint(p);
     }
 
@@ -339,7 +341,7 @@ public class Frustum {
      * @param radius radius of the sphere
      * @return {@link Location} of point related to frustum planes
      */
-    public final Location classifySphere(float[] p, float radius) {
+    public final Location classifySphere(final float[] p, final float radius) {
         Location res = Location.INSIDE; // fully inside
 
         for (int i = 0; i < 6; ++i) {
@@ -362,7 +364,7 @@ public class Frustum {
      * @param radius radius of the sphere
      * @return true if outside of the frustum, otherwise inside or intersecting
      */
-    public final boolean isSphereOutside(float[] p, float radius) {
+    public final boolean isSphereOutside(final float[] p, final float radius) {
         return Location.OUTSIDE == classifySphere(p, radius);
     }
 
@@ -370,13 +372,13 @@ public class Frustum {
         if( null == sb ) {
             sb = new StringBuilder();
         }
-        sb.append("Frustum[ Planes[ ").append(Platform.NEWLINE)
-        .append(" L: ").append(planes[0]).append(", ").append(Platform.NEWLINE)
-        .append(" R: ").append(planes[1]).append(", ").append(Platform.NEWLINE)
-        .append(" B: ").append(planes[2]).append(", ").append(Platform.NEWLINE)
-        .append(" T: ").append(planes[3]).append(", ").append(Platform.NEWLINE)
-        .append(" N: ").append(planes[4]).append(", ").append(Platform.NEWLINE)
-        .append(" F: ").append(planes[5]).append("], ").append(Platform.NEWLINE)
+        sb.append("Frustum[ Planes[ ").append(PlatformPropsImpl.NEWLINE)
+        .append(" L: ").append(planes[0]).append(", ").append(PlatformPropsImpl.NEWLINE)
+        .append(" R: ").append(planes[1]).append(", ").append(PlatformPropsImpl.NEWLINE)
+        .append(" B: ").append(planes[2]).append(", ").append(PlatformPropsImpl.NEWLINE)
+        .append(" T: ").append(planes[3]).append(", ").append(PlatformPropsImpl.NEWLINE)
+        .append(" N: ").append(planes[4]).append(", ").append(PlatformPropsImpl.NEWLINE)
+        .append(" F: ").append(planes[5]).append("], ").append(PlatformPropsImpl.NEWLINE)
         .append("]");
         return sb;
     }

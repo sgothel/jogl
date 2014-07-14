@@ -14,7 +14,7 @@ public class PngChunkSTER extends PngChunkSingle {
 	// http://www.libpng.org/pub/png/spec/register/pngext-1.3.0-pdg.html#C.sTER
 	private byte mode; // 0: cross-fuse layout 1: diverging-fuse layout
 
-	public PngChunkSTER(ImageInfo info) {
+	public PngChunkSTER(final ImageInfo info) {
 		super(ID, info);
 	}
 
@@ -25,21 +25,21 @@ public class PngChunkSTER extends PngChunkSingle {
 
 	@Override
 	public ChunkRaw createRawChunk() {
-		ChunkRaw c = createEmptyChunk(1, true);
-		c.data[0] = (byte) mode;
+		final ChunkRaw c = createEmptyChunk(1, true);
+		c.data[0] = mode;
 		return c;
 	}
 
 	@Override
-	public void parseFromRaw(ChunkRaw chunk) {
+	public void parseFromRaw(final ChunkRaw chunk) {
 		if (chunk.len != 1)
 			throw new PngjException("bad chunk length " + chunk);
 		mode = chunk.data[0];
 	}
 
 	@Override
-	public void cloneDataFromRead(PngChunk other) {
-		PngChunkSTER otherx = (PngChunkSTER) other;
+	public void cloneDataFromRead(final PngChunk other) {
+		final PngChunkSTER otherx = (PngChunkSTER) other;
 		this.mode = otherx.mode;
 	}
 
@@ -53,7 +53,7 @@ public class PngChunkSTER extends PngChunkSingle {
 	/**
 	 * 0: cross-fuse layout 1: diverging-fuse layout
 	 */
-	public void setMode(byte mode) {
+	public void setMode(final byte mode) {
 		this.mode = mode;
 	}
 

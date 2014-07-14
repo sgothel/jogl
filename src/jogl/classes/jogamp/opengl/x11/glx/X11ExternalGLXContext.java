@@ -58,7 +58,7 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11ExternalGLXContext extends X11GLXContext {
 
-  private X11ExternalGLXContext(Drawable drawable, long ctx) {
+  private X11ExternalGLXContext(final Drawable drawable, final long ctx) {
     super(drawable, null);
     this.contextHandle = ctx;
     GLContextShareSet.contextCreated(this);
@@ -68,20 +68,20 @@ public class X11ExternalGLXContext extends X11GLXContext {
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
-  protected static X11ExternalGLXContext create(GLDrawableFactory factory, GLProfile glp) {
-    long ctx = GLX.glXGetCurrentContext();
+  protected static X11ExternalGLXContext create(final GLDrawableFactory factory, final GLProfile glp) {
+    final long ctx = GLX.glXGetCurrentContext();
     if (ctx == 0) {
       throw new GLException("Error: current context null");
     }
-    long display = GLX.glXGetCurrentDisplay();
+    final long display = GLX.glXGetCurrentDisplay();
     if (display == 0) {
       throw new GLException("Error: current display null");
     }
-    long drawable = GLX.glXGetCurrentDrawable();
+    final long drawable = GLX.glXGetCurrentDrawable();
     if (drawable == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
     }
-    IntBuffer val = Buffers.newDirectIntBuffer(1);
+    final IntBuffer val = Buffers.newDirectIntBuffer(1);
 
     int w, h;
     GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val);
@@ -90,7 +90,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     h=val.get(0);
 
     GLX.glXQueryContext(display, ctx, GLX.GLX_SCREEN, val);
-    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
+    final X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
 
     GLX.glXQueryContext(display, ctx, GLX.GLX_FBCONFIG_ID, val);
     X11GLXGraphicsConfiguration cfg = null;
@@ -99,7 +99,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
     // create and use a default config (this has been observed when running on CentOS 5.5 inside
     // of VMWare Server 2.0 with the Mesa 6.5.1 drivers)
     if( VisualIDHolder.VID_UNDEFINED == val.get(0) || !X11GLXGraphicsConfiguration.GLXFBConfigIDValid(display, x11Screen.getIndex(), val.get(0)) ) {
-        GLCapabilities glcapsDefault = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities glcapsDefault = new GLCapabilities(GLProfile.getDefault());
         cfg = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(glcapsDefault, glcapsDefault, null, x11Screen, VisualIDHolder.VID_UNDEFINED);
         if(DEBUG) {
             System.err.println("X11ExternalGLXContext invalid FBCONFIG_ID "+val.get(0)+", using default cfg: " + cfg);
@@ -131,26 +131,26 @@ public class X11ExternalGLXContext extends X11GLXContext {
 
   // Need to provide the display connection to extension querying APIs
   static class Drawable extends X11GLXDrawable {
-    Drawable(GLDrawableFactory factory, NativeSurface comp) {
+    Drawable(final GLDrawableFactory factory, final NativeSurface comp) {
       super(factory, comp, true);
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public GLContext createContext(final GLContext shareWith) {
       throw new GLException("Should not call this");
     }
 
     @Override
-    public int getWidth() {
+    public int getSurfaceWidth() {
       throw new GLException("Should not call this");
     }
 
     @Override
-    public int getHeight() {
+    public int getSurfaceHeight() {
       throw new GLException("Should not call this");
     }
 
-    public void setSize(int width, int height) {
+    public void setSize(final int width, final int height) {
       throw new GLException("Should not call this");
     }
   }

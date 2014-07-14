@@ -45,7 +45,7 @@ public class ArcSdirSorter {
    * Makes new ArcSdirSorter with Subdivider
    * @param subdivider subdivider
    */
-  public ArcSdirSorter(Subdivider subdivider) {
+  public ArcSdirSorter(final Subdivider subdivider) {
     //TODO
     //            System.out.println("TODO arcsdirsorter.constructor");
   }
@@ -55,7 +55,7 @@ public class ArcSdirSorter {
    * @param list  arc list to be sorted
    * @param count size of list
    */
-  public void qsort(CArrayOfArcs list, int count) {
+  public void qsort(final CArrayOfArcs list, final int count) {
     // TODO
     //            System.out.println("TODO arcsdirsorter.qsort");
   }

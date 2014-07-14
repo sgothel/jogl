@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
@@ -94,7 +95,7 @@ public abstract class UITestCase {
         return testSupported;
     }
 
-    public static void setTestSupported(boolean v) {
+    public static void setTestSupported(final boolean v) {
         System.err.println("setTestSupported: "+v);
         testSupported = v;
     }
@@ -169,13 +170,13 @@ public abstract class UITestCase {
                         System.err.println("XRandR Reset Error Code "+errorCode);
                     }
                 }
-            } catch (Exception e) {
-                System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
+            } catch (final Exception e) {
+                System.err.println("Caught "+e.getClass().getName()+": "+e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-    private static String getFirst(String line) {
+    private static String getFirst(final String line) {
         final StringTokenizer tok = new StringTokenizer(line);
         if( tok.hasMoreTokens() ) {
             final String s = tok.nextToken().trim();
@@ -186,7 +187,7 @@ public abstract class UITestCase {
         return null;
     }
 
-    public static int processCommand(String[] cmdline, OutputStream outstream, String outPrefix) {
+    public static int processCommand(final String[] cmdline, final OutputStream outstream, final String outPrefix) {
         int errorCode = 0;
         final Object ioSync = new Object();
         try {
@@ -202,8 +203,8 @@ public abstract class UITestCase {
                 p.waitFor(); // should be fine by now ..
                 errorCode = p.exitValue();
             }
-        } catch (Exception e) {
-            System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
+        } catch (final Exception e) {
+            System.err.println("Caught "+e.getClass().getName()+": "+e.getMessage());
             e.printStackTrace();
             errorCode = Integer.MIN_VALUE;
         }
@@ -215,7 +216,7 @@ public abstract class UITestCase {
             int ml = 0;
             final TestClass tc = new TestClass(getClass());
             final List<FrameworkMethod> testMethods = tc.getAnnotatedMethods(org.junit.Test.class);
-            for(Iterator<FrameworkMethod> iter=testMethods.iterator(); iter.hasNext(); ) {
+            for(final Iterator<FrameworkMethod> iter=testMethods.iterator(); iter.hasNext(); ) {
                 final int l = iter.next().getName().length();
                 if( ml < l ) { ml = l; }
             }
@@ -228,11 +229,11 @@ public abstract class UITestCase {
         return _unitTestName.getMethodName();
     }
 
-    public final String getSimpleTestName(String separator) {
+    public final String getSimpleTestName(final String separator) {
         return getClass().getSimpleName()+separator+getTestMethodName();
     }
 
-    public final String getFullTestName(String separator) {
+    public final String getFullTestName(final String separator) {
         return getClass().getName()+separator+getTestMethodName();
     }
 
@@ -267,17 +268,17 @@ public abstract class UITestCase {
         System.err.println("++++ UITestCase.tearDown: "+getFullTestName(" - "));
     }
 
-    public static void waitForKey(String preMessage) {
-        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+    public static void waitForKey(final String preMessage) {
+        final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println(preMessage+"> Press enter to continue");
         try {
             System.err.println(stdin.readLine());
-        } catch (IOException e) { }
+        } catch (final IOException e) { e.printStackTrace(); }
     }
 
     static final String unsupportedTestMsg = "Test not supported on this platform.";
 
-    public String getSnapshotFilename(int sn, String postSNDetail, GLCapabilitiesImmutable caps, int width, int height, boolean sinkHasAlpha, String fileSuffix, String destPath) {
+    public String getSnapshotFilename(final int sn, String postSNDetail, final GLCapabilitiesImmutable caps, final int width, final int height, final boolean sinkHasAlpha, String fileSuffix, final String destPath) {
         if(null == fileSuffix) {
             fileSuffix = TextureIO.PNG;
         }
@@ -332,13 +333,25 @@ public abstract class UITestCase {
      *                 It shall not end with a directory separator, {@link File#separatorChar}.
      *                 If <code>null</code> the current working directory is being used.
      */
-    public void snapshot(int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
+    public void snapshot(final int sn, final String postSNDetail, final GL gl, final GLReadBufferUtil readBufferUtil, final String fileSuffix, final String destPath) {
+
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final String filename = getSnapshotFilename(sn, postSNDetail,
-                                                    drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                    drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                     readBufferUtil.hasAlpha(), fileSuffix, destPath);
         System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename);
         gl.glFinish(); // just make sure rendering finished ..
+        try {
+            snapshot(gl, readBufferUtil, filename);
+        } catch (final ClassNotFoundException cnfe) {
+            // Texture class belongs to jogl-util.jar which my not be included in test environment!
+            System.err.println("Caught ClassNotFoundException: "+cnfe.getMessage());
+        } catch (final NoClassDefFoundError cnfe) {
+            // Texture class belongs to jogl-util.jar which my not be included in test environment!
+            System.err.println("Caught NoClassDefFoundError: "+cnfe.getMessage());
+        }
+    }
+    private void snapshot(final GL gl, final GLReadBufferUtil readBufferUtil, final String filename) throws ClassNotFoundException, NoClassDefFoundError {
         if(readBufferUtil.readPixels(gl, false)) {
             readBufferUtil.write(new File(filename));
         }
@@ -349,48 +362,48 @@ public abstract class UITestCase {
         private volatile boolean makeShot = false;
         private volatile boolean makeShotAlways = false;
         private volatile boolean verbose = false;
-        private volatile int displayCount=0;
-        private volatile int reshapeCount=0;
+        private final AtomicInteger displayCount = new AtomicInteger(0);
+        private final AtomicInteger reshapeCount = new AtomicInteger(0);
         private volatile String postSNDetail = null;
-        public SnapshotGLEventListener(GLReadBufferUtil screenshot) {
+        public SnapshotGLEventListener(final GLReadBufferUtil screenshot) {
             this.screenshot = screenshot;
         }
         public SnapshotGLEventListener() {
             this.screenshot = new GLReadBufferUtil(false, false);
         }
-        public int getDisplayCount() { return displayCount; }
-        public int getReshapeCount() { return reshapeCount; }
+        public int getDisplayCount() { return displayCount.get(); }
+        public int getReshapeCount() { return reshapeCount.get(); }
         public GLReadBufferUtil getGLReadBufferUtil() { return screenshot; }
-        public void init(GLAutoDrawable drawable) {}
-        public void dispose(GLAutoDrawable drawable) {}
-        public void display(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {}
+        public void display(final GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();
             final boolean _makeShot = makeShot || makeShotAlways;
             if(verbose) {
-                System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+_makeShot);
+                System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", makeShot "+_makeShot);
             }
             if(_makeShot) {
                 makeShot=false;
-                snapshot(displayCount, postSNDetail, gl, screenshot, TextureIO.PNG, null);
+                snapshot(displayCount.get(), postSNDetail, gl, screenshot, TextureIO.PNG, null);
             }
-            displayCount++;
+            displayCount.incrementAndGet();
         }
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
             if(verbose) {
-                System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getWidth()+"x"+drawable.getHeight());
+                System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight());
             }
-            reshapeCount++;
+            reshapeCount.incrementAndGet();
         }
         public void setMakeSnapshot() {
             makeShot=true;
         }
-        public void setMakeSnapshotAlways(boolean v) {
+        public void setMakeSnapshotAlways(final boolean v) {
             makeShotAlways=v;
         }
-        public void setVerbose(boolean v) {
+        public void setVerbose(final boolean v) {
             verbose=v;
         }
-        public void setPostSNDetail(String v) {
+        public void setPostSNDetail(final String v) {
             postSNDetail = v;
         }
     };

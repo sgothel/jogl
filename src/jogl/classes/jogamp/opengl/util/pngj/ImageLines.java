@@ -36,7 +36,7 @@ public class ImageLines {
 	 * @param nRows
 	 * @param rowStep
 	 */
-	public ImageLines(ImageInfo imgInfo, SampleType stype, boolean unpackedMode, int rowOffset, int nRows, int rowStep) {
+	public ImageLines(final ImageInfo imgInfo, final SampleType stype, final boolean unpackedMode, final int rowOffset, final int nRows, final int rowStep) {
 		this.imgInfo = imgInfo;
 		channels = imgInfo.channels;
 		bitDepth = imgInfo.bitDepth;
@@ -61,8 +61,8 @@ public class ImageLines {
 	 * and rounding down) Eg: rowOffset=4,rowStep=2 imageRowToMatrixRow(17)
 	 * returns 6 , imageRowToMatrixRow(1) returns 0
 	 */
-	public int imageRowToMatrixRow(int imrow) {
-		int r = (imrow - rowOffset) / rowStep;
+	public int imageRowToMatrixRow(final int imrow) {
+		final int r = (imrow - rowOffset) / rowStep;
 		return r < 0 ? 0 : (r < nRows ? r : nRows - 1);
 	}
 
@@ -71,7 +71,7 @@ public class ImageLines {
 	 */
 	public int imageRowToMatrixRowStrict(int imrow) {
 		imrow -= rowOffset;
-		int mrow = imrow >= 0 && imrow % rowStep == 0 ? imrow / rowStep : -1;
+		final int mrow = imrow >= 0 && imrow % rowStep == 0 ? imrow / rowStep : -1;
 		return mrow < nRows ? mrow : -1;
 	}
 
@@ -82,7 +82,7 @@ public class ImageLines {
 	 *            Matrix row number
 	 * @return Image row number. Invalid only if mrow is invalid
 	 */
-	public int matrixRowToImageRow(int mrow) {
+	public int matrixRowToImageRow(final int mrow) {
 		return mrow * rowStep + rowOffset;
 	}
 
@@ -96,10 +96,10 @@ public class ImageLines {
 	 * @return A new ImageLine, backed by the matrix, with the correct ('real')
 	 *         rownumber
 	 */
-	public ImageLine getImageLineAtMatrixRow(int mrow) {
+	public ImageLine getImageLineAtMatrixRow(final int mrow) {
 		if (mrow < 0 || mrow > nRows)
 			throw new PngjException("Bad row " + mrow + ". Should be positive and less than " + nRows);
-		ImageLine imline = sampleType == SampleType.INT ? new ImageLine(imgInfo, sampleType, samplesUnpacked,
+		final ImageLine imline = sampleType == SampleType.INT ? new ImageLine(imgInfo, sampleType, samplesUnpacked,
 				scanlines[mrow], null) : new ImageLine(imgInfo, sampleType, samplesUnpacked, null, scanlinesb[mrow]);
 		imline.setRown(matrixRowToImageRow(mrow));
 		return imline;

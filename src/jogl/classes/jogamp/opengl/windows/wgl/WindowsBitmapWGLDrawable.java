@@ -60,11 +60,11 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
   private long hbitmap;
 
-  private WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface comp) {
+  private WindowsBitmapWGLDrawable(final GLDrawableFactory factory, final NativeSurface comp) {
     super(factory, comp, false);
   }
 
-  protected static WindowsBitmapWGLDrawable create(GLDrawableFactory factory, NativeSurface comp) {
+  protected static WindowsBitmapWGLDrawable create(final GLDrawableFactory factory, final NativeSurface comp) {
     final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)comp.getGraphicsConfiguration();
     final AbstractGraphicsDevice aDevice = config.getScreen().getDevice();
     if( !GLProfile.isAvailable(aDevice, GLProfile.GL2) ) {
@@ -94,7 +94,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new WindowsWGLContext(this, shareWith);
   }
 
@@ -111,8 +111,8 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     }
     final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
     final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-    final int width = getWidth();
-    final int height = getHeight();
+    final int width = getSurfaceWidth();
+    final int height = getSurfaceHeight();
 
     //
     // 1. Create DIB Section
@@ -146,7 +146,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     hbitmap = GDI.CreateDIBSection(0, info, GDI.DIB_RGB_COLORS, pb, 0, 0);
     werr = GDI.GetLastError();
     if(DEBUG) {
-        long p = ( pb.capacity() > 0 ) ? pb.get(0) : 0;
+        final long p = ( pb.capacity() > 0 ) ? pb.get(0) : 0;
         System.err.println("WindowsBitmapWGLDrawable: pb sz/ptr "+pb.capacity() + ", "+toHexString(p));
         System.err.println("WindowsBitmapWGLDrawable: " + width+"x"+height +
                             ", bpp " + bitsPerPixelIn + " -> " + bitsPerPixel +
@@ -187,7 +187,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   }
 
   protected void destroyBitmap() {
-    NativeSurface ns = getNativeSurface();
+    final NativeSurface ns = getNativeSurface();
     if (ns.getSurfaceHandle() != 0) {
       // Must destroy bitmap and device context
       GDI.SelectObject(ns.getSurfaceHandle(), origbitmap);

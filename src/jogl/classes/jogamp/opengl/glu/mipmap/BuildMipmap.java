@@ -46,9 +46,15 @@ package jogamp.opengl.glu.mipmap;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.glu.GLU;
+
 import jogamp.opengl.Debug;
+
 import com.jogamp.common.nio.Buffers;
+
 import java.nio.*;
 import java.io.*;
 
@@ -65,9 +71,9 @@ public class BuildMipmap {
   public BuildMipmap() {
   }
 
-  public static int gluBuild1DMipmapLevelsCore( GL gl, int target, int internalFormat,
-                  int width, int widthPowerOf2, int format, int type, int userLevel,
-                  int baseLevel, int maxLevel, ByteBuffer data ) {
+  public static int gluBuild1DMipmapLevelsCore( final GL gl, final int target, final int internalFormat,
+                  final int width, final int widthPowerOf2, final int format, final int type, final int userLevel,
+                  final int baseLevel, final int maxLevel, final ByteBuffer data ) {
     int newwidth;
     int level, levels;
     ShortBuffer newImage = null;
@@ -75,9 +81,9 @@ public class BuildMipmap {
     ShortBuffer otherImage = null;
     ShortBuffer imageTemp = null;
     int memReq;
-    int maxsize;
+    final int maxsize;
     int cmpts;
-    PixelStorageModes psm = new PixelStorageModes();
+    final PixelStorageModes psm = new PixelStorageModes();
 
     assert( Mipmap.checkMipmapArgs( internalFormat, format, type ) == 0 );
     assert( width >= 1 );
@@ -90,40 +96,40 @@ public class BuildMipmap {
     Mipmap.retrieveStoreModes( gl, psm );
     try {
       newImage = Buffers.newDirectByteBuffer( Mipmap.image_size( width, 1, format,
-            GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
-    } catch( OutOfMemoryError ome ) {
+            GL.GL_UNSIGNED_SHORT ) ).asShortBuffer();
+    } catch( final OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
     newImage_width = width;
 
     Image.fill_image( psm, width, 1, format, type, Mipmap.is_index( format ), data, newImage );
     cmpts = Mipmap.elements_per_group( format, type );
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, 2 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, 0 );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, 2 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, 0 );
 
     // if swap_bytes was set, swapping occurred in fill_image
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
 
     for( level = userLevel; level <= levels; level++ ) {
       if( newImage_width == newwidth ) {
         // user newimage for this level
         if( baseLevel <= level && level <= maxLevel ) {
           gl.getGL2().glTexImage1D( target, level, internalFormat, newImage_width, 0, format,
-                        GL2.GL_UNSIGNED_SHORT, newImage );
+                        GL.GL_UNSIGNED_SHORT, newImage );
         }
       } else {
         if( otherImage == null ) {
-          memReq = Mipmap.image_size( newwidth, 1, format, GL2.GL_UNSIGNED_SHORT );
+          memReq = Mipmap.image_size( newwidth, 1, format, GL.GL_UNSIGNED_SHORT );
           try {
             otherImage = Buffers.newDirectByteBuffer( memReq ).asShortBuffer();
-          } catch( OutOfMemoryError ome ) {
-            gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-            gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+          } catch( final OutOfMemoryError ome ) {
+            gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+            gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
             return( GLU.GLU_OUT_OF_MEMORY );
           }
         }
@@ -136,26 +142,26 @@ public class BuildMipmap {
         newImage_width = newwidth;
         if( baseLevel <= level && level <= maxLevel ) {
           gl.getGL2().glTexImage1D( target, level, internalFormat, newImage_width, 0,
-                            format, GL2.GL_UNSIGNED_SHORT, newImage );
+                            format, GL.GL_UNSIGNED_SHORT, newImage );
         }
       }
       if( newwidth > 1 ) {
         newwidth /= 2;
       }
     }
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
 
     return( 0 );
   }
 
-  public static int bitmapBuild2DMipmaps( GL gl, int target, int internalFormat,
-            int width, int height, int format, int type, ByteBuffer data ) {
-    int newwidth[] = new int[1];
-    int newheight[] = new int[1];
+  public static int bitmapBuild2DMipmaps( final GL gl, final int target, final int internalFormat,
+            final int width, final int height, final int format, final int type, final ByteBuffer data ) {
+    final int newwidth[] = new int[1];
+    final int newheight[] = new int[1];
     int level, levels;
     ShortBuffer newImage = null;
     int newImage_width;
@@ -163,9 +169,9 @@ public class BuildMipmap {
     ShortBuffer otherImage = null;
     ShortBuffer tempImage = null;
     int memReq;
-    int maxsize;
+    final int maxsize;
     int cmpts;
-    PixelStorageModes psm = new PixelStorageModes();
+    final PixelStorageModes psm = new PixelStorageModes();
 
     Mipmap.retrieveStoreModes( gl, psm );
 
@@ -179,8 +185,8 @@ public class BuildMipmap {
 
     try {
       newImage = Buffers.newDirectByteBuffer( Mipmap.image_size( width, height,
-            format, GL2.GL_UNSIGNED_SHORT ) ).asShortBuffer();
-    } catch( OutOfMemoryError ome ) {
+            format, GL.GL_UNSIGNED_SHORT ) ).asShortBuffer();
+    } catch( final OutOfMemoryError ome ) {
       return( GLU.GLU_OUT_OF_MEMORY );
     }
     newImage_width = width;
@@ -189,30 +195,30 @@ public class BuildMipmap {
     Image.fill_image( psm, width, height, format, type, Mipmap.is_index( format ), data, newImage );
 
     cmpts = Mipmap.elements_per_group( format, type );
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, 2 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, 0 );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, 2 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, 0 );
 
     // if swap_bytes is set, swapping occurred in fill_image
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
 
     for( level = 0; level < levels; level++ ) {
       if( newImage_width == newwidth[0] && newImage_height == newheight[0] ) {
         newImage.rewind();
         gl.glTexImage2D( target, level, internalFormat, newImage_width,
-            newImage_height, 0, format, GL2.GL_UNSIGNED_SHORT, newImage );
+            newImage_height, 0, format, GL.GL_UNSIGNED_SHORT, newImage );
       } else {
         if( otherImage == null ) {
-          memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_SHORT );
+          memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL.GL_UNSIGNED_SHORT );
           try {
             otherImage = Buffers.newDirectByteBuffer( memReq ).asShortBuffer();
-          } catch( OutOfMemoryError ome ) {
-            gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-            gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+          } catch( final OutOfMemoryError ome ) {
+            gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+            gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
             return( GLU.GLU_OUT_OF_MEMORY );
           }
         }
@@ -227,7 +233,7 @@ public class BuildMipmap {
         newImage_height = newheight[0];
         newImage.rewind();
         gl.glTexImage2D( target, level, internalFormat, newImage_width, newImage_height,
-                                    0, format, GL2.GL_UNSIGNED_SHORT, newImage );
+                                    0, format, GL.GL_UNSIGNED_SHORT, newImage );
       }
       if( newheight[0] > 1 ) {
         newwidth[0] /= 2;
@@ -236,38 +242,38 @@ public class BuildMipmap {
         newheight[0] /= 2;
       }
     }
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
 
     return( 0 );
   }
 
-  public static int gluBuild2DMipmapLevelsCore( GL gl, int target, int internalFormat,
-                int width, int height, int widthPowerOf2, int heightPowerOf2,
-                int format, int type, int userLevel, int baseLevel, int maxLevel,
-                ByteBuffer data ) { // PointerWrapper data
+  public static int gluBuild2DMipmapLevelsCore( final GL gl, final int target, final int internalFormat,
+                final int width, final int height, final int widthPowerOf2, final int heightPowerOf2,
+                final int format, final int type, final int userLevel, final int baseLevel, final int maxLevel,
+                final ByteBuffer data ) { // PointerWrapper data
     int newwidth;
     int newheight;
     int level, levels;
-    int usersImage;
+    final int usersImage;
     ByteBuffer srcImage = null;
     ByteBuffer dstImage = null;
     ByteBuffer tempImage = null;
-    int newImage_width;
-    int newImage_height;
-    short[] SWAP_IMAGE = null;
+    final int newImage_width;
+    final int newImage_height;
+    final short[] SWAP_IMAGE = null;
     int memReq;
-    int maxsize;
+    final int maxsize;
     int cmpts;
     int mark=-1;
 
     boolean myswap_bytes;
     int groups_per_line, element_size, group_size;
     int rowsize, padding;
-    PixelStorageModes psm = new PixelStorageModes();
+    final PixelStorageModes psm = new PixelStorageModes();
 
     assert( Mipmap.checkMipmapArgs( internalFormat, format, type ) == 0 );
     assert( width >= 1 && height >= 1 );
@@ -310,9 +316,9 @@ public class BuildMipmap {
     mark = psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size;
     data.position( mark );
 
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, 0 );
 
     level = userLevel;
 
@@ -324,11 +330,11 @@ public class BuildMipmap {
         gl.glTexImage2D( target, level, internalFormat, width, height, 0, format, type, data );
       }
       if( levels == 0 ) { /* we're done. clean up and return */
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
         return( 0 );
       }
       int nextWidth = newwidth / 2;
@@ -345,97 +351,97 @@ public class BuildMipmap {
 
       try {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
-          case( GL2.GL_BYTE ):
-          case( GL2.GL_UNSIGNED_SHORT ):
-          case( GL2.GL_SHORT ):
-          case( GL2.GL_UNSIGNED_INT ):
-          case( GL2.GL_INT ):
-          case( GL2.GL_FLOAT ):
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL2ES2.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
-      } catch( OutOfMemoryError ome ) {
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+      } catch( final OutOfMemoryError ome ) {
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
       if( dstImage != null ) {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
+          case( GL.GL_UNSIGNED_BYTE ):
             HalveImage.halveImage_ubyte( cmpts, width, height, data, dstImage, element_size, rowsize, group_size );
             break;
-          case( GL2.GL_BYTE ):
+          case( GL.GL_BYTE ):
             HalveImage.halveImage_byte( cmpts, width, height, data, dstImage, element_size, rowsize, group_size );
             break;
-          case( GL2.GL_UNSIGNED_SHORT ):
+          case( GL.GL_UNSIGNED_SHORT ):
             HalveImage.halveImage_ushort( cmpts, width, height, data, dstImage.asShortBuffer(), element_size, rowsize, group_size, myswap_bytes );
             break;
-          case( GL2.GL_SHORT ):
+          case( GL.GL_SHORT ):
             HalveImage.halveImage_short( cmpts, width, height, data, dstImage.asShortBuffer(), element_size, rowsize, group_size, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_INT ):
+          case( GL.GL_UNSIGNED_INT ):
             HalveImage.halveImage_uint( cmpts, width, height, data, dstImage.asIntBuffer(), element_size, rowsize, group_size, myswap_bytes );
             break;
-          case( GL2.GL_INT ):
+          case( GL2ES2.GL_INT ):
             HalveImage.halveImage_int( cmpts, width, height, data, dstImage.asIntBuffer(), element_size, rowsize, group_size, myswap_bytes );
             break;
-          case( GL2.GL_FLOAT ):
+          case( GL.GL_FLOAT ):
             HalveImage.halveImage_float( cmpts, width, height, data, dstImage.asFloatBuffer(), element_size, rowsize, group_size, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-            assert( format == GL2.GL_RGB );
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+            assert( format == GL.GL_RGB );
             HalveImage.halveImagePackedPixel( 3, new Extract332(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            assert( format == GL2.GL_RGB );
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            assert( format == GL.GL_RGB );
             HalveImage.halveImagePackedPixel( 3, new Extract233rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
             HalveImage.halveImagePackedPixel( 3, new Extract565(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
             HalveImage.halveImagePackedPixel( 3, new Extract565rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
             HalveImage.halveImagePackedPixel( 4, new Extract4444(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
             HalveImage.halveImagePackedPixel( 4, new Extract4444rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
             HalveImage.halveImagePackedPixel( 4, new Extract5551(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
             HalveImage.halveImagePackedPixel( 4, new Extract1555rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
             HalveImage.halveImagePackedPixel( 4, new Extract8888(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
             HalveImage.halveImagePackedPixel( 4, new Extract8888rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
             HalveImage.halveImagePackedPixel( 4, new Extract1010102(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             HalveImage.halveImagePackedPixel( 4, new Extract2101010rev(), width, height, data, dstImage, element_size, rowsize, myswap_bytes );
             break;
           default:
@@ -462,36 +468,36 @@ public class BuildMipmap {
       dstImage = tempImage;
       try {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
-          case( GL2.GL_BYTE ):
-          case( GL2.GL_UNSIGNED_SHORT ):
-          case( GL2.GL_SHORT ):
-          case( GL2.GL_UNSIGNED_INT ):
-          case( GL2.GL_INT ):
-          case( GL2.GL_FLOAT ):
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL2ES2.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
-      } catch( OutOfMemoryError ome ) {
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+      } catch( final OutOfMemoryError ome ) {
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
       // level userLevel+1 is in srcImage; level userLevel already saved
@@ -500,113 +506,113 @@ public class BuildMipmap {
       memReq = Mipmap.image_size( newwidth, newheight, format, type );
       try {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
-          case( GL2.GL_BYTE ):
-          case( GL2.GL_UNSIGNED_SHORT ):
-          case( GL2.GL_SHORT ):
-          case( GL2.GL_UNSIGNED_INT ):
-          case( GL2.GL_INT ):
-          case( GL2.GL_FLOAT ):
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL2ES2.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
-      } catch( OutOfMemoryError ome ) {
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+      } catch( final OutOfMemoryError ome ) {
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
       data.position( mark );
       switch( type ) {
-        case( GL2.GL_UNSIGNED_BYTE ):
+        case( GL.GL_UNSIGNED_BYTE ):
           ScaleInternal.scale_internal_ubyte( cmpts, width, height, data,
                 newwidth, newheight, dstImage, element_size, rowsize, group_size );
           break;
-        case( GL2.GL_BYTE ):
+        case( GL.GL_BYTE ):
           ScaleInternal.scale_internal_byte( cmpts, width, height, data, newwidth,
                   newheight, dstImage, element_size, rowsize, group_size );
           break;
-        case( GL2.GL_UNSIGNED_SHORT ):
+        case( GL.GL_UNSIGNED_SHORT ):
           ScaleInternal.scale_internal_ushort( cmpts, width, height, data, newwidth,
                   newheight, dstImage.asShortBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_SHORT ):
+        case( GL.GL_SHORT ):
           ScaleInternal.scale_internal_ushort( cmpts, width, height, data, newwidth,
                   newheight, dstImage.asShortBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_INT ):
+        case( GL.GL_UNSIGNED_INT ):
           ScaleInternal.scale_internal_uint( cmpts, width, height, data, newwidth,
                   newheight, dstImage.asIntBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_INT ):
+        case( GL2ES2.GL_INT ):
           ScaleInternal.scale_internal_int( cmpts, width, height, data, newwidth,
                   newheight, dstImage.asIntBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_FLOAT ):
+        case( GL.GL_FLOAT ):
           ScaleInternal.scale_internal_float( cmpts, width, height, data, newwidth,
                   newheight, dstImage.asFloatBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+        case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
           ScaleInternal.scaleInternalPackedPixel( 3, new Extract332(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+        case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
           ScaleInternal.scaleInternalPackedPixel( 3, new Extract233rev(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+        case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
           ScaleInternal.scaleInternalPackedPixel( 3, new Extract565(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
           ScaleInternal.scaleInternalPackedPixel( 3, new Extract565rev(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+        case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract4444(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract4444rev(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+        case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract5551(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract1555rev(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+        case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract8888(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+        case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract8888rev(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+        case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract1010102(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+        case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
           ScaleInternal.scaleInternalPackedPixel( 4, new Extract2101010rev(), width, height, data, newwidth,
               newheight, dstImage, element_size, rowsize, myswap_bytes );
           break;
@@ -634,36 +640,36 @@ public class BuildMipmap {
         memReq = Mipmap.image_size( nextWidth, nextHeight, format, type );
         try {
           switch( type ) {
-            case( GL2.GL_UNSIGNED_BYTE ):
-            case( GL2.GL_BYTE ):
-            case( GL2.GL_UNSIGNED_SHORT ):
-            case( GL2.GL_SHORT ):
-            case( GL2.GL_UNSIGNED_INT ):
-            case( GL2.GL_INT ):
-            case( GL2.GL_FLOAT ):
-            case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-            case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-            case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-            case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-            case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-            case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            case( GL.GL_UNSIGNED_BYTE ):
+            case( GL.GL_BYTE ):
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL2ES2.GL_INT ):
+            case( GL.GL_FLOAT ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
               dstImage = Buffers.newDirectByteBuffer( memReq );
               break;
             default:
               return( GLU.GLU_INVALID_ENUM );
           }
-        } catch( OutOfMemoryError ome ) {
-          gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-          gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+        } catch( final OutOfMemoryError ome ) {
+          gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+          gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
           return( GLU.GLU_OUT_OF_MEMORY );
         }
       }
@@ -671,7 +677,7 @@ public class BuildMipmap {
       level = userLevel;
     }
 
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
     if( baseLevel <= level && level <= maxLevel ) {
       srcImage.rewind();
       gl.glTexImage2D( target, level, internalFormat, newwidth, newheight, 0, format, type, srcImage );
@@ -691,63 +697,63 @@ public class BuildMipmap {
       srcImage.rewind();
       dstImage.rewind();
       switch( type ) {
-        case( GL2.GL_UNSIGNED_BYTE ):
+        case( GL.GL_UNSIGNED_BYTE ):
           HalveImage.halveImage_ubyte( cmpts, newwidth, newheight, srcImage, dstImage, element_size, rowsize, group_size );
           break;
-        case( GL2.GL_BYTE ):
+        case( GL.GL_BYTE ):
           HalveImage.halveImage_byte( cmpts, newwidth, newheight, srcImage, dstImage, element_size, rowsize, group_size );
           break;
-        case( GL2.GL_UNSIGNED_SHORT ):
+        case( GL.GL_UNSIGNED_SHORT ):
           HalveImage.halveImage_ushort( cmpts, newwidth, newheight, srcImage, dstImage.asShortBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_SHORT ):
+        case( GL.GL_SHORT ):
           HalveImage.halveImage_short( cmpts, newwidth, newheight, srcImage, dstImage.asShortBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_INT ):
+        case( GL.GL_UNSIGNED_INT ):
           HalveImage.halveImage_uint( cmpts, newwidth, newheight, srcImage, dstImage.asIntBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_INT ):
+        case( GL2ES2.GL_INT ):
           HalveImage.halveImage_int( cmpts, newwidth, newheight, srcImage, dstImage.asIntBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_FLOAT ):
+        case( GL.GL_FLOAT ):
           HalveImage.halveImage_float( cmpts, newwidth, newheight, srcImage, dstImage.asFloatBuffer(), element_size, rowsize, group_size, myswap_bytes );
           break;
-        case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          assert( format == GL2.GL_RGB );
+        case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          assert( format == GL.GL_RGB );
           HalveImage.halveImagePackedPixel( 3, new Extract332(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          assert( format == GL2.GL_RGB );
+        case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          assert( format == GL.GL_RGB );
           HalveImage.halveImagePackedPixel( 3, new Extract233rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+        case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
           HalveImage.halveImagePackedPixel( 3, new Extract565(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
           HalveImage.halveImagePackedPixel( 3, new Extract565rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+        case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
           HalveImage.halveImagePackedPixel( 4, new Extract4444(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
           HalveImage.halveImagePackedPixel( 4, new Extract4444rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+        case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
           HalveImage.halveImagePackedPixel( 4, new Extract5551(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
           HalveImage.halveImagePackedPixel( 4, new Extract1555rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+        case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
           HalveImage.halveImagePackedPixel( 4, new Extract8888(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+        case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
           HalveImage.halveImagePackedPixel( 4, new Extract8888rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+        case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
           HalveImage.halveImagePackedPixel( 4, new Extract1010102(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
-        case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+        case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
           HalveImage.halveImagePackedPixel( 4, new Extract2101010rev(), newwidth, newheight, srcImage, dstImage, element_size, rowsize, myswap_bytes );
             break;
         default:
@@ -768,7 +774,7 @@ public class BuildMipmap {
         newheight /= 2;
       }
       // compute amount to pad per row if any
-      int rowPad = rowsize % psm.getUnpackAlignment();
+      final int rowPad = rowsize % psm.getUnpackAlignment();
 
       // should row be padded
       if( rowPad == 0 ) {
@@ -788,21 +794,21 @@ public class BuildMipmap {
         }
       } else {
         // compute length of new row in bytes, including padding
-        int newRowLength = rowsize + psm.getUnpackAlignment() - rowPad;
+        final int newRowLength = rowsize + psm.getUnpackAlignment() - rowPad;
         int ii, jj;
-        int dstTrav;
-        int srcTrav;
+        final int dstTrav;
+        final int srcTrav;
 
         // allocate new image for mipmap of size newRowLength x newheight
         ByteBuffer newMipmapImage = null;
         try {
           newMipmapImage = ByteBuffer.allocateDirect( newRowLength * newheight );
-        } catch( OutOfMemoryError ome ) {
-          gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-          gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+        } catch( final OutOfMemoryError ome ) {
+          gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+          gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
           return( GLU.GLU_OUT_OF_MEMORY );
         }
         srcImage.rewind();
@@ -828,19 +834,19 @@ public class BuildMipmap {
         }
       }
     }
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, (psm.getUnpackSwapBytes() ? 1 : 0) );
 
     return( 0 );
   }
 
-  public static int fastBuild2DMipmaps( GL gl, PixelStorageModes psm, int target,
-          int components, int width, int height, int format, int type, ByteBuffer data ) {
-    int[] newwidth = new int[1];
-    int[] newheight = new int[1];
+  public static int fastBuild2DMipmaps( final GL gl, final PixelStorageModes psm, final int target,
+          final int components, final int width, final int height, final int format, final int type, final ByteBuffer data ) {
+    final int[] newwidth = new int[1];
+    final int[] newheight = new int[1];
     int level, levels;
     ByteBuffer newImage;
     int newImage_width;
@@ -848,7 +854,7 @@ public class BuildMipmap {
     ByteBuffer otherImage;
     ByteBuffer imageTemp;
     int memReq;
-    int maxsize;
+    final int maxsize;
     int cmpts;
 
     Mipmap.closestFit( gl, target, width, height, components, format, type, newwidth,
@@ -876,12 +882,12 @@ public class BuildMipmap {
       int elements_per_line;
       int start;
       int iter;
-      int iter2;
+      final int iter2;
       int i, j;
 
       try {
-        newImage = Buffers.newDirectByteBuffer( Mipmap.image_size(width, height, format, GL2.GL_UNSIGNED_BYTE ) );
-      } catch( OutOfMemoryError err ) {
+        newImage = Buffers.newDirectByteBuffer( Mipmap.image_size(width, height, format, GL.GL_UNSIGNED_BYTE ) );
+      } catch( final OutOfMemoryError err ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }
       newImage_width = width;
@@ -907,29 +913,29 @@ public class BuildMipmap {
       }
     }
 
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, 1 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, 1 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, 0 );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
 
     for( level = 0; level <= levels; level++ ) {
       if( newImage_width == newwidth[0] && newImage_height == newheight[0] ) {
         // use newImage for this level
         newImage.rewind();
         gl.glTexImage2D( target, level, components, newImage_width, newImage_height,
-                0, format, GL2.GL_UNSIGNED_BYTE, newImage );
+                0, format, GL.GL_UNSIGNED_BYTE, newImage );
       } else {
         if( otherImage == null ) {
-          memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL2.GL_UNSIGNED_BYTE );
+          memReq = Mipmap.image_size( newwidth[0], newheight[0], format, GL.GL_UNSIGNED_BYTE );
           try {
             otherImage = Buffers.newDirectByteBuffer( memReq );
-          } catch( OutOfMemoryError err ) {
-            gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-            gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-            gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, ( psm.getUnpackSwapBytes() ? 1 : 0 ) ) ;
+          } catch( final OutOfMemoryError err ) {
+            gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+            gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+            gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, ( psm.getUnpackSwapBytes() ? 1 : 0 ) ) ;
             return( GLU.GLU_OUT_OF_MEMORY );
           }
         }
@@ -942,7 +948,7 @@ public class BuildMipmap {
         newImage_height = newheight[0];
         newImage.rewind();
         gl.glTexImage2D( target, level, components, newImage_width, newImage_height,
-                0, format, GL2.GL_UNSIGNED_BYTE, newImage );
+                0, format, GL.GL_UNSIGNED_BYTE, newImage );
       }
       if( newwidth[0] > 1 ) {
         newwidth[0] /= 2;
@@ -951,30 +957,30 @@ public class BuildMipmap {
         newheight[0] /= 2;
       }
     }
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, ( psm.getUnpackSwapBytes() ? 1 : 0 ) ) ;
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, ( psm.getUnpackSwapBytes() ? 1 : 0 ) ) ;
 
     return( 0 );
   }
 
-  public static int gluBuild3DMipmapLevelsCore( GL gl, int target, int internalFormat,
-          int width, int height, int depth, int widthPowerOf2, int heightPowerOf2,
-          int depthPowerOf2, int format, int type, int userLevel, int baseLevel,
-          int maxLevel, ByteBuffer data ) {
+  public static int gluBuild3DMipmapLevelsCore( final GL gl, final int target, final int internalFormat,
+          final int width, final int height, final int depth, final int widthPowerOf2, final int heightPowerOf2,
+          final int depthPowerOf2, final int format, final int type, final int userLevel, final int baseLevel,
+          final int maxLevel, final ByteBuffer data ) {
     int newWidth;
     int newHeight;
     int newDepth;
     int level, levels;
     ByteBuffer usersImage;
     ByteBuffer srcImage, dstImage, tempImage;
-    int newImageWidth;
-    int newImageHeight;
-    int newImageDepth;
+    final int newImageWidth;
+    final int newImageHeight;
+    final int newImageDepth;
     int memReq;
-    int maxSize;
+    final int maxSize;
     int cmpts;
     int mark=-1;
 
@@ -982,7 +988,7 @@ public class BuildMipmap {
     int groupsPerLine, elementSize, groupSize;
     int rowsPerImage, imageSize;
     int rowSize, padding;
-    PixelStorageModes psm = new PixelStorageModes();
+    final PixelStorageModes psm = new PixelStorageModes();
 
     assert( Mipmap.checkMipmapArgs( internalFormat, format, type ) == 0 );
     assert( width >= 1 && height >= 1 && depth >= 1 );
@@ -1041,11 +1047,11 @@ public class BuildMipmap {
            psm.getUnpackSkipImages() * imageSize;
     usersImage.position( mark );
 
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, 0 );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, 0 );
+    gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, 0 );
+    gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, 0 );
 
     level = userLevel;
 
@@ -1056,13 +1062,13 @@ public class BuildMipmap {
                 0, format, type, usersImage );
       }
       if( levels == 0 ) { /* we're done. clean up and return */
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
-        gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
         return( 0 );
       }
       int nextWidth = newWidth / 2;
@@ -1082,44 +1088,44 @@ public class BuildMipmap {
       memReq = Mipmap.imageSize3D( nextWidth, nextHeight, nextDepth, format, type );
       try {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
-          case( GL2.GL_BYTE ):
-          case( GL2.GL_UNSIGNED_SHORT ):
-          case( GL2.GL_SHORT ):
-          case( GL2.GL_UNSIGNED_INT ):
-          case( GL2.GL_INT ):
-          case( GL2.GL_FLOAT ):
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL2ES2.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
-      } catch( OutOfMemoryError err ) {
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
-        gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
+      } catch( final OutOfMemoryError err ) {
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
 
       if( dstImage != null ) {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
+          case( GL.GL_UNSIGNED_BYTE ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractUByte(), width, height, depth,
                       usersImage, dstImage, elementSize,
@@ -1129,7 +1135,7 @@ public class BuildMipmap {
                       dstImage, elementSize, rowSize, groupSize );
             }
             break;
-          case( GL2.GL_BYTE ):
+          case( GL.GL_BYTE ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractSByte(), width, height, depth,
                       usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1139,7 +1145,7 @@ public class BuildMipmap {
                       dstImage, elementSize, rowSize, groupSize );
             }
             break;
-          case( GL2.GL_UNSIGNED_SHORT ):
+          case( GL.GL_UNSIGNED_SHORT ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractUShort(), width, height, depth,
                       usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1149,7 +1155,7 @@ public class BuildMipmap {
                       dstImage.asShortBuffer(), elementSize, rowSize, groupSize, myswapBytes );
             }
             break;
-          case( GL2.GL_SHORT ):
+          case( GL.GL_SHORT ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractSShort(), width, height, depth,
                       usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1159,7 +1165,7 @@ public class BuildMipmap {
                       dstImage.asShortBuffer(), elementSize, rowSize, groupSize, myswapBytes );
             }
             break;
-          case( GL2.GL_UNSIGNED_INT ):
+          case( GL.GL_UNSIGNED_INT ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractUInt(), width, height, depth,
                       usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1169,7 +1175,7 @@ public class BuildMipmap {
                       dstImage.asIntBuffer(), elementSize, rowSize, groupSize, myswapBytes );
             }
             break;
-          case( GL2.GL_INT ):
+          case( GL2ES2.GL_INT ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractSInt(), width, height, depth,
                       usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1179,7 +1185,7 @@ public class BuildMipmap {
                       dstImage.asIntBuffer(), elementSize, rowSize, groupSize, myswapBytes );
             }
             break;
-          case( GL2.GL_FLOAT ):
+          case( GL.GL_FLOAT ):
             if( depth > 1 ) {
               HalveImage.halveImage3D( cmpts, new ExtractFloat(), width, height, depth,
                       usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1189,53 +1195,53 @@ public class BuildMipmap {
                       dstImage.asFloatBuffer(), elementSize, rowSize, groupSize, myswapBytes );
             }
             break;
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-            assert( format == GL2.GL_RGB );
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+            assert( format == GL.GL_RGB );
             HalveImage.halveImagePackedPixel3D( 3, new Extract332(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            assert( format == GL2.GL_RGB );
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            assert( format == GL.GL_RGB );
             HalveImage.halveImagePackedPixel3D( 3, new Extract233rev(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
             HalveImage.halveImagePackedPixel3D( 3, new Extract565(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
             HalveImage.halveImagePackedPixel3D( 3, new Extract565rev(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract4444(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract4444rev(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract5551(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract1555rev(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract8888(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract8888rev(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract1010102(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             HalveImage.halveImagePackedPixel3D( 4, new Extract2101010rev(), width, height, depth, usersImage,
                     dstImage, elementSize, rowSize, imageSize, myswapBytes );
             break;
@@ -1268,38 +1274,38 @@ public class BuildMipmap {
       dstImage = tempImage;
       try {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
-          case( GL2.GL_BYTE ):
-          case( GL2.GL_UNSIGNED_SHORT ):
-          case( GL2.GL_SHORT ):
-          case( GL2.GL_UNSIGNED_INT ):
-          case( GL2.GL_INT ):
-          case( GL2.GL_FLOAT ):
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL2ES2.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
-      } catch( OutOfMemoryError err ) {
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
-        gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
+      } catch( final OutOfMemoryError err ) {
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
 
@@ -1309,38 +1315,38 @@ public class BuildMipmap {
       memReq = Mipmap.imageSize3D( newWidth, newHeight, newDepth, format, type );
       try {
         switch( type ) {
-          case( GL2.GL_UNSIGNED_BYTE ):
-          case( GL2.GL_BYTE ):
-          case( GL2.GL_UNSIGNED_SHORT ):
-          case( GL2.GL_SHORT ):
-          case( GL2.GL_UNSIGNED_INT ):
-          case( GL2.GL_INT ):
-          case( GL2.GL_FLOAT ):
-          case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-          case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-          case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-          case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-          case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-          case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-          case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-          case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-          case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+          case( GL.GL_UNSIGNED_BYTE ):
+          case( GL.GL_BYTE ):
+          case( GL.GL_UNSIGNED_SHORT ):
+          case( GL.GL_SHORT ):
+          case( GL.GL_UNSIGNED_INT ):
+          case( GL2ES2.GL_INT ):
+          case( GL.GL_FLOAT ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+          case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+          case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+          case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+          case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+          case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+          case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+          case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
             dstImage = Buffers.newDirectByteBuffer( memReq );
             break;
           default:
             return( GLU.GLU_INVALID_ENUM );
         }
-      } catch( OutOfMemoryError err ) {
-        gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-        gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-        gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
-        gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
-        gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
+      } catch( final OutOfMemoryError err ) {
+        gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+        gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+        gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
+        gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
         return( GLU.GLU_OUT_OF_MEMORY );
       }
 
@@ -1371,38 +1377,38 @@ public class BuildMipmap {
         memReq = Mipmap.imageSize3D( nextWidth, nextHeight, nextDepth, format, type );
         try {
           switch( type ) {
-            case( GL2.GL_UNSIGNED_BYTE ):
-            case( GL2.GL_BYTE ):
-            case( GL2.GL_UNSIGNED_SHORT ):
-            case( GL2.GL_SHORT ):
-            case( GL2.GL_UNSIGNED_INT ):
-            case( GL2.GL_INT ):
-            case( GL2.GL_FLOAT ):
-            case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
-            case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
-            case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
-            case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
-            case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
-            case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
-            case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
-            case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
-            case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+            case( GL.GL_UNSIGNED_BYTE ):
+            case( GL.GL_BYTE ):
+            case( GL.GL_UNSIGNED_SHORT ):
+            case( GL.GL_SHORT ):
+            case( GL.GL_UNSIGNED_INT ):
+            case( GL2ES2.GL_INT ):
+            case( GL.GL_FLOAT ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
+            case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
+            case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
+            case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+            case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
+            case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
+            case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
+            case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
+            case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
               dstImage = Buffers.newDirectByteBuffer( memReq );
               break;
             default:
               return( GLU.GLU_INVALID_ENUM );
           }
-        } catch( OutOfMemoryError err ) {
-          gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-          gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-          gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
-          gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
-          gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
+        } catch( final OutOfMemoryError err ) {
+          gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+          gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+          gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
+          gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
+          gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
           return( GLU.GLU_OUT_OF_MEMORY );
         }
       }
@@ -1410,7 +1416,7 @@ public class BuildMipmap {
       level = userLevel;
     }
 
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE );
     if( baseLevel <= level && level <= maxLevel ) {
       usersImage.position( mark );
       gl.getGL2().glTexImage3D( target, level, internalFormat, width, height, depth,
@@ -1419,7 +1425,7 @@ public class BuildMipmap {
     level++;
     for( ; level <= levels; level++ ) {
       switch( type ) {
-        case( GL2.GL_UNSIGNED_BYTE ):
+        case( GL.GL_UNSIGNED_BYTE ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractUByte(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1429,7 +1435,7 @@ public class BuildMipmap {
                     dstImage, elementSize, rowSize, groupSize );
           }
           break;
-        case( GL2.GL_BYTE ):
+        case( GL.GL_BYTE ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractSByte(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1439,7 +1445,7 @@ public class BuildMipmap {
                     dstImage, elementSize, rowSize, groupSize );
           }
           break;
-        case( GL2.GL_UNSIGNED_SHORT ):
+        case( GL.GL_UNSIGNED_SHORT ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractUShort(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1449,7 +1455,7 @@ public class BuildMipmap {
                     dstImage.asShortBuffer(), elementSize, rowSize, groupSize, myswapBytes );
           }
           break;
-        case( GL2.GL_SHORT ):
+        case( GL.GL_SHORT ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractSShort(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1459,7 +1465,7 @@ public class BuildMipmap {
                     dstImage.asShortBuffer(), elementSize, rowSize, groupSize, myswapBytes );
           }
           break;
-        case( GL2.GL_UNSIGNED_INT ):
+        case( GL.GL_UNSIGNED_INT ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractUInt(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1469,7 +1475,7 @@ public class BuildMipmap {
                     dstImage.asIntBuffer(), elementSize, rowSize, groupSize, myswapBytes );
           }
           break;
-        case( GL2.GL_INT ):
+        case( GL2ES2.GL_INT ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractSInt(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1479,7 +1485,7 @@ public class BuildMipmap {
                     dstImage.asIntBuffer(), elementSize, rowSize, groupSize, myswapBytes );
           }
           break;
-        case( GL2.GL_FLOAT ):
+        case( GL.GL_FLOAT ):
           if( depth > 1 ) {
             HalveImage.halveImage3D( cmpts, new ExtractFloat(), width, height, depth,
                     usersImage, dstImage, elementSize, groupSize, rowSize,
@@ -1489,51 +1495,51 @@ public class BuildMipmap {
                     dstImage.asFloatBuffer(), elementSize, rowSize, groupSize, myswapBytes );
           }
           break;
-        case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
+        case( GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ):
           HalveImage.halveImagePackedPixel3D( 3, new Extract332(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_BYTE_2_3_3_REV ):
+        case( GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ):
           HalveImage.halveImagePackedPixel3D( 3, new Extract233rev(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_5_6_5 ):
+        case( GL.GL_UNSIGNED_SHORT_5_6_5 ):
           HalveImage.halveImagePackedPixel3D( 3, new Extract565(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_5_6_5_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV ):
           HalveImage.halveImagePackedPixel3D( 3, new Extract565rev(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_4_4_4_4 ):
+        case( GL.GL_UNSIGNED_SHORT_4_4_4_4 ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract4444(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract4444rev(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_5_5_5_1 ):
+        case( GL.GL_UNSIGNED_SHORT_5_5_5_1 ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract5551(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
+        case( GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract1555rev(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_8_8_8_8 ):
+        case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8 ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract8888(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_8_8_8_8_REV ):
+        case( GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract8888rev(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_10_10_10_2 ):
+        case( GL2ES2.GL_UNSIGNED_INT_10_10_10_2 ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract1010102(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
-        case( GL2.GL_UNSIGNED_INT_2_10_10_10_REV ):
+        case( GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV ):
           HalveImage.halveImagePackedPixel3D( 4, new Extract2101010rev(), width, height, depth, usersImage,
                   dstImage, elementSize, rowSize, imageSize, myswapBytes );
           break;
@@ -1563,22 +1569,22 @@ public class BuildMipmap {
                 0, format, type, usersImage );
       }
     }
-    gl.glPixelStorei( GL2.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
-    gl.glPixelStorei( GL2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
-    gl.glPixelStorei( GL2.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
-    gl.glPixelStorei( GL2.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
-    gl.glPixelStorei( GL2.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
+    gl.glPixelStorei( GL.GL_UNPACK_ALIGNMENT, psm.getUnpackAlignment() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_ROWS, psm.getUnpackSkipRows() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_SKIP_PIXELS, psm.getUnpackSkipPixels() );
+    gl.glPixelStorei( GL2ES2.GL_UNPACK_ROW_LENGTH, psm.getUnpackRowLength() );
+    gl.glPixelStorei( GL2GL3.GL_UNPACK_SWAP_BYTES, psm.getUnpackSwapBytes() ? 1 : 0 );
+    gl.glPixelStorei( GL2ES3.GL_UNPACK_SKIP_IMAGES, psm.getUnpackSkipImages() );
+    gl.glPixelStorei( GL2ES3.GL_UNPACK_IMAGE_HEIGHT, psm.getUnpackImageHeight() );
     return( 0 );
   }
 
   private static final int TARGA_HEADER_SIZE = 18;
-  private static void writeTargaFile(String filename, ByteBuffer data,
-                                     int width, int height) {
+  private static void writeTargaFile(final String filename, final ByteBuffer data,
+                                     final int width, final int height) {
     try {
-      FileOutputStream fos = new FileOutputStream(new File(filename));
-      ByteBuffer header = ByteBuffer.allocateDirect(TARGA_HEADER_SIZE);
+      final FileOutputStream fos = new FileOutputStream(new File(filename));
+      final ByteBuffer header = ByteBuffer.allocateDirect(TARGA_HEADER_SIZE);
       header.put(0, (byte) 0).put(1, (byte) 0);
       header.put(2, (byte) 2); // uncompressed type
       header.put(12, (byte) (width & 0xFF)); // width
@@ -1590,7 +1596,7 @@ public class BuildMipmap {
       fos.write(data.array());
       data.clear();
       fos.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     }
   }

@@ -47,8 +47,8 @@ import jogamp.nativewindow.windows.GDI;
  * @see ProxySurface
  */
 public class GDISurface extends ProxySurfaceImpl {
-  protected long windowHandle;
-  protected long surfaceHandle;
+  private long windowHandle;
+  private long surfaceHandle;
 
   /**
    * @param cfg the {@link AbstractGraphicsConfiguration} to be used
@@ -58,7 +58,7 @@ public class GDISurface extends ProxySurfaceImpl {
    *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
    *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
    */
-  public GDISurface(AbstractGraphicsConfiguration cfg, long windowHandle, UpstreamSurfaceHook upstream, boolean ownsDevice) {
+  public GDISurface(final AbstractGraphicsConfiguration cfg, final long windowHandle, final UpstreamSurfaceHook upstream, final boolean ownsDevice) {
     super(cfg, upstream, ownsDevice);
     this.windowHandle=windowHandle;
     this.surfaceHandle=0;
@@ -81,14 +81,14 @@ public class GDISurface extends ProxySurfaceImpl {
    * </p>
    */
   @Override
-  public final void setSurfaceHandle(long surfaceHandle) {
+  public final void setSurfaceHandle(final long surfaceHandle) {
       this.windowHandle = surfaceHandle;
   }
 
   /**
    * Sets the window handle (HWND).
    */
-  public final void setWindowHandle(long windowHandle) {
+  public final void setWindowHandle(final long windowHandle) {
       this.windowHandle = windowHandle;
   }
 
@@ -128,4 +128,15 @@ public class GDISurface extends ProxySurfaceImpl {
   final public long getSurfaceHandle() {
     return surfaceHandle;
   }
+
+  @Override
+  public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+      return pixelUnitsAndResult; // no pixelScale factor
+  }
+
+  @Override
+  public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+      return windowUnitsAndResult; // no pixelScale factor
+  }
+
 }

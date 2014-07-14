@@ -26,12 +26,12 @@ public abstract class KernSubtable {
 
     public abstract KerningPair getKerningPair(int i);
 
-    public static KernSubtable read(DataInput di) throws IOException {
+    public static KernSubtable read(final DataInput di) throws IOException {
         KernSubtable table = null;
-        int version = di.readUnsignedShort();
-        int length = di.readUnsignedShort();
-        int coverage = di.readUnsignedShort();
-        int format = coverage >> 8;
+        /* final int version = */ di.readUnsignedShort();
+        /* final int length = */ di.readUnsignedShort();
+        final int coverage = di.readUnsignedShort();
+        final int format = coverage >> 8;
 
         switch (format) {
         case 0:

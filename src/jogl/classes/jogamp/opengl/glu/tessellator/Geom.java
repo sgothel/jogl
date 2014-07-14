@@ -66,7 +66,7 @@ class Geom {
      * let r be the negated result (this evaluates (uw)(v->s)), then
      * r is guaranteed to satisfy MIN(u->t,w->t) <= r <= MAX(u->t,w->t).
      */
-    static double EdgeEval(GLUvertex u, GLUvertex v, GLUvertex w) {
+    static double EdgeEval(final GLUvertex u, final GLUvertex v, final GLUvertex w) {
         double gapL, gapR;
 
         assert (VertLeq(u, v) && VertLeq(v, w));
@@ -85,7 +85,7 @@ class Geom {
         return 0;
     }
 
-    static double EdgeSign(GLUvertex u, GLUvertex v, GLUvertex w) {
+    static double EdgeSign(final GLUvertex u, final GLUvertex v, final GLUvertex w) {
         double gapL, gapR;
 
         assert (VertLeq(u, v) && VertLeq(v, w));
@@ -105,7 +105,7 @@ class Geom {
      * Define versions of EdgeSign, EdgeEval with s and t transposed.
      */
 
-    static double TransEval(GLUvertex u, GLUvertex v, GLUvertex w) {
+    static double TransEval(final GLUvertex u, final GLUvertex v, final GLUvertex w) {
         /* Given three vertices u,v,w such that TransLeq(u,v) && TransLeq(v,w),
          * evaluates the t-coord of the edge uw at the s-coord of the vertex v.
          * Returns v->s - (uw)(v->t), ie. the signed distance from uw to v.
@@ -134,7 +134,7 @@ class Geom {
         return 0;
     }
 
-    static double TransSign(GLUvertex u, GLUvertex v, GLUvertex w) {
+    static double TransSign(final GLUvertex u, final GLUvertex v, final GLUvertex w) {
         /* Returns a number whose sign matches TransEval(u,v,w) but which
          * is cheaper to evaluate.  Returns > 0, == 0 , or < 0
          * as v is above, on, or below the edge uw.
@@ -154,7 +154,7 @@ class Geom {
     }
 
 
-    static boolean VertCCW(GLUvertex u, GLUvertex v, GLUvertex w) {
+    static boolean VertCCW(final GLUvertex u, final GLUvertex v, final GLUvertex w) {
         /* For almost-degenerate situations, the results are not reliable.
          * Unless the floating-point arithmetic can be performed without
          * rounding errors, *any* implementation will give incorrect results
@@ -172,7 +172,7 @@ class Geom {
  * MIN(x,y) <= r <= MAX(x,y), and the results are very accurate
  * even when a and b differ greatly in magnitude.
  */
-    static double Interpolate(double a, double x, double b, double y) {
+    static double Interpolate(double a, final double x, double b, final double y) {
         a = (a < 0) ? 0 : a;
         b = (b < 0) ? 0 : b;
         if (a <= b) {
@@ -188,7 +188,7 @@ class Geom {
 
     static void EdgeIntersect(GLUvertex o1, GLUvertex d1,
                               GLUvertex o2, GLUvertex d2,
-                              GLUvertex v)
+                              final GLUvertex v)
 /* Given edges (o1,d1) and (o2,d2), compute their point of intersection.
  * The computed point is guaranteed to lie in the intersection of the
  * bounding rectangles defined by each edge.
@@ -204,12 +204,12 @@ class Geom {
          */
 
         if (!VertLeq(o1, d1)) {
-            GLUvertex temp = o1;
+            final GLUvertex temp = o1;
             o1 = d1;
             d1 = temp;
         }
         if (!VertLeq(o2, d2)) {
-            GLUvertex temp = o2;
+            final GLUvertex temp = o2;
             o2 = d2;
             d2 = temp;
         }
@@ -248,12 +248,12 @@ class Geom {
         /* Now repeat the process for t */
 
         if (!TransLeq(o1, d1)) {
-            GLUvertex temp = o1;
+            final GLUvertex temp = o1;
             o1 = d1;
             d1 = temp;
         }
         if (!TransLeq(o2, d2)) {
-            GLUvertex temp = o2;
+            final GLUvertex temp = o2;
             o2 = d2;
             d2 = temp;
         }
@@ -290,29 +290,29 @@ class Geom {
         }
     }
 
-    static boolean VertEq(GLUvertex u, GLUvertex v) {
+    static boolean VertEq(final GLUvertex u, final GLUvertex v) {
         return u.s == v.s && u.t == v.t;
     }
 
-    static boolean VertLeq(GLUvertex u, GLUvertex v) {
+    static boolean VertLeq(final GLUvertex u, final GLUvertex v) {
         return u.s < v.s || (u.s == v.s && u.t <= v.t);
     }
 
 /* Versions of VertLeq, EdgeSign, EdgeEval with s and t transposed. */
 
-    static boolean TransLeq(GLUvertex u, GLUvertex v) {
+    static boolean TransLeq(final GLUvertex u, final GLUvertex v) {
         return u.t < v.t || (u.t == v.t && u.s <= v.s);
     }
 
-    static boolean EdgeGoesLeft(GLUhalfEdge e) {
+    static boolean EdgeGoesLeft(final GLUhalfEdge e) {
         return VertLeq(e.Sym.Org, e.Org);
     }
 
-    static boolean EdgeGoesRight(GLUhalfEdge e) {
+    static boolean EdgeGoesRight(final GLUhalfEdge e) {
         return VertLeq(e.Org, e.Sym.Org);
     }
 
-    static double VertL1dist(GLUvertex u, GLUvertex v) {
+    static double VertL1dist(final GLUvertex u, final GLUvertex v) {
         return Math.abs(u.s - v.s) + Math.abs(u.t - v.t);
     }
 
@@ -320,13 +320,13 @@ class Geom {
 
     // Compute the cosine of the angle between the edges between o and
     // v1 and between o and v2
-    static double EdgeCos(GLUvertex o, GLUvertex v1, GLUvertex v2) {
-        double ov1s = v1.s - o.s;
-        double ov1t = v1.t - o.t;
-        double ov2s = v2.s - o.s;
-        double ov2t = v2.t - o.t;
+    static double EdgeCos(final GLUvertex o, final GLUvertex v1, final GLUvertex v2) {
+        final double ov1s = v1.s - o.s;
+        final double ov1t = v1.t - o.t;
+        final double ov2s = v2.s - o.s;
+        final double ov2t = v2.t - o.t;
         double dotp = ov1s * ov2s + ov1t * ov2t;
-        double len = Math.sqrt(ov1s * ov1s + ov1t * ov1t) * Math.sqrt(ov2s * ov2s + ov2t * ov2t);
+        final double len = Math.sqrt(ov1s * ov1s + ov1t * ov1t) * Math.sqrt(ov2s * ov2s + ov2t * ov2t);
         if (len > 0.0) {
             dotp /= len;
         }

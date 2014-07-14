@@ -107,21 +107,21 @@ public class BuildStaticGLInfo {
 
   // Handles function pointer
   protected static final int funcIdentifierGroup = 9;
-  protected static Pattern funcPattern =
+  protected static final Pattern funcPattern =
     Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s+\\*\\s*|\\s*\\*\\s+|\\s+)?(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
 
-  protected static Pattern associationPattern =
+  protected static final Pattern associationPattern =
     Pattern.compile("\\#ifndef ([CEW]?GL[XU]?_[A-Za-z0-9_]+)(.*)");
 
-  protected static Pattern ifPattern =
+  protected static final Pattern ifPattern =
     Pattern.compile("\\#if(.*)");
-  protected static Pattern elsePattern =
+  protected static final Pattern elsePattern =
     Pattern.compile("\\#(elif|else)(.*)");
-  protected static Pattern endifPattern =
+  protected static final Pattern endifPattern =
     Pattern.compile("\\#endif(.*)");
 
   protected static final int defineIdentifierGroup = 1;
-  protected static Pattern definePattern =
+  protected static final Pattern definePattern =
     Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
 
   // Maps function / #define names to Set of names of the extensions they're declared in
@@ -138,41 +138,41 @@ public class BuildStaticGLInfo {
      * classes reside, and the remaining arguments are paths to the C header
      * files that should be parsed
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
         if (args.length > 0 && args[0].equals("-test")) {
-            BuildStaticGLInfo builder = new BuildStaticGLInfo();
+            final BuildStaticGLInfo builder = new BuildStaticGLInfo();
             builder.setDebug(true);
-            String[] newArgs = new String[args.length - 1];
+            final String[] newArgs = new String[args.length - 1];
             System.arraycopy(args, 1, newArgs, 0, args.length - 1);
             builder.parse(newArgs);
             builder.dump();
             System.exit(0);
         }
 
-        String packageName = args[0];
-        String packageDir = args[1];
+        final String packageName = args[0];
+        final String packageDir = args[1];
 
-        String[] cHeaderFilePaths = new String[args.length - 2];
+        final String[] cHeaderFilePaths = new String[args.length - 2];
         System.arraycopy(args, 2, cHeaderFilePaths, 0, cHeaderFilePaths.length);
 
-        BuildStaticGLInfo builder = new BuildStaticGLInfo();
+        final BuildStaticGLInfo builder = new BuildStaticGLInfo();
         try {
             builder.parse(cHeaderFilePaths);
 
-            File file = new File(packageDir + File.separatorChar + "StaticGLInfo.java");
-            String parentDir = file.getParent();
+            final File file = new File(packageDir + File.separatorChar + "StaticGLInfo.java");
+            final String parentDir = file.getParent();
             if (parentDir != null) {
-                File pDirFile = new File(parentDir);
+                final File pDirFile = new File(parentDir);
                 pDirFile.mkdirs();
             }
 
-            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+            final PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(file)));
             builder.emitJavaCode(writer, packageName);
 
             writer.flush();
             writer.close();
-        } catch (Exception e) {
-            StringBuilder buf = new StringBuilder("{ ");
+        } catch (final Exception e) {
+            final StringBuilder buf = new StringBuilder("{ ");
             for (int i = 0; i < cHeaderFilePaths.length; ++i) {
                 buf.append(cHeaderFilePaths[i]);
                 buf.append(" ");
@@ -183,13 +183,13 @@ public class BuildStaticGLInfo {
         }
     }
 
-    public void setDebug(boolean v) {
+    public void setDebug(final boolean v) {
         DEBUG = v;
     }
 
     /** Parses the supplied C header files and adds the function
     associations contained therein to the internal map. */
-    public void parse(String[] cHeaderFilePaths) throws IOException {
+    public void parse(final String[] cHeaderFilePaths) throws IOException {
         for (int i = 0; i < cHeaderFilePaths.length; i++) {
             parse(cHeaderFilePaths[i]);
         }
@@ -197,8 +197,8 @@ public class BuildStaticGLInfo {
 
     /** Parses the supplied C header file and adds the function
     associations contained therein to the internal map. */
-    public void parse(String cHeaderFilePath) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(cHeaderFilePath));
+    public void parse(final String cHeaderFilePath) throws IOException {
+        final BufferedReader reader = new BufferedReader(new FileReader(cHeaderFilePath));
         String line, activeAssociation = null;
         Matcher m = null;
         int block = 0;
@@ -264,23 +264,23 @@ public class BuildStaticGLInfo {
     }
 
     public void dump() {
-        for (String name : extensionToDeclarationMap.keySet()) {
-            Set<String> decls = extensionToDeclarationMap.get(name);
+        for (final String name : extensionToDeclarationMap.keySet()) {
+            final Set<String> decls = extensionToDeclarationMap.get(name);
             System.out.println("<" + name + "> :");
-            List<String> l = new ArrayList<String>();
+            final List<String> l = new ArrayList<String>();
             l.addAll(decls);
             Collections.sort(l);
-            for (String str : l) {
+            for (final String str : l) {
                 System.out.println("  <" + str + ">");
             }
         }
     }
 
-    public Set<String> getExtension(String identifier) {
+    public Set<String> getExtension(final String identifier) {
         return declarationToExtensionMap.get(identifier);
     }
 
-    public Set<String> getDeclarations(String extension) {
+    public Set<String> getDeclarations(final String extension) {
         return extensionToDeclarationMap.get(extension);
     }
 
@@ -288,7 +288,7 @@ public class BuildStaticGLInfo {
         return extensionToDeclarationMap.keySet();
     }
 
-    public void emitJavaCode(PrintWriter output, String packageName) {
+    public void emitJavaCode(final PrintWriter output, final String packageName) {
         output.println("package " + packageName + ";");
         output.println();
         output.println("import java.util.*;");
@@ -340,7 +340,7 @@ public class BuildStaticGLInfo {
 
         // Compute max capacity
         int maxCapacity = 0;
-        for (String name : declarationToExtensionMap.keySet()) {
+        for (final String name : declarationToExtensionMap.keySet()) {
             if (!name.startsWith("GL")) {
                 ++maxCapacity;
             }
@@ -348,17 +348,17 @@ public class BuildStaticGLInfo {
 
         output.println("    funcToAssocMap = new HashMap(" + maxCapacity + "); // approximate max capacity");
         output.println("    String group;");
-        ArrayList<String> sets = new ArrayList<String>(extensionToDeclarationMap.keySet());
+        final ArrayList<String> sets = new ArrayList<String>(extensionToDeclarationMap.keySet());
         Collections.sort(sets);
-        for (String groupName : sets) {
-            Set<String> funcs = extensionToDeclarationMap.get(groupName);
-            List<String> l = new ArrayList<String>();
+        for (final String groupName : sets) {
+            final Set<String> funcs = extensionToDeclarationMap.get(groupName);
+            final List<String> l = new ArrayList<String>();
             l.addAll(funcs);
             Collections.sort(l);
-            Iterator<String> funcIter = l.iterator();
+            final Iterator<String> funcIter = l.iterator();
             boolean printedHeader = false;
             while (funcIter.hasNext()) {
-                String funcName = funcIter.next();
+                final String funcName = funcIter.next();
                 if (!funcName.startsWith("GL")) {
                     if (!printedHeader) {
                         output.println();
@@ -380,7 +380,7 @@ public class BuildStaticGLInfo {
     //----------------------------------------------------------------------
     // Internals only below this point
     //
-    protected void addAssociation(String identifier, String association) {
+    protected void addAssociation(final String identifier, final String association) {
         Set<String> extensions = declarationToExtensionMap.get(identifier);
         if(null == extensions) {
             extensions = new HashSet<String>();

@@ -18,6 +18,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -74,12 +75,12 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
         testImpl(AnimatorControlBehavior.Continue, false);
     }
 
-    private static String id(Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
-    private static String str(Component c) {
+    private static String id(final Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
+    private static String str(final Component c) {
         return id(c)+": "+c.getClass().getSimpleName()+"[visible "+c.isVisible()+", showing "+c.isShowing()+", valid "+c.isValid()+
                 ", displayable "+c.isDisplayable()+", "+c.getX()+"/"+c.getY()+" "+c.getWidth()+"x"+c.getHeight()+"]";
     }
-    void testImpl(final AnimatorControlBehavior animCtrl, boolean useFPSAnimator) throws InterruptedException, InvocationTargetException {
+    void testImpl(final AnimatorControlBehavior animCtrl, final boolean useFPSAnimator) throws InterruptedException, InvocationTargetException {
       final GLProfile glp = GLProfile.get(GLProfile.GL2);
       final GLCapabilities caps = new GLCapabilities(glp);
       final GLCanvas canvas = new GLCanvas(caps);
@@ -119,12 +120,12 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       final JFrame frame = new JFrame();
       frame.setTitle(getSimpleTestName(" - "));
       frame.addWindowListener(new WindowAdapter() {
-         public void windowClosing(WindowEvent e) {
+         public void windowClosing(final WindowEvent e) {
             animatorCtrl.stop();
             shouldStop = true;
          }
       });
-      frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
       final JLabel label = new JLabel("A label to cover the canvas");
 
@@ -235,7 +236,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
 
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);

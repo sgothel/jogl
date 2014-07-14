@@ -87,17 +87,17 @@ public class TestSharedContextListNEWT extends UITestCase {
         sharedDrawable = null;
     }
 
-    protected GLWindow runTestGL(Animator animator, int x, int y, boolean useShared, boolean vsync) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected GLWindow runTestGL(final Animator animator, final int x, final int y, final boolean useShared, final boolean vsync) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared "+useShared);
         if(useShared) {
-            glWindow.setSharedContext(sharedDrawable.getContext());
+            glWindow.setSharedAutoDrawable(sharedDrawable);
         }
 
         glWindow.setSize(width, height);
 
-        Gears gears = new Gears(vsync ? 1 : 0);
+        final Gears gears = new Gears(vsync ? 1 : 0);
         if(useShared) {
             gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
         }
@@ -116,12 +116,12 @@ public class TestSharedContextListNEWT extends UITestCase {
     @Test
     public void test01() throws InterruptedException {
         initShared();
-        Animator animator = new Animator();
-        GLWindow f1 = runTestGL(animator, 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
+        final Animator animator = new Animator();
+        final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
                                           f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(animator, f1.getX()+0,
+        final GLWindow f3 = runTestGL(animator, f1.getX()+0,
                                           f1.getY()+height+insets.getTotalHeight(), false, true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
@@ -139,13 +139,13 @@ public class TestSharedContextListNEWT extends UITestCase {
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

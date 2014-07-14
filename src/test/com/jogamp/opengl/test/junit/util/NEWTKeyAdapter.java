@@ -46,12 +46,12 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
     List<EventObject> queue = new ArrayList<EventObject>();
     boolean verbose = true;
 
-    public NEWTKeyAdapter(String prefix) {
+    public NEWTKeyAdapter(final String prefix) {
         this.prefix = prefix;
         reset();
     }
 
-    public synchronized void setVerbose(boolean v) { verbose = v; }
+    public synchronized void setVerbose(final boolean v) { verbose = v; }
 
     public synchronized boolean isPressed() {
         return pressed;
@@ -65,11 +65,11 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         return consumed;
     }
 
-    public synchronized int getKeyPressedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyPressedCount(final boolean autoRepeatOnly) {
         return autoRepeatOnly ? keyPressedAR: keyPressed;
     }
 
-    public synchronized int getKeyReleasedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyReleasedCount(final boolean autoRepeatOnly) {
         return autoRepeatOnly ? keyReleasedAR: keyReleased;
     }
 
@@ -91,7 +91,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         queue.clear();
     }
 
-    public synchronized void keyPressed(KeyEvent e) {
+    public synchronized void keyPressed(final KeyEvent e) {
         pressed = true;
         keyPressed++;
         if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
@@ -103,7 +103,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
     }
 
-    public synchronized void keyReleased(KeyEvent e) {
+    public synchronized void keyReleased(final KeyEvent e) {
         pressed = false;
         keyReleased++;
         if(e.isConsumed()) {

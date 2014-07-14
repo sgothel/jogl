@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
+import java.awt.image.Raster;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import java.nio.Buffer;
@@ -78,8 +79,8 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
      * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link #requiresNewBuffer(GL, int, int, int)}.
      *                       If <code>true</code>, user shall decide whether to use a {@link #getAlignedImage(int, int) width-aligned image}.
      */
-    public AWTGLPixelBuffer(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, BufferedImage image,
-                            Buffer buffer, boolean allowRowStride) {
+    public AWTGLPixelBuffer(final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final BufferedImage image,
+                            final Buffer buffer, final boolean allowRowStride) {
         super(pixelAttributes, width, height, depth, pack, buffer, allowRowStride);
         this.image = image;
     }
@@ -97,7 +98,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
      * @return
      * @throws IllegalArgumentException if requested size exceeds image size
      */
-    public BufferedImage getAlignedImage(int width, int height) throws IllegalArgumentException {
+    public BufferedImage getAlignedImage(final int width, final int height) throws IllegalArgumentException {
         if( width * height > image.getWidth() * image.getHeight() ) {
             throw new IllegalArgumentException("Requested size exceeds image size: "+width+"x"+height+" > "+image.getWidth()+"x"+image.getHeight());
         }
@@ -110,12 +111,12 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
             final SinglePixelPackedSampleModel sppsm0 = (SinglePixelPackedSampleModel) raster0.getSampleModel();
             final SinglePixelPackedSampleModel sppsm1 = new SinglePixelPackedSampleModel(dataBuffer.getDataType(),
                         width, height, width /* scanLineStride */, sppsm0.getBitMasks());
-            final WritableRaster raster1 = WritableRaster.createWritableRaster(sppsm1, dataBuffer, null);
+            final WritableRaster raster1 = Raster.createWritableRaster(sppsm1, dataBuffer, null);
             return new BufferedImage (cm, raster1, cm.isAlphaPremultiplied(), null);
         }
     }
 
-    public final boolean isDataBufferSource(BufferedImage imageU) {
+    public final boolean isDataBufferSource(final BufferedImage imageU) {
         final DataBuffer dataBuffer0 = image.getRaster().getDataBuffer();
         final DataBuffer dataBufferU = imageU.getRaster().getDataBuffer();
         return dataBufferU == dataBuffer0;
@@ -143,14 +144,14 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * See {@link #getAllowRowStride()} and {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
          * If <code>true</code>, user shall decide whether to use a {@link AWTGLPixelBuffer#getAlignedImage(int, int) width-aligned image}.
          */
-        public AWTGLPixelBufferProvider(boolean allowRowStride) {
+        public AWTGLPixelBufferProvider(final boolean allowRowStride) {
             this.allowRowStride = allowRowStride;
         }
         @Override
         public boolean getAllowRowStride() { return allowRowStride; }
 
         @Override
-        public GLPixelAttributes getAttributes(GL gl, int componentCount) {
+        public GLPixelAttributes getAttributes(final GL gl, final int componentCount) {
             return 4 == componentCount ? awtPixelAttributesIntRGBA4 : awtPixelAttributesIntRGB3;
         }
 
@@ -161,7 +162,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * </p>
          */
         @Override
-        public AWTGLPixelBuffer allocate(GL gl, GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, int minByteSize) {
+        public AWTGLPixelBuffer allocate(final GL gl, final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
             final BufferedImage image = new BufferedImage(width, height, 4 == pixelAttributes.componentCount ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
             final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             final Buffer ibuffer = IntBuffer.wrap( readBackIntBuffer );
@@ -186,7 +187,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         /**
          * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
          */
-        public SingleAWTGLPixelBufferProvider(boolean allowRowStride) {
+        public SingleAWTGLPixelBufferProvider(final boolean allowRowStride) {
             super(allowRowStride);
         }
 
@@ -197,7 +198,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * </p>
          */
         @Override
-        public AWTGLPixelBuffer allocate(GL gl, GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, int minByteSize) {
+        public AWTGLPixelBuffer allocate(final GL gl, final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
             if( 4 == pixelAttributes.componentCount ) {
                 if( null == singleRGBA4 || singleRGBA4.requiresNewBuffer(gl, width, height, minByteSize) ) {
                     singleRGBA4 = allocateImpl(pixelAttributes, width, height, depth, pack, minByteSize);
@@ -211,7 +212,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
             }
         }
 
-        private AWTGLPixelBuffer allocateImpl(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, int minByteSize) {
+        private AWTGLPixelBuffer allocateImpl(final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
             final BufferedImage image = new BufferedImage(width, height, 4 == pixelAttributes.componentCount ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
             final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             final Buffer ibuffer = IntBuffer.wrap( readBackIntBuffer );
@@ -220,7 +221,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
 
         /** Return the last {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated} {@link AWTGLPixelBuffer} w/ {@link GLPixelAttributes#componentCount}. */
         @Override
-        public AWTGLPixelBuffer getSingleBuffer(GLPixelAttributes pixelAttributes) {
+        public AWTGLPixelBuffer getSingleBuffer(final GLPixelAttributes pixelAttributes) {
             return 4 == pixelAttributes.componentCount ? singleRGBA4 : singleRGB3;
         }
 
@@ -229,7 +230,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * @return the newly initialized single {@link AWTGLPixelBuffer}, or null if already allocated.
          */
         @Override
-        public AWTGLPixelBuffer initSingleton(int componentCount, int width, int height, int depth, boolean pack) {
+        public AWTGLPixelBuffer initSingleton(final int componentCount, final int width, final int height, final int depth, final boolean pack) {
             if( 4 == componentCount ) {
                 if( null != singleRGBA4 ) {
                     return null;

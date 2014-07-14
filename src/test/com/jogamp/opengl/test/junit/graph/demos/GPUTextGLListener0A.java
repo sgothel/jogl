@@ -28,45 +28,44 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
-    
+
     public GPUTextGLListener0A() {
-        this( RenderState.createRenderState(new ShaderState(), SVertex.factory()), 0, 0, false, false ) ;
+        super(RenderState.createRenderState(SVertex.factory()), Region.VBAA_RENDERING_BIT, 4, true, false, false);
     }
-    
-    public GPUTextGLListener0A(RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
-        setMatrix(-400, -30, 0f, -500, fbosize); 
+
+    public GPUTextGLListener0A(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+        super(rs, renderModes, sampleCount, blending, debug, trace);
     }
-    
-    public void init(GLAutoDrawable drawable) {
+
+    public void init(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
             attachInputListenerTo(glw);
-        }        
+        }
         super.init(drawable);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        
-        final TextRenderer textRenderer = (TextRenderer) getRenderer();
-        
+
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+        final RenderState rs = getRenderer().getRenderState();
+
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_BLEND);
-        textRenderer.setAlpha(gl, 1.0f);
-        textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_BLEND);
+        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
     }
-    
-    public void dispose(GLAutoDrawable drawable) {
+
+    public void dispose(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
             detachInputListenerFrom(glw);

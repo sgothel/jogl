@@ -41,9 +41,9 @@ import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.common.os.android.StaticContext;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
-
 import android.graphics.SurfaceTexture;
 import android.graphics.SurfaceTexture.OnFrameAvailableListener;
 import android.hardware.Camera;
@@ -81,7 +81,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     static {
         boolean _avail = false;
-        if(Platform.OS_TYPE.equals(Platform.OSType.ANDROID)) {
+        if(PlatformPropsImpl.OS_TYPE.equals(Platform.OSType.ANDROID)) {
             if(AndroidVersion.SDK_INT >= 14) {
                 _avail = true;
             }
@@ -116,18 +116,18 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean setPlaySpeedImpl(float rate) {
+    protected final boolean setPlaySpeedImpl(final float rate) {
         // FIXME
         return false;
     }
 
     @Override
-    protected final boolean setAudioVolumeImpl(float v) {
+    protected final boolean setAudioVolumeImpl(final float v) {
         if(null != mp) {
             try {
                 mp.setVolume(v, v);
                 return true;
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -145,7 +145,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 eos = false;
                 mp.setOnCompletionListener(onCompletionListener);
                 return true;
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -156,7 +156,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     cam.startPreview();
                 }
                 return true;
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -172,7 +172,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             try {
                 mp.pause();
                 return true;
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -182,7 +182,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             try {
                 cam.stopPreview();
                 return true;
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -192,7 +192,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int seekImpl(int msec) {
+    protected final int seekImpl(final int msec) {
         if(null != mp) {
             mp.seekTo(msec);
             return mp.getCurrentPosition();
@@ -200,7 +200,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         return 0;
     }
 
-    private void wakeUp(boolean newFrame) {
+    private void wakeUp(final boolean newFrame) {
         synchronized(updateSurfaceLock) {
             if(newFrame) {
                 updateSurface = true;
@@ -213,12 +213,12 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     protected final int getAudioPTSImpl() { return null != mp ? mp.getCurrentPosition() : 0; }
 
     @Override
-    protected final void destroyImpl(GL gl) {
+    protected final void destroyImpl(final GL gl) {
         if(null != mp) {
             wakeUp(false);
             try {
                 mp.stop();
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -230,7 +230,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             wakeUp(false);
             try {
                 cam.stopPreview();
-            } catch (IllegalStateException ise) {
+            } catch (final IllegalStateException ise) {
                 if(DEBUG) {
                     ise.printStackTrace();
                 }
@@ -241,7 +241,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {
-        public SurfaceTextureFrame(Texture t, SurfaceTexture stex) {
+        public SurfaceTextureFrame(final Texture t, final SurfaceTexture stex) {
             super(t);
             this.surfaceTex = stex;
         }
@@ -254,7 +254,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final void initStreamImpl(final int vid, final int aid) throws IOException {
-        if( null == streamLoc ) {
+        if( null == getURI() ) {
             return;
         }
         if( null == mp && null == cam ) {
@@ -263,8 +263,8 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } else {
                 int cameraId = 0;
                 try {
-                    cameraId = Integer.valueOf(cameraPath);
-                } catch (NumberFormatException nfe) {}
+                    cameraId = Integer.parseInt(cameraPath);
+                } catch (final NumberFormatException nfe) {}
                 if( 0 <= cameraId && cameraId < Camera.getNumberOfCameras() ) {
                     cam = Camera.open(cameraId);
                 } else {
@@ -280,20 +280,20 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } // else FIXME: Select aid !
             // Note: Both FIXMEs seem to be n/a via Android's MediaPlayer -> Switch to API level 16 MediaCodec/MediaExtractor ..
             try {
-                final Uri _uri = Uri.parse(streamLoc.toString());
+                final Uri _uri = Uri.parse(getURI().toString());
                 mp.setDataSource(StaticContext.getContext(), _uri);
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 throw new RuntimeException(e);
-            } catch (SecurityException e) {
+            } catch (final SecurityException e) {
                 throw new RuntimeException(e);
-            } catch (IllegalStateException e) {
+            } catch (final IllegalStateException e) {
                 throw new RuntimeException(e);
             }
             mp.setSurface(null);
             try {
                 mp.prepare();
-            } catch (IOException ioe) {
-                throw new IOException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
+            } catch (final IOException ioe) {
+                throw new IOException("MediaPlayer failed to process stream <"+getURI().toString()+">: "+ioe.getMessage(), ioe);
             }
             final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1 /* fake */;
             final String icodec = "android";
@@ -340,7 +340,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                              0, 0, 0, icodec, icodec);
         }
     }
-    private static String camSz2Str(Camera.Size csize) {
+    private static String camSz2Str(final Camera.Size csize) {
         if( null != csize ) {
             return csize.width+"x"+csize.height;
         } else {
@@ -348,7 +348,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
     }
     @Override
-    protected final void initGLImpl(GL gl) throws IOException, GLException {
+    protected final void initGLImpl(final GL gl) throws IOException, GLException {
         // NOP
     }
 
@@ -359,12 +359,12 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
      * </p>
      */
     @Override
-    protected int validateTextureCount(int desiredTextureCount) {
+    protected int validateTextureCount(final int desiredTextureCount) {
         return TEXTURE_COUNT_MIN;
     }
 
     @Override
-    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
         int pts = TimeFrameI.INVALID_PTS;
         if(null != mp || null != cam) {
             final SurfaceTextureFrame sTexFrame = null != nextFrame ? (SurfaceTextureFrame) nextFrame : singleSTexFrame;
@@ -380,8 +380,8 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     try {
                         cam.setPreviewTexture(sTexFrame.surfaceTex);
                         cam.startPreview();
-                    } catch (IOException ioe) {
-                        throw new RuntimeException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
+                    } catch (final IOException ioe) {
+                        throw new RuntimeException("MediaPlayer failed to process stream <"+getURI().toString()+">: "+ioe.getMessage(), ioe);
                     }
                 }
                 if( null != surface ) {
@@ -401,7 +401,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                         if(!updateSurface) { // volatile OK.
                             try {
                                 updateSurfaceLock.wait();
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -420,7 +420,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     // stex.getTransformMatrix(atex.getSTMatrix());
                 }
             }
-            nextFrame.setPTS( pts );
+            sTexFrame.setPTS( pts );
         }
         return pts;
     }
@@ -432,7 +432,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
      * </p>
      */
     @Override
-    protected TextureFrame[] createTexFrames(GL gl, final int count) {
+    protected TextureFrame[] createTexFrames(final GL gl, final int count) {
         final int[] texNames = new int[1];
         gl.glGenTextures(1, texNames, 0);
         final int err = gl.glGetError();
@@ -452,10 +452,10 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
      * </p>
      */
     @Override
-    protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+    protected final TextureSequence.TextureFrame createTexImage(final GL gl, final int texName) {
         sTexFrameCount++;
         if( 1 == sTexFrameCount ) {
-            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, width, height), new SurfaceTexture(texName) );
+            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, getWidth(), getHeight()), new SurfaceTexture(texName) );
         }
         return singleSTexFrame;
     }
@@ -467,7 +467,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
      * </p>
      */
     @Override
-    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
+    protected final void destroyTexFrame(final GL gl, final TextureSequence.TextureFrame frame) {
         sTexFrameCount--;
         if( 0 == sTexFrameCount ) {
             singleSTexFrame = null;
@@ -480,14 +480,14 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     private final OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
         @Override
-        public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
             wakeUp(true);
         }
     };
 
     private final OnCompletionListener onCompletionListener = new OnCompletionListener() {
         @Override
-        public void onCompletion(MediaPlayer mp) {
+        public void onCompletion(final MediaPlayer mp) {
             eos = true;
         }
     };

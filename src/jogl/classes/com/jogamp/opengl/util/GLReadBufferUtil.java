@@ -33,7 +33,6 @@ import java.io.IOException;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
@@ -63,11 +62,11 @@ public class GLReadBufferUtil {
      * @param alpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: Alpha maybe forced on ES platforms!
      * @param write2Texture true if readPixel's TextureData shall be written to a 2d Texture
      */
-    public GLReadBufferUtil(boolean alpha, boolean write2Texture) {
+    public GLReadBufferUtil(final boolean alpha, final boolean write2Texture) {
         this(GLPixelBuffer.defaultProviderNoRowStride, alpha, write2Texture);
     }
 
-    public GLReadBufferUtil(GLPixelBufferProvider pixelBufferProvider, boolean alpha, boolean write2Texture) {
+    public GLReadBufferUtil(final GLPixelBufferProvider pixelBufferProvider, final boolean alpha, final boolean write2Texture) {
         this.pixelBufferProvider = pixelBufferProvider;
         this.componentCount = alpha ? 4 : 3 ;
         this.alignment = alpha ? 4 : 1 ;
@@ -111,11 +110,11 @@ public class GLReadBufferUtil {
     /**
      * Write the TextureData filled by {@link #readPixels(GLAutoDrawable, boolean)} to file
      */
-    public void write(File dest) {
+    public void write(final File dest) {
         try {
             TextureIO.write(readTextureData, dest);
             rewindPixelBuffer();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             throw new RuntimeException("can not write to file: " + dest.getAbsolutePath(), ex);
         }
     }
@@ -132,7 +131,7 @@ public class GLReadBufferUtil {
      *
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public boolean readPixels(GL gl, boolean mustFlipVertically) {
+    public boolean readPixels(final GL gl, final boolean mustFlipVertically) {
         return readPixels(gl, 0, 0, 0, 0, mustFlipVertically);
     }
 
@@ -151,16 +150,16 @@ public class GLReadBufferUtil {
      *                           and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public boolean readPixels(GL gl, int inX, int inY, int inWidth, int inHeight, boolean mustFlipVertically) {
+    public boolean readPixels(final GL gl, final int inX, final int inY, final int inWidth, final int inHeight, final boolean mustFlipVertically) {
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int width, height;
-        if( 0 >= inWidth || drawable.getWidth() < inWidth ) {
-            width = drawable.getWidth();
+        if( 0 >= inWidth || drawable.getSurfaceWidth() < inWidth ) {
+            width = drawable.getSurfaceWidth();
         } else {
             width = inWidth;
         }
-        if( 0 >= inHeight || drawable.getHeight() < inHeight ) {
-            height = drawable.getHeight();
+        if( 0 >= inHeight || drawable.getSurfaceHeight() < inHeight ) {
+            height = drawable.getSurfaceHeight();
         } else {
             height= inHeight;
         }
@@ -208,7 +207,7 @@ public class GLReadBufferUtil {
                            readPixelBuffer.buffer,
                            null /* Flusher */);
                 newData = true;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 readTextureData = null;
                 readPixelBuffer = null;
                 throw new RuntimeException("can not fetch offscreen texture", e);
@@ -221,7 +220,7 @@ public class GLReadBufferUtil {
         }
         boolean res = null!=readPixelBuffer && readPixelBuffer.isValid();
         if(res) {
-            psm.setAlignment(gl, alignment, alignment);
+            psm.setPackAlignment(gl, alignment);
             if(gl.isGL2ES3()) {
                 final GL2ES3 gl2es3 = gl.getGL2ES3();
                 gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, width);
@@ -230,7 +229,7 @@ public class GLReadBufferUtil {
             readPixelBuffer.clear();
             try {
                 gl.glReadPixels(inX, inY, width, height, pixelAttribs.format, pixelAttribs.type, readPixelBuffer.buffer);
-            } catch(GLException gle) { res = false; gle.printStackTrace(); }
+            } catch(final GLException gle) { res = false; gle.printStackTrace(); }
             readPixelBuffer.position( readPixelSize );
             readPixelBuffer.flip();
             final int glerr1 = gl.glGetError();
@@ -257,7 +256,7 @@ public class GLReadBufferUtil {
         return res;
     }
 
-    public void dispose(GL gl) {
+    public void dispose(final GL gl) {
         if(null != readTexture) {
             readTexture.destroy(gl);
             readTextureData = null;

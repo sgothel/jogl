@@ -112,7 +112,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
 
     @Test(timeout=180000) // TO 3 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
-        GLWindow glWindow = GLWindow.create(glCaps);
+        final GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
 
@@ -123,7 +123,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
 
     @Test(timeout=180000) // TO 3 min
     public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
-        GLWindow glWindow = GLWindow.create(glCaps);
+        final GLWindow glWindow = GLWindow.create(glCaps);
 
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
@@ -147,17 +147,17 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
                     frame1.setVisible(false);
                     frame1.dispose();
                 }});
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
         glWindow.destroy();
     }
 
-    static void testKeyEventAutoRepeat(Robot robot, NEWTKeyAdapter keyAdapter, int loops, int pressDurationMS) {
+    static void testKeyEventAutoRepeat(final Robot robot, final NEWTKeyAdapter keyAdapter, final int loops, final int pressDurationMS) {
         System.err.println("KEY Event Auto-Repeat Test: "+loops);
-        EventObject[][] first = new EventObject[loops][2];
-        EventObject[][] last = new EventObject[loops][2];
+        final EventObject[][] first = new EventObject[loops][2];
+        final EventObject[][] last = new EventObject[loops][2];
 
         keyAdapter.reset();
         int firstIdx = 0;
@@ -250,21 +250,21 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         }
     }
 
-    void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
+    void testImpl(final GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
         final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         glWindow.addGLEventListener(demo1);
 
-        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        final NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1KA.setVerbose(false);
         glWindow.addKeyListener(glWindow1KA);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));
 
         // Continuous animation ..
-        Animator animator = new Animator(glWindow);
+        final Animator animator = new Animator(glWindow);
         animator.start();
 
         Thread.sleep(durationPerTest); // manual testing
@@ -291,15 +291,15 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         animator.stop();
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -311,7 +311,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         System.err.println(stdin.readLine());
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestNewtKeyEventAutoRepeatAWT.class.getName();
+        final String tstname = TestNewtKeyEventAutoRepeatAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

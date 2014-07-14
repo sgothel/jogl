@@ -1,0 +1,65 @@
+//Copyright 2014 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform vec2    svr_EyeToSourceUVScale;
+uniform vec2    svr_EyeToSourceUVOffset;
+uniform mat4    svr_EyeRotationStart;
+uniform mat4    svr_EyeRotationEnd;
+
+attribute vec2  svr_Position;
+attribute vec2  svr_Params;
+attribute vec2  svr_TexCoordR;
+attribute vec2  svr_TexCoordG;
+attribute vec2  svr_TexCoordB;
+
+varying vec3    svv_Fade;
+varying vec2    svv_TexCoordR;
+varying vec2    svv_TexCoordG;
+varying vec2    svv_TexCoordB;
+
+void main(void)
+{
+    gl_Position = vec4(svr_Position.xy, 0.0, 1.0);
+    svv_Fade = vec3(svr_Params.r); // vignetteFade
+    
+    // Vertex inputs are in TanEyeAngle space for the R,G,B channels (i.e. after chromatic aberration and distortion).
+    // These are now "real world" vectors in direction (x,y,1) relative to the eye of the HMD.
+    vec3 TanEyeAngleR = vec3 ( svr_TexCoordR, 1.0 );
+    vec3 TanEyeAngleG = vec3 ( svr_TexCoordG, 1.0 );
+    vec3 TanEyeAngleB = vec3 ( svr_TexCoordB, 1.0 );
+    
+    // Accurate time warp lerp vs. faster
+    // Apply the two 3x3 timewarp rotations to these vectors.
+	vec3 TransformedRStart = (svr_EyeRotationStart * vec4(TanEyeAngleR, 0)).xyz;
+	vec3 TransformedGStart = (svr_EyeRotationStart * vec4(TanEyeAngleG, 0)).xyz;
+	vec3 TransformedBStart = (svr_EyeRotationStart * vec4(TanEyeAngleB, 0)).xyz;
+	vec3 TransformedREnd   = (svr_EyeRotationEnd * vec4(TanEyeAngleR, 0)).xyz;
+	vec3 TransformedGEnd   = (svr_EyeRotationEnd * vec4(TanEyeAngleG, 0)).xyz;
+	vec3 TransformedBEnd   = (svr_EyeRotationEnd * vec4(TanEyeAngleB, 0)).xyz;
+
+    // And blend between them.
+    vec3 TransformedR = mix ( TransformedRStart, TransformedREnd, svr_Params.g /* timewarpLerpFactor */ );
+    vec3 TransformedG = mix ( TransformedGStart, TransformedGEnd, svr_Params.g /* timewarpLerpFactor */ );
+    vec3 TransformedB = mix ( TransformedBStart, TransformedBEnd, svr_Params.g /* timewarpLerpFactor */ );
+    
+    // Project them back onto the Z=1 plane of the rendered images.
+    float RecipZR = 1.0 / TransformedR.z;
+    float RecipZG = 1.0 / TransformedG.z;
+    float RecipZB = 1.0 / TransformedB.z;
+    vec2 FlattenedR = vec2 ( TransformedR.x * RecipZR, TransformedR.y * RecipZR );
+    vec2 FlattenedG = vec2 ( TransformedG.x * RecipZG, TransformedG.y * RecipZG );
+    vec2 FlattenedB = vec2 ( TransformedB.x * RecipZB, TransformedB.y * RecipZB );
+    
+    // These are now still in TanEyeAngle space.
+    // Scale them into the correct [0-1],[0-1] UV lookup space (depending on eye)
+    svv_TexCoordR = FlattenedR * svr_EyeToSourceUVScale + svr_EyeToSourceUVOffset;
+    svv_TexCoordR.y = 1.0-svv_TexCoordR.y;
+    svv_TexCoordG = FlattenedG * svr_EyeToSourceUVScale + svr_EyeToSourceUVOffset;
+    svv_TexCoordG.y = 1.0-svv_TexCoordG.y;
+    svv_TexCoordB = FlattenedB * svr_EyeToSourceUVScale + svr_EyeToSourceUVOffset;
+    svv_TexCoordB.y = 1.0-svv_TexCoordB.y;
+}

@@ -51,35 +51,35 @@ import javax.media.nativewindow.*;
 
 public class AWTGraphicsScreen extends DefaultGraphicsScreen implements Cloneable {
 
-  public AWTGraphicsScreen(AWTGraphicsDevice device) {
+  public AWTGraphicsScreen(final AWTGraphicsDevice device) {
     super(device, findScreenIndex(device.getGraphicsDevice()));
   }
 
-  public static GraphicsDevice getScreenDevice(int index) {
+  public static GraphicsDevice getScreenDevice(final int index) {
     if(index<0) return null;
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
+    final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    final GraphicsDevice[] gs = ge.getScreenDevices();
     if(index<gs.length) {
         return gs[index];
     }
     return null;
   }
 
-  public static int findScreenIndex(GraphicsDevice awtDevice) {
+  public static int findScreenIndex(final GraphicsDevice awtDevice) {
     if(null==awtDevice) return -1;
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
+    final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    final GraphicsDevice[] gs = ge.getScreenDevices();
     for (int j = 0; j < gs.length; j++) {
         if(gs[j] == awtDevice) return j;
     }
     return -1;
   }
 
-  public static AbstractGraphicsScreen createScreenDevice(GraphicsDevice awtDevice, int unitID) {
+  public static AbstractGraphicsScreen createScreenDevice(final GraphicsDevice awtDevice, final int unitID) {
     return new AWTGraphicsScreen(new AWTGraphicsDevice(awtDevice, unitID));
   }
 
-  public static AbstractGraphicsScreen createScreenDevice(int index, int unitID) {
+  public static AbstractGraphicsScreen createScreenDevice(final int index, final int unitID) {
     return createScreenDevice(getScreenDevice(index), unitID);
   }
 

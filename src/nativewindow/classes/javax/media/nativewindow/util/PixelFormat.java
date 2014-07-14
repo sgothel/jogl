@@ -189,7 +189,7 @@ public enum PixelFormat {
     /** Number of bytes per pixel, e.g. 4 for RGBA. */
     public final int bytesPerPixel() { return (7+bitsPerPixel)/8; }
 
-    private PixelFormat(int componentCount, int bpp) {
+    private PixelFormat(final int componentCount, final int bpp) {
         this.componentCount = componentCount;
         this.bitsPerPixel = bpp;
     }

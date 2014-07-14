@@ -67,7 +67,7 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 

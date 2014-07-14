@@ -100,32 +100,32 @@ public class PngReader {
 	 *            error/debug messages
 	 *
 	 */
-	public PngReader(InputStream inputStream, String filenameOrDescription) {
+	public PngReader(final InputStream inputStream, final String filenameOrDescription) {
 		this.filename = filenameOrDescription == null ? "" : filenameOrDescription;
 		this.inputStream = inputStream;
 		this.chunksList = new ChunksList(null);
 		this.metadata = new PngMetadata(chunksList);
 		// starts reading: signature
-		byte[] pngid = new byte[8];
+		final byte[] pngid = new byte[8];
 		PngHelperInternal.readBytes(inputStream, pngid, 0, pngid.length);
 		offset += pngid.length;
 		if (!Arrays.equals(pngid, PngHelperInternal.getPngIdSignature()))
 			throw new PngjInputException("Bad PNG signature");
 		// reads first chunk
 		currentChunkGroup = ChunksList.CHUNK_GROUP_0_IDHR;
-		int clen = PngHelperInternal.readInt4(inputStream);
+		final int clen = PngHelperInternal.readInt4(inputStream);
 		offset += 4;
 		if (clen != 13)
 			throw new PngjInputException("IDHR chunk len != 13 ?? " + clen);
-		byte[] chunkid = new byte[4];
+		final byte[] chunkid = new byte[4];
 		PngHelperInternal.readBytes(inputStream, chunkid, 0, 4);
 		if (!Arrays.equals(chunkid, ChunkHelper.b_IHDR))
 			throw new PngjInputException("IHDR not found as first chunk??? [" + ChunkHelper.toString(chunkid) + "]");
 		offset += 4;
-		PngChunkIHDR ihdr = (PngChunkIHDR) readChunk(chunkid, clen, false);
-		boolean alpha = (ihdr.getColormodel() & 0x04) != 0;
-		boolean palette = (ihdr.getColormodel() & 0x01) != 0;
-		boolean grayscale = (ihdr.getColormodel() == 0 || ihdr.getColormodel() == 4);
+		final PngChunkIHDR ihdr = (PngChunkIHDR) readChunk(chunkid, clen, false);
+		final boolean alpha = (ihdr.getColormodel() & 0x04) != 0;
+		final boolean palette = (ihdr.getColormodel() & 0x01) != 0;
+		final boolean grayscale = (ihdr.getColormodel() == 0 || ihdr.getColormodel() == 4);
 		// creates ImgInfo and imgLine, and allocates buffers
 		imgInfo = new ImageInfo(ihdr.getCols(), ihdr.getRows(), ihdr.getBitspc(), alpha, grayscale, palette);
 		interlaced = ihdr.getInterlaced() == 1;
@@ -163,7 +163,7 @@ public class PngReader {
 		if (currentChunkGroup < ChunksList.CHUNK_GROUP_5_AFTERIDAT) {
 			try {
 				idatIstream.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 			readLastChunks();
 		}
@@ -174,23 +174,23 @@ public class PngReader {
 		if (currentChunkGroup < ChunksList.CHUNK_GROUP_6_END) { // this could only happen if forced close
 			try {
 				idatIstream.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 			currentChunkGroup = ChunksList.CHUNK_GROUP_6_END;
 		}
 		if (shouldCloseStream) {
 			try {
 				inputStream.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				throw new PngjInputException("error closing input stream!", e);
 			}
 		}
 	}
 
 	// nbytes: NOT including the filter byte. leaves result in rowb
-	private void unfilterRow(int nbytes) {
-		int ftn = rowbfilter[0];
-		FilterType ft = FilterType.getByVal(ftn);
+	private void unfilterRow(final int nbytes) {
+		final int ftn = rowbfilter[0];
+		final FilterType ft = FilterType.getByVal(ftn);
 		if (ft == null)
 			throw new PngjInputException("Filter type " + ftn + " invalid");
 		switch (ft) {
@@ -226,7 +226,7 @@ public class PngReader {
 
 	private void unfilterRowNone(final int nbytes) {
 		for (int i = 1; i <= nbytes; i++) {
-			rowb[i] = (byte) (rowbfilter[i]);
+			rowb[i] = (rowbfilter[i]);
 		}
 	}
 
@@ -242,7 +242,7 @@ public class PngReader {
 	private void unfilterRowSub(final int nbytes) {
 		int i, j;
 		for (i = 1; i <= imgInfo.bytesPixel; i++) {
-			rowb[i] = (byte) (rowbfilter[i]);
+			rowb[i] = (rowbfilter[i]);
 		}
 		for (j = 1, i = imgInfo.bytesPixel + 1; i <= nbytes; i++, j++) {
 			rowb[i] = (byte) (rowbfilter[i] + rowb[j]);
@@ -276,7 +276,7 @@ public class PngReader {
 			return;
 		int clen = 0;
 		boolean found = false;
-		byte[] chunkid = new byte[4]; // it's important to reallocate in each iteration
+		final byte[] chunkid = new byte[4]; // it's important to reallocate in each iteration
 		currentChunkGroup = ChunksList.CHUNK_GROUP_1_AFTERIDHR;
 		while (!found) {
 			clen = PngHelperInternal.readInt4(inputStream);
@@ -300,7 +300,7 @@ public class PngReader {
 			if (Arrays.equals(chunkid, ChunkHelper.b_PLTE))
 				currentChunkGroup = ChunksList.CHUNK_GROUP_3_AFTERPLTE;
 		}
-		int idatLen = found ? clen : -1;
+		final int idatLen = found ? clen : -1;
 		if (idatLen < 0)
 			throw new PngjInputException("first idat chunk not found!");
 		iIdatCstream = new PngIDatChunkInputStream(inputStream, idatLen, offset);
@@ -323,7 +323,7 @@ public class PngReader {
 		if (!iIdatCstream.isEnded())
 			iIdatCstream.forceChunkEnd();
 		int clen = iIdatCstream.getLenLastChunk();
-		byte[] chunkid = iIdatCstream.getIdLastChunk();
+		final byte[] chunkid = iIdatCstream.getIdLastChunk();
 		boolean endfound = false;
 		boolean first = true;
 		boolean skip = false;
@@ -355,14 +355,14 @@ public class PngReader {
 	 * Reads chunkd from input stream, adds to ChunksList, and returns it. If
 	 * it's skipped, a PngChunkSkipped object is created
 	 */
-	private PngChunk readChunk(byte[] chunkid, int clen, boolean skipforced) {
+	private PngChunk readChunk(final byte[] chunkid, final int clen, final boolean skipforced) {
 		if (clen < 0)
 			throw new PngjInputException("invalid chunk lenght: " + clen);
 		// skipChunksByIdSet is created lazyly, if fist IHDR has already been read
 		if (skipChunkIdsSet == null && currentChunkGroup > ChunksList.CHUNK_GROUP_0_IDHR)
 			skipChunkIdsSet = new HashSet<String>(Arrays.asList(skipChunkIds));
-		String chunkidstr = ChunkHelper.toString(chunkid);
-		boolean critical = ChunkHelper.isCritical(chunkidstr);
+		final String chunkidstr = ChunkHelper.toString(chunkid);
+		final boolean critical = ChunkHelper.isCritical(chunkidstr);
 		PngChunk pngChunk = null;
 		boolean skip = skipforced;
 		if (maxTotalBytesRead > 0 && clen + offset > maxTotalBytesRead)
@@ -379,7 +379,7 @@ public class PngReader {
 			// clen + 4) for risk of overflow
 			pngChunk = new PngChunkSkipped(chunkidstr, imgInfo, clen);
 		} else {
-			ChunkRaw chunk = new ChunkRaw(clen, chunkid, true);
+			final ChunkRaw chunk = new ChunkRaw(clen, chunkid, true);
 			chunk.readChunkData(inputStream, crcEnabled || critical);
 			pngChunk = PngChunk.factory(chunk, imgInfo);
 			if (!pngChunk.crit)
@@ -398,7 +398,7 @@ public class PngReader {
 	 * <p>
 	 * This happens rarely - most errors are fatal.
 	 */
-	protected void logWarn(String warn) {
+	protected void logWarn(final String warn) {
 		System.err.println(warn);
 	}
 
@@ -415,7 +415,7 @@ public class PngReader {
 	 * @param chunkLoadBehaviour
 	 *            {@link ChunkLoadBehaviour}
 	 */
-	public void setChunkLoadBehaviour(ChunkLoadBehaviour chunkLoadBehaviour) {
+	public void setChunkLoadBehaviour(final ChunkLoadBehaviour chunkLoadBehaviour) {
 		this.chunkLoadBehaviour = chunkLoadBehaviour;
 	}
 
@@ -459,7 +459,7 @@ public class PngReader {
 	 *
 	 * @see #readRowInt(int) {@link #readRowByte(int)}
 	 */
-	public ImageLine readRow(int nrow) {
+	public ImageLine readRow(final int nrow) {
 		if (imgLine == null)
 			imgLine = new ImageLine(imgInfo, SampleType.INT, unpackedMode);
 		return imgLine.sampleType != SampleType.BYTE ? readRowInt(nrow) : readRowByte(nrow);
@@ -476,7 +476,7 @@ public class PngReader {
 	 * @return ImageLine object, also available as field. Data is in
 	 *         {@link ImageLine#scanline} (int) field.
 	 */
-	public ImageLine readRowInt(int nrow) {
+	public ImageLine readRowInt(final int nrow) {
 		if (imgLine == null)
 			imgLine = new ImageLine(imgInfo, SampleType.INT, unpackedMode);
 		if (imgLine.getRown() == nrow) // already read
@@ -499,7 +499,7 @@ public class PngReader {
 	 * @return ImageLine object, also available as field. Data is in
 	 *         {@link ImageLine#scanlineb} (byte) field.
 	 */
-	public ImageLine readRowByte(int nrow) {
+	public ImageLine readRowByte(final int nrow) {
 		if (imgLine == null)
 			imgLine = new ImageLine(imgInfo, SampleType.BYTE, unpackedMode);
 		if (imgLine.getRown() == nrow) // already read
@@ -513,7 +513,7 @@ public class PngReader {
 	/**
 	 * @see #readRowInt(int[], int)
 	 */
-	public final int[] readRow(int[] buffer, final int nrow) {
+	public final int[] readRow(final int[] buffer, final int nrow) {
 		return readRowInt(buffer, nrow);
 	}
 
@@ -596,11 +596,11 @@ public class PngReader {
 	 * @deprecated Now {@link #readRow(int)} implements the same funcion. This
 	 *             method will be removed in future releases
 	 */
-	public ImageLine getRow(int nrow) {
+	public ImageLine getRow(final int nrow) {
 		return readRow(nrow);
 	}
 
-	private void decodeLastReadRowToInt(int[] buffer, int bytesRead) {
+	private void decodeLastReadRowToInt(final int[] buffer, final int bytesRead) {
 		if (imgInfo.bitDepth <= 8)
 			for (int i = 0, j = 1; i < bytesRead; i++)
 				buffer[i] = (rowb[j++] & 0xFF); // http://www.libpng.org/pub/png/spec/1.2/PNG-DataRep.html
@@ -611,7 +611,7 @@ public class PngReader {
 			ImageLine.unpackInplaceInt(imgInfo, buffer, buffer, false);
 	}
 
-	private void decodeLastReadRowToByte(byte[] buffer, int bytesRead) {
+	private void decodeLastReadRowToByte(final byte[] buffer, final int bytesRead) {
 		if (imgInfo.bitDepth <= 8)
 			System.arraycopy(rowb, 1, buffer, 0, bytesRead);
 		else
@@ -644,27 +644,27 @@ public class PngReader {
 	 *            even/odd lines, etc
 	 * @return Set of lines as a ImageLines, which wraps a matrix
 	 */
-	public ImageLines readRowsInt(int rowOffset, int nRows, int rowStep) {
+	public ImageLines readRowsInt(final int rowOffset, int nRows, final int rowStep) {
 		if (nRows < 0)
 			nRows = (imgInfo.rows - rowOffset) / rowStep;
 		if (rowStep < 1 || rowOffset < 0 || nRows * rowStep + rowOffset > imgInfo.rows)
 			throw new PngjInputException("bad args");
-		ImageLines imlines = new ImageLines(imgInfo, SampleType.INT, unpackedMode, rowOffset, nRows, rowStep);
+		final ImageLines imlines = new ImageLines(imgInfo, SampleType.INT, unpackedMode, rowOffset, nRows, rowStep);
 		if (!interlaced) {
 			for (int j = 0; j < imgInfo.rows; j++) {
-				int bytesread = readRowRaw(j); // read and perhaps discards
-				int mrow = imlines.imageRowToMatrixRowStrict(j);
+				final int bytesread = readRowRaw(j); // read and perhaps discards
+				final int mrow = imlines.imageRowToMatrixRowStrict(j);
 				if (mrow >= 0)
 					decodeLastReadRowToInt(imlines.scanlines[mrow], bytesread);
 			}
 		} else { // and now, for something completely different (interlaced)
-			int[] buf = new int[unpackedMode ? imgInfo.samplesPerRow : imgInfo.samplesPerRowPacked];
+			final int[] buf = new int[unpackedMode ? imgInfo.samplesPerRow : imgInfo.samplesPerRowPacked];
 			for (int p = 1; p <= 7; p++) {
 				deinterlacer.setPass(p);
 				for (int i = 0; i < deinterlacer.getRows(); i++) {
-					int bytesread = readRowRaw(i);
-					int j = deinterlacer.getCurrRowReal();
-					int mrow = imlines.imageRowToMatrixRowStrict(j);
+					final int bytesread = readRowRaw(i);
+					final int j = deinterlacer.getCurrRowReal();
+					final int mrow = imlines.imageRowToMatrixRowStrict(j);
 					if (mrow >= 0) {
 						decodeLastReadRowToInt(buf, bytesread);
 						deinterlacer.deinterlaceInt(buf, imlines.scanlines[mrow], !unpackedMode);
@@ -709,27 +709,27 @@ public class PngReader {
 	 *            even/odd lines, etc
 	 * @return Set of lines as a matrix
 	 */
-	public ImageLines readRowsByte(int rowOffset, int nRows, int rowStep) {
+	public ImageLines readRowsByte(final int rowOffset, int nRows, final int rowStep) {
 		if (nRows < 0)
 			nRows = (imgInfo.rows - rowOffset) / rowStep;
 		if (rowStep < 1 || rowOffset < 0 || nRows * rowStep + rowOffset > imgInfo.rows)
 			throw new PngjInputException("bad args");
-		ImageLines imlines = new ImageLines(imgInfo, SampleType.BYTE, unpackedMode, rowOffset, nRows, rowStep);
+		final ImageLines imlines = new ImageLines(imgInfo, SampleType.BYTE, unpackedMode, rowOffset, nRows, rowStep);
 		if (!interlaced) {
 			for (int j = 0; j < imgInfo.rows; j++) {
-				int bytesread = readRowRaw(j); // read and perhaps discards
-				int mrow = imlines.imageRowToMatrixRowStrict(j);
+				final int bytesread = readRowRaw(j); // read and perhaps discards
+				final int mrow = imlines.imageRowToMatrixRowStrict(j);
 				if (mrow >= 0)
 					decodeLastReadRowToByte(imlines.scanlinesb[mrow], bytesread);
 			}
 		} else { // and now, for something completely different (interlaced)
-			byte[] buf = new byte[unpackedMode ? imgInfo.samplesPerRow : imgInfo.samplesPerRowPacked];
+			final byte[] buf = new byte[unpackedMode ? imgInfo.samplesPerRow : imgInfo.samplesPerRowPacked];
 			for (int p = 1; p <= 7; p++) {
 				deinterlacer.setPass(p);
 				for (int i = 0; i < deinterlacer.getRows(); i++) {
-					int bytesread = readRowRaw(i);
-					int j = deinterlacer.getCurrRowReal();
-					int mrow = imlines.imageRowToMatrixRowStrict(j);
+					final int bytesread = readRowRaw(i);
+					final int j = deinterlacer.getCurrRowReal();
+					final int mrow = imlines.imageRowToMatrixRowStrict(j);
 					if (mrow >= 0) {
 						decodeLastReadRowToByte(buf, bytesread);
 						deinterlacer.deinterlaceByte(buf, imlines.scanlinesb[mrow], !unpackedMode);
@@ -784,7 +784,7 @@ public class PngReader {
 		}
 		rowNum = nrow;
 		// swap buffers
-		byte[] tmp = rowb;
+		final byte[] tmp = rowb;
 		rowb = rowbprev;
 		rowbprev = tmp;
 		// loads in rowbfilter "raw" bytes, with filter
@@ -821,7 +821,7 @@ public class PngReader {
 			do {
 				r = iIdatCstream.read(rowbfilter, 0, buffersLen);
 			} while (r >= 0);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new PngjInputException("error in raw read of IDAT", e);
 		}
 		offset = iIdatCstream.getOffset();
@@ -838,7 +838,7 @@ public class PngReader {
 	 * These are the bytes read (not loaded) in the input stream. If exceeded,
 	 * an exception will be thrown.
 	 */
-	public void setMaxTotalBytesRead(long maxTotalBytesToRead) {
+	public void setMaxTotalBytesRead(final long maxTotalBytesToRead) {
 		this.maxTotalBytesRead = maxTotalBytesToRead;
 	}
 
@@ -854,7 +854,7 @@ public class PngReader {
 	 * default: 5Mb).<br>
 	 * If exceeded, some chunks will be skipped
 	 */
-	public void setMaxBytesMetadata(int maxBytesChunksToLoad) {
+	public void setMaxBytesMetadata(final int maxBytesChunksToLoad) {
 		this.maxBytesMetadata = maxBytesChunksToLoad;
 	}
 
@@ -872,7 +872,7 @@ public class PngReader {
 	 * checked) and the chunk will be saved as a PngChunkSkipped object. See
 	 * also setSkipChunkIds
 	 */
-	public void setSkipChunkMaxSize(int skipChunksBySize) {
+	public void setSkipChunkMaxSize(final int skipChunksBySize) {
 		this.skipChunkMaxSize = skipChunksBySize;
 	}
 
@@ -888,7 +888,7 @@ public class PngReader {
 	 * These chunks will be skipped (the CRC will not be checked) and the chunk
 	 * will be saved as a PngChunkSkipped object. See also setSkipChunkMaxSize
 	 */
-	public void setSkipChunkIds(String[] skipChunksById) {
+	public void setSkipChunkIds(final String[] skipChunksById) {
 		this.skipChunkIds = skipChunksById == null ? new String[] {} : skipChunksById;
 	}
 
@@ -904,7 +904,7 @@ public class PngReader {
 	 * <p>
 	 * default=true
 	 */
-	public void setShouldCloseStream(boolean shouldCloseStream) {
+	public void setShouldCloseStream(final boolean shouldCloseStream) {
 		this.shouldCloseStream = shouldCloseStream;
 	}
 
@@ -936,7 +936,7 @@ public class PngReader {
 	 *
 	 * @param unPackedMode
 	 */
-	public void setUnpackedMode(boolean unPackedMode) {
+	public void setUnpackedMode(final boolean unPackedMode) {
 		this.unpackedMode = unPackedMode;
 	}
 
@@ -954,7 +954,7 @@ public class PngReader {
 	 *
 	 * @param other A PngReader that has already finished reading pixels. Can be null.
 	 */
-	public void reuseBuffersFrom(PngReader other) {
+	public void reuseBuffersFrom(final PngReader other) {
 		if(other==null) return;
 		if (other.currentChunkGroup < ChunksList.CHUNK_GROUP_5_AFTERIDAT)
 			throw new PngjInputException("PngReader to be reused have not yet ended reading pixels");

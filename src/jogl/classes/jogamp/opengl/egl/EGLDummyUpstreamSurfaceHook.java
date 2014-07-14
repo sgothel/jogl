@@ -10,19 +10,19 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 /** Uses a PBuffer offscreen surface */
 public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {
     /**
-     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)},
+     * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()} via {@link UpstreamSurfaceHook#getSurfaceWidth(ProxySurface)},
      *        not the actual dummy surface width.
      *        The latter is platform specific and small
-     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)},
+     * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()} via {@link UpstreamSurfaceHook#getSurfaceHeight(ProxySurface)},
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
-    public EGLDummyUpstreamSurfaceHook(int width, int height) {
+    public EGLDummyUpstreamSurfaceHook(final int width, final int height) {
         super(width, height);
     }
 
     @Override
-    public final void create(ProxySurface s) {
+    public final void create(final ProxySurface s) {
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
         eglDevice.lock();
         try {
@@ -41,7 +41,7 @@ public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     }
 
     @Override
-    public final void destroy(ProxySurface s) {
+    public final void destroy(final ProxySurface s) {
         if( s.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
             final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
             if( EGL.EGL_NO_SURFACE == s.getSurfaceHandle() ) {

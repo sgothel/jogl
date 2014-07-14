@@ -38,7 +38,7 @@ public class MonitorEvent extends OutputEvent {
 
     private final MonitorMode mode;
 
-    public MonitorEvent (short eventType, MonitorDevice source, long when, MonitorMode mode) {
+    public MonitorEvent (final short eventType, final MonitorDevice source, final long when, final MonitorMode mode) {
         super(eventType, source, when);
         this.mode = mode;
     }
@@ -48,7 +48,7 @@ public class MonitorEvent extends OutputEvent {
 
     public final MonitorMode getMode() { return mode; }
 
-    public static String getEventTypeString(short type) {
+    public static String getEventTypeString(final short type) {
         switch(type) {
         case EVENT_MONITOR_MODE_CHANGE_NOTIFY: return "EVENT_MONITOR_MODE_CHANGE_NOTIFY";
         case EVENT_MONITOR_MODE_CHANGED: return "EVENT_MONITOR_MODE_CHANGED";

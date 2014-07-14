@@ -17,7 +17,7 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
  * <pre>
  * EGLWrappedSurface [ is_a -> WrappedSurface -> ProxySurfaceImpl -> ProxySurface -> MutableSurface -> NativeSurface] has_a
  *     EGLUpstreamSurfaceHook [ is_a -> UpstreamSurfaceHook.MutableSize -> UpstreamSurfaceHook ] has_a
- *        NativeSurface (i.e. native X11 surface)
+ *        NativeSurface (e.g. native X11 surface)
  * </pre>
  */
 public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
@@ -25,7 +25,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     private final NativeSurface upstreamSurface;
     private final UpstreamSurfaceHook.MutableSize upstreamSurfaceHookMutableSize;
 
-    public EGLUpstreamSurfaceHook(NativeSurface upstream) {
+    public EGLUpstreamSurfaceHook(final NativeSurface upstream) {
         upstreamSurface = upstream;
         if(upstreamSurface instanceof ProxySurface) {
             final UpstreamSurfaceHook ush = ((ProxySurface)upstreamSurface).getUpstreamSurfaceHook();
@@ -40,19 +40,26 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
         }
     }
 
-    public final NativeSurface getUpstreamSurface() { return upstreamSurface; }
-
     static String getThreadName() { return Thread.currentThread().getName(); }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns the actual upstream {@link NativeSurface}, e.g. native X11 surface.
+     * </p>
+     */
     @Override
-    public final void setSize(int width, int height) {
+    public final NativeSurface getUpstreamSurface() { return upstreamSurface; }
+
+    @Override
+    public final void setSurfaceSize(final int width, final int height) {
         if(null != upstreamSurfaceHookMutableSize) {
-            upstreamSurfaceHookMutableSize.setSize(width, height);
+            upstreamSurfaceHookMutableSize.setSurfaceSize(width, height);
         }
     }
 
     @Override
-    public final void create(ProxySurface surface) {
+    public final void create(final ProxySurface surface) {
         final String dbgPrefix;
         if(DEBUG) {
             dbgPrefix = getThreadName() + ": EGLUpstreamSurfaceHook.create( up "+upstreamSurface.getClass().getSimpleName()+" -> this "+surface.getClass().getSimpleName()+" ): ";
@@ -77,7 +84,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
         }
     }
 
-    private final void evalUpstreamSurface(String dbgPrefix, ProxySurface surface) {
+    private final void evalUpstreamSurface(final String dbgPrefix, final ProxySurface surface) {
         //
         // evaluate nature of upstreamSurface, may create EGL instances if required
         //
@@ -188,7 +195,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     }
 
     @Override
-    public final void destroy(ProxySurface surface) {
+    public final void destroy(final ProxySurface surface) {
         if(EGLDrawableFactory.DEBUG) {
             System.err.println("EGLUpstreamSurfaceHook.destroy("+surface.getClass().getSimpleName()+"): "+this);
         }
@@ -199,19 +206,29 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     }
 
     @Override
-    public final int getWidth(ProxySurface s) {
-        return upstreamSurface.getWidth();
+    public final int getSurfaceWidth(final ProxySurface s) {
+        return upstreamSurface.getSurfaceWidth();
     }
 
     @Override
-    public final int getHeight(ProxySurface s) {
-        return upstreamSurface.getHeight();
+    public final int getSurfaceHeight(final ProxySurface s) {
+        return upstreamSurface.getSurfaceHeight();
     }
 
     @Override
     public String toString() {
-        final String us_s = null != upstreamSurface ? ( upstreamSurface.getClass().getName() + ": 0x" + Long.toHexString(upstreamSurface.getSurfaceHandle()) ) : "nil";
-        return "EGLUpstreamSurfaceHook[ "+ upstreamSurface.getWidth() + "x" + upstreamSurface.getHeight() + ", " + us_s+ "]";
+        final String us_s;
+        final int sw, sh;
+        if( null != upstreamSurface ) {
+            us_s = upstreamSurface.getClass().getName() + ": 0x" + Long.toHexString(upstreamSurface.getSurfaceHandle());
+            sw = upstreamSurface.getSurfaceWidth();
+            sh = upstreamSurface.getSurfaceHeight();
+        } else {
+            us_s = "nil";
+            sw = -1;
+            sh = -1;
+        }
+        return "EGLUpstreamSurfaceHook[ "+ sw + "x" + sh + ", " + us_s+ "]";
     }
 
 }

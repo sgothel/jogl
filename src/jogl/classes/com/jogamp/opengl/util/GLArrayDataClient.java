@@ -69,11 +69,11 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
-  public static GLArrayDataClient createFixed(int index, int comps, int dataType, boolean normalized, int initialElementCount)
+  public static GLArrayDataClient createFixed(final int index, final int comps, final int dataType, final boolean normalized, final int initialElementCount)
     throws GLException
   {
-      GLArrayDataClient adc = new GLArrayDataClient();
-      GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
+      final GLArrayDataClient adc = new GLArrayDataClient();
+      final GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
       adc.init(null, index, comps, dataType, normalized, 0, null, initialElementCount, 0 /* mappedElementCount */, false, glArrayHandler, 0, 0, 0, 0, false);
       return adc;
   }
@@ -99,12 +99,12 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
-  public static GLArrayDataClient createFixed(int index, int comps, int dataType, boolean normalized, int stride,
-                                              Buffer buffer)
+  public static GLArrayDataClient createFixed(final int index, final int comps, final int dataType, final boolean normalized, final int stride,
+                                              final Buffer buffer)
     throws GLException
   {
-      GLArrayDataClient adc = new GLArrayDataClient();
-      GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
+      final GLArrayDataClient adc = new GLArrayDataClient();
+      final GLArrayHandler glArrayHandler = new GLFixedArrayHandler(adc);
       adc.init(null, index, comps, dataType, normalized, stride, buffer, comps*comps, 0 /* mappedElementCount */, false, glArrayHandler, 0, 0, 0, 0, false);
       return adc;
   }
@@ -118,12 +118,12 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @param normalized Whether the data shall be normalized
    * @param initialElementCount
    */
-  public static GLArrayDataClient createGLSL(String name, int comps,
-                                             int dataType, boolean normalized, int initialElementCount)
+  public static GLArrayDataClient createGLSL(final String name, final int comps,
+                                             final int dataType, final boolean normalized, final int initialElementCount)
     throws GLException
   {
-      GLArrayDataClient adc = new GLArrayDataClient();
-      GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
+      final GLArrayDataClient adc = new GLArrayDataClient();
+      final GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
       adc.init(name, -1, comps, dataType, normalized, 0, null, initialElementCount, 0 /* mappedElementCount */, true, glArrayHandler, 0, 0, 0, 0, true);
       return adc;
   }
@@ -138,18 +138,18 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @param stride
    * @param buffer the user define data
    */
-  public static GLArrayDataClient createGLSL(String name, int comps,
-                                             int dataType, boolean normalized, int stride, Buffer buffer)
+  public static GLArrayDataClient createGLSL(final String name, final int comps,
+                                             final int dataType, final boolean normalized, final int stride, final Buffer buffer)
     throws GLException
   {
-      GLArrayDataClient adc = new GLArrayDataClient();
-      GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
+      final GLArrayDataClient adc = new GLArrayDataClient();
+      final GLArrayHandler glArrayHandler = new GLSLArrayHandler(adc);
       adc.init(name, -1, comps, dataType, normalized, stride, buffer, comps*comps, 0 /* mappedElementCount */, true, glArrayHandler, 0, 0, 0, 0, true);
       return adc;
   }
 
   @Override
-  public void associate(Object obj, boolean enable) {
+  public void associate(final Object obj, final boolean enable) {
       if(obj instanceof ShaderState) {
           if(enable) {
               shaderState = (ShaderState)obj;
@@ -177,30 +177,30 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   //
 
   @Override
-  public final void setVBOWritten(boolean written) {
+  public final void setVBOWritten(final boolean written) {
       bufferWritten = ( 0 == mappedElementCount ) ? written : true;
   }
 
   @Override
-  public void destroy(GL gl) {
+  public void destroy(final GL gl) {
     reset(gl);
     super.destroy(gl);
   }
 
   @Override
-  public void reset(GL gl) {
+  public void reset(final GL gl) {
     enableBuffer(gl, false);
     reset();
   }
 
   @Override
-  public void seal(GL gl, boolean seal) {
+  public void seal(final GL gl, final boolean seal) {
     seal(seal);
     enableBuffer(gl, seal);
   }
 
   @Override
-  public void enableBuffer(GL gl, boolean enable) {
+  public void enableBuffer(final GL gl, final boolean enable) {
     if( enableBufferAlways || bufferEnabled != enable ) {
         if(enable) {
             checkSeal(true);
@@ -213,7 +213,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   @Override
-  public boolean bindBuffer(GL gl, boolean bind) {
+  public boolean bindBuffer(final GL gl, final boolean bind) {
       if(bind) {
           checkSeal(true);
           // init/generate VBO name if not done yet
@@ -223,7 +223,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   @Override
-  public void setEnableAlways(boolean always) {
+  public void setEnableAlways(final boolean always) {
     enableBufferAlways = always;
   }
 
@@ -242,7 +242,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   @Override
-  public void seal(boolean seal)
+  public void seal(final boolean seal)
   {
     if( sealed == seal ) return;
     sealed = seal;
@@ -281,7 +281,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * The arguments remaining elements must be a multiple of this arrays element stride.
    */
   @Override
-  public void put(Buffer v) {
+  public void put(final Buffer v) {
     if ( sealed ) return;
     /** FIXME: isn't true for interleaved arrays !
     if(0!=(v.remaining() % strideL)) {
@@ -292,33 +292,33 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   @Override
-  public void putb(byte v) {
+  public void putb(final byte v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.putb(buffer, v);
   }
 
   @Override
-  public void puts(short v) {
+  public void puts(final short v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.puts(buffer, v);
   }
 
   @Override
-  public void puti(int v) {
+  public void puti(final int v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.puti(buffer, v);
   }
 
   @Override
-  public void putx(int v) {
+  public void putx(final int v) {
     puti(v);
   }
 
   @Override
-  public void putf(float v) {
+  public void putf(final float v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.putf(buffer, v);
@@ -349,7 +349,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   // non public matters
 
-  protected final boolean growBufferIfNecessary(int spareComponents) {
+  protected final boolean growBufferIfNecessary(final int spareComponents) {
     if( buffer==null || buffer.remaining()<spareComponents ) {
         if( 0 != mappedElementCount ) {
             throw new GLException("Mapped buffer can't grow. Insufficient storage size: Needed "+spareComponents+" components, "+
@@ -411,7 +411,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
   }
 
-  protected final void checkSeal(boolean test) throws GLException {
+  protected final void checkSeal(final boolean test) throws GLException {
     if(!alive) {
         throw new GLException("Invalid state: "+this);
     }
@@ -424,9 +424,9 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
   }
 
-  protected void init(String name, int index, int comps, int dataType, boolean normalized, int stride, Buffer data,
-                      int initialElementCount, int mappedElementCount, boolean isVertexAttribute,
-                      GLArrayHandler handler, int vboName, long vboOffset, int vboUsage, int vboTarget, boolean usesGLSL)
+  protected void init(final String name, final int index, final int comps, final int dataType, final boolean normalized, final int stride, final Buffer data,
+                      final int initialElementCount, final int mappedElementCount, final boolean isVertexAttribute,
+                      final GLArrayHandler handler, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget, final boolean usesGLSL)
     throws GLException
   {
     super.init(name, index, comps, dataType, normalized, stride, data, mappedElementCount,
@@ -450,7 +450,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   private boolean isValidated = false;
 
-  protected void init_vbo(GL gl) {
+  protected void init_vbo(final GL gl) {
       if(!isValidated ) {
           isValidated = true;
           validate(gl.getGLProfile(), true);
@@ -468,7 +468,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * All other values are simply copied.
    * </p>
    */
-  public GLArrayDataClient(GLArrayDataClient src) {
+  public GLArrayDataClient(final GLArrayDataClient src) {
     super(src);
     this.isValidated = src.isValidated;
     this.sealed = src.sealed;
@@ -481,7 +481,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
         try {
             final Constructor<? extends GLArrayHandler> ctor = clazz.getConstructor(GLArrayDataEditable.class);
             this.glArrayHandler = ctor.newInstance(this);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException("Could not ctor "+clazz.getName()+"("+this.getClass().getName()+")", e);
         }
     } else {

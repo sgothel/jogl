@@ -60,8 +60,8 @@ class Dict {
     private Dict() {
     }
 
-    static Dict dictNewDict(Object frame, DictLeq leq) {
-        Dict dict = new Dict();
+    static Dict dictNewDict(final Object frame, final DictLeq leq) {
+        final Dict dict = new Dict();
         dict.head = new DictNode();
 
         dict.head.key = null;
@@ -74,22 +74,22 @@ class Dict {
         return dict;
     }
 
-    static void dictDeleteDict(Dict dict) {
+    static void dictDeleteDict(final Dict dict) {
         dict.head = null;
         dict.frame = null;
         dict.leq = null;
     }
 
-    static DictNode dictInsert(Dict dict, Object key) {
+    static DictNode dictInsert(final Dict dict, final Object key) {
         return dictInsertBefore(dict, dict.head, key);
     }
 
-    static DictNode dictInsertBefore(Dict dict, DictNode node, Object key) {
+    static DictNode dictInsertBefore(final Dict dict, DictNode node, final Object key) {
         do {
             node = node.prev;
         } while (node.key != null && !dict.leq.leq(dict.frame, node.key, key));
 
-        DictNode newNode = new DictNode();
+        final DictNode newNode = new DictNode();
         newNode.key = key;
         newNode.next = node.next;
         node.next.prev = newNode;
@@ -99,32 +99,32 @@ class Dict {
         return newNode;
     }
 
-    static Object dictKey(DictNode aNode) {
+    static Object dictKey(final DictNode aNode) {
         return aNode.key;
     }
 
-    static DictNode dictSucc(DictNode aNode) {
+    static DictNode dictSucc(final DictNode aNode) {
         return aNode.next;
     }
 
-    static DictNode dictPred(DictNode aNode) {
+    static DictNode dictPred(final DictNode aNode) {
         return aNode.prev;
     }
 
-    static DictNode dictMin(Dict aDict) {
+    static DictNode dictMin(final Dict aDict) {
         return aDict.head.next;
     }
 
-    static DictNode dictMax(Dict aDict) {
+    static DictNode dictMax(final Dict aDict) {
         return aDict.head.prev;
     }
 
-    static void dictDelete(Dict dict, DictNode node) {
+    static void dictDelete(final Dict dict, final DictNode node) {
         node.next.prev = node.prev;
         node.prev.next = node.next;
     }
 
-    static DictNode dictSearch(Dict dict, Object key) {
+    static DictNode dictSearch(final Dict dict, final Object key) {
         DictNode node = dict.head;
 
         do {

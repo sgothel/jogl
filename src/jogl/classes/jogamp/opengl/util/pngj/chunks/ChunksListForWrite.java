@@ -19,9 +19,9 @@ public class ChunksListForWrite extends ChunksList {
 	private final List<PngChunk> queuedChunks = new ArrayList<PngChunk>();
 
 	// redundant, just for eficciency
-	private HashMap<String, Integer> alreadyWrittenKeys = new HashMap<String, Integer>();
+	private final HashMap<String, Integer> alreadyWrittenKeys = new HashMap<String, Integer>();
 
-	public ChunksListForWrite(ImageInfo imfinfo) {
+	public ChunksListForWrite(final ImageInfo imfinfo) {
 		super(imfinfo);
 	}
 
@@ -43,7 +43,7 @@ public class ChunksListForWrite extends ChunksList {
 	 * Same as getById1(), but looking in the queued chunks
 	 **/
 	public PngChunk getQueuedById1(final String id, final String innerid, final boolean failIfMultiple) {
-		List<? extends PngChunk> list = getQueuedById(id, innerid);
+		final List<? extends PngChunk> list = getQueuedById(id, innerid);
 		if (list.isEmpty())
 			return null;
 		if (list.size() > 1 && (failIfMultiple || !list.get(0).allowsMultiple()))
@@ -72,7 +72,7 @@ public class ChunksListForWrite extends ChunksList {
 	 * straightforward for SingleChunks. For MultipleChunks, it will normally
 	 * check for reference equality!
 	 */
-	public boolean removeChunk(PngChunk c) {
+	public boolean removeChunk(final PngChunk c) {
 		return queuedChunks.remove(c);
 	}
 
@@ -83,7 +83,7 @@ public class ChunksListForWrite extends ChunksList {
 	 *
 	 * @param c
 	 */
-	public boolean queue(PngChunk c) {
+	public boolean queue(final PngChunk c) {
 		queuedChunks.add(c);
 		return true;
 	}
@@ -92,7 +92,7 @@ public class ChunksListForWrite extends ChunksList {
 	 * this should be called only for ancillary chunks and PLTE (groups 1 - 3 -
 	 * 5)
 	 **/
-	private static boolean shouldWrite(PngChunk c, int currentGroup) {
+	private static boolean shouldWrite(final PngChunk c, final int currentGroup) {
 		if (currentGroup == CHUNK_GROUP_2_PLTE)
 			return c.id.equals(ChunkHelper.PLTE);
 		if (currentGroup % 2 == 0)
@@ -121,11 +121,11 @@ public class ChunksListForWrite extends ChunksList {
 		return false;
 	}
 
-	public int writeChunks(OutputStream os, int currentGroup) {
+	public int writeChunks(final OutputStream os, final int currentGroup) {
 		int cont = 0;
-		Iterator<PngChunk> it = queuedChunks.iterator();
+		final Iterator<PngChunk> it = queuedChunks.iterator();
 		while (it.hasNext()) {
-			PngChunk c = it.next();
+			final PngChunk c = it.next();
 			if (!shouldWrite(c, currentGroup))
 				continue;
 			if (ChunkHelper.isCritical(c.id) && !c.id.equals(ChunkHelper.PLTE))
@@ -159,14 +159,14 @@ public class ChunksListForWrite extends ChunksList {
 	 */
 	@Override
 	public String toStringFull() {
-		StringBuilder sb = new StringBuilder(toString());
+		final StringBuilder sb = new StringBuilder(toString());
 		sb.append("\n Written:\n");
-		for (PngChunk chunk : chunks) {
+		for (final PngChunk chunk : chunks) {
 			sb.append(chunk).append(" G=" + chunk.getChunkGroup() + "\n");
 		}
 		if (!queuedChunks.isEmpty()) {
 			sb.append(" Queued:\n");
-			for (PngChunk chunk : queuedChunks) {
+			for (final PngChunk chunk : queuedChunks) {
 				sb.append(chunk).append("\n");
 			}
 

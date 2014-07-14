@@ -9,19 +9,19 @@ import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 
 public class GDIDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {
     /**
-     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)},
+     * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()} via {@link UpstreamSurfaceHook#getSurfaceWidth(ProxySurface)},
      *        not the actual dummy surface width.
      *        The latter is platform specific and small
-     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)},
+     * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()} via {@link UpstreamSurfaceHook#getSurfaceHeight(ProxySurface)},
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
-    public GDIDummyUpstreamSurfaceHook(int width, int height) {
+    public GDIDummyUpstreamSurfaceHook(final int width, final int height) {
         super(width, height);
     }
 
     @Override
-    public final void create(ProxySurface s) {
+    public final void create(final ProxySurface s) {
         final GDISurface ms = (GDISurface)s;
         if(0 == ms.getWindowHandle()) {
             final long windowHandle = GDIUtil.CreateDummyWindow(0, 0, 64, 64);
@@ -35,7 +35,7 @@ public class GDIDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     }
 
     @Override
-    public final void destroy(ProxySurface s) {
+    public final void destroy(final ProxySurface s) {
         final GDISurface ms = (GDISurface)s;
         if( ms.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
             if( 0 == ms.getWindowHandle() ) {

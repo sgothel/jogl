@@ -99,7 +99,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                         if(null!=tmp && tmp.isLibComplete()) {
                             WGL.getWGLProcAddressTable().reset(tmp);
                         }
-                    } catch (Exception ex) {
+                    } catch (final Exception ex) {
                         tmp = null;
                         if(DEBUG) {
                             ex.printStackTrace();
@@ -121,7 +121,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             try {
               ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                               "registerFactory", null, null, getClass().getClassLoader());
-            } catch (Exception jre) { /* n/a .. */ }
+            } catch (final Exception jre) { /* n/a .. */ }
         }
 
         sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
@@ -164,7 +164,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(final int profile) {
       return windowsWGLDynamicLookupHelper;
   }
 
@@ -180,7 +180,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   protected void enterThreadCriticalZone() {
     synchronized (sysMask) {
         if( 0 == processAffinityChanges) {
-            long pid = GDI.GetCurrentProcess();
+            final long pid = GDI.GetCurrentProcess();
             if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
                 if(DEBUG) {
                     System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
@@ -197,7 +197,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   protected void leaveThreadCriticalZone() {
     synchronized (sysMask) {
         if( 0 != processAffinityChanges) {
-            long pid = GDI.GetCurrentProcess();
+            final long pid = GDI.GetCurrentProcess();
             if( pid != processAffinityChanges) {
                 throw new GLException("PID doesn't match: set PID 0x" + Long.toHexString(processAffinityChanges) +
                                                        " this PID 0x" + Long.toHexString(pid) );
@@ -220,8 +220,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       private GLDrawableImpl drawable;
       private GLContextImpl context;
 
-      SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, GLDrawableImpl draw, GLContextImpl ctx,
-                     boolean arbPixelFormat, boolean arbMultisample, boolean arbPBuffer, boolean arbReadDrawable) {
+      SharedResource(final WindowsGraphicsDevice dev, final AbstractGraphicsScreen scrn, final GLDrawableImpl draw, final GLContextImpl ctx,
+                     final boolean arbPixelFormat, final boolean arbMultisample, final boolean arbPBuffer, final boolean arbReadDrawable) {
           device = dev;
           screen = scrn;
           drawable = draw;
@@ -261,11 +261,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             sharedMap.clear();
         }
         @Override
-        public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
+        public SharedResourceRunner.Resource mapPut(final String connection, final SharedResourceRunner.Resource resource) {
             return sharedMap.put(connection, resource);
         }
         @Override
-        public SharedResourceRunner.Resource mapGet(String connection) {
+        public SharedResourceRunner.Resource mapGet(final String connection) {
             return sharedMap.get(connection);
         }
         @Override
@@ -276,12 +276,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
-        public boolean isDeviceSupported(String connection) {
+        public boolean isDeviceSupported(final String connection) {
             return true;
         }
 
         @Override
-        public SharedResourceRunner.Resource createSharedResource(String connection) {
+        public SharedResourceRunner.Resource createSharedResource(final String connection) {
             final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
             sharedDevice.lock();
             try {
@@ -324,7 +324,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext,
                                           hasARBPixelFormat, hasARBMultisample,
                                           hasARBPBuffer, hasARBReadDrawableAvailable);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+connection, t);
             } finally {
                 sharedDevice.unlock();
@@ -332,8 +332,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
-        public void releaseSharedResource(SharedResourceRunner.Resource shared) {
-            SharedResource sr = (SharedResource) shared;
+        public void releaseSharedResource(final SharedResourceRunner.Resource shared) {
+            final SharedResource sr = (SharedResource) shared;
             if (DEBUG) {
               System.err.println("Shutdown Shared:");
               System.err.println("Device  : " + sr.device);
@@ -369,7 +369,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
+  public final boolean getIsDeviceCompatible(final AbstractGraphicsDevice device) {
       if(null!=windowsWGLDynamicLookupHelper && device instanceof WindowsGraphicsDevice) {
           return true;
       }
@@ -389,12 +389,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice device) {
+  protected final SharedResource getOrCreateSharedResourceImpl(final AbstractGraphicsDevice device) {
     return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
   }
 
-  protected final WindowsWGLDrawable getOrCreateSharedDrawable(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = getOrCreateSharedResourceImpl(device);
+  protected final WindowsWGLDrawable getOrCreateSharedDrawable(final AbstractGraphicsDevice device) {
+    final SharedResourceRunner.Resource sr = getOrCreateSharedResourceImpl(device);
     if(null!=sr) {
         return (WindowsWGLDrawable) sr.getDrawable();
     }
@@ -402,12 +402,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+  protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(final AbstractGraphicsDevice device) {
     return WindowsWGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
   }
 
   @Override
-  protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
+  protected final GLDrawableImpl createOnscreenDrawableImpl(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -419,8 +419,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
-    AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
-    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
+    final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if(!chosenCaps.isPBuffer()) {
         return WindowsBitmapWGLDrawable.create(this, target);
     }
@@ -435,7 +435,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
      */
     final SharedResource sr = getOrCreateSharedResourceImpl(device);
     if(null!=sr) {
-        GLContext lastContext = GLContext.getCurrent();
+        final GLContext lastContext = GLContext.getCurrent();
         if (lastContext != null) {
             lastContext.release();
         }
@@ -458,8 +458,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
    * @return 1 if read drawable extension is available, 0 if not
    *           and -1 if undefined yet, ie no shared device exist at this point.
    */
-  public final int isReadDrawableAvailable(AbstractGraphicsDevice device) {
-    SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
+  public final int isReadDrawableAvailable(final AbstractGraphicsDevice device) {
+    final SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
     if(null!=sr) {
         return sr.hasReadDrawable() ? 1 : 0 ;
     }
@@ -467,8 +467,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
-    SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
+  public final boolean canCreateGLPbuffer(final AbstractGraphicsDevice device, final GLProfile glp) {
+    final SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
     if(null!=sr) {
         return sr.hasARBPBuffer();
     }
@@ -476,9 +476,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
-                                                        GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                                        GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
+  protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                        final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                                        final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
     final WindowsGraphicsDevice device;
     if(createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice)) {
         device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
@@ -494,8 +494,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
-                                                   GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+  public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                   GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     final WindowsGraphicsDevice device;
     if( createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice) ) {
         device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
@@ -512,7 +512,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
+  protected final ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
     final WindowsGraphicsDevice device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
     final WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
@@ -525,7 +525,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
+  public final boolean canCreateExternalGLDrawable(final AbstractGraphicsDevice device) {
     return true;
   }
 
@@ -535,7 +535,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   static String wglGetLastError() {
-    long err = GDI.GetLastError();
+    final long err = GDI.GetLastError();
     String detail = null;
     switch ((int) err) {
       case GDI.ERROR_SUCCESS:              detail = "ERROR_SUCCESS";                    break;
@@ -561,26 +561,26 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final boolean setGammaRamp(float[] ramp) {
-    short[] rampData = new short[3 * GAMMA_RAMP_LENGTH];
+  protected final boolean setGammaRamp(final float[] ramp) {
+    final short[] rampData = new short[3 * GAMMA_RAMP_LENGTH];
     for (int i = 0; i < GAMMA_RAMP_LENGTH; i++) {
-      short scaledValue = (short) (ramp[i] * 65535);
+      final short scaledValue = (short) (ramp[i] * 65535);
       rampData[i] = scaledValue;
       rampData[i +     GAMMA_RAMP_LENGTH] = scaledValue;
       rampData[i + 2 * GAMMA_RAMP_LENGTH] = scaledValue;
     }
 
-    long screenDC = GDI.GetDC(0);
-    boolean res = GDI.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
+    final long screenDC = GDI.GetDC(0);
+    final boolean res = GDI.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
     GDI.ReleaseDC(0, screenDC);
     return res;
   }
 
   @Override
   protected final Buffer getGammaRamp() {
-    ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
-    long screenDC = GDI.GetDC(0);
-    boolean res = GDI.GetDeviceGammaRamp(screenDC, rampData);
+    final ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
+    final long screenDC = GDI.GetDC(0);
+    final boolean res = GDI.GetDeviceGammaRamp(screenDC, rampData);
     GDI.ReleaseDC(0, screenDC);
     if (!res) {
       return null;
@@ -589,12 +589,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final void resetGammaRamp(Buffer originalGammaRamp) {
+  protected final void resetGammaRamp(final Buffer originalGammaRamp) {
     if (originalGammaRamp == null) {
       // getGammaRamp failed earlier
       return;
     }
-    long screenDC = GDI.GetDC(0);
+    final long screenDC = GDI.GetDC(0);
     GDI.SetDeviceGammaRamp(screenDC, originalGammaRamp);
     GDI.ReleaseDC(0, screenDC);
   }

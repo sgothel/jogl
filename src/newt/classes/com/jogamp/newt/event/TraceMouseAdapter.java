@@ -36,47 +36,47 @@ public class TraceMouseAdapter implements MouseListener {
     this.downstream = null;
  }
 
- public TraceMouseAdapter(MouseListener downstream) {
+ public TraceMouseAdapter(final MouseListener downstream) {
     this.downstream = downstream;
  }
 
  @Override
- public void mouseClicked(MouseEvent e) {
+ public void mouseClicked(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseClicked(e); }
  }
  @Override
- public void mouseEntered(MouseEvent e) {
+ public void mouseEntered(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseEntered(e); }
  }
  @Override
- public void mouseExited(MouseEvent e) {
+ public void mouseExited(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseExited(e); }
  }
  @Override
- public void mousePressed(MouseEvent e) {
+ public void mousePressed(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mousePressed(e); }
  }
  @Override
- public void mouseReleased(MouseEvent e) {
+ public void mouseReleased(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseReleased(e); }
  }
  @Override
- public void mouseMoved(MouseEvent e) {
+ public void mouseMoved(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseMoved(e); }
  }
  @Override
- public void mouseDragged(MouseEvent e) {
+ public void mouseDragged(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseDragged(e); }
  }
  @Override
- public void mouseWheelMoved(MouseEvent e) {
+ public void mouseWheelMoved(final MouseEvent e) {
     System.err.println(e);
     if(null!=downstream) { downstream.mouseWheelMoved(e); }
  }

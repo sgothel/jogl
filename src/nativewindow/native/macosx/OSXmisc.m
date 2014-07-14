@@ -137,6 +137,14 @@ Java_jogamp_nativewindow_macosx_OSXUtil_isNSWindow0(JNIEnv *env, jclass _unused,
     return u;
 }
 
+static CGDirectDisplayID OSXUtil_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    NSDictionary * dict = [screen deviceDescription];
+    NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
+    // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
+    return (CGDirectDisplayID) [val integerValue];
+}
+
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreen0
@@ -151,10 +159,6 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
      * return location in 0/0 top-left space,
      * OSX is 0/0 bottom-left space naturally
      */
-    NSRect r;
-    int dest_x=-1;
-    int dest_y=-1;
-
     NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
     NSWindow* win = NULL;
     NSView* view = NULL;
@@ -166,27 +170,36 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
         view = (NSView*) nsObj;
         win = [view window];
     } else {
-        NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
     }
-    NSScreen* screen = [win screen];
-    NSRect screenRect = [screen frame];
-    NSRect winFrame = [win frame];
+    NSRect viewFrame = [view frame];
 
+    NSRect r;
     r.origin.x = src_x;
-    r.origin.y = winFrame.size.height - src_y; // y-flip for 0/0 top-left
+    r.origin.y = viewFrame.size.height - src_y; // y-flip for 0/0 top-left
     r.size.width = 0;
     r.size.height = 0;
     // NSRect rS = [win convertRectToScreen: r]; // 10.7
-    NSPoint oS = [win convertBaseToScreen: r.origin];
-    /**
-    NSLog(@"LOS.1: (bottom-left) %d/%d, screen-y[0: %d, h: %d], (top-left) %d/%d\n", 
-        (int)oS.x, (int)oS.y, (int)screenRect.origin.y, (int) screenRect.size.height,
-        (int)oS.x, (int)(screenRect.origin.y + screenRect.size.height - oS.y)); */
+    NSPoint oS = [win convertBaseToScreen: r.origin]; // BL-screen
 
-    dest_x = (int) oS.x;
-    dest_y = (int) screenRect.origin.y + screenRect.size.height - oS.y;
+    NSScreen* screen = [win screen];
+    CGDirectDisplayID display = OSXUtil_getCGDirectDisplayIDByNSScreen(screen);
+    CGRect frameTL = CGDisplayBounds (display); // origin top-left
+    NSRect frameBL = [screen frame]; // origin bottom-left
+    oS.y = frameTL.origin.y + frameTL.size.height - ( oS.y - frameBL.origin.y ); // y-flip from BL-screen -> TL-screen
 
-    jobject res = (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
+#ifdef VERBOSE
+    NSRect winFrame = [win frame];
+    DBG_PRINT( "GetLocationOnScreen0(window: %p):: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d], screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] -> %d/%d\n",
+        win, (int)src_x, (int)src_y,
+        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+        (int)viewFrame.origin.x, (int)viewFrame.origin.y, (int)viewFrame.size.width, (int)viewFrame.size.height,
+        (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+        (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+        (int)oS.x, (int)oS.y);
+#endif
+
+    jobject res = (*env)->NewObject(env, pointClz, pointCstr, (jint)oS.x, (jint)oS.y);
 
     [pool release];
 
@@ -215,7 +228,7 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
         view = (NSView*) nsObj;
         win = [view window];
     } else {
-        NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
     }
 
     NSRect frameRect = [win frame];
@@ -234,6 +247,75 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
     [pool release];
 
     return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetPixelScale0
+ * Signature: (I)D
+ */
+JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale0
+  (JNIEnv *env, jclass unused, jint screen_idx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    CGFloat pixelScale;
+    NSScreen *screen;
+    NSArray *screens = [NSScreen screens];
+    if( screen_idx<0 || screen_idx>=[screens count] ) {
+        screen = NULL;
+        pixelScale = 0.0;
+    } else {
+        screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+        pixelScale = 1.0; // default
+NS_DURING
+        // Available >= 10.7
+        pixelScale = [screen backingScaleFactor]; // HiDPI scaling
+NS_HANDLER
+NS_ENDHANDLER
+    }
+    [pool release];
+
+    return (jdouble)pixelScale;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetPixelScale1
+ * Signature: (J)D
+ */
+JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale1
+  (JNIEnv *env, jclass unused, jlong winOrView)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
+    NSWindow* win = NULL;
+    NSView* view = NULL;
+    NSScreen *screen = NULL;
+
+    if( [nsObj isKindOfClass:[NSWindow class]] ) {
+        win = (NSWindow*) nsObj;
+        view = [win contentView];
+        screen = [win screen];
+    } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
+        view = (NSView*) nsObj;
+        win = [view window];
+        screen = [win screen];
+    } else {
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
+    }
+
+    CGFloat pixelScale = 1.0; // default
+NS_DURING
+    // Available >= 10.7
+    pixelScale = [screen backingScaleFactor]; // HiDPI scaling
+NS_HANDLER
+NS_ENDHANDLER
+
+    [pool release];
+
+    return (jdouble)pixelScale;
 }
 
 /*
@@ -544,18 +626,24 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    CreateCALayer0
- * Signature: (II)J
+ * Signature: (IIF)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
-  (JNIEnv *env, jclass unused, jint width, jint height)
+  (JNIEnv *env, jclass unused, jint width, jint height, jfloat contentsScale)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     MyCALayer* layer = [[MyCALayer alloc] init];
-    DBG_PRINT("CALayer::CreateCALayer.0: root %p 0/0 %dx%d (refcnt %d)\n", layer, (int)width, (int)height, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::CreateCALayer.0: root %p 0/0 %dx%d @ scale %lf (refcnt %d)\n", layer, (int)width, (int)height, (double)contentsScale, (int)[layer retainCount]);
     // avoid zero size
     if(0 == width) { width = 32; }
     if(0 == height) { height = 32; }
+
+NS_DURING
+    // Available >= 10.7
+    [layer setContentsScale: (CGFloat)contentsScale];
+NS_HANDLER
+NS_ENDHANDLER
 
     // initial dummy size !
     CGRect lFrame = [layer frame];
@@ -580,10 +668,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    AddCASublayer0
- * Signature: (JJIIIII)V
+ * Signature: (JJIIIIIF)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jint caLayerQuirks)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jfloat contentsScale, jint caLayerQuirks)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
@@ -596,9 +684,16 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     [subLayer retain]; // Pairs w/ RemoveCASublayer
 
     CGRect lRectRoot = [rootLayer frame];
-    DBG_PRINT("CALayer::AddCASublayer0.0: Quirks %d, Root %p (refcnt %d), Sub %p (refcnt %d), frame0: %lf/%lf %lfx%lf\n",
+
+    // Available >= 10.7
+    DBG_PRINT("CALayer::AddCASublayer0.0: Quirks %d, Root %p (refcnt %d), Sub %p (refcnt %d), frame0: %lf/%lf %lfx%lf scale %lf\n",
         caLayerQuirks, rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount],
-        lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
+        lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (float)contentsScale);
+
+NS_DURING
+    [subLayer setContentsScale: (CGFloat)contentsScale];
+NS_HANDLER
+NS_ENDHANDLER
 
     [subLayer setFrame:lRectRoot];
     [rootLayer addSublayer:subLayer];
@@ -650,6 +745,37 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
 
         [pool release];
     }
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    SetCALayerPixelScale0
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_SetCALayerPixelScale0
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jfloat contentsScale)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
+    if( NULL == rootLayer ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"rootLayer\" is null");
+    }
+    CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
+
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
+NS_DURING
+    [rootLayer setContentsScale: (CGFloat)contentsScale];
+    if( NULL != subLayer ) {
+        [subLayer setContentsScale: (CGFloat)contentsScale];
+    }
+NS_HANDLER
+NS_ENDHANDLER
+
+    [CATransaction commit];
+
+    [pool release];
 }
 
 /*
@@ -880,29 +1006,61 @@ static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayI
     DBG_PRINT2( "RunOnThread.X\n");
 }
 
-/*
+static void OSXUtil_KickNSApp() {
+    NSEvent* event = [NSEvent otherEventWithType: NSApplicationDefined
+                                        location: NSMakePoint(0,0)
+                                   modifierFlags: 0
+                                       timestamp: 0.0
+                                    windowNumber: 0
+                                         context: nil
+                                         subtype: 0
+                                           data1: 0
+                                           data2: 0];
+    [NSApp postEvent: event atStart: true];
+}
+
+/**
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RunOnMainThread0
  * Signature: (ZLjava/lang/Runnable;)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
-  (JNIEnv *env, jclass unused, jobject runnable)
+  (JNIEnv *env, jclass unused, jboolean kickNSApp, jobject runnable)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     RunOnThread (env, runnable, YES, 0);
+    if( kickNSApp ) {
+        OSXUtil_KickNSApp();
+    }
     [pool release];
 }
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RunLater0
- * Signature: (ZLjava/lang/Runnable;I)V
+ * Signature: (ZZLjava/lang/Runnable;I)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunLater0
-  (JNIEnv *env, jclass unused, jboolean onMain, jobject runnable, jint delay)
+  (JNIEnv *env, jclass unused, jboolean onMain, jboolean kickNSApp, jobject runnable, jint delay)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     RunOnThread (env, runnable, onMain ? YES : NO, delay);
+    if( kickNSApp ) {
+        OSXUtil_KickNSApp();
+    }
+    [pool release];
+}
+
+/**
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    KickNSApp0
+ * Signature: (V)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_KickNSApp0
+  (JNIEnv *env, jclass unused)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    OSXUtil_KickNSApp();
     [pool release];
 }
 

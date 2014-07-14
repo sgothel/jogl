@@ -113,11 +113,11 @@ public class AWTTextureData extends TextureData {
      *                       texture
      * @param image          the image containing the texture data
      */
-    public AWTTextureData(GLProfile glp,
-                          int internalFormat,
-                          int pixelFormat,
-                          boolean mipmap,
-                          BufferedImage image) {
+    public AWTTextureData(final GLProfile glp,
+                          final int internalFormat,
+                          final int pixelFormat,
+                          final boolean mipmap,
+                          final BufferedImage image) {
         super(glp);
         if (internalFormat == 0) {
             this.internalFormat = image.getColorModel().hasAlpha() ? GL.GL_RGBA : GL.GL_RGB;
@@ -176,7 +176,7 @@ public class AWTTextureData extends TextureData {
         return buffer;
     }
 
-    private void createFromImage(GLProfile glp, BufferedImage image) {
+    private void createFromImage(final GLProfile glp, final BufferedImage image) {
         pixelAttributes = GLPixelAttributes.UNDEF; // Determine from image
         mustFlipVertically = true;
 
@@ -185,7 +185,7 @@ public class AWTTextureData extends TextureData {
 
         int scanlineStride;
 
-        SampleModel sm = image.getRaster().getSampleModel();
+        final SampleModel sm = image.getRaster().getSampleModel();
         if (sm instanceof SinglePixelPackedSampleModel) {
             scanlineStride =
                 ((SinglePixelPackedSampleModel)sm).getScanlineStride();
@@ -300,7 +300,7 @@ public class AWTTextureData extends TextureData {
                 case BufferedImage.TYPE_BYTE_INDEXED:
                 case BufferedImage.TYPE_CUSTOM:
                 default:
-                    java.awt.image.ColorModel cm = image.getColorModel();
+                    final java.awt.image.ColorModel cm = image.getColorModel();
                     if (cm.equals(rgbColorModel)) {
                         pixelAttributes = new GLPixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_BYTE);
                         rowLength = scanlineStride / 3;
@@ -362,7 +362,7 @@ public class AWTTextureData extends TextureData {
                 case BufferedImage.TYPE_BYTE_INDEXED:
                 case BufferedImage.TYPE_CUSTOM:
                 default:
-                    java.awt.image.ColorModel cm = image.getColorModel();
+                    final java.awt.image.ColorModel cm = image.getColorModel();
                     if (cm.equals(rgbColorModel)) {
                         pixelAttributes = new GLPixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_BYTE);
                         rowLength = scanlineStride / 3;
@@ -382,9 +382,9 @@ public class AWTTextureData extends TextureData {
         createNIOBufferFromImage(image);
     }
 
-    private void setupLazyCustomConversion(BufferedImage image) {
+    private void setupLazyCustomConversion(final BufferedImage image) {
         imageForLazyCustomConversion = image;
-        boolean hasAlpha = image.getColorModel().hasAlpha();
+        final boolean hasAlpha = image.getColorModel().hasAlpha();
         int pixelFormat = pixelAttributes.format;
         int pixelType = pixelAttributes.type;
         if (pixelFormat == 0) {
@@ -395,7 +395,7 @@ public class AWTTextureData extends TextureData {
 
         // Allow previously-selected pixelType (if any) to override that
         // we can infer from the DataBuffer
-        DataBuffer data = image.getRaster().getDataBuffer();
+        final DataBuffer data = image.getRaster().getDataBuffer();
         if (data instanceof DataBufferByte || isPackedInt(image)) {
             // Don't use GL_UNSIGNED_INT for BufferedImage packed int images
             if (pixelType == 0) pixelType = GL.GL_UNSIGNED_BYTE;
@@ -405,7 +405,7 @@ public class AWTTextureData extends TextureData {
             if (pixelType == 0) pixelType = GL.GL_FLOAT;
         } else if (data instanceof DataBufferInt) {
             // FIXME: should we support signed ints?
-            if (pixelType == 0) pixelType = GL2GL3.GL_UNSIGNED_INT;
+            if (pixelType == 0) pixelType = GL.GL_UNSIGNED_INT;
         } else if (data instanceof DataBufferShort) {
             if (pixelType == 0) pixelType = GL.GL_SHORT;
         } else if (data instanceof DataBufferUShort) {
@@ -416,12 +416,12 @@ public class AWTTextureData extends TextureData {
         pixelAttributes = new GLPixelAttributes(pixelFormat, pixelType);
     }
 
-    private void createFromCustom(BufferedImage image) {
-        int width = image.getWidth();
-        int height = image.getHeight();
+    private void createFromCustom(final BufferedImage image) {
+        final int width = image.getWidth();
+        final int height = image.getHeight();
 
         // create a temporary image that is compatible with OpenGL
-        boolean hasAlpha = image.getColorModel().hasAlpha();
+        final boolean hasAlpha = image.getColorModel().hasAlpha();
         java.awt.image.ColorModel cm = null;
         int dataBufferType = image.getRaster().getDataBuffer().getDataType();
         // Don't use integer components for packed int images
@@ -444,13 +444,13 @@ public class AWTTextureData extends TextureData {
             }
         }
 
-        boolean premult = cm.isAlphaPremultiplied();
-        WritableRaster raster =
+        final boolean premult = cm.isAlphaPremultiplied();
+        final WritableRaster raster =
             cm.createCompatibleWritableRaster(width, height);
-        BufferedImage texImage = new BufferedImage(cm, raster, premult, null);
+        final BufferedImage texImage = new BufferedImage(cm, raster, premult, null);
 
         // copy the source image into the temporary image
-        Graphics2D g = texImage.createGraphics();
+        final Graphics2D g = texImage.createGraphics();
         g.setComposite(AlphaComposite.Src);
         g.drawImage(image, 0, 0, null);
         g.dispose();
@@ -459,8 +459,8 @@ public class AWTTextureData extends TextureData {
         createNIOBufferFromImage(texImage);
     }
 
-    private boolean isPackedInt(BufferedImage image) {
-        int imgType = image.getType();
+    private boolean isPackedInt(final BufferedImage image) {
+        final int imgType = image.getType();
         return (imgType == BufferedImage.TYPE_INT_RGB ||
                 imgType == BufferedImage.TYPE_INT_BGR ||
                 imgType == BufferedImage.TYPE_INT_ARGB ||
@@ -476,11 +476,11 @@ public class AWTTextureData extends TextureData {
         setupLazyCustomConversion(imageForLazyCustomConversion);
     }
 
-    private void createNIOBufferFromImage(BufferedImage image) {
+    private void createNIOBufferFromImage(final BufferedImage image) {
         buffer = wrapImageDataBuffer(image);
     }
 
-    private Buffer wrapImageDataBuffer(BufferedImage image) {
+    private Buffer wrapImageDataBuffer(final BufferedImage image) {
         //
         // Note: Grabbing the DataBuffer will defeat Java2D's image
         // management mechanism (as of JDK 5/6, at least).  This shouldn't
@@ -490,7 +490,7 @@ public class AWTTextureData extends TextureData {
         // it could be.
         //
 
-        DataBuffer data = image.getRaster().getDataBuffer();
+        final DataBuffer data = image.getRaster().getDataBuffer();
         if (data instanceof DataBufferByte) {
             return ByteBuffer.wrap(((DataBufferByte) data).getData());
         } else if (data instanceof DataBufferDouble) {

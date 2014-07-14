@@ -78,7 +78,7 @@ public class Animator extends AnimatorBase {
     /**
      * Creates a new Animator w/ an associated ThreadGroup.
      */
-    public Animator(ThreadGroup tg) {
+    public Animator(final ThreadGroup tg) {
         super();
         setThreadGroup(tg);
         if(DEBUG) {
@@ -89,7 +89,7 @@ public class Animator extends AnimatorBase {
     /**
      * Creates a new Animator for a particular drawable.
      */
-    public Animator(GLAutoDrawable drawable) {
+    public Animator(final GLAutoDrawable drawable) {
         super();
         add(drawable);
         if(DEBUG) {
@@ -100,7 +100,7 @@ public class Animator extends AnimatorBase {
     /**
      * Creates a new Animator w/ an associated ThreadGroup for a particular drawable.
      */
-    public Animator(ThreadGroup tg, GLAutoDrawable drawable) {
+    public Animator(final ThreadGroup tg, final GLAutoDrawable drawable) {
         super();
         setThreadGroup(tg);
         add(drawable);
@@ -110,7 +110,7 @@ public class Animator extends AnimatorBase {
     }
 
     @Override
-    protected final String getBaseName(String prefix) {
+    protected final String getBaseName(final String prefix) {
         return prefix + "Animator" ;
     }
 
@@ -120,7 +120,7 @@ public class Animator extends AnimatorBase {
      * animation loop which prevents the CPU from getting swamped.
      * This method may not have an effect on subclasses.
      */
-    public final synchronized void setRunAsFastAsPossible(boolean runFast) {
+    public final synchronized void setRunAsFastAsPossible(final boolean runFast) {
         runAsFastAsPossible = runFast;
     }
 
@@ -151,7 +151,7 @@ public class Animator extends AnimatorBase {
                             if( drawablesEmpty ) {
                                 pauseIssued = true;
                             }
-                            boolean wasPaused = pauseIssued;
+                            final boolean wasPaused = pauseIssued;
                             if (DEBUG) {
                                 System.err.println("Animator pause on " + animThread.getName() + ": " + toString());
                             }
@@ -164,7 +164,7 @@ public class Animator extends AnimatorBase {
                             Animator.this.notifyAll();
                             try {
                                 Animator.this.wait();
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                             }
                             if (wasPaused) {
                                 // resume from pause -> reset counter
@@ -192,9 +192,9 @@ public class Animator extends AnimatorBase {
                         Thread.yield();
                     }
                 }
-            } catch( ThreadDeath td) {
+            } catch( final ThreadDeath td) {
                 if(DEBUG) {
-                    System.err.println("Animator Catched: "+td.getClass().getName()+": "+td.getMessage());
+                    System.err.println("Animator caught: "+td.getClass().getName()+": "+td.getMessage());
                     td.printStackTrace();
                 }
             } finally {
@@ -232,7 +232,7 @@ public class Animator extends AnimatorBase {
      * @param tg the {@link ThreadGroup}
      * @throws GLException if the animator has already been started
      */
-    public final synchronized void setThreadGroup(ThreadGroup tg) throws GLException {
+    public final synchronized void setThreadGroup(final ThreadGroup tg) throws GLException {
         if ( isStarted() ) {
             throw new GLException("Animator already started.");
         }
@@ -248,7 +248,7 @@ public class Animator extends AnimatorBase {
             runnable = new MainLoop();
         }
         fpsCounter.resetFPSCounter();
-        String threadName = getThreadName()+"-"+baseName;
+        final String threadName = getThreadName()+"-"+baseName;
         Thread thread;
         if(null==threadGroup) {
             thread = new Thread(runnable, threadName);

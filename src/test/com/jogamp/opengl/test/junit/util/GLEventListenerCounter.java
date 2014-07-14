@@ -44,22 +44,22 @@ public class GLEventListenerCounter implements GLEventListener {
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         initCount++;
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
         disposeCount++;
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
         displayCount++;
     }
 
     @Override
-    public void reshape(GLAutoDrawable d, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable d, final int x, final int y, final int width, final int height) {
         reshapeCount++;
     }
 

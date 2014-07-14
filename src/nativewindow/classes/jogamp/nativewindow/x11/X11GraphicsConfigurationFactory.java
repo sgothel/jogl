@@ -53,7 +53,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
 
     @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-        CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID)
+        final CapabilitiesImmutable  capsChosen, final CapabilitiesImmutable capsRequested, final CapabilitiesChooser chooser, final AbstractGraphicsScreen screen, final int nativeVisualID)
         throws IllegalArgumentException, NativeWindowException {
 
         if(!(screen instanceof X11GraphicsScreen)) {
@@ -72,15 +72,15 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return res;
     }
 
-    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, int visualID)
+    public static XVisualInfo getXVisualInfo(final AbstractGraphicsScreen screen, final int visualID)
     {
-        XVisualInfo xvi_temp = XVisualInfo.create();
+        final XVisualInfo xvi_temp = XVisualInfo.create();
         xvi_temp.setVisualid(visualID);
         xvi_temp.setScreen(screen.getIndex());
-        int num[] = { -1 };
-        long display = screen.getDevice().getHandle();
+        final int num[] = { -1 };
+        final long display = screen.getDevice().getHandle();
 
-        XVisualInfo[] xvis = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
+        final XVisualInfo[] xvis = X11Lib.XGetVisualInfo(display, X11Lib.VisualIDMask|X11Lib.VisualScreenMask, xvi_temp, num, 0);
 
         if(xvis==null || num[0]<1) {
             return null;
@@ -89,26 +89,26 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         return XVisualInfo.create(xvis[0]);
     }
 
-    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, CapabilitiesImmutable capabilities)
+    public static XVisualInfo getXVisualInfo(final AbstractGraphicsScreen screen, final CapabilitiesImmutable capabilities)
     {
-        XVisualInfo xv = getXVisualInfoImpl(screen, capabilities, 4 /* TrueColor */);
+        final XVisualInfo xv = getXVisualInfoImpl(screen, capabilities, 4 /* TrueColor */);
         if(null!=xv) return xv;
         return getXVisualInfoImpl(screen, capabilities, 5 /* DirectColor */);
     }
 
-    private static XVisualInfo getXVisualInfoImpl(AbstractGraphicsScreen screen, CapabilitiesImmutable capabilities, int c_class)
+    private static XVisualInfo getXVisualInfoImpl(final AbstractGraphicsScreen screen, final CapabilitiesImmutable capabilities, final int c_class)
     {
         XVisualInfo ret = null;
-        int[] num = { -1 };
+        final int[] num = { -1 };
 
-        XVisualInfo vinfo_template = XVisualInfo.create();
+        final XVisualInfo vinfo_template = XVisualInfo.create();
         vinfo_template.setScreen(screen.getIndex());
         vinfo_template.setC_class(c_class);
-        long display = screen.getDevice().getHandle();
+        final long display = screen.getDevice().getHandle();
 
-        XVisualInfo[] vinfos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, vinfo_template, num, 0);
+        final XVisualInfo[] vinfos = X11Lib.XGetVisualInfo(display, X11Lib.VisualScreenMask, vinfo_template, num, 0);
         XVisualInfo best=null;
-        int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
+        final int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
         for (int i = 0; vinfos!=null && i < num[0]; i++) {
             if ( best == null ||
                  best.getDepth() < vinfos[i].getDepth() )

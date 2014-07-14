@@ -75,7 +75,7 @@ public final class Binary32
    * {@link #POSITIVE_INFINITY}, {@link #NEGATIVE_INFINITY}, or
    * <code>NaN</code>.</li>
    * </ul>
-   * 
+   *
    * @see #packSetExponentUnbiasedUnchecked(int)
    */
 

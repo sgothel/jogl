@@ -46,7 +46,7 @@ public class NEWTKeyUtil {
         public final short max;
         public final String description;
 
-        public CodeSeg(int min, int max, String description) {
+        public CodeSeg(final int min, final int max, final String description) {
             this.min = (short)min;
             this.max = (short)max;
             this.description = description;
@@ -57,7 +57,7 @@ public class NEWTKeyUtil {
         public final String description;
         public final KeyEvent event;
 
-        public CodeEvent(short code, String description, KeyEvent event) {
+        public CodeEvent(final short code, final String description, final KeyEvent event) {
             this.code = code;
             this.description = description;
             this.event = event;
@@ -67,13 +67,13 @@ public class NEWTKeyUtil {
         }
     }
 
-    public static void dumpKeyEvents(List<EventObject> keyEvents) {
+    public static void dumpKeyEvents(final List<EventObject> keyEvents) {
         for(int i=0; i<keyEvents.size(); i++) {
             System.err.println(i+": "+keyEvents.get(i));
         }
     }
 
-    public static boolean validateKeyCodes(CodeSeg[] codeSegments, List<List<EventObject>> keyEventsList, boolean verbose) {
+    public static boolean validateKeyCodes(final CodeSeg[] codeSegments, final List<List<EventObject>> keyEventsList, final boolean verbose) {
         final List<CodeEvent> missCodes = new ArrayList<CodeEvent>();
         int totalCodeCount = 0;
         boolean res = true;
@@ -91,7 +91,7 @@ public class NEWTKeyUtil {
         }
         return res;
     }
-    public static boolean validateKeyCodes(List<CodeEvent> missCodes, CodeSeg codeSeg, List<EventObject> keyEvents, boolean verbose) {
+    public static boolean validateKeyCodes(final List<CodeEvent> missCodes, final CodeSeg codeSeg, final List<EventObject> keyEvents, final boolean verbose) {
         final int codeCount = codeSeg.max - codeSeg.min + 1;
         int misses = 0;
         int evtIdx = 0;
@@ -118,7 +118,7 @@ public class NEWTKeyUtil {
         return res;
     }
 
-    public static void validateKeyEvent(KeyEvent e, short eventType, int modifiers, short keyCode, char keyChar) {
+    public static void validateKeyEvent(final KeyEvent e, final short eventType, final int modifiers, final short keyCode, final char keyChar) {
         if(0 <= eventType) {
             Assert.assertTrue("KeyEvent type mismatch, expected 0x"+Integer.toHexString(eventType)+", has "+e, eventType == e.getEventType());
         }
@@ -133,7 +133,7 @@ public class NEWTKeyUtil {
         }
     }
 
-    public static short getNextKeyEventType(KeyEvent e) {
+    public static short getNextKeyEventType(final KeyEvent e) {
         final int et = e.getEventType();
         switch( et ) {
             case KeyEvent.EVENT_KEY_PRESSED:
@@ -146,8 +146,8 @@ public class NEWTKeyUtil {
         }
     }
 
-    public static void validateKeyEventOrder(List<EventObject> keyEvents) {
-        IntIntHashMap keyCode2NextEvent = new IntIntHashMap();
+    public static void validateKeyEventOrder(final List<EventObject> keyEvents) {
+        final IntIntHashMap keyCode2NextEvent = new IntIntHashMap();
         for(int i=0; i<keyEvents.size(); i++) {
             final KeyEvent e = (KeyEvent) keyEvents.get(i);
             int eet = keyCode2NextEvent.get(e.getKeyCode());
@@ -168,9 +168,9 @@ public class NEWTKeyUtil {
      * @param expPressedCountAR number of auto-repeat key press events
      * @param expReleasedCountAR number of auto-repeat key release events
      */
-    public static void validateKeyAdapterStats(NEWTKeyAdapter keyAdapter,
-                                               int expPressedCountSI, int expReleasedCountSI,
-                                               int expPressedCountAR, int expReleasedCountAR) {
+    public static void validateKeyAdapterStats(final NEWTKeyAdapter keyAdapter,
+                                               final int expPressedCountSI, final int expReleasedCountSI,
+                                               final int expPressedCountAR, final int expReleasedCountAR) {
         final int expPressReleaseCountSI = expPressedCountSI + expReleasedCountSI;
         final int expPressReleaseCountAR = expPressedCountAR + expReleasedCountAR;
         final int expPressReleaseCountALL = expPressReleaseCountSI + expPressReleaseCountAR;

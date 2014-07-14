@@ -271,7 +271,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
             }
         }
     }
-    private void dumpComponents(PixelRectangle image, int x1, int y1, int w, int h) {
+    private void dumpComponents(final PixelRectangle image, int x1, int y1, final int w, final int h) {
         if( x1 + w >= image.getSize().getWidth() ) {
             x1 = image.getSize().getWidth() - w;
         }
@@ -311,7 +311,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
         }
         System.err.println();
     }
-    private void testComponents(PixelRectangle image, int x, int y, byte[] components) {
+    private void testComponents(final PixelRectangle image, final int x, final int y, final byte[] components) {
         dumpComponents(image, x, y, 3, 3);
         final ByteBuffer bb = image.getPixels();
         final int bpp = image.getPixelformat().bytesPerPixel();
@@ -329,7 +329,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
                 final byte c1 = bb.get(o++), c2 = bb.get(o++);
                 final boolean equal = c1==components[0] && c2==components[1];
                 System.err.printf("Test [%3d][%3d] exp 0x%02X%02X == has 0x%02X%02X : %b%n",
-                        x, components[1], components[0], c2, c1, equal );
+                        x, y, components[1], components[0], c2, c1, equal );
                 Assert.assertEquals(components[0], c1);
                 Assert.assertEquals(components[1], c2);
               }
@@ -358,7 +358,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPixelFormatUtil00NEWT.class.getName());
     }
 }

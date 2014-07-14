@@ -63,7 +63,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
-        ByteBuffer verticiesBB = ByteBuffer.allocate(4*9);
+        final ByteBuffer verticiesBB = ByteBuffer.allocate(4*9);
         verticiesBB.order(ByteOrder.nativeOrder());
         testWriteRead01(verticiesBB, false /* useRange */);
     }
@@ -73,7 +73,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
-        ByteBuffer verticiesBB = Buffers.newDirectByteBuffer(4*9);
+        final ByteBuffer verticiesBB = Buffers.newDirectByteBuffer(4*9);
         testWriteRead01(verticiesBB, false /* useRange */);
     }
 
@@ -83,7 +83,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL3 or GLES3 profile.");
             return;
         }
-        ByteBuffer verticiesBB = ByteBuffer.allocate(4*9);
+        final ByteBuffer verticiesBB = ByteBuffer.allocate(4*9);
         verticiesBB.order(ByteOrder.nativeOrder());
         testWriteRead01(verticiesBB, true/* useRange */);
     }
@@ -93,18 +93,18 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL3 or GLES3 profile.");
             return;
         }
-        ByteBuffer verticiesBB = Buffers.newDirectByteBuffer(4*9);
+        final ByteBuffer verticiesBB = Buffers.newDirectByteBuffer(4*9);
         testWriteRead01(verticiesBB, true /* useRange */);
     }
 
-    private void testWriteRead01(ByteBuffer verticiesBB, boolean useRange) throws InterruptedException {
+    private void testWriteRead01(final ByteBuffer verticiesBB, final boolean useRange) throws InterruptedException {
         final GLProfile glp = GLProfile.getMaxProgrammable(true);
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
                 new GLCapabilities(glp), 800, 600, true);
         try {
             final GL gl = winctx.context.getGL();
 
-            int[] vertexBuffer = new int[1];
+            final int[] vertexBuffer = new int[1];
 
             verticiesBB.putFloat(-0.3f);
             verticiesBB.putFloat(-0.2f);
@@ -171,8 +171,8 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             NEWTGLContext.destroyWindow(winctx);
         }
     }
-    public static void main(String args[]) throws IOException {
-        String tstname = TestMapBufferRead01NEWT.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestMapBufferRead01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

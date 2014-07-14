@@ -17,12 +17,12 @@ import java.io.IOException;
  */
 public class CvtTable implements Table {
 
-    private DirectoryEntry de;
-    private short[] values;
+    private final DirectoryEntry de;
+    private final short[] values;
 
-    protected CvtTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected CvtTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
-        int len = de.getLength() / 2;
+        final int len = de.getLength() / 2;
         values = new short[len];
         for (int i = 0; i < len; i++) {
             values[i] = di.readShort();
@@ -40,7 +40,7 @@ public class CvtTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'cvt ' Table - Control Value Table\n----------------------------------\n");
         sb.append("Size = ").append(0).append(" bytes, ").append(values.length).append(" entries\n");
         sb.append("        Values\n        ------\n");

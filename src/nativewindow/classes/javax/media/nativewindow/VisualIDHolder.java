@@ -51,7 +51,7 @@ public interface VisualIDHolder {
 
         public final int id;
 
-        VIDType(int id){
+        VIDType(final int id){
             this.id = id;
         }
     }
@@ -114,14 +114,14 @@ public interface VisualIDHolder {
 
     /** Comparing {@link VIDType#NATIVE} */
     public static class VIDComparator implements Comparator<VisualIDHolder> {
-        private VIDType type;
+        private final VIDType type;
 
-        public VIDComparator(VIDType type) {
+        public VIDComparator(final VIDType type) {
             this.type = type;
         }
 
         @Override
-        public int compare(VisualIDHolder vid1, VisualIDHolder vid2) {
+        public int compare(final VisualIDHolder vid1, final VisualIDHolder vid2) {
             final int id1 = vid1.getVisualID(type);
             final int id2 = vid2.getVisualID(type);
 

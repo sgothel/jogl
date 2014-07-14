@@ -82,11 +82,11 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
                 glad.addGLEventListener(snapshotGLEL);
             }
             glad.setVisible(true);
-        } catch( Throwable throwable ) {
+        } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        final DimensionImmutable size0 = new Dimension(glad.getWidth(), glad.getHeight());
+        final DimensionImmutable size0 = new Dimension(glad.getSurfaceWidth(), glad.getSurfaceHeight());
         final DimensionImmutable size1 = new Dimension(size0.getWidth()+100, size0.getHeight()+100);
         final DimensionImmutable size2 = new Dimension(size0.getWidth()-100, size0.getHeight()-100);
         try {
@@ -99,22 +99,22 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
                 textRendererGLEL.userCounter = i + 1;
                 glad.display();
             }
-            try { Thread.sleep(duration); } catch (InterruptedException e) { }
+            try { Thread.sleep(duration); } catch (final InterruptedException e) { }
             glad.setSize(size1.getWidth(), size1.getHeight());
-            try { Thread.sleep(duration); } catch (InterruptedException e) { }
+            try { Thread.sleep(duration); } catch (final InterruptedException e) { }
             glad.setSize(size2.getWidth(), size2.getHeight());
-            try { Thread.sleep(duration); } catch (InterruptedException e) { }
+            try { Thread.sleep(duration); } catch (final InterruptedException e) { }
             glad.setSize(size0.getWidth(), size0.getHeight());
-            try { Thread.sleep(duration); } catch (InterruptedException e) { }
+            try { Thread.sleep(duration); } catch (final InterruptedException e) { }
 
             if( doSnapshot ) {
                 glad.disposeGLEventListener(snapshotGLEL, true /* remove */);
             }
             final Animator anim = new Animator(glad);
             anim.start();
-            try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
+            try { Thread.sleep(2*duration); } catch (final InterruptedException e) { }
             anim.stop();
-        } catch (Exception e1) {
+        } catch (final Exception e1) {
             e1.printStackTrace();
         }
         glad.destroy();
@@ -136,26 +136,26 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             defAutoSwapMode = drawable.getAutoSwapBufferMode();
             swapBuffersBeforeRead = GLDrawableUtil.swapBuffersBeforeRead(drawable.getChosenGLCapabilities());
             drawable.setAutoSwapBufferMode( !swapBuffersBeforeRead );
         }
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             drawable.setAutoSwapBufferMode( defAutoSwapMode );
         }
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             snapshot(i++, drawable, TextureIO.PNG, null);
         }
-        public void snapshot(int sn, GLAutoDrawable drawable, String fileSuffix, String destPath) {
+        public void snapshot(final int sn, final GLAutoDrawable drawable, final String fileSuffix, final String destPath) {
             final GL gl = drawable.getGL();
             final String postSNDetail = String.format("jgl-usr%03d", textRendererGLEL.userCounter);
             final String filenameJGL = getSnapshotFilename(sn, postSNDetail,
-                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                           drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
             if( swapBuffersBeforeRead ) {
                 drawable.swapBuffers();
@@ -178,7 +178,7 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
     static boolean doSnapshot = true;
     static boolean keyFrame = false;
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

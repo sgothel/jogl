@@ -36,6 +36,7 @@ import java.io.InputStream;
 
 import jogamp.newt.WindowImpl;
 
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowEvent;
@@ -78,40 +79,40 @@ public class LinuxMouseTracker implements WindowListener {
     public final int getLastY() { return lastFocusedY; }
 
     @Override
-    public void windowResized(WindowEvent e) { }
+    public void windowResized(final WindowEvent e) { }
 
     @Override
-    public void windowMoved(WindowEvent e) { }
+    public void windowMoved(final WindowEvent e) { }
 
     @Override
-    public void windowDestroyNotify(WindowEvent e) {
-        Object s = e.getSource();
+    public void windowDestroyNotify(final WindowEvent e) {
+        final Object s = e.getSource();
         if(focusedWindow == s) {
             focusedWindow = null;
         }
     }
 
     @Override
-    public void windowDestroyed(WindowEvent e) { }
+    public void windowDestroyed(final WindowEvent e) { }
 
     @Override
-    public void windowGainedFocus(WindowEvent e) {
-        Object s = e.getSource();
+    public void windowGainedFocus(final WindowEvent e) {
+        final Object s = e.getSource();
         if(s instanceof WindowImpl) {
             focusedWindow = (WindowImpl) s;
         }
     }
 
     @Override
-    public void windowLostFocus(WindowEvent e) {
-        Object s = e.getSource();
+    public void windowLostFocus(final WindowEvent e) {
+        final Object s = e.getSource();
         if(focusedWindow == s) {
             focusedWindow = null;
         }
     }
 
     @Override
-    public void windowRepaint(WindowUpdateEvent e) { }
+    public void windowRepaint(final WindowUpdateEvent e) { }
 
     class MouseDevicePoller implements Runnable {
         @Override
@@ -122,7 +123,7 @@ public class LinuxMouseTracker implements WindowListener {
             InputStream fis;
             try {
                 fis = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 return;
@@ -136,7 +137,7 @@ public class LinuxMouseTracker implements WindowListener {
                     int read = 0;
                     try {
                         read = fis.read(b, 0, remaining);
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
@@ -178,13 +179,20 @@ public class LinuxMouseTracker implements WindowListener {
                 }
 
                 if(null != focusedWindow) {
-                    if( x >= focusedWindow.getScreen().getWidth() ) {
-                        x = focusedWindow.getScreen().getWidth() - 1;
+                    // Clip to Screen Size
+                    {
+                        final Screen focusedScreen = focusedWindow.getScreen();
+                        final int sw = focusedScreen.getWidth();
+                        final int sh = focusedScreen.getHeight();
+                        if( x >= sw ) {
+                            x = sw - 1;
+                        }
+                        if( y >= sh ) {
+                            y = sh - 1;
+                        }
                     }
-                    if( y >= focusedWindow.getScreen().getHeight() ) {
-                        y = focusedWindow.getScreen().getHeight() - 1;
-                    }
-                    final int wx = x - focusedWindow.getX(), wy = y - focusedWindow.getY();
+                    final int[] winScreenPos = focusedWindow.convertToPixelUnits(new int[] { focusedWindow.getX(), focusedWindow.getY() });
+                    final int wx = x - winScreenPos[0], wy = y - winScreenPos[1];
                     if(old_x != x || old_y != y) {
                         // mouse moved
                         lastFocusedX = wx;
@@ -214,7 +222,7 @@ public class LinuxMouseTracker implements WindowListener {
             if(null != fis) {
                 try {
                     fis.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }

@@ -69,7 +69,7 @@ public class DisplayDriver extends DisplayImpl {
             try {
                 final URLConnection urlConn = res.resolve(0);
                 image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }
@@ -106,7 +106,7 @@ public class DisplayDriver extends DisplayImpl {
     private PointerIconImpl defaultPointerIcon = null;
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
         CloseBCMDisplay0(bcmHandle);
         bcmHandle = 0;
@@ -123,12 +123,12 @@ public class DisplayDriver extends DisplayImpl {
     // public final PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.BGRA8888; }
 
     @Override
-    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+    protected final long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         return CreatePointerIcon(bcmHandle, pixels, width, height, hotX, hotY);
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+    protected final void destroyPointerIconImpl(final long displayHandle, final long piHandle) {
         DestroyPointerIcon0(piHandle);
     }
 
@@ -187,7 +187,7 @@ public class DisplayDriver extends DisplayImpl {
     private static native long OpenBCMDisplay0();
     private static native void CloseBCMDisplay0(long handle);
 
-    private static long CreatePointerIcon(long bcmHandle, Buffer pixels, int width, int height, int hotX, int hotY) {
+    private static long CreatePointerIcon(final long bcmHandle, final Buffer pixels, final int width, final int height, final int hotX, final int hotY) {
         final boolean pixels_is_direct = Buffers.isDirect(pixels);
         return CreatePointerIcon0(pixels_is_direct ? pixels : Buffers.getArray(pixels),
                                   pixels_is_direct ? Buffers.getDirectBufferByteOffset(pixels) : Buffers.getIndirectBufferByteOffset(pixels),

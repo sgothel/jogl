@@ -34,7 +34,6 @@
 
 package com.jogamp.opengl.util;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -42,12 +41,14 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import jogamp.opengl.ProjectFloat;
+import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.FloatStack;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
 
 /**
@@ -65,6 +66,7 @@ import com.jogamp.opengl.math.geom.Frustum;
  * <p>
  * All matrices are provided in column-major order,
  * as specified in the OpenGL fixed function pipeline, i.e. compatibility profile.
+ * See {@link FloatUtil}.
  * </p>
  * <p>
  * PMVMatrix can supplement {@link GL2ES2} applications w/ the
@@ -72,30 +74,28 @@ import com.jogamp.opengl.math.geom.Frustum;
  * </p>
  * <a name="storageDetails"><h5>Matrix storage details</h5></a>
  * <p>
- * All matrices use a common FloatBuffer storage
- * and are a {@link Buffers#slice2Float(Buffer, float[], int, int) sliced} representation of it.
- * The common FloatBuffer and hence all matrices may use NIO direct storage or a {@link #usesBackingArray() backing float array},
- * depending how the instance if {@link #PMVMatrix(boolean) being constructed}.
+ * All matrices are backed up by a common primitive float-array for performance considerations
+ * and are a {@link Buffers#slice2Float(float[], int, int) sliced} representation of it.
  * </p>
  * <p>
  * <b>Note:</b>
  * <ul>
- *   <li>The matrix is a {@link Buffers#slice2Float(Buffer, float[], int, int) sliced part } of a host matrix and it's start position has been {@link FloatBuffer#mark() marked}.</li>
+ *   <li>The matrix is a {@link Buffers#slice2Float(float[], int, int) sliced part } of a host matrix and it's start position has been {@link FloatBuffer#mark() marked}.</li>
  *   <li>Use {@link FloatBuffer#reset() reset()} to rewind it to it's start position after relative operations, like {@link FloatBuffer#get() get()}.</li>
  *   <li>If using absolute operations like {@link FloatBuffer#get(int) get(int)}, use it's {@link FloatBuffer#reset() reset} {@link FloatBuffer#position() position} as it's offset.</li>
  * </ul>
  * </p>
  */
-public class PMVMatrix implements GLMatrixFunc {
+public final class PMVMatrix implements GLMatrixFunc {
 
     /** Bit value stating a modified {@link #glGetPMatrixf() projection matrix (P)}, since last {@link #update()} call. */
-    public static final int MODIFIED_PROJECTION                    = 1 << 0;
+    public static final int MODIFIED_PROJECTION                 = 1 << 0;
     /** Bit value stating a modified {@link #glGetMvMatrixf() modelview matrix (Mv)}, since last {@link #update()} call. */
-    public static final int MODIFIED_MODELVIEW                     = 1 << 1;
+    public static final int MODIFIED_MODELVIEW                  = 1 << 1;
     /** Bit value stating a modified {@link #glGetTMatrixf() texture matrix (T)}, since last {@link #update()} call. */
-    public static final int MODIFIED_TEXTURE                       = 1 << 2;
+    public static final int MODIFIED_TEXTURE                    = 1 << 2;
     /** Bit value stating all is modified */
-    public static final int MODIFIED_ALL                           = MODIFIED_PROJECTION | MODIFIED_MODELVIEW | MODIFIED_TEXTURE ;
+    public static final int MODIFIED_ALL                        = MODIFIED_PROJECTION | MODIFIED_MODELVIEW | MODIFIED_TEXTURE ;
 
     /** Bit value stating a dirty {@link #glGetMviMatrixf() inverse modelview matrix (Mvi)}. */
     public static final int DIRTY_INVERSE_MODELVIEW             = 1 << 0;
@@ -175,7 +175,8 @@ public class PMVMatrix implements GLMatrixFunc {
      * @param a 4x4 matrix in column major order (OpenGL)
      * @return matrix string representation
      */
-    public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a) {
+    @SuppressWarnings("deprecation")
+    public static StringBuilder matrixToString(final StringBuilder sb, final String f, final FloatBuffer a) {
         return FloatUtil.matrixToString(sb, null, f, a, 0, 4, 4, false);
     }
 
@@ -186,134 +187,71 @@ public class PMVMatrix implements GLMatrixFunc {
      * @param b 4x4 matrix in column major order (OpenGL)
      * @return side by side representation
      */
-    public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a, FloatBuffer b) {
+    @SuppressWarnings("deprecation")
+    public static StringBuilder matrixToString(final StringBuilder sb, final String f, final FloatBuffer a, final FloatBuffer b) {
         return FloatUtil.matrixToString(sb, null, f, a, 0, b, 0, 4, 4, false);
     }
 
     /**
-     * Creates an instance of PMVMatrix {@link #PMVMatrix(boolean) PMVMatrix(boolean useBackingArray)},
-     * with <code>useBackingArray = true</code>.
+     * Creates an instance of PMVMatrix.
+     * <p>
+     * Implementation uses non-direct non-NIO Buffers with guaranteed backing array,
+     * which allows faster access in Java computation.
+     * </p>
      */
     public PMVMatrix() {
-        this(true);
-    }
-
-    /**
-     * Creates an instance of PMVMatrix.
-     *
-     * @param useBackingArray <code>true</code> for non direct NIO Buffers with guaranteed backing array,
-     *                        which allows faster access in Java computation.
-     *                        <p><code>false</code> for direct NIO buffers w/o a guaranteed backing array.
-     *                        In most Java implementations, direct NIO buffers have no backing array
-     *                        and hence the Java computation will be throttled down by direct IO get/put
-     *                        operations.</p>
-     *                        <p>Depending on the application, ie. whether the Java computation or
-     *                        JNI invocation and hence native data transfer part is heavier,
-     *                        this flag shall be set to <code>true</code> or <code>false</code></p>.
-     */
-    public PMVMatrix(boolean useBackingArray) {
-          this.usesBackingArray = useBackingArray;
-
           // I    Identity
           // T    Texture
           // P    Projection
           // Mv   ModelView
           // Mvi  Modelview-Inverse
           // Mvit Modelview-Inverse-Transpose
-          if(useBackingArray) {
-              matrixBufferArray = new float[ 6*16 + ProjectFloat.getRequiredFloatBufferSize() ];
-              matrixBuffer = null;
-          } else {
-              matrixBufferArray = null;
-              matrixBuffer = Buffers.newDirectByteBuffer( ( 6*16 + ProjectFloat.getRequiredFloatBufferSize() ) * Buffers.SIZEOF_FLOAT );
-              matrixBuffer.mark();
-          }
+          matrixArray = new float[5*16];
 
-          matrixIdent   = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  0*16, 1*16);  //  I
-          matrixTex     = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  1*16, 1*16);  //      T
-          matrixPMvMvit = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit
-          matrixPMvMvi  = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 3*16);  //          P  + Mv + Mvi
-          matrixPMv     = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 2*16);  //          P  + Mv
-          matrixP       = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 1*16);  //          P
-          matrixMv      = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  3*16, 1*16);  //               Mv
-          matrixMvi     = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  4*16, 1*16);  //                    Mvi
-          matrixMvit    = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  5*16, 1*16);  //                          Mvit
+          mP_offset   = 0*16;
+          mMv_offset  = 1*16;
+          mTex_offset = 4*16;
 
-          projectFloat  = new ProjectFloat(matrixBuffer, matrixBufferArray, 6*16);
+          matrixPMvMvit = Buffers.slice2Float(matrixArray,  0*16, 4*16);  // P + Mv + Mvi + Mvit
+          matrixPMvMvi  = Buffers.slice2Float(matrixArray,  0*16, 3*16);  // P + Mv + Mvi
+          matrixPMv     = Buffers.slice2Float(matrixArray,  0*16, 2*16);  // P + Mv
+          matrixP       = Buffers.slice2Float(matrixArray,  0*16, 1*16);  // P
+          matrixMv      = Buffers.slice2Float(matrixArray,  1*16, 1*16);  //     Mv
+          matrixMvi     = Buffers.slice2Float(matrixArray,  2*16, 1*16);  //          Mvi
+          matrixMvit    = Buffers.slice2Float(matrixArray,  3*16, 1*16);  //                Mvit
+          matrixTex     = Buffers.slice2Float(matrixArray,  4*16, 1*16);  //                       T
 
-          if(null != matrixBuffer) {
-              matrixBuffer.reset();
-          }
-          FloatUtil.makeIdentityf(matrixIdent);
-
-          vec3f         = new float[3];
-          matrixMult    = new float[16];
-          matrixTrans   = new float[16];
-          matrixRot     = new float[16];
-          matrixScale   = new float[16];
-          matrixOrtho   = new float[16];
-          matrixFrustum = new float[16];
-          FloatUtil.makeIdentityf(matrixTrans, 0);
-          FloatUtil.makeIdentityf(matrixRot, 0);
-          FloatUtil.makeIdentityf(matrixScale, 0);
-          FloatUtil.makeIdentityf(matrixOrtho, 0);
-          FloatUtil.makeZero(matrixFrustum, 0);
+          mat4Tmp1      = new float[16];
+          mat4Tmp2      = new float[16];
+          mat4Tmp3      = new float[16];
+          matrixTxSx    = new float[16];
+          FloatUtil.makeIdentity(matrixTxSx);
 
           // Start w/ zero size to save memory
           matrixTStack = new FloatStack( 0,  2*16); // growSize: GL-min size (2)
           matrixPStack = new FloatStack( 0,  2*16); // growSize: GL-min size (2)
           matrixMvStack= new FloatStack( 0, 16*16); // growSize: half GL-min size (32)
 
-          // default values and mode
-          glMatrixMode(GL_PROJECTION);
-          glLoadIdentity();
-          glMatrixMode(GL_MODELVIEW);
-          glLoadIdentity();
-          glMatrixMode(GL.GL_TEXTURE);
-          glLoadIdentity();
-          modifiedBits = MODIFIED_ALL;
-          dirtyBits = DIRTY_ALL;
-          requestMask = 0;
-          matrixMode = GL_MODELVIEW;
+          reset();
 
-          mulPMV = null;
           frustum = null;
     }
 
-    /** @see #PMVMatrix(boolean) */
-    public final boolean usesBackingArray() { return usesBackingArray; }
+    /**
+     * Issues {@link #glLoadIdentity()} on all matrices,
+     * i.e. {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW}, {@link GLMatrixFunc#GL_PROJECTION GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}
+     * and resets all internal states.
+     */
+    public final void reset() {
+        FloatUtil.makeIdentity(matrixArray, mMv_offset);
+        FloatUtil.makeIdentity(matrixArray, mP_offset);
+        FloatUtil.makeIdentity(matrixArray, mTex_offset);
 
-    public final void destroy() {
-        if(null!=projectFloat) {
-            projectFloat.destroy(); projectFloat=null;
-        }
-
-        matrixBuffer=null;
-        matrixBuffer=null; matrixPMvMvit=null; matrixPMvMvi=null; matrixPMv=null;
-        matrixP=null; matrixTex=null; matrixMv=null; matrixMvi=null; matrixMvit=null;
-
-        vec3f         = null;
-        matrixMult    = null;
-        matrixTrans   = null;
-        matrixRot     = null;
-        matrixScale   = null;
-        matrixOrtho   = null;
-        matrixFrustum = null;
-
-        if(null!=matrixPStack) {
-            matrixPStack=null;
-        }
-        if(null!=matrixMvStack) {
-            matrixMvStack=null;
-        }
-        if(null!=matrixPStack) {
-            matrixPStack=null;
-        }
-        if(null!=matrixTStack) {
-            matrixTStack=null;
-        }
+        modifiedBits = MODIFIED_ALL;
+        dirtyBits = DIRTY_ALL;
+        requestMask = 0;
+        matrixMode = GL_MODELVIEW;
     }
-
 
     /** Returns the current matrix-mode, one of {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW}, {@link GLMatrixFunc#GL_PROJECTION GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}. */
     public final int  glGetMatrixMode() {
@@ -429,7 +367,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     /** Returns the frustum, derived from projection * modelview */
-    public Frustum glGetFrustum() {
+    public final Frustum glGetFrustum() {
         requestMask |= DIRTY_FRUSTUM;
         updateImpl(false);
         return frustum;
@@ -447,7 +385,7 @@ public class PMVMatrix implements GLMatrixFunc {
      *                   {@link GLMatrixFunc#GL_MODELVIEW_MATRIX GL_MODELVIEW_MATRIX}, {@link GLMatrixFunc#GL_PROJECTION_MATRIX GL_PROJECTION_MATRIX} or {@link GLMatrixFunc#GL_TEXTURE_MATRIX GL_TEXTURE_MATRIX},
      *                   or a matrix-mode-name, i.e.
      *                   {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW}, {@link GLMatrixFunc#GL_PROJECTION GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}
-     * @return the named matrix
+     * @return the named matrix, not a copy!
      */
     public final FloatBuffer glGetMatrixf(final int matrixName) {
         switch(matrixName) {
@@ -463,6 +401,35 @@ public class PMVMatrix implements GLMatrixFunc {
             default:
               throw new GLException("unsupported matrixName: "+matrixName);
         }
+    }
+
+
+    /**
+     * Multiplies the {@link #glGetPMatrixf() P} and {@link #glGetMvMatrixf() Mv} matrix, i.e.
+     * <pre>
+     *    mat4PMv = P x Mv
+     * </pre>
+     * @param mat4PMv 4x4 matrix storage for result
+     * @param mat4PMv_offset
+     * @return given matrix for chaining
+     */
+    public final float[] multPMvMatrixf(final float[/*16*/] mat4PMv, final int mat4PMv_offset) {
+        FloatUtil.multMatrix(matrixArray, mP_offset, matrixArray, mMv_offset, mat4PMv, mat4PMv_offset);
+        return mat4PMv;
+    }
+
+    /**
+     * Multiplies the {@link #glGetMvMatrixf() Mv} and {@link #glGetPMatrixf() P} matrix, i.e.
+     * <pre>
+     *    mat4MvP = Mv x P
+     * </pre>
+     * @param mat4MvP 4x4 matrix storage for result
+     * @param mat4MvP_offset
+     * @return given matrix for chaining
+     */
+    public final float[] multMvPMatrixf(final float[/*16*/] mat4MvP, final int mat4MvP_offset) {
+        FloatUtil.multMatrix(matrixArray, mMv_offset, matrixArray, mP_offset, mat4MvP, mat4MvP_offset);
+        return mat4MvP;
     }
 
     //
@@ -483,10 +450,10 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetFloatv(int matrixGetName, FloatBuffer params) {
-        int pos = params.position();
+    public final void glGetFloatv(final int matrixGetName, final FloatBuffer params) {
+        final int pos = params.position();
         if(matrixGetName==GL_MATRIX_MODE) {
-            params.put((float)matrixMode);
+            params.put(matrixMode);
         } else {
             final FloatBuffer matrix = glGetMatrixf(matrixGetName);
             params.put(matrix); // matrix -> params
@@ -496,9 +463,9 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetFloatv(int matrixGetName, float[] params, int params_offset) {
+    public final void glGetFloatv(final int matrixGetName, final float[] params, final int params_offset) {
         if(matrixGetName==GL_MATRIX_MODE) {
-            params[params_offset]=(float)matrixMode;
+            params[params_offset]=matrixMode;
         } else {
             final FloatBuffer matrix = glGetMatrixf(matrixGetName);
             matrix.get(params, params_offset, 16); // matrix -> params
@@ -507,8 +474,8 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetIntegerv(int pname, IntBuffer params) {
-        int pos = params.position();
+    public final void glGetIntegerv(final int pname, final IntBuffer params) {
+        final int pos = params.position();
         if(pname==GL_MATRIX_MODE) {
             params.put(matrixMode);
         } else {
@@ -518,7 +485,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetIntegerv(int pname, int[] params, int params_offset) {
+    public final void glGetIntegerv(final int pname, final int[] params, final int params_offset) {
         if(pname==GL_MATRIX_MODE) {
             params[params_offset]=matrixMode;
         } else {
@@ -546,8 +513,8 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glLoadMatrixf(java.nio.FloatBuffer m) {
-        int spos = m.position();
+    public final void glLoadMatrixf(final java.nio.FloatBuffer m) {
+        final int spos = m.position();
         if(matrixMode==GL_MODELVIEW) {
             matrixMv.put(m);
             matrixMv.reset();
@@ -564,6 +531,27 @@ public class PMVMatrix implements GLMatrixFunc {
             modifiedBits |= MODIFIED_TEXTURE;
         }
         m.position(spos);
+    }
+
+    /**
+     * Load the current matrix with the values of the given {@link Quaternion}'s rotation {@link Quaternion#toMatrix(float[], int) matrix representation}.
+     */
+    public final void glLoadMatrix(final Quaternion quat) {
+        if(matrixMode==GL_MODELVIEW) {
+            quat.toMatrix(matrixArray, mMv_offset);
+            matrixMv.reset();
+            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_MODELVIEW;
+        } else if(matrixMode==GL_PROJECTION) {
+            quat.toMatrix(matrixArray, mP_offset);
+            matrixP.reset();
+            dirtyBits |= DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_PROJECTION;
+        } else if(matrixMode==GL.GL_TEXTURE) {
+            quat.toMatrix(matrixArray, mTex_offset);
+            matrixTex.reset();
+            modifiedBits |= MODIFIED_TEXTURE;
+        }
     }
 
     @Override
@@ -599,176 +587,82 @@ public class PMVMatrix implements GLMatrixFunc {
     @Override
     public final void glLoadIdentity() {
         if(matrixMode==GL_MODELVIEW) {
-            matrixMv.put(matrixIdent);
-            matrixMv.reset();
+            FloatUtil.makeIdentity(matrixArray, mMv_offset);
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            matrixP.put(matrixIdent);
-            matrixP.reset();
+            FloatUtil.makeIdentity(matrixArray, mP_offset);
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixTex.put(matrixIdent);
-            matrixTex.reset();
+            FloatUtil.makeIdentity(matrixArray, mTex_offset);
             modifiedBits |= MODIFIED_TEXTURE;
         }
-        matrixIdent.reset();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void glMultMatrixf(final FloatBuffer m) {
         if(matrixMode==GL_MODELVIEW) {
-            FloatUtil.multMatrixf(matrixMv, m);
+            FloatUtil.multMatrix(matrixMv, m);
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            FloatUtil.multMatrixf(matrixP, m);
+            FloatUtil.multMatrix(matrixP, m);
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            FloatUtil.multMatrixf(matrixTex, m);
+            FloatUtil.multMatrix(matrixTex, m);
             modifiedBits |= MODIFIED_TEXTURE;
         }
     }
 
     @Override
-    public final void glMultMatrixf(float[] m, int m_offset) {
+    public final void glMultMatrixf(final float[] m, final int m_offset) {
         if(matrixMode==GL_MODELVIEW) {
-            FloatUtil.multMatrixf(matrixMv, m, m_offset);
+            FloatUtil.multMatrix(matrixArray, mMv_offset, m, m_offset);
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            FloatUtil.multMatrixf(matrixP, m, m_offset);
+            FloatUtil.multMatrix(matrixArray, mP_offset, m, m_offset);
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            FloatUtil.multMatrixf(matrixTex, m, m_offset);
+            FloatUtil.multMatrix(matrixArray, mTex_offset, m, m_offset);
             modifiedBits |= MODIFIED_TEXTURE;
         }
     }
 
     @Override
     public final void glTranslatef(final float x, final float y, final float z) {
-        // Translation matrix:
-        //  1 0 0 x
-        //  0 1 0 y
-        //  0 0 1 z
-        //  0 0 0 1
-        matrixTrans[0+4*3] = x;
-        matrixTrans[1+4*3] = y;
-        matrixTrans[2+4*3] = z;
-        glMultMatrixf(matrixTrans, 0);
-    }
-
-    @Override
-    public final void glRotatef(final float angdeg, float x, float y, float z) {
-        final float angrad = angdeg   * (float) Math.PI / 180.0f;
-        final float c = (float)Math.cos(angrad);
-        final float ic= 1.0f - c;
-        final float s = (float)Math.sin(angrad);
-
-        vec3f[0]=x; vec3f[1]=y; vec3f[2]=z;
-        FloatUtil.normalize(vec3f);
-        x = vec3f[0]; y = vec3f[1]; z = vec3f[2];
-
-        // Rotation matrix:
-        //      xx(1-c)+c  xy(1-c)+zs xz(1-c)-ys 0
-        //      xy(1-c)-zs yy(1-c)+c  yz(1-c)+xs 0
-        //      xz(1-c)+ys yz(1-c)-xs zz(1-c)+c  0
-        //      0          0          0          1
-        final float xy = x*y;
-        final float xz = x*z;
-        final float xs = x*s;
-        final float ys = y*s;
-        final float yz = y*z;
-        final float zs = z*s;
-        matrixRot[0*4+0] = x*x*ic+c;
-        matrixRot[0*4+1] = xy*ic+zs;
-        matrixRot[0*4+2] = xz*ic-ys;
-
-        matrixRot[1*4+0] = xy*ic-zs;
-        matrixRot[1*4+1] = y*y*ic+c;
-        matrixRot[1*4+2] = yz*ic+xs;
-
-        matrixRot[2*4+0] = xz*ic+ys;
-        matrixRot[2*4+1] = yz*ic-xs;
-        matrixRot[2*4+2] = z*z*ic+c;
-
-        glMultMatrixf(matrixRot, 0);
+        glMultMatrixf(FloatUtil.makeTranslation(matrixTxSx, false, x, y, z), 0);
     }
 
     @Override
     public final void glScalef(final float x, final float y, final float z) {
-        // Scale matrix:
-        //  x 0 0 0
-        //  0 y 0 0
-        //  0 0 z 0
-        //  0 0 0 1
-        matrixScale[0+4*0] = x;
-        matrixScale[1+4*1] = y;
-        matrixScale[2+4*2] = z;
+        glMultMatrixf(FloatUtil.makeScale(matrixTxSx, false, x, y, z), 0);
+    }
 
-        glMultMatrixf(matrixScale, 0);
+    @Override
+    public final void glRotatef(final float ang_deg, final float x, final float y, final float z) {
+        glMultMatrixf(FloatUtil.makeRotationAxis(mat4Tmp1, 0, ang_deg * FloatUtil.PI / 180.0f, x, y, z, mat4Tmp2), 0);
+    }
+
+    /**
+     * Rotate the current matrix with the given {@link Quaternion}'s rotation {@link Quaternion#toMatrix(float[], int) matrix representation}.
+     */
+    public final void glRotate(final Quaternion quat) {
+        glMultMatrixf(quat.toMatrix(mat4Tmp1, 0), 0);
     }
 
     @Override
     public final void glOrthof(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
-        // Ortho matrix:
-        //  2/dx  0     0    tx
-        //  0     2/dy  0    ty
-        //  0     0     2/dz tz
-        //  0     0     0    1
-        final float dx=right-left;
-        final float dy=top-bottom;
-        final float dz=zFar-zNear;
-        final float tx=-1.0f*(right+left)/dx;
-        final float ty=-1.0f*(top+bottom)/dy;
-        final float tz=-1.0f*(zFar+zNear)/dz;
-
-        matrixOrtho[0+4*0] =  2.0f/dx;
-        matrixOrtho[1+4*1] =  2.0f/dy;
-        matrixOrtho[2+4*2] = -2.0f/dz;
-        matrixOrtho[0+4*3] = tx;
-        matrixOrtho[1+4*3] = ty;
-        matrixOrtho[2+4*3] = tz;
-
-        glMultMatrixf(matrixOrtho, 0);
+        glMultMatrixf( FloatUtil.makeOrtho(mat4Tmp1, 0, true, left, right, bottom, top, zNear, zFar), 0 );
     }
 
     @Override
     public final void glFrustumf(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
-        if(zNear<=0.0f||zFar<0.0f) {
-            throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
-        }
-        if(left==right || top==bottom) {
-            throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
-        }
-        // Frustum matrix:
-        //  2*zNear/dx   0          A  0
-        //  0            2*zNear/dy B  0
-        //  0            0          C  D
-        //  0            0         -1  0
-        final float zNear2 = 2.0f*zNear;
-        final float dx=right-left;
-        final float dy=top-bottom;
-        final float dz=zFar-zNear;
-        final float A=(right+left)/dx;
-        final float B=(top+bottom)/dy;
-        final float C=-1.0f*(zFar+zNear)/dz;
-        final float D=-2.0f*(zFar*zNear)/dz;
-
-        matrixFrustum[0+4*0] = zNear2/dx;
-        matrixFrustum[1+4*1] = zNear2/dy;
-        matrixFrustum[2+4*2] = C;
-
-        matrixFrustum[0+4*2] = A;
-        matrixFrustum[1+4*2] = B;
-
-        matrixFrustum[2+4*3] = D;
-        matrixFrustum[3+4*2] = -1.0f;
-
-        glMultMatrixf(matrixFrustum, 0);
+        glMultMatrixf( FloatUtil.makeFrustum(mat4Tmp1, 0, true, left, right, bottom, top, zNear, zFar), 0 );
     }
 
     //
@@ -777,92 +671,179 @@ public class PMVMatrix implements GLMatrixFunc {
 
     /**
      * {@link #glMultMatrixf(FloatBuffer) Multiply} the {@link #glGetMatrixMode() current matrix} with the perspective/frustum matrix.
+     *
+     * @param fovy_deg fov angle in degrees
+     * @param aspect aspect ratio width / height
+     * @param zNear
+     * @param zFar
      */
-    public final void gluPerspective(final float fovy, final float aspect, final float zNear, final float zFar) {
-      float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
-      float bottom=-1.0f*top;
-      float left=aspect*bottom;
-      float right=aspect*top;
-      glFrustumf(left, right, bottom, top, zNear, zFar);
+    public final void gluPerspective(final float fovy_deg, final float aspect, final float zNear, final float zFar) {
+      glMultMatrixf( FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_deg * FloatUtil.PI / 180.0f, aspect, zNear, zFar), 0 );
     }
 
     /**
      * {@link #glMultMatrixf(FloatBuffer) Multiply} and {@link #glTranslatef(float, float, float) translate} the {@link #glGetMatrixMode() current matrix}
      * with the eye, object and orientation.
      */
-    public final void gluLookAt(float eyex, float eyey, float eyez,
-                          float centerx, float centery, float centerz,
-                          float upx, float upy, float upz) {
-        projectFloat.gluLookAt(this, eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz);
+    public final void gluLookAt(final float eyex, final float eyey, final float eyez,
+                                final float centerx, final float centery, final float centerz,
+                                final float upx, final float upy, final float upz) {
+        mat4Tmp2[0+0] = eyex;
+        mat4Tmp2[1+0] = eyey;
+        mat4Tmp2[2+0] = eyez;
+        mat4Tmp2[0+4] = centerx;
+        mat4Tmp2[1+4] = centery;
+        mat4Tmp2[2+4] = centerz;
+        mat4Tmp2[0+8] = upx;
+        mat4Tmp2[1+8] = upy;
+        mat4Tmp2[2+8] = upz;
+        glMultMatrixf(
+                FloatUtil.makeLookAt(mat4Tmp1, 0, mat4Tmp2 /* eye */, 0, mat4Tmp2 /* center */, 4, mat4Tmp2 /* up */, 8, mat4Tmp3), 0);
     }
 
     /**
      * Map object coordinates to window coordinates.
+     * <p>
+     * Traditional <code>gluProject</code> implementation.
+     * </p>
      *
      * @param objx
      * @param objy
      * @param objz
-     * @param viewport
+     * @param viewport 4 component viewport vector
      * @param viewport_offset
-     * @param win_pos
+     * @param win_pos 3 component window coordinate, the result
      * @param win_pos_offset
-     * @return
+     * @return true if successful, otherwise false (z is 1)
      */
-    public final boolean gluProject(float objx, float objy, float objz,
-                            int[] viewport, int viewport_offset,
-                            float[] win_pos, int win_pos_offset ) {
-        if(usesBackingArray) {
-            return projectFloat.gluProject(objx, objy, objz,
-                                           matrixMv.array(), matrixMv.position(),
-                                           matrixP.array(), matrixP.position(),
-                                           viewport, viewport_offset,
-                                           win_pos, win_pos_offset);
-        } else {
-            return projectFloat.gluProject(objx, objy, objz,
-                                           matrixMv,
-                                           matrixP,
-                                           viewport, viewport_offset,
-                                           win_pos, win_pos_offset);
-        }
+    public final boolean gluProject(final float objx, final float objy, final float objz,
+                                    final int[] viewport, final int viewport_offset,
+                                    final float[] win_pos, final int win_pos_offset ) {
+        return FloatUtil.mapObjToWinCoords(objx, objy, objz,
+                          matrixArray, mMv_offset,
+                          matrixArray, mP_offset,
+                          viewport, viewport_offset,
+                          win_pos, win_pos_offset,
+                          mat4Tmp1, mat4Tmp2);
     }
 
     /**
      * Map window coordinates to object coordinates.
+     * <p>
+     * Traditional <code>gluUnProject</code> implementation.
+     * </p>
      *
      * @param winx
      * @param winy
      * @param winz
-     * @param viewport
+     * @param viewport 4 component viewport vector
      * @param viewport_offset
-     * @param obj_pos
+     * @param obj_pos 3 component object coordinate, the result
      * @param obj_pos_offset
-     * @return
+     * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
      */
-    public final boolean gluUnProject(float winx, float winy, float winz,
-                                      int[] viewport, int viewport_offset,
-                                      float[] obj_pos, int obj_pos_offset) {
-        if(usesBackingArray) {
-            return projectFloat.gluUnProject(winx, winy, winz,
-                                             matrixMv.array(), matrixMv.position(),
-                                             matrixP.array(), matrixP.position(),
-                                             viewport, viewport_offset,
-                                             obj_pos, obj_pos_offset);
-        } else {
-            return projectFloat.gluUnProject(winx, winy, winz,
-                                             matrixMv,
-                                             matrixP,
-                                             viewport, viewport_offset,
-                                             obj_pos, obj_pos_offset);
+    public final boolean gluUnProject(final float winx, final float winy, final float winz,
+                                      final int[] viewport, final int viewport_offset,
+                                      final float[] obj_pos, final int obj_pos_offset) {
+        return FloatUtil.mapWinToObjCoords(winx, winy, winz,
+                                           matrixArray, mMv_offset,
+                                           matrixArray, mP_offset,
+                                           viewport, viewport_offset,
+                                           obj_pos, obj_pos_offset,
+                                           mat4Tmp1, mat4Tmp2);
+    }
+
+    /**
+     * Map window coordinates to object coordinates.
+     * <p>
+     * Traditional <code>gluUnProject4</code> implementation.
+     * </p>
+     *
+     * @param winx
+     * @param winy
+     * @param winz
+     * @param clipw
+     * @param modelMatrix 4x4 modelview matrix
+     * @param modelMatrix_offset
+     * @param projMatrix 4x4 projection matrix
+     * @param projMatrix_offset
+     * @param viewport 4 component viewport vector
+     * @param viewport_offset
+     * @param near
+     * @param far
+     * @param obj_pos 4 component object coordinate, the result
+     * @param obj_pos_offset
+     * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+     */
+    public boolean gluUnProject4(final float winx, final float winy, final float winz, final float clipw,
+                                 final int[] viewport, final int viewport_offset,
+                                 final float near, final float far,
+                                 final float[] obj_pos, final int obj_pos_offset ) {
+        return FloatUtil.mapWinToObjCoords(winx, winy, winz, clipw,
+                matrixArray, mMv_offset,
+                matrixArray, mP_offset,
+                viewport, viewport_offset,
+                near, far,
+                obj_pos, obj_pos_offset,
+                mat4Tmp1, mat4Tmp2);
+    }
+
+    /**
+     * Make given matrix the <i>pick</i> matrix based on given parameters.
+     * <p>
+     * Traditional <code>gluPickMatrix</code> implementation.
+     * </p>
+     * <p>
+     * See {@link FloatUtil#makePick(float[], int, float, float, float, float, int[], int, float[]) FloatUtil.makePick(..)} for details.
+     * </p>
+     * @param x the center x-component of a picking region in window coordinates
+     * @param y the center y-component of a picking region in window coordinates
+     * @param deltaX the width of the picking region in window coordinates.
+     * @param deltaY the height of the picking region in window coordinates.
+     * @param viewport 4 component viewport vector
+     * @param viewport_offset
+     */
+    public final void gluPickMatrix(final float x, final float y,
+                                    final float deltaX, final float deltaY,
+                                    final int[] viewport, final int viewport_offset) {
+        if( null != FloatUtil.makePick(mat4Tmp1, 0, x, y, deltaX, deltaY, viewport, viewport_offset, mat4Tmp2) ) {
+            glMultMatrixf(mat4Tmp1, 0);
         }
     }
 
-    public final void gluPickMatrix(float x, float y,
-                              float deltaX, float deltaY,
-                              int[] viewport, int viewport_offset) {
-        projectFloat.gluPickMatrix(this, x, y, deltaX, deltaY, viewport, viewport_offset);
+    /**
+     * Map two window coordinates w/ shared X/Y and distinctive Z
+     * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
+     * using a {@link AABBox#getRayIntersection(Ray, float[]) bounding box}.
+     * <p>
+     * Notes for picking <i>winz0</i> and <i>winz1</i>:
+     * <ul>
+     *   <li>see {@link FloatUtil#getZBufferEpsilon(int, float, float)}</li>
+     *   <li>see {@link FloatUtil#getZBufferValue(int, float, float, float)}</li>
+     *   <li>see {@link FloatUtil#getOrthoWinZ(float, float, float)}</li>
+     * </ul>
+     * </p>
+     * @param winx
+     * @param winy
+     * @param winz0
+     * @param winz1
+     * @param viewport
+     * @param viewport_offset
+     * @param ray storage for the resulting {@link Ray}
+     * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
+     */
+    public final boolean gluUnProjectRay(final float winx, final float winy, final float winz0, final float winz1,
+                                         final int[] viewport, final int viewport_offset,
+                                         final Ray ray) {
+        return FloatUtil.mapWinToRay(winx, winy, winz0, winz1,
+                matrixArray, mMv_offset,
+                matrixArray, mP_offset,
+                viewport, viewport_offset,
+                ray,
+                mat4Tmp1, mat4Tmp2, mat4Tmp3);
     }
 
-    public StringBuilder toString(StringBuilder sb, String f) {
+    public StringBuilder toString(StringBuilder sb, final String f) {
         if(null == sb) {
             sb = new StringBuilder();
         }
@@ -876,21 +857,20 @@ public class PMVMatrix implements GLMatrixFunc {
         final boolean modMv = 0 != ( MODIFIED_MODELVIEW & modifiedBits );
         final boolean modT = 0 != ( MODIFIED_TEXTURE & modifiedBits );
 
-        sb.append("PMVMatrix[backingArray ").append(this.usesBackingArray());
-        sb.append(", modified[P ").append(modP).append(", Mv ").append(modMv).append(", T ").append(modT);
-        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append(", Frustum ").append(frustumDirty).append("/").append(frustumReq);
-        sb.append("], Projection").append(Platform.NEWLINE);
+        sb.append("PMVMatrix[modified[P ").append(modP).append(", Mv ").append(modMv).append(", T ").append(modT);
+        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append(", Frustum ").append(frustumDirty).append("/").append(frustumReq).append("]").append(PlatformPropsImpl.NEWLINE);
+        sb.append(", Projection").append(PlatformPropsImpl.NEWLINE);
         matrixToString(sb, f, matrixP);
-        sb.append(", Modelview").append(Platform.NEWLINE);
+        sb.append(", Modelview").append(PlatformPropsImpl.NEWLINE);
         matrixToString(sb, f, matrixMv);
-        sb.append(", Texture").append(Platform.NEWLINE);
+        sb.append(", Texture").append(PlatformPropsImpl.NEWLINE);
         matrixToString(sb, f, matrixTex);
         if( 0 != ( requestMask & DIRTY_INVERSE_MODELVIEW ) ) {
-            sb.append(", Inverse Modelview").append(Platform.NEWLINE);
+            sb.append(", Inverse Modelview").append(PlatformPropsImpl.NEWLINE);
             matrixToString(sb, f, matrixMvi);
         }
         if( 0 != ( requestMask & DIRTY_INVERSE_TRANSPOSED_MODELVIEW ) ) {
-            sb.append(", Inverse Transposed Modelview").append(Platform.NEWLINE);
+            sb.append(", Inverse Transposed Modelview").append(PlatformPropsImpl.NEWLINE);
             matrixToString(sb, f, matrixMvit);
         }
         sb.append("]");
@@ -914,7 +894,7 @@ public class PMVMatrix implements GLMatrixFunc {
      * @see #MODIFIED_MODELVIEW
      * @see #MODIFIED_TEXTURE
      */
-    public final int getModifiedBits(boolean clear) {
+    public final int getModifiedBits(final boolean clear) {
         final int r = modifiedBits;
         if(clear) {
             modifiedBits = 0;
@@ -1031,7 +1011,7 @@ public class PMVMatrix implements GLMatrixFunc {
     public final boolean update() {
         return updateImpl(true);
     }
-    private final boolean updateImpl(boolean clearModBits) {
+    private final boolean updateImpl(final boolean clearModBits) {
         boolean mod = 0 != modifiedBits;
         if(clearModBits) {
             modifiedBits = 0;
@@ -1040,10 +1020,10 @@ public class PMVMatrix implements GLMatrixFunc {
         if( 0 != ( dirtyBits & ( DIRTY_FRUSTUM & requestMask ) ) ) {
             if( null == frustum ) {
                 frustum = new Frustum();
-                mulPMV = new float[16];
             }
-            FloatUtil.multMatrixf(matrixP, matrixMv, mulPMV, 0);
-            frustum.updateByPMV(mulPMV, 0);
+            FloatUtil.multMatrix(matrixArray, mP_offset, matrixArray, mMv_offset, mat4Tmp1, 0);
+            // FloatUtil.multMatrix(matrixP, matrixMv, mat4Tmp1, 0);
+            frustum.updateByPMV(mat4Tmp1, 0);
             dirtyBits &= ~DIRTY_FRUSTUM;
             mod = true;
         }
@@ -1052,82 +1032,42 @@ public class PMVMatrix implements GLMatrixFunc {
             return mod; // nothing more requested which may have been dirty
         }
 
-        if(nioBackupArraySupported>=0) {
-            try {
-                nioBackupArraySupported = 1;
-                return setMviMvitNIOBackupArray() || mod;
-            } catch(UnsupportedOperationException uoe) {
-                nioBackupArraySupported = -1;
-            }
-        }
-        return setMviMvitNIODirectAccess() || mod;
+        return setMviMvit() || mod;
     }
 
     //
     // private
     //
-    private int nioBackupArraySupported = 0; // -1 not supported, 0 - TBD, 1 - supported
-    private final String msgCantComputeInverse = "Invalid source Mv matrix, can't compute inverse";
+    private static final String msgCantComputeInverse = "Invalid source Mv matrix, can't compute inverse";
 
-    private final boolean setMviMvitNIOBackupArray() {
+    private final boolean setMviMvit() {
         final float[] _matrixMvi = matrixMvi.array();
         final int _matrixMviOffset = matrixMvi.position();
         boolean res = false;
         if( 0 != ( dirtyBits & DIRTY_INVERSE_MODELVIEW ) ) { // only if dirt; always requested at this point, see update()
-            if(!projectFloat.gluInvertMatrixf(matrixMv.array(), matrixMv.position(), _matrixMvi, _matrixMviOffset)) {
+            if( null == FloatUtil.invertMatrix(matrixArray, mMv_offset, _matrixMvi, _matrixMviOffset) ) {
                 throw new GLException(msgCantComputeInverse);
             }
             dirtyBits &= ~DIRTY_INVERSE_MODELVIEW;
             res = true;
         }
         if( 0 != ( requestMask & ( dirtyBits & DIRTY_INVERSE_TRANSPOSED_MODELVIEW ) ) ) { // only if requested & dirty
-            // transpose matrix
-            final float[] _matrixMvit = matrixMvit.array();
-            final int _matrixMvitOffset = matrixMvit.position();
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    _matrixMvit[_matrixMvitOffset+j+i*4] = _matrixMvi[_matrixMviOffset+i+j*4];
-                }
-            }
+            FloatUtil.transposeMatrix(_matrixMvi, _matrixMviOffset, matrixMvit.array(), matrixMvit.position());
             dirtyBits &= ~DIRTY_INVERSE_TRANSPOSED_MODELVIEW;
             res = true;
         }
         return res;
     }
 
-    private final boolean setMviMvitNIODirectAccess() {
-        boolean res = false;
-        if( 0 != ( dirtyBits & DIRTY_INVERSE_MODELVIEW ) ) { // only if dirt; always requested at this point, see update()
-            if(!projectFloat.gluInvertMatrixf(matrixMv, matrixMvi)) {
-                throw new GLException(msgCantComputeInverse);
-            }
-            dirtyBits &= ~DIRTY_INVERSE_MODELVIEW;
-            res = true;
-        }
-        if( 0 != ( requestMask & ( dirtyBits & DIRTY_INVERSE_TRANSPOSED_MODELVIEW ) ) ) { // only if requested & dirty
-            // transpose matrix
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    matrixMvit.put(j+i*4, matrixMvi.get(i+j*4));
-                }
-            }
-            dirtyBits &= ~DIRTY_INVERSE_TRANSPOSED_MODELVIEW;
-            res = true;
-        }
-        return res;
-    }
-
-    protected final float[] matrixBufferArray;
-    protected final boolean usesBackingArray;
-    protected Buffer matrixBuffer;
-    protected FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
-    protected float[] matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum, vec3f;
-    protected FloatStack matrixTStack, matrixPStack, matrixMvStack;
-    protected int matrixMode = GL_MODELVIEW;
-    protected int modifiedBits = MODIFIED_ALL;
-    protected int dirtyBits = DIRTY_ALL; // contains the dirty bits, i.e. hinting for update operation
-    protected int requestMask = 0; // may contain the requested dirty bits: DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW
-    protected ProjectFloat projectFloat;
-    protected float[] mulPMV; // premultiplied PMV
-    protected Frustum frustum;
+    private final float[] matrixArray;
+    private final int mP_offset, mMv_offset, mTex_offset;
+    private final FloatBuffer matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
+    private final float[] matrixTxSx;
+    private final float[] mat4Tmp1, mat4Tmp2, mat4Tmp3;
+    private final FloatStack matrixTStack, matrixPStack, matrixMvStack;
+    private int matrixMode = GL_MODELVIEW;
+    private int modifiedBits = MODIFIED_ALL;
+    private int dirtyBits = DIRTY_ALL; // contains the dirty bits, i.e. hinting for update operation
+    private int requestMask = 0; // may contain the requested dirty bits: DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW
+    private Frustum frustum;
 }

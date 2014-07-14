@@ -38,6 +38,7 @@
 package jogamp.nativewindow.jawt.x11;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
@@ -53,7 +54,7 @@ import jogamp.nativewindow.x11.X11Lib;
 
 public class X11JAWTWindow extends JAWTWindow {
 
-  public X11JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+  public X11JAWTWindow(final Object comp, final AbstractGraphicsConfiguration config) {
     super(comp, config);
   }
 
@@ -67,14 +68,14 @@ public class X11JAWTWindow extends JAWTWindow {
 
   @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
-    int ret = NativeWindow.LOCK_SUCCESS;
+    int ret = NativeSurface.LOCK_SUCCESS;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
       // Widget not yet realized
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    int res = ds.Lock();
+    final int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
     if (!dsLocked) {
       unlockSurfaceImpl();
@@ -93,7 +94,7 @@ public class X11JAWTWindow extends JAWTWindow {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    updateBounds(dsi.getBounds());
+    updateLockedData(dsi.getBounds());
     x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo(getJAWT());
     if (x11dsi == null) {
       unlockSurfaceImpl();
@@ -124,7 +125,7 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   @Override
-  protected Point getLocationOnScreenNativeImpl(int x, int y) {
+  protected Point getLocationOnScreenNativeImpl(final int x, final int y) {
     // surface is locked and hence the device
     return X11Lib.GetRelativeLocation(getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
   }

@@ -49,18 +49,18 @@ public final class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBu
 
     @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
-        List<String> res = new ArrayList<String>();
+        final List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
         return res;
     }
 
     @Override
-    public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
+    public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
         return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
     @Override
-    public final boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(final String funcName) {
         return true;
     }
 

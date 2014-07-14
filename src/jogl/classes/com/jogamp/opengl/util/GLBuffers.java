@@ -44,6 +44,7 @@ import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
@@ -65,7 +66,7 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_INT, <br/>
      *              GL_HILO16_NV <br/>
      */
-    public static final boolean isSignedGLType(int glType) {
+    public static final boolean isSignedGLType(final int glType) {
         switch (glType) { // 29
             case GL.GL_UNSIGNED_BYTE:
             case GL.GL_UNSIGNED_SHORT:
@@ -85,7 +86,7 @@ public class GLBuffers extends Buffers {
      *              GL_HALF_FLOAT_OES, <br/>
      *              GL_DOUBLE <br/>
      */
-    public static final boolean isGLTypeFixedPoint(int glType) {
+    public static final boolean isGLTypeFixedPoint(final int glType) {
         switch(glType) {
             case GL.GL_FLOAT:
             case GL.GL_HALF_FLOAT:
@@ -123,7 +124,7 @@ public class GLBuffers extends Buffers {
      *
      * @return -1 if glType is unhandled, otherwise the actual value > 0
      */
-    public static final int sizeOfGLType(int glType) {
+    public static final int sizeOfGLType(final int glType) {
         switch (glType) { // 29
             // case GL2.GL_BITMAP:
             case GL.GL_BYTE:
@@ -136,9 +137,9 @@ public class GLBuffers extends Buffers {
             case GL.GL_UNSIGNED_SHORT:
             case GL.GL_UNSIGNED_SHORT_5_6_5:
             case GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4:
+            case GL.GL_UNSIGNED_SHORT_4_4_4_4:
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
+            case GL.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
             case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
             case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
@@ -151,16 +152,16 @@ public class GLBuffers extends Buffers {
             case GL.GL_UNSIGNED_INT:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
-            case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
-            case GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV:
-            case GL2GL3.GL_UNSIGNED_INT_24_8:
-            case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
-            case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2ES2.GL_UNSIGNED_INT_10_10_10_2:
+            case GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV:
+            case GL.GL_UNSIGNED_INT_24_8:
+            case GL.GL_UNSIGNED_INT_10F_11F_11F_REV:
+            case GL2ES3.GL_UNSIGNED_INT_5_9_9_9_REV:
             case GL2.GL_HILO16_NV:
             case GL2.GL_SIGNED_HILO16_NV:
                 return SIZEOF_INT;
 
-            case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+            case GL2ES3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
                 return SIZEOF_LONG;
 
             case GL.GL_FLOAT:
@@ -197,7 +198,7 @@ public class GLBuffers extends Buffers {
      *
      * @return null if glType is unhandled, otherwise the new Buffer object
      */
-    public static final Buffer newDirectGLBuffer(int glType, int numElements) {
+    public static final Buffer newDirectGLBuffer(final int glType, final int numElements) {
         switch (glType) { // 29
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
@@ -209,9 +210,9 @@ public class GLBuffers extends Buffers {
             case GL.GL_UNSIGNED_SHORT:
             case GL.GL_UNSIGNED_SHORT_5_6_5:
             case GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4:
+            case GL.GL_UNSIGNED_SHORT_4_4_4_4:
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
+            case GL.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
             case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
             case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
@@ -224,22 +225,22 @@ public class GLBuffers extends Buffers {
             case GL.GL_UNSIGNED_INT:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
-            case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
-            case GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV:
-            case GL2GL3.GL_UNSIGNED_INT_24_8:
-            case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
-            case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2ES2.GL_UNSIGNED_INT_10_10_10_2:
+            case GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV:
+            case GL.GL_UNSIGNED_INT_24_8:
+            case GL.GL_UNSIGNED_INT_10F_11F_11F_REV:
+            case GL2ES3.GL_UNSIGNED_INT_5_9_9_9_REV:
             case GL2.GL_HILO16_NV:
             case GL2.GL_SIGNED_HILO16_NV:
                 return newDirectIntBuffer(numElements);
 
-            case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+            case GL2ES3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
                 return newDirectLongBuffer(numElements);
 
             case GL.GL_FLOAT:
                 return newDirectFloatBuffer(numElements);
 
-            case GL2.GL_DOUBLE:
+            case GL2GL3.GL_DOUBLE:
                 return newDirectDoubleBuffer(numElements);
         }
         return null;
@@ -269,7 +270,7 @@ public class GLBuffers extends Buffers {
      *              GL_FLOAT, GL_DOUBLE <br/>
      * @return null if glType is unhandled or parent is null or bufLen is 0, otherwise the new Buffer object
      */
-    public static final Buffer sliceGLBuffer(ByteBuffer parent, int bytePos, int byteLen, int glType) {
+    public static final Buffer sliceGLBuffer(final ByteBuffer parent, final int bytePos, final int byteLen, final int glType) {
         if (parent == null || byteLen == 0) {
             return null;
         }
@@ -292,9 +293,9 @@ public class GLBuffers extends Buffers {
             case GL.GL_UNSIGNED_SHORT:
             case GL.GL_UNSIGNED_SHORT_5_6_5:
             case GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4:
+            case GL.GL_UNSIGNED_SHORT_4_4_4_4:
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
+            case GL.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
             case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
             case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
@@ -304,21 +305,21 @@ public class GLBuffers extends Buffers {
                 break;
 
             case GL.GL_FIXED:
-            case GL2GL3.GL_INT:
-            case GL2ES2.GL_UNSIGNED_INT:
+            case GL2ES2.GL_INT:
+            case GL.GL_UNSIGNED_INT:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
-            case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
-            case GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV:
-            case GL2GL3.GL_UNSIGNED_INT_24_8:
-            case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
-            case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2ES2.GL_UNSIGNED_INT_10_10_10_2:
+            case GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV:
+            case GL.GL_UNSIGNED_INT_24_8:
+            case GL.GL_UNSIGNED_INT_10F_11F_11F_REV:
+            case GL2ES3.GL_UNSIGNED_INT_5_9_9_9_REV:
             case GL2.GL_HILO16_NV:
             case GL2.GL_SIGNED_HILO16_NV:
                 res = parent.slice().order(parent.order()).asIntBuffer(); // slice and duplicate may change byte order
                 break;
 
-            case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+            case GL2ES3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
                 res = parent.slice().order(parent.order()).asLongBuffer(); // slice and duplicate may change byte order
                 break;
 
@@ -326,7 +327,7 @@ public class GLBuffers extends Buffers {
                 res = parent.slice().order(parent.order()).asFloatBuffer(); // slice and duplicate may change byte order
                 break;
 
-            case GL2.GL_DOUBLE:
+            case GL2GL3.GL_DOUBLE:
                 res = parent.slice().order(parent.order()).asDoubleBuffer(); // slice and duplicate may change byte order
                 break;
         }
@@ -334,7 +335,7 @@ public class GLBuffers extends Buffers {
         return res;
     }
 
-    private static final int glGetInteger(GL gl, int pname, int[] tmp) {
+    private static final int glGetInteger(final GL gl, final int pname, final int[] tmp) {
         gl.glGetIntegerv(pname, tmp, 0);
         return tmp[0];
     }
@@ -359,9 +360,9 @@ public class GLBuffers extends Buffers {
      * @return required minimum size of the buffer in bytes
      * @throws GLException if alignment is invalid. Please contact the maintainer if this is our bug.
      */
-    public static final int sizeof(GL gl, int tmp[],
-                                   int bytesPerPixel, int width, int height, int depth,
-                                   boolean pack) {
+    public static final int sizeof(final GL gl, final int tmp[],
+                                   final int bytesPerPixel, int width, int height, int depth,
+                                   final boolean pack) {
         int rowLength = 0;
         int skipRows = 0;
         int skipPixels = 0;
@@ -372,9 +373,9 @@ public class GLBuffers extends Buffers {
         if (pack) {
           alignment = glGetInteger(gl, GL.GL_PACK_ALIGNMENT, tmp);
           if(gl.isGL2GL3()) {
-              rowLength = glGetInteger(gl, GL2GL3.GL_PACK_ROW_LENGTH, tmp);
-              skipRows = glGetInteger(gl, GL2GL3.GL_PACK_SKIP_ROWS, tmp);
-              skipPixels = glGetInteger(gl, GL2GL3.GL_PACK_SKIP_PIXELS, tmp);
+              rowLength = glGetInteger(gl, GL2ES3.GL_PACK_ROW_LENGTH, tmp);
+              skipRows = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_ROWS, tmp);
+              skipPixels = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_PIXELS, tmp);
               if (depth > 1) {
                   imageHeight = glGetInteger(gl, GL2GL3.GL_PACK_IMAGE_HEIGHT, tmp);
                   skipImages = glGetInteger(gl, GL2GL3.GL_PACK_SKIP_IMAGES, tmp);
@@ -383,12 +384,12 @@ public class GLBuffers extends Buffers {
         } else {
           alignment = glGetInteger(gl, GL.GL_UNPACK_ALIGNMENT, tmp);
           if(gl.isGL2GL3 ()) {
-              rowLength = glGetInteger(gl, GL2GL3.GL_UNPACK_ROW_LENGTH, tmp);
-              skipRows = glGetInteger(gl, GL2GL3.GL_UNPACK_SKIP_ROWS, tmp);
-              skipPixels = glGetInteger(gl, GL2GL3.GL_UNPACK_SKIP_PIXELS, tmp);
+              rowLength = glGetInteger(gl, GL2ES2.GL_UNPACK_ROW_LENGTH, tmp);
+              skipRows = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_ROWS, tmp);
+              skipPixels = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_PIXELS, tmp);
               if (depth > 1) {
-                  imageHeight = glGetInteger(gl, GL2GL3.GL_UNPACK_IMAGE_HEIGHT, tmp);
-                  skipImages = glGetInteger(gl, GL2GL3.GL_UNPACK_SKIP_IMAGES, tmp);
+                  imageHeight = glGetInteger(gl, GL2ES3.GL_UNPACK_IMAGE_HEIGHT, tmp);
+                  skipImages = glGetInteger(gl, GL2ES3.GL_UNPACK_SKIP_IMAGES, tmp);
                }
           }
         }
@@ -511,9 +512,9 @@ public class GLBuffers extends Buffers {
      * @return required minimum size of the buffer in bytes
      * @throws GLException if format, type or alignment is not handled. Please contact the maintainer if this is our bug.
      */
-    public static final int sizeof(GL gl, int tmp[],
-                                   int format, int type, int width, int height, int depth,
-                                   boolean pack) throws GLException {
+    public static final int sizeof(final GL gl, final int tmp[],
+                                   final int format, final int type, final int width, final int height, final int depth,
+                                   final boolean pack) throws GLException {
         if (width < 0) return 0;
         if (height < 0) return 0;
         if (depth < 0) return 0;
@@ -578,16 +579,19 @@ public class GLBuffers extends Buffers {
      * @return required size of one pixel in bytes
      * @throws GLException if format or type alignment is not handled. Please contact the maintainer if this is our bug.
      */
-    public static final int bytesPerPixel(int format, int type) throws GLException {
+    public static final int bytesPerPixel(final int format, final int type) throws GLException {
         int compSize = 0;
 
         int compCount = componentCount(format);
 
         switch (type) /* 30 */ {
             case GL2.GL_BITMAP:
-              if (GL2.GL_COLOR_INDEX == format || GL2GL3.GL_STENCIL_INDEX == format) {
+              if (GL2.GL_COLOR_INDEX == format || GL2ES2.GL_STENCIL_INDEX == format) {
                   compSize = 1;
+              } else {
+                  throw new GLException("BITMAP type only supported for format COLOR_INDEX and STENCIL_INDEX, not 0x"+Integer.toHexString(format));
               }
+              break;
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
               compSize = 1;
@@ -615,9 +619,9 @@ public class GLBuffers extends Buffers {
               break;
             case GL.GL_UNSIGNED_SHORT_5_6_5:
             case GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4:
+            case GL.GL_UNSIGNED_SHORT_4_4_4_4:
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
+            case GL.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
             case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
             case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
@@ -631,15 +635,15 @@ public class GLBuffers extends Buffers {
               break;
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
             case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
-            case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
-            case GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV:
-            case GL2GL3.GL_UNSIGNED_INT_24_8:
-            case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
-            case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+            case GL2ES2.GL_UNSIGNED_INT_10_10_10_2:
+            case GL2ES2.GL_UNSIGNED_INT_2_10_10_10_REV:
+            case GL.GL_UNSIGNED_INT_24_8:
+            case GL.GL_UNSIGNED_INT_10F_11F_11F_REV:
+            case GL2ES3.GL_UNSIGNED_INT_5_9_9_9_REV:
               compSize = 4;
               compCount = 1;
               break;
-            case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+            case GL2ES3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
               compSize = 8;
               compCount = 1;
               break;
@@ -681,33 +685,33 @@ public class GLBuffers extends Buffers {
      * @return number of components required for the given OpenGL format
      * @throws GLException if format is not handled. Please contact the maintainer if this is our bug.
      */
-    public static final int componentCount(int format) throws GLException {
+    public static final int componentCount(final int format) throws GLException {
         final int compCount;
 
         switch (format) /* 26 */ {
             case GL2.GL_COLOR_INDEX:
-            case GL2GL3.GL_STENCIL_INDEX:
-            case GL2GL3.GL_DEPTH_COMPONENT:
-            case GL2GL3.GL_DEPTH_STENCIL:
-            case GL2GL3.GL_RED:
-            case GL2GL3.GL_RED_INTEGER:
-            case GL2GL3.GL_GREEN:
+            case GL2ES2.GL_STENCIL_INDEX:
+            case GL2ES2.GL_DEPTH_COMPONENT:
+            case GL.GL_DEPTH_STENCIL:
+            case GL2ES2.GL_RED:
+            case GL2ES3.GL_RED_INTEGER:
+            case GL2ES3.GL_GREEN:
             case GL2GL3.GL_GREEN_INTEGER:
-            case GL2GL3.GL_BLUE:
+            case GL2ES3.GL_BLUE:
             case GL2GL3.GL_BLUE_INTEGER:
             case GL.GL_ALPHA:
             case GL.GL_LUMINANCE:
               compCount = 1;
               break;
             case GL.GL_LUMINANCE_ALPHA:
-            case GL2GL3.GL_RG:
-            case GL2GL3.GL_RG_INTEGER:
+            case GL2ES2.GL_RG:
+            case GL2ES3.GL_RG_INTEGER:
             case GL2.GL_HILO_NV:
             case GL2.GL_SIGNED_HILO_NV:
               compCount = 2;
               break;
             case GL.GL_RGB:
-            case GL2GL3.GL_RGB_INTEGER:
+            case GL2ES3.GL_RGB_INTEGER:
             case GL2GL3.GL_BGR:
             case GL2GL3.GL_BGR_INTEGER:
               compCount = 3;
@@ -716,7 +720,7 @@ public class GLBuffers extends Buffers {
               compCount = 3;
               break;
             case GL.GL_RGBA:
-            case GL2GL3.GL_RGBA_INTEGER:
+            case GL2ES3.GL_RGBA_INTEGER:
             case GL.GL_BGRA:
             case GL2GL3.GL_BGRA_INTEGER:
             case GL2.GL_ABGR_EXT:
@@ -748,9 +752,9 @@ public class GLBuffers extends Buffers {
     //----------------------------------------------------------------------
     // Conversion routines
     //
-    public final static float[] getFloatArray(double[] source) {
+    public final static float[] getFloatArray(final double[] source) {
         int i = source.length;
-        float[] dest = new float[i--];
+        final float[] dest = new float[i--];
         while (i >= 0) {
             dest[i] = (float) source[i];
             i--;

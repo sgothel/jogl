@@ -71,7 +71,7 @@ public class PNGIcon {
      * @throws IOException
      * @throws MalformedURLException
      */
-    public static ByteBuffer arrayToX11BGRAImages(IOUtil.ClassResources resources, int[] data_size, int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
+    public static ByteBuffer arrayToX11BGRAImages(final IOUtil.ClassResources resources, final int[] data_size, final int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
         if( avail ) {
             return jogamp.newt.driver.opengl.JoglUtilPNGIcon.arrayToX11BGRAImages(resources, data_size, elem_bytesize);
         }

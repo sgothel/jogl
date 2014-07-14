@@ -28,17 +28,21 @@
 
 package javax.media.nativewindow.util;
 
+/**
+ * Mutable insets representing rectangular window decoration insets on all four edges
+ * in window units.
+ */
 public class Insets implements Cloneable, InsetsImmutable {
     static final InsetsImmutable zeroInsets = new Insets();
     public static final InsetsImmutable getZero() { return zeroInsets; }
 
-    int l, r, t, b;
+    private int l, r, t, b;
 
     public Insets() {
         this(0, 0, 0, 0);
     }
 
-    public Insets(int left, int right, int top, int bottom) {
+    public Insets(final int left, final int right, final int top, final int bottom) {
         this.l=left;
         this.r=right;
         this.t=top;
@@ -54,7 +58,7 @@ public class Insets implements Cloneable, InsetsImmutable {
     protected Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (final CloneNotSupportedException ex) {
             throw new InternalError();
         }
     }
@@ -72,19 +76,42 @@ public class Insets implements Cloneable, InsetsImmutable {
     @Override
     public final int getTotalHeight() { return t + b; }
 
-    public final void set(int left, int right, int top, int bottom) {
+    /**
+     * Set the inset values of this instance in window units.
+     * @param left left inset width in window units.
+     * @param right right inset width in window units.
+     * @param top top inset width in window units.
+     * @param bottom bottom inset width in window units.
+     */
+    public final void set(final int left, final int right, final int top, final int bottom) {
         l = left; r = right; t = top; b = bottom;
     }
-    public final void setLeftWidth(int left) { l = left; }
-    public final void setRightWidth(int right) { r = right; }
-    public final void setTopHeight(int top) { t = top; }
-    public final void setBottomHeight(int bottom) { b = bottom; }
+    /**
+     * Set the left inset value of this instance in window units.
+     * @param left left inset width in window units.
+     */
+    public final void setLeftWidth(final int left) { l = left; }
+    /**
+     * Set the right inset value of this instance in window units.
+     * @param right right inset width in window units.
+     */
+    public final void setRightWidth(final int right) { r = right; }
+    /**
+     * Set the top inset value of this instance in window units.
+     * @param top top inset width in window units.
+     */
+    public final void setTopHeight(final int top) { t = top; }
+    /**
+     * Set the bottom inset value of this instance in window units.
+     * @param bottom bottom inset width in window units.
+     */
+    public final void setBottomHeight(final int bottom) { b = bottom; }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Insets) {
-            Insets insets = (Insets)obj;
+            final Insets insets = (Insets)obj;
             return (r == insets.r) && (l == insets.l) &&
                    (b == insets.b) && (t == insets.t);
         }
@@ -93,11 +120,11 @@ public class Insets implements Cloneable, InsetsImmutable {
 
     @Override
     public int hashCode() {
-        int sum1 = l + b;
-        int sum2 = t + r;
-        int val1 = sum1 * (sum1 + 1)/2 + l;
-        int val2 = sum2 * (sum2 + 1)/2 + r;
-        int sum3 = val1 + val2;
+        final int sum1 = l + b;
+        final int sum2 = t + r;
+        final int val1 = sum1 * (sum1 + 1)/2 + l;
+        final int val2 = sum2 * (sum2 + 1)/2 + r;
+        final int sum3 = val1 + val2;
         return sum3 * (sum3 + 1)/2 + val2;
     }
 

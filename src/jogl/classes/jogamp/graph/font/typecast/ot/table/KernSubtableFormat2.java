@@ -18,13 +18,13 @@ import java.io.IOException;
  */
 public class KernSubtableFormat2 extends KernSubtable {
 
-    private int rowWidth;
-    private int leftClassTable;
-    private int rightClassTable;
-    private int array;
+    private final int rowWidth;
+    private final int leftClassTable;
+    private final int rightClassTable;
+    private final int array;
 
     /** Creates new KernSubtableFormat2 */
-    protected KernSubtableFormat2(DataInput di) throws IOException {
+    protected KernSubtableFormat2(final DataInput di) throws IOException {
         rowWidth = di.readUnsignedShort();
         leftClassTable = di.readUnsignedShort();
         rightClassTable = di.readUnsignedShort();
@@ -37,7 +37,7 @@ public class KernSubtableFormat2 extends KernSubtable {
     }
 
     @Override
-    public KerningPair getKerningPair(int i) {
+    public KerningPair getKerningPair(final int i) {
         return null;
     }
 

@@ -1,42 +1,9 @@
 package jogamp.opengl.glu.gl2.nurbs;
 import jogamp.opengl.glu.nurbs.*;
 
-/*
- ** License Applicability. Except to the extent portions of this file are
- ** made subject to an alternative license as permitted in the SGI Free
- ** Software License B, Version 2.0 (the "License"), the contents of this
- ** file are subject only to the provisions of the License. You may not use
- ** this file except in compliance with the License. You may obtain a copy
- ** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
- ** Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- **
- ** http://oss.sgi.com/projects/FreeB
- **
- ** Note that, as provided in the License, the Software is distributed on an
- ** "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
- ** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
- ** CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
- ** PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- **
- ** Original Code. The Original Code is: OpenGL Sample Implementation,
- ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
- ** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
- ** Copyright in any portions created by third parties is as indicated
- ** elsewhere herein. All Rights Reserved.
- **
- ** Additional Notice Provisions: The application programming interfaces
- ** established by SGI in conjunction with the Original Code are The
- ** OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
- ** April 1, 1999; The OpenGL(R) Graphics System Utility Library (Version
- ** 1.3), released November 4, 1998; and OpenGL(R) Graphics with the X
- ** Window System(R) (Version 1.3), released October 19, 1998. This software
- ** was created using the OpenGL(R) version 1.2.1 Sample Implementation
- ** published by SGI, but has not been independently verified as being
- ** compliant with the OpenGL(R) version 1.2.1 Specification.
- */
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.gl2.GLUgl2;
 
@@ -50,7 +17,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
   /**
    * JOGL OpenGL object
    */
-  private GL2 gl;
+  private final GL2 gl;
 
   /**
    * Output triangles (callback)
@@ -90,18 +57,18 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param style polygon mode (N_MESHFILL/N_MESHLINE/N_MESHPOINT)
    */
   @Override
-  public void polymode(int style) {
+  public void polymode(final int style) {
     if (!output_triangles) {
       switch (style) {
       default:
       case NurbsConsts.N_MESHFILL:
-        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+        gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_FILL);
         break;
       case NurbsConsts.N_MESHLINE:
-        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
+        gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_LINE);
         break;
       case NurbsConsts.N_MESHPOINT:
-        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_POINT);
+        gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_POINT);
         break;
       }
     }
@@ -130,7 +97,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param vhi
    */
   @Override
-  public void domain2f(float ulo, float uhi, float vlo, float vhi) {
+  public void domain2f(final float ulo, final float uhi, final float vlo, final float vhi) {
     // DONE
   }
 
@@ -144,7 +111,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param v1 highest v
    */
   @Override
-  public void mapgrid2f(int nu, float u0, float u1, int nv, float v0, float v1) {
+  public void mapgrid2f(final int nu, final float u0, final float u1, final int nv, final float v0, final float v1) {
 
     if (output_triangles) {
       //            System.out.println("TODO openglsurfaceavaluator.mapgrid2f output_triangles");
@@ -163,7 +130,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param vmax maximum V
    */
   @Override
-  public void mapmesh2f(int style, int umin, int umax, int vmin, int vmax) {
+  public void mapmesh2f(final int style, final int umin, final int umax, final int vmin, final int vmax) {
     if (output_triangles) {
       //            System.out.println("TODO openglsurfaceavaluator.mapmesh2f output_triangles");
     } else {
@@ -176,13 +143,13 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
       */
       switch (style) {
       case NurbsConsts.N_MESHFILL:
-        gl.glEvalMesh2(GL2.GL_FILL, umin, umax, vmin, vmax);
+        gl.glEvalMesh2(GL2GL3.GL_FILL, umin, umax, vmin, vmax);
         break;
       case NurbsConsts.N_MESHLINE:
-        gl.glEvalMesh2(GL2.GL_LINE, umin, umax, vmin, vmax);
+        gl.glEvalMesh2(GL2GL3.GL_LINE, umin, umax, vmin, vmax);
         break;
       case NurbsConsts.N_MESHPOINT:
-        gl.glEvalMesh2(GL2.GL_POINT, umin, umax, vmin, vmax);
+        gl.glEvalMesh2(GL2GL3.GL_POINT, umin, umax, vmin, vmax);
         break;
       }
     }
@@ -202,8 +169,8 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param pts control points
    */
   @Override
-  public void map2f(int type, float ulo, float uhi, int ustride, int uorder,
-                    float vlo, float vhi, int vstride, int vorder, CArrayOfFloats pts) {
+  public void map2f(final int type, final float ulo, final float uhi, final int ustride, final int uorder,
+                    final float vlo, final float vhi, final int vstride, final int vorder, final CArrayOfFloats pts) {
     // TODO Auto-generated method stub
     if (output_triangles) {
       //            System.out.println("TODO openglsurfaceevaluator.map2f output_triangles");
@@ -218,7 +185,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param type what to enable
    */
   @Override
-  public void enable(int type) {
+  public void enable(final int type) {
     //DONE
     gl.glEnable(type);
   }

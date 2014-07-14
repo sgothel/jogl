@@ -30,11 +30,11 @@ import java.io.IOException;
  */
 public class ResourceData {
 
-    private byte[] data;
+    private final byte[] data;
 
     /** Creates new ResourceData */
-    public ResourceData(DataInput di) throws IOException {
-        int dataLen = di.readInt();
+    public ResourceData(final DataInput di) throws IOException {
+        final int dataLen = di.readInt();
         data = new byte[dataLen];
         di.readFully(data);
     }

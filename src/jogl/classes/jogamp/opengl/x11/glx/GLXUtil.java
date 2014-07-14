@@ -46,7 +46,7 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 public class GLXUtil {
     public static final boolean DEBUG = Debug.debug("GLXUtil");
 
-    public static synchronized boolean isGLXAvailableOnServer(X11GraphicsDevice x11Device) {
+    public static synchronized boolean isGLXAvailableOnServer(final X11GraphicsDevice x11Device) {
         if(null == x11Device) {
             throw new IllegalArgumentException("null X11GraphicsDevice");
         }
@@ -57,14 +57,14 @@ public class GLXUtil {
         x11Device.lock();
         try {
             glXAvailable = GLX.glXQueryExtension(x11Device.getHandle(), null, null);
-        } catch (Throwable t) { /* n/a */
+        } catch (final Throwable t) { /* n/a */
         } finally {
             x11Device.unlock();
         }
         return glXAvailable;
     }
 
-    public static String getGLXClientString(X11GraphicsDevice x11Device, int name) {
+    public static String getGLXClientString(final X11GraphicsDevice x11Device, final int name) {
         x11Device.lock();
         try {
             return GLX.glXGetClientString(x11Device.getHandle(), name);
@@ -72,7 +72,7 @@ public class GLXUtil {
             x11Device.unlock();
         }
     }
-    public static String queryGLXServerString(X11GraphicsDevice x11Device, int screen_idx, int name) {
+    public static String queryGLXServerString(final X11GraphicsDevice x11Device, final int screen_idx, final int name) {
         x11Device.lock();
         try {
             return GLX.glXQueryServerString(x11Device.getHandle(), screen_idx, name);
@@ -80,7 +80,7 @@ public class GLXUtil {
             x11Device.unlock();
         }
     }
-    public static String queryGLXExtensionsString(X11GraphicsDevice x11Device, int screen_idx) {
+    public static String queryGLXExtensionsString(final X11GraphicsDevice x11Device, final int screen_idx) {
         x11Device.lock();
         try {
             return GLX.glXQueryExtensionsString(x11Device.getHandle(), screen_idx);
@@ -89,7 +89,7 @@ public class GLXUtil {
         }
     }
 
-    public static VersionNumber getGLXServerVersionNumber(X11GraphicsDevice x11Device) {
+    public static VersionNumber getGLXServerVersionNumber(final X11GraphicsDevice x11Device) {
         final IntBuffer major = Buffers.newDirectIntBuffer(1);
         final IntBuffer minor = Buffers.newDirectIntBuffer(1);
 
@@ -102,12 +102,12 @@ public class GLXUtil {
             // Work around bugs in ATI's Linux drivers where they report they
             // only implement GLX version 1.2 on the server side
             if (major.get(0) == 1 && minor.get(0) == 2) {
-              String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
+              final String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
               try {
                   // e.g. "1.3"
-                  major.put(0, Integer.valueOf(str.substring(0, 1)).intValue());
-                  minor.put(0, Integer.valueOf(str.substring(2, 3)).intValue());
-              } catch (Exception e) {
+                  major.put(0, Integer.parseInt(str.substring(0, 1)));
+                  minor.put(0, Integer.parseInt(str.substring(2, 3)));
+              } catch (final Exception e) {
                   major.put(0, 1);
                   minor.put(0, 2);
               }
@@ -118,18 +118,18 @@ public class GLXUtil {
         return new VersionNumber(major.get(0), minor.get(0), 0);
     }
 
-    public static boolean isMultisampleAvailable(String extensions) {
+    public static boolean isMultisampleAvailable(final String extensions) {
         if (extensions != null) {
             return (extensions.indexOf("GLX_ARB_multisample") >= 0);
         }
         return false;
     }
 
-    public static boolean isVendorNVIDIA(String vendor) {
+    public static boolean isVendorNVIDIA(final String vendor) {
         return vendor != null && vendor.startsWith("NVIDIA") ;
     }
 
-    public static boolean isVendorATI(String vendor) {
+    public static boolean isVendorATI(final String vendor) {
         return vendor != null && vendor.startsWith("ATI") ;
     }
 
@@ -143,7 +143,7 @@ public class GLXUtil {
         return clientVersionNumber;
     }
 
-    public static synchronized void initGLXClientDataSingleton(X11GraphicsDevice x11Device) {
+    public static synchronized void initGLXClientDataSingleton(final X11GraphicsDevice x11Device) {
         if(null != clientVendorName) {
             return; // already initialized
         }
@@ -156,14 +156,14 @@ public class GLXUtil {
         clientMultisampleAvailable = isMultisampleAvailable(GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_EXTENSIONS));
         clientVendorName = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VENDOR);
 
-        int[] major = new int[1];
-        int[] minor = new int[1];
+        final int[] major = new int[1];
+        final int[] minor = new int[1];
         final String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
         try {
               // e.g. "1.3"
-              major[0] = Integer.valueOf(str.substring(0, 1)).intValue();
-              minor[0] = Integer.valueOf(str.substring(2, 3)).intValue();
-        } catch (Exception e) {
+              major[0] = Integer.parseInt(str.substring(0, 1));
+              minor[0] = Integer.parseInt(str.substring(2, 3));
+        } catch (final Exception e) {
               major[0] = 1;
               minor[0] = 2;
         }

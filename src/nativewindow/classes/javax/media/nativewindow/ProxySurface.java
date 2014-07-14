@@ -69,10 +69,10 @@ public interface ProxySurface extends MutableSurface {
     public void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg);
 
     /**
-     * Return the upstream {@link NativeSurface} if used, otherwise <code>null</code>.
+     * Returns the optional upstream {@link NativeSurface} if used by implementation, otherwise <code>null</code>.
      * <p>
-     * An upstream {@link NativeSurface} may backup this {@link ProxySurface} instance's representation,
-     * e.g. via a {@link #setUpstreamSurfaceHook(UpstreamSurfaceHook) set} {@link UpstreamSurfaceHook}.
+     * The upstream {@link NativeSurface} is retrieved via {@link #getUpstreamSurfaceHook() the UpstreamSurfaceHook},
+     * i.e.  {@link UpstreamSurfaceHook#getUpstreamSurface()}.
      * </p>
      * <p>
      * One example is the JOGL EGLWrappedSurface, which might be backed up by a
@@ -85,7 +85,7 @@ public interface ProxySurface extends MutableSurface {
     public UpstreamSurfaceHook getUpstreamSurfaceHook();
 
     /**
-     * Sets the {@link UpstreamSurfaceHook} and returns the previous value.
+     * Overrides the {@link UpstreamSurfaceHook}.
      */
     public void setUpstreamSurfaceHook(UpstreamSurfaceHook hook);
 

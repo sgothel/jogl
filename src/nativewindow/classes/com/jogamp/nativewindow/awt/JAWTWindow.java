@@ -61,6 +61,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.OffscreenLayerSurface;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
@@ -70,13 +71,15 @@ import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
+import jogamp.common.os.PlatformPropsImpl;
+import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWT_Rectangle;
 
-public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface, OffscreenLayerOption {
+public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface, OffscreenLayerOption, ScalableSurface {
   protected static final boolean DEBUG = JAWTUtil.DEBUG;
 
   // user properties
@@ -84,6 +87,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   // lifetime: forever
   protected final Component component;
+  private final AppContextInfo appContextInfo;
   private final AWTGraphicsConfiguration config; // control access due to delegation
   private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
   private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
@@ -98,6 +102,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected Insets insets;
   private volatile long offscreenSurfaceLayer;
 
+  private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  protected final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
   private long drawable_old;
 
   /**
@@ -107,13 +115,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @param comp
    * @param config
    */
-  protected JAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
+  protected JAWTWindow(final Object comp, final AbstractGraphicsConfiguration config) {
     if (config == null) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is null");
     }
     if(! ( config instanceof AWTGraphicsConfiguration ) ) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration: "+config);
     }
+    appContextInfo = new AppContextInfo("<init>");
     this.component = (Component)comp;
     this.config = (AWTGraphicsConfiguration) config;
     this.jawtComponentListener = new JAWTComponentListener();
@@ -121,7 +130,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
   }
-  private static String id(Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
+  private static String id(final Object obj) { return ( null!=obj ? toHexString(obj.hashCode()) : "nil" ); }
   private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
 
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
@@ -187,7 +196,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
 
         @Override
-        public final void componentResized(ComponentEvent e) {
+        public final void componentResized(final ComponentEvent e) {
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentResized: "+s(e));
             }
@@ -195,7 +204,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
 
         @Override
-        public final void componentMoved(ComponentEvent e) {
+        public final void componentMoved(final ComponentEvent e) {
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentMoved: "+s(e));
             }
@@ -203,7 +212,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
 
         @Override
-        public final void componentShown(ComponentEvent e) {
+        public final void componentShown(final ComponentEvent e) {
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentShown: "+s(e));
             }
@@ -211,7 +220,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
 
         @Override
-        public final void componentHidden(ComponentEvent e) {
+        public final void componentHidden(final ComponentEvent e) {
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentHidden: "+s(e));
             }
@@ -219,7 +228,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
 
         @Override
-        public final void hierarchyChanged(HierarchyEvent e) {
+        public final void hierarchyChanged(final HierarchyEvent e) {
             final boolean wasShowing = isShowing;
             isShowing = component.isShowing();
             int action = 0;
@@ -257,17 +266,54 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     drawable_old = 0;
     bounds = new Rectangle();
     insets = new Insets();
+    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
   }
   protected abstract void invalidateNative();
 
-  protected final boolean updateBounds(JAWT_Rectangle jawtBounds) {
-    final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
-    final boolean changed = !bounds.equals(jb);
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Per default impl. only works for not yet {@link #isRealized() realized} instances,
+   * current exception OSX.
+   * </p>
+   */
+  @Override
+  public void setSurfaceScale(final int[] pixelScale) {
+      SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
+  }
 
-    if(changed) {
-        if(DEBUG) {
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(reqPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public final int[] getCurrentSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public final int[] getNativeSurfaceScale(final int[] result) {
+      System.arraycopy(nativePixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  /**
+   * Updates bounds and pixelScale
+   * @return true if bounds or pixelScale has changed, otherwise false
+   */
+  protected final boolean updateLockedData(final JAWT_Rectangle jawtBounds) {
+    final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
+    final boolean changedBounds = !bounds.equals(jb);
+
+    if( changedBounds ) {
+        if( DEBUG ) {
             System.err.println("JAWTWindow.updateBounds: "+bounds+" -> "+jb);
-            // Thread.dumpStack();
         }
         bounds.set(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
 
@@ -276,11 +322,31 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
         }
     }
-    return changed;
+    {
+        final int ps = JAWTUtil.getPixelScale(config.getAWTGraphicsConfiguration());
+        nativePixelScale[0] = ps;
+        nativePixelScale[1] = ps;
+    }
+
+    return updatePixelScale() || changedBounds;
+  }
+
+  /**
+   * Update pixelScale
+   * @return true if pixelScale has changed, otherwise false
+   */
+  protected final boolean updatePixelScale() {
+    return SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
   public final RectangleImmutable getBounds() { return bounds; }
+
+  /** @return the safe pixelScale value for x-direction, i.e. never negative or zero. Updated with lock. */
+  protected final int getPixelScaleX() { return hasPixelScale[0]; }
+
+  /** @return the safe pixelScale value for y-direction, i.e. never negative or zero. Updated with lock. */
+  protected final int getPixelScaleY() { return hasPixelScale[1]; }
 
   @Override
   public final InsetsImmutable getInsets() { return insets; }
@@ -307,7 +373,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   //
 
   @Override
-  public void setShallUseOffscreenLayer(boolean v) {
+  public void setShallUseOffscreenLayer(final boolean v) {
       shallUseOffscreenLayer = v;
   }
 
@@ -332,8 +398,20 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       attachSurfaceLayerImpl(layerHandle);
       offscreenSurfaceLayer = layerHandle;
-      component.repaint();
+      appContextInfo.invokeOnAppContextThread(false /* waitUntilDone */, repaintTask, "Repaint");
   }
+  private final Runnable repaintTask = new Runnable() {
+          @Override
+          public void run() {
+              final Component c = component;
+              if( DEBUG ) {
+                  System.err.println("Bug 1004: RepaintTask on "+Thread.currentThread()+": Has Comp "+(null != c));
+              }
+              if( null != c ) {
+                  c.repaint();
+              }
+          } };
+
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       throw new UnsupportedOperationException("offscreen layer not supported");
   }
@@ -351,9 +429,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    */
-  protected void layoutSurfaceLayerImpl(long layerHandle, boolean visible) {}
+  protected void layoutSurfaceLayerImpl(final long layerHandle, final boolean visible) {}
 
-  private final void layoutSurfaceLayerIfEnabled(boolean visible) throws NativeWindowException {
+  private final void layoutSurfaceLayerIfEnabled(final boolean visible) throws NativeWindowException {
       if( isOffscreenLayerSurfaceEnabled() && 0 != offscreenSurfaceLayer ) {
           layoutSurfaceLayerImpl(offscreenSurfaceLayer, visible);
       }
@@ -396,7 +474,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final void setChosenCapabilities(CapabilitiesImmutable caps) {
+  public final void setChosenCapabilities(final CapabilitiesImmutable caps) {
       ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
       config.setChosenCapabilities(caps);
   }
@@ -417,7 +495,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                   final java.awt.Point awtHotspot = new java.awt.Point(hotSpot.getX(), hotSpot.getY());
                   try {
                       c = AWTMisc.getCursor(pixelrect, awtHotspot);
-                  } catch (Exception e) {
+                  } catch (final Exception e) {
                       e.printStackTrace();
                   }
               }
@@ -551,22 +629,22 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+  public void addSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
       surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
   }
 
   @Override
-  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+  public void addSurfaceUpdatedListener(final int index, final SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
       surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
   }
 
   @Override
-  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+  public void removeSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
       surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
   }
 
   @Override
-  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+  public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
       surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
   }
 
@@ -591,18 +669,45 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final int getWidth() {
-    return component.getWidth();
+  public final int getSurfaceWidth() {
+    return getWidth() * getPixelScaleX();
   }
 
   @Override
-  public final int getHeight() {
-    return component.getHeight();
+  public final int getSurfaceHeight() {
+    return getHeight() * getPixelScaleY();
   }
+
+  @Override
+  public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+      pixelUnitsAndResult[0] /= getPixelScaleX();
+      pixelUnitsAndResult[1] /= getPixelScaleY();
+      return pixelUnitsAndResult;
+  }
+
+  @Override
+  public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+      windowUnitsAndResult[0] *= getPixelScaleX();
+      windowUnitsAndResult[1] *= getPixelScaleY();
+      return windowUnitsAndResult;
+  }
+
+  @Override
+  public final NativeSurface getNativeSurface() { return this; }
 
   //
   // NativeWindow
   //
+
+  @Override
+  public final int getWidth() {
+      return component.getWidth();
+  }
+
+  @Override
+  public final int getHeight() {
+      return component.getHeight();
+  }
 
   @Override
   public void destroy() {
@@ -668,7 +773,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
               getLocationOnScreenNonBlocking(storage, component);
               return storage;
           }
-          java.awt.Point awtLOS = component.getLocationOnScreen();
+          final java.awt.Point awtLOS = component.getLocationOnScreen();
           if(null!=storage) {
               los = storage.translate(awtLOS.x, awtLOS.y);
           } else {
@@ -678,8 +783,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return los;
   }
 
-  protected Point getLocationOnScreenNative(Point storage) {
-      int lockRes = lockSurface();
+  protected Point getLocationOnScreenNative(final Point storage) {
+      final int lockRes = lockSurface();
       if(LOCK_SURFACE_NOT_READY == lockRes) {
           if(DEBUG) {
               System.err.println("Warning: JAWT Lock couldn't be acquired: "+this);
@@ -688,7 +793,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
           return null;
       }
       try {
-          Point d = getLocationOnScreenNativeImpl(0, 0);
+          final Point d = getLocationOnScreenNativeImpl(0, 0);
           if(null!=d) {
             if(null!=storage) {
                 storage.translate(d.getX(),d.getY());
@@ -702,7 +807,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract Point getLocationOnScreenNativeImpl(int x, int y);
 
-  protected static Component getLocationOnScreenNonBlocking(Point storage, Component comp) {
+  protected static Component getLocationOnScreenNonBlocking(final Point storage, Component comp) {
       final java.awt.Insets insets = new java.awt.Insets(0, 0, 0, 0); // DEBUG
       Component last = null;
       while(null != comp) {
@@ -740,13 +845,15 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if( null == sb ) {
           sb = new StringBuilder();
       }
-      sb.append("JVM version: ").append(Platform.JAVA_VERSION).append(" (").
-      append(Platform.JAVA_VERSION_NUMBER).
-      append(" update ").append(Platform.JAVA_VERSION_UPDATE).append(")").append(Platform.getNewline());
+      sb.append("JVM version: ").append(PlatformPropsImpl.JAVA_VERSION).append(" (").
+      append(PlatformPropsImpl.JAVA_VERSION_NUMBER).
+      append(" update ").append(PlatformPropsImpl.JAVA_VERSION_UPDATE).append(")").append(Platform.getNewline());
       if(null != jawt) {
-          sb.append("JAWT version: 0x").append(Integer.toHexString(jawt.getCachedVersion())).
+          sb.append("JAWT version: ").append(toHexString(jawt.getCachedVersion())).
           append(", CA_LAYER: ").append(JAWTUtil.isJAWTUsingOffscreenLayer(jawt)).
-          append(", isLayeredSurface ").append(isOffscreenLayerSurfaceEnabled()).append(", bounds ").append(bounds).append(", insets ").append(insets);
+          append(", isLayeredSurface ").append(isOffscreenLayerSurfaceEnabled()).
+          append(", bounds ").append(bounds).append(", insets ").append(insets).
+          append(", pixelScale ").append(getPixelScaleX()).append("x").append(getPixelScaleY());
       } else {
           sb.append("JAWT n/a, bounds ").append(bounds).append(", insets ").append(insets);
       }
@@ -755,7 +862,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append(jawtStr()+"[");
     jawt2String(sb);
@@ -765,7 +872,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 ", surfaceHandle "+toHexString(getSurfaceHandle())+
                 ", bounds "+bounds+", insets "+insets
                 );
-    sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+    sb.append(", window ["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
+             "], pixels[s "+getPixelScaleX()+"x"+getPixelScaleY()+" -> "+getSurfaceWidth()+"x"+getSurfaceHeight()+"]"+
               ", visible "+component.isVisible());
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
               ",\n\tconfig "+config+
@@ -775,7 +883,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     return sb.toString();
   }
 
-  protected final String toHexString(long l) {
+  protected static final String toHexString(final long l) {
       return "0x"+Long.toHexString(l);
   }
+  protected static final String toHexString(final int i) {
+      return "0x"+Integer.toHexString(i);
+  }
+
 }

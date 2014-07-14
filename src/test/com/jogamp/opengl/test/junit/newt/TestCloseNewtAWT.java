@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -34,9 +34,10 @@ import org.junit.runners.MethodSorters;
 import org.junit.Assert;
 
 import java.lang.reflect.InvocationTargetException;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-
+import javax.swing.WindowConstants;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilities;
@@ -58,7 +59,7 @@ public class TestCloseNewtAWT extends UITestCase {
 
     @SuppressWarnings("serial")
     class MyCanvas extends NewtCanvasAWT {
-         public MyCanvas(Window window) {
+         public MyCanvas(final Window window) {
             super(window);
          }
 
@@ -79,10 +80,10 @@ public class TestCloseNewtAWT extends UITestCase {
                                        ", holds AWTTreeLock: "+Thread.holdsLock(MyCanvas.this.getTreeLock()));
 
                     // Critical: Within NEWT EDT, while AWT is locked
-                    NativeWindow nw = MyCanvas.this.getNativeWindow();
+                    final NativeWindow nw = MyCanvas.this.getNativeWindow();
                     if(null != nw) {
-                        Point p = nw.getLocationOnScreen(null);
-                        System.err.println("MyCanvas On NEWT-EDT: position: "+p);                        
+                        final Point p = nw.getLocationOnScreen(null);
+                        System.err.println("MyCanvas On NEWT-EDT: position: "+p);
                     } else {
                         System.err.println("MyCanvas On NEWT-EDT: position n/a, null NativeWindow");
                     }
@@ -104,7 +105,7 @@ public class TestCloseNewtAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame = new JFrame("NEWT Close Test");
-                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.getContentPane().add(newtCanvas);
                 frame.pack();
                 frame.setSize(800, 600);
@@ -118,8 +119,8 @@ public class TestCloseNewtAWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, closingListener));
     }
 
-    public static void main(String[] args) {
-        String tstname = TestCloseNewtAWT.class.getName();
+    public static void main(final String[] args) {
+        final String tstname = TestCloseNewtAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

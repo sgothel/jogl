@@ -129,8 +129,8 @@ public class Threading {
         consequences and are prepared to enforce some amount of
         threading restrictions in their applications. Disabling
         single-threading, for example, may have unintended consequences
-        on GLAutoDrawable implementations such as GLCanvas, GLJPanel and
-        GLPbuffer. Currently there is no supported way to re-enable it
+        on GLAutoDrawable implementations such as GLCanvas and GLJPanel.
+        Currently there is no supported way to re-enable it
         once disabled, partly to discourage careless use of this
         method. This method should be called as early as possible in an
         application. */
@@ -168,7 +168,7 @@ public class Threading {
         current thread is the OpenGL thread and either execute the
         Runnable directly or perform the work inside it.
      **/
-    public static final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
+    public static final void invokeOnOpenGLThread(final boolean wait, final Runnable r) throws GLException {
         ThreadingImpl.invokeOnOpenGLThread(wait, r);
     }
 
@@ -185,7 +185,7 @@ public class Threading {
      * @param lock optional lock object to be tested
      * @throws GLException
      */
-    public static final void invoke(boolean wait, Runnable r, Object lock) throws GLException {
+    public static final void invoke(final boolean wait, final Runnable r, final Object lock) throws GLException {
         if ( isSingleThreaded() && !isOpenGLThread() &&
              ( null == lock || !Thread.holdsLock(lock) ) ) {
             invokeOnOpenGLThread(wait, r);

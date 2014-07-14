@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
@@ -35,6 +35,7 @@ import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.opengl.util.FPSAnimator;
+
 import javax.media.opengl.awt.GLJPanel;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
@@ -46,6 +47,7 @@ import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -83,7 +85,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps)
+    protected void runTestGL(final GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
         final JFrame frame = new JFrame("Swing GLJPanel");
@@ -91,7 +93,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
         final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
-        Dimension glc_sz = new Dimension(width, height);
+        final Dimension glc_sz = new Dimension(width, height);
         glJPanel.setMinimumSize(glc_sz);
         glJPanel.setPreferredSize(glc_sz);
         glJPanel.setSize(glc_sz);
@@ -115,11 +117,10 @@ public class TestGearsGLJPanelAWT extends UITestCase {
             Assert.assertEquals(true, animator.isAnimating());
         }
 
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel).addTo(glJPanel);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glJPanel).addTo(frame);
 
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
-        
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         boolean triggerSnap = false;
@@ -156,7 +157,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     public void test01_DefaultNorm()
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         if(useMSAA) {
             caps.setNumSamples(4);
             caps.setSampleBuffers(true);
@@ -177,12 +178,12 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test03_PbufferNorm()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -190,11 +191,11 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setPBuffer(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test04_PbufferMsaa()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -202,13 +203,13 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         caps.setPBuffer(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test05_BitmapNorm()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -216,11 +217,11 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setBitmap(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test06_BitmapMsaa()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -228,16 +229,16 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         caps.setNumSamples(4);
         caps.setSampleBuffers(true);
         caps.setBitmap(true);
         runTestGL(caps);
     }
-    
+
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -263,7 +264,7 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
         System.err.println("manualTest "+manualTest);
-        
+
         org.junit.runner.JUnitCore.main(TestGearsGLJPanelAWT.class.getName());
     }
 }

@@ -60,11 +60,11 @@ public class FPSCounterImpl implements FPSCounter {
             final long now = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
             fpsLastPeriod = now - fpsLastUpdateTime;
             fpsLastPeriod = Math.max(fpsLastPeriod, 1); // div 0
-            fpsLast = ( (float)fpsUpdateFramesInterval * 1000f ) / ( (float) fpsLastPeriod ) ;
+            fpsLast = ( fpsUpdateFramesInterval * 1000f ) / ( fpsLastPeriod ) ;
 
             fpsTotalDuration = now - fpsStartTime;
             fpsTotalDuration = Math.max(fpsTotalDuration, 1); // div 0
-            fpsTotal= ( (float)fpsTotalFrames * 1000f ) / ( (float) fpsTotalDuration ) ;
+            fpsTotal= ( fpsTotalFrames * 1000f ) / ( fpsTotalDuration ) ;
 
             if(null != fpsOutputStream) {
                 fpsOutputStream.println(toString());
@@ -93,7 +93,7 @@ public class FPSCounterImpl implements FPSCounter {
     }
 
     @Override
-    public final synchronized void setUpdateFPSFrames(int frames, PrintStream out) {
+    public final synchronized void setUpdateFPSFrames(final int frames, final PrintStream out) {
         fpsUpdateFramesInterval = frames;
         fpsOutputStream = out;
         resetFPSCounter();

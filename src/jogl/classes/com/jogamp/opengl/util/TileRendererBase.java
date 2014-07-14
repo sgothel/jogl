@@ -45,7 +45,6 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLFBODrawable;
 import jogamp.opengl.Debug;
 
 /**
@@ -228,14 +227,14 @@ public abstract class TileRendererBase {
     protected GLEventListener glEventListenerPre = null;
     protected GLEventListener glEventListenerPost = null;
 
-    private final String hashStr(Object o) {
+    private final String hashStr(final Object o) {
         final int h = null != o ? o.hashCode() : 0;
         return "0x"+Integer.toHexString(h);
     }
-    protected StringBuilder tileDetails(StringBuilder sb) {
+    protected StringBuilder tileDetails(final StringBuilder sb) {
         return sb.append("cur "+currentTileXPos+"/"+currentTileYPos+" "+currentTileWidth+"x"+currentTileHeight+", buffer "+hashStr(tileBuffer));
     }
-    public StringBuilder toString(StringBuilder sb) {
+    public StringBuilder toString(final StringBuilder sb) {
         final int gladListenerCount = null != listeners ? listeners.length : 0;
         sb.append("tile[");
         tileDetails(sb);
@@ -246,7 +245,7 @@ public abstract class TileRendererBase {
     }
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         return getClass().getSimpleName()+
                 "["+toString(sb).toString()+"]";
     }
@@ -270,7 +269,7 @@ public abstract class TileRendererBase {
      *
      * @param buffer The buffer itself. Must be large enough to contain a random tile
      */
-    public final void setTileBuffer(GLPixelBuffer buffer) {
+    public final void setTileBuffer(final GLPixelBuffer buffer) {
         tileBuffer = buffer;
         if( DEBUG ) {
             System.err.println("TileRenderer: tile-buffer "+tileBuffer);
@@ -286,7 +285,7 @@ public abstract class TileRendererBase {
      * @param width The width of the final image
      * @param height The height of the final image
      */
-    public void setImageSize(int width, int height) {
+    public void setImageSize(final int width, final int height) {
         imageSize.set(width, height);
     }
 
@@ -298,7 +297,7 @@ public abstract class TileRendererBase {
      *
      * @param buffer the buffer itself, must be large enough to hold the final image
      */
-    public final void setImageBuffer(GLPixelBuffer buffer) {
+    public final void setImageBuffer(final GLPixelBuffer buffer) {
         imageBuffer = buffer;
         if( DEBUG ) {
             System.err.println("TileRenderer: image-buffer "+imageBuffer);
@@ -308,7 +307,7 @@ public abstract class TileRendererBase {
     /** @see #setImageBuffer(GLPixelBuffer) */
     public final GLPixelBuffer getImageBuffer() { return imageBuffer; }
 
-    /* pp */ final void validateGL(GL gl) throws GLException {
+    /* pp */ final void validateGL(final GL gl) throws GLException {
         if( imageBuffer != null && !gl.isGL2ES3()) {
             throw new GLException("Using image-buffer w/ inssufficient GL context: "+gl.getContext().getGLVersion()+", "+gl.getGLProfile());
         }
@@ -415,7 +414,7 @@ public abstract class TileRendererBase {
      * See {@link GLDrawableUtil#swapBuffersBeforeRead(GLCapabilitiesImmutable)}.
      * </p>
      */
-    public final boolean reqPreSwapBuffers(GLCapabilitiesImmutable chosenCaps) {
+    public final boolean reqPreSwapBuffers(final GLCapabilitiesImmutable chosenCaps) {
         return GLDrawableUtil.swapBuffersBeforeRead(chosenCaps);
     }
 
@@ -466,7 +465,7 @@ public abstract class TileRendererBase {
      * @see #getAttachedDrawable()
      * @see #detachAutoDrawable()
      */
-    public final void attachAutoDrawable(GLAutoDrawable glad) throws IllegalStateException {
+    public final void attachAutoDrawable(final GLAutoDrawable glad) throws IllegalStateException {
         if( null != this.glad ) {
             throw new IllegalStateException("GLAutoDrawable already attached");
         }
@@ -551,7 +550,7 @@ public abstract class TileRendererBase {
      * @param preTile the pre operations
      * @param postTile the post operations
      */
-    public final void setGLEventListener(GLEventListener preTile, GLEventListener postTile) {
+    public final void setGLEventListener(final GLEventListener preTile, final GLEventListener postTile) {
         glEventListenerPre = preTile;
         glEventListenerPost = postTile;
     }
@@ -573,7 +572,7 @@ public abstract class TileRendererBase {
         final TileRenderer tileRenderer = TileRendererBase.this instanceof TileRenderer ? (TileRenderer) TileRendererBase.this : null;
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             if( null != glEventListenerPre ) {
                 glEventListenerPre.init(drawable);
             }
@@ -590,7 +589,7 @@ public abstract class TileRendererBase {
             }
         }
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             if( null != glEventListenerPre ) {
                 glEventListenerPre.dispose(drawable);
             }
@@ -603,7 +602,7 @@ public abstract class TileRendererBase {
             }
         }
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             if( null != glEventListenerPre ) {
                 glEventListenerPre.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
                 glEventListenerPre.display(drawable);
@@ -660,6 +659,6 @@ public abstract class TileRendererBase {
             }
         }
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
     };
 }

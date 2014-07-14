@@ -31,12 +31,12 @@ public class VersionApplet extends Applet {
   TextArea tareaCaps;
   GLCanvas canvas;
 
-  public static void main(String[] args) {
-    Frame frame = new Frame("JOGL Version Applet");
+  public static void main(final String[] args) {
+    final Frame frame = new Frame("JOGL Version Applet");
     frame.setSize(800, 600);
     frame.setLayout(new BorderLayout());
 
-    VersionApplet va = new VersionApplet();
+    final VersionApplet va = new VersionApplet();
     frame.addWindowListener(new ClosingWindowAdapter(frame, va));
 
     va.init();
@@ -50,12 +50,12 @@ public class VersionApplet extends Applet {
   static class ClosingWindowAdapter extends WindowAdapter {
     Frame f;
     VersionApplet va;
-    public ClosingWindowAdapter(Frame f, VersionApplet va) {
+    public ClosingWindowAdapter(final Frame f, final VersionApplet va) {
         this.f = f;
         this.va = va;
     }
     @Override
-    public void windowClosing(WindowEvent ev) {
+    public void windowClosing(final WindowEvent ev) {
         f.setVisible(false);
         va.stop();
         va.destroy();
@@ -70,8 +70,8 @@ public class VersionApplet extends Applet {
 
     setEnabled(true);
 
-    GLProfile glp = GLProfile.getDefault();
-    GLCapabilities glcaps = new GLCapabilities(glp);
+    final GLProfile glp = GLProfile.getDefault();
+    final GLCapabilities glcaps = new GLCapabilities(glp);
 
     setLayout(new BorderLayout());
     String s;
@@ -96,16 +96,16 @@ public class VersionApplet extends Applet {
     tareaVersion.append(s);
 
     tareaCaps = new TextArea(120, 20);
-    GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-    List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
+    final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+    final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
     for(int i=0; i<availCaps.size(); i++) {
-        s = ((GLCapabilitiesImmutable) availCaps.get(i)).toString();
+        s = availCaps.get(i).toString();
         System.err.println(s);
         tareaCaps.append(s);
         tareaCaps.append(Platform.getNewline());
     }
 
-    Container grid = new Container();
+    final Container grid = new Container();
     grid.setLayout(new GridLayout(2, 1));
     grid.add(tareaVersion);
     grid.add(tareaCaps);
@@ -160,23 +160,23 @@ public class VersionApplet extends Applet {
 
   class GLInfo implements GLEventListener {
     @Override
-    public void init(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-        String s = JoglVersion.getGLInfo(gl, null).toString();
+    public void init(final GLAutoDrawable drawable) {
+        final GL gl = drawable.getGL();
+        final String s = JoglVersion.getGLInfo(gl, null).toString();
         System.err.println(s);
         tareaVersion.append(s);
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
     }
   }
 

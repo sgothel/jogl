@@ -117,8 +117,8 @@ public class JPEGDecoder {
         private JFIF(final byte data[]) {
             version = new VersionNumber(data[5], data[6], 0);
             densityUnits = data[7];
-            xDensity = (data[8] << 8) | data[9];
-            yDensity = (data[10] << 8) | data[11];
+            xDensity = ((data[ 8] << 8) & 0xff00) | (data[ 9] & 0xff);
+            yDensity = ((data[10] << 8) & 0xff00) | (data[11] & 0xff);
             thumbWidth = data[12];
             thumbHeight = data[13];
             if( 0 < thumbWidth && 0 < thumbHeight ) {
@@ -155,8 +155,8 @@ public class JPEGDecoder {
 
         private Adobe(final byte[] data) {
             version = data[6];
-            flags0 = (short) ( (data[7] << 8) | data[8]  ) ;
-            flags1 = (short) ( (data[9] << 8) | data[10] ) ;
+            flags0 = (short)(((data[7] << 8) & 0xff00) | (data[ 8] & 0xff));
+            flags1 = (short)(((data[9] << 8) & 0xff00) | (data[10] & 0xff));
             colorCode = data[11];
             switch( colorCode ) {
                 case 2: colorSpace = ColorSpace.YCCK; break;
@@ -200,14 +200,14 @@ public class JPEGDecoder {
 
     @SuppressWarnings("serial")
     public static class CodecException extends RuntimeException {
-        CodecException(String message) {
+        CodecException(final String message) {
             super(message);
         }
     }
     @SuppressWarnings("serial")
     public static class MarkerException extends CodecException {
         final int marker;
-        MarkerException(int marker, String message) {
+        MarkerException(final int marker, final String message) {
             super(message+" - Marker "+toHexString(marker));
             this.marker = marker;
         }
@@ -312,7 +312,7 @@ public class JPEGDecoder {
         int mcusPerLine;
         int mcusPerColumn;
 
-        Frame(boolean progressive, int precision, int scanLines, int samplesPerLine, int componentsCount, int[][] qtt) {
+        Frame(final boolean progressive, final int precision, final int scanLines, final int samplesPerLine, final int componentsCount, final int[][] qtt) {
             this.progressive = progressive;
             this.precision = precision;
             this.scanLines = scanLines;
@@ -323,7 +323,7 @@ public class JPEGDecoder {
             this.qtt = qtt;
         }
 
-        private final void checkBounds(int idx) {
+        private final void checkBounds(final int idx) {
             if( 0 > idx || idx >= compCount ) {
                 throw new CodecException("Idx out of bounds "+idx+", "+this);
             }
@@ -343,7 +343,7 @@ public class JPEGDecoder {
         public final int getCompCount() { return compCount; }
         public final int getMaxCompID() { return maxCompID; }
 
-        public final void putOrdered(int compID, ComponentIn component) {
+        public final void putOrdered(final int compID, final ComponentIn component) {
             if( maxCompID < compID ) {
                 maxCompID = compID;
             }
@@ -352,17 +352,17 @@ public class JPEGDecoder {
             compIDs.add(compID);
             comps[idx] = component;
         }
-        public final ComponentIn getCompByIndex(int i) {
+        public final ComponentIn getCompByIndex(final int i) {
             checkBounds(i);
             return comps[i];
         }
-        public final ComponentIn getCompByID(int componentID) {
+        public final ComponentIn getCompByID(final int componentID) {
             return getCompByIndex( compIDs.indexOf(componentID) );
         }
-        public final int getCompID(int idx) {
+        public final int getCompID(final int idx) {
             return compIDs.get(idx);
         }
-        public final boolean hasCompID(int componentID) {
+        public final boolean hasCompID(final int componentID) {
             return compIDs.contains(componentID);
         }
         @Override
@@ -373,7 +373,7 @@ public class JPEGDecoder {
     }
 
     /** The JPEG encoded components */
-    class ComponentIn {
+    static class ComponentIn {
         final int h, v;
         /** index to frame.qtt[] */
         final int qttIdx;
@@ -387,20 +387,20 @@ public class JPEGDecoder {
         BinObj huffmanTableAC;
         BinObj huffmanTableDC;
 
-        ComponentIn(int h, int v, int qttIdx) {
+        ComponentIn(final int h, final int v, final int qttIdx) {
             this.h = h;
             this.v = v;
             this.qttIdx = qttIdx;
         }
 
-        public final void allocateBlocks(int blocksPerColumn, int blocksPerColumnForMcu, int blocksPerLine, int blocksPerLineForMcu) {
+        public final void allocateBlocks(final int blocksPerColumn, final int blocksPerColumnForMcu, final int blocksPerLine, final int blocksPerLineForMcu) {
             this.blocksPerColumn = blocksPerColumn;
             this.blocksPerColumnForMcu = blocksPerColumnForMcu;
             this.blocksPerLine = blocksPerLine;
             this.blocksPerLineForMcu = blocksPerLineForMcu;
             this.blocks = new int[blocksPerColumnForMcu][blocksPerLineForMcu][64];
         }
-        public final int[] getBlock(int row, int col) {
+        public final int[] getBlock(final int row, final int col) {
             if( row >= blocksPerColumnForMcu || col >= blocksPerLineForMcu ) {
                 throw new CodecException("Out of bounds given ["+row+"]["+col+"] - "+this);
             }
@@ -414,19 +414,19 @@ public class JPEGDecoder {
     }
 
     /** The decoded components */
-    class ComponentOut {
+    static class ComponentOut {
         private final ArrayList<byte[]> lines;
         final float scaleX;
         final float scaleY;
 
-        ComponentOut(ArrayList<byte[]> lines, float scaleX, float scaleY) {
+        ComponentOut(final ArrayList<byte[]> lines, final float scaleX, final float scaleY) {
             this.lines = lines;
             this.scaleX = scaleX;
             this.scaleY = scaleY;
         }
 
         /** Safely returning a line, if index exceeds number of lines, last line is returned. */
-        public final byte[] getLine(int i) {
+        public final byte[] getLine(final int i) {
             final int sz = lines.size();
             return lines.get( i < sz ? i : sz - 1);
         }
@@ -461,10 +461,10 @@ public class JPEGDecoder {
     public final int getWidth() { return width; }
     public final int getHeight() { return height; }
 
-    private final void setStream(InputStream is) {
+    private final void setStream(final InputStream is) {
         try {
             bstream.setStream(is, false /* outputMode */);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e); // should not happen, no flush()
         }
     }
@@ -488,14 +488,14 @@ public class JPEGDecoder {
     private final byte[] readDataBlock() throws IOException {
         int count=0, i=0;
         final int len=readUInt16();   count+=2;
-        byte[] data = new byte[len-2];
+        final byte[] data = new byte[len-2];
         while(count<len){
             data[i++] = (byte)readUInt8(); count++;
         }
         if(DEBUG_IN) { System.err.println("JPEG.readDataBlock: net-len "+(len-2)+", "+this); dumpData(data, 0, len-2); }
         return data;
     }
-    static final void dumpData(byte[] data, int offset, int len) {
+    static final void dumpData(final byte[] data, final int offset, final int len) {
         for(int i=0; i<len; ) {
             System.err.print(i%8+": ");
             for(int j=0; j<8 && i<len; j++, i++) {
@@ -505,7 +505,7 @@ public class JPEGDecoder {
         }
     }
 
-    public synchronized void clear(InputStream inputStream) {
+    public synchronized void clear(final InputStream inputStream) {
         setStream(inputStream);
         width = 0;
         height = 0;
@@ -673,7 +673,7 @@ public class JPEGDecoder {
                 int count = 0;
                 final int sosLen = readUInt16(); count+=2;
                 final int selectorsCount = readUInt8(); count++;
-                ArrayList<ComponentIn> components = new ArrayList<ComponentIn>();
+                final ArrayList<ComponentIn> components = new ArrayList<ComponentIn>();
                 if(DEBUG) { System.err.println("JPG.parse.SOS: selectorCount [0.."+(selectorsCount-1)+"]: "+frame); }
                 for (int i = 0; i < selectorsCount; i++) {
                     final int compID = readUInt8(); count++;
@@ -734,7 +734,7 @@ public class JPEGDecoder {
         return this;
     }
 
-    private void prepareComponents(Frame frame) {
+    private void prepareComponents(final Frame frame) {
         int maxH = 0, maxV = 0;
         // for (componentId in frame.components) {
         final int compCount = frame.getCompCount();
@@ -743,8 +743,8 @@ public class JPEGDecoder {
             if (maxH < component.h) maxH = component.h;
             if (maxV < component.v) maxV = component.v;
         }
-        int mcusPerLine = (int) Math.ceil(frame.samplesPerLine / 8f / maxH);
-        int mcusPerColumn = (int) Math.ceil(frame.scanLines / 8f / maxV);
+        final int mcusPerLine = (int) Math.ceil(frame.samplesPerLine / 8f / maxH);
+        final int mcusPerColumn = (int) Math.ceil(frame.scanLines / 8f / maxV);
         // for (componentId in frame.components) {
         for (int i=0; i<compCount; i++) {
             final ComponentIn component = frame.getCompByIndex(i);
@@ -760,7 +760,7 @@ public class JPEGDecoder {
         frame.mcusPerColumn = mcusPerColumn;
     }
 
-    private static class BinObjIdxed {
+    static class BinObjIdxed {
         final BinObj children;
         byte index;
         BinObjIdxed() {
@@ -768,12 +768,12 @@ public class JPEGDecoder {
             this.index = 0;
         }
     }
-    private static class BinObj {
+    static class BinObj {
         final boolean isValue;
         final BinObj[] tree;
         final byte b;
 
-        BinObj(byte b) {
+        BinObj(final byte b) {
             this.isValue= true;
             this.b = b;
             this.tree = null;
@@ -784,12 +784,12 @@ public class JPEGDecoder {
             this.tree = new BinObj[2];
         }
         final byte getValue() { return b; }
-        final BinObj get(int i) { return tree[i]; }
-        final void set(byte i, byte v) { tree[i] = new BinObj(v); }
-        final void set(byte i, BinObj v) { tree[i] = v; }
+        final BinObj get(final int i) { return tree[i]; }
+        final void set(final byte i, final byte v) { tree[i] = new BinObj(v); }
+        final void set(final byte i, final BinObj v) { tree[i] = v; }
     }
 
-    private BinObj buildHuffmanTable(int[] codeLengths, byte[] values) {
+    private BinObj buildHuffmanTable(final int[] codeLengths, final byte[] values) {
         int k = 0;
         int length = 16;
         final ArrayList<BinObjIdxed> code = new ArrayList<BinObjIdxed>();
@@ -827,13 +827,13 @@ public class JPEGDecoder {
     }
 
     private final Output output = new Output();
-    private static class Output {
+    static class Output {
         private int blocksPerLine;
         private int blocksPerColumn;
         private int samplesPerLine;
 
-        private ArrayList<byte[]> buildComponentData(Frame frame, ComponentIn component) {
-            ArrayList<byte[]> lines = new ArrayList<byte[]>();
+        private ArrayList<byte[]> buildComponentData(final Frame frame, final ComponentIn component) {
+            final ArrayList<byte[]> lines = new ArrayList<byte[]>();
             blocksPerLine = component.blocksPerLine;
             blocksPerColumn = component.blocksPerColumn;
             samplesPerLine = blocksPerLine << 3;
@@ -867,9 +867,9 @@ public class JPEGDecoder {
         //   "Practical Fast 1-D DCT Algorithms with 11 Multiplications",
         //   IEEE Intl. Conf. on Acoustics, Speech & Signal Processing, 1989,
         //   988-991.
-        private void quantizeAndInverse(int[] zz, byte[] dataOut, int[] dataIn, int[] qt) {
+        private void quantizeAndInverse(final int[] zz, final byte[] dataOut, final int[] dataIn, final int[] qt) {
             int v0, v1, v2, v3, v4, v5, v6, v7, t;
-            int[] p = dataIn;
+            final int[] p = dataIn;
             int i;
 
             // dequant
@@ -879,7 +879,7 @@ public class JPEGDecoder {
 
             // inverse DCT on rows
             for (i = 0; i < 8; ++i) {
-                int row = 8 * i;
+                final int row = 8 * i;
 
                 // check for all-zero AC coefficients
                 if (p[1 + row] == 0 && p[2 + row] == 0 && p[3 + row] == 0 &&
@@ -948,7 +948,7 @@ public class JPEGDecoder {
 
             // inverse DCT on columns
             for (i = 0; i < 8; ++i) {
-                int col = i;
+                final int col = i;
 
                 // check for all-zero AC coefficients
                 if (p[1*8 + col] == 0 && p[2*8 + col] == 0 && p[3*8 + col] == 0 &&
@@ -1017,17 +1017,17 @@ public class JPEGDecoder {
 
             // convert to 8-bit integers
             for (i = 0; i < 64; ++i) {
-                int sample = 128 + ((p[i] + 8) >> 4);
+                final int sample = 128 + ((p[i] + 8) >> 4);
                 dataOut[i] = (byte) ( sample < 0 ? 0 : sample > 0xFF ? 0xFF : sample );
             }
         }
     }
 
-    private static interface DecoderFunction {
+    static interface DecoderFunction {
         void decode(ComponentIn component, int[] zz) throws IOException;
     }
 
-    private class Decoder {
+    class Decoder {
         // private int precision;
         // private int samplesPerLine;
         // private int scanLines;
@@ -1039,8 +1039,8 @@ public class JPEGDecoder {
         private int eobrun;
         private int successiveACState, successiveACNextValue;
 
-        private int decodeScan(Frame frame, ArrayList<ComponentIn> components, int resetInterval,
-                int spectralStart, int spectralEnd, int successivePrev, int successive) throws IOException {
+        private int decodeScan(final Frame frame, final ArrayList<ComponentIn> components, int resetInterval,
+                final int spectralStart, final int spectralEnd, final int successivePrev, final int successive) throws IOException {
             // this.precision = frame.precision;
             // this.samplesPerLine = frame.samplesPerLine;
             // this.scanLines = frame.scanLines;
@@ -1110,10 +1110,10 @@ public class JPEGDecoder {
                             mcu++;
                         }
                     }
-                } catch (MarkerException markerException) {
+                } catch (final MarkerException markerException) {
                     if(DEBUG) { System.err.println("JPEG.decodeScan: Marker exception: "+markerException.getMessage()); markerException.printStackTrace(); }
                     return markerException.getMarker();
-                } catch (CodecException codecException) {
+                } catch (final CodecException codecException) {
                     if(DEBUG) { System.err.println("JPEG.decodeScan: Codec exception: "+codecException.getMessage()); codecException.printStackTrace(); }
                     bstream.skip( bstream.getBitCount() ); // align to next byte
                     return M_EOI; // force end !
@@ -1159,7 +1159,7 @@ public class JPEGDecoder {
             return bit;
         }
 
-        private int decodeHuffman(BinObj tree) throws IOException {
+        private int decodeHuffman(final BinObj tree) throws IOException {
             BinObj node = tree;
             int bit;
             while ( ( bit = readBit() ) != -1 ) {
@@ -1182,7 +1182,7 @@ public class JPEGDecoder {
             }
             return n;
         }
-        private int receiveAndExtend(int length) throws IOException {
+        private int receiveAndExtend(final int length) throws IOException {
             final int n = receive(length);
             if (n >= 1 << (length - 1)) {
                 return n;
@@ -1198,7 +1198,7 @@ public class JPEGDecoder {
 
         class BaselineDecoder implements DecoderFunction {
             @Override
-            public void decode(ComponentIn component, int[] zz) throws IOException {
+            public void decode(final ComponentIn component, final int[] zz) throws IOException {
                 final int t = decodeHuffman(component.huffmanTableDC);
                 final int diff = ( t == 0 ) ? 0 : receiveAndExtend(t);
                 zz[0] = ( component.pred += diff );
@@ -1222,7 +1222,7 @@ public class JPEGDecoder {
         }
         class DCFirstDecoder implements DecoderFunction {
             @Override
-            public void decode(ComponentIn component, int[] zz) throws IOException {
+            public void decode(final ComponentIn component, final int[] zz) throws IOException {
                 final int t = decodeHuffman(component.huffmanTableDC);
                 final int diff = ( t == 0 ) ? 0 : (receiveAndExtend(t) << successive);
                 zz[0] = ( component.pred += diff );
@@ -1230,19 +1230,20 @@ public class JPEGDecoder {
         }
         class DCSuccessiveDecoder implements DecoderFunction {
             @Override
-            public void decode(ComponentIn component, int[] zz) throws IOException {
+            public void decode(final ComponentIn component, final int[] zz) throws IOException {
                 zz[0] |= readBit() << successive;
             }
         }
 
         class ACFirstDecoder implements DecoderFunction {
             @Override
-            public void decode(ComponentIn component, int[] zz) throws IOException {
+            public void decode(final ComponentIn component, final int[] zz) throws IOException {
                 if (eobrun > 0) {
                     eobrun--;
                     return;
                 }
-                int k = spectralStart, e = spectralEnd;
+                int k = spectralStart;
+                final int e = spectralEnd;
                 while (k <= e) {
                     final int rs = decodeHuffman(component.huffmanTableAC);
                     final int s = rs & 15, r = rs >> 4;
@@ -1263,8 +1264,10 @@ public class JPEGDecoder {
         }
         class ACSuccessiveDecoder implements DecoderFunction {
             @Override
-            public void decode(ComponentIn component, int[] zz) throws IOException {
-                int k = spectralStart, e = spectralEnd, r = 0;
+            public void decode(final ComponentIn component, final int[] zz) throws IOException {
+                int k = spectralStart;
+                final int e = spectralEnd;
+                int r = 0;
                 while (k <= e) {
                     final int z = dctZigZag[k];
                     switch (successiveACState) {
@@ -1324,14 +1327,14 @@ public class JPEGDecoder {
                     }
             }
         }
-        void decodeMcu(ComponentIn component, DecoderFunction decoder, int mcu, int row, int col) throws IOException {
+        void decodeMcu(final ComponentIn component, final DecoderFunction decoder, final int mcu, final int row, final int col) throws IOException {
             final int mcuRow = (mcu / mcusPerLine) | 0;
             final int mcuCol = mcu % mcusPerLine;
             final int blockRow = mcuRow * component.v + row;
             final int blockCol = mcuCol * component.h + col;
             decoder.decode(component, component.getBlock(blockRow, blockCol));
         }
-        void decodeBlock(ComponentIn component, DecoderFunction decoder, int mcu) throws IOException {
+        void decodeBlock(final ComponentIn component, final DecoderFunction decoder, final int mcu) throws IOException {
             final int blockRow = (mcu / component.blocksPerLine) | 0;
             final int blockCol = mcu % component.blocksPerLine;
             decoder.decode(component, component.getBlock(blockRow, blockCol));
@@ -1359,7 +1362,7 @@ public class JPEGDecoder {
         pixelStorage.storeRGB(x, y, (byte)R, (byte)G, (byte)B);
     } */
 
-    public synchronized void getPixel(JPEGDecoder.ColorSink pixelStorage, int width, int height) {
+    public synchronized void getPixel(final JPEGDecoder.ColorSink pixelStorage, final int width, final int height) {
         final int scaleX = this.width / width, scaleY = this.height / height;
 
         final int componentCount = this.components.length;
@@ -1507,11 +1510,11 @@ public class JPEGDecoder {
         }
     }
 
-    private static byte clampTo8bit(float a) {
+    private static byte clampTo8bit(final float a) {
         return (byte) ( a < 0f ? 0 : a > 255f ? 255 : a );
     }
 
-    private static String toHexString(int v) {
+    private static String toHexString(final int v) {
         return "0x"+Integer.toHexString(v);
     }
 }

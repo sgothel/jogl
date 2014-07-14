@@ -52,6 +52,7 @@ import java.nio.channels.FileChannel;
 
 import javax.media.opengl.GL;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.GLBuffers;
 
@@ -67,13 +68,13 @@ public class DDSImage {
         that information in another way. */
 
     public static class ImageInfo {
-        private ByteBuffer data;
-        private int width;
-        private int height;
-        private boolean isCompressed;
-        private int compressionFormat;
+        private final ByteBuffer data;
+        private final int width;
+        private final int height;
+        private final boolean isCompressed;
+        private final int compressionFormat;
 
-        public ImageInfo(ByteBuffer data, int width, int height, boolean compressed, int compressionFormat) {
+        public ImageInfo(final ByteBuffer data, final int width, final int height, final boolean compressed, final int compressionFormat) {
             this.data = data; this.width = width; this.height = height;
             this.isCompressed = compressed; this.compressionFormat = compressionFormat;
         }
@@ -163,7 +164,7 @@ public class DDSImage {
         @return DDS image object
         @throws java.io.IOException if an I/O exception occurred
     */
-    public static DDSImage read(String filename) throws IOException {
+    public static DDSImage read(final String filename) throws IOException {
         return read(new File(filename));
     }
 
@@ -174,8 +175,8 @@ public class DDSImage {
         @return DDS image object
         @throws java.io.IOException if an I/O exception occurred
     */
-    public static DDSImage read(File file) throws IOException {
-        DDSImage image = new DDSImage();
+    public static DDSImage read(final File file) throws IOException {
+        final DDSImage image = new DDSImage();
         image.readFromFile(file);
         return image;
     }
@@ -187,8 +188,8 @@ public class DDSImage {
         @return DDS image object
         @throws java.io.IOException if an I/O exception occurred
     */
-    public static DDSImage read(ByteBuffer buf) throws IOException {
-        DDSImage image = new DDSImage();
+    public static DDSImage read(final ByteBuffer buf) throws IOException {
+        final DDSImage image = new DDSImage();
         image.readFromBuffer(buf);
         return image;
     }
@@ -207,7 +208,7 @@ public class DDSImage {
                 fis = null;
             }
             buf = null;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
@@ -228,11 +229,11 @@ public class DDSImage {
      *   specified arguments
      * @return DDS image object
      */
-    public static DDSImage createFromData(int d3dFormat,
-                                          int width,
-                                          int height,
-                                          ByteBuffer[] mipmapData) throws IllegalArgumentException {
-        DDSImage image = new DDSImage();
+    public static DDSImage createFromData(final int d3dFormat,
+                                          final int width,
+                                          final int height,
+                                          final ByteBuffer[] mipmapData) throws IllegalArgumentException {
+        final DDSImage image = new DDSImage();
         image.initFromData(d3dFormat, width, height, mipmapData);
         return image;
     }
@@ -256,7 +257,7 @@ public class DDSImage {
         in.mark(4);
         int magic = 0;
         for (int i = 0; i < 4; i++) {
-            int tmp = in.read();
+            final int tmp = in.read();
             if (tmp < 0) {
                 in.reset();
                 return false;
@@ -272,7 +273,7 @@ public class DDSImage {
      * @param filename File name to write to
      * @throws java.io.IOException if an I/O exception occurred
      */
-    public void write(String filename) throws IOException {
+    public void write(final String filename) throws IOException {
         write(new File(filename));
     }
 
@@ -281,12 +282,12 @@ public class DDSImage {
      * @param file File object to write to
      * @throws java.io.IOException if an I/O exception occurred
      */
-    public void write(File file) throws IOException {
-        FileOutputStream stream = IOUtil.getFileOutputStream(file, true);
-        FileChannel chan = stream.getChannel();
+    public void write(final File file) throws IOException {
+        final FileOutputStream stream = IOUtil.getFileOutputStream(file, true);
+        final FileChannel chan = stream.getChannel();
         // Create ByteBuffer for header in case the start of our
         // ByteBuffer isn't actually memory-mapped
-        ByteBuffer hdr = ByteBuffer.allocate(Header.writtenSize());
+        final ByteBuffer hdr = ByteBuffer.allocate(Header.writtenSize());
         hdr.order(ByteOrder.LITTLE_ENDIAN);
         header.write(hdr);
         hdr.rewind();
@@ -302,12 +303,12 @@ public class DDSImage {
      * @param flag DDSD_* flags set to test
      * @return true if flag present or false otherwise
      */
-    public boolean isSurfaceDescFlagSet(int flag) {
+    public boolean isSurfaceDescFlagSet(final int flag) {
         return ((header.flags & flag) != 0);
     }
 
     /** Test for presence/absence of pixel format flags (DDPF_*) */
-    public boolean isPixelFormatFlagSet(int flag) {
+    public boolean isPixelFormatFlagSet(final int flag) {
         return ((header.pfFlags & flag) != 0);
     }
 
@@ -357,7 +358,7 @@ public class DDSImage {
      * @param side Side to test
      * @return true if side present or false otherwise
      */
-    public boolean isCubemapSidePresent(int side) {
+    public boolean isCubemapSidePresent(final int side) {
         return isCubemap() && (header.ddsCaps2 & side) != 0;
     }
 
@@ -402,7 +403,7 @@ public class DDSImage {
      * @param map Mipmap index
      * @return Image object
      */
-    public ImageInfo getMipMap(int map) {
+    public ImageInfo getMipMap(final int map) {
         return getMipMap( 0, map );
     }
 
@@ -412,7 +413,7 @@ public class DDSImage {
      * @param map Mipmap index
      * @return Image object
      */
-    public ImageInfo getMipMap(int side, int map) {
+    public ImageInfo getMipMap(final int side, final int map) {
         if (!isCubemap() && (side != 0)) {
             throw new RuntimeException( "Illegal side for 2D texture: " + side );
         }
@@ -434,7 +435,7 @@ public class DDSImage {
         }
         buf.limit(seek + mipMapSizeInBytes(map));
         buf.position(seek);
-        ByteBuffer next = buf.slice();
+        final ByteBuffer next = buf.slice();
         buf.position(0);
         buf.limit(buf.capacity());
         return new ImageInfo(next, mipMapWidth(map), mipMapHeight(map), isCompressed(), getCompressionFormat());
@@ -454,12 +455,12 @@ public class DDSImage {
      * @param side Cubemap side or 0 for 2D texture
      * @return Mipmap image objects set
      */
-    public ImageInfo[] getAllMipMaps( int side ) {
+    public ImageInfo[] getAllMipMaps( final int side ) {
         int numLevels = getNumMipMaps();
         if (numLevels == 0) {
             numLevels = 1;
         }
-        ImageInfo[] result = new ImageInfo[numLevels];
+        final ImageInfo[] result = new ImageInfo[numLevels];
         for (int i = 0; i < numLevels; i++) {
             result[i] = getMipMap(side, i);
         }
@@ -472,9 +473,9 @@ public class DDSImage {
         @return String format code
     */
     public static String getCompressionFormatName(int compressionFormat) {
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         for (int i = 0; i < 4; i++) {
-            char c = (char) (compressionFormat & 0xFF);
+            final char c = (char) (compressionFormat & 0xFF);
             buf.append(c);
             compressionFormat = compressionFormat >> 8;
         }
@@ -491,9 +492,9 @@ public class DDSImage {
         GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, or
         GL_COMPRESSED_RGBA_S3TC_DXT5_EXT.
     */
-    public static ByteBuffer allocateBlankBuffer(int width,
-                                                 int height,
-                                                 int openGLInternalFormat) {
+    public static ByteBuffer allocateBlankBuffer(final int width,
+                                                 final int height,
+                                                 final int openGLInternalFormat) {
         int size = width * height;
         switch (openGLInternalFormat) {
         case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
@@ -511,15 +512,15 @@ public class DDSImage {
         }
         if (size == 0)
             size = 1;
-        return GLBuffers.newDirectByteBuffer(size);
+        return Buffers.newDirectByteBuffer(size);
     }
 
     public void debugPrint() {
-        PrintStream tty = System.err;
+        final PrintStream tty = System.err;
         tty.println("Compressed texture: " + isCompressed());
         if (isCompressed()) {
-            int fmt = getCompressionFormat();
-            String name = getCompressionFormatName(fmt);
+            final int fmt = getCompressionFormat();
+            final String name = getCompressionFormatName(fmt);
             tty.println("Compression format: 0x" + Integer.toHexString(fmt) + " (" + name + ")");
         }
         tty.println("Width: " + header.width + " Height: " + header.height);
@@ -567,7 +568,7 @@ public class DDSImage {
         tty.println("Raw pixel format flags: 0x" + Integer.toHexString(header.pfFlags));
         tty.println("Depth: " + getDepth());
         tty.println("Number of mip maps: " + getNumMipMaps());
-        int fmt = getPixelFormat();
+        final int fmt = getPixelFormat();
         tty.print("Pixel format: ");
         switch (fmt) {
         case D3DFMT_R8G8B8:   tty.println("D3DFMT_R8G8B8"); break;
@@ -629,8 +630,8 @@ public class DDSImage {
         int ddsCapsReserved2;
         int textureStage;           // stage in multitexture cascade
 
-        void read(ByteBuffer buf) throws IOException {
-            int magic                     = buf.getInt();
+        void read(final ByteBuffer buf) throws IOException {
+            final int magic                     = buf.getInt();
             if (magic != MAGIC) {
                 throw new IOException("Incorrect magic number 0x" +
                                       Integer.toHexString(magic) +
@@ -671,7 +672,7 @@ public class DDSImage {
         }
 
         // buf must be in little-endian byte order
-        void write(ByteBuffer buf) {
+        void write(final ByteBuffer buf) {
             buf.putInt(MAGIC);
             buf.putInt(size);
             buf.putInt(flags);
@@ -722,15 +723,15 @@ public class DDSImage {
     private DDSImage() {
     }
 
-    private void readFromFile(File file) throws IOException {
+    private void readFromFile(final File file) throws IOException {
         fis = new FileInputStream(file);
         chan = fis.getChannel();
-        ByteBuffer buf = chan.map(FileChannel.MapMode.READ_ONLY,
+        final ByteBuffer buf = chan.map(FileChannel.MapMode.READ_ONLY,
                                   0, (int) file.length());
         readFromBuffer(buf);
     }
 
-    private void readFromBuffer(ByteBuffer buf) throws IOException {
+    private void readFromBuffer(final ByteBuffer buf) throws IOException {
         this.buf = buf;
         buf.order(ByteOrder.LITTLE_ENDIAN);
         header = new Header();
@@ -738,10 +739,10 @@ public class DDSImage {
         fixupHeader();
     }
 
-    private void initFromData(int d3dFormat,
-                              int width,
-                              int height,
-                              ByteBuffer[] mipmapData) throws IllegalArgumentException {
+    private void initFromData(final int d3dFormat,
+                              final int width,
+                              final int height,
+                              final ByteBuffer[] mipmapData) throws IllegalArgumentException {
         // Check size of mipmap data compared against format, width and
         // height
         int topmostMipmapSize = width * height;
@@ -784,7 +785,7 @@ public class DDSImage {
 
         // OK, create one large ByteBuffer to hold all of the mipmap data
         totalSize += Header.writtenSize();
-        ByteBuffer buf = ByteBuffer.allocate(totalSize);
+        final ByteBuffer buf = ByteBuffer.allocate(totalSize);
         buf.position(Header.writtenSize());
         for (int i = 0; i < mipmapData.length; i++) {
             buf.put(mipmapData[i]);
@@ -845,10 +846,10 @@ public class DDSImage {
         }
     }
 
-    private static int computeCompressedBlockSize(int width,
-                                                  int height,
-                                                  int depth,
-                                                  int compressionFormat) {
+    private static int computeCompressedBlockSize(final int width,
+                                                  final int height,
+                                                  final int depth,
+                                                  final int compressionFormat) {
         int blockSize = ((width + 3)/4) * ((height + 3)/4) * ((depth + 3)/4);
         switch (compressionFormat) {
         case D3DFMT_DXT1:  blockSize *=  8; break;
@@ -857,10 +858,10 @@ public class DDSImage {
         return blockSize;
     }
 
-    private static int computeBlockSize(int width,
-                                        int height,
-                                        int depth,
-                                        int pixelFormat) {
+    private static int computeBlockSize(final int width,
+                                        final int height,
+                                        final int depth,
+                                        final int pixelFormat) {
         int blocksize;
         switch (pixelFormat) {
         case D3DFMT_R8G8B8:
@@ -883,7 +884,7 @@ public class DDSImage {
         return blocksize;
     }
 
-    private int mipMapWidth(int map) {
+    private int mipMapWidth(final int map) {
         int width = getWidth();
         for (int i = 0; i < map; i++) {
             width >>= 1;
@@ -891,7 +892,7 @@ public class DDSImage {
         return Math.max(width, 1);
     }
 
-    private int mipMapHeight(int map) {
+    private int mipMapHeight(final int map) {
         int height = getHeight();
         for (int i = 0; i < map; i++) {
             height >>= 1;
@@ -899,11 +900,11 @@ public class DDSImage {
         return Math.max(height, 1);
     }
 
-    private int mipMapSizeInBytes(int map) {
-        int width  = mipMapWidth(map);
-        int height = mipMapHeight(map);
+    private int mipMapSizeInBytes(final int map) {
+        final int width  = mipMapWidth(map);
+        final int height = mipMapHeight(map);
         if (isCompressed()) {
-            int blockSize = (getCompressionFormat() == D3DFMT_DXT1 ? 8 : 16);
+            final int blockSize = (getCompressionFormat() == D3DFMT_DXT1 ? 8 : 16);
             return ((width+3)/4)*((height+3)/4)*blockSize;
         } else {
             return width * height * (getDepth() / 8);
@@ -924,8 +925,8 @@ public class DDSImage {
         return size;
     }
 
-    private int sideShiftInBytes(int side) {
-        int[] sides = {
+    private int sideShiftInBytes(final int side) {
+        final int[] sides = {
             DDSCAPS2_CUBEMAP_POSITIVEX,
             DDSCAPS2_CUBEMAP_NEGATIVEX,
             DDSCAPS2_CUBEMAP_POSITIVEY,
@@ -935,9 +936,9 @@ public class DDSImage {
         };
 
         int shift = 0;
-        int sideSize = sideSizeInBytes();
+        final int sideSize = sideSizeInBytes();
         for (int i = 0; i < sides.length; i++) {
-            int temp = sides[i];
+            final int temp = sides[i];
             if ((temp & side) != 0) {
                 return shift;
             }
@@ -948,7 +949,7 @@ public class DDSImage {
         throw new RuntimeException("Illegal side: " + side);
     }
 
-    private boolean printIfRecognized(PrintStream tty, int flags, int flag, String what) {
+    private boolean printIfRecognized(final PrintStream tty, final int flags, final int flag, final String what) {
         if ((flags & flag) != 0) {
             tty.println(what);
             return true;

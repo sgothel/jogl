@@ -60,7 +60,7 @@ import java.io.IOException;
  */
 public class CmapFormat2 extends CmapFormat {
 
-    private class SubHeader {
+    static class SubHeader {
         int _firstCode;
         int _entryCount;
         short _idDelta;
@@ -68,11 +68,11 @@ public class CmapFormat2 extends CmapFormat {
         int _arrayIndex;
     }
 
-    private int[] _subHeaderKeys = new int[256];
-    private SubHeader[] _subHeaders;
-    private int[] _glyphIndexArray;
+    private final int[] _subHeaderKeys = new int[256];
+    private final SubHeader[] _subHeaders;
+    private final int[] _glyphIndexArray;
 
-    protected CmapFormat2(DataInput di) throws IOException {
+    protected CmapFormat2(final DataInput di) throws IOException {
         super(di);
         _format = 2;
 
@@ -86,15 +86,15 @@ public class CmapFormat2 extends CmapFormat {
             highest = Math.max(highest, _subHeaderKeys[i]);
             pos += 2;
         }
-        int subHeaderCount = highest / 8 + 1;
+        final int subHeaderCount = highest / 8 + 1;
         _subHeaders = new SubHeader[subHeaderCount];
 
         // Read the subheaders, once again noting the highest glyphIndexArray
         // index range.
-        int indexArrayOffset = 8 * subHeaderCount + 518;
+        final int indexArrayOffset = 8 * subHeaderCount + 518;
         highest = 0;
         for (int i = 0; i < _subHeaders.length; ++i) {
-            SubHeader sh = new SubHeader();
+            final SubHeader sh = new SubHeader();
             sh._firstCode = di.readUnsignedShort();
             sh._entryCount = di.readUnsignedShort();
             sh._idDelta = di.readShort();
@@ -124,7 +124,7 @@ public class CmapFormat2 extends CmapFormat {
     }
 
     @Override
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         if (index < 0 || index >= _subHeaders.length) {
             throw new ArrayIndexOutOfBoundsException();
         }
@@ -147,18 +147,18 @@ public class CmapFormat2 extends CmapFormat {
     }
 
     @Override
-    public int mapCharCode(int charCode) {
+    public int mapCharCode(final int charCode) {
 
         // Get the appropriate subheader
         int index = 0;
-        int highByte = charCode >> 8;
+        final int highByte = charCode >> 8;
         if (highByte != 0) {
             index = _subHeaderKeys[highByte] / 8;
         }
-        SubHeader sh = _subHeaders[index];
+        final SubHeader sh = _subHeaders[index];
 
         // Is the charCode out-of-range?
-        int lowByte = charCode & 0xff;
+        final int lowByte = charCode & 0xff;
         if (lowByte < sh._firstCode ||
                 lowByte >= (sh._firstCode + sh._entryCount)) {
             return 0;

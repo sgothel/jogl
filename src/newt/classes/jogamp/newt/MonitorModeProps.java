@@ -45,34 +45,76 @@ import jogamp.newt.ScreenImpl;
  * Encodes and decodes {@link MonitorMode} and {@link MonitorDevice} properties.
  */
 public class MonitorModeProps {
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 2: width, height
+    /**
+     * {@value} Elements: width, height
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_RESOLUTION_PROPERTIES   = 2;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 1: bpp
+    /**
+     * {@value} Element: bpp
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_SURFACE_SIZE_PROPERTIES = 1;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 2: refresh-rate (Hz*100), flags
+    /**
+     * {@value} Elements: refresh-rate (Hz*100), flags
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_SIZEANDRATE_PROPERTIES = 2;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 2: id, rotation
+    /**
+     * {@value} Elements: id, rotation
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_MONITOR_MODE_PROPERTIES  = 2;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * count + all the above
+    /**
+     * {@value} Elements:
+     * <ul>
+     *  <li>count</li>
+     *  <li>{@link #NUM_RESOLUTION_PROPERTIES}</li>
+     *  <li>{@link #NUM_SURFACE_SIZE_PROPERTIES}</li>
+     *  <li>{@link #NUM_SIZEANDRATE_PROPERTIES}</li>
+     *  <li>{@link #NUM_MONITOR_MODE_PROPERTIES}</li>
+     *  <li>mode-id</li>
+     * </ul>
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_MONITOR_MODE_PROPERTIES_ALL = 8;
 
+    /**
+     * {@value} Elements: count + {@link #NUM_RESOLUTION_PROPERTIES}
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
+     */
     public static final int IDX_MONITOR_MODE_BPP =   1 // count
                                                    + MonitorModeProps.NUM_RESOLUTION_PROPERTIES
                                                    ;
+    /**
+     * {@value} Elements:
+     * <ul>
+     *  <li>count</li>
+     *  <li>{@link #NUM_RESOLUTION_PROPERTIES}</li>
+     *  <li>{@link #NUM_SURFACE_SIZE_PROPERTIES}</li>
+     *  <li>{@link #NUM_SIZEANDRATE_PROPERTIES}</li>
+     *  <li>mode-id</li>
+     * </ul>
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
+     */
     public static final int IDX_MONITOR_MODE_ROT =   1 // count
                                                    + MonitorModeProps.NUM_RESOLUTION_PROPERTIES
                                                    + MonitorModeProps.NUM_SURFACE_SIZE_PROPERTIES
@@ -80,10 +122,26 @@ public class MonitorModeProps {
                                                    + 1 // id of MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES
                                                    ;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 10: count + id, ScreenSizeMM[width, height], rotated Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
+    /**
+     * {@value} Elements:
+     * <ul>
+     *   <li>count</li>
+     *   <li>id</li>
+     *   <li>ScreenSizeMM[width, height] (2 elements)</li>
+     *   <li>Rotated Viewport pixel-units (4 elements)</li>
+     *   <li>Rotated Viewport window-units  (4 elements)</li>
+     *   <li>CurrentMonitorModeId</li>
+     *   <li>Rotation</li>
+     *   <li>SupportedModeId+</li>
+     * </ul>
+     * <p>
+     * Viewport := [x, y, width, height] (4 elements)
+     * </p>
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
-    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 11;
+    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 15;
 
     public static final int IDX_MONITOR_DEVICE_VIEWPORT =   1 // count
                                                           + 1 // native mode
@@ -99,26 +157,25 @@ public class MonitorModeProps {
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    private static DimensionImmutable streamInResolution(int[] resolutionProperties, int offset) {
-        Dimension resolution = new Dimension(resolutionProperties[offset++], resolutionProperties[offset++]);
+    private static DimensionImmutable streamInResolution(final int[] resolutionProperties, int offset) {
+        final Dimension resolution = new Dimension(resolutionProperties[offset++], resolutionProperties[offset++]);
         return resolution;
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    private static SurfaceSize streamInSurfaceSize(DimensionImmutable resolution, int[] sizeProperties, int offset) {
-        SurfaceSize surfaceSize = new SurfaceSize(resolution, sizeProperties[offset++]);
-        return surfaceSize;
+    private static SurfaceSize streamInSurfaceSize(final DimensionImmutable resolution, final int[] sizeProperties, final int offset) {
+        return new SurfaceSize(resolution, sizeProperties[offset]);
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    private static MonitorMode.SizeAndRRate streamInSizeAndRRate(SurfaceSize surfaceSize, int[] sizeAndRRateProperties, int offset) {
+    private static MonitorMode.SizeAndRRate streamInSizeAndRRate(final SurfaceSize surfaceSize, final int[] sizeAndRRateProperties, int offset) {
         final float refreshRate = sizeAndRRateProperties[offset++]/100.0f;
         final int flags = sizeAndRRateProperties[offset++];
         return new MonitorMode.SizeAndRRate(surfaceSize, refreshRate, flags);
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    private static MonitorMode streamInMonitorMode0(MonitorMode.SizeAndRRate sizeAndRate, int[] modeProperties, int offset) {
+    private static MonitorMode streamInMonitorMode0(final MonitorMode.SizeAndRRate sizeAndRate, final int[] modeProperties, int offset) {
         final int id = modeProperties[offset++];
         final int rotation = modeProperties[offset++];
         return new MonitorMode(id, sizeAndRate, rotation);
@@ -134,8 +191,8 @@ public class MonitorModeProps {
      * @return {@link MonitorMode} of the identical (old or new) element in {@link Cache#monitorModes},
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
-    public static MonitorMode streamInMonitorMode(int[] mode_idx, Cache cache,
-                                                  int[] modeProperties, int offset) {
+    public static MonitorMode streamInMonitorMode(final int[] mode_idx, final Cache cache,
+                                                  final int[] modeProperties, int offset) {
         final int count = modeProperties[offset];
         if(NUM_MONITOR_MODE_PROPERTIES_ALL != count) {
             throw new RuntimeException("property count should be "+NUM_MONITOR_MODE_PROPERTIES_ALL+", but is "+count+", len "+(modeProperties.length-offset));
@@ -167,7 +224,7 @@ public class MonitorModeProps {
             monitorMode = cache.monitorModes.getOrAdd(monitorMode);
         }
         if( null != mode_idx && null!=cache) {
-            int _modeIdx  = cache.monitorModes.indexOf(monitorMode);
+            final int _modeIdx  = cache.monitorModes.indexOf(monitorMode);
             if( 0 > _modeIdx ) {
                 throw new InternalError("Invalid index of current unified mode "+monitorMode);
             }
@@ -177,8 +234,8 @@ public class MonitorModeProps {
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    public static int[] streamOutMonitorMode (MonitorMode monitorMode) {
-        int[] data = new int[NUM_MONITOR_MODE_PROPERTIES_ALL];
+    public static int[] streamOutMonitorMode (final MonitorMode monitorMode) {
+        final int[] data = new int[NUM_MONITOR_MODE_PROPERTIES_ALL];
         int idx=0;
         data[idx++] = NUM_MONITOR_MODE_PROPERTIES_ALL;
         data[idx++] = monitorMode.getSurfaceSize().getResolution().getWidth();
@@ -206,7 +263,7 @@ public class MonitorModeProps {
      * @return {@link MonitorDevice} of the identical (old or new) element in {@link Cache#monitorDevices},
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
-    public static MonitorDevice streamInMonitorDevice(int[] monitor_idx, Cache cache, ScreenImpl screen, int[] monitorProperties, int offset) {
+    public static MonitorDevice streamInMonitorDevice(final int[] monitor_idx, final Cache cache, final ScreenImpl screen, final int[] monitorProperties, int offset) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES > count) {
@@ -223,7 +280,8 @@ public class MonitorModeProps {
         final List<MonitorMode> allMonitorModes = cache.monitorModes.getData();
         final int id = monitorProperties[offset++];
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
-        final Rectangle viewport = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final MonitorMode currentMode;
         {
             final int modeId = monitorProperties[offset++];
@@ -240,12 +298,12 @@ public class MonitorModeProps {
                 }
             }
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewport, currentMode, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
         }
         if( null != monitor_idx ) {
-            int _monitorIdx  = cache.monitorDevices.indexOf(monitorDevice);
+            final int _monitorIdx  = cache.monitorDevices.indexOf(monitorDevice);
             if( 0 > _monitorIdx ) {
                 throw new InternalError("Invalid index of current unified mode "+monitorDevice);
             }
@@ -253,7 +311,7 @@ public class MonitorModeProps {
         }
         return monitorDevice;
     }
-    private static MonitorMode getByNativeIdAndRotation(List<MonitorMode> monitorModes, int modeId, int rotation) {
+    private static MonitorMode getByNativeIdAndRotation(final List<MonitorMode> monitorModes, final int modeId, final int rotation) {
         if( null!=monitorModes && monitorModes.size()>0 ) {
             for (int i=0; i<monitorModes.size(); i++) {
                 final MonitorMode mode = monitorModes.get(i);
@@ -281,7 +339,7 @@ public class MonitorModeProps {
      * @return {@link MonitorDevice} of the identical (old or new) element in {@link Cache#monitorDevices},
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
-    public static MonitorDevice streamInMonitorDevice(int[] monitor_idx, Cache cache, ScreenImpl screen, ArrayHashSet<MonitorMode> supportedModes, MonitorMode currentMode, int[] monitorProperties, int offset) {
+    public static MonitorDevice streamInMonitorDevice(final int[] monitor_idx, final Cache cache, final ScreenImpl screen, final ArrayHashSet<MonitorMode> supportedModes, final MonitorMode currentMode, final int[] monitorProperties, int offset) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES - 1 - NUM_MONITOR_MODE_PROPERTIES != count) {
@@ -296,13 +354,14 @@ public class MonitorModeProps {
         offset++;
         final int id = monitorProperties[offset++];
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
-        final Rectangle viewport = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewport, currentMode, supportedModes);
+        final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
         }
         if( null != monitor_idx ) {
-            int _monitorIdx  = cache.monitorDevices.indexOf(monitorDevice);
+            final int _monitorIdx  = cache.monitorDevices.indexOf(monitorDevice);
             if( 0 > _monitorIdx ) {
                 throw new InternalError("Invalid index of current unified mode "+monitorDevice);
             }
@@ -312,13 +371,13 @@ public class MonitorModeProps {
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
-    public static int[] streamOutMonitorDevice (MonitorDevice monitorDevice) {
+    public static int[] streamOutMonitorDevice (final MonitorDevice monitorDevice) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
-        int supportedModeCount = monitorDevice.getSupportedModes().size();
+        final int supportedModeCount = monitorDevice.getSupportedModes().size();
         if( 0 == supportedModeCount ) {
             throw new RuntimeException("no supported modes: "+monitorDevice);
         }
-        int[] data = new int[MIN_MONITOR_DEVICE_PROPERTIES + supportedModeCount - 1];
+        final int[] data = new int[MIN_MONITOR_DEVICE_PROPERTIES + supportedModeCount - 1];
         int idx=0;
         data[idx++] = data.length;
         data[idx++] = monitorDevice.getId();
@@ -328,6 +387,10 @@ public class MonitorModeProps {
         data[idx++] = monitorDevice.getViewport().getY();
         data[idx++] = monitorDevice.getViewport().getWidth();
         data[idx++] = monitorDevice.getViewport().getHeight();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getX();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getY();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getWidth();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getHeight();
         data[idx++] = monitorDevice.getCurrentMode().getId();
         data[idx++] = monitorDevice.getCurrentMode().getRotation();
         final List<MonitorMode> supportedModes = monitorDevice.getSupportedModes();
@@ -340,7 +403,7 @@ public class MonitorModeProps {
         return data;
     }
 
-    public final void swapRotatePair(int rotation, int[] pairs, int offset, int numPairs) {
+    public final void swapRotatePair(final int rotation, final int[] pairs, int offset, final int numPairs) {
         if( MonitorMode.ROTATE_0 == rotation || MonitorMode.ROTATE_180 == rotation ) {
             // nop
             return;

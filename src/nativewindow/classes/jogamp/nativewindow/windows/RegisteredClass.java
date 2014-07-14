@@ -33,7 +33,7 @@ public class RegisteredClass {
     private final String className;
     private final long hDDTCtx;
 
-    RegisteredClass(long hInst, String name, long hDispatchThreadCtx) {
+    RegisteredClass(final long hInst, final String name, final long hDispatchThreadCtx) {
         this.hInstance = hInst;
         this.className = name;
         this.hDDTCtx = hDispatchThreadCtx;

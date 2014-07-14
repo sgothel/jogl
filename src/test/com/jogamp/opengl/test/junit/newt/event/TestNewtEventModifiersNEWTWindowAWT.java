@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.event;
 
 import javax.media.opengl.GLCapabilities;
@@ -60,10 +60,10 @@ public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers 
         _glWindow.setSize(TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT);
         _glWindow.setPosition(TEST_FRAME_X, TEST_FRAME_Y);
         _glWindow.setVisible(true);
-        
+
         Assert.assertTrue(AWTRobotUtil.waitForVisible(_glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(_glWindow, true));
-        
+
         AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
         Assert.assertNotNull(_robot);
         AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
@@ -78,8 +78,8 @@ public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers 
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static void main(String args[]) throws Exception {
-        String testName = TestNewtEventModifiersNEWTWindowAWT.class.getName() ;
+    public static void main(final String args[]) throws Exception {
+        final String testName = TestNewtEventModifiersNEWTWindowAWT.class.getName() ;
         org.junit.runner.JUnitCore.main( testName ) ;
     }
 

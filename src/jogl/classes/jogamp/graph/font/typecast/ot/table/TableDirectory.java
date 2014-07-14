@@ -66,9 +66,9 @@ public class TableDirectory {
     private short _searchRange = 0;
     private short _entrySelector = 0;
     private short _rangeShift = 0;
-    private DirectoryEntry[] _entries;
+    private final DirectoryEntry[] _entries;
 
-    public TableDirectory(DataInput di) throws IOException {
+    public TableDirectory(final DataInput di) throws IOException {
         _version = di.readInt();
         _numTables = di.readShort();
         _searchRange = di.readShort();
@@ -80,11 +80,11 @@ public class TableDirectory {
         }
     }
 
-    public DirectoryEntry getEntry(int index) {
+    public DirectoryEntry getEntry(final int index) {
         return _entries[index];
     }
 
-    public DirectoryEntry getEntryByTag(int tag) {
+    public DirectoryEntry getEntryByTag(final int tag) {
         for (int i = 0; i < _numTables; i++) {
             if (_entries[i].getTag() == tag) {
                 return _entries[i];
@@ -115,7 +115,7 @@ public class TableDirectory {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder()
+        final StringBuilder sb = new StringBuilder()
             .append("Offset Table\n------ -----")
             .append("\n  sfnt version:     ").append(Fixed.floatValue(_version))
             .append("\n  numTables =       ").append(_numTables)

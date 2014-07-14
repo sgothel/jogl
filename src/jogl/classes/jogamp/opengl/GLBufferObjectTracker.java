@@ -36,6 +36,7 @@ import javax.media.opengl.*;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.PropertyAccess;
 
 /**
  * Tracking of {@link GLBufferStorage} instances via GL API callbacks.
@@ -102,18 +103,18 @@ public class GLBufferObjectTracker {
 
     static {
         Debug.initSingleton();
-        DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferObjectTracker", true);
+        DEBUG = PropertyAccess.isPropertyDefined("jogl.debug.GLBufferObjectTracker", true);
     }
 
     static final class GLBufferStorageImpl extends GLBufferStorage {
         GLBufferStorageImpl(final int name, final long size, final int mutableUsage, final int immutableFlags) {
             super(name, size, mutableUsage, immutableFlags);
         }
-        final void setMappedBuffer(final ByteBuffer bb) {
-            if (DEBUG) {
-                System.err.printf("%s.GLBufferStorage.setMappedBuffer: %s: %s -> %s%n", msgClazzName, toString(true), mappedBuffer, bb);
-            }
-            mappedBuffer = bb;
+        protected final void reset(final long size, final int mutableUsage, final int immutableFlags) {
+            super.reset(size, mutableUsage, immutableFlags);
+        }
+        protected final void setMappedBuffer(final ByteBuffer buffer) {
+            super.setMappedBuffer(buffer);
         }
     }
 
@@ -146,7 +147,7 @@ public class GLBufferObjectTracker {
      * @throws GLException if a native GL-Error occurs
      */
     public synchronized final void createBufferStorage(final GLBufferStateTracker bufferStateTracker, final GL caller,
-                                                       final int target, final long size, final Buffer data, int mutableUsage, int immutableFlags,
+                                                       final int target, final long size, final Buffer data, final int mutableUsage, final int immutableFlags,
                                                        final CreateStorageDispatch dispatch, final long glProcAddress) throws GLException {
         final int glerrPre = caller.glGetError(); // clear
         if (DEBUG && GL.GL_NO_ERROR != glerrPre) {
@@ -169,13 +170,18 @@ public class GLBufferObjectTracker {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for target 0x%X -> buffer %d of size %d with data %s",
                     glerrPost, mutableBuffer ? "mutable" : "immutable", target, bufferName, size, data));
         }
-        final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, immutableFlags);
-        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.put(bufferName, objNew);
-        if (DEBUG) {
-            System.err.printf("%s.%s target: 0x%X -> %d: %s -> %s%n", msgClazzName, msgCreateBound, target, bufferName, objOld, objNew);
-        }
+        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if( null != objOld ) {
-            objOld.setMappedBuffer(null);
+            objOld.reset(size, mutableUsage, immutableFlags);
+            if (DEBUG) {
+                System.err.printf("%s.%s target: 0x%X -> reset %d: %s%n", msgClazzName, msgCreateBound, target, bufferName, objOld);
+            }
+        } else {
+            final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, immutableFlags);
+            bufferName2StorageMap.put(bufferName, objNew);
+            if (DEBUG) {
+                System.err.printf("%s.%s target: 0x%X -> new %d: %s%n", msgClazzName, msgCreateBound, target, bufferName, objNew);
+            }
         }
     }
 
@@ -190,7 +196,7 @@ public class GLBufferObjectTracker {
      * @throws GLException if a native GL-Error occurs
      */
     public synchronized final void createBufferStorage(final GL caller,
-                                                       final int bufferName, final long size, final Buffer data, final int mutableUsage, int immutableFlags,
+                                                       final int bufferName, final long size, final Buffer data, final int mutableUsage, final int immutableFlags,
                                                        final CreateStorageDispatch dispatch, final long glProcAddress) throws GLException {
         final int glerrPre = caller.glGetError(); // clear
         if (DEBUG && GL.GL_NO_ERROR != glerrPre) {
@@ -209,13 +215,18 @@ public class GLBufferObjectTracker {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for buffer %d of size %d with data %s",
                                                 glerrPost, "mutable", bufferName, size, data));
         }
-        final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, 0 /* immutableFlags */);
-        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.put(bufferName, objNew);
-        if (DEBUG) {
-            System.err.printf("%s.%s direct: %d: %s -> %s%n", msgClazzName, msgCreateNamed, bufferName, objOld, objNew);
-        }
+        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if( null != objOld ) {
-            objOld.setMappedBuffer(null);
+            objOld.reset(size, mutableUsage, immutableFlags);
+            if (DEBUG) {
+                System.err.printf("%s.%s direct: reset %d: %s%n", msgClazzName, msgCreateNamed, bufferName, objOld);
+            }
+        } else {
+            final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, immutableFlags);
+            bufferName2StorageMap.put(bufferName, objNew);
+            if (DEBUG) {
+                System.err.printf("%s.%s direct: new %d: %s%n", msgClazzName, msgCreateNamed, bufferName, objNew);
+            }
         }
     }
 
@@ -330,7 +341,7 @@ public class GLBufferObjectTracker {
      */
     private synchronized final GLBufferStorage mapBufferImpl(final GLBufferStateTracker bufferStateTracker,
                                                              final GL caller, final int target, final boolean useRange,
-                                                             long offset, long length, final int access,
+                                                             final long offset, final long length, final int access,
                                                              final MapBufferDispatch dispatch, final long glProcAddress) throws GLException {
         final int bufferName = bufferStateTracker.getBoundBufferObject(target, caller);
         if( 0 == bufferName ) {
@@ -478,18 +489,6 @@ public class GLBufferObjectTracker {
             }
         }
         return res;
-    }
-
-    public synchronized final long getBufferSize(final int bufferName) {
-        final GLBufferStorageImpl store = (GLBufferStorageImpl)bufferName2StorageMap.get(bufferName);
-        if ( null == store ) {
-            if (DEBUG) {
-                System.err.printf("%s: %s.getBufferSize(): Buffer %d not tracked%n", warning, msgClazzName, bufferName);
-                Thread.dumpStack();
-            }
-            return 0;
-        }
-        return store.getSize();
     }
 
     public synchronized final GLBufferStorage getBufferStorage(final int bufferName) {

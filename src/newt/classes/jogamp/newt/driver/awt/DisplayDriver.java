@@ -51,7 +51,7 @@ public class DisplayDriver extends DisplayImpl {
         aDevice = AWTGraphicsDevice.createDefault();
     }
 
-    protected void setAWTGraphicsDevice(AWTGraphicsDevice d) {
+    protected void setAWTGraphicsDevice(final AWTGraphicsDevice d) {
         aDevice = d;
     }
 
@@ -70,7 +70,7 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
+    protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 

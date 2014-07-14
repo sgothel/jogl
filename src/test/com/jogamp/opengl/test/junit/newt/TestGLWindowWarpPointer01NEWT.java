@@ -37,13 +37,13 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(Screen screen, GLCapabilitiesImmutable caps)
+    static GLWindow createWindow(final Screen screen, final GLCapabilitiesImmutable caps)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
         //
         // Create native windowing resources .. X11/Win/OSX
-        // 
+        //
         GLWindow glWindow;
         if(null!=screen) {
             glWindow = GLWindow.create(screen, caps);
@@ -52,9 +52,9 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
             glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
         }
-        glWindow.setUpdateFPSFrames(1, null);        
+        glWindow.setUpdateFPSFrames(1, null);
 
-        GLEventListener demo = new GearsES2();
+        final GLEventListener demo = new GearsES2();
         glWindow.addGLEventListener(demo);
 
         glWindow.setSize(512, 512);
@@ -65,7 +65,7 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
         return glWindow;
     }
 
-    static void destroyWindow(GLWindow glWindow) {
+    static void destroyWindow(final GLWindow glWindow) {
         if(null!=glWindow) {
             glWindow.destroy();
             Assert.assertEquals(false,glWindow.isNativeValid());
@@ -76,75 +76,75 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
     public void testWarp01Center() throws InterruptedException {
         testWarpImpl(false);
     }
-    
+
     @Test
     public void testWarp02Random() throws InterruptedException {
         testWarpImpl(true);
     }
-    
+
     void testWarpImpl(final boolean random) throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window1 = createWindow(null, caps); // local
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
-        Animator animator = new Animator();
+        final Animator animator = new Animator();
         animator.setUpdateFPSFrames(1, null);
         animator.add(window1);
         animator.start();
-        AbstractGraphicsDevice device1 = window1.getScreen().getDisplay().getGraphicsDevice();
+        final AbstractGraphicsDevice device1 = window1.getScreen().getDisplay().getGraphicsDevice();
 
         System.err.println("GLProfiles window1: "+device1.getConnection()+": "+GLProfile.glAvailabilityToString(device1));
-        
+
         window1.warpPointer(width / 2, height / 2);
         window1.requestFocus();
-        
+
         window1.addMouseListener(new MouseAdapter() {
             void warpCenter() {
                 window1.warpPointer(width / 2, height / 2);
             }
-            
+
             @Override
-            public void mouseEntered(MouseEvent e) {
+            public void mouseEntered(final MouseEvent e) {
             }
 
             @Override
-            public void mouseExited(MouseEvent e) {
+            public void mouseExited(final MouseEvent e) {
                 warpCenter();
             }
 
             @Override
-            public void mouseMoved(MouseEvent e) {
+            public void mouseMoved(final MouseEvent e) {
             }
         });
-        
+
         if( random ) {
             window1.addGLEventListener(new GLEventListener() {
                 final Random r = new Random();
-    
-                void warpRandom(int width, int height) {
-                    int x = r.nextInt(width);
-                    int y = r.nextInt(height);
+
+                void warpRandom(final int width, final int height) {
+                    final int x = r.nextInt(width);
+                    final int y = r.nextInt(height);
                     window1.warpPointer(x, y);
                 }
-                
+
                 @Override
-                public void init(GLAutoDrawable drawable) {}
-    
+                public void init(final GLAutoDrawable drawable) {}
+
                 @Override
-                public void dispose(GLAutoDrawable drawable) {}
-    
+                public void dispose(final GLAutoDrawable drawable) {}
+
                 @Override
-                public void display(GLAutoDrawable drawable) {
-                    warpRandom(drawable.getWidth(), drawable.getHeight());
+                public void display(final GLAutoDrawable drawable) {
+                    warpRandom(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 }
-    
+
                 @Override
-                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
-                
+                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
+
             });
         }
-        
+
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
@@ -152,22 +152,22 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
         destroyWindow(window1);
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
             }
         }
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestGLWindowWarpPointer01NEWT.class.getName();
+        final String tstname = TestGLWindowWarpPointer01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

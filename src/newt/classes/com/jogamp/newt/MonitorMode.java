@@ -51,7 +51,7 @@ import com.jogamp.newt.util.MonitorModeUtil;
  *  <ul>
  *    <li>A List of all {@link MonitorDevice}s is accessible via {@link Screen#getMonitorDevices()}.</li>
  *    <li>The main monitor used by a windows is accessible via {@link Window#getMainMonitor()}.</li>
- *    <li>The main monitor covering an arbitrary rectnagle is accessible via {@link Screen#getMainMonitor(RectangleImmutable)}.</li>
+ *    <li>The main monitor covering an arbitrary rectangle is accessible via {@link Screen#getMainMonitor(RectangleImmutable)}.</li>
  *  </ul></li>
  *  <li>The current MonitorMode can be obtained via {@link MonitorDevice#getCurrentMode()}.</li>
  *  <li>The original MonitorMode can be obtained via {@link MonitorDevice#getOriginalMode()}.</li>
@@ -88,8 +88,8 @@ import com.jogamp.newt.util.MonitorModeUtil;
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         MonitorMode mmOrig = monitor.getOriginalMode();
 
-        // Target resolution
-        Dimension res = new Dimension(800, 600);
+        // Target resolution in pixel units
+        DimensionImmutable res = new Dimension(800, 600);
 
         // Target refresh rate shall be similar to current one ..
         float freq = mmCurrent.getRefreshRate();
@@ -115,14 +115,14 @@ public class MonitorMode implements Comparable<MonitorMode> {
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the ascending order. */
     public static final Comparator<MonitorMode> monitorModeComparator = new Comparator<MonitorMode>() {
         @Override
-        public int compare(MonitorMode mm1, MonitorMode mm2) {
+        public int compare(final MonitorMode mm1, final MonitorMode mm2) {
             return mm1.compareTo(mm2);
         } };
 
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the descending order. */
     public static final Comparator<MonitorMode> monitorModeComparatorInv = new Comparator<MonitorMode>() {
         @Override
-        public int compare(MonitorMode mm1, MonitorMode mm2) {
+        public int compare(final MonitorMode mm1, final MonitorMode mm2) {
             return mm2.compareTo(mm1);
         } };
 
@@ -136,7 +136,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * </ul>
      */
     public static class SizeAndRRate implements Comparable<SizeAndRRate> {
-        /** Non rotated surface size */
+        /** Non rotated surface size in pixel units */
         public final SurfaceSize surfaceSize;
         /** Mode bitfield flags, i.e. {@link #FLAG_DOUBLESCAN}, {@link #FLAG_INTERLACE}, .. */
         public final int flags;
@@ -144,7 +144,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         public final float refreshRate;
         public final int hashCode;
 
-        public SizeAndRRate(SurfaceSize surfaceSize, float refreshRate, int flags) {
+        public SizeAndRRate(final SurfaceSize surfaceSize, final float refreshRate, final int flags) {
             if(null==surfaceSize) {
                 throw new IllegalArgumentException("surfaceSize must be set ("+surfaceSize+")");
             }
@@ -158,7 +158,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         private final static String STR_DOUBLESCAN = "DoubleScan";
         private final static String STR_SEP = ", ";
 
-        public static final StringBuilder flags2String(int flags) {
+        public static final StringBuilder flags2String(final int flags) {
             final StringBuilder sb = new StringBuilder();
             boolean sp = false;
             if( 0 != ( flags & FLAG_INTERLACE ) ) {
@@ -232,7 +232,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
          * </ul>
          */
         @Override
-        public final boolean equals(Object obj) {
+        public final boolean equals(final Object obj) {
             if (this == obj) { return true; }
             if (obj instanceof SizeAndRRate) {
                 final SizeAndRRate p = (SizeAndRRate)obj;
@@ -288,7 +288,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
     private final int rotation;
     private final int hashCode;
 
-    public static boolean isRotationValid(int rotation) {
+    public static boolean isRotationValid(final int rotation) {
         return rotation == MonitorMode.ROTATE_0 || rotation == MonitorMode.ROTATE_90 ||
                rotation == MonitorMode.ROTATE_180 || rotation == MonitorMode.ROTATE_270 ;
     }
@@ -297,7 +297,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * @param sizeAndRRate the surface size and refresh rate mode
      * @param rotation the screen rotation, measured counter clockwise (CCW)
      */
-    public MonitorMode(int nativeId, SizeAndRRate sizeAndRRate, int rotation) {
+    public MonitorMode(final int nativeId, final SizeAndRRate sizeAndRRate, final int rotation) {
         if ( !isRotationValid(rotation) ) {
             throw new RuntimeException("invalid rotation: "+rotation);
         }
@@ -317,7 +317,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * @param flags
      * @param rotation
      */
-    public MonitorMode(SurfaceSize surfaceSize, float refreshRate, int flags, int rotation) {
+    public MonitorMode(final SurfaceSize surfaceSize, final float refreshRate, final int flags, final int rotation) {
         this(0, new SizeAndRRate(surfaceSize, refreshRate, flags), rotation);
     }
 
@@ -349,7 +349,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return rotation;
     }
 
-    /** Returns the rotated screen width,
+    /** Returns the rotated screen width in pixel units,
      *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
      *  and <code>getRotation()</code>
      */
@@ -357,7 +357,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return getRotatedWH(true);
     }
 
-    /** Returns the rotated screen height,
+    /** Returns the rotated screen height in pixel units,
      *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
      *  and <code>getRotation()</code>
      */
@@ -416,10 +416,10 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * </ul>
      */
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorMode) {
-            MonitorMode sm = (MonitorMode)obj;
+            final MonitorMode sm = (MonitorMode)obj;
             return sm.nativeId == this.nativeId &&
                    sm.sizeAndRRate.equals(sizeAndRRate) &&
                    sm.rotation == this.rotation ;
@@ -447,7 +447,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return hash;
     }
 
-    private final int getRotatedWH(boolean width) {
+    private final int getRotatedWH(final boolean width) {
         final DimensionImmutable d = sizeAndRRate.surfaceSize.getResolution();
         final boolean swap = MonitorMode.ROTATE_90 == rotation || MonitorMode.ROTATE_270 == rotation ;
         if ( (  width &&  swap ) || ( !width && !swap ) ) {

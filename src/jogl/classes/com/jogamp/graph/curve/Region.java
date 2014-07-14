@@ -28,164 +28,383 @@
 package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.opengl.Debug;
 
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.math.geom.Frustum;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
-/** Abstract Outline shape GL representation
- *  define the method an OutlineShape(s) is
- *  binded rendered.
+/**
+ * Abstract Outline shape representation define the method an OutlineShape(s)
+ * is bound and rendered.
  *
- *  @see GLRegion
+ * @see com.jogamp.graph.curve.opengl.GLRegion
  */
 public abstract class Region {
 
-    /** Debug flag for region impl (graph.curve)
-     */
+    /** Debug flag for region impl (graph.curve) */
     public static final boolean DEBUG = Debug.debug("graph.curve");
+    public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.Instance");
 
-    public static final boolean DEBUG_INSTANCE = false;
-
-    /** View based Anti-Aliasing, A Two pass region rendering, slower
-     *  and more resource hungry (FBO), but AA is perfect.
-     *  Otherwise the default fast one pass MSAA region rendering is being used.
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * MSAA based Anti-Aliasing, a two pass region rendering, slower and more
+     * resource hungry (FBO), but providing fast MSAA in case
+     * the whole scene is not rendered with MSAA.
+     * </p>
      */
-    public static final int VBAA_RENDERING_BIT = 1 << 0;
+    public static final int MSAA_RENDERING_BIT        = 1 <<  0;
 
-    /** Use non uniform weights [0.0 .. 1.9] for curve region rendering.
-     *  Otherwise the default weight 1.0 for uniform curve region rendering is being applied.
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * View based Anti-Aliasing, a two pass region rendering, slower and more
+     * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
+     * pass MSAA region rendering is being used.
+     * </p>
      */
-    public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 1;
+    public static final int VBAA_RENDERING_BIT        = 1 <<  1;
 
-    public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * Use non uniform weights [0.0 .. 1.9] for curve region rendering.
+     * Otherwise the default weight 1.0 for uniform curve region rendering is
+     * being applied.
+     * </p>
+     */
+    public static final int VARWEIGHT_RENDERING_BIT    = 1 <<  8;
+
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * If set, a color channel attribute per vertex is added to the stream,
+     * otherwise only the
+     * {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(javax.media.opengl.GL2ES2, float, float, float, float) static color}
+     * is being used.
+     * </p>
+     */
+    public static final int COLORCHANNEL_RENDERING_BIT = 1 <<  9;
+
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * If set, a color texture is used to determine the color.
+     * </p>
+     */
+    public static final int COLORTEXTURE_RENDERING_BIT = 1 <<  10;
+
+    /** Default maximum {@link #getQuality() quality}, {@value}. */
+    public static final int MAX_QUALITY  = 1;
+
+    public static final int DEFAULT_TWO_PASS_TEXTURE_UNIT = 0;
+
+    protected static final int DIRTY_SHAPE    = 1 << 0 ;
+    protected static final int DIRTY_STATE    = 1 << 1 ;
 
     private final int renderModes;
-    private boolean dirty = true;
-    protected int numVertices = 0;
+    private int quality;
+    private int dirty = DIRTY_SHAPE | DIRTY_STATE;
+    private int numVertices = 0;
     protected final AABBox box = new AABBox();
-    protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-    protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+    protected Frustum frustum = null;
 
-    public static boolean isVBAA(int renderModes) {
-        return 0 != ( renderModes & Region.VBAA_RENDERING_BIT );
+    public static boolean isVBAA(final int renderModes) {
+        return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
 
-    /** Check if render mode capable of non uniform weights
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT},
-     * {@link Region#VBAA_RENDERING_BIT}
-     * @return true of capable of non uniform weights
-     */
-    public static boolean isNonUniformWeight(int renderModes) {
-        return 0 != ( renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT );
+    public static boolean isMSAA(final int renderModes) {
+        return 0 != (renderModes & Region.MSAA_RENDERING_BIT);
     }
 
-    protected Region(int regionRenderModes) {
-        this.renderModes = regionRenderModes;
-    }
-
-    /** Get current Models
-     * @return bit-field of render modes
-     */
-    public final int getRenderModes() {
-        return renderModes;
-    }
-
-    /** Check if current Region is using VBAA
-     * @return true if capable of two pass rendering - VBAA
-     */
-    public boolean isVBAA() {
-        return Region.isVBAA(renderModes);
-    }
-
-    /** Check if current instance uses non uniform weights
-     * @return true if capable of nonuniform weights
-     */
-    public boolean isNonUniformWeight() {
-        return Region.isNonUniformWeight(renderModes);
-    }
-
-    /** Get the current number of vertices associated
-     * with this region. This number is not necessary equal to
-     * the OGL bound number of vertices.
-     * @return vertices count
-     */
-    public final int getNumVertices(){
-        return numVertices;
-    }
-
-    /** Adds a {@link Triangle} object to the Region
-     * This triangle will be bound to OGL objects
-     * on the next call to {@code update}
-     * @param tri a triangle object
-     *
-     * @see update(GL2ES2)
-     */
-    public void addTriangle(Triangle tri) {
-        triangles.add(tri);
-        setDirty(true);
-    }
-
-    /** Adds a list of {@link Triangle} objects to the Region
-     * These triangles are to be binded to OGL objects
-     * on the next call to {@code update}
-     * @param tris an arraylist of triangle objects
-     *
-     * @see update(GL2ES2)
-     */
-    public void addTriangles(ArrayList<Triangle> tris) {
-        triangles.addAll(tris);
-        setDirty(true);
-    }
-
-    /** Adds a {@link Vertex} object to the Region
-     * This vertex will be bound to OGL objects
-     * on the next call to {@code update}
-     * @param vert a vertex objects
-     *
-     * @see update(GL2ES2)
-     */
-    public void addVertex(Vertex vert) {
-        vertices.add(vert);
-        numVertices++;
-        setDirty(true);
-    }
-
-    /** Adds a list of {@link Vertex} objects to the Region
-     * These vertices are to be binded to OGL objects
-     * on the next call to {@code update}
-     * @param verts an arraylist of vertex objects
-     *
-     * @see update(GL2ES2)
-     */
-    public void addVertices(ArrayList<Vertex> verts) {
-        vertices.addAll(verts);
-        numVertices = vertices.size();
-        setDirty(true);
+    public static boolean isTwoPass(final int renderModes) {
+        return 0 != ( renderModes & ( Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT) );
     }
 
     /**
-     * @return the AxisAligned bounding box of
-     * current region
+     * Returns true if render mode capable of variable weights,
+     * i.e. the bit {@link #VARWEIGHT_RENDERING_BIT} is set,
+     * otherwise false.
      */
-    public final AABBox getBounds(){
+    public static boolean hasVariableWeight(final int renderModes) {
+        return 0 != (renderModes & Region.VARWEIGHT_RENDERING_BIT);
+    }
+
+    /**
+     * Returns true if render mode has a color channel,
+     * i.e. the bit {@link #COLORCHANNEL_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public static boolean hasColorChannel(final int renderModes) {
+        return 0 != (renderModes & Region.COLORCHANNEL_RENDERING_BIT);
+    }
+
+    /**
+     * Returns true if render mode has a color texture,
+     * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public static boolean hasColorTexture(final int renderModes) {
+        return 0 != (renderModes & Region.COLORTEXTURE_RENDERING_BIT);
+    }
+
+    public static String getRenderModeString(final int renderModes) {
+        final String curveS = hasVariableWeight(renderModes) ? "-curve" : "";
+        final String cChanS = hasColorChannel(renderModes) ? "-cols" : "";
+        final String cTexS = hasColorTexture(renderModes) ? "-ctex" : "";
+        if( Region.isVBAA(renderModes) ) {
+            return "vbaa"+curveS+cChanS+cTexS;
+        } else if( Region.isMSAA(renderModes) ) {
+            return "msaa"+curveS+cChanS+cTexS;
+        } else {
+            return "norm"+curveS+cChanS+cTexS;
+        }
+    }
+
+    protected Region(final int regionRenderModes) {
+        this.renderModes = regionRenderModes;
+        this.quality = MAX_QUALITY;
+    }
+
+    // FIXME: Better handling of impl. buffer growth .. !
+    // protected abstract void setupInitialComponentCount(int attributeCount, int indexCount);
+
+    protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
+    protected abstract void pushIndex(int idx);
+
+    /**
+     * Return bit-field of render modes, see {@link com.jogamp.graph.curve.opengl.GLRegion#create(int, TextureSequence)}.
+     */
+    public final int getRenderModes() { return renderModes; }
+
+    /** See {@link #MAX_QUALITY} */
+    public final int getQuality() { return quality; }
+
+    /** See {@link #MAX_QUALITY} */
+    public final void setQuality(final int q) { quality=q; }
+
+    protected void clearImpl() {
+        dirty = DIRTY_SHAPE | DIRTY_STATE;
+        numVertices = 0;
+        box.reset();
+    }
+
+    /**
+     * Returns true if capable of two pass rendering - VBAA, otherwise false.
+     */
+    public final boolean isVBAA() {
+        return Region.isVBAA(renderModes);
+    }
+
+    /**
+     * Returns true if capable of two pass rendering - MSAA, otherwise false.
+     */
+    public final boolean isMSAA() {
+        return Region.isMSAA(renderModes);
+    }
+
+    /**
+     * Returns true if capable of variable weights, otherwise false.
+     */
+    public final boolean hasVariableWeight() {
+        return Region.hasVariableWeight(renderModes);
+    }
+
+    /**
+     * Returns true if render mode has a color channel,
+     * i.e. the bit {@link #COLORCHANNEL_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public boolean hasColorChannel() {
+        return Region.hasColorChannel(renderModes);
+    }
+
+    /**
+     * Returns true if render mode has a color texture,
+     * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public boolean hasColorTexture() {
+        return Region.hasColorTexture(renderModes);
+    }
+
+
+    /** See {@link #setFrustum(Frustum)} */
+    public final Frustum getFrustum() { return frustum; }
+
+    /**
+     * Set {@link Frustum} culling for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}.
+     */
+    public final void setFrustum(final Frustum frustum) {
+        this.frustum = frustum;
+    }
+
+    final float[] coordsEx = new float[3];
+
+    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
+        if( null != transform ) {
+            final float[] coordsIn = vertIn.getCoord();
+            transform.transform(coordsIn, coordsEx);
+            coordsEx[2] = coordsIn[2];
+            box.resize(coordsEx[0], coordsEx[1], coordsEx[2]);
+            pushVertex(coordsEx, vertIn.getTexCoord(), rgba);
+        } else {
+            box.resize(vertIn.getX(), vertIn.getY(), vertIn.getZ());
+            pushVertex(vertIn.getCoord(), vertIn.getTexCoord(), rgba);
+        }
+        numVertices++;
+    }
+
+    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
+        pushIndex(numVertices);
+        pushNewVertexImpl(vertIn, transform, rgba);
+    }
+
+    private final AABBox tmpBox = new AABBox();
+
+    /**
+     * Add the given {@link OutlineShape} to this region with the given optional {@link AffineTransform}.
+     * <p>
+     * In case {@link #setFrustum(Frustum) frustum culling is set}, the {@link OutlineShape}
+     * is dropped if it's {@link OutlineShape#getBounds() bounding-box} is fully outside of the frustum.
+     * The optional {@link AffineTransform} is applied to the bounding-box beforehand.
+     * </p>
+     * @param rgbaColor TODO
+     */
+    public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+        if( null != frustum ) {
+            final AABBox shapeBox = shape.getBounds();
+            final AABBox shapeBoxT;
+            if( null != t ) {
+                t.transform(shapeBox, tmpBox);
+                shapeBoxT = tmpBox;
+            } else {
+                shapeBoxT = shapeBox;
+            }
+            if( frustum.isAABBoxOutside(shapeBoxT) ) {
+                if(DEBUG_INSTANCE) {
+                    System.err.println("Region.addOutlineShape(): Dropping outside shapeBoxT: "+shapeBoxT);
+                }
+                return;
+            }
+        }
+        final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
+        final ArrayList<Vertex> vertsIn = shape.getVertices();
+        if(DEBUG_INSTANCE) {
+            final int addedVerticeCount = shape.getAddedVerticeCount();
+            final int verticeCount = vertsIn.size() + addedVerticeCount;
+            final int indexCount = trisIn.size() * 3;
+            System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+t);
+            System.err.println("Region.addOutlineShape().0: VerticeCount "+vertsIn.size()+" + "+addedVerticeCount+" = "+verticeCount);
+            System.err.println("Region.addOutlineShape().0: IndexCount "+indexCount);
+        }
+        // setupInitialComponentCount(verticeCount, indexCount); // FIXME: Use it ?
+
+        final int idxOffset = numVertices;
+        int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
+        final int vertsDupCountV = 0, vertsDupCountT = 0, vertsKnownMovedT = 0;
+        if( vertsIn.size() >= 3 ) {
+            if(DEBUG_INSTANCE) {
+                System.err.println("Region.addOutlineShape(): Processing Vertices");
+            }
+            for(int i=0; i<vertsIn.size(); i++) {
+                pushNewVertexImpl(vertsIn.get(i), t, rgbaColor);
+                vertsVNewIdxCount++;
+            }
+            if(DEBUG_INSTANCE) {
+                System.err.println("Region.addOutlineShape(): Processing Triangles");
+            }
+            for(int i=0; i<trisIn.size(); i++) {
+                final Triangle triIn = trisIn.get(i);
+                if(Region.DEBUG_INSTANCE) {
+                    System.err.println("T["+i+"]: "+triIn);
+                }
+                // triEx.addVertexIndicesOffset(idxOffset);
+                // triangles.add( triEx );
+                final Vertex[] triInVertices = triIn.getVertices();
+                final int tv0Idx = triInVertices[0].getId();
+                if( Integer.MAX_VALUE-idxOffset > tv0Idx ) { // Integer.MAX_VALUE != i0 // FIXME: renderer uses SHORT!
+                    // valid 'known' idx - move by offset
+                    if(Region.DEBUG_INSTANCE) {
+                        System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
+                    }
+                    pushIndex(tv0Idx+idxOffset);
+                    pushIndex(triInVertices[1].getId()+idxOffset);
+                    pushIndex(triInVertices[2].getId()+idxOffset);
+                    vertsTMovIdxCount+=3;
+                } else {
+                    // invalid idx - generate new one
+                    if(Region.DEBUG_INSTANCE) {
+                        System.err.println("T["+i+"]: New Idx "+numVertices);
+                    }
+                    pushNewVertexIdxImpl(triInVertices[0], t, rgbaColor);
+                    pushNewVertexIdxImpl(triInVertices[1], t, rgbaColor);
+                    pushNewVertexIdxImpl(triInVertices[2], t, rgbaColor);
+                    vertsTNewIdxCount+=3;
+                }
+                tris++;
+            }
+        }
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addOutlineShape().X: idxOffset "+idxOffset+", tris: "+tris+", verts [idx "+vertsTNewIdxCount+", add "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
+            System.err.println("Region.addOutlineShape().X: verts: idx[v-new "+vertsVNewIdxCount+", t-new "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
+            System.err.println("Region.addOutlineShape().X: verts: idx t-moved "+vertsTMovIdxCount+", numVertices "+numVertices);
+            System.err.println("Region.addOutlineShape().X: verts: v-dups "+vertsDupCountV+", t-dups "+vertsDupCountT+", t-known "+vertsKnownMovedT);
+            // int vertsDupCountV = 0, vertsDupCountT = 0;
+            System.err.println("Region.addOutlineShape().X: box "+box);
+        }
+        markShapeDirty();
+    }
+
+    public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final float[] rgbaColor) {
+        for (int i = 0; i < shapes.size(); i++) {
+            addOutlineShape(shapes.get(i), transform, rgbaColor);
+        }
+    }
+
+    /** @return the AxisAligned bounding box of current region */
+    public final AABBox getBounds() {
         return box;
     }
 
-    /** Check if this region is dirty. A region is marked dirty
-     * when new Vertices, Triangles, and or Lines are added after a
-     * call to update()
-     * @return true if region is Dirty, false otherwise
-     *
-     * @see update(GL2ES2)
+    /**
+     * Mark this region's shape dirty, i.e. it's
+     * Vertices, Triangles, and or Lines changed.
      */
-    public final boolean isDirty() {
-        return dirty;
+    public final void markShapeDirty() {
+        dirty |= DIRTY_SHAPE;
+    }
+    /** Returns true if this region's shape are dirty, see {@link #markShapeDirty()}. */
+    public final boolean isShapeDirty() {
+        return 0 != ( dirty & DIRTY_SHAPE ) ;
+    }
+    /**
+     * Mark this region's state dirty, i.e.
+     * it's render attributes or parameters changed.
+     */
+    public final void markStateDirty() {
+        dirty |= DIRTY_STATE;
+    }
+    /** Returns true if this region's state is dirty, see {@link #markStateDirty()}. */
+    public final boolean isStateDirty() {
+        return 0 != ( dirty & DIRTY_STATE ) ;
     }
 
-    protected final void setDirty(boolean v) {
-        dirty = v;
+    /**
+     * See {@link #markShapeDirty()} and {@link #markStateDirty()}.
+     */
+    protected final void clearDirtyBits(final int v) {
+        dirty &= ~v;
+    }
+    protected final int getDirtyBits() { return dirty; }
+
+    public String toString() {
+        return "Region["+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
     }
 }

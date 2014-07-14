@@ -37,6 +37,10 @@ public interface Vertex extends Vert3fImmutable, Cloneable {
     public static interface Factory <T extends Vertex> {
         T create();
 
+        T create(Vertex src);
+
+        T create(int id, boolean onCurve, float[] texCoordsBuffer);
+
         T create(float x, float y, float z, boolean onCurve);
 
         T create(float[] coordsBuffer, int offset, int length, boolean onCurve);
@@ -65,7 +69,7 @@ public interface Vertex extends Vert3fImmutable, Cloneable {
 
     float[] getTexCoord();
 
-    void setTexCoord(float s, float t);
+    void setTexCoord(float s, float t, float p);
 
     /**
      * @see System#arraycopy(Object, int, Object, int, int) for thrown IndexOutOfBoundsException

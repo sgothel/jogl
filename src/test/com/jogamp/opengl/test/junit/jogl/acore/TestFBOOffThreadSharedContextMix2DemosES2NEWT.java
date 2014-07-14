@@ -107,7 +107,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException {
+    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
         System.err.println("requested: vsync "+swapInterval+", "+caps);
 
@@ -127,26 +127,26 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         final int fbod2_texUnit = 1;
 
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        GLCapabilities fbodCaps = (GLCapabilities) caps.cloneMutable();
+        final GLCapabilities fbodCaps = (GLCapabilities) caps.cloneMutable();
         // fbodCaps.setDoubleBuffered(false);
 
         final Mix2TexturesES2 mixerDemo = new Mix2TexturesES2(1, fbod1_texUnit, fbod2_texUnit);
 
         // FBOD1
         final GLOffscreenAutoDrawable.FBO fbod1 = (GLOffscreenAutoDrawable.FBO)
-                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight());
+                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight());
         fbod1.setSharedAutoDrawable(glWindow);
         fbod1.setUpstreamWidget(glWindow); // connect the real GLWindow (mouse/key) to offscreen!
         fbod1.setTextureUnit(fbod1_texUnit);
         {
-            GearsES2 demo0 = new GearsES2(-1);
+            final GearsES2 demo0 = new GearsES2(-1);
             fbod1.addGLEventListener(demo0);
             fbod1.addGLEventListener(new GLFinishOnDisplay());
             demo0.setIgnoreFocus(true);
         }
         fbod1.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
-            public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+            public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
                 mixerDemo.setTexID0(fbod1.getTextureBuffer(GL.GL_FRONT).getName());
             } });
         fbod1.display(); // init
@@ -155,14 +155,14 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
 
         // FBOD2
         final GLOffscreenAutoDrawable.FBO fbod2 = (GLOffscreenAutoDrawable.FBO)
-                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight());
+                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight());
         fbod2.setSharedAutoDrawable(glWindow);
         fbod2.setTextureUnit(fbod2_texUnit);
         fbod2.addGLEventListener(new RedSquareES2(-1));
         fbod2.addGLEventListener(new GLFinishOnDisplay());
         fbod2.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
-            public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+            public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
                 mixerDemo.setTexID1(fbod2.getTextureBuffer(GL.GL_FRONT).getName());
             } });
         fbod2.display(); // init
@@ -176,13 +176,13 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         glWindow.addGLEventListener(mixerDemo);
         glWindow.addGLEventListener(new GLEventListener() {
             int i=0, c=0;
-            public void init(GLAutoDrawable drawable) {}
-            public void dispose(GLAutoDrawable drawable) {}
-            public void display(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {}
+            public void dispose(final GLAutoDrawable drawable) {}
+            public void display(final GLAutoDrawable drawable) {
                 if(mainRun) return;
 
-                final int dw = drawable.getWidth();
-                final int dh = drawable.getHeight();
+                final int dw = drawable.getSurfaceWidth();
+                final int dh = drawable.getSurfaceHeight();
                 c++;
 
                 if(dw<800) {
@@ -200,9 +200,9 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
                     }
                 }
             }
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-                fbod1.setSize(width, height);
-                fbod2.setSize(width, height);
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+                fbod1.setSurfaceSize(width, height);
+                fbod2.setSurfaceSize(width, height);
             }
         });
 
@@ -213,7 +213,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         final Animator animator1 = new Animator();
         animator1.add(glWindow);
 
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
 
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -221,11 +221,11 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
-            public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+            public void windowResized(final WindowEvent e) {
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
-            public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+            public void windowMoved(final WindowEvent e) {
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
 
@@ -237,7 +237,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
 
         animator0.setUpdateFPSFrames(30, showFPS ? System.err : null);
         animator1.setUpdateFPSFrames(60, showFPS ? System.err : null);
@@ -263,12 +263,12 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+        final GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
         caps.setAlphaBits(1);
         runTestGL(caps);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         boolean waitForKey = false;
 
         mainRun = true;
@@ -295,11 +295,11 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         System.err.println("forceES2 "+forceES2);
 
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
             try {
                 System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestFBOOffThreadSharedContextMix2DemosES2NEWT.class.getName());
     }

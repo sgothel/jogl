@@ -114,11 +114,11 @@ public interface TextureSequence {
      * to associated related data.
      */
     public static class TextureFrame extends TimeFrameI {
-        public TextureFrame(Texture t, int pts, int duration) {
+        public TextureFrame(final Texture t, final int pts, final int duration) {
             super(pts, duration);
             texture = t;
         }
-        public TextureFrame(Texture t) {
+        public TextureFrame(final Texture t) {
             texture = t;
         }
 
@@ -172,6 +172,12 @@ public interface TextureSequence {
     public int[] getTextureMinMagFilter();
 
     public int[] getTextureWrapST();
+
+    /**
+     * Returns true if texture source is ready <i>and</i> a texture is available
+     * via {@link #getNextTexture(GL)} and {@link #getLastTexture()}.
+     */
+    public boolean isTextureAvailable();
 
     /**
      * Returns the last updated texture.
@@ -251,5 +257,24 @@ public interface TextureSequence {
      *
      * @throws IllegalStateException if instance is not initialized
      */
-    public String getTextureLookupFragmentShaderImpl() throws IllegalStateException ;
+    public String getTextureLookupFragmentShaderImpl() throws IllegalStateException;
+
+    /**
+     * Returns the hash code of the strings:
+     * <ul>
+     *   <li>{@link #getTextureLookupFragmentShaderImpl()}</li>
+     *   <li>{@link #getTextureSampler2DType()}</li>
+     * </ul>
+     * <p>
+     * Returns zero if {@link #isTextureAvailable() texture is not available}.
+     * </p>
+     * The returned hash code allows selection of a matching shader program for this {@link TextureSequence} instance.
+     * <p>
+     * </p>
+     * <p>
+     * Implementation shall cache the resulting hash code,
+     * which must be reset to zero if {@link #isTextureAvailable() texture is not available}.
+     * </p>
+     */
+    public int getTextureFragmentShaderHashCode();
 }

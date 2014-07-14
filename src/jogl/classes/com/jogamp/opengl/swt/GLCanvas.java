@@ -125,8 +125,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    private volatile boolean sendReshape; // volatile: maybe written by WindowManager thread w/o locking
 
    private static String getThreadName() { return Thread.currentThread().getName(); }
-   private static String toHexString(int v) { return "0x"+Integer.toHexString(v); }
-   private static String toHexString(long v) { return "0x"+Long.toHexString(v); }
+   private static String toHexString(final int v) { return "0x"+Integer.toHexString(v); }
+   private static String toHexString(final long v) { return "0x"+Long.toHexString(v); }
 
    /*
     * Invokes init(...) on all GLEventListeners. Assumes context is current when run.
@@ -215,7 +215,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                          } else {
                              context.destroy();
                          }
-                     } catch (GLException gle) {
+                     } catch (final GLException gle) {
                          gle.printStackTrace();
                      }
                  }
@@ -247,7 +247,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    private class DisposeGLEventListenerAction implements Runnable {
        private GLEventListener listener;
        private final boolean remove;
-       private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
+       private DisposeGLEventListenerAction(final GLEventListener listener, final boolean remove) {
            this.listener = listener;
            this.remove = remove;
        }
@@ -297,40 +297,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    /**
-    * Creates an instance using {@link #GLCanvas(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser, GLContext)}
-    * on the SWT thread.
-    *
-    * @param parent
-    *           Required (non-null) parent Composite.
-    * @param style
-    *           Optional SWT style bit-field. The {@link SWT#NO_BACKGROUND} bit is set before passing this up to the
-    *           Canvas constructor, so OpenGL handles the background.
-    * @param caps
-    *           Optional GLCapabilities. If not provided, the default capabilities for the default GLProfile for the
-    *           graphics device determined by the parent Composite are used. Note that the GLCapabilities that are
-    *           actually used may differ based on the capabilities of the graphics device.
-    * @param chooser
-    *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
-    *           requested GLCapabilities, and the available capabilities of the graphics device.
-    * @param shareWith
-    *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
-    * @return a new instance
-    * @deprecated Use {@link #create(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser)}
-    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-    */
-   public static GLCanvas create(final Composite parent, final int style, final GLCapabilitiesImmutable caps,
-                                 final GLCapabilitiesChooser chooser, final GLContext shareWith) {
-       final GLCanvas[] res = new GLCanvas[] { null };
-       parent.getDisplay().syncExec(new Runnable() {
-           @Override
-           public void run() {
-               res[0] = new GLCanvas( parent, style, caps, chooser, shareWith );
-           }
-       });
-       return res[0];
-   }
-
-   /**
     * Creates a new SWT GLCanvas.
     *
     * @param parent
@@ -346,33 +312,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
     *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
     *           requested GLCapabilities, and the available capabilities of the graphics device.
     */
-   public GLCanvas(final Composite parent, final int style, GLCapabilitiesImmutable capsReqUser,
+   public GLCanvas(final Composite parent, final int style, final GLCapabilitiesImmutable capsReqUser,
                    final GLCapabilitiesChooser capsChooser) {
-       this(parent, style, capsReqUser, capsChooser, null);
-   }
-
-   /**
-    * Creates a new SWT GLCanvas.
-    *
-    * @param parent
-    *           Required (non-null) parent Composite.
-    * @param style
-    *           Optional SWT style bit-field. The {@link SWT#NO_BACKGROUND} bit is set before passing this up to the
-    *           Canvas constructor, so OpenGL handles the background.
-    * @param capsReqUser
-    *           Optional GLCapabilities. If not provided, the default capabilities for the default GLProfile for the
-    *           graphics device determined by the parent Composite are used. Note that the GLCapabilities that are
-    *           actually used may differ based on the capabilities of the graphics device.
-    * @param capsChooser
-    *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
-    *           requested GLCapabilities, and the available capabilities of the graphics device.
-    * @param shareWith
-    *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
-    * @deprecated Use {@link #GLCanvas(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser)}
-    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
-    */
-   public GLCanvas(final Composite parent, final int style, GLCapabilitiesImmutable capsReqUser,
-                   final GLCapabilitiesChooser capsChooser, final GLContext shareWith) {
       /* NO_BACKGROUND required to avoid clearing bg in native SWT widget (we do this in the GL display) */
       super(parent, style | SWT.NO_BACKGROUND);
 
@@ -399,16 +340,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
           screen = SWTAccessor.getScreen(swtDevice, -1 /* default */);
       }
 
-      /* Select default GLCapabilities if none was provided, otherwise clone provided caps to ensure safety */
+      /* Select default GLCapabilities if none was provided, otherwise use cloned provided caps */
       if(null == capsReqUser) {
-          capsReqUser = new GLCapabilities(GLProfile.getDefault(screen.getDevice()));
+          this.capsRequested = new GLCapabilities(GLProfile.getDefault(screen.getDevice()));
+      } else {
+          this.capsRequested = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
       }
-
-      this.capsRequested = capsReqUser;
       this.capsChooser = capsChooser;
-      if( null != shareWith ) {
-          helper.setSharedContext(null, shareWith);
-      }
 
       // post create .. when ready
       gdkWindow = 0;
@@ -418,7 +356,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
       final Listener listener = new Listener () {
           @Override
-          public void handleEvent (Event event) {
+          public void handleEvent (final Event event) {
               switch (event.type) {
               case SWT.Paint:
                   displayIfNoAnimatorNoCheck();
@@ -438,35 +376,46 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
+   public final void setSharedContext(final GLContext sharedContext) throws IllegalStateException {
        helper.setSharedContext(this.context, sharedContext);
    }
 
    @Override
-   public final void setSharedAutoDrawable(GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+   public final void setSharedAutoDrawable(final GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
        helper.setSharedAutoDrawable(this, sharedAutoDrawable);
    }
 
    private final UpstreamSurfaceHook swtCanvasUpStreamHook = new UpstreamSurfaceHook() {
        @Override
-       public final void create(ProxySurface s) { /* nop */ }
+       public final void create(final ProxySurface s) { /* nop */ }
 
        @Override
-       public final void destroy(ProxySurface s) { /* nop */ }
+       public final void destroy(final ProxySurface s) { /* nop */ }
 
        @Override
-       public final int getWidth(ProxySurface s) {
+       public final int getSurfaceWidth(final ProxySurface s) {
            return clientArea.width;
        }
 
        @Override
-       public final int getHeight(ProxySurface s) {
+       public final int getSurfaceHeight(final ProxySurface s) {
            return clientArea.height;
        }
 
        @Override
        public String toString() {
            return "SWTCanvasUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+", "+clientArea.width+"x"+clientArea.height+"]";
+       }
+
+       /**
+        * {@inheritDoc}
+        * <p>
+        * Returns <code>null</code>.
+        * </p>
+        */
+       @Override
+       public final NativeSurface getUpstreamSurface() {
+           return null;
        }
    };
 
@@ -608,7 +557,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
        final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(capsRequested.getGLProfile());
 
        // Create a NativeWindow proxy for the SWT canvas
-       ProxySurface proxySurface = glFactory.createProxySurface(device, screen.getIndex(), nativeWindowHandle,
+       final ProxySurface proxySurface = glFactory.createProxySurface(device, screen.getIndex(), nativeWindowHandle,
                                                                 capsRequested, capsChooser, swtCanvasUpStreamHook);
        // Associate a GL surface with the proxy
        final GLDrawableImpl _drawable = (GLDrawableImpl) glFactory.createGLDrawable(proxySurface);
@@ -689,12 +638,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public int getWidth() {
+   public int getSurfaceWidth() {
       return clientArea.width;
    }
 
    @Override
-   public int getHeight() {
+   public int getSurfaceHeight() {
       return clientArea.height;
    }
 
@@ -720,7 +669,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+   public GLEventListener getGLEventListener(final int index) throws IndexOutOfBoundsException {
       return helper.getGLEventListener(index);
    }
 
@@ -730,17 +679,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public boolean getGLEventListenerInitState(GLEventListener listener) {
+   public boolean getGLEventListenerInitState(final GLEventListener listener) {
        return helper.getGLEventListenerInitState(listener);
    }
 
    @Override
-   public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+   public void setGLEventListenerInitState(final GLEventListener listener, final boolean initialized) {
        helper.setGLEventListenerInitState(listener, initialized);
    }
 
    @Override
-   public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+   public GLEventListener disposeGLEventListener(final GLEventListener listener, final boolean remove) {
        final DisposeGLEventListenerAction r = new DisposeGLEventListenerAction(listener, remove);
        runInGLThread(r);
        return r.listener;
@@ -770,7 +719,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public final Thread setExclusiveContextThread(Thread t) throws GLException {
+   public final Thread setExclusiveContextThread(final Thread t) throws GLException {
        return helper.setExclusiveContextThread(t, context);
    }
 
@@ -826,7 +775,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
+   public GLContext setContext(final GLContext newCtx, final boolean destroyPrevCtx) {
       final RecursiveLock _lock = lock;
       _lock.lock();
       try {
@@ -970,7 +919,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       action.run();
    }
 
-   private void runOnEDTIfAvail(boolean wait, final Runnable action) {
+   private void runOnEDTIfAvail(final boolean wait, final Runnable action) {
        final Display d = isDisposed() ? null : getDisplay();
        if( null == d || d.isDisposed() || d.getThread() == Thread.currentThread() ) {
            action.run();
@@ -984,15 +933,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    @Override
    public String toString() {
        final GLDrawable _drawable = drawable;
-       final int dw = (null!=_drawable) ? _drawable.getWidth() : -1;
-       final int dh = (null!=_drawable) ? _drawable.getHeight() : -1;
+       final int dw = (null!=_drawable) ? _drawable.getSurfaceWidth() : -1;
+       final int dh = (null!=_drawable) ? _drawable.getSurfaceHeight() : -1;
 
        return "SWT-GLCanvas[Realized "+isRealized()+
                ",\n\t"+((null!=_drawable)?_drawable.getClass().getName():"null-drawable")+
                ",\n\tFactory   "+getFactory()+
                ",\n\thandle    "+toHexString(getHandle())+
                ",\n\tDrawable size "+dw+"x"+dh+
-               ",\n\tSWT size "+getWidth()+"x"+getHeight()+"]";
+               ",\n\tSWT size "+getSurfaceWidth()+"x"+getSurfaceHeight()+"]";
    }
 
    public static void main(final String[] args) {
@@ -1014,7 +963,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
        canvas.addGLEventListener(new GLEventListener() {
            @Override
            public void init(final GLAutoDrawable drawable) {
-               GL gl = drawable.getGL();
+               final GL gl = drawable.getGL();
                System.err.println(JoglVersion.getGLInfo(gl, null));
            }
            @Override

@@ -32,7 +32,6 @@ import java.nio.ByteBuffer;
 
 import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
@@ -103,7 +102,7 @@ public class GLPixelBuffer {
          * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not.
          * See {@link #getAllowRowStride()} and {@link GLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
          */
-        public DefaultGLPixelBufferProvider(boolean allowRowStride) {
+        public DefaultGLPixelBufferProvider(final boolean allowRowStride) {
             this.allowRowStride = allowRowStride;
         }
 
@@ -111,7 +110,7 @@ public class GLPixelBuffer {
         public boolean getAllowRowStride() { return allowRowStride; }
 
         @Override
-        public GLPixelAttributes getAttributes(GL gl, int componentCount) {
+        public GLPixelAttributes getAttributes(final GL gl, final int componentCount) {
             final GLContext ctx = gl.getContext();
             final int dFormat, dType;
 
@@ -121,14 +120,14 @@ public class GLPixelBuffer {
                     dFormat = GL2ES2.GL_RED;
                 } else {
                     // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
-                    dFormat = GL2ES2.GL_ALPHA;
+                    dFormat = GL.GL_ALPHA;
                 }
                 dType   = GL.GL_UNSIGNED_BYTE;
             } else if( 3 == componentCount ) {
                 dFormat = GL.GL_RGB;
                 dType   = GL.GL_UNSIGNED_BYTE;
             } else if( 4 == componentCount ) {
-                int _dFormat = ctx.getDefaultPixelDataFormat();
+                final int _dFormat = ctx.getDefaultPixelDataFormat();
                 final int dComps = GLBuffers.componentCount(_dFormat);
                 if( dComps == componentCount ) {
                     dFormat = _dFormat;
@@ -150,11 +149,11 @@ public class GLPixelBuffer {
          * </p>
          */
         @Override
-        public GLPixelBuffer allocate(GL gl, GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, int minByteSize) {
+        public GLPixelBuffer allocate(final GL gl, final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
             if( minByteSize > 0 ) {
                 return new GLPixelBuffer(pixelAttributes, width, height, depth, pack, Buffers.newDirectByteBuffer(minByteSize), getAllowRowStride());
             } else {
-                int[] tmp = { 0 };
+                final int[] tmp = { 0 };
                 final int byteSize = GLBuffers.sizeof(gl, tmp, pixelAttributes.bytesPerPixel, width, height, depth, pack);
                 return new GLPixelBuffer(pixelAttributes, width, height, depth, pack, Buffers.newDirectByteBuffer(byteSize), getAllowRowStride());
             }
@@ -166,14 +165,14 @@ public class GLPixelBuffer {
      * utilizing best match for {@link GLPixelAttributes}
      * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
      */
-    public static GLPixelBufferProvider defaultProviderNoRowStride = new DefaultGLPixelBufferProvider(false);
+    public static final GLPixelBufferProvider defaultProviderNoRowStride = new DefaultGLPixelBufferProvider(false);
 
     /**
      * Default {@link GLPixelBufferProvider} with {@link GLPixelBufferProvider#getAllowRowStride()} == <code>true</code>,
      * utilizing best match for {@link GLPixelAttributes}
      * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
      */
-    public static GLPixelBufferProvider defaultProviderWithRowStride = new DefaultGLPixelBufferProvider(true);
+    public static final GLPixelBufferProvider defaultProviderWithRowStride = new DefaultGLPixelBufferProvider(true);
 
     /** Pixel attributes. */
     public static class GLPixelAttributes {
@@ -194,7 +193,7 @@ public class GLPixelBuffer {
          * @param dataFormat GL data format
          * @param dataType GL data type
          */
-        public GLPixelAttributes(int dataFormat, int dataType) {
+        public GLPixelAttributes(final int dataFormat, final int dataType) {
             this(0 < dataFormat ? GLBuffers.componentCount(dataFormat) : 0, dataFormat, dataType);
         }
         /**
@@ -203,7 +202,7 @@ public class GLPixelBuffer {
          * @param dataFormat GL data format
          * @param dataType GL data type
          */
-        public GLPixelAttributes(int componentCount, int dataFormat, int dataType) {
+        public GLPixelAttributes(final int componentCount, final int dataFormat, final int dataType) {
             this(componentCount, dataFormat, dataType, true);
         }
 
@@ -211,7 +210,7 @@ public class GLPixelBuffer {
          * Returns the matching {@link GLPixelAttributes} for the given {@link PixelFormat} and {@link GLProfile} if exists,
          * otherwise returns <code>null</code>.
          */
-        public static final GLPixelAttributes convert(PixelFormat pixFmt, GLProfile glp) {
+        public static final GLPixelAttributes convert(final PixelFormat pixFmt, final GLProfile glp) {
             int df = 0; // format
             int dt = GL.GL_UNSIGNED_BYTE; // data type
             switch(pixFmt) {
@@ -221,7 +220,7 @@ public class GLPixelBuffer {
                         df = GL2ES2.GL_RED;
                     } else {
                         // ALPHA/LUMINANCE is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
-                        df = GL2ES2.GL_LUMINANCE;
+                        df = GL.GL_LUMINANCE;
                     }
                     break;
                 case BGR888:
@@ -256,7 +255,7 @@ public class GLPixelBuffer {
             }
             return null;
         }
-        private GLPixelAttributes(int componentCount, int dataFormat, int dataType, boolean checkArgs) {
+        private GLPixelAttributes(final int componentCount, final int dataFormat, final int dataType, final boolean checkArgs) {
             this.componentCount = componentCount;
             this.format = dataFormat;
             this.type = dataType;
@@ -290,7 +289,7 @@ public class GLPixelBuffer {
                 case GL.GL_RGBA:
                     pixFmt = PixelFormat.RGBA8888;
                     break;
-                case GL2.GL_BGR:
+                case GL2GL3.GL_BGR:
                     pixFmt = PixelFormat.BGR888;
                     break;
                 case GL.GL_BGRA:
@@ -383,7 +382,7 @@ public class GLPixelBuffer {
      * @param buffer the backing array
      * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link #requiresNewBuffer(GL, int, int, int)}.
      */
-    public GLPixelBuffer(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, Buffer buffer, boolean allowRowStride) {
+    public GLPixelBuffer(final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final Buffer buffer, final boolean allowRowStride) {
         this.pixelAttributes = pixelAttributes;
         this.width = width;
         this.height = height;
@@ -414,7 +413,7 @@ public class GLPixelBuffer {
     }
 
     /** Sets the byte position of the {@link #buffer}. */
-    public Buffer position(int bytePos) {
+    public Buffer position(final int bytePos) {
         return buffer.position( bytePos / bufferElemSize );
     }
 
@@ -465,7 +464,7 @@ public class GLPixelBuffer {
      * @param newByteSize if &gt; 0, the pre-calculated minimum byte-size for the resulting buffer, otherwise ignore.
      * @see GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int)
      */
-    public boolean requiresNewBuffer(GL gl, int newWidth, int newHeight, int newByteSize) {
+    public boolean requiresNewBuffer(final GL gl, final int newWidth, final int newHeight, int newByteSize) {
         if( !isValid() ) {
             return true;
         }

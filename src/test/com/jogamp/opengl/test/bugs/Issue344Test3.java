@@ -6,7 +6,7 @@ public class Issue344Test3 extends Issue344Base {
         return "abcde";
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         new Issue344Test3().run(args);
     }
 }

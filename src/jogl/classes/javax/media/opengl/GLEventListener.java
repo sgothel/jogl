@@ -80,13 +80,23 @@ public interface GLEventListener extends EventListener {
       enabled. */
   public void display(GLAutoDrawable drawable);
 
-  /** Called by the drawable during the first repaint after the
-      component has been resized. The client can update the viewport
-      and view volume of the window appropriately, for example by a
-      call to {@link javax.media.opengl.GL#glViewport}; note that for
-      convenience the component has already called <code>glViewport(x,
-      y, width, height)</code> when this method is called, so the
-      client may not have to do anything in this method.
-  */
+  /**
+   * Called by the drawable during the first repaint after the
+   * component has been resized.
+   * <p>
+   * The client can update it's viewport associated data
+   * and view volume of the window appropriately.
+   * </p>
+   * <p>
+   * For efficiency the GL viewport has already been updated
+   * via <code>glViewport(x, y, width, height)</code> when this method is called.
+   * </p>
+   *
+   * @param drawable the triggering {@link GLAutoDrawable}
+   * @param x viewport x-coord in pixel units
+   * @param y viewport y-coord in pixel units
+   * @param width viewport width in pixel units
+   * @param height viewport height in pixel units
+   */
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height);
 }

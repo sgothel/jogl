@@ -43,23 +43,23 @@ import com.jogamp.newt.event.MouseEvent.PointerType;
  */
 public interface MouseListener extends NEWTEventListener
 {
- public void mouseClicked(MouseEvent e);
- /** Only generated for {@link PointerType#Mouse} */
- public void mouseEntered(MouseEvent e);
- /** Only generated for {@link PointerType#Mouse} */
- public void mouseExited(MouseEvent e);
- public void mousePressed(MouseEvent e);
- public void mouseReleased(MouseEvent e);
- public void mouseMoved(MouseEvent e);
- public void mouseDragged(MouseEvent e);
+    public void mouseClicked(MouseEvent e);
+    /** Only generated for {@link PointerType#Mouse} */
+    public void mouseEntered(MouseEvent e);
+    /** Only generated for {@link PointerType#Mouse} */
+    public void mouseExited(MouseEvent e);
+    public void mousePressed(MouseEvent e);
+    public void mouseReleased(MouseEvent e);
+    public void mouseMoved(MouseEvent e);
+    public void mouseDragged(MouseEvent e);
 
- /**
-  * Traditional event name originally produced by a {@link PointerType#Mouse mouse} pointer type.
-  * <p>
-  * Triggered for any rotational pointer events, see
-  * {@link MouseEvent#getRotation()} and {@link MouseEvent#getRotationScale()}.
-  * </p>
-  */
- public void mouseWheelMoved(MouseEvent e);
+    /**
+     * Traditional event name originally produced by a {@link PointerType#Mouse mouse} pointer type.
+     * <p>
+     * Triggered for any rotational pointer events, see
+     * {@link MouseEvent#getRotation()} and {@link MouseEvent#getRotationScale()}.
+     * </p>
+     */
+    public void mouseWheelMoved(MouseEvent e);
 }
 

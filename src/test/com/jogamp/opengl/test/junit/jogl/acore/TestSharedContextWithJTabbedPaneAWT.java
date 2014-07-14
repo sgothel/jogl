@@ -43,6 +43,9 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -63,7 +66,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
 
     static class DemoInstance {
         protected static GLCapabilities getCaps() {
-            GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc(true));
+            final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxFixedFunc(true));
 
             caps.setAlphaBits(8);
             caps.setRedBits(8);
@@ -82,8 +85,8 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
             final GLCanvas canvas;
             final boolean shared;
 
-            public SharedGLPanel(GLCanvas shareWith, int width, int height) {
-                GLContext sharedCtx = shareWith != null ? shareWith.getContext() : null;
+            public SharedGLPanel(final GLCanvas shareWith, final int width, final int height) {
+                final GLContext sharedCtx = shareWith != null ? shareWith.getContext() : null;
                 System.err.println("XXX WWPanel: shareWith "+shareWith+", sharedCtx "+sharedCtx);
                 canvas = new GLCanvas(getCaps()); // same caps for 1st and 2nd shared ctx !
                 if( null != shareWith) {
@@ -102,7 +105,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
             }
 
             @Override
-            public void init(GLAutoDrawable glAutoDrawable) {
+            public void init(final GLAutoDrawable glAutoDrawable) {
                 if (!shared) {
                     Assert.assertNull("Buffer is set, but instance is share master", bufferId);
                     makeVBO(glAutoDrawable);
@@ -120,56 +123,56 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
                     gl.glColor3f(0, 0, 0);
                     gl.glClearColor(1f, 1f, 1f, 1f);
                 }
-                gl.glShadeModel(GL2.GL_FLAT);
+                gl.glShadeModel(GLLightingFunc.GL_FLAT);
             }
 
             @Override
-            public void dispose(GLAutoDrawable glAutoDrawable) {}
+            public void dispose(final GLAutoDrawable glAutoDrawable) {}
 
             @Override
-            public void display(GLAutoDrawable glAutoDrawable) {
+            public void display(final GLAutoDrawable glAutoDrawable) {
                 final GL2 gl = glAutoDrawable.getGL().getGL2();
 
                 gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-                gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
-                gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, bufferId[0]);
-                gl.glVertexPointer(3, GL2.GL_FLOAT, 0, 0);
-                gl.glDrawArrays(GL2.GL_LINES, 0, 2);
+                gl.glEnableClientState(GLPointerFunc.GL_VERTEX_ARRAY);
+                gl.glBindBuffer(GL.GL_ARRAY_BUFFER, bufferId[0]);
+                gl.glVertexPointer(3, GL.GL_FLOAT, 0, 0);
+                gl.glDrawArrays(GL.GL_LINES, 0, 2);
             }
 
             @Override
-            public void reshape(GLAutoDrawable glAutoDrawable, int i, int i1, int i2, int i3) {
-                int w = getWidth();
-                int h = getHeight();
+            public void reshape(final GLAutoDrawable glAutoDrawable, final int i, final int i1, final int i2, final int i3) {
+                final int w = getWidth();
+                final int h = getHeight();
 
                 final GL2 gl = glAutoDrawable.getGL().getGL2();
 
                 gl.glViewport(0, 0, w, h);
-                gl.glMatrixMode(GL2.GL_PROJECTION);
+                gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
                 gl.glLoadIdentity();
                 gl.glOrtho(0, 1, 0, 1, -1, 1);
-                gl.glMatrixMode(GL2.GL_MODELVIEW);
+                gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
                 gl.glLoadIdentity();
             }
         }
 
-        protected void makeVBO(GLAutoDrawable drawable) {
-            GL2 gl = drawable.getGL().getGL2();
+        protected void makeVBO(final GLAutoDrawable drawable) {
+            final GL2 gl = drawable.getGL().getGL2();
 
             bufferId = new int[1];
             gl.glGenBuffers(1, bufferId, 0);
-            gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, bufferId[0]);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, bufferId[0]);
 
-            FloatBuffer vertices = Buffers.newDirectFloatBuffer(6);
+            final FloatBuffer vertices = Buffers.newDirectFloatBuffer(6);
             vertices.put(0).put(0).put(0);
             vertices.put(1).put(1).put(0);
-            gl.glBufferData(GL2.GL_ARRAY_BUFFER, vertices.capacity() * 4, vertices.rewind(), GL2.GL_STATIC_DRAW);
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, vertices.capacity() * 4, vertices.rewind(), GL.GL_STATIC_DRAW);
         }
 
         public JTabbedPane tabbedPanel;
 
-        public DemoInstance(JFrame f) {
+        public DemoInstance(final JFrame f) {
             try
             {
                 GLProfile.initSingleton(); // Lets have init debug messages above below marker
@@ -180,8 +183,8 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
                 f.add(tabbedPanel, BorderLayout.CENTER);
 
                 // Create two World Windows that share resources.
-                SharedGLPanel wwpA = new SharedGLPanel(null, 600, 600);
-                SharedGLPanel wwpB = new SharedGLPanel(wwpA.canvas, wwpA.getWidth(), wwpA.getHeight());
+                final SharedGLPanel wwpA = new SharedGLPanel(null, 600, 600);
+                final SharedGLPanel wwpB = new SharedGLPanel(wwpA.canvas, wwpA.getWidth(), wwpA.getHeight());
 
                 tabbedPanel.add(wwpA, "Window A");
                 tabbedPanel.add(wwpB, "Window B");
@@ -194,7 +197,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
                 f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
                 f.pack();
                 f.setResizable(true);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }
@@ -251,7 +254,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
             } });
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);

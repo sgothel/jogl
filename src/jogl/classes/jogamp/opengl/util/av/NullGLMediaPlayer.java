@@ -61,7 +61,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean setPlaySpeedImpl(float rate) {
+    protected final boolean setPlaySpeedImpl(final float rate) {
         return false;
     }
 
@@ -77,14 +77,14 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int seekImpl(int msec) {
+    protected final int seekImpl(final int msec) {
         pos_ms = msec;
         validatePos();
         return pos_ms;
     }
 
     @Override
-    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
         final int pts = getAudioPTSImpl();
         nextFrame.setPTS( pts );
         return pts;
@@ -98,7 +98,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void destroyImpl(GL gl) {
+    protected final void destroyImpl(final GL gl) {
         if(null != texData) {
             texData.destroy();
             texData = null;
@@ -108,17 +108,17 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     public final static TextureData createTestTextureData() {
         TextureData res = null;
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", NullGLMediaPlayer.class.getClassLoader());
+            final URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-28x16.png", NullGLMediaPlayer.class.getClassLoader());
             if(null != urlConn) {
                 res = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
         if(null == res) {
             final int w = 160;
             final int h =  90;
-            ByteBuffer buffer = Buffers.newDirectByteBuffer(w*h*4);
+            final ByteBuffer buffer = Buffers.newDirectByteBuffer(w*h*4);
             while(buffer.hasRemaining()) {
                 buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA);
             }
@@ -132,7 +132,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void initStreamImpl(int vid, int aid) throws IOException {
+    protected final void initStreamImpl(final int vid, final int aid) throws IOException {
         texData = createTestTextureData();
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
@@ -143,8 +143,8 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
                          _totalFrames, 0, _duration, "png-static", null);
     }
     @Override
-    protected final void initGLImpl(GL gl) throws IOException, GLException {
-        isInGLOrientation = true;
+    protected final void initGLImpl(final GL gl) throws IOException, GLException {
+        setIsGLOriented(true);
     }
 
     /**
@@ -154,13 +154,13 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
      * </p>
      */
     @Override
-    protected int validateTextureCount(int desiredTextureCount) {
+    protected int validateTextureCount(final int desiredTextureCount) {
         return TEXTURE_COUNT_MIN;
     }
 
     @Override
-    protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
-        final Texture texture = super.createTexImageImpl(gl, texName, width, height);
+    protected final TextureSequence.TextureFrame createTexImage(final GL gl, final int texName) {
+        final Texture texture = super.createTexImageImpl(gl, texName, getWidth(), getHeight());
         if(null != texData) {
             texture.updateImage(gl, texData);
         }
@@ -168,7 +168,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
+    protected final void destroyTexFrame(final GL gl, final TextureSequence.TextureFrame frame) {
         super.destroyTexFrame(gl, frame);
     }
 
@@ -181,8 +181,8 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
             pos_ms = getDuration();
             considerPausing = true;
         }
-        if(considerPausing && state == State.Playing) {
-            state = State.Paused;
+        if( considerPausing && State.Playing == getState() ) {
+            setState(State.Paused);
         }
     }
 }

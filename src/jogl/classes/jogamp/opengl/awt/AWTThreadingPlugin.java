@@ -86,7 +86,7 @@ public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
   }
 
   @Override
-  public final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
+  public final void invokeOnOpenGLThread(final boolean wait, final Runnable r) throws GLException {
     switch (ThreadingImpl.getMode()) {
       case ST_AWT:
         // FIXME: ideally should run all OpenGL work on the Java2D QFT

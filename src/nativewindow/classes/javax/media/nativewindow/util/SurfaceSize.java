@@ -32,7 +32,7 @@ package javax.media.nativewindow.util;
 /**
  * Immutable SurfaceSize Class, consisting of it's read only components:<br>
  * <ul>
- *  <li>{@link javax.media.nativewindow.util.DimensionImmutable} size in pixels</li>
+ *  <li>{@link javax.media.nativewindow.util.DimensionImmutable size in pixels}</li>
  *  <li><code>bits per pixel</code></li>
  * </ul>
  */
@@ -40,7 +40,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
     final DimensionImmutable resolution;
     final int bitsPerPixel;
 
-    public SurfaceSize(DimensionImmutable resolution, int bitsPerPixel) {
+    public SurfaceSize(final DimensionImmutable resolution, final int bitsPerPixel) {
         if(null==resolution || bitsPerPixel<=0) {
             throw new IllegalArgumentException("resolution must be set and bitsPerPixel greater 0");
         }
@@ -48,6 +48,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
         this.bitsPerPixel=bitsPerPixel;
     }
 
+    /** Returns the resolution in pixel units */
     public final DimensionImmutable getResolution() {
         return resolution;
     }
@@ -58,7 +59,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
 
     @Override
     public final String toString() {
-        return "[ "+resolution+" x "+bitsPerPixel+" bpp ]";
+        return "[ "+resolution+" pixels x "+bitsPerPixel+" bpp ]";
     }
 
     /**
@@ -91,10 +92,10 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
      *          otherwise <code>false</code>.
      */
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof SurfaceSize) {
-            SurfaceSize p = (SurfaceSize)obj;
+            final SurfaceSize p = (SurfaceSize)obj;
             return getResolution().equals(p.getResolution()) &&
                    getBitsPerPixel() == p.getBitsPerPixel();
         }

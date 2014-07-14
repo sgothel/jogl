@@ -32,17 +32,17 @@ import javax.media.opengl.GLEventListener;
 public abstract class PointsDemo implements GLEventListener {
     int swapInterval = 0;
     final int edge = 8; // 8*8
-    
-    public PointsDemo(int swapInterval) {
+
+    public PointsDemo(final int swapInterval) {
         this.swapInterval = swapInterval;
     }
 
     public PointsDemo() {
         this.swapInterval = 1;
     }
-    
+
     public abstract void setSmoothPoints(boolean v);
-    
-    public abstract void setPointParams(float minSize, float maxSize, float distAttenConst, float distAttenLinear, float distAttenQuadratic, float fadeThreshold);    
-        
+
+    public abstract void setPointParams(float minSize, float maxSize, float distAttenConst, float distAttenLinear, float distAttenQuadratic, float fadeThreshold);
+
 }

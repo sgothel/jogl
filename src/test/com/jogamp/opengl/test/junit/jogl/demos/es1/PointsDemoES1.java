@@ -41,6 +41,8 @@ import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLPipelineFactory;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
@@ -58,24 +60,24 @@ public class PointsDemoES1 extends PointsDemo {
     final int edge = 8; // 8*8
     boolean smooth = false;
 
-    public PointsDemoES1(int swapInterval) {
+    public PointsDemoES1(final int swapInterval) {
         this.swapInterval = swapInterval;
     }
 
     public PointsDemoES1() {
         this.swapInterval = 1;
     }
-        
-    public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+
+    public void setForceFFPEmu(final boolean forceFFPEmu, final boolean verboseFFPEmu, final boolean debugFFPEmu, final boolean traceFFPEmu) {
         this.forceFFPEmu = forceFFPEmu;
         this.verboseFFPEmu = verboseFFPEmu;
         this.debugFFPEmu = debugFFPEmu;
         this.traceFFPEmu = traceFFPEmu;
     }
-    
-    public void setSmoothPoints(boolean v) { smooth = v; }
-    
-    public void init(GLAutoDrawable glad) {
+
+    public void setSmoothPoints(final boolean v) { smooth = v; }
+
+    public void init(final GLAutoDrawable glad) {
         GL _gl = glad.getGL();
 
         if(debugFFPEmu) {
@@ -89,27 +91,27 @@ public class PointsDemoES1 extends PointsDemo {
             trace = false;
         }
         GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
-        
+
         if(debug) {
             try {
                 // Debug ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (final Exception e) {e.printStackTrace();}
         }
         if(trace) {
             try {
                 // Trace ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
-            } catch (Exception e) {e.printStackTrace();}
-        }                
-        
+            } catch (final Exception e) {e.printStackTrace();}
+        }
+
         System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
         System.err.println("GL Profile: "+gl.getGLProfile());
-        
+
         // Allocate Vertex Array
-        vertices = GLArrayDataServer.createFixed(GL2ES1.GL_VERTEX_ARRAY, 3, GL.GL_FLOAT, false, edge*edge, GL.GL_STATIC_DRAW);
+        vertices = GLArrayDataServer.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, 3, GL.GL_FLOAT, false, edge*edge, GL.GL_STATIC_DRAW);
         pointSizes = new float[edge*edge];
         for(int i=0; i<edge; i++) {
             for(int j=0; j<edge; j++) {
@@ -125,10 +127,10 @@ public class PointsDemoES1 extends PointsDemo {
         vertices.enableBuffer(gl, false);
 
         // OpenGL Render Settings
-        gl.glEnable(GL2ES1.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_DEPTH_TEST);
     }
 
-    public void setPointParams(float minSize, float maxSize, float distAttenConst, float distAttenLinear, float distAttenQuadratic, float fadeThreshold) {
+    public void setPointParams(final float minSize, final float maxSize, final float distAttenConst, final float distAttenLinear, final float distAttenQuadratic, final float fadeThreshold) {
         pointMinSize = minSize;
         pointMaxSize = maxSize;
         pointFadeThreshold = fadeThreshold;
@@ -136,25 +138,25 @@ public class PointsDemoES1 extends PointsDemo {
         pointDistAtten.put(1, distAttenLinear);
         pointDistAtten.put(2, distAttenQuadratic);
     }
-    
+
     /** default values */
     private float pointMinSize = 0.0f;
     private float pointMaxSize = 4096.0f;
     private float pointFadeThreshold = 1.0f;
     private final FloatBuffer pointDistAtten = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f });
 
-    public void display(GLAutoDrawable glad) {
-        GL2ES1 gl = glad.getGL().getGL2ES1();
+    public void display(final GLAutoDrawable glad) {
+        final GL2ES1 gl = glad.getGL().getGL2ES1();
         gl.glClearColor(0f, 0f, 0f, 0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
+        gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         gl.glLoadIdentity();
         gl.glTranslatef(0, 0, -10);
 
         gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f );
-        
+
         vertices.enableBuffer(gl, true);
-        
+
         gl.glEnable ( GL.GL_BLEND );
         gl.glBlendFunc ( GL.GL_SRC_ALPHA, GL.GL_ONE );
         if(smooth) {
@@ -164,35 +166,35 @@ public class PointsDemoES1 extends PointsDemo {
         }
         gl.glPointParameterf(GL2ES1.GL_POINT_SIZE_MIN, pointMinSize );
         gl.glPointParameterf(GL2ES1.GL_POINT_SIZE_MAX, pointMaxSize );
-        gl.glPointParameterf(GL2ES1.GL_POINT_FADE_THRESHOLD_SIZE, pointFadeThreshold);
+        gl.glPointParameterf(GL.GL_POINT_FADE_THRESHOLD_SIZE, pointFadeThreshold);
         gl.glPointParameterfv(GL2ES1.GL_POINT_DISTANCE_ATTENUATION, pointDistAtten );
-        
+
         for(int i=edge*edge-1; i>=0; i--) {
             gl.glPointSize(pointSizes[i]);
-            gl.glDrawArrays(GL.GL_POINTS, i, 1);            
-        }        
-        
+            gl.glDrawArrays(GL.GL_POINTS, i, 1);
+        }
+
         vertices.enableBuffer(gl, false);
     }
 
-    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         // Thread.dumpStack();
-        GL2ES1 gl = glad.getGL().getGL2ES1();
-        
-        if(-1 != swapInterval) {        
+        final GL2ES1 gl = glad.getGL().getGL2ES1();
+
+        if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
         }
-        
+
         // Set location in front of camera
-        gl.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         glu.gluPerspective(45.0F, ( (float) width / (float) height ) / 1.0f, 1.0F, 100.0F);
         //gl.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
     }
 
-    public void dispose(GLAutoDrawable glad) {
-        GL2ES1 gl = glad.getGL().getGL2ES1();
+    public void dispose(final GLAutoDrawable glad) {
+        final GL2ES1 gl = glad.getGL().getGL2ES1();
         vertices.destroy(gl);
         vertices = null;
-    }    
+    }
 }

@@ -572,7 +572,7 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
     pAV->aid=AV_STREAM_ID_AUTO;
 
     if(pAV->verbose) {
-        fprintf(stderr, "Info: Use avresample %d, swresample %d, device %d, refCount %d\n", 
+        fprintf(stderr, "Info: Has avresample %d, swresample %d, device %d, refCount %d\n", 
             AV_HAS_API_AVRESAMPLE(pAV), AV_HAS_API_SWRESAMPLE(pAV), HAS_FUNC(sp_avdevice_register_all), pAV->useRefCountedFrames);
     }
     return (jlong) (intptr_t) pAV;
@@ -990,6 +990,10 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
                     }
                 }
             }
+        }
+        if(pAV->verbose) {
+            fprintf(stderr, "Info: Need resample %d, Use avresample %d, swresample %d\n", 
+                pAV->aSinkSupport, NULL!=pAV->avResampleCtx, NULL!=pAV->swResampleCtx);
         }
 
         // Allocate audio frames

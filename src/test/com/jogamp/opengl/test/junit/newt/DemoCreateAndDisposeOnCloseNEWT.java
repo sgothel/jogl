@@ -50,7 +50,7 @@ import com.jogamp.opengl.util.Animator;
  *
  */
 public class DemoCreateAndDisposeOnCloseNEWT {
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         int closeMode = 0; // 0 - none, 1 - window, animator, 2 - animator, window, 3 - System.exit
 
         for(int i=0; i<args.length; i++) {
@@ -65,26 +65,26 @@ public class DemoCreateAndDisposeOnCloseNEWT {
         caps.setDoubleBuffered(true);
         caps.setDepthBits(16);
         final Animator animator = new Animator();
-        GLWindow glWindow = GLWindow.create(caps);
+        final GLWindow glWindow = GLWindow.create(caps);
         animator.add(glWindow);
         glWindow.addGLEventListener(new GLEventListener() {
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 System.out.println("GLEventListener.reshape");
             }
 
             @Override
-            public void init(GLAutoDrawable drawable) {
+            public void init(final GLAutoDrawable drawable) {
                 System.out.println("GLEventListener.init");
             }
 
             @Override
-            public void dispose(GLAutoDrawable drawable) {
+            public void dispose(final GLAutoDrawable drawable) {
                 System.out.println("GLEventListener.dispose");
             }
 
             @Override
-            public void display(GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
             }
         });
         glWindow.setTitle("Test");
@@ -96,12 +96,12 @@ public class DemoCreateAndDisposeOnCloseNEWT {
         glWindow.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE);
         glWindow.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowDestroyNotify(WindowEvent e) {
+            public void windowDestroyNotify(final WindowEvent e) {
                 System.out.println("GLWindow.destroyNotify");
             }
 
             @Override
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 System.out.println("GLWindow.destroyed");
                 animator.stop();
             }
@@ -132,7 +132,7 @@ public class DemoCreateAndDisposeOnCloseNEWT {
     static void sleep1s() {
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             e.printStackTrace();
         }
     }

@@ -60,14 +60,14 @@ import java.io.IOException;
  */
 public class Script {
 
-    private int _defaultLangSysOffset;
-    private int _langSysCount;
+    private final int _defaultLangSysOffset;
+    private final int _langSysCount;
     private LangSysRecord[] _langSysRecords;
     private LangSys _defaultLangSys;
     private LangSys[] _langSys;
 
     /** Creates new ScriptTable */
-    protected Script(DataInputStream dis, int offset) throws IOException {
+    protected Script(final DataInputStream dis, final int offset) throws IOException {
 
         // Ensure we're in the right place
         dis.reset();
@@ -103,7 +103,7 @@ public class Script {
         return _langSysCount;
     }
 
-    public LangSysRecord getLangSysRecord(int i) {
+    public LangSysRecord getLangSysRecord(final int i) {
         return _langSysRecords[i];
     }
 
@@ -111,7 +111,7 @@ public class Script {
         return _defaultLangSys;
     }
 
-    public LangSys getLangSys(int i) {
+    public LangSys getLangSys(final int i) {
         return _langSys[i];
     }
 }

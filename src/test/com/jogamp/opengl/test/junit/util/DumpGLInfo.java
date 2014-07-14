@@ -35,17 +35,17 @@ import com.jogamp.opengl.JoglVersion;
 
 public class DumpGLInfo implements GLEventListener {
 
-    public void init(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
+    public void init(final GLAutoDrawable drawable) {
+        final GL gl = drawable.getGL();
         System.err.println(JoglVersion.getGLInfo(gl, null, true));
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     }
 
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
     }
 
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
     }
 }

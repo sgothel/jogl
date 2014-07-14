@@ -48,6 +48,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.DimensionImmutable;
@@ -59,10 +60,12 @@ import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
+import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntBitfield;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -94,7 +97,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     static {
         Debug.initSingleton();
-        DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
+        DEBUG_TEST_REPARENT_INCOMPATIBLE = PropertyAccess.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
 
         ScreenImpl.initSingleton();
     }
@@ -118,7 +121,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
     }
-    private static void addWindow2List(WindowImpl window) {
+    private static void addWindow2List(final WindowImpl window) {
         synchronized(windowList) {
             // GC before add
             int i=0, gced=0;
@@ -148,8 +151,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile long windowHandle = 0; // lifecycle critical
     private volatile boolean visible = false; // lifecycle critical
     private volatile boolean hasFocus = false;
-    private volatile int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
-    private volatile int x = 64, y = 64; // client-area pos w/o insets
+    private volatile int pixWidth = 128, pixHeight = 128; // client-area size w/o insets in pixel units, default: may be overwritten by user
+    private volatile int winWidth = 128, winHeight = 128; // client-area size w/o insets in window units, default: may be overwritten by user
+    protected final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
+    private volatile int x = 64, y = 64; // client-area pos w/o insets in window units
     private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
     private boolean blockInsetsChange = false; // block insets change (from same thread)
 
@@ -194,7 +202,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** from event passing: {@link WindowImpl#consumePointerEvent(MouseEvent)}. */
     private static class PointerState0 {
         /** Pointer entered window - is inside the window (may be synthetic) */
-        boolean insideWindow = false;
+        boolean insideSurface = false;
         /** Mouse EXIT has been sent (only for MOUSE type enter/exit)*/
         boolean exitSent = false;
 
@@ -207,7 +215,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         void clearButton() {
             lastButtonPressTime = 0;
         }
-        public String toString() { return "PState0[inside "+insideWindow+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+", dragging "+dragging+"]"; }
+        public String toString() { return "PState0[inside "+insideSurface+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+", dragging "+dragging+"]"; }
     }
     private final PointerState0 pState0 = new PointerState0();
 
@@ -235,13 +243,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final Point[] movePositions = new Point[] {
                 new Point(), new Point(), new Point(), new Point(),
                 new Point(), new Point(), new Point(), new Point() };
-        final Point getMovePosition(int id) {
+        final Point getMovePosition(final int id) {
             if( 0 <= id && id < movePositions.length ) {
                 return movePositions[id];
             }
             return null;
         }
-        public final String toString() { return "PState1[inside "+insideWindow+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+
+        public final String toString() { return "PState1[inside "+insideSurface+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+
                             ", pressed [button "+buttonPressed+", mask "+buttonPressedMask+", dragging "+dragging+", clickCount "+lastButtonClickCount+"]"; }
     }
     private final PointerState1 pState1 = new PointerState1();
@@ -264,7 +272,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Construction Methods
     //
 
-    private static Class<?> getWindowClass(String type)
+    private static Class<?> getWindowClass(final String type)
         throws ClassNotFoundException
     {
         final Class<?> windowClass = NewtFactory.getCustomClass(type, "WindowDriver");
@@ -274,7 +282,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowClass;
     }
 
-    public static WindowImpl create(NativeWindow parentWindow, long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
+    public static WindowImpl create(final NativeWindow parentWindow, final long parentWindowHandle, final Screen screen, final CapabilitiesImmutable caps) {
         try {
             Class<?> windowClass;
             if(caps.isOnscreen()) {
@@ -282,7 +290,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } else {
                 windowClass = OffscreenWindow.class;
             }
-            WindowImpl window = (WindowImpl) windowClass.newInstance();
+            final WindowImpl window = (WindowImpl) windowClass.newInstance();
             window.parentWindow = parentWindow;
             window.parentWindowHandle = parentWindowHandle;
             window.screen = (ScreenImpl) screen;
@@ -290,30 +298,30 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.instantiationFinished();
             addWindow2List(window);
             return window;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             t.printStackTrace();
             throw new NativeWindowException(t);
         }
     }
 
-    public static WindowImpl create(Object[] cstrArguments, Screen screen, CapabilitiesImmutable caps) {
+    public static WindowImpl create(final Object[] cstrArguments, final Screen screen, final CapabilitiesImmutable caps) {
         try {
-            Class<?> windowClass = getWindowClass(screen.getDisplay().getType());
-            Class<?>[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
+            final Class<?> windowClass = getWindowClass(screen.getDisplay().getType());
+            final Class<?>[] cstrArgumentTypes = getCustomConstructorArgumentTypes(windowClass);
             if(null==cstrArgumentTypes) {
                 throw new NativeWindowException("WindowClass "+windowClass+" doesn't support custom arguments in constructor");
             }
-            int argsChecked = verifyConstructorArgumentTypes(cstrArgumentTypes, cstrArguments);
+            final int argsChecked = verifyConstructorArgumentTypes(cstrArgumentTypes, cstrArguments);
             if ( argsChecked < cstrArguments.length ) {
                 throw new NativeWindowException("WindowClass "+windowClass+" constructor mismatch at argument #"+argsChecked+"; Constructor: "+getTypeStrList(cstrArgumentTypes)+", arguments: "+getArgsStrList(cstrArguments));
             }
-            WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
+            final WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.instantiationFinished();
             addWindow2List(window);
             return window;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new NativeWindowException(t);
         }
     }
@@ -332,7 +340,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         parentWindowHandle = 0;
     }
 
-    protected final void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg) {
+    protected final void setGraphicsConfiguration(final AbstractGraphicsConfiguration cfg) {
         config = cfg;
     }
 
@@ -500,7 +508,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return true;
     }
 
-    private static long getNativeWindowHandle(NativeWindow nativeWindow) {
+    private static long getNativeWindowHandle(final NativeWindow nativeWindow) {
         long handle = 0;
         if(null!=nativeWindow) {
             boolean wasLocked = false;
@@ -511,7 +519,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(0==handle) {
                         throw new NativeWindowException("Parent native window handle is NULL, after succesful locking: "+nativeWindow);
                     }
-                } catch (NativeWindowException nwe) {
+                } catch (final NativeWindowException nwe) {
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window.getNativeWindowHandle: not successful yet: "+nwe);
                     }
@@ -549,9 +557,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+    public final WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
         synchronized (closingListenerLock) {
-            WindowClosingMode _op = defaultCloseOperation;
+            final WindowClosingMode _op = defaultCloseOperation;
             defaultCloseOperation = op;
             return _op;
         }
@@ -632,10 +640,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * to insets and positioning a decorated window to 0/0, which would place the frame
      * outside of the screen.</p>
      *
-     * @param x client-area position, or <0 if unchanged
-     * @param y client-area position, or <0 if unchanged
-     * @param width client-area size, or <=0 if unchanged
-     * @param height client-area size, or <=0 if unchanged
+     * @param x client-area position in window units, or <0 if unchanged
+     * @param y client-area position in window units, or <0 if unchanged
+     * @param width client-area size in window units, or <=0 if unchanged
+     * @param height client-area size in window units, or <=0 if unchanged
      * @param flags bitfield of change and status flags
      *
      * @see #sizeChanged(int,int)
@@ -649,18 +657,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Default is all but {@link #FLAG_IS_FULLSCREEN_SPAN}
      * </p>
      */
-    protected boolean isReconfigureFlagSupported(int changeFlags) {
+    protected boolean isReconfigureFlagSupported(final int changeFlags) {
         return 0 == ( changeFlags & FLAG_IS_FULLSCREEN_SPAN );
     }
 
-    protected int getReconfigureFlags(int changeFlags, boolean visible) {
-        return changeFlags |= ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
-                              ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
-                              ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
-                              ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
-                              ( visible ? FLAG_IS_VISIBLE : 0 ) ;
+    protected int getReconfigureFlags(final int changeFlags, final boolean visible) {
+        return changeFlags | ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
+                             ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
+                             ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
+                             ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
+                             ( visible ? FLAG_IS_VISIBLE : 0 ) ;
     }
-    protected static String getReconfigureFlagsAsString(StringBuilder sb, int flags) {
+    protected static String getReconfigureFlagsAsString(StringBuilder sb, final int flags) {
         if(null == sb) { sb = new StringBuilder(); }
         sb.append("[");
 
@@ -704,11 +712,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return sb.toString();
     }
 
-    protected void setTitleImpl(String title) {}
+    protected void setTitleImpl(final String title) {}
 
     /**
      * Translates the given window client-area coordinates with top-left origin
-     * to screen coordinates.
+     * to screen coordinates in window units.
      * <p>
      * Since the position reflects the client area, it does not include the insets.
      * </p>
@@ -721,7 +729,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract Point getLocationOnScreenImpl(int x, int y);
 
-    /** Triggered by user via {@link #getInsets()}.<br>
+    /**
+     * Triggered by user via {@link #getInsets()}.<br>
      * Implementations may implement this hook to update the insets.<br>
      * However, they may prefer the event driven path via {@link #insetsChanged(boolean, int, int, int, int)}.
      *
@@ -730,9 +739,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract void updateInsetsImpl(Insets insets);
 
-    protected boolean setPointerVisibleImpl(boolean pointerVisible) { return false; }
-    protected boolean confinePointerImpl(boolean confine) { return false; }
-    protected void warpPointerImpl(int x, int y) { }
+    protected boolean setPointerVisibleImpl(final boolean pointerVisible) { return false; }
+    protected boolean confinePointerImpl(final boolean confine) { return false; }
+    protected void warpPointerImpl(final int x, final int y) { }
     protected void setPointerIconImpl(final PointerIconImpl pi) { }
 
     //----------------------------------------------------------------------
@@ -811,22 +820,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void addSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
     @Override
-    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+    public final void addSurfaceUpdatedListener(final int index, final SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
     }
 
     @Override
-    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void removeSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
     }
 
     @Override
-    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public final void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
         surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
     }
 
@@ -850,6 +859,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     // public final void destroy() - see below
+
+    @Override
+    public final NativeSurface getNativeSurface() { return this; }
 
     @Override
     public final NativeWindow getParent() {
@@ -908,15 +920,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return screen;
     }
 
-    @Override
-    public final MonitorDevice getMainMonitor() {
-        return screen.getMainMonitor(new Rectangle(getX(), getY(), getWidth(), getHeight()));
+    protected void setScreen(final ScreenImpl newScreen) { // never null !
+        removeScreenReference();
+        screen = newScreen;
     }
 
-    protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
+    @Override
+    public final MonitorDevice getMainMonitor() {
+        return screen.getMainMonitor( getBounds() );
+    }
+
+    /**
+     * @param visible
+     * @param x client-area position in window units, or <0 if unchanged
+     * @param y client-area position in window units, or <0 if unchanged
+     * @param width client-area size in window units, or <=0 if unchanged
+     * @param height client-area size in window units, or <=0 if unchanged
+     */
+    protected final void setVisibleImpl(final boolean visible, final int x, final int y, final int width, final int height) {
         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));
     }
-    final void setVisibleActionImpl(boolean visible) {
+    final void setVisibleActionImpl(final boolean visible) {
         boolean nativeWindowCreated = false;
         boolean madeVisible = false;
 
@@ -926,7 +950,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!visible && null!=childWindows && childWindows.size()>0) {
               synchronized(childWindowsLock) {
                 for(int i = 0; i < childWindows.size(); i++ ) {
-                    NativeWindow nw = childWindows.get(i);
+                    final NativeWindow nw = childWindows.get(i);
                     if(nw instanceof WindowImpl) {
                         ((WindowImpl)nw).setVisible(false);
                     }
@@ -957,7 +981,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(isNativeValid() && visible && null!=childWindows && childWindows.size()>0) {
               synchronized(childWindowsLock) {
                 for(int i = 0; i < childWindows.size(); i++ ) {
-                    NativeWindow nw = childWindows.get(i);
+                    final NativeWindow nw = childWindows.get(i);
                     if(nw instanceof WindowImpl) {
                         ((WindowImpl)nw).setVisible(true);
                     }
@@ -980,7 +1004,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class VisibleAction implements Runnable {
         boolean visible;
 
-        private VisibleAction(boolean visible) {
+        private VisibleAction(final boolean visible) {
             this.visible = visible;
         }
 
@@ -991,7 +1015,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setVisible(boolean wait, boolean visible) {
+    public final void setVisible(final boolean wait, final boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
@@ -999,18 +1023,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setVisible(boolean visible) {
+    public final void setVisible(final boolean visible) {
         setVisible(true, visible);
     }
 
     private class SetSizeAction implements Runnable {
         int width, height;
-        boolean disregardFS;
+        boolean force;
 
-        private SetSizeAction(int w, int h, boolean disregardFS) {
+        private SetSizeAction(final int w, final int h, final boolean disregardFS) {
             this.width = w;
             this.height = h;
-            this.disregardFS = disregardFS;
+            this.force = disregardFS;
         }
 
         @Override
@@ -1018,9 +1042,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if ( ( disregardFS || !isFullscreen() ) && ( getWidth() != width || getHeight() != height ) ) {
+                if ( force || ( !isFullscreen() && ( getWidth() != width || getHeight() != height ) ) ) {
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
+                        System.err.println("Window setSize: START force "+force+", "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
                     }
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
                     if ( visible && isNativeValid() && ( 0 >= width || 0 >= height ) ) {
@@ -1053,19 +1077,24 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private void setFullscreenSize(int width, int height) {
-        runOnEDTIfAvail(true, new SetSizeAction(width, height, true));
+    private void setSize(final int width, final int height, final boolean force) {
+        runOnEDTIfAvail(true, new SetSizeAction(width, height, force));
     }
     @Override
-    public final void setSize(int width, int height) {
+    public final void setSize(final int width, final int height) {
         runOnEDTIfAvail(true, new SetSizeAction(width, height, false));
     }
     @Override
-    public final void setTopLevelSize(int width, int height) {
+    public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
+        // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        setSize(pixelWidth / getPixelScaleX(), pixelHeight / getPixelScaleY());
+    }
+    @Override
+    public final void setTopLevelSize(final int width, final int height) {
         setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
 
-    private class DestroyAction implements Runnable {
+    private final Runnable destroyAction = new Runnable() {
         @Override
         public final void run() {
             boolean animatorPaused = false;
@@ -1090,9 +1119,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                   if(childWindows.size()>0) {
                     // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
                     @SuppressWarnings("unchecked")
+                    final
                     ArrayList<NativeWindow> clonedChildWindows = (ArrayList<NativeWindow>) childWindows.clone();
                     while( clonedChildWindows.size() > 0 ) {
-                      NativeWindow nw = clonedChildWindows.remove(0);
+                      final NativeWindow nw = clonedChildWindows.remove(0);
                       if(nw instanceof WindowImpl) {
                           ((WindowImpl)nw).windowDestroyNotify(true);
                       } else {
@@ -1117,7 +1147,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     setGraphicsConfiguration(null);
                 }
                 removeScreenReference();
-                Display dpy = screen.getDisplay();
+                final Display dpy = screen.getDisplay();
                 if(null != dpy) {
                     dpy.validateEDTStopped();
                 }
@@ -1137,6 +1167,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 fullscreenUseMainMonitor = true;
                 hasFocus = false;
                 parentWindowHandle = 0;
+                hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+                hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+                nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+                nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
                 _lock.unlock();
             }
@@ -1160,9 +1194,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowListeners = null;
             parentWindow = null;
             */
-        }
-    }
-    private final DestroyAction destroyAction = new DestroyAction();
+        } };
 
     @Override
     public void destroy() {
@@ -1170,7 +1202,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         runOnEDTIfAvail(true, destroyAction);
     }
 
-    protected void destroy(boolean preserveResources) {
+    protected void destroy(final boolean preserveResources) {
         if( null != lifecycleHook ) {
             lifecycleHook.preserveGLStateAtDestroy( preserveResources );
         }
@@ -1182,7 +1214,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param pWin parent window, may be null
      * @return true if at least one of both window's configurations is offscreen
      */
-    protected static boolean isOffscreenInstance(NativeWindow cWin, NativeWindow pWin) {
+    protected static boolean isOffscreenInstance(final NativeWindow cWin, final NativeWindow pWin) {
         boolean ofs = false;
         final AbstractGraphicsConfiguration cWinCfg = cWin.getGraphicsConfiguration();
         if( null != cWinCfg ) {
@@ -1203,7 +1235,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final int hints;
         ReparentOperation operation;
 
-        private ReparentAction(NativeWindow newParentWindow, int topLevelX, int topLevelY, int hints) {
+        private ReparentAction(final NativeWindow newParentWindow, final int topLevelX, final int topLevelY, int hints) {
             this.newParentWindow = newParentWindow;
             this.topLevelX = topLevelX;
             this.topLevelY = topLevelY;
@@ -1216,11 +1248,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         private ReparentOperation getOp() {
             return operation;
-        }
-
-        private void setScreen(ScreenImpl newScreen) { // never null !
-            removeScreenReference();
-            screen = newScreen;
         }
 
         @Override
@@ -1427,7 +1454,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         WindowImpl.this.waitForVisible(false, false);
                         // FIXME: Some composite WM behave slacky .. give 'em chance to change state -> invisible,
                         // even though we do exactly that (KDE+Composite)
-                        try { Thread.sleep(100); } catch (InterruptedException e) { }
+                        try { Thread.sleep(100); } catch (final InterruptedException e) { }
                         display.dispatchMessagesNative(); // status up2date
                     }
 
@@ -1510,7 +1537,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
+                                       ", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+
+                                       ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
+                                       getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
                 }
             } finally {
                 if(null!=lifecycleHook) {
@@ -1534,12 +1564,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+                System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
+                                   ", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+
+                                   ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
+                                   getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
             }
         }
     }
 
-    private class ReparentActionRecreate implements Runnable {
+    private final Runnable reparentActionRecreate = new Runnable() {
         @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
@@ -1553,30 +1586,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } finally {
                 _lock.unlock();
             }
-        }
-    }
-    private final ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
+        } };
 
     @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent) {
-        return reparentWindow(newParent, -1, -1, 0);
-    }
-
-    @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
-        return reparentWindow(newParent, x, y, forceDestroyCreate ? REPARENT_HINT_FORCE_RECREATION : 0);
-    }
-
-    @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
+    public final ReparentOperation reparentWindow(final NativeWindow newParent, final int x, final int y, final int hints) {
         final ReparentAction reparentAction = new ReparentAction(newParent, x, y, hints);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getOp();
     }
 
     @Override
-    public final CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
-        CapabilitiesChooser old = this.capabilitiesChooser;
+    public final CapabilitiesChooser setCapabilitiesChooser(final CapabilitiesChooser chooser) {
+        final CapabilitiesChooser old = this.capabilitiesChooser;
         this.capabilitiesChooser = chooser;
         return old;
     }
@@ -1594,7 +1615,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class DecorationAction implements Runnable {
         boolean undecorated;
 
-        private DecorationAction(boolean undecorated) {
+        private DecorationAction(final boolean undecorated) {
             this.undecorated = undecorated;
         }
 
@@ -1614,7 +1635,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         final int width = getWidth();
                         final int height = getHeight();
 
-                        DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
                         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_DECORATION, isVisible()));
                         display.dispatchMessagesNative(); // status up2date
@@ -1628,7 +1649,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setUndecorated(boolean value) {
+    public final void setUndecorated(final boolean value) {
         runOnEDTIfAvail(true, new DecorationAction(value));
     }
 
@@ -1640,7 +1661,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class AlwaysOnTopAction implements Runnable {
         boolean alwaysOnTop;
 
-        private AlwaysOnTopAction(boolean alwaysOnTop) {
+        private AlwaysOnTopAction(final boolean alwaysOnTop) {
             this.alwaysOnTop = alwaysOnTop;
         }
 
@@ -1660,7 +1681,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         final int width = getWidth();
                         final int height = getHeight();
 
-                        DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
                         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
                         display.dispatchMessagesNative(); // status up2date
@@ -1674,7 +1695,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setAlwaysOnTop(boolean value) {
+    public final void setAlwaysOnTop(final boolean value) {
         if( isFullscreen() ) {
             nfs_alwaysOnTop = value;
         } else {
@@ -1719,7 +1740,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     private boolean setPointerVisibleIntern(final boolean pointerVisible) {
-        boolean res = setOffscreenPointerVisible(pointerVisible, pointerIcon);
+        final boolean res = setOffscreenPointerVisible(pointerVisible, pointerIcon);
         return setPointerVisibleImpl(pointerVisible) || res; // accept onscreen or offscreen positive result!
     }
     /**
@@ -1749,7 +1770,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final OffscreenLayerSurface ols = (OffscreenLayerSurface) parent;
                 try {
                     return ols.hideCursor();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -1805,7 +1826,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 } else {
                     return ols.setCursor(null, null); // default
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         }
@@ -1817,13 +1838,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return pointerConfined;
     }
     @Override
-    public final void confinePointer(boolean confine) {
+    public final void confinePointer(final boolean confine) {
         if(this.pointerConfined != confine) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
                 if(confine) {
                     requestFocus();
-                    warpPointer(getWidth()/2, getHeight()/2);
+                    warpPointer(getSurfaceWidth()/2, getSurfaceHeight()/2);
                 }
                 setVal = confinePointerImpl(confine);
                 if(confine) {
@@ -1831,7 +1852,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // this allows user listener to sync previous position value to the new centered position
                     try {
                         Thread.sleep(3 * screen.getDisplay().getEDTUtil().getPollPeriod());
-                    } catch (InterruptedException e) { }
+                    } catch (final InterruptedException e) { }
                 }
             }
             if(setVal) {
@@ -1841,7 +1862,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void warpPointer(int x, int y) {
+    public final void warpPointer(final int x, final int y) {
         if(0 != getWindowHandle()) {
             warpPointerImpl(x, y);
         }
@@ -1857,16 +1878,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final int getWidth() {
-        return width;
-    }
-
-    @Override
-    public final int getHeight() {
-        return height;
-    }
-
-    @Override
     public final int getX() {
         return x;
     }
@@ -1876,10 +1887,98 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return y;
     }
 
+    @Override
+    public final int getWidth() {
+        return winWidth;
+    }
+
+    @Override
+    public final int getHeight() {
+        return winHeight;
+    }
+
+    @Override
+    public final Rectangle getBounds() {
+        return new Rectangle(x, y, winWidth, winHeight);
+    }
+
+    @Override
+    public final int getSurfaceWidth() {
+        return pixWidth;
+    }
+
+    @Override
+    public final int getSurfaceHeight() {
+        return pixHeight;
+    }
+
+    @Override
+    public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+        pixelUnitsAndResult[0] /= getPixelScaleX();
+        pixelUnitsAndResult[1] /= getPixelScaleY();
+        return pixelUnitsAndResult;
+    }
+
+    @Override
+    public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+        windowUnitsAndResult[0] *= getPixelScaleX();
+        windowUnitsAndResult[1] *= getPixelScaleY();
+        return windowUnitsAndResult;
+    }
+
+    protected final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
+        return pixelUnitsAndResult.scaleInv(getPixelScaleX(), getPixelScaleY());
+    }
+
+    protected final Point convertToPixelUnits(final Point windowUnitsAndResult) {
+        return windowUnitsAndResult.scale(getPixelScaleX(), getPixelScaleY());
+    }
+
+    /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
+    protected final int getPixelScaleX() {
+        return hasPixelScale[0];
+    }
+
+    /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
+    protected final int getPixelScaleY() {
+        return hasPixelScale[1];
+    }
+
+    @Override
+    public void setSurfaceScale(final int[] pixelScale) {
+        SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getSimpleName() : null);
+    }
+
+    @Override
+    public final int[] getRequestedSurfaceScale(final int[] result) {
+        System.arraycopy(reqPixelScale, 0, result, 0, 2);
+        return result;
+    }
+
+    @Override
+    public final int[] getCurrentSurfaceScale(final int[] result) {
+        System.arraycopy(hasPixelScale, 0, result, 0, 2);
+        return result;
+    }
+
+    @Override
+    public final int[] getNativeSurfaceScale(final int[] result) {
+        System.arraycopy(nativePixelScale, 0, result, 0, 2);
+        return result;
+    }
+
+    @Override
+    public final float[] getPixelsPerMM(final float[] ppmmStore) {
+        getMainMonitor().getPixelsPerMM(ppmmStore);
+        ppmmStore[0] *= (float)hasPixelScale[0] / (float)nativePixelScale[0];
+        ppmmStore[1] *= (float)hasPixelScale[1] / (float)nativePixelScale[1];
+        return ppmmStore;
+    }
+
     protected final boolean autoPosition() { return autoPosition; }
 
-    /** Sets the position fields {@link #x} and {@link #y} to the given values and {@link #autoPosition} to false. */
-    protected final void definePosition(int x, int y) {
+    /** Sets the position fields {@link #x} and {@link #y} in window units to the given values and {@link #autoPosition} to false. */
+    protected final void definePosition(final int x, final int y) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("definePosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
             // Thread.dumpStack();
@@ -1888,13 +1987,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         this.x = x; this.y = y;
     }
 
-    /** Sets the size fields {@link #width} and {@link #height} to the given values. */
-    protected final void defineSize(int width, int height) {
+    /**
+     * Sets the size fields {@link #winWidth} and {@link #winHeight} in window units to the given values
+     * and {@link #pixWidth} and {@link #pixHeight} in pixel units according to {@link #convertToPixelUnits(int[])}.
+     */
+    protected final void defineSize(final int winWidth, final int winHeight) {
+        final int pixWidth = winWidth * getPixelScaleX();   // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        final int pixHeight = winHeight * getPixelScaleY();
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("defineSize: "+this.width+"x"+this.height+" -> "+width+"x"+height);
+            System.err.println("defineSize: win["+this.winWidth+"x"+this.winHeight+" -> "+winWidth+"x"+winHeight+
+                               "], pixel["+this.pixWidth+"x"+this.pixHeight+" -> "+pixWidth+"x"+pixHeight+"]");
             // Thread.dumpStack();
         }
-        this.width = width; this.height = height;
+        this.winWidth = winWidth; this.winHeight = winHeight;
+        this.pixWidth = pixWidth; this.pixHeight = pixHeight;
     }
 
     @Override
@@ -1932,8 +2038,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return lifecycleHook;
     }
 
-    public final LifecycleHook setLifecycleHook(LifecycleHook hook) {
-        LifecycleHook old = lifecycleHook;
+    public final LifecycleHook setLifecycleHook(final LifecycleHook hook) {
+        final LifecycleHook old = lifecycleHook;
         lifecycleHook = hook;
         return old;
     }
@@ -1947,7 +2053,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setWindowDestroyNotifyAction(Runnable r) {
+    public final void setWindowDestroyNotifyAction(final Runnable r) {
         windowDestroyNotifyAction = r;
     }
 
@@ -1957,20 +2063,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
         sb.append(getClass().getName()+"[Config "+config+
-                    "\n, "+screen+
-                    "\n, ParentWindow "+parentWindow+
-                    "\n, ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
-                    "\n, WindowHandle "+toHexString(getWindowHandle())+
-                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
-                    "\n, Pos "+getX()+"/"+getY()+" (auto "+autoPosition()+"), size "+getWidth()+"x"+getHeight()+
-                    "\n, Visible "+isVisible()+", focus "+hasFocus()+
-                    "\n, Undecorated "+undecorated+" ("+isUndecorated()+")"+
-                    "\n, AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
-                    "\n, WrappedSurface "+getWrappedSurface()+
-                    "\n, ChildWindows "+childWindows.size());
+                    ",\n "+screen+
+                    ",\n ParentWindow "+parentWindow+
+                    ",\n ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
+                    ",\n WindowHandle "+toHexString(getWindowHandle())+
+                    ",\n SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
+                    ",\n window["+getX()+"/"+getY()+" (auto "+autoPosition()+") "+getWidth()+"x"+getHeight()+"], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+
+                    "],\n Visible "+isVisible()+", focus "+hasFocus()+
+                    ",\n Undecorated "+undecorated+" ("+isUndecorated()+")"+
+                    ",\n AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
+                    ",\n WrappedSurface "+getWrappedSurface()+
+                    ",\n ChildWindows "+childWindows.size());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedHelper.size()+" [");
         for (int i = 0; i < surfaceUpdatedHelper.size(); i++ ) {
@@ -1996,12 +2102,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return sb.toString();
     }
 
-    protected final void setWindowHandle(long handle) {
+    protected final void setWindowHandle(final long handle) {
         windowHandle = handle;
     }
 
     @Override
-    public final void runOnEDTIfAvail(boolean wait, final Runnable task) {
+    public final void runOnEDTIfAvail(final boolean wait, final Runnable task) {
         if( windowLock.isOwner( Thread.currentThread() ) ) {
             task.run();
         } else {
@@ -2039,11 +2145,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void requestFocus(boolean wait) {
+    public final void requestFocus(final boolean wait) {
         requestFocus(wait /* wait */, false /* skipFocusAction */, brokenFocusChange /* force */);
     }
 
-    private void requestFocus(boolean wait, boolean skipFocusAction, boolean force) {
+    private void requestFocus(final boolean wait, final boolean skipFocusAction, final boolean force) {
         if( isNativeValid() &&
             ( force || !hasFocus() ) &&
             ( skipFocusAction || !focusAction() ) ) {
@@ -2052,7 +2158,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Internally forcing request focus on current thread */
-    private void requestFocusInt(boolean skipFocusAction) {
+    private void requestFocusInt(final boolean skipFocusAction) {
         if( skipFocusAction || !focusAction() ) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): skipFocusAction "+skipFocusAction+", focus "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -2062,7 +2168,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setFocusAction(FocusRunnable focusAction) {
+    public final void setFocusAction(final FocusRunnable focusAction) {
         this.focusAction = focusAction;
     }
 
@@ -2082,19 +2188,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return res;
     }
 
-    protected final void setBrokenFocusChange(boolean v) {
+    protected final void setBrokenFocusChange(final boolean v) {
         brokenFocusChange = v;
     }
 
     @Override
-    public final void setKeyboardFocusHandler(KeyListener l) {
+    public final void setKeyboardFocusHandler(final KeyListener l) {
         keyboardFocusHandler = l;
     }
 
     private class SetPositionAction implements Runnable {
         int x, y;
 
-        private SetPositionAction(int x, int y) {
+        private SetPositionAction(final int x, final int y) {
             this.x = x;
             this.y = y;
         }
@@ -2127,20 +2233,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setPosition(int x, int y) {
+    public void setPosition(final int x, final int y) {
         autoPosition = false;
         runOnEDTIfAvail(true, new SetPositionAction(x, y));
     }
 
     @Override
-    public final void setTopLevelPosition(int x, int y) {
+    public final void setTopLevelPosition(final int x, final int y) {
         setPosition(x + getInsets().getLeftWidth(), y + getInsets().getTopHeight());
     }
 
     private class FullScreenAction implements Runnable {
         boolean _fullscreen;
 
-        private boolean init(boolean fullscreen) {
+        private boolean init(final boolean fullscreen) {
             if(isNativeValid()) {
                 this._fullscreen = fullscreen;
                 return isFullscreen() != fullscreen;
@@ -2164,8 +2270,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 int x,y,w,h;
 
-                final RectangleImmutable sviewport = screen.getViewport();
-                final RectangleImmutable viewport;
+                final RectangleImmutable sviewport = screen.getViewportInWindowUnits(); // window units
+                final RectangleImmutable viewport; // window units
                 final int fs_span_flag;
                 final boolean alwaysOnTopChange;
                 if(_fullscreen) {
@@ -2177,7 +2283,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             fullscreenMonitors = getScreen().getMonitorDevices();
                         }
                     }
-                    viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
+                    {
+                        final Rectangle viewportInWindowUnits = new Rectangle();
+                        MonitorDevice.unionOfViewports(null, viewportInWindowUnits, fullscreenMonitors);
+                        viewport = viewportInWindowUnits;
+                    }
                     if( isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) &&
                         ( fullscreenMonitors.size() > 1 || sviewport.compareTo(viewport) > 0 ) ) {
                         fs_span_flag = FLAG_IS_FULLSCREEN_SPAN;
@@ -2229,7 +2339,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window fs: "+_fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
-                                       ", virtl-screenSize: "+sviewport+", monitorsViewport "+viewport+
+                                       ", virtl-screenSize: "+sviewport+" [wu], monitorsViewport "+viewport+" [wu]"+
                                        ", spanning "+(0!=fs_span_flag)+
                                        ", alwaysOnTop "+alwaysOnTop+(alwaysOnTopChange?"*":"")+
                                        ", wasVisible "+wasVisible+", tempInvisible "+tempInvisible+
@@ -2241,7 +2351,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if( tempInvisible ) {
                     setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
                     WindowImpl.this.waitForVisible(false, false);
-                    try { Thread.sleep(100); } catch (InterruptedException e) { }
+                    try { Thread.sleep(100); } catch (final InterruptedException e) { }
                     display.dispatchMessagesNative(); // status up2date
                 }
 
@@ -2279,7 +2389,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(wasVisible) {
                     if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
                         // Give sluggy WM's (e.g. Unity) a chance to properly restore window ..
-                        try { Thread.sleep(100); } catch (InterruptedException e) { }
+                        try { Thread.sleep(100); } catch (final InterruptedException e) { }
                         display.dispatchMessagesNative(); // status up2date
                     }
                     setVisibleImpl(true, x, y, w, h);
@@ -2309,16 +2419,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private final FullScreenAction fullScreenAction = new FullScreenAction();
 
     @Override
-    public boolean setFullscreen(boolean fullscreen) {
+    public boolean setFullscreen(final boolean fullscreen) {
         return setFullscreenImpl(fullscreen, true, null);
     }
 
     @Override
-    public boolean setFullscreen(List<MonitorDevice> monitors) {
+    public boolean setFullscreen(final List<MonitorDevice> monitors) {
         return setFullscreenImpl(true, false, monitors);
     }
 
-    private boolean setFullscreenImpl(boolean fullscreen, boolean useMainMonitor, List<MonitorDevice> monitors) {
+    private boolean setFullscreenImpl(final boolean fullscreen, final boolean useMainMonitor, final List<MonitorDevice> monitors) {
         synchronized(fullScreenAction) {
             fullscreenMonitors = monitors;
             fullscreenUseMainMonitor = useMainMonitor;
@@ -2345,24 +2455,32 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    /** Notify WindowDriver about the finished monitor mode change. */
+    protected void monitorModeChanged(final MonitorEvent me, final boolean success) {
+    }
+
     private class MonitorModeListenerImpl implements MonitorModeListener {
         boolean animatorPaused = false;
+        boolean hidden = false;
         boolean hadFocus = false;
         boolean fullscreenPaused = false;
         List<MonitorDevice> _fullscreenMonitors = null;
         boolean _fullscreenUseMainMonitor = true;
 
         @Override
-        public void monitorModeChangeNotify(MonitorEvent me) {
+        public void monitorModeChangeNotify(final MonitorEvent me) {
             hadFocus = hasFocus();
+            final boolean isOSX = NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(true);
+            final boolean quirkFSPause = fullscreen && isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN);
+            final boolean quirkHide = !quirkFSPause && !fullscreen && isVisible() && isOSX;
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.monitorModeChangeNotify: hadFocus "+hadFocus+", "+me+" @ "+Thread.currentThread().getName());
+                System.err.println("Window.monitorModeChangeNotify: hadFocus "+hadFocus+", qFSPause "+quirkFSPause+", qHide "+quirkHide+", "+me+" @ "+Thread.currentThread().getName());
             }
 
             if(null!=lifecycleHook) {
                 animatorPaused = lifecycleHook.pauseRenderingAction();
             }
-            if( fullscreen && isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) ) {
+            if( quirkFSPause ) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.monitorModeChangeNotify: FS Pause");
                 }
@@ -2371,63 +2489,80 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 _fullscreenUseMainMonitor = fullscreenUseMainMonitor;
                 setFullscreenImpl(false, true, null);
             }
+            if( quirkHide ) {
+                // hiding & showing the window around mode-change solves issues w/ OSX,
+                // where the content would be black until a resize.
+                hidden = true;
+                WindowImpl.this.setVisible(false);
+            }
         }
 
         @Override
-        public void monitorModeChanged(MonitorEvent me, boolean success) {
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.monitorModeChanged: hadFocus "+hadFocus+", "+me+", success: "+success+" @ "+Thread.currentThread().getName());
+        public void monitorModeChanged(final MonitorEvent me, final boolean success) {
+            if(!animatorPaused && success && null!=lifecycleHook) {
+                // Didn't pass above notify method. probably detected screen change after it happened.
+                animatorPaused = lifecycleHook.pauseRenderingAction();
             }
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.monitorModeChanged.0: success: "+success+", hadFocus "+hadFocus+", animPaused "+animatorPaused+
+                                   ", hidden "+hidden+", FS "+fullscreen+", FS-paused "+fullscreenPaused+
+                                   " @ "+Thread.currentThread().getName());
+                System.err.println("Window.monitorModeChanged.0: "+getScreen());
+                System.err.println("Window.monitorModeChanged.0: "+me);
+            }
+            WindowImpl.this.monitorModeChanged(me, success);
 
-            if(success) {
-                if(!animatorPaused && null!=lifecycleHook) {
-                    // Didn't pass above notify method. probably detected screen change after it happened.
-                    animatorPaused = lifecycleHook.pauseRenderingAction();
-                }
-                if( !fullscreen && !fullscreenPaused ) {
-                    // Simply move/resize window to fit in virtual screen if required
-                    final RectangleImmutable viewport = screen.getViewport();
-                    if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
-                        final RectangleImmutable rect = new Rectangle(getX(), getY(), getWidth(), getHeight());
-                        final RectangleImmutable isect = viewport.intersection(rect);
-                        if ( getHeight() > isect.getHeight()  ||
-                             getWidth() > isect.getWidth() ) {
-                            if(DEBUG_IMPLEMENTATION) {
-                                System.err.println("Window.monitorModeChanged: fit window "+rect+" into screen viewport "+viewport+
-                                                   ", due to minimal intersection "+isect);
-                            }
-                            definePosition(viewport.getX(), viewport.getY()); // set pos for setVisible(..) or createNative(..) - reduce EDT roundtrip
-                            setSize(viewport.getWidth(), viewport.getHeight());
-                        }
-                    }
-                } else if( fullscreenPaused ){
-                    if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window.monitorModeChanged: FS Restore");
-                    }
-                    setFullscreenImpl(true, _fullscreenUseMainMonitor, _fullscreenMonitors);
-                    fullscreenPaused = false;
-                    _fullscreenMonitors = null;
-                    _fullscreenUseMainMonitor = true;
-                } else {
-                    // If changed monitor is part of this fullscreen mode, reset size! (Bug 771)
-                    final MonitorDevice md = me.getMonitor();
-                    if( fullscreenMonitors.contains(md) ) {
-                        final RectangleImmutable viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
+            if( success && !fullscreen && !fullscreenPaused ) {
+                // Simply move/resize window to fit in virtual screen if required
+                final RectangleImmutable viewport = screen.getViewportInWindowUnits();
+                if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
+                    final RectangleImmutable rect = new Rectangle(getX(), getY(), getWidth(), getHeight());
+                    final RectangleImmutable isect = viewport.intersection(rect);
+                    if ( getHeight() > isect.getHeight()  ||
+                         getWidth() > isect.getWidth() ) {
                         if(DEBUG_IMPLEMENTATION) {
-                            final RectangleImmutable rect = new Rectangle(getX(), getY(), getWidth(), getHeight());
-                            System.err.println("Window.monitorModeChanged: FS Monitor Match: Fit window "+rect+" into new viewport union "+viewport+", provoked by "+md);
+                            System.err.println("Window.monitorModeChanged.1: Non-FS - Fit window "+rect+" into screen viewport "+viewport+
+                                               ", due to minimal intersection "+isect);
                         }
                         definePosition(viewport.getX(), viewport.getY()); // set pos for setVisible(..) or createNative(..) - reduce EDT roundtrip
-                        setFullscreenSize(viewport.getWidth(), viewport.getHeight());
+                        setSize(viewport.getWidth(), viewport.getHeight(), true /* force */);
                     }
                 }
+            } else if( fullscreenPaused ) {
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.monitorModeChanged.2: FS Restore");
+                }
+                setFullscreenImpl(true, _fullscreenUseMainMonitor, _fullscreenMonitors);
+                fullscreenPaused = false;
+                _fullscreenMonitors = null;
+                _fullscreenUseMainMonitor = true;
+            } else if( success && fullscreen && null != fullscreenMonitors ) {
+                // If changed monitor is part of this fullscreen mode, reset size! (Bug 771)
+                final MonitorDevice md = me.getMonitor();
+                if( fullscreenMonitors.contains(md) ) {
+                    final Rectangle viewportInWindowUnits = new Rectangle();
+                    MonitorDevice.unionOfViewports(null, viewportInWindowUnits, fullscreenMonitors);
+                    if(DEBUG_IMPLEMENTATION) {
+                        final RectangleImmutable winBounds = WindowImpl.this.getBounds();
+                        System.err.println("Window.monitorModeChanged.3: FS Monitor Match: Fit window "+winBounds+" into new viewport union "+viewportInWindowUnits+" [window], provoked by "+md);
+                    }
+                    definePosition(viewportInWindowUnits.getX(), viewportInWindowUnits.getY()); // set pos for setVisible(..) or createNative(..) - reduce EDT roundtrip
+                    setSize(viewportInWindowUnits.getWidth(), viewportInWindowUnits.getHeight(), true /* force */);
+                }
             }
+            if( hidden ) {
+                WindowImpl.this.setVisible(true);
+                hidden = false;
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
             if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
             }
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
             if( hadFocus ) {
                 requestFocus(true);
+            }
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.monitorModeChanged.X: @ "+Thread.currentThread().getName()+", this: "+WindowImpl.this);
             }
         }
     }
@@ -2439,14 +2574,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     @Override
-    public final boolean removeChild(NativeWindow win) {
+    public final boolean removeChild(final NativeWindow win) {
         synchronized(childWindowsLock) {
             return childWindows.remove(win);
         }
     }
 
     @Override
-    public final boolean addChild(NativeWindow win) {
+    public final boolean addChild(final NativeWindow win) {
         if (win == null) {
             return false;
         }
@@ -2458,7 +2593,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //----------------------------------------------------------------------
     // Generic Event Support
     //
-    private void doEvent(boolean enqueue, boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+    private void doEvent(final boolean enqueue, boolean wait, final com.jogamp.newt.event.NEWTEvent event) {
         boolean done = false;
 
         if(!enqueue) {
@@ -2472,14 +2607,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+    public final void enqueueEvent(final boolean wait, final com.jogamp.newt.event.NEWTEvent event) {
         if(isNativeValid()) {
             ((DisplayImpl)screen.getDisplay()).enqueueEvent(wait, event);
         }
     }
 
     @Override
-    public final boolean consumeEvent(NEWTEvent e) {
+    public final boolean consumeEvent(final NEWTEvent e) {
         switch(e.getEventType()) {
             // special repaint treatment
             case WindowEvent.EVENT_WINDOW_REPAINT:
@@ -2535,7 +2670,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Native MouseEvents pre-processed to be enqueued or consumed directly
     //
 
-    public void sendMouseEvent(final short eventType, final int modifiers,
+    public final void sendMouseEvent(final short eventType, final int modifiers,
                                final int x, final int y, final short button, final float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
@@ -2570,7 +2705,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             throw new NativeWindowException("Invalid mouse button number" + button);
         }
         doPointerEvent(enqueue, wait, constMousePointerTypes, eventType, modifiers,
-                       0 /*actionIdx*/, new short[] { (short)(button-1) },
+                       0 /*actionIdx*/, new short[] { (short)0 }, button,
                        new int[]{x}, new int[]{y}, new float[]{0f} /*pressure*/,
                        1f /*maxPressure*/, rotationXYZ, rotationScale);
     }
@@ -2587,7 +2722,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Otherwise a simple <code>int</code> to <code>short</code> type cast is performed.
      * </p>
      * <p>
-     * See {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], int[], int[], float[], float, float[], float)}
+     * See {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], short, int[], int[], float[], float, float[], float)}
      * for details!
      * </p>
      *
@@ -2611,7 +2746,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                      final PointerType[] pTypes, final short eventType, final int modifiers,
                                      final int actionIdx, final boolean normalPNames, final int[] pNames,
                                      final int[] pX, final int[] pY, final float[] pPressure,
-                                     float maxPressure, final float[] rotationXYZ, final float rotationScale) {
+                                     final float maxPressure, final float[] rotationXYZ, final float rotationScale) {
         final int pCount = pNames.length;
         final short[] pIDs = new short[pCount];
         for(int i=0; i<pCount; i++) {
@@ -2638,7 +2773,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 pIDs[i] = (short)pNames[i];
             }
         }
-        doPointerEvent(enqueue, wait, pTypes, eventType, modifiers, actionIdx, pIDs,
+        final short button = 0 < pCount ? (short) ( pIDs[0] + 1 ) : (short)0;
+        doPointerEvent(enqueue, wait, pTypes, eventType, modifiers, actionIdx, pIDs, button,
                        pX, pY, pPressure, maxPressure, rotationXYZ, rotationScale);
     }
 
@@ -2675,7 +2811,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param modifiers
      * @param pActionIdx index of multiple-pointer arrays representing the pointer which triggered the event
      * @param pID Pointer ID for each pointer (multiple pointer). We assume consecutive pointerIDs starting w/ 0.
-     *            A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
+     * @param button Corresponding mouse-button, a button of 0 denotes no activity, i.e. {@link PointerType#Mouse} move.
      * @param pX X-axis for each pointer (multiple pointer)
      * @param pY Y-axis for each pointer (multiple pointer)
      * @param pPressure Pressure for each pointer (multiple pointer)
@@ -2683,8 +2819,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     public final void doPointerEvent(final boolean enqueue, final boolean wait,
                                      final PointerType[] pTypes, final short eventType, int modifiers,
-                                     final int pActionIdx, final short[] pID, final int[] pX, final int[] pY, final float[] pPressure,
-                                     final float maxPressure, final float[] rotationXYZ, final float rotationScale) {
+                                     final int pActionIdx, final short[] pID, final short buttonIn, final int[] pX, final int[] pY,
+                                     final float[] pPressure, final float maxPressure, final float[] rotationXYZ, final float rotationScale) {
         final long when = System.currentTimeMillis();
         final int pCount = pTypes.length;
 
@@ -2717,12 +2853,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 pPressure[0] = aPress;
             }
         }
-        final short id = pID[0];
         final short button;
         {
-            final int b = id + 1;
-            if( 0 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) { // we allow id==-1 -> button==0 for no button, i.e. mouse move
-                button = (short)b;
+            // validate button
+            if( 0 <= buttonIn && buttonIn <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) { // we allow button==0 for no button, i.e. mouse-ptr move
+                button = buttonIn;
             } else {
                 button = com.jogamp.newt.event.MouseEvent.BUTTON1;
             }
@@ -2735,8 +2870,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         //
         int x = pX[0];
         int y = pY[0];
-        final boolean insideWindow = x >= 0 && y >= 0 && x < getWidth() && y < getHeight();
-        final Point movePositionP0 = pState1.getMovePosition(id);
+        final boolean insideSurface = x >= 0 && y >= 0 && x < getSurfaceWidth() && y < getSurfaceHeight();
+        final Point movePositionP0 = pState1.getMovePosition(pID[0]);
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_EXITED:
                 if( pState1.dragging ) {
@@ -2759,10 +2894,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
             case MouseEvent.EVENT_MOUSE_ENTERED:
                 if( eventType == MouseEvent.EVENT_MOUSE_ENTERED ) {
-                    pState1.insideWindow = true;
+                    pState1.insideSurface = true;
                     pState1.exitSent = false;
                 } else {
-                    pState1.insideWindow = false;
+                    pState1.insideSurface = false;
                     pState1.exitSent = true;
                 }
                 pState1.clearButton();
@@ -2774,8 +2909,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     return;
                 }
                 // clip coordinates to window dimension
-                x = Math.min(Math.max(x,  0), getWidth()-1);
-                y = Math.min(Math.max(y,  0), getHeight()-1);
+                x = Math.min(Math.max(x,  0), getSurfaceWidth()-1);
+                y = Math.min(Math.max(y,  0), getSurfaceHeight()-1);
                 break;
 
             case MouseEvent.EVENT_MOUSE_MOVED:
@@ -2794,10 +2929,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
 
             default:
-                if( pState1.insideWindow != insideWindow ) {
+                if( pState1.insideSurface != insideSurface ) {
                     // ENTER/EXIT!
-                    pState1.insideWindow = insideWindow;
-                    if( insideWindow ) {
+                    pState1.insideSurface = insideSurface;
+                    if( insideSurface ) {
                         pState1.exitSent = false;
                     }
                     pState1.clearButton();
@@ -2808,10 +2943,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         // Drop exterior events if not dragging pointer and not EXIT event
         // Safeguard for non compliant implementations!
         //
-        if( !pState1.dragging && !insideWindow && MouseEvent.EVENT_MOUSE_EXITED != eventType ) {
+        if( !pState1.dragging && !insideSurface && MouseEvent.EVENT_MOUSE_EXITED != eventType ) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("doPointerEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
-                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0+", insideWindow "+insideWindow+", "+pState1);
+                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0+", insideWindow "+insideSurface+", "+pState1);
             }
             return; // .. invalid ..
         }
@@ -2911,14 +3046,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         doEvent(enqueue, wait, e); // actual mouse event
     }
 
-    private static int step(int lower, int edge, int value) {
+    private static int step(final int lower, final int edge, final int value) {
         return value < edge ? lower : value;
     }
 
     /**
      * Consume the {@link MouseEvent}.
      * <p>
-     * Pointer/Mouse Processing Pass 2 (Pass 1 is performed in {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], int[], int[], float[], float, float[], float)}).
+     * Pointer/Mouse Processing Pass 2 (Pass 1 is performed in {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], short, int[], int[], float[], float, float[], float)}).
      * </p>
      * <p>
      * Invoked before dispatching the dequeued event.
@@ -2934,11 +3069,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * </p>
      */
     protected void consumePointerEvent(MouseEvent pe) {
-        int x = pe.getX();
-        int y = pe.getY();
-
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("consumePointerEvent.in: "+pe+", "+pState0+", pos "+x+"/"+y+" clientSize["+getWidth()+"x"+getHeight()+"]");
+            System.err.println("consumePointerEvent.in: "+pe+", "+pState0+", pos "+pe.getX()+"/"+pe.getY()+", win["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
+                               "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"]");
         }
 
         //
@@ -2948,7 +3081,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         //
         final long when = pe.getWhen();
         final int eventType = pe.getEventType();
-        final boolean insideWindow;
+        final boolean insideSurface;
         boolean eExitAllowed = false;
         MouseEvent eEntered = null, eExited = null;
         switch( eventType ) {
@@ -2962,17 +3095,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
             case MouseEvent.EVENT_MOUSE_ENTERED:
                 // clip coordinates to window dimension
-                x = Math.min(Math.max(x,  0), getWidth()-1);
-                y = Math.min(Math.max(y,  0), getHeight()-1);
+                // final int pe_x = Math.min(Math.max(pe.getX(),  0), getSurfaceWidth()-1);
+                // final int pe_y = Math.min(Math.max(pe.getY(),  0), getSurfaceHeight()-1);
                 pState0.clearButton();
                 if( eventType == MouseEvent.EVENT_MOUSE_ENTERED ) {
-                    insideWindow = true;
-                    pState0.insideWindow = true;
+                    insideSurface = true;
+                    pState0.insideSurface = true;
                     pState0.exitSent = false;
                     pState0.dragging = false;
                 } else {
-                    insideWindow = false;
-                    pState0.insideWindow = false;
+                    insideSurface = false;
+                    pState0.insideSurface = false;
                     pState0.exitSent = true;
                 }
                 break;
@@ -2986,35 +3119,37 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
 
             default:
-                insideWindow = x >= 0 && y >= 0 && x < getWidth() && y < getHeight();
+                final int pe_x = pe.getX();
+                final int pe_y = pe.getY();
+                insideSurface = pe_x >= 0 && pe_y >= 0 && pe_x < getSurfaceWidth() && pe_y < getSurfaceHeight();
                 if( pe.getPointerType(0) == PointerType.Mouse ) {
-                    if( !pState0.insideWindow && insideWindow ) {
+                    if( !pState0.insideSurface && insideSurface ) {
                         // ENTER .. use clipped coordinates
                         eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, pe.getSource(), pe.getWhen(), pe.getModifiers(),
-                                                 Math.min(Math.max(x,  0), getWidth()-1),
-                                                 Math.min(Math.max(y,  0), getHeight()-1),
-                                                 (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
+                                                  Math.min(Math.max(pe_x,  0), getSurfaceWidth()-1),
+                                                  Math.min(Math.max(pe_y,  0), getSurfaceHeight()-1),
+                                                  (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
                         pState0.exitSent = false;
-                    } else if( !insideWindow && eExitAllowed ) {
+                    } else if( !insideSurface && eExitAllowed ) {
                         // EXIT .. use clipped coordinates
                         eExited = new MouseEvent(MouseEvent.EVENT_MOUSE_EXITED, pe.getSource(), pe.getWhen(), pe.getModifiers(),
-                                                 Math.min(Math.max(x,  0), getWidth()-1),
-                                                 Math.min(Math.max(y,  0), getHeight()-1),
+                                                 Math.min(Math.max(pe_x,  0), getSurfaceWidth()-1),
+                                                 Math.min(Math.max(pe_y,  0), getSurfaceHeight()-1),
                                                  (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
                         pState0.exitSent = true;
                     }
                 }
-                if( pState0.insideWindow != insideWindow || null != eEntered || null != eExited) {
+                if( pState0.insideSurface != insideSurface || null != eEntered || null != eExited) {
                     pState0.clearButton();
                 }
-                pState0.insideWindow = insideWindow;
+                pState0.insideSurface = insideSurface;
         }
         if( null != eEntered ) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("consumePointerEvent.send.0: "+eEntered+", "+pState0);
             }
             dispatchMouseEvent(eEntered);
-        } else if( DEBUG_MOUSE_EVENT && !insideWindow ) {
+        } else if( DEBUG_MOUSE_EVENT && !insideSurface ) {
             System.err.println("INFO consumePointerEvent.exterior: "+pState0+", "+pe);
         }
 
@@ -3140,16 +3275,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void addMouseListener(MouseListener l) {
+    public final void addMouseListener(final MouseListener l) {
         addMouseListener(-1, l);
     }
 
     @Override
-    public final void addMouseListener(int index, MouseListener l) {
+    public final void addMouseListener(int index, final MouseListener l) {
         if(l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         if(0>index) {
             index = clonedListeners.size();
@@ -3159,11 +3295,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void removeMouseListener(MouseListener l) {
+    public final void removeMouseListener(final MouseListener l) {
         if (l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         clonedListeners.remove(l);
         mouseListeners = clonedListeners;
@@ -3172,6 +3309,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final MouseListener getMouseListener(int index) {
         @SuppressWarnings("unchecked")
+        final
         ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         if(0>index) {
             index = clonedListeners.size()-1;
@@ -3185,7 +3323,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void setDefaultGesturesEnabled(boolean enable) {
+    public final void setDefaultGesturesEnabled(final boolean enable) {
         defaultGestureHandlerEnabled = enable;
     }
     @Override
@@ -3194,15 +3332,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void addGestureHandler(GestureHandler gh) {
+    public final void addGestureHandler(final GestureHandler gh) {
         addGestureHandler(-1, gh);
     }
     @Override
-    public final void addGestureHandler(int index, GestureHandler gh) {
+    public final void addGestureHandler(int index, final GestureHandler gh) {
         if(gh == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
         if(0>index) {
             index = cloned.size();
@@ -3211,25 +3350,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         pointerGestureHandler = cloned;
     }
     @Override
-    public final void removeGestureHandler(GestureHandler gh) {
+    public final void removeGestureHandler(final GestureHandler gh) {
         if (gh == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
         cloned.remove(gh);
         pointerGestureHandler = cloned;
     }
     @Override
-    public final void addGestureListener(GestureHandler.GestureListener gl) {
+    public final void addGestureListener(final GestureHandler.GestureListener gl) {
         addGestureListener(-1, gl);
     }
     @Override
-    public final void addGestureListener(int index, GestureHandler.GestureListener gl) {
+    public final void addGestureListener(int index, final GestureHandler.GestureListener gl) {
         if(gl == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
         if(0>index) {
             index = cloned.size();
@@ -3238,19 +3379,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         gestureListeners = cloned;
     }
     @Override
-    public final void removeGestureListener(GestureHandler.GestureListener gl) {
+    public final void removeGestureListener(final GestureHandler.GestureListener gl) {
         if (gl == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
         cloned.remove(gl);
         gestureListeners= cloned;
     }
 
-    private final void dispatchMouseEvent(MouseEvent e) {
+    private final void dispatchMouseEvent(final MouseEvent e) {
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
-            MouseListener l = mouseListeners.get(i);
+            final MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     l.mouseClicked(e);
@@ -3297,7 +3439,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param pressed true if pressed, otherwise false
      * @return the previus pressed value
      */
-    protected final boolean setKeyPressed(short keyCode, boolean pressed) {
+    protected final boolean setKeyPressed(final short keyCode, final boolean pressed) {
         final int v = 0xFFFF & keyCode;
         if( v <= keyTrackingRange ) {
             return keyPressedState.put(v, pressed);
@@ -3308,7 +3450,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param keyCode the keyCode to test pressed state
      * @return true if pressed, otherwise false
      */
-    protected final boolean isKeyPressed(short keyCode) {
+    protected final boolean isKeyPressed(final short keyCode) {
         final int v = 0xFFFF & keyCode;
         if( v <= keyTrackingRange ) {
             return keyPressedState.get(v);
@@ -3316,18 +3458,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return false;
     }
 
-    public void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
         consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState1.buttonPressedMask, keyCode, keySym, keyChar) );
     }
 
-    public void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
         enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState1.buttonPressedMask, keyCode, keySym, keyChar) );
     }
 
     @Override
-    public final void setKeyboardVisible(boolean visible) {
+    public final void setKeyboardVisible(final boolean visible) {
         if(isNativeValid()) {
             // We don't skip the impl. if it seems that there is no state change,
             // since we cannot assume the impl. reliably gives us it's current state.
@@ -3351,11 +3493,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * hence even if an invisible operation failed, the keyboard is considered invisible!
      * </p>
      */
-    protected boolean setKeyboardVisibleImpl(boolean visible) {
+    protected boolean setKeyboardVisibleImpl(final boolean visible) {
         return false; // nop
     }
     /** Triggered by implementation's WM events to update the virtual on-screen keyboard's visibility state. */
-    protected void keyboardVisibilityChanged(boolean visible) {
+    protected void keyboardVisibilityChanged(final boolean visible) {
         if(keyboardVisible != visible) {
             if(DEBUG_IMPLEMENTATION || DEBUG_KEY_EVENT) {
                 System.err.println("keyboardVisibilityChanged: "+keyboardVisible+" -> "+visible);
@@ -3366,16 +3508,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected boolean keyboardVisible = false;
 
     @Override
-    public final void addKeyListener(KeyListener l) {
+    public final void addKeyListener(final KeyListener l) {
         addKeyListener(-1, l);
     }
 
     @Override
-    public final void addKeyListener(int index, KeyListener l) {
+    public final void addKeyListener(int index, final KeyListener l) {
         if(l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         if(0>index) {
             index = clonedListeners.size();
@@ -3385,11 +3528,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void removeKeyListener(KeyListener l) {
+    public final void removeKeyListener(final KeyListener l) {
         if (l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         clonedListeners.remove(l);
         keyListeners = clonedListeners;
@@ -3398,6 +3542,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final KeyListener getKeyListener(int index) {
         @SuppressWarnings("unchecked")
+        final
         ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         if(0>index) {
             index = clonedListeners.size()-1;
@@ -3410,7 +3555,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
 
-    private final boolean propagateKeyEvent(KeyEvent e, KeyListener l) {
+    private final boolean propagateKeyEvent(final KeyEvent e, final KeyListener l) {
         switch(e.getEventType()) {
             case KeyEvent.EVENT_KEY_PRESSED:
                 l.keyPressed(e);
@@ -3424,7 +3569,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return e.isConsumed();
     }
 
-    protected void consumeKeyEvent(KeyEvent e) {
+    protected void consumeKeyEvent(final KeyEvent e) {
         boolean consumedE = false;
         if( null != keyboardFocusHandler && !e.isAutoRepeat() ) {
             consumedE = propagateKeyEvent(e, keyboardFocusHandler);
@@ -3448,27 +3593,28 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // WindowListener/Event Support
     //
     @Override
-    public final void sendWindowEvent(int eventType) {
+    public final void sendWindowEvent(final int eventType) {
         consumeWindowEvent( new WindowEvent((short)eventType, this, System.currentTimeMillis()) );
     }
 
-    public final void enqueueWindowEvent(boolean wait, int eventType) {
+    public final void enqueueWindowEvent(final boolean wait, final int eventType) {
         enqueueEvent( wait, new WindowEvent((short)eventType, this, System.currentTimeMillis()) );
     }
 
     @Override
-    public final void addWindowListener(WindowListener l) {
+    public final void addWindowListener(final WindowListener l) {
         addWindowListener(-1, l);
     }
 
     @Override
-    public final void addWindowListener(int index, WindowListener l)
+    public final void addWindowListener(int index, final WindowListener l)
         throws IndexOutOfBoundsException
     {
         if(l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         if(0>index) {
             index = clonedListeners.size();
@@ -3478,11 +3624,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void removeWindowListener(WindowListener l) {
+    public final void removeWindowListener(final WindowListener l) {
         if (l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
+        final
         ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         clonedListeners.remove(l);
         windowListeners = clonedListeners;
@@ -3491,6 +3638,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final WindowListener getWindowListener(int index) {
         @SuppressWarnings("unchecked")
+        final
         ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         if(0>index) {
             index = clonedListeners.size()-1;
@@ -3503,12 +3651,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowListeners.toArray(new WindowListener[windowListeners.size()]);
     }
 
-    protected void consumeWindowEvent(WindowEvent e) {
+    protected void consumeWindowEvent(final WindowEvent e) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+            System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+", win["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
+                               "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"]");
         }
         for(int i = 0; !e.isConsumed() && i < windowListeners.size(); i++ ) {
-            WindowListener l = windowListeners.get(i);
+            final WindowListener l = windowListeners.get(i);
             switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
                     l.windowResized(e);
@@ -3540,7 +3689,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the focus state. */
-    protected void focusChanged(boolean defer, boolean focusGained) {
+    protected void focusChanged(final boolean defer, final boolean focusGained) {
         if(brokenFocusChange || hasFocus != focusGained) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -3556,7 +3705,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the visibility state. */
-    protected final void visibleChanged(boolean defer, boolean visible) {
+    protected final void visibleChanged(final boolean defer, final boolean visible) {
         if(this.visible != visible) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -3566,17 +3715,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Returns -1 if failed, otherwise remaining time until {@link #TIMEOUT_NATIVEWINDOW}, maybe zero. */
-    private long waitForVisible(boolean visible, boolean failFast) {
+    private long waitForVisible(final boolean visible, final boolean failFast) {
         return waitForVisible(visible, failFast, TIMEOUT_NATIVEWINDOW);
     }
 
     /** Returns -1 if failed, otherwise remaining time until <code>timeOut</code>, maybe zero. */
-    private long waitForVisible(boolean visible, boolean failFast, long timeOut) {
+    private long waitForVisible(final boolean visible, final boolean failFast, final long timeOut) {
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         display.dispatchMessagesNative(); // status up2date
         long remaining;
         for(remaining = timeOut; 0<remaining && this.visible != visible; remaining-=10 ) {
-            try { Thread.sleep(10); } catch (InterruptedException ie) {}
+            try { Thread.sleep(10); } catch (final InterruptedException ie) {}
             display.dispatchMessagesNative(); // status up2date
         }
         if(this.visible != visible) {
@@ -3595,11 +3744,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    /** Triggered by implementation's WM events to update the client-area size w/o insets/decorations. */
-    protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
+    /** Triggered by implementation's WM events to update the client-area size in window units w/o insets/decorations. */
+    protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
         if(force || getWidth() != newWidth || getHeight() != newHeight) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+getWidth()+"x"+getHeight()+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+
+                                   getWidth()+"x"+getHeight()+" -> "+newWidth+"x"+newHeight+
+                                   " - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             if(0>newWidth || 0>newHeight) {
                 throw new NativeWindowException("Illegal width or height "+newWidth+"x"+newHeight+" (must be >= 0)");
@@ -3615,12 +3766,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private boolean waitForSize(int w, int h, boolean failFast, long timeOut) {
+    private boolean waitForSize(final int w, final int h, final boolean failFast, final long timeOut) {
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         display.dispatchMessagesNative(); // status up2date
         long sleep;
         for(sleep = timeOut; 0<sleep && w!=getWidth() && h!=getHeight(); sleep-=10 ) {
-            try { Thread.sleep(10); } catch (InterruptedException ie) {}
+            try { Thread.sleep(10); } catch (final InterruptedException ie) {}
             display.dispatchMessagesNative(); // status up2date
         }
         if(0 >= sleep) {
@@ -3638,7 +3789,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the position. */
-    protected final void positionChanged(boolean defer, int newX, int newY) {
+    protected final void positionChanged(final boolean defer, final int newX, final int newY) {
         if ( getX() != newX || getY() != newY ) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.positionChanged: ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -3660,7 +3811,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Since WM may not obey our positional request exactly, we allow a tolerance of 2 times insets[left/top], or 64 pixels, whatever is greater.
      * </p>
      */
-    private boolean waitForPosition(boolean useCustomPosition, int x, int y, long timeOut) {
+    private boolean waitForPosition(final boolean useCustomPosition, final int x, final int y, final long timeOut) {
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         final int maxDX, maxDY;
         {
@@ -3677,7 +3828,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 ok = !autoPosition;
             }
             if( !ok ) {
-                try { Thread.sleep(10); } catch (InterruptedException ie) {}
+                try { Thread.sleep(10); } catch (final InterruptedException ie) {}
                 display.dispatchMessagesNative(); // status up2date
                 remaining-=10;
             }
@@ -3701,7 +3852,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #getInsets()
      * @see #updateInsetsImpl(Insets)
      */
-    protected void insetsChanged(boolean defer, int left, int right, int top, int bottom) {
+    protected void insetsChanged(final boolean defer, final int left, final int right, final int top, final int bottom) {
         if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
             if( blockInsetsChange || isUndecorated() ) {
                 if(DEBUG_IMPLEMENTATION) {
@@ -3725,7 +3876,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      *              and hence force destruction. Otherwise is follows the user settings.
      * @return true if this window is no more valid and hence has been destroyed, otherwise false.
      */
-    public final boolean windowDestroyNotify(boolean force) {
+    public final boolean windowDestroyNotify(final boolean force) {
         final WindowClosingMode defMode = getDefaultCloseOperation();
         final WindowClosingMode mode = force ? WindowClosingMode.DISPOSE_ON_CLOSE : defMode;
         if(DEBUG_IMPLEMENTATION) {
@@ -3769,22 +3920,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final void windowRepaint(int x, int y, int width, int height) {
+    public final void windowRepaint(final int x, final int y, final int width, final int height) {
         windowRepaint(false, x, y, width, height);
     }
 
     /**
      * Triggered by implementation's WM events to update the content
+     * @param defer if true sent event later, otherwise wait until processed.
+     * @param x dirty-region y-pos in pixel units
+     * @param y dirty-region x-pos in pixel units
+     * @param width dirty-region width in pixel units
+     * @param height dirty-region height in pixel units
      */
-    protected final void windowRepaint(boolean defer, int x, int y, int width, int height) {
-        width = ( 0 >= width ) ? getWidth() : width;
-        height = ( 0 >= height ) ? getHeight() : height;
+    protected final void windowRepaint(final boolean defer, final int x, final int y, int width, int height) {
+        width = ( 0 >= width ) ? getSurfaceWidth() : width;
+        height = ( 0 >= height ) ? getSurfaceHeight() : height;
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.windowRepaint "+getThreadName()+" (defer: "+defer+") "+x+"/"+y+" "+width+"x"+height);
         }
 
         if(isNativeValid()) {
-            NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
+            final NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
                                                 new Rectangle(x, y, width, height));
             doEvent(defer, false, e);
         }
@@ -3794,16 +3950,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Reflection helper ..
     //
 
-    private static Class<?>[] getCustomConstructorArgumentTypes(Class<?> windowClass) {
+    private static Class<?>[] getCustomConstructorArgumentTypes(final Class<?> windowClass) {
         Class<?>[] argTypes = null;
         try {
-            Method m = windowClass.getDeclaredMethod("getCustomConstructorArgumentTypes");
+            final Method m = windowClass.getDeclaredMethod("getCustomConstructorArgumentTypes");
             argTypes = (Class[]) m.invoke(null, (Object[])null);
-        } catch (Throwable t) {}
+        } catch (final Throwable t) {}
         return argTypes;
     }
 
-    private static int verifyConstructorArgumentTypes(Class<?>[] types, Object[] args) {
+    private static int verifyConstructorArgumentTypes(final Class<?>[] types, final Object[] args) {
         if(types.length != args.length) {
             return -1;
         }
@@ -3815,8 +3971,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return args.length;
     }
 
-    private static String getArgsStrList(Object[] args) {
-        StringBuilder sb = new StringBuilder();
+    private static String getArgsStrList(final Object[] args) {
+        final StringBuilder sb = new StringBuilder();
         for(int i=0; i<args.length; i++) {
             sb.append(args[i].getClass());
             if(i<args.length) {
@@ -3826,8 +3982,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return sb.toString();
     }
 
-    private static String getTypeStrList(Class<?>[] types) {
-        StringBuilder sb = new StringBuilder();
+    private static String getTypeStrList(final Class<?>[] types) {
+        final StringBuilder sb = new StringBuilder();
         for(int i=0; i<types.length; i++) {
             sb.append(types[i]);
             if(i<types.length) {
@@ -3841,11 +3997,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return Display.getThreadName();
     }
 
-    public static String toHexString(int hex) {
+    public static String toHexString(final int hex) {
         return Display.toHexString(hex);
     }
 
-    public static String toHexString(long hex) {
+    public static String toHexString(final long hex) {
         return Display.toHexString(hex);
     }
 }

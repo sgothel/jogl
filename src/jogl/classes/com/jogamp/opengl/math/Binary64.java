@@ -75,7 +75,7 @@ public final class Binary64
    * {@link #POSITIVE_INFINITY}, {@link #NEGATIVE_INFINITY}, or
    * <code>NaN</code>.</li>
    * </ul>
-   * 
+   *
    * @see #packSetExponentUnbiasedUnchecked(int)
    */
 
@@ -93,7 +93,7 @@ public final class Binary64
    * Return the significand of the given double value.
    * </p>
    */
-  
+
   public static long unpackGetSignificand(
     final double d)
   {
@@ -106,7 +106,7 @@ public final class Binary64
    * Return the sign of the given double value.
    * </p>
    */
-  
+
   public static long unpackGetSign(
     final double d)
   {

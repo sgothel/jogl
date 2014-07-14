@@ -19,9 +19,9 @@ import jogamp.graph.font.typecast.ot.Disassembler;
  */
 public class PrepTable extends Program implements Table {
 
-    private DirectoryEntry de;
+    private final DirectoryEntry de;
 
-    public PrepTable(DirectoryEntry de, DataInput di) throws IOException {
+    public PrepTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         readInstructions(di, de.getLength());
     }

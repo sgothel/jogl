@@ -1,0 +1,3 @@
+[submodule "oculusvr-sdk"]
+	path = oculusvr-sdk
+	url = ../oculusvr-sdk.git

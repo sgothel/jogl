@@ -5,36 +5,20 @@
     private final GLProfile glProfile;
 
     @Override
-    public final int glGetBoundBuffer(int target) {
-        return getBoundBuffer(target);
-    }
-    @Override
     public final int getBoundBuffer(int target) {
         return bufferStateTracker.getBoundBufferObject(target, this);
     }
 
-    @Override
-    public final long glGetBufferSize(int bufferName) {
-        return bufferObjectTracker.getBufferSize(bufferName);
-    }
     @Override
     public final GLBufferStorage getBufferStorage(int bufferName) {
         return bufferObjectTracker.getBufferStorage(bufferName);
     }
 
     @Override
-    public final boolean glIsVBOArrayBound() {
-        return isVBOArrayBound();
-    }
-    @Override
     public final boolean isVBOArrayBound() {
         return checkArrayVBOBound(false);
     }
 
-    @Override
-    public final boolean glIsVBOElementArrayBound() {
-        return isVBOElementArrayBound();
-    }
     @Override
     public final boolean isVBOElementArrayBound() {
         return checkElementVBOBound(false);

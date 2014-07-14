@@ -45,8 +45,11 @@ import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
+import javax.media.nativewindow.util.SurfaceSize;
 
 /**
  * Specifying NEWT's Window functionality:
@@ -62,6 +65,20 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates
  * window operation to an instance of this interface while providing OpenGL
  * functionality.
+ * </p>
+ * <p>
+ * All values of this interface are represented in window units, if not stated otherwise.
+ * </p>
+ *
+ * <a name="coordinateSystem"><h5>Coordinate System</h5></a>
+ * <p>
+ *  <ul>
+ *      <li>Screen space has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *      <li>Window origin is in it's top-left corner, see {@link #getX()} and {@link #getY()}. </li>
+ *      <li>Window client-area excludes {@link #getInsets() insets}, i.e. window decoration.</li>
+ *      <li>Window origin is relative to it's parent window if exist, or the screen position (top-level).</li>
+ *  </ul>
+ *  See {@link NativeWindow} and {@link Screen}.
  * </p>
  * <a name="customwindowicons"><h5>Custom Window Icons</h5></a>
  * <p>
@@ -79,7 +96,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * </pre>
  * </p>
  */
-public interface Window extends NativeWindow, WindowClosingProtocol {
+public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSurface {
     public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");
     public static final boolean DEBUG_KEY_EVENT = Debug.debug("Window.KeyEvent");
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
@@ -106,8 +123,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     Screen getScreen();
 
     /**
-     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport}
-     * {@link MonitorDevice#coverage(RectangleImmutable) covers} this window the most.
+     * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewportInWindowUnits() viewport}
+     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of this window.
      * <p>
      * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
@@ -232,7 +249,33 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
-     * Sets the size of the window's client area, excluding decorations.
+     * Returns a newly created {@link Rectangle} containing window origin, {@link #getX()} & {@link #getY()},
+     * and size, {@link #getWidth()} & {@link #getHeight()}, in window units.
+     */
+    Rectangle getBounds();
+
+    /**
+     * Returns the <i>pixels per millimeter</i> of this window's {@link NativeSurface}
+     * according to the {@link #getMainMonitor() main monitor}'s <i>current</i> {@link MonitorMode mode}'s
+     * {@link SurfaceSize#getResolution() surface resolution}.
+     * <p>
+     * Method takes the {@link #getCurrentSurfaceScale(int[]) current surface-scale} and {@link #getNativeSurfaceScale(int[]) native surface-scale}
+     * into account, i.e.:
+     * <pre>
+     *    surfacePpMM = monitorPpMM * currentSurfaceScale / nativeSurfaceScale,
+     *    with PpMM == pixel per millimeter
+     * </pre>
+     * </p>
+     * <p>
+     * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>.
+     * </p>
+     * @param ppmmStore float[2] storage for the ppmm result
+     * @return the passed storage containing the ppmm for chaining
+     */
+    float[] getPixelsPerMM(final float[] ppmmStore);
+
+    /**
+     * Sets the size of the window's client area in window units, excluding decorations.
      *
      * <p>
      * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
@@ -248,22 +291,49 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * <p>
      * This call is ignored if in fullscreen mode.<br></p>
      *
-     * @param width of the window's client area
-     * @param height of the window's client area
+     * @param width of the window's client area in window units
+     * @param height of the window's client area in window units
      *
+     * @see #setSurfaceSize(int, int)
+     * @see #setTopLevelSize(int, int)
      * @see #getInsets()
      */
     void setSize(int width, int height);
 
     /**
-     * Sets the size of the top-level window including insets (window decorations).
+     * Sets the size of the window's surface in pixel units which claims the window's client area excluding decorations.
+     *
+     * <p>
+     * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
+     * <pre>
+     * if ( visible && 0 != windowHandle && ( 0 &ge; width || 0 &ge; height ) ) {
+     *   setVisible(false);
+     * } else if ( visible && 0 == windowHandle && 0 &lt; width && 0 &lt; height ) {
+     *   setVisible(true);
+     * } else {
+     *   // as expected ..
+     * }
+     * </pre></p>
+     * <p>
+     * This call is ignored if in fullscreen mode.<br></p>
+     *
+     * @param pixelWidth of the window's client area in pixel units
+     * @param pixelHeight of the window's client area in pixel units
+     *
+     * @see #setSize(int, int)
+     * @see #getInsets()
+     */
+    void setSurfaceSize(int pixelWidth, int pixelHeight);
+
+    /**
+     * Sets the size of the top-level window including insets (window decorations) in window units.
      *
      * <p>
      * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
      * </p>
      *
-     * @param width of the top-level window area
-     * @param height of the top-level window area
+     * @param width of the top-level window area in window units
+     * @param height of the top-level window area in window units
      *
      * @see #setSize(int, int)
      * @see #getInsets()
@@ -271,19 +341,19 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setTopLevelSize(int width, int height);
 
     /**
-     * Sets the location of the window's client area, excluding insets (window decorations).<br>
+     * Sets the location of the window's client area excluding insets (window decorations) in window units.<br>
      *
      * This call is ignored if in fullscreen mode.<br>
      *
-     * @param x coord of the client-area's top left corner
-     * @param y coord of the client-area's top left corner
+     * @param x coord of the client-area's top left corner in window units
+     * @param y coord of the client-area's top left corner in window units
      *
      * @see #getInsets()
      */
     void setPosition(int x, int y);
 
     /**
-     * Sets the location of the top-level window inclusive insets (window decorations).<br>
+     * Sets the location of the top-level window inclusive insets (window decorations) in window units.<br>
      *
      * <p>
      * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
@@ -291,8 +361,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      *
      * This call is ignored if in fullscreen mode.<br>
      *
-     * @param x coord of the top-level left corner
-     * @param y coord of the top-level left corner
+     * @param x coord of the top-level left corner in window units
+     * @param y coord of the top-level left corner in window units
      *
      * @see #setPosition(int, int)
      * @see #getInsets()
@@ -356,10 +426,10 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void confinePointer(boolean confine);
 
     /**
-     * Moves the pointer to x/y relative to this window's origin.
+     * Moves the pointer to x/y relative to this window's origin in pixel units.
      *
-     * @param x relative pointer x position within this window
-     * @param y relative pointer y position within this window
+     * @param x relative pointer x position within this window in pixel units
+     * @param y relative pointer y position within this window in pixel units
      *
      * @see #confinePointer(boolean)
      */
@@ -397,42 +467,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * this window is added to it's list of children.<br></P>
      *
      * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
-     *
-     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
-     * @see #reparentWindow(NativeWindow, int, int, boolean)
-     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
-     */
-    ReparentOperation reparentWindow(NativeWindow newParent);
-
-    /**
-     * Change this window's parent window.<br>
-     * <P>
-     * In case the old parent is not null and a Window,
-     * this window is removed from it's list of children.<br>
-     * In case the new parent is not null and a Window,
-     * this window is added to it's list of children.<br></P>
-     *
-     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
-     * @param x new top-level position, use -1 for default position.
-     * @param y new top-level position, use -1 for default position.
-     * @param forceDestroyCreate if true, uses re-creation strategy for reparenting, default is <code>false</code>.
-     *
-     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
-     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
-     */
-    ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate);
-
-    /**
-     * Change this window's parent window.<br>
-     * <P>
-     * In case the old parent is not null and a Window,
-     * this window is removed from it's list of children.<br>
-     * In case the new parent is not null and a Window,
-     * this window is added to it's list of children.<br></P>
-     *
-     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
-     * @param x new top-level position, use -1 for default position.
-     * @param y new top-level position, use -1 for default position.
+     * @param x new top-level position in window units, use -1 for default position.
+     * @param y new top-level position in window units, use -1 for default position.
      * @param hints May contain hints (bitfield values) like {@link #REPARENT_HINT_FORCE_RECREATION} or {@link #REPARENT_HINT_BECOMES_VISIBLE}.
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
@@ -520,8 +556,20 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void requestFocus(boolean wait);
 
+    /**
+     * Trigger window repaint while passing the dirty region in pixel units.
+     * @param x dirty-region y-pos in pixel units
+     * @param y dirty-region x-pos in pixel units
+     * @param width dirty-region width in pixel units
+     * @param height dirty-region height in pixel units
+     */
     void windowRepaint(int x, int y, int width, int height);
 
+    /**
+     * Enqueues a {@link com.jogamp.newt.event.NEWTEvent NEWT event}.
+     * @param wait Passing <code>true</code> will block until the event has been processed, otherwise method returns immediately.
+     * @param event The {@link com.jogamp.newt.event.NEWTEvent event} to enqueue.
+     */
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);
 
     void runOnEDTIfAvail(boolean wait, final Runnable task);

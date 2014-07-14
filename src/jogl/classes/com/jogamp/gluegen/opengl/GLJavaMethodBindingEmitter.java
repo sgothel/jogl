@@ -58,8 +58,8 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     protected GLEmitter glEmitter;
     protected CommentEmitter glCommentEmitter = new GLCommentEmitter();
 
-    public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap, boolean callThroughProcAddress,
-            String getProcAddressTableExpr, boolean changeNameAndArguments, boolean bufferObjectVariant, GLEmitter emitter) {
+    public GLJavaMethodBindingEmitter(final JavaMethodBindingEmitter methodToWrap, final boolean callThroughProcAddress,
+            final String getProcAddressTableExpr, final boolean changeNameAndArguments, final boolean bufferObjectVariant, final GLEmitter emitter) {
 
         super(methodToWrap, callThroughProcAddress, getProcAddressTableExpr, changeNameAndArguments, emitter);
         this.bufferObjectVariant = bufferObjectVariant;
@@ -67,20 +67,20 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
         setCommentEmitter(glCommentEmitter);
     }
 
-    public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap, GLEmitter emitter, boolean bufferObjectVariant) {
+    public GLJavaMethodBindingEmitter(final ProcAddressJavaMethodBindingEmitter methodToWrap, final GLEmitter emitter, final boolean bufferObjectVariant) {
         super(methodToWrap);
         this.bufferObjectVariant = bufferObjectVariant;
         this.glEmitter = emitter;
         setCommentEmitter(glCommentEmitter);
     }
 
-    public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
+    public GLJavaMethodBindingEmitter(final GLJavaMethodBindingEmitter methodToWrap) {
         this(methodToWrap, methodToWrap.glEmitter, methodToWrap.bufferObjectVariant);
     }
 
     @Override
-    protected String getArgumentName(int i) {
-        String name = super.getArgumentName(i);
+    protected String getArgumentName(final int i) {
+        final String name = super.getArgumentName(i);
 
         if (!bufferObjectVariant) {
             return name;
@@ -89,8 +89,8 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
         // Emitters for VBO/PBO-related routines change the outgoing
         // argument name for the buffer
         if (binding.getJavaArgumentType(i).isLong()) {
-            Type cType = binding.getCArgumentType(i);
-            Type targetType = cType.asPointer().getTargetType();
+            final Type cType = binding.getCArgumentType(i);
+            final Type targetType = cType.asPointer().getTargetType();
             if (cType.isPointer() && (targetType.isVoid() || targetType.isPrimitive())) {
                 return name + "_buffer_offset";
             }
@@ -102,10 +102,10 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     protected class GLCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
 
         @Override
-        protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {
+        protected void emitBindingCSignature(final MethodBinding binding, final PrintWriter writer) {
 
-            String symbolRenamed = binding.getName();
-            StringBuilder newComment = new StringBuilder();
+            final String symbolRenamed = binding.getName();
+            final StringBuilder newComment = new StringBuilder();
 
             final FunctionSymbol funcSym = binding.getCSymbol();
             writer.print("<code> ");
@@ -117,9 +117,9 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
                 if (glEmitter.getGLConfig().getAllowNonGLExtensions()) {
                     newComment.append("CORE FUNC");
                 } else {
-                    StringBuilder sb = new StringBuilder();
+                    final StringBuilder sb = new StringBuilder();
                     JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
-                    RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
+                    final RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
                     glEmitter.getGLConfig().getGLInfo().dump();
                     // glEmitter.getGLConfig().dumpRenames();
                     throw ex;

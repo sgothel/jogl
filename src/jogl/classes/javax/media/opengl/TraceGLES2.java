@@ -17,7 +17,7 @@ import java.io.PrintStream;
  * </p>
  */
 public class TraceGLES2 extends TraceGLES3 {
-    public TraceGLES2(GLES2 downstream, PrintStream stream) {
+    public TraceGLES2(final GLES2 downstream, final PrintStream stream) {
         super((GLES3)downstream, stream);
     }
 }

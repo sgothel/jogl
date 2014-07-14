@@ -81,7 +81,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         }
     }
 
-    protected GLCanvas createGLCanvas(final Frame frame, int x, int y, GearsES2 gears) throws InterruptedException {
+    protected GLCanvas createGLCanvas(final Frame frame, final int x, final int y, final GearsES2 gears) throws InterruptedException {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         glCanvas.addGLEventListener(gears);
@@ -178,7 +178,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         // Stopped animator allows native windowing system 'repaint' event
@@ -199,7 +199,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
                     } else {
                         f1.dispose();
                     }
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -207,12 +207,8 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 try {
-                    if( destroyCleanOrder ) {
-                        f2.dispose();
-                    } else {
-                        f2.dispose();
-                    }
-                } catch (Throwable t) {
+                    f2.dispose();
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -225,7 +221,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
                     } else {
                         f3.dispose();
                     }
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -332,7 +328,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
         try {
             Thread.sleep(duration);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         // Stopped animator allows native windowing system 'repaint' event
@@ -357,7 +353,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
                     } else {
                         f1.dispose();
                     }
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -365,12 +361,8 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 try {
-                    if( destroyCleanOrder ) {
-                        f2.dispose();
-                    } else {
-                        f2.dispose();
-                    }
-                } catch (Throwable t) {
+                    f2.dispose();
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -383,7 +375,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
                     } else {
                         f3.dispose();
                     }
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throw new RuntimeException(t);
                 }
             }});
@@ -395,13 +387,13 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
     static long duration = 1000; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

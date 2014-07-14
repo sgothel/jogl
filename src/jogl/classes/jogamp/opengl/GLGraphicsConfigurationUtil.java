@@ -45,7 +45,7 @@ public class GLGraphicsConfigurationUtil {
     public static final int FBO_BIT     = 1 << 3; // generic bit must be mapped to native one at impl. level
     public static final int ALL_BITS    = WINDOW_BIT | BITMAP_BIT | PBUFFER_BIT | FBO_BIT ;
 
-    public static final StringBuilder winAttributeBits2String(StringBuilder sb, int winattrbits) {
+    public static final StringBuilder winAttributeBits2String(StringBuilder sb, final int winattrbits) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -101,7 +101,7 @@ public class GLGraphicsConfigurationUtil {
     /**
      * @return bitmask representing the input boolean in exclusive or logic, ie only one bit will be set.
      */
-    public static final int getExclusiveWinAttributeBits(boolean isOnscreen, boolean isFBO, boolean isPBuffer, boolean isBitmap) {
+    public static final int getExclusiveWinAttributeBits(final boolean isOnscreen, final boolean isFBO, final boolean isPBuffer, final boolean isBitmap) {
         final int winattrbits;
         if(isOnscreen) {
             winattrbits = WINDOW_BIT;
@@ -120,11 +120,11 @@ public class GLGraphicsConfigurationUtil {
     /**
      * @see #getExclusiveWinAttributeBits(boolean, boolean, boolean, boolean)
      */
-    public static final int getExclusiveWinAttributeBits(GLCapabilitiesImmutable caps) {
+    public static final int getExclusiveWinAttributeBits(final GLCapabilitiesImmutable caps) {
         return getExclusiveWinAttributeBits(caps.isOnscreen(), caps.isFBO(), caps.isPBuffer(), caps.isBitmap());
     }
 
-    public static final GLCapabilities fixWinAttribBitsAndHwAccel(AbstractGraphicsDevice device, int winattrbits, GLCapabilities caps) {
+    public static final GLCapabilities fixWinAttribBitsAndHwAccel(final AbstractGraphicsDevice device, final int winattrbits, final GLCapabilities caps) {
         caps.setBitmap  ( 0 != ( BITMAP_BIT  & winattrbits ) );
         caps.setPBuffer ( 0 != ( PBUFFER_BIT & winattrbits ) );
         caps.setFBO     ( 0 != ( FBO_BIT     & winattrbits ) );
@@ -150,15 +150,15 @@ public class GLGraphicsConfigurationUtil {
      * @param device the device on which the drawable will be created, maybe null for the {@link GLDrawableFactory#getDefaultDevice() default device}.
      * @return either the given requested {@link GLCapabilitiesImmutable} instance if no modifications were required, or a modified {@link GLCapabilitiesImmutable} instance.
      */
-    public static GLCapabilitiesImmutable fixGLCapabilities(GLCapabilitiesImmutable capsRequested,
-                                                            GLDrawableFactory factory, AbstractGraphicsDevice device) {
+    public static GLCapabilitiesImmutable fixGLCapabilities(final GLCapabilitiesImmutable capsRequested,
+                                                            final GLDrawableFactory factory, final AbstractGraphicsDevice device) {
         if( !capsRequested.isOnscreen() ) {
             return fixOffscreenGLCapabilities(capsRequested, factory, device);
         }
         return capsRequested;
     }
 
-    public static GLCapabilitiesImmutable fixOnscreenGLCapabilities(GLCapabilitiesImmutable capsRequested)
+    public static GLCapabilitiesImmutable fixOnscreenGLCapabilities(final GLCapabilitiesImmutable capsRequested)
     {
         if( !capsRequested.isOnscreen() || capsRequested.isFBO() || capsRequested.isPBuffer() || capsRequested.isBitmap() ) {
             // fix caps ..
@@ -172,7 +172,7 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
-    public static GLCapabilitiesImmutable fixOffscreenBitOnly(GLCapabilitiesImmutable capsRequested)
+    public static GLCapabilitiesImmutable fixOffscreenBitOnly(final GLCapabilitiesImmutable capsRequested)
     {
         if( capsRequested.isOnscreen() ) {
             // fix caps ..
@@ -195,8 +195,8 @@ public class GLGraphicsConfigurationUtil {
      * @param device the device on which the drawable will be created, maybe null for the {@link GLDrawableFactory#getDefaultDevice() default device}.
      * @return either the given requested {@link GLCapabilitiesImmutable} instance if no modifications were required, or a modified {@link GLCapabilitiesImmutable} instance.
      */
-    public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(GLCapabilitiesImmutable capsRequested,
-                                                                     GLDrawableFactory factory, AbstractGraphicsDevice device) {
+    public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(final GLCapabilitiesImmutable capsRequested,
+                                                                     final GLDrawableFactory factory, AbstractGraphicsDevice device) {
         if(null == device) {
             device = factory.getDefaultDevice();
         }
@@ -250,7 +250,7 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
-    public static GLCapabilitiesImmutable fixGLPBufferGLCapabilities(GLCapabilitiesImmutable capsRequested)
+    public static GLCapabilitiesImmutable fixGLPBufferGLCapabilities(final GLCapabilitiesImmutable capsRequested)
     {
         if( capsRequested.isOnscreen() ||
             !capsRequested.isPBuffer() ||
@@ -268,7 +268,7 @@ public class GLGraphicsConfigurationUtil {
     }
 
     /** Fix opaque setting while preserve alpha bits */
-    public static GLCapabilities fixOpaqueGLCapabilities(GLCapabilities capsRequested, boolean isOpaque)
+    public static GLCapabilities fixOpaqueGLCapabilities(final GLCapabilities capsRequested, final boolean isOpaque)
     {
         if( capsRequested.isBackgroundOpaque() != isOpaque) {
             final int alphaBits = capsRequested.getAlphaBits();
@@ -279,7 +279,7 @@ public class GLGraphicsConfigurationUtil {
     }
 
     /** Fix double buffered setting */
-    public static GLCapabilitiesImmutable fixDoubleBufferedGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean doubleBuffered)
+    public static GLCapabilitiesImmutable fixDoubleBufferedGLCapabilities(final GLCapabilitiesImmutable capsRequested, final boolean doubleBuffered)
     {
         if( capsRequested.getDoubleBuffered() != doubleBuffered) {
             final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
@@ -289,7 +289,7 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
-    public static GLCapabilitiesImmutable clipRGBAGLCapabilities(GLCapabilitiesImmutable caps, boolean allowRGB555, boolean allowAlpha)
+    public static GLCapabilitiesImmutable clipRGBAGLCapabilities(final GLCapabilitiesImmutable caps, final boolean allowRGB555, final boolean allowAlpha)
     {
         final int iR = caps.getRedBits();
         final int iG = caps.getGreenBits();
@@ -320,7 +320,7 @@ public class GLGraphicsConfigurationUtil {
         return compOut;
     }
 
-    public static GLCapabilitiesImmutable fixGLProfile(GLCapabilitiesImmutable caps, GLProfile glp)
+    public static GLCapabilitiesImmutable fixGLProfile(final GLCapabilitiesImmutable caps, final GLProfile glp)
     {
         if( caps.getGLProfile() != glp ) {
             final GLCapabilities caps2 = (GLCapabilities) caps.cloneMutable();

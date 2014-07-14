@@ -73,7 +73,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         this.eglLifecycleCallback = null;
     }
 
-    public EGLGraphicsDevice(long nativeDisplayID, long eglDisplay, String connection, int unitID, EGLDisplayLifecycleCallback eglLifecycleCallback) {
+    public EGLGraphicsDevice(final long nativeDisplayID, final long eglDisplay, final String connection, final int unitID, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID, eglDisplay);
         this.nativeDisplayID[0] = nativeDisplayID;
         this.eglLifecycleCallback = eglLifecycleCallback;
@@ -137,7 +137,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         return eglLifecycleCallback;
     }
     @Override
-    protected Object setHandleOwnership(Object newOwnership) {
+    protected Object setHandleOwnership(final Object newOwnership) {
         final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback;
         eglLifecycleCallback = (EGLDisplayLifecycleCallback) newOwnership;
         return oldOwnership;

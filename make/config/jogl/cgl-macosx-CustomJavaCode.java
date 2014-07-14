@@ -11,8 +11,10 @@
  * </p>
  */
 public static long createNSOpenGLLayer(final long ctx, final int gl3ShaderProgramName, final long fmt, final long p, 
-                                       final int texID, final boolean opaque, final int texWidth, final int texHeight) {
-   return createNSOpenGLLayerImpl(ctx, gl3ShaderProgramName, fmt, p, texID, opaque, texWidth, texHeight);
+                                       final int texID, final boolean opaque, 
+                                       final int texWidth, final int texHeight, 
+                                       final int winWidth, final int winHeight) {
+   return createNSOpenGLLayerImpl(ctx, gl3ShaderProgramName, fmt, p, texID, opaque, texWidth, texHeight, winWidth, winHeight);
 }
 
 /**

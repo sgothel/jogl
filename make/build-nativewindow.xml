@@ -265,10 +265,6 @@
       -->
     <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
 
-        <!-- Add the GlueGen task to ANT -->
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
-                 
         <!-- Use the GlueGen task to generate the Java files -->
 
         <antcall target="java.generate.cleantemp" inheritRefs="true" />
@@ -799,6 +795,18 @@
               <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
           </filterset>
         </copy>
+        <copy file="${manifestfile}-natives"
+          tofile="${build.nativewindow}/manifest-natives.mf"
+          overwrite="true">
+          <filterset>
+              <filter token="VERSION" value="${jogamp.version}"/>
+              <filter token="BUILD_VERSION" value="${jogl.version}"/>
+              <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+              <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+              <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+              <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+          </filterset>
+        </copy>
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
@@ -831,16 +839,16 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-core.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>
         </jar>
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.nativewindow}">
-              <include name="*.${native.library.suffix}" />
-            </fileset>
-        </jar>
+        <native.tag.jar objdir="${obj.nativewindow}"
+                        nativejarfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar"
+                        manifestfile="${build.nativewindow}/manifest-natives.mf"
+                        module="nativewindow"
+                        includelibs="*.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->

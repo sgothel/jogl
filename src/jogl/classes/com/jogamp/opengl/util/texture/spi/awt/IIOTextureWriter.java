@@ -54,10 +54,10 @@ import com.jogamp.opengl.util.texture.spi.*;
 
 public class IIOTextureWriter implements TextureWriter {
     @Override
-    public boolean write(File file,
-                         TextureData data) throws IOException {
-        int pixelFormat = data.getPixelFormat();
-        int pixelType   = data.getPixelType();
+    public boolean write(final File file,
+                         final TextureData data) throws IOException {
+        final int pixelFormat = data.getPixelFormat();
+        final int pixelType   = data.getPixelType();
         if ((pixelFormat == GL.GL_RGB ||
              pixelFormat == GL.GL_RGBA) &&
             (pixelType == GL.GL_BYTE ||
@@ -68,7 +68,7 @@ public class IIOTextureWriter implements TextureWriter {
                                                     (pixelFormat == GL.GL_RGB) ?
                                                     BufferedImage.TYPE_3BYTE_BGR :
                                                     BufferedImage.TYPE_4BYTE_ABGR);
-            byte[] imageData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+            final byte[] imageData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
             ByteBuffer buf = (ByteBuffer) data.getBuffer();
             if (buf == null) {
                 buf = (ByteBuffer) data.getMipmapData()[0];
@@ -80,17 +80,17 @@ public class IIOTextureWriter implements TextureWriter {
             // Swizzle image components to be correct
             if (pixelFormat == GL.GL_RGB) {
                 for (int i = 0; i < imageData.length; i += 3) {
-                    byte red  = imageData[i + 0];
-                    byte blue = imageData[i + 2];
+                    final byte red  = imageData[i + 0];
+                    final byte blue = imageData[i + 2];
                     imageData[i + 0] = blue;
                     imageData[i + 2] = red;
                 }
             } else {
                 for (int i = 0; i < imageData.length; i += 4) {
-                    byte red   = imageData[i + 0];
-                    byte green = imageData[i + 1];
-                    byte blue  = imageData[i + 2];
-                    byte alpha = imageData[i + 3];
+                    final byte red   = imageData[i + 0];
+                    final byte green = imageData[i + 1];
+                    final byte blue  = imageData[i + 2];
+                    final byte alpha = imageData[i + 3];
                     imageData[i + 0] = alpha;
                     imageData[i + 1] = blue;
                     imageData[i + 2] = green;
@@ -104,9 +104,9 @@ public class IIOTextureWriter implements TextureWriter {
             // Happened to notice that writing RGBA images to JPEGS is broken
             if (TextureIO.JPG.equals(IOUtil.getFileSuffix(file)) &&
                 image.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
-                BufferedImage tmpImage = new BufferedImage(image.getWidth(), image.getHeight(),
+                final BufferedImage tmpImage = new BufferedImage(image.getWidth(), image.getHeight(),
                                                            BufferedImage.TYPE_3BYTE_BGR);
-                Graphics g = tmpImage.getGraphics();
+                final Graphics g = tmpImage.getGraphics();
                 g.drawImage(image, 0, 0, null);
                 g.dispose();
                 image = tmpImage;

@@ -59,7 +59,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
     boolean initialized;
     jogamp.opengl.glu.tessellator.PriorityQ.Leq leq;
 
-    public PriorityQSort(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq) {
+    public PriorityQSort(final jogamp.opengl.glu.tessellator.PriorityQ.Leq leq) {
         heap = new jogamp.opengl.glu.tessellator.PriorityQHeap(leq);
 
         keys = new Object[jogamp.opengl.glu.tessellator.PriorityQ.INIT_SIZE];
@@ -78,17 +78,17 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
         keys = null;
     }
 
-    private static boolean LT(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq, Object x, Object y) {
-        return (!jogamp.opengl.glu.tessellator.PriorityQHeap.LEQ(leq, y, x));
+    private static boolean LT(final jogamp.opengl.glu.tessellator.PriorityQ.Leq leq, final Object x, final Object y) {
+        return (!PriorityQ.LEQ(leq, y, x));
     }
 
-    private static boolean GT(jogamp.opengl.glu.tessellator.PriorityQ.Leq leq, Object x, Object y) {
-        return (!jogamp.opengl.glu.tessellator.PriorityQHeap.LEQ(leq, x, y));
+    private static boolean GT(final jogamp.opengl.glu.tessellator.PriorityQ.Leq leq, final Object x, final Object y) {
+        return (!PriorityQ.LEQ(leq, x, y));
     }
 
-    private static void Swap(int[] array, int a, int b) {
+    private static void Swap(final int[] array, final int a, final int b) {
         if (true) {
-            int tmp = array[a];
+            final int tmp = array[a];
             array[a] = array[b];
             array[b] = tmp;
         } else {
@@ -105,7 +105,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
     boolean pqInit() {
         int p, r, i, j;
         int piv;
-        Stack[] stack = new Stack[50];
+        final Stack[] stack = new Stack[50];
         for (int k = 0; k < stack.length; k++) {
             stack[k] = new Stack();
         }
@@ -194,7 +194,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
 /* really __gl_pqSortInsert */
 /* returns LONG_MAX iff out of memory */
     @Override
-    int pqInsert(Object keyNew) {
+    int pqInsert(final Object keyNew) {
         int curr;
 
         if (initialized) {
@@ -202,18 +202,19 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
         }
         curr = size;
         if (++size >= max) {
-            Object[] saveKey = keys;
+            // final Object[] saveKey = keys;
 
             /* If the heap overflows, double its size. */
             max <<= 1;
 //            pq->keys = (PQHeapKey *)memRealloc( pq->keys,(size_t)(pq->max * sizeof( pq->keys[0] )));
-            Object[] pqKeys = new Object[max];
+            final Object[] pqKeys = new Object[max];
             System.arraycopy( keys, 0, pqKeys, 0, keys.length );
             keys = pqKeys;
+            /** Cannot be null
             if (keys == null) {
-                keys = saveKey;    /* restore ptr to free upon return */
+                keys = saveKey;    // restore ptr to free upon return
                 return Integer.MAX_VALUE;
-            }
+            } */
         }
         assert curr != Integer.MAX_VALUE;
         keys[curr] = keyNew;
@@ -254,7 +255,7 @@ class PriorityQSort extends jogamp.opengl.glu.tessellator.PriorityQ {
         sortMin = keys[order[size - 1]];
         if (!heap.pqIsEmpty()) {
             heapMin = heap.pqMinimum();
-            if (jogamp.opengl.glu.tessellator.PriorityQHeap.LEQ(leq, heapMin, sortMin)) {
+            if (PriorityQ.LEQ(leq, heapMin, sortMin)) {
                 return heapMin;
             }
         }

@@ -30,7 +30,7 @@ package jogamp.opengl.util.av.impl;
 import com.jogamp.common.util.VersionNumber;
 
 class FFMPEGStaticNatives {
-    static VersionNumber getAVVersion(int vers) {
+    static VersionNumber getAVVersion(final int vers) {
         return new VersionNumber( ( vers >> 16 ) & 0xFF,
                                   ( vers >>  8 ) & 0xFF,
                                   ( vers >>  0 ) & 0xFF );

@@ -37,19 +37,19 @@ import com.jogamp.opengl.FBObject;
  * exposing offscreen functionality.
  * <p>
  * This class distinguishes itself from {@link GLAutoDrawable}
- * with it's {@link #setSize(int, int)} functionality.
+ * with it's {@link #setSurfaceSize(int, int)} functionality.
  * </p>
  */
 public interface GLOffscreenAutoDrawable extends GLAutoDrawable, GLSharedContextSetter {
 
     /**
-     * Resize this auto drawable.
-     * @param newWidth
-     * @param newHeight
+     * Resize this {@link GLAutoDrawable}'s surface
+     * @param newWidth new width in pixel units
+     * @param newHeight new height in pixel units
      * @throws NativeWindowException in case the surface could no be locked
      * @throws GLException in case of an error during the resize operation
      */
-    void setSize(int newWidth, int newHeight) throws NativeWindowException, GLException;
+    void setSurfaceSize(int newWidth, int newHeight) throws NativeWindowException, GLException;
 
     /**
      * Set the upstream UI toolkit object.

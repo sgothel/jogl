@@ -75,14 +75,14 @@ public class TestParenting01dAWT extends UITestCase {
 
     static class MyGLEventListenerCounter extends GLEventListenerCounter {
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             super.init(drawable);
             System.err.println("MyGLEventListenerCounter.init: "+this);
             // Thread.dumpStack();
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) {
+        public void dispose(final GLAutoDrawable drawable) {
             super.dispose(drawable);
             System.err.println("MyGLEventListenerCounter.dispose: "+this);
             // Thread.dumpStack();
@@ -99,7 +99,7 @@ public class TestParenting01dAWT extends UITestCase {
         testGLWindowInvisibleReparentRecreateImpl(true /* triggerPreserveGLState */);
     }
 
-    private void testGLWindowInvisibleReparentRecreateImpl(boolean triggerPreserveGLState) throws InterruptedException, InvocationTargetException {
+    private void testGLWindowInvisibleReparentRecreateImpl(final boolean triggerPreserveGLState) throws InterruptedException, InvocationTargetException {
         final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
@@ -108,7 +108,7 @@ public class TestParenting01dAWT extends UITestCase {
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         final MyGLEventListenerCounter glelCounter = new MyGLEventListenerCounter();
         glWindow1.addGLEventListener(glelCounter);
-        GLEventListener demo1 = new RedSquareES2();
+        final GLEventListener demo1 = new RedSquareES2();
         glWindow1.addGLEventListener(demo1);
         Assert.assertEquals("Init Counter Invalid "+glelCounter, 0, glelCounter.initCount);
 
@@ -238,13 +238,13 @@ public class TestParenting01dAWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
             }
         }
-        String tstname = TestParenting01dAWT.class.getName();
+        final String tstname = TestParenting01dAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

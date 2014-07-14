@@ -59,12 +59,12 @@ import java.io.IOException;
  */
 public abstract class CmapFormat {
 
-    public class Range {
+    public static class Range {
 
-        private int _startCode;
-        private int _endCode;
+        private final int _startCode;
+        private final int _endCode;
 
-        protected Range(int startCode, int endCode) {
+        protected Range(final int startCode, final int endCode) {
             _startCode = startCode;
             _endCode = endCode;
         }
@@ -82,12 +82,12 @@ public abstract class CmapFormat {
     protected int _length;
     protected int _language;
 
-    protected CmapFormat(DataInput di) throws IOException {
+    protected CmapFormat(final DataInput di) throws IOException {
         _length = di.readUnsignedShort();
         _language = di.readUnsignedShort();
     }
 
-    protected static CmapFormat create(int format, DataInput di)
+    protected static CmapFormat create(final int format, final DataInput di)
     throws IOException {
         switch(format) {
             case 0:

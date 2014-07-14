@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.awt.Frame;
@@ -43,6 +43,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LandscapeES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
 
@@ -58,9 +59,9 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestLandscapeES2NewtCanvasAWT extends UITestCase {    
+public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
     static DimensionImmutable wsize = new Dimension(500, 290);
-    
+
     static long duration = 500; // ms
     static int swapInterval = 1;
     static boolean shallUseOffscreenFBOLayer = false;
@@ -69,36 +70,36 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
-    
+
     // public enum ResizeBy { GLWindow, Component, Frame };
     protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
-        Display dpy = NewtFactory.createDisplay(null);
-        Screen screen = NewtFactory.createScreen(dpy, 0);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
         final GLWindow glWindow = GLWindow.create(screen, caps);
-        
+
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         if ( shallUseOffscreenFBOLayer ) {
             newtCanvasAWT.setShallUseOffscreenLayer(true);
         }
-        
+
         final Frame frame = new Frame("AWT Parent Frame");
         {
-            java.awt.Dimension d = new java.awt.Dimension(wsize.getWidth(), wsize.getHeight());
+            final java.awt.Dimension d = new java.awt.Dimension(wsize.getWidth(), wsize.getHeight());
             frame.setSize(d);
         }
         frame.add(newtCanvasAWT);
         frame.setTitle("Gears NewtCanvasAWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize);
-        
+
         final LandscapeES2 demo = new LandscapeES2(swapInterval);
         glWindow.addGLEventListener(demo);
-        
+
         final Animator animator = useAnimator ? new Animator() : null;
         if( useAnimator ) {
-            animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
-        
+
         final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -106,16 +107,16 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
-            public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+            public void windowResized(final WindowEvent e) {
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
-            public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
-            }            
+            public void windowMoved(final WindowEvent e) {
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
+            }
         });
-        
+
         glWindow.addKeyListener(new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow, quitAdapter));
-        
+
         if( useAnimator ) {
             animator.add(glWindow);
             animator.start();
@@ -124,18 +125,18 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.validate();
-               frame.setVisible(true);               
+               frame.setVisible(true);
            }
-        });        
-        
+        });
+
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, System.err);
         }
-        
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-                
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
+
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while(!quitAdapter.shouldQuit() && t1-t0<duration) {
@@ -147,8 +148,8 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
             animator.stop();
         }
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {               
-               frame.dispose();               
+           public void run() {
+               frame.dispose();
            }
         });
         glWindow.destroy();
@@ -171,7 +172,7 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
     @Test
     public void test02GL3() throws InterruptedException, InvocationTargetException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -180,10 +181,10 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
     }
-    
-    public static void main(String args[]) throws IOException {
+
+    public static void main(final String args[]) throws IOException {
         mainRun = true;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -203,7 +204,7 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
                 forceGL3 = true;
             }
         }
-        
+
         System.err.println("size "+wsize);
         System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
         System.err.println("forceES2 "+forceES2);

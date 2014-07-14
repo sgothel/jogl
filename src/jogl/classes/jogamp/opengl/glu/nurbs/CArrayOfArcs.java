@@ -20,7 +20,7 @@ public class CArrayOfArcs {
   /**
    * Don't check for array borders?
    */
-  private boolean noCheck = true;
+  private final boolean noCheck = true;
 
   /**
    * Makes new CArray
@@ -30,7 +30,7 @@ public class CArrayOfArcs {
    * @param pointer
    *            pointer (index) to array
    */
-  public CArrayOfArcs(Arc[] array, int pointer) {
+  public CArrayOfArcs(final Arc[] array, final int pointer) {
     this.array = array;
     // this.pointer=pointer;
     setPointer(pointer);
@@ -42,7 +42,7 @@ public class CArrayOfArcs {
    * @param carray
    *            reference array
    */
-  public CArrayOfArcs(CArrayOfArcs carray) {
+  public CArrayOfArcs(final CArrayOfArcs carray) {
     this.array = carray.array;
     // this.pointer=carray.pointer;
     setPointer(carray.pointer);
@@ -54,7 +54,7 @@ public class CArrayOfArcs {
    * @param ctlarray
    *            underlaying array
    */
-  public CArrayOfArcs(Arc[] ctlarray) {
+  public CArrayOfArcs(final Arc[] ctlarray) {
     this.array = ctlarray;
     this.pointer = 0;
   }
@@ -82,7 +82,7 @@ public class CArrayOfArcs {
    * @param f
    *            desired value
    */
-  public void set(Arc f) {
+  public void set(final Arc f) {
     array[pointer] = f;
 
   }
@@ -94,7 +94,7 @@ public class CArrayOfArcs {
    *            array index
    * @return element at index
    */
-  public Arc get(int i) {
+  public Arc get(final int i) {
     return array[i];
   }
 
@@ -105,7 +105,7 @@ public class CArrayOfArcs {
    *            relative index
    * @return element at relative index
    */
-  public Arc getRelative(int i) {
+  public Arc getRelative(final int i) {
     return array[pointer + i];
   }
 
@@ -117,7 +117,7 @@ public class CArrayOfArcs {
    * @param value
    *            value to be set
    */
-  public void setRelative(int i, Arc value) {
+  public void setRelative(final int i, final Arc value) {
     array[pointer + i] = value;
   }
 
@@ -127,7 +127,7 @@ public class CArrayOfArcs {
    * @param i
    *            lessen by
    */
-  public void lessenPointerBy(int i) {
+  public void lessenPointerBy(final int i) {
     // pointer-=i;
     setPointer(pointer - i);
   }
@@ -147,7 +147,7 @@ public class CArrayOfArcs {
    * @param pointer
    *            pointer value to be set
    */
-  public void setPointer(int pointer) {
+  public void setPointer(final int pointer) {
     if (!noCheck && pointer > array.length)
       throw new IllegalArgumentException("Pointer " + pointer
                                          + " out of bounds " + array.length);
@@ -160,7 +160,7 @@ public class CArrayOfArcs {
    * @param i
    *            raise by
    */
-  public void raisePointerBy(int i) {
+  public void raisePointerBy(final int i) {
     // pointer+=i;
     setPointer(pointer + i);
   }
@@ -188,7 +188,7 @@ public class CArrayOfArcs {
    * @param array
    *            underlaying array
    */
-  public void setArray(Arc[] array) {
+  public void setArray(final Arc[] array) {
     this.array = array;
   }
 }

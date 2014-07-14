@@ -79,7 +79,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   public Object clone() {
     try {
       return super.clone();
-    } catch (CloneNotSupportedException e) {
+    } catch (final CloneNotSupportedException e) {
       throw new NativeWindowException(e);
     }
   }
@@ -89,7 +89,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * from <code>source</code> into this instance.
    * @return this instance
    */
-  public Capabilities copyFrom(CapabilitiesImmutable other) {
+  public Capabilities copyFrom(final CapabilitiesImmutable other) {
     redBits = other.getRedBits();
     greenBits = other.getGreenBits();
     blueBits = other.getBlueBits();
@@ -122,12 +122,12 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if(this == obj)  { return true; }
     if(!(obj instanceof CapabilitiesImmutable)) {
         return false;
     }
-    CapabilitiesImmutable other = (CapabilitiesImmutable)obj;
+    final CapabilitiesImmutable other = (CapabilitiesImmutable)obj;
     boolean res = other.getRedBits()==redBits &&
                   other.getGreenBits()==greenBits &&
                   other.getBlueBits()==blueBits &&
@@ -171,7 +171,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   }
 
   @Override
-  public int getVisualID(VIDType type) throws NativeWindowException {
+  public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
           case INTRINSIC:
           case NATIVE:
@@ -189,7 +189,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   /** Sets the number of bits requested for the color buffer's red
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
-  public void setRedBits(int redBits) {
+  public void setRedBits(final int redBits) {
     this.redBits = redBits;
   }
 
@@ -201,7 +201,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   /** Sets the number of bits requested for the color buffer's green
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
-  public void setGreenBits(int greenBits) {
+  public void setGreenBits(final int greenBits) {
     this.greenBits = greenBits;
   }
 
@@ -213,7 +213,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   /** Sets the number of bits requested for the color buffer's blue
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
-  public void setBlueBits(int blueBits) {
+  public void setBlueBits(final int blueBits) {
     this.blueBits = blueBits;
   }
 
@@ -234,7 +234,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * not to <i>reflect</i> a current state. Nevertheless if this is the case - call it at last.
    * </p>
    */
-  public void setAlphaBits(int alphaBits) {
+  public void setAlphaBits(final int alphaBits) {
     this.alphaBits = alphaBits;
   }
 
@@ -253,7 +253,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * due to the composite work required by the window manager.
    * </p>
    */
-  public void setBackgroundOpaque(boolean opaque) {
+  public void setBackgroundOpaque(final boolean opaque) {
       backgroundOpaque = opaque;
       if(!opaque && getAlphaBits()==0) {
           setAlphaBits(1);
@@ -277,7 +277,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * </p>
    * @param onscreen
    */
-  public void setOnscreen(boolean onscreen) {
+  public void setOnscreen(final boolean onscreen) {
     this.onscreen=onscreen;
   }
 
@@ -298,7 +298,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * Requesting offscreen bitmap mode disables the offscreen auto selection.
    * </p>
    */
-  public void setBitmap(boolean enable) {
+  public void setBitmap(final boolean enable) {
     if(enable) {
       setOnscreen(false);
     }
@@ -327,31 +327,31 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
       This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
       It defaults to half of the frambuffer value for red. <br>
       A value of -1 is interpreted as any value. */
-  public void setTransparentRedValue(int transValueRed) { transparentValueRed=transValueRed; }
+  public void setTransparentRedValue(final int transValueRed) { transparentValueRed=transValueRed; }
 
   /** Sets the transparent green value for the frame buffer configuration,
       ranging from 0 to the maximum frame buffer value for green.
       This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
       It defaults to half of the frambuffer value for green.<br>
       A value of -1 is interpreted as any value. */
-  public void setTransparentGreenValue(int transValueGreen) { transparentValueGreen=transValueGreen; }
+  public void setTransparentGreenValue(final int transValueGreen) { transparentValueGreen=transValueGreen; }
 
   /** Sets the transparent blue value for the frame buffer configuration,
       ranging from 0 to the maximum frame buffer value for blue.
       This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
       It defaults to half of the frambuffer value for blue.<br>
       A value of -1 is interpreted as any value. */
-  public void setTransparentBlueValue(int transValueBlue) { transparentValueBlue=transValueBlue; }
+  public void setTransparentBlueValue(final int transValueBlue) { transparentValueBlue=transValueBlue; }
 
   /** Sets the transparent alpha value for the frame buffer configuration,
       ranging from 0 to the maximum frame buffer value for alpha.
       This value is ignored if {@link #isBackgroundOpaque()} equals true.<br>
       It defaults to half of the frambuffer value for alpha.<br>
       A value of -1 is interpreted as any value. */
-  public void setTransparentAlphaValue(int transValueAlpha) { transparentValueAlpha=transValueAlpha; }
+  public void setTransparentAlphaValue(final int transValueAlpha) { transparentValueAlpha=transValueAlpha; }
 
   @Override
-  public StringBuilder toString(StringBuilder sink) {
+  public StringBuilder toString(final StringBuilder sink) {
       return toString(sink, true);
   }
 
@@ -359,7 +359,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
       object. */
   @Override
   public String toString() {
-    StringBuilder msg = new StringBuilder();
+    final StringBuilder msg = new StringBuilder();
     msg.append("Caps[");
     toString(msg);
     msg.append("]");
@@ -393,7 +393,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   /** Component separator */
   protected static final String CSEP = ", ";
 
-  protected StringBuilder toString(StringBuilder sink, boolean withOnOffScreen) {
+  protected StringBuilder toString(StringBuilder sink, final boolean withOnOffScreen) {
     if(null == sink) {
         sink = new StringBuilder();
     }
@@ -410,5 +410,5 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     return sink;
   }
 
-  protected final String toHexString(int val) { return Integer.toHexString(val); }
+  protected final String toHexString(final int val) { return Integer.toHexString(val); }
 }

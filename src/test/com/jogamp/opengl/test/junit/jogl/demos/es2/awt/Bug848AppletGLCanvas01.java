@@ -62,8 +62,8 @@ public class Bug848AppletGLCanvas01 extends Applet {
         System.err.println("GearsApplet: init() - end [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
     }
 
-    private GLCanvas createCanvas(int vsyncI) {
-        GLCanvas canvas = new GLCanvas();
+    private GLCanvas createCanvas(final int vsyncI) {
+        final GLCanvas canvas = new GLCanvas();
         canvas.addGLEventListener(new GearsES2(vsyncI));
         canvas.setSize(300, 300);
         animators.add(new Animator(canvas));
@@ -77,7 +77,7 @@ public class Bug848AppletGLCanvas01 extends Applet {
     @Override
     public void start() {
         System.err.println("GearsApplet: start() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
-        for (GLAnimatorControl control : animators) {
+        for (final GLAnimatorControl control : animators) {
             control.start();
             control.setUpdateFPSFrames(60, System.err);
         }
@@ -87,7 +87,7 @@ public class Bug848AppletGLCanvas01 extends Applet {
     @Override
     public void stop() {
         System.err.println("GearsApplet: stop() - [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
-        for (GLAnimatorControl control : animators) {
+        for (final GLAnimatorControl control : animators) {
             control.stop();
         }
     }

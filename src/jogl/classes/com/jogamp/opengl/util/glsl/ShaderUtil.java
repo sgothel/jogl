@@ -43,49 +43,49 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GLExtensions;
 
 public class ShaderUtil {
-    public static String getShaderInfoLog(GL _gl, int shaderObj) {
+    public static String getShaderInfoLog(final GL _gl, final int shaderObj) {
         final GL2ES2 gl = _gl.getGL2ES2();
-        int[] infoLogLength=new int[1];
+        final int[] infoLogLength=new int[1];
         gl.glGetShaderiv(shaderObj, GL2ES2.GL_INFO_LOG_LENGTH, infoLogLength, 0);
 
         if(infoLogLength[0]==0) {
             return "(no info log)";
         }
-        int[] charsWritten=new int[1];
-        byte[] infoLogBytes = new byte[infoLogLength[0]];
+        final int[] charsWritten=new int[1];
+        final byte[] infoLogBytes = new byte[infoLogLength[0]];
         gl.glGetShaderInfoLog(shaderObj, infoLogLength[0], charsWritten, 0, infoLogBytes, 0);
 
         return new String(infoLogBytes, 0, charsWritten[0]);
     }
 
-    public static String getProgramInfoLog(GL _gl, int programObj) {
+    public static String getProgramInfoLog(final GL _gl, final int programObj) {
         final GL2ES2 gl = _gl.getGL2ES2();
-        int[] infoLogLength=new int[1];
+        final int[] infoLogLength=new int[1];
         gl.glGetProgramiv(programObj, GL2ES2.GL_INFO_LOG_LENGTH, infoLogLength, 0);
 
         if(infoLogLength[0]==0) {
             return "(no info log)";
         }
-        int[] charsWritten=new int[1];
-        byte[] infoLogBytes = new byte[infoLogLength[0]];
+        final int[] charsWritten=new int[1];
+        final byte[] infoLogBytes = new byte[infoLogLength[0]];
         gl.glGetProgramInfoLog(programObj, infoLogLength[0], charsWritten, 0, infoLogBytes, 0);
 
         return new String(infoLogBytes, 0, charsWritten[0]);
     }
 
-    public static boolean isShaderStatusValid(GL _gl, int shaderObj, int name, PrintStream verboseOut) {
+    public static boolean isShaderStatusValid(final GL _gl, final int shaderObj, final int name, final PrintStream verboseOut) {
         final GL2ES2 gl = _gl.getGL2ES2();
-        int[] ires = new int[1];
+        final int[] ires = new int[1];
         gl.glGetShaderiv(shaderObj, name, ires, 0);
 
-        boolean res = ires[0]==1;
+        final boolean res = ires[0]==1;
         if(!res && null!=verboseOut) {
             verboseOut.println("Shader status invalid: "+ getShaderInfoLog(gl, shaderObj));
         }
         return res;
     }
 
-    public static boolean isShaderStatusValid(GL _gl, IntBuffer shaders, int name, PrintStream verboseOut) {
+    public static boolean isShaderStatusValid(final GL _gl, final IntBuffer shaders, final int name, final PrintStream verboseOut) {
         boolean res = true;
         for (int i = shaders.position(); i < shaders.limit(); i++) {
             res = isShaderStatusValid(_gl, shaders.get(i), name, verboseOut) && res;
@@ -93,15 +93,15 @@ public class ShaderUtil {
         return res;
     }
 
-    public static boolean isProgramStatusValid(GL _gl, int programObj, int name) {
+    public static boolean isProgramStatusValid(final GL _gl, final int programObj, final int name) {
         final GL2ES2 gl = _gl.getGL2ES2();
-        int[] ires = new int[1];
+        final int[] ires = new int[1];
         gl.glGetProgramiv(programObj, name, ires, 0);
 
         return ires[0]==1;
     }
 
-    public static boolean isProgramLinkStatusValid(GL _gl, int programObj, PrintStream verboseOut) {
+    public static boolean isProgramLinkStatusValid(final GL _gl, final int programObj, final PrintStream verboseOut) {
         final GL2ES2 gl = _gl.getGL2ES2();
         if(!gl.glIsProgram(programObj)) {
             if(null!=verboseOut) {
@@ -130,7 +130,7 @@ public class ShaderUtil {
      * </p>
      * @see GL2ES2#glValidateProgram(int)
      **/
-    public static boolean isProgramExecStatusValid(GL _gl, int programObj, PrintStream verboseOut) {
+    public static boolean isProgramExecStatusValid(final GL _gl, final int programObj, final PrintStream verboseOut) {
         final GL2ES2 gl = _gl.getGL2ES2();
         gl.glValidateProgram(programObj);
         if(!isProgramStatusValid(gl, programObj, GL2ES2.GL_VALIDATE_STATUS)) {
@@ -142,7 +142,7 @@ public class ShaderUtil {
         return true;
     }
 
-    public static void createShader(GL _gl, int type, IntBuffer shaders) {
+    public static void createShader(final GL _gl, final int type, final IntBuffer shaders) {
         final GL2ES2 gl = _gl.getGL2ES2();
         for (int i = shaders.position(); i < shaders.limit(); i++) {
             shaders.put(i, gl.glCreateShader(type));
@@ -154,7 +154,7 @@ public class ShaderUtil {
      * {@link GL2ES2#GL_NUM_SHADER_BINARY_FORMATS} and {@link GL2ES2#GL_SHADER_BINARY_FORMATS}
      * via {@link GL2ES2#glGetIntegerv(int, int[], int)}.
      */
-    public static Set<Integer> getShaderBinaryFormats(GL _gl) {
+    public static Set<Integer> getShaderBinaryFormats(final GL _gl) {
         final GL2ES2 gl = _gl.getGL2ES2();
         final ProfileInformation info = getProfileInformation(gl);
         if(null == info.shaderBinaryFormats) {
@@ -166,14 +166,14 @@ public class ShaderUtil {
                     final int err = gl.glGetError();
                     final int numFormats = GL.GL_NO_ERROR == err ? param[0] : 0;
                     if(numFormats>0) {
-                        int[] formats = new int[numFormats];
+                        final int[] formats = new int[numFormats];
                         gl.glGetIntegerv(GL2ES2.GL_SHADER_BINARY_FORMATS, formats, 0);
                         for(int i=0; i<numFormats; i++) {
-                            info.shaderBinaryFormats.add(new Integer(formats[i]));
+                            info.shaderBinaryFormats.add(Integer.valueOf(formats[i]));
                         }
                     }
-                } catch (GLException gle) {
-                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName());
+                } catch (final GLException gle) {
+                    System.err.println("Caught exception on thread "+Thread.currentThread().getName());
                     gle.printStackTrace();
                 }
             }
@@ -182,7 +182,7 @@ public class ShaderUtil {
     }
 
     /** Returns true if a hader compiler is available, otherwise false. */
-    public static boolean isShaderCompilerAvailable(GL _gl) {
+    public static boolean isShaderCompilerAvailable(final GL _gl) {
         final GL2ES2 gl = _gl.getGL2ES2();
         final ProfileInformation info = getProfileInformation(gl);
         if(null==info.shaderCompilerAvailable) {
@@ -200,14 +200,14 @@ public class ShaderUtil {
                             v = true;
                         }
                     }
-                    info.shaderCompilerAvailable = new Boolean(v);
+                    info.shaderCompilerAvailable = Boolean.valueOf(v);
                     queryOK = true;
-                } catch (GLException gle) {
-                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName());
+                } catch (final GLException gle) {
+                    System.err.println("Caught exception on thread "+Thread.currentThread().getName());
                     gle.printStackTrace();
                 }
                 if(!queryOK) {
-                    info.shaderCompilerAvailable = new Boolean(true);
+                    info.shaderCompilerAvailable = Boolean.valueOf(true);
                 }
             } else if( gl.isGL2ES2() ) {
                 info.shaderCompilerAvailable = new Boolean(true);
@@ -219,25 +219,25 @@ public class ShaderUtil {
     }
 
     /** Returns true if GeometryShader is supported, i.e. whether GLContext is &ge; 3.2 or ARB_geometry_shader4 extension is available. */
-    public static boolean isGeometryShaderSupported(GL _gl) {
+    public static boolean isGeometryShaderSupported(final GL _gl) {
       final GLContext ctx = _gl.getContext();
       return ctx.getGLVersionNumber().compareTo(GLContext.Version320) >= 0 ||
              ctx.isExtensionAvailable(GLExtensions.ARB_geometry_shader4);
     }
 
-    public static void shaderSource(GL _gl, int shader, CharSequence[] source)
+    public static void shaderSource(final GL _gl, final int shader, final CharSequence[] source)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         if(!isShaderCompilerAvailable(_gl)) {
             throw new GLException("No compiler is available");
         }
 
-        int count = (null!=source)?source.length:0;
+        final int count = (null!=source)?source.length:0;
         if(count==0) {
             throw new GLException("No sources specified");
         }
 
-        IntBuffer lengths = Buffers.newDirectIntBuffer(count);
+        final IntBuffer lengths = Buffers.newDirectIntBuffer(count);
         for(int i=0; i<count; i++) {
             lengths.put(i, source[i].length());
         }
@@ -260,10 +260,10 @@ public class ShaderUtil {
         }
     }
 
-    public static void shaderSource(GL _gl, IntBuffer shaders, CharSequence[][] sources)
+    public static void shaderSource(final GL _gl, final IntBuffer shaders, final CharSequence[][] sources)
     {
-        int sourceNum = (null!=sources)?sources.length:0;
-        int shaderNum = (null!=shaders)?shaders.remaining():0;
+        final int sourceNum = (null!=sources)?sources.length:0;
+        final int shaderNum = (null!=shaders)?shaders.remaining():0;
         if(shaderNum<=0 || sourceNum<=0 || shaderNum!=sourceNum) {
             throw new GLException("Invalid number of shaders and/or sources: shaders="+
                                   shaderNum+", sources="+sourceNum);
@@ -273,28 +273,28 @@ public class ShaderUtil {
         }
     }
 
-    public static void shaderBinary(GL _gl, IntBuffer shaders, int binFormat, java.nio.Buffer bin)
+    public static void shaderBinary(final GL _gl, final IntBuffer shaders, final int binFormat, final java.nio.Buffer bin)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         if(getShaderBinaryFormats(gl).size()<=0) {
             throw new GLException("No binary formats are supported");
         }
 
-        int shaderNum = shaders.remaining();
+        final int shaderNum = shaders.remaining();
         if(shaderNum<=0) {
             throw new GLException("No shaders specified");
         }
         if(null==bin) {
             throw new GLException("Null shader binary");
         }
-        int binLength = bin.remaining();
+        final int binLength = bin.remaining();
         if(0>=binLength) {
             throw new GLException("Empty shader binary (remaining == 0)");
         }
         gl.glShaderBinary(shaderNum, shaders, binFormat, bin, binLength);
     }
 
-    public static void compileShader(GL _gl, IntBuffer shaders)
+    public static void compileShader(final GL _gl, final IntBuffer shaders)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         for (int i = shaders.position(); i < shaders.limit(); i++) {
@@ -302,7 +302,7 @@ public class ShaderUtil {
         }
     }
 
-    public static void attachShader(GL _gl, int program, IntBuffer shaders)
+    public static void attachShader(final GL _gl, final int program, final IntBuffer shaders)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         for (int i = shaders.position(); i < shaders.limit(); i++) {
@@ -310,7 +310,7 @@ public class ShaderUtil {
         }
     }
 
-    public static void detachShader(GL _gl, int program, IntBuffer shaders)
+    public static void detachShader(final GL _gl, final int program, final IntBuffer shaders)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         for (int i = shaders.position(); i < shaders.limit(); i++) {
@@ -318,7 +318,7 @@ public class ShaderUtil {
         }
     }
 
-    public static void deleteShader(GL _gl, IntBuffer shaders)
+    public static void deleteShader(final GL _gl, final IntBuffer shaders)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         for (int i = shaders.position(); i < shaders.limit(); i++) {
@@ -327,9 +327,9 @@ public class ShaderUtil {
         }
     }
 
-    public static boolean createAndLoadShader(GL _gl, IntBuffer shader, int shaderType,
-                                              int binFormat, java.nio.Buffer bin,
-                                              PrintStream verboseOut)
+    public static boolean createAndLoadShader(final GL _gl, final IntBuffer shader, final int shaderType,
+                                              final int binFormat, final java.nio.Buffer bin,
+                                              final PrintStream verboseOut)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         int err = gl.glGetError(); // flush previous errors ..
@@ -352,9 +352,9 @@ public class ShaderUtil {
         return err == GL.GL_NO_ERROR;
     }
 
-    public static boolean createAndCompileShader(GL _gl, IntBuffer shader, int shaderType,
-                                                 CharSequence[][] sources,
-                                                 PrintStream verboseOut)
+    public static boolean createAndCompileShader(final GL _gl, final IntBuffer shader, final int shaderType,
+                                                 final CharSequence[][] sources,
+                                                 final PrintStream verboseOut)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         int err = gl.glGetError(); // flush previous errors ..
@@ -390,7 +390,7 @@ public class ShaderUtil {
         Set<Integer> shaderBinaryFormats = null;
     }
 
-    private static ProfileInformation getProfileInformation(GL gl) {
+    private static ProfileInformation getProfileInformation(final GL gl) {
         final GLContext context = gl.getContext();
         context.validateCurrent();
         ProfileInformation data = (ProfileInformation) context.getAttachedObject(implObjectKey);

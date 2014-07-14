@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.newt;
 
 import javax.media.nativewindow.*;
@@ -69,19 +69,19 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException {
-        Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
-        Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
-        Window nWindow = NewtFactory.createWindow(nScreen, caps);
+    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException {
+        final Display nDisplay = NewtFactory.createDisplay(NativeWindowFactory.TYPE_AWT, null, false); // local display
+        final Screen nScreen  = NewtFactory.createScreen(nDisplay, 0); // screen 0
+        final Window nWindow = NewtFactory.createWindow(nScreen, caps);
 
-        GLWindow glWindow = GLWindow.create(nWindow);
+        final GLWindow glWindow = GLWindow.create(nWindow);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NewtAWTWrapper Test");
 
         glWindow.addGLEventListener(new GearsES2(1));
 
-        Animator animator = useAnimator ? new Animator(glWindow) : null;
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final Animator animator = useAnimator ? new Animator(glWindow) : null;
+        final QuitAdapter quitAdapter = new QuitAdapter();
 
         glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -89,28 +89,35 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
         if( useAnimator ) {
             animator.start();
         }
-        
+
         int div = 3;
         glWindow.setSize(width/div, height/div);
         glWindow.setVisible(true);
         if( doResizeTest ) {
             glWindow.display();
-            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
-                              AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+            final int[] expSurfaceSize = glWindow.getNativeSurface().convertToPixelUnits(new int[] { width/div, height/div });
+            Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
+                              AWTRobotUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
             Thread.sleep(600);
-    
+
             div = 2;
             glWindow.setSize(width/div, height/div);
             glWindow.display();
-            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
-                              AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+            expSurfaceSize[0] = width/div;
+            expSurfaceSize[1] = height/div;
+            glWindow.getNativeSurface().convertToPixelUnits(expSurfaceSize);
+            Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
+                              AWTRobotUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
             Thread.sleep(600);
-               
+
             div = 1;
             glWindow.setSize(width/div, height/div);
             glWindow.display();
-            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
-                              AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+            expSurfaceSize[0] = width/div;
+            expSurfaceSize[1] = height/div;
+            glWindow.getNativeSurface().convertToPixelUnits(expSurfaceSize);
+            Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
+                              AWTRobotUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
             Thread.sleep(600);
         }
 
@@ -129,11 +136,11 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

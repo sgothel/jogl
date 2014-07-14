@@ -36,7 +36,6 @@ import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 
-
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -56,7 +55,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
      */
-    protected ProxySurfaceImpl(AbstractGraphicsConfiguration cfg, UpstreamSurfaceHook upstream, boolean ownsDevice) {
+    protected ProxySurfaceImpl(final AbstractGraphicsConfiguration cfg, final UpstreamSurfaceHook upstream, final boolean ownsDevice) {
         if(null == cfg) {
             throw new IllegalArgumentException("null AbstractGraphicsConfiguration");
         }
@@ -74,13 +73,15 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     }
 
     @Override
-    public NativeSurface getUpstreamSurface() { return null; }
+    public final NativeSurface getUpstreamSurface() {
+        return upstream.getUpstreamSurface();
+    }
 
     @Override
     public final UpstreamSurfaceHook getUpstreamSurfaceHook() { return upstream; }
 
     @Override
-    public void setUpstreamSurfaceHook(UpstreamSurfaceHook hook) {
+    public void setUpstreamSurfaceHook(final UpstreamSurfaceHook hook) {
         if(null == hook) {
             throw new IllegalArgumentException("null UpstreamSurfaceHook");
         }
@@ -88,7 +89,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     }
 
     @Override
-    public final void enableUpstreamSurfaceHookLifecycle(boolean enable) {
+    public final void enableUpstreamSurfaceHookLifecycle(final boolean enable) {
         upstreamSurfaceHookLifecycleEnabled = enable;
     }
 
@@ -133,7 +134,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     }
 
     @Override
-    public final void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg) {
+    public final void setGraphicsConfiguration(final AbstractGraphicsConfiguration cfg) {
         config = cfg;
     }
 
@@ -149,13 +150,13 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     public abstract void setSurfaceHandle(long surfaceHandle);
 
     @Override
-    public final int getWidth() {
-        return upstream.getWidth(this);
+    public final int getSurfaceWidth() {
+        return upstream.getSurfaceWidth(this);
     }
 
     @Override
-    public final int getHeight() {
-        return upstream.getHeight(this);
+    public final int getSurfaceHeight() {
+        return upstream.getSurfaceHeight(this);
     }
 
     @Override
@@ -164,22 +165,22 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     }
 
     @Override
-    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public void addSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
     @Override
-    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+    public void addSurfaceUpdatedListener(final int index, final SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
     }
 
     @Override
-    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public void removeSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
     }
 
     @Override
-    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
         surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
     }
 
@@ -286,15 +287,15 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     public final int getUpstreamOptionBits() { return implBitfield; }
 
     @Override
-    public final boolean containsUpstreamOptionBits(int v) {
+    public final boolean containsUpstreamOptionBits(final int v) {
         return v == ( implBitfield & v ) ;
     }
 
     @Override
-    public final void addUpstreamOptionBits(int v) { implBitfield |= v; }
+    public final void addUpstreamOptionBits(final int v) { implBitfield |= v; }
 
     @Override
-    public final void clearUpstreamOptionBits(int v) { implBitfield &= ~v; }
+    public final void clearUpstreamOptionBits(final int v) { implBitfield &= ~v; }
 
     @Override
     public StringBuilder toString(StringBuilder sink) {
@@ -303,7 +304,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         }
         sink.append("displayHandle 0x" + Long.toHexString(getDisplayHandle())).
         append("\n, surfaceHandle 0x" + Long.toHexString(getSurfaceHandle())).
-        append("\n, size " + getWidth() + "x" + getHeight()).append("\n, ");
+        append("\n, size " + getSurfaceWidth() + "x" + getSurfaceHeight()).append("\n, ");
         getUpstreamOptionBits(sink);
         sink.append("\n, "+config).
         append("\n, surfaceLock "+surfaceLock+"\n, ").
@@ -315,7 +316,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
 
     @Override
     public String toString() {
-        StringBuilder msg = new StringBuilder();
+        final StringBuilder msg = new StringBuilder();
         msg.append(getClass().getSimpleName()).append("[ ");
         toString(msg);
         msg.append(" ]");

@@ -45,7 +45,6 @@ import javax.media.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -64,7 +63,7 @@ import org.junit.runners.MethodSorters;
 public class TestGLContextDrawableSwitch02AWT extends UITestCase {
     static int width, height;
 
-    static GLCapabilities getCaps(String profile) {
+    static GLCapabilities getCaps(final String profile) {
         if( !GLProfile.isAvailable(profile) )  {
             System.err.println("Profile "+profile+" n/a");
             return null;
@@ -78,12 +77,12 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         height = 256;
     }
 
-    private GLAutoDrawable createGLAutoDrawable(final Frame frame, GLCapabilities caps, int width, int height) throws InterruptedException, InvocationTargetException {
+    private GLAutoDrawable createGLAutoDrawable(final Frame frame, final GLCapabilities caps, final int width, final int height) throws InterruptedException, InvocationTargetException {
         final GLAutoDrawable glad;
         if( caps.isOnscreen() ) {
-            GLCanvas glCanvas = new GLCanvas(caps);
+            final GLCanvas glCanvas = new GLCanvas(caps);
             Assert.assertNotNull(glCanvas);
-            Dimension glc_sz = new Dimension(width, height);
+            final Dimension glc_sz = new Dimension(width, height);
             glCanvas.setMinimumSize(glc_sz);
             glCanvas.setPreferredSize(glc_sz);
             glCanvas.setSize(glc_sz);
@@ -112,33 +111,33 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         testSwitch2AWTGLCanvas2OffscreenImpl(reqGLCaps);
     }
 
-    private void testSwitch2AWTGLCanvas2OffscreenImpl(GLCapabilities capsOnscreen) throws InterruptedException, InvocationTargetException {
+    private void testSwitch2AWTGLCanvas2OffscreenImpl(final GLCapabilities capsOnscreen) throws InterruptedException, InvocationTargetException {
         final GLCapabilities capsOffscreen = (GLCapabilities) capsOnscreen.clone();
         capsOffscreen.setOnscreen(false);
 
-        final QuitAdapter quitAdapter = new QuitAdapter();
-
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
-        GLAutoDrawable glCanvas = createGLAutoDrawable(frame, capsOnscreen, width, height);
+        final GLAutoDrawable glCanvas = createGLAutoDrawable(frame, capsOnscreen, width, height);
+
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
         final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();
-        GearsES2 gears = new GearsES2(1);
+        final GearsES2 gears = new GearsES2(1);
         glCanvas.addGLEventListener(gears);
         glCanvas.addGLEventListener(snapshotGLEventListener);
         snapshotGLEventListener.setMakeSnapshot();
 
-        Animator animator = new Animator();
+        final Animator animator = new Animator();
         animator.add(glCanvas);
         animator.start();
 
         int s = 0;
-        long t0 = System.currentTimeMillis();
+        final long t0 = System.currentTimeMillis();
         long t1 = t0;
 
-        GLAutoDrawable glOffscreen = createGLAutoDrawable(null,  capsOffscreen, width, height);
+        final GLAutoDrawable glOffscreen = createGLAutoDrawable(null,  capsOffscreen, width, height);
         while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration ) {
             if( ( t1 - t0 ) / period > s) {
                 s++;
@@ -169,18 +168,18 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
     static long duration = 2900; // ms
     static long period = 1000; // ms
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-period")) {
                 i++;
                 try {
                     period = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             }
         }
         /**

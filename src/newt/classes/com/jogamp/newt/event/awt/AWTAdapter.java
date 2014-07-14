@@ -28,6 +28,8 @@
 
 package com.jogamp.newt.event.awt;
 
+import javax.media.nativewindow.NativeSurfaceHolder;
+
 import jogamp.newt.Debug;
 
 /**
@@ -117,37 +119,44 @@ public abstract class AWTAdapter implements java.util.EventListener
 
     com.jogamp.newt.event.NEWTEventListener newtListener;
     com.jogamp.newt.Window newtWindow;
+    NativeSurfaceHolder nsHolder;
     boolean consumeAWTEvent;
     protected boolean isSetup;
 
     /**
-     * Simply wrap aroung a NEWT EventListener, exposed as an AWT EventListener.<br>
+     * Create a proxy adapter, wrapping around an NEWT EventListener, exposed as an AWT EventListener,<br>
+     * where the given {@link NativeSurfaceHolder} impersonates the event's source.
      * The NEWT EventListener will be called when an event happens.<br>
      */
-    protected AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener) {
+    protected AWTAdapter(final com.jogamp.newt.event.NEWTEventListener newtListener, final NativeSurfaceHolder nsProxy) {
         if(null==newtListener) {
-            throw new RuntimeException("Argument newtListener is null");
+            throw new IllegalArgumentException("Argument newtListener is null");
+        }
+        if(null==nsProxy) {
+            throw new IllegalArgumentException("Argument nwProxy is null");
         }
         this.newtListener = newtListener;
         this.newtWindow = null;
+        this.nsHolder = nsProxy;
         this.consumeAWTEvent = false;
         this.isSetup = true;
     }
 
     /**
-     * Wrap aroung a NEWT EventListener, exposed as an AWT EventListener,<br>
-     * where the given NEWT Window impersonates as the event's source.
+     * Create a proxy adapter, wrapping around an NEWT EventListener, exposed as an AWT EventListener,<br>
+     * where the given {@link com.jogamp.newt.Window NEWT Window}, a  {@link NativeSurfaceHolder}, impersonates the event's source.
      * The NEWT EventListener will be called when an event happens.<br>
      */
-    protected AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener, com.jogamp.newt.Window newtProxy) {
+    protected AWTAdapter(final com.jogamp.newt.event.NEWTEventListener newtListener, final com.jogamp.newt.Window newtProxy) {
         if(null==newtListener) {
-            throw new RuntimeException("Argument newtListener is null");
+            throw new IllegalArgumentException("Argument newtListener is null");
         }
         if(null==newtProxy) {
-            throw new RuntimeException("Argument newtProxy is null");
+            throw new IllegalArgumentException("Argument newtProxy is null");
         }
         this.newtListener = newtListener;
         this.newtWindow = newtProxy;
+        this.nsHolder = newtProxy;
         this.consumeAWTEvent = false;
         this.isSetup = true;
     }
@@ -156,8 +165,9 @@ public abstract class AWTAdapter implements java.util.EventListener
      * Create a pipeline adapter, AWT EventListener.<br>
      * Once attached to an AWT component, it sends the converted AWT events to the NEWT downstream window.<br>
      * This is only supported with EDT enabled!
+     * @throws IllegalStateException if EDT is not enabled
      */
-    protected AWTAdapter(com.jogamp.newt.Window downstream) {
+    protected AWTAdapter(final com.jogamp.newt.Window downstream) throws IllegalStateException {
         this();
         setDownstream(downstream);
     }
@@ -171,37 +181,71 @@ public abstract class AWTAdapter implements java.util.EventListener
      * Setup a pipeline adapter, AWT EventListener.<br>
      * Once attached to an AWT component, it sends the converted AWT events to the NEWT downstream window.<br>
      * This is only supported with EDT enabled!
+     * @throws IllegalStateException if EDT is not enabled
      */
-    public synchronized AWTAdapter setDownstream(com.jogamp.newt.Window downstream) {
+    public synchronized AWTAdapter setDownstream(final com.jogamp.newt.Window downstream) throws IllegalStateException {
         if(null==downstream) {
             throw new RuntimeException("Argument downstream is null");
         }
         this.newtListener = null;
         this.newtWindow = downstream;
-        this.consumeAWTEvent = false;
+        this.nsHolder = downstream;
         if( null == newtWindow.getScreen().getDisplay().getEDTUtil() ) {
-            throw new RuntimeException("EDT not enabled");
+            throw new IllegalStateException("EDT not enabled");
         }
         this.isSetup = true;
         return this;
     }
 
-    /** Removes all references, downstream and NEWT-EventListener. */
+    /**
+     * Removes all references, downstream and NEWT-EventListener.
+     * <p>
+     * Also sets the internal <code>setup</code> flag and {@link #setConsumeAWTEvent(boolean)} to <code>false</code>.
+     * </p>
+     */
     public synchronized AWTAdapter clear() {
         this.newtListener = null;
         this.newtWindow = null;
+        this.nsHolder = null;
         this.isSetup = false;
+        this.consumeAWTEvent = false;
         return this;
     }
 
-    public final synchronized void setConsumeAWTEvent(boolean v) {
+    public final synchronized void setConsumeAWTEvent(final boolean v) {
         this.consumeAWTEvent = v;
     }
 
+    /**
+     * Returns the {@link NativeSurfaceHolder} acting {@link #AWTAdapter(com.jogamp.newt.Window) as downstream},
+     * {@link #AWTAdapter(com.jogamp.newt.event.NEWTEventListener, com.jogamp.newt.Window) NEWT window proxy}
+     * or as an {@link #AWTAdapter(com.jogamp.newt.event.NEWTEventListener, NativeSurfaceHolder) NativeSurfaceHolder proxy}.
+     * <p>
+     * Returned value is never null.
+     * </p>
+     */
+    public final synchronized NativeSurfaceHolder getNativeSurfaceHolder() {
+        return nsHolder;
+    }
+
+    /**
+     * Returns the {@link com.jogamp.newt.Window NEWT Window} acting {@link #AWTAdapter(com.jogamp.newt.Window) as downstream}
+     * or as a {@link #AWTAdapter(com.jogamp.newt.event.NEWTEventListener, com.jogamp.newt.Window) NEWT window proxy}.
+     * <p>
+     * Returned value maybe null if instance is used to be a
+     * {@link #AWTAdapter(com.jogamp.newt.event.NEWTEventListener, NativeSurfaceHolder) NativeSurfaceHolder proxy}.
+     * </p>
+     */
     public final synchronized com.jogamp.newt.Window getNewtWindow() {
         return newtWindow;
     }
 
+    /**
+     * Returns the {@link com.jogamp.newt.event.NEWTEventListener NEWT event-listener} if instance
+     * is used as an {@link #AWTAdapter(com.jogamp.newt.event.NEWTEventListener, NativeSurfaceHolder) NativeSurfaceHolder proxy}
+     * or {@link #AWTAdapter(com.jogamp.newt.event.NEWTEventListener, com.jogamp.newt.Window) NEWT window proxy},
+     * otherwise method returns <code>null</code>.
+     */
     public final synchronized com.jogamp.newt.event.NEWTEventListener getNewtEventListener() {
         return newtListener;
     }
@@ -218,12 +262,45 @@ public abstract class AWTAdapter implements java.util.EventListener
     public abstract AWTAdapter removeFrom(java.awt.Component awtComponent);
 
     /**
-     * Enqueues the event to the {@link #getNewtWindow()} is not null.
+     * Return value for {@link AWTAdapter#processEvent(boolean, com.jogamp.newt.event.NEWTEvent) event processing}.
      */
-    void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+    static enum EventProcRes {
+        /** Event shall be dispatched appropriately */
+        DISPATCH,
+        /** Event has been enqueued */
+        ENQUEUED,
+        /** No known processing method applies */
+        NOP
+    }
+
+    /**
+     * Process the event.
+     * <p>
+     * If {@link #getNewtEventListener()} is not <code>null</code>,
+     * {@link EventProcRes#DISPATCH DISPATCH} is returned and caller shall dispatch the event appropriately.
+     * </p>
+     * <p>
+     * If {@link #getNewtWindow()} is not <code>null</code>,
+     * {@link EventProcRes#ENQUEUED ENQUEUED} is returned and the event has been {@link com.jogamp.newt.Window#enqueueEvent(boolean, com.jogamp.newt.event.NEWTEvent) enqueued already}.
+     * </p>
+     * <p>
+     * If none of the above matches, {@link EventProcRes#NOP NOP} is returned and none of the above processing method applies.
+     * </p>
+     *
+     * @param wait In case the event will be {@link EventProcRes#ENQUEUED ENQUEUED},
+     *             passing <code>true</code> will block until the event has been processed, otherwise method returns immediately.
+     * @param event The {@link com.jogamp.newt.event.NEWTEvent event} to enqueue.
+     * @return One of the {@link EventProcRes} values, see above.
+     */
+    EventProcRes processEvent(final boolean wait, final com.jogamp.newt.event.NEWTEvent event) {
+        if(null != newtListener) {
+            return EventProcRes.DISPATCH;
+        }
         if( null != newtWindow ) {
             newtWindow.enqueueEvent(wait, event);
+            return EventProcRes.ENQUEUED;
         }
+        return EventProcRes.NOP;
     }
 }
 

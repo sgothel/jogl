@@ -11,15 +11,15 @@ class FilterWriteStrategy {
 	private FilterType currentType; // 0-4
 	private int lastRowTested = -1000000;
 	// performance of each filter (less is better) (can be negative)
-	private double[] lastSums = new double[5];
+	private final double[] lastSums = new double[5];
 	// performance of each filter (less is better) (can be negative)
-	private double[] lastEntropies = new double[5];
+	private final double[] lastEntropies = new double[5];
 	// a priori preference (NONE SUB UP AVERAGE PAETH)
 	private double[] preference = new double[] { 1.1, 1.1, 1.1, 1.1, 1.2 };
 	private int discoverEachLines = -1;
-	private double[] histogram1 = new double[256];
+	private final double[] histogram1 = new double[256];
 
-	FilterWriteStrategy(ImageInfo imgInfo, FilterType configuredType) {
+	FilterWriteStrategy(final ImageInfo imgInfo, final FilterType configuredType) {
 		this.imgInfo = imgInfo;
 		this.configuredType = configuredType;
 		if (configuredType.val < 0) { // first guess
@@ -36,7 +36,7 @@ class FilterWriteStrategy {
 			discoverEachLines = 1;
 	}
 
-	boolean shouldTestAll(int rown) {
+	boolean shouldTestAll(final int rown) {
 		if (discoverEachLines > 0 && lastRowTested + discoverEachLines <= rown) {
 			currentType = null;
 			return true;
@@ -44,7 +44,7 @@ class FilterWriteStrategy {
 			return false;
 	}
 
-	public void setPreference(double none, double sub, double up, double ave, double paeth) {
+	public void setPreference(final double none, final double sub, final double up, final double ave, final double paeth) {
 		preference = new double[] { none, sub, up, ave, paeth };
 	}
 
@@ -52,7 +52,7 @@ class FilterWriteStrategy {
 		return (discoverEachLines > 0);
 	}
 
-	void fillResultsForFilter(int rown, FilterType type, double sum, int[] histo, boolean tentative) {
+	void fillResultsForFilter(final int rown, final FilterType type, final double sum, final int[] histo, final boolean tentative) {
 		lastRowTested = rown;
 		lastSums[type.val] = sum;
 		if (histo != null) {
@@ -72,7 +72,7 @@ class FilterWriteStrategy {
 		}
 	}
 
-	FilterType gimmeFilterType(int rown, boolean useEntropy) {
+	FilterType gimmeFilterType(final int rown, final boolean useEntropy) {
 		if (currentType == null) { // get better
 			if (rown == 0)
 				currentType = FilterType.FILTER_SUB;

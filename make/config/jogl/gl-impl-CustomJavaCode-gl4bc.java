@@ -426,18 +426,10 @@ private final boolean checkPackPBOBound(boolean throwException) {
 }
 
 @Override
-public final boolean glIsPBOPackBound() {
-    return isPBOPackBound();
-}
-@Override
 public final boolean isPBOPackBound() {
     return checkPackPBOBound(false);
 }
 
-@Override
-public final boolean glIsPBOUnpackBound() {
-    return isPBOUnpackBound();
-}
 @Override
 public final boolean isPBOUnpackBound() {
     return checkUnpackPBOBound(false);

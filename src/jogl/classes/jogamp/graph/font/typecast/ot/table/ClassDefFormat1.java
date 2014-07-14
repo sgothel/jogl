@@ -18,12 +18,12 @@ import java.io.RandomAccessFile;
  */
 public class ClassDefFormat1 extends ClassDef {
 
-    private int startGlyph;
-    private int glyphCount;
-    private int[] classValues;
+    private final int startGlyph;
+    private final int glyphCount;
+    private final int[] classValues;
 
     /** Creates new ClassDefFormat1 */
-    public ClassDefFormat1(RandomAccessFile raf) throws IOException {
+    public ClassDefFormat1(final RandomAccessFile raf) throws IOException {
         startGlyph = raf.readUnsignedShort();
         glyphCount = raf.readUnsignedShort();
         classValues = new int[glyphCount];

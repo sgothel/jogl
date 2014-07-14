@@ -52,7 +52,7 @@ public class EGLGLCapabilities extends GLCapabilities {
    *
    * May throw GLException if given GLProfile is not compatible w/ renderableType
    */
-  public EGLGLCapabilities(long eglcfg, int eglcfgid, int visualID, GLProfile glp, int renderableType) {
+  public EGLGLCapabilities(final long eglcfg, final int eglcfgid, final int visualID, final GLProfile glp, final int renderableType) {
       super( glp );
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
@@ -73,19 +73,19 @@ public class EGLGLCapabilities extends GLCapabilities {
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new GLException(e);
     }
   }
 
-  final protected void setEGLConfig(long v) { eglcfg=v; }
+  final protected void setEGLConfig(final long v) { eglcfg=v; }
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
   final public int getNativeVisualID() { return nativeVisualID; }
 
   @Override
-  final public int getVisualID(VIDType type) throws NativeWindowException {
+  final public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
           case INTRINSIC:
           case EGL_CONFIG:
@@ -97,7 +97,7 @@ public class EGLGLCapabilities extends GLCapabilities {
       }
   }
 
-  public static boolean isCompatible(GLProfile glp, int renderableType) {
+  public static boolean isCompatible(final GLProfile glp, final int renderableType) {
     if(null == glp) {
         return true;
     }
@@ -116,7 +116,7 @@ public class EGLGLCapabilities extends GLCapabilities {
     return false;
   }
 
-  public static GLProfile getCompatible(EGLGraphicsDevice device, int renderableType) {
+  public static GLProfile getCompatible(final EGLGraphicsDevice device, final int renderableType) {
     if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && GLProfile.isAvailable(device, GLProfile.GLES3)) {
         return GLProfile.get(device, GLProfile.GLES3);
     }
@@ -132,7 +132,7 @@ public class EGLGLCapabilities extends GLCapabilities {
     return null;
   }
 
-  public static StringBuilder renderableTypeToString(StringBuilder sink, int renderableType) {
+  public static StringBuilder renderableTypeToString(StringBuilder sink, final int renderableType) {
     if(null == sink) {
         sink = new StringBuilder();
     }

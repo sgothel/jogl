@@ -36,6 +36,7 @@ import java.awt.EventQueue;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Arrays;
 
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import javax.media.opengl.FPSCounter;
@@ -110,9 +111,6 @@ public class JOGLNewtApplet1Run extends Applet {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.init() START - "+currentThreadName());
         }
-        if(!(this instanceof Container)) {
-            throw new RuntimeException("This Applet is not a AWT Container");
-        }
         final Container container = this;
 
         String glEventListenerClazzName=null;
@@ -146,7 +144,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glHeight = JOGLNewtAppletBase.str2Int(getParameter("gl_height"), glHeight);
             glNoDefaultKeyListener = JOGLNewtAppletBase.str2Bool(getParameter("gl_nodefaultkeyListener"), glNoDefaultKeyListener);
             appletDebugTestBorder = JOGLNewtAppletBase.str2Bool(getParameter("appletDebugTestBorder"), appletDebugTestBorder);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
         if(null==glEventListenerClazzName) {
@@ -181,7 +179,7 @@ public class JOGLNewtApplet1Run extends Applet {
                                       glTrace);
 
         try {
-            GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
+            final GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
             caps.setAlphaBits(glAlphaBits);
             if(0<glNumMultisampleBuffer) {
                 caps.setSampleBuffers(true);
@@ -205,7 +203,7 @@ public class JOGLNewtApplet1Run extends Applet {
             }
             base.init(glWindow);
             if(base.isValid()) {
-                GLEventListener glEventListener = base.getGLEventListener();
+                final GLEventListener glEventListener = base.getGLEventListener();
 
                 if(glEventListener instanceof MouseListener) {
                     addMouseListener((MouseListener)glEventListener);
@@ -226,7 +224,7 @@ public class JOGLNewtApplet1Run extends Applet {
                         container.validate();
                     } } );
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new RuntimeException(t);
         }
         if(DEBUG) {
@@ -264,7 +262,7 @@ public class JOGLNewtApplet1Run extends Applet {
             }
             System.err.println("JOGLNewtApplet1Run start:");
             System.err.println("TopComponent: "+topC.getLocation()+" rel, "+topC.getLocationOnScreen()+" screen, visible "+topC.isVisible()+", "+topC);
-            System.err.println("Applet Pos: "+this.getLocation()+" rel, "+p0+" screen, visible "+this.isVisible()+", "+this);
+            System.err.println("Applet Pos: "+this.getLocation()+" rel, "+Arrays.toString(p0)+" screen, visible "+this.isVisible()+", "+this);
             if(null != newtCanvasAWT) {
                 System.err.println("NewtCanvasAWT Pos: "+newtCanvasAWT.getLocation()+" rel, "+newtCanvasAWT.getLocationOnScreen()+" screen, visible "+newtCanvasAWT.isVisible()+", "+newtCanvasAWT);
             }

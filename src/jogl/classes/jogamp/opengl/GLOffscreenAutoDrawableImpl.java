@@ -52,12 +52,12 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param lock optional upstream lock, may be null
      */
-    public GLOffscreenAutoDrawableImpl(GLDrawable drawable, GLContext context, Object upstreamWidget, RecursiveLock lock) {
+    public GLOffscreenAutoDrawableImpl(final GLDrawable drawable, final GLContext context, final Object upstreamWidget, final RecursiveLock lock) {
         super(drawable, context, upstreamWidget, true, lock);
     }
 
     @Override
-    public void setSize(int newWidth, int newHeight) throws NativeWindowException, GLException {
+    public void setSurfaceSize(final int newWidth, final int newHeight) throws NativeWindowException, GLException {
         this.defaultWindowResizedOp(newWidth, newHeight);
     }
 
@@ -71,7 +71,7 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
          * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
          * @param lock optional upstream lock, may be null
          */
-        public FBOImpl(GLFBODrawableImpl drawable, GLContext context, Object upstreamWidget, RecursiveLock lock) {
+        public FBOImpl(final GLFBODrawableImpl drawable, final GLContext context, final Object upstreamWidget, final RecursiveLock lock) {
             super(drawable, context, upstreamWidget, lock);
         }
 
@@ -86,7 +86,7 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
         }
 
         @Override
-        public final void setTextureUnit(int unit) {
+        public final void setTextureUnit(final int unit) {
             ((GLFBODrawableImpl)drawable).setTextureUnit(unit);
         }
 
@@ -96,13 +96,13 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
         }
 
         @Override
-        public final void setNumSamples(GL gl, int newSamples) throws GLException {
+        public final void setNumSamples(final GL gl, final int newSamples) throws GLException {
             ((GLFBODrawableImpl)drawable).setNumSamples(gl, newSamples);
             windowRepaintOp();
         }
 
         @Override
-        public final int setNumBuffers(int bufferCount) throws GLException {
+        public final int setNumBuffers(final int bufferCount) throws GLException {
             return ((GLFBODrawableImpl)drawable).setNumBuffers(bufferCount);
         }
 
@@ -123,17 +123,17 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
         } */
 
         @Override
-        public final FBObject getFBObject(int bufferName) {
+        public final FBObject getFBObject(final int bufferName) {
             return ((GLFBODrawableImpl)drawable).getFBObject(bufferName);
         }
 
         @Override
-        public final FBObject.TextureAttachment getTextureBuffer(int bufferName) {
+        public final FBObject.TextureAttachment getTextureBuffer(final int bufferName) {
             return ((GLFBODrawableImpl)drawable).getTextureBuffer(bufferName);
         }
 
         @Override
-        public void resetSize(GL gl) throws GLException {
+        public void resetSize(final GL gl) throws GLException {
             ((GLFBODrawableImpl)drawable).resetSize(gl);
         }
     }

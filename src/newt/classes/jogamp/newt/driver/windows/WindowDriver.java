@@ -116,7 +116,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     public boolean hasDeviceChanged() {
         if(0!=getWindowHandle()) {
-            long _hmon = MonitorFromWindow0(getWindowHandle());
+            final long _hmon = MonitorFromWindow0(getWindowHandle());
             if (hmon != _hmon) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Info: Window Device Changed "+Thread.currentThread().getName()+
@@ -145,7 +145,8 @@ public class WindowDriver extends WindowImpl {
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                                  winVer.getMajor(), winVer.getMinor(),
-                                                 getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags);
+                                                 getParentWindowHandle(),
+                                                 getX(), getY(), getWidth(), getHeight(), autoPosition(), flags);
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
@@ -153,7 +154,7 @@ public class WindowDriver extends WindowImpl {
         windowHandleClose = _windowHandle;
 
         if(DEBUG_IMPLEMENTATION) {
-            Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
+            final Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
                                         " (Parent HWND "+toHexString(getParentWindowHandle())+
                                         ") : HWND "+toHexString(_windowHandle)+", "+Thread.currentThread());
             e.printStackTrace();
@@ -166,18 +167,18 @@ public class WindowDriver extends WindowImpl {
             if ( 0 != hdc ) {
                 try {
                     GDI.ReleaseDC(windowHandleClose, hdc);
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     if(DEBUG_IMPLEMENTATION) {
-                        Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
+                        final Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                         e.printStackTrace();
                     }
                 }
             }
             try {
                 GDI.DestroyWindow(windowHandleClose);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
-                    Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
+                    final Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
             }
@@ -188,7 +189,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, final int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("WindowsWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
@@ -216,7 +217,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void requestFocusImpl(boolean force) {
+    protected void requestFocusImpl(final boolean force) {
         requestFocus0(getWindowHandle(), force);
     }
 
@@ -250,9 +251,10 @@ public class WindowDriver extends WindowImpl {
         this.runOnEDTIfAvail(true, new Runnable() {
             @Override
             public void run() {
-                final Point p0 = getLocationOnScreenImpl(0, 0);
+                final Point p0 = convertToPixelUnits( getLocationOnScreenImpl(0, 0) );
                 res[0] = Boolean.valueOf(confinePointer0(getWindowHandle(), confine,
-                        p0.getX(), p0.getY(), p0.getX()+getWidth(), p0.getY()+getHeight()));
+                                                         p0.getX(), p0.getY(),
+                                                         p0.getX()+getSurfaceWidth(), p0.getY()+getSurfaceHeight()));
             }
         });
         return res[0].booleanValue();
@@ -263,7 +265,7 @@ public class WindowDriver extends WindowImpl {
         this.runOnEDTIfAvail(true, new Runnable() {
             @Override
             public void run() {
-                final Point sPos = getLocationOnScreenImpl(x, y);
+                final Point sPos = convertToPixelUnits( getLocationOnScreenImpl(x, y) );
                 warpPointer0(getWindowHandle(), sPos.getX(), sPos.getY());
             }
         });
@@ -271,12 +273,12 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         return GDIUtil.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop - using event driven insetsChange(..)
     }
 
@@ -293,9 +295,9 @@ public class WindowDriver extends WindowImpl {
      * for details.
      * </p>
      */
-    public final void sendTouchScreenEvent(short eventType, int modifiers,
-                                           int pActionIdx, int[] pNames,
-                                           int[] pX, int[] pY, float[] pPressure, float maxPressure) {
+    public final void sendTouchScreenEvent(final short eventType, final int modifiers,
+                                           final int pActionIdx, final int[] pNames,
+                                           final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
         final int pCount = pNames.length;
         final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
         for(int i=pCount-1; i>=0; i--) { pTypes[i] = PointerType.TouchScreen; }
@@ -309,7 +311,7 @@ public class WindowDriver extends WindowImpl {
     //
     private short repeatedKey = KeyEvent.VK_UNDEFINED;
 
-    private final boolean handlePressTypedAutoRepeat(boolean isModifierKey, int modifiers, short keyCode, short keySym, char keyChar) {
+    private final boolean handlePressTypedAutoRepeat(final boolean isModifierKey, int modifiers, final short keyCode, final short keySym, final char keyChar) {
         if( setKeyPressed(keyCode, true) ) {
             // AR: Key was already pressed: Either [enter | within] AR mode
             final boolean withinAR = repeatedKey == keyCode;
@@ -329,7 +331,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         final boolean isModifierKey = KeyEvent.isModifierKey(keySym);
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
         //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode, false)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
@@ -357,7 +359,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    public final void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 

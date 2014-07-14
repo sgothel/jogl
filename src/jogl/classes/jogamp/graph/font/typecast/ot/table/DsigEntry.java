@@ -18,12 +18,12 @@ import java.io.DataInput;
  */
 public class DsigEntry {
 
-    private int format;
-    private int length;
-    private int offset;
+    private final int format;
+    private final int length;
+    private final int offset;
 
     /** Creates new DsigEntry */
-    protected DsigEntry(DataInput di) throws IOException {
+    protected DsigEntry(final DataInput di) throws IOException {
         format = di.readInt();
         length = di.readInt();
         offset = di.readInt();

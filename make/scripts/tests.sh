@@ -42,20 +42,20 @@ if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
 fi
 
-#export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
-#export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/i386-linux-gnu/mesa:$LD_LIBRARY_PATH
 #export LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/i386-linux-gnu/dri
-#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_git/x86_64-linux-gnu:$LD_LIBRARY_PATH
-#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_git/x86_64-linux-gnu/dri
-#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_901/x86_64-linux-gnu:$LD_LIBRARY_PATH
-#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_901/x86_64-linux-gnu/dri
-#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
-#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_900/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_git/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_git/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_901/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_901/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu/dri
 
 #export LIBGL_DEBUG=verbose 
 #export MESA_DEBUG=true 
@@ -80,7 +80,6 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
-echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX
 
 function jrun() {
@@ -100,6 +99,12 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+
+    #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
+    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
+    #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
+    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
+
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
@@ -119,6 +124,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker"
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker -Djogl.debug.GLArrayData -Djogl.debug.TraceGL -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
@@ -149,27 +155,23 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
-    #D_ARGS="-Djogamp.debug.NativeLibrary"
     #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
-    #D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
+    #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
-    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
-    #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Dnewt.debug.MainThread"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
     #D_ARGS="-Djogl.debug.EGLDrawableFactory.QueryNativeTK -Djogl.debug.GLDrawable"
-    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable -Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.GraphicsDevice"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable -Djogl.debug.EGLDisplayUtil -Djogl.debug.EGLDrawableFactory.QueryNativeTK"
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
@@ -205,7 +207,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window -Djogl.debug.GLJPanel -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
@@ -216,7 +218,9 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Xprof"
+    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel"
+    #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel -Dnativewindow.awt.nohidpi"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel -Djogl.debug.GLJPanel.Viewport"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel -Djogl.gljpanel.noglsl"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel -Djogl.gljpanel.noglsl -Djogl.gljpanel.awtverticalflip"
@@ -229,6 +233,16 @@ function jrun() {
     #D_ARGS="-Dnativewindow.osx.calayer.bugfree"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
     #D_ARGS="-Djogl.debug.graph.curve"
+    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.graph.curve"
+    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
+    #D_ARGS="-Djogl.debug.graph.font.Renderer"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
+    #D_ARGS="-Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.graph.curve.instance"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
     #D_ARGS="-Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
@@ -250,37 +264,48 @@ function jrun() {
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
     #X_ARGS="-verbose:jni"
+    #X_ARGS="-Xcheck:jni"
+    #X_ARGS="-Xcheck:jni -verbose:jni"
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.AudioSink"
-    #D_ARGS="-Djogl.debug.AudioSink.trace"
+    #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=system"
+    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.AudioSink.trace"
+    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
+    #D_ARGS="-Djogl.debug.StereoDevice"
 
     if [ $awton -eq 1 ] ; then
-        export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
-        echo CLASSPATH $CLASSPATH
+        export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        echo USE_CLASSPATH $USE_CLASSPATH
         X_ARGS="-Djava.awt.headless=false $X_ARGS"
+    elif [ $swton -eq 1 ] ; then
+        export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        echo USE_CLASSPATH $USE_CLASSPATH
+        X_ARGS="-Djava.awt.headless=true $X_ARGS"
+    elif [ $awton -eq -1 ] ; then
+        export USE_CLASSPATH=$JOGAMP_ATOMICS_NOAWT_CLASSPATH
     else
-        export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
-        #export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
-        #export CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
-        #export CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl-core.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-core.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-core.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
+        #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
+        #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
+        #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
     if [ $swton -eq 1 ] ; then
-        export CLASSPATH=$CLASSPATH:$JOGL_SWT_CLASSPATH
+        export USE_CLASSPATH=$USE_CLASSPATH:$JOGL_SWT_CLASSPATH
     fi
     if [ ! -z "$CUSTOM_CLASSPATH" ] ; then
-        export CLASSPATH=$CUSTOM_CLASSPATH:$CLASSPATH
+        export USE_CLASSPATH=$CUSTOM_CLASSPATH:$USE_CLASSPATH
     fi
     #Test NEWT Broadcom ..
-    #export CLASSPATH=$JOGL_BUILD_DIR/jar/atomic/newt.driver.broadcomegl.jar::$CLASSPATH
+    #export USE_CLASSPATH=$JOGL_BUILD_DIR/jar/atomic/newt.driver.broadcomegl.jar::$USE_CLASSPATH
     #X_ARGS="-Dnativewindow.ws.name=jogamp.newt.driver.broadcom.egl $X_ARGS"
-    echo CLASSPATH $CLASSPATH
+    echo USE_CLASSPATH $USE_CLASSPATH
     if [ $MOSX_MT -eq 1 ] ; then
         if [ $awton -eq 0 -a $swton -eq 0 ] ; then
             # No AWT, No SWT -> Preserve Main-Thread
@@ -296,29 +321,34 @@ function jrun() {
     echo
     echo "Test Start: $*"
     echo
-    echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
-    #gdb --args "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
-    "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
+    echo "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    #gdb --args "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    #strace $javaexe $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
 }
 
+function testnoawtatomics() {
+    jrun -1 0 $* 2>&1 | tee -a java-run.log
+}
+
 function testnoawt() {
-    jrun 0 0 $* 2>&1 | tee -a java-run.log
+    jrun  0 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
     MOSX_MT=0
-    jrun 1 0 $* 2>&1 | tee -a java-run.log
+    jrun  1 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testswt() {
-    jrun 0 1 $* 2>&1 | tee -a java-run.log
+    jrun  0 1 $* 2>&1 | tee -a java-run.log
 }
 
 function testawtswt() {
-    jrun 1 1 $* 2>&1 | tee -a java-run.log
+    jrun  1 1 $* 2>&1 | tee -a java-run.log
 }
 
 #
@@ -329,12 +359,32 @@ function testawtswt() {
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
+#testnoawt com.jogamp.oculusvr.OVRVersion $*
+
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+
+#
+# Stereo
+#
+#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+
+#
+# HiDPI
+#
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 
 #
 # demos (any TK, more user driven tests)
@@ -344,6 +394,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
@@ -351,6 +402,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
+#testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
@@ -396,13 +448,16 @@ function testawtswt() {
 #
 # CORE [NEWT + AWT] (testnoawt and testawt)
 #
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil02MatrixMatrixMultNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil03InversionNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectDoubleNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary16NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestQuaternion01NOUI $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
@@ -415,8 +470,6 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT0 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT $*
@@ -433,7 +486,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3b $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
+#testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
@@ -498,7 +551,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
 #
@@ -516,6 +569,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00cNEWT $*
@@ -653,7 +707,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
 
 #testnoawt com.jogamp.opengl.test.junit.newt.DemoCreateAndDisposeOnCloseNEWT $*
@@ -708,6 +762,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPixelFormatUtil01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTGATextureFromFileNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite02AWT $*
@@ -729,17 +784,19 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #
 # Graph
 #
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo02 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
 #
 # OSX bugs

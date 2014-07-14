@@ -92,7 +92,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             Class<?> clazz;
             try {
                 clazz = Class.forName("com.jogamp.opengl.util.AWTAnimatorImpl");
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 clazz = null;
             }
             awtAnimatorImplClazz =  clazz;
@@ -112,7 +112,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         drawablesEmpty = true;
     }
 
-    private static final boolean useAWTAnimatorImpl(int modeBits) {
+    private static final boolean useAWTAnimatorImpl(final int modeBits) {
         return 0 != ( MODE_EXPECT_AWT_RENDERING_THREAD & modeBits ) && null != awtAnimatorImplClazz;
     }
 
@@ -126,13 +126,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      *
      * @throws GLException if Animator is {@link #isStarted()}
      */
-    protected final synchronized void initImpl(boolean force) {
+    protected final synchronized void initImpl(final boolean force) {
         if( force || null == impl ) {
             if( useAWTAnimatorImpl( modeBits ) ) {
                 try {
                     impl = (AnimatorImpl) awtAnimatorImplClazz.newInstance();
                     baseName = getBaseName("AWT");
-                } catch (Exception e) { e.printStackTrace(); }
+                } catch (final Exception e) { e.printStackTrace(); }
             }
             if( null == impl ) {
                 impl = new DefaultAnimatorImpl();
@@ -154,7 +154,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @throws GLException if Animator is {@link #isStarted()} and {@link #MODE_EXPECT_AWT_RENDERING_THREAD} about to change
      * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
      */
-    public final synchronized void setModeBits(boolean enable, int bitValues) throws GLException {
+    public final synchronized void setModeBits(final boolean enable, final int bitValues) throws GLException {
         final int _oldModeBits = modeBits;
         if(enable) {
             modeBits |=  bitValues;
@@ -225,7 +225,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             }
         }
 
-        boolean paused = pause();
+        final boolean paused = pause();
         drawables.remove(drawable);
         drawablesEmpty = drawables.size() == 0;
         drawable.setAnimator(null);
@@ -267,7 +267,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @see #isExclusiveContextEnabled()
      */
     // @Override
-    public final synchronized Thread setExclusiveContext(Thread t) {
+    public final synchronized Thread setExclusiveContext(final Thread t) {
         final boolean enable = null != t;
         final Thread old = userExclusiveContextThread;
         if( enable && t != animThread ) { // disable: will be cleared at end after propagation && filter out own animThread usae
@@ -299,7 +299,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @see #isExclusiveContextEnabled()
      */
     // @Override
-    public final boolean setExclusiveContext(boolean enable) {
+    public final boolean setExclusiveContext(final boolean enable) {
         final boolean propagateState;
         final boolean oldExclusiveContext;
         final Thread _exclusiveContextThread;
@@ -312,7 +312,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 System.err.println("AnimatorBase.setExclusiveContextThread: "+oldExclusiveContext+" -> "+exclusiveContext+", propagateState "+propagateState+", "+this);
             }
         }
-        final Thread dECT = enable ? ( null != userExclusiveContextThread ? userExclusiveContextThread : animThread ) : null ;
+        final Thread dECT = enable ? ( null != _exclusiveContextThread ? _exclusiveContextThread : animThread ) : null ;
         if( propagateState ) {
             setDrawablesExclCtxState(enable);
             if( !enable ) {
@@ -324,7 +324,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                     while( 0<counter && isAnimating() && !validateDrawablesExclCtxState(dECT) ) {
                         try {
                             Thread.sleep(20);
-                        } catch (InterruptedException e) { }
+                        } catch (final InterruptedException e) { }
                         counter--;
                     }
                     if(resumed) {
@@ -379,7 +379,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * to allow propagation of releasing the exclusive thread.
      * </p>
      */
-    protected final synchronized void setDrawablesExclCtxState(boolean enable) {
+    protected final synchronized void setDrawablesExclCtxState(final boolean enable) {
         if(DEBUG) {
             System.err.println("AnimatorBase.setExclusiveContextImpl exlusive "+exclusiveContext+": Enable "+enable+" for "+this+" - "+Thread.currentThread());
             // Thread.dumpStack();
@@ -388,12 +388,12 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         for (int i=0; i<drawables.size(); i++) {
             try {
                 drawables.get(i).setExclusiveContextThread( enable ? ect : null );
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 e.printStackTrace();
             }
         }
     }
-    protected final boolean validateDrawablesExclCtxState(Thread expected) {
+    protected final boolean validateDrawablesExclCtxState(final Thread expected) {
         for (int i=0; i<drawables.size(); i++) {
             if( expected != drawables.get(i).getExclusiveContextThread() ) {
                 return false;
@@ -418,7 +418,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     @Override
-    public final void setUpdateFPSFrames(int frames, PrintStream out) {
+    public final void setUpdateFPSFrames(final int frames, final PrintStream out) {
         fpsCounter.setUpdateFPSFrames(frames, out);
     }
 
@@ -470,7 +470,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     /** Sets a flag causing this Animator to ignore exceptions produced
     while redrawing the drawables. By default this flag is set to
     false, causing any exception thrown to halt the Animator. */
-    public final void setIgnoreExceptions(boolean ignoreExceptions) {
+    public final void setIgnoreExceptions(final boolean ignoreExceptions) {
         this.ignoreExceptions = ignoreExceptions;
     }
 
@@ -478,7 +478,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     this Animator (see {@link #setIgnoreExceptions}), to print the
     exceptions' stack traces for diagnostic information. Defaults to
     false. */
-    public final void setPrintExceptions(boolean printExceptions) {
+    public final void setPrintExceptions(final boolean printExceptions) {
         this.printExceptions = printExceptions;
     }
 
@@ -495,7 +495,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      *                   if &gt; <code>0</code>, method will wait for the given <code>pollPeriod</code> in milliseconds.
      * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>, otherwise <code>false</code>.
      */
-    protected final synchronized boolean finishLifecycleAction(Condition waitCondition, long pollPeriod) {
+    protected final synchronized boolean finishLifecycleAction(final Condition waitCondition, long pollPeriod) {
         /**
          * It's hard to tell whether the thread which changes the lifecycle has
          * dependencies on the Animator's internal thread. Currently we
@@ -519,7 +519,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 notifyAll();
                 try {
                     wait(pollPeriod);
-                } catch (InterruptedException ie) {  }
+                } catch (final InterruptedException ie) {  }
                 remaining -= System.currentTimeMillis() - t1 ;
                 nok = waitCondition.eval();
             }

@@ -53,7 +53,7 @@ public class TextureState {
      * Returns <code>0</code> is <code>textureTarget</code> is not supported.
      * </p>
      */
-    public static final int getTextureTargetQueryName(int textureTarget) {
+    public static final int getTextureTargetQueryName(final int textureTarget) {
         final int texBindQName;
         switch(textureTarget) {
             case GL.GL_TEXTURE_2D: texBindQName = GL.GL_TEXTURE_BINDING_2D; break;
@@ -61,7 +61,7 @@ public class TextureState {
             case GL2ES2.GL_TEXTURE_3D: texBindQName = GL2ES2.GL_TEXTURE_BINDING_3D; break;
             case GL2GL3.GL_TEXTURE_1D: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D; break;
             case GL2GL3.GL_TEXTURE_1D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D_ARRAY; break;
-            case GL2GL3.GL_TEXTURE_2D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_2D_ARRAY; break;
+            case GL.GL_TEXTURE_2D_ARRAY: texBindQName = GL.GL_TEXTURE_BINDING_2D_ARRAY; break;
             case GL2GL3.GL_TEXTURE_RECTANGLE: texBindQName = GL2GL3.GL_TEXTURE_BINDING_RECTANGLE; break;
             case GL2GL3.GL_TEXTURE_BUFFER: texBindQName = GL2GL3.GL_TEXTURE_BINDING_BUFFER; break;
             case GL3.GL_TEXTURE_2D_MULTISAMPLE: texBindQName = GL3.GL_TEXTURE_BINDING_2D_MULTISAMPLE; break;
@@ -84,9 +84,9 @@ public class TextureState {
      */
     private final int[] state = new int[] { 0, 0, 0, 0, 0, 0 };
 
-    private static final String toHexString(int i) { return "0x"+Integer.toHexString(i); }
+    private static final String toHexString(final int i) { return "0x"+Integer.toHexString(i); }
 
-    private static final int activeTexture(GL gl) {
+    private static final int activeTexture(final GL gl) {
         final int[] vi = { 0 };
         gl.glGetIntegerv(GL.GL_ACTIVE_TEXTURE, vi, 0);
         return vi[0];
@@ -99,7 +99,7 @@ public class TextureState {
      * @param textureTarget
      * @throws GLException if textureTarget is not supported
      */
-    public TextureState(GL gl, int textureTarget) throws GLException {
+    public TextureState(final GL gl, final int textureTarget) throws GLException {
         this(gl, activeTexture(gl), textureTarget);
     }
 
@@ -111,7 +111,7 @@ public class TextureState {
      * @param textureTarget
      * @throws GLException if textureTarget is not supported
      */
-    public TextureState(GL gl, int textureUnit, int textureTarget) throws GLException {
+    public TextureState(final GL gl, final int textureUnit, final int textureTarget) throws GLException {
         target = textureTarget;
         state[0] = textureUnit;
         final int texBindQName = getTextureTargetQueryName(textureTarget);
@@ -132,7 +132,7 @@ public class TextureState {
      * </p>
      * @param gl current GL context's GL object
      */
-    public final void restore(GL gl) {
+    public final void restore(final GL gl) {
         gl.glActiveTexture(state[0]);
         gl.glBindTexture(target, state[1]);
         gl.glTexParameteri(target, GL.GL_TEXTURE_MAG_FILTER, state[2]);

@@ -426,10 +426,14 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
     prop[propIndex++] = crt_idx;
     prop[propIndex++] = xrrOutputInfo->mm_width;
     prop[propIndex++] = xrrOutputInfo->mm_height;
-    prop[propIndex++] = xrrCrtcInfo->x;
-    prop[propIndex++] = xrrCrtcInfo->y;
-    prop[propIndex++] = xrrCrtcInfo->width;
-    prop[propIndex++] = xrrCrtcInfo->height;
+    prop[propIndex++] = xrrCrtcInfo->x;      // rotated viewport pixel units
+    prop[propIndex++] = xrrCrtcInfo->y;      // rotated viewport pixel units
+    prop[propIndex++] = xrrCrtcInfo->width;  // rotated viewport pixel units
+    prop[propIndex++] = xrrCrtcInfo->height; // rotated viewport pixel units
+    prop[propIndex++] = xrrCrtcInfo->x;      // rotated viewport window units (same)
+    prop[propIndex++] = xrrCrtcInfo->y;      // rotated viewport window units (same)
+    prop[propIndex++] = xrrCrtcInfo->width;  // rotated viewport window units (same)
+    prop[propIndex++] = xrrCrtcInfo->height; // rotated viewport window units (same)
     prop[propIndex++] = xrrCrtcInfo->mode; // current mode id
     prop[propIndex++] = NewtScreen_XRotation2Degree(env, xrrCrtcInfo->rotation);
     int i;

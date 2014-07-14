@@ -33,32 +33,25 @@ import java.io.IOException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
-import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
+import com.jogamp.opengl.util.PMVMatrix;
 
 public class UIGLListener01 extends UIListenerBase01 {
-    
-    public UIGLListener01 (RenderState rs, boolean debug, boolean trace) {
-        super(RegionRenderer.create(rs, 0), debug, trace);
+
+    public UIGLListener01 (final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
+        super(renderModes, RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         try {
             final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f){
-                public void onClick() {
-                }
-                public void onPressed() {
-                }
-                public void onRelease() {
-                }
-                
-            };
-            button.setPosition(2,1,0);
+            button = new LabelButton(SVertex.factory(), 0, font, "Click me!", 4f, 3f);
+            button.translate(2,1,0);
             /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
                 button.setButtonColor(0.6f,0.6f,0.6f);
@@ -66,65 +59,49 @@ public class UIGLListener01 extends UIListenerBase01 {
                 button.setSpacing(2.0f);
              */
             System.err.println(button);
-        } catch (IOException ex) {
-            System.err.println("Catched: "+ex.getMessage());
+        } catch (final IOException ex) {
+            System.err.println("Caught: "+ex.getMessage());
             ex.printStackTrace();
-        }            
+        }
     }
-    
-    public void init(GLAutoDrawable drawable) {
+
+    @Override
+    public void init(final GLAutoDrawable drawable) {
         super.init(drawable);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.setSwapInterval(1);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
-        
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+
         MSAATool.dump(drawable);
     }
 
-    UIRegion regionButton;
-    UIRegion regionLabel;
-    
-    public void display(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    @Override
+    public void display(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
+        final int[] sampleCount = { 4 };
+        final float[] translate = button.getTranslate();
+
         final RegionRenderer regionRenderer = getRegionRenderer();
-        final RenderState rs = regionRenderer.getRenderState();
-        
-        regionRenderer.resetModelview(null);
-        
-        regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
-        regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
-        
-        final float[] bColor = button.getButtonColor();
-        final float[] lColor = button.getLabelColor();        
-        if(null == regionButton) {
-            regionButton = new UIRegion(button);
-            regionLabel = new UIRegion(button.getLabel());
-        }        
-        
-        regionRenderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
-        regionRenderer.draw(gl, regionButton.getRegion(gl, rs, 0), getPosition(), null);
-//        regionRenderer.translate(gl, button.getPosition()[0], button.getPosition()[1], button.getPosition()[2]);
-        regionRenderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
-        regionRenderer.draw(gl, regionLabel.getRegion(gl, rs, 0), getPosition(), null);
-    }        
-    
-    public void dispose(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        if(null != regionButton) {
-            regionButton.destroy(gl, getRegionRenderer().getRenderState());
-            regionButton = null;
-        }
-        if(null != regionLabel) {
-            regionLabel.destroy(gl, getRegionRenderer().getRenderState());
-            regionButton = null;
-        }
+        final PMVMatrix pmv = regionRenderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(getXTran(), getYTran(), getZoom());
+        pmv.glRotatef(getAngle(), 0, 1, 0);
+        pmv.glTranslatef(translate[0], translate[1], 0);
+        button.drawShape(gl, regionRenderer, sampleCount);
+    }
+
+    @Override
+    public void dispose(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        button.destroy(gl, getRegionRenderer());
         super.dispose(drawable);
     }
 }

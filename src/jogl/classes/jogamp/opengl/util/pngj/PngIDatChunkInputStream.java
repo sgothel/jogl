@@ -18,7 +18,7 @@ class PngIDatChunkInputStream extends InputStream {
 	private final CRC32 crcEngine;
 	private boolean checkCrc = true;
 	private int lenLastChunk;
-	private byte[] idLastChunk = new byte[4];
+	private final byte[] idLastChunk = new byte[4];
 	private int toReadThisChunk = 0;
 	private boolean ended = false;
 	private long offset; // offset inside whole inputstream (counting bytes before IDAT)
@@ -28,7 +28,7 @@ class PngIDatChunkInputStream extends InputStream {
 		public final int len;
 		public final long offset;
 
-		private IdatChunkInfo(int len, long offset) {
+		private IdatChunkInfo(final int len, final long offset) {
 			this.len = len;
 			this.offset = offset;
 		}
@@ -40,7 +40,7 @@ class PngIDatChunkInputStream extends InputStream {
 	 * Constructor must be called just after reading length and id of first IDAT
 	 * chunk
 	 **/
-	PngIDatChunkInputStream(InputStream iStream, int lenFirstChunk, long offset) {
+	PngIDatChunkInputStream(final InputStream iStream, final int lenFirstChunk, final long offset) {
 		this.offset = offset;
 		inputStream = iStream;
 		this.lenLastChunk = lenFirstChunk;
@@ -70,10 +70,10 @@ class PngIDatChunkInputStream extends InputStream {
 		// Those values are left in idLastChunk / lenLastChunk
 		// Skips empty IDATS
 		do {
-			int crc = PngHelperInternal.readInt4(inputStream); //
+			final int crc = PngHelperInternal.readInt4(inputStream); //
 			offset += 4;
 			if (checkCrc) {
-				int crccalc = (int) crcEngine.getValue();
+				final int crccalc = (int) crcEngine.getValue();
 				if (lenLastChunk > 0 && crc != crccalc)
 					throw new PngjBadCrcException("error reading idat; offset: " + offset);
 				crcEngine.reset();
@@ -101,7 +101,7 @@ class PngIDatChunkInputStream extends InputStream {
 	 */
 	void forceChunkEnd() {
 		if (!ended) {
-			byte[] dummy = new byte[toReadThisChunk];
+			final byte[] dummy = new byte[toReadThisChunk];
 			PngHelperInternal.readBytes(inputStream, dummy, 0, toReadThisChunk);
 			if (checkCrc)
 				crcEngine.update(dummy, 0, toReadThisChunk);
@@ -114,12 +114,12 @@ class PngIDatChunkInputStream extends InputStream {
 	 * ended prematurely. That is our error.
 	 */
 	@Override
-	public int read(byte[] b, int off, int len) throws IOException {
+	public int read(final byte[] b, final int off, final int len) throws IOException {
 		if (ended)
 			return -1; // can happen only when raw reading, see Pngreader.readAndSkipsAllRows()
 		if (toReadThisChunk == 0)
 			throw new PngjExceptionInternal("this should not happen");
-		int n = inputStream.read(b, off, len >= toReadThisChunk ? toReadThisChunk : len);
+		final int n = inputStream.read(b, off, len >= toReadThisChunk ? toReadThisChunk : len);
 		if (n > 0) {
 			if (checkCrc)
 				crcEngine.update(b, off, n);
@@ -133,7 +133,7 @@ class PngIDatChunkInputStream extends InputStream {
 	}
 
 	@Override
-	public int read(byte[] b) throws IOException {
+	public int read(final byte[] b) throws IOException {
 		return this.read(b, 0, b.length);
 	}
 
@@ -141,8 +141,8 @@ class PngIDatChunkInputStream extends InputStream {
 	public int read() throws IOException {
 		// PngHelper.logdebug("read() should go here");
 		// inneficient - but this should be used rarely
-		byte[] b1 = new byte[1];
-		int r = this.read(b1, 0, 1);
+		final byte[] b1 = new byte[1];
+		final int r = this.read(b1, 0, 1);
 		return r < 0 ? -1 : (int) b1[0];
 	}
 

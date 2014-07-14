@@ -30,6 +30,7 @@ package com.jogamp.opengl;
 import java.util.IdentityHashMap;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.common.os.Platform;
 
@@ -289,15 +290,38 @@ public class GLRendererQuirks {
      */
     public static final int SingletonEGLDisplayOnly = 16;
 
+    /**
+     * With certain drivers no reliable MSAA / FSAA
+     * {@link GLCapabilitiesImmutable#getSampleBuffers() multi}
+     * {@link GLCapabilitiesImmutable#getNumSamples() sampling} is available, read <i>a crash</i> may occur.
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>GL_VENDOR       nouveau</li>
+     *   <li>GL_RENDERER     Gallium 0.4 on NV34</li>
+     * </ul>
+     * TODO: We have to determine the exact version range, i.e. not adding the quirk with fixed driver version!
+     * </p>
+     * TODO: Since we currently don't handle this quirk internally, a user may need to do the following:
+     * <pre>
+     * final AbstractGraphicsDevice adevice = GLDrawableFactory.getDesktopFactory(); // or similar
+     * if( GLRendererQuirks.existStickyDeviceQuirk(adevice, GLRendererQuirks.NoMultiSamplingBuffers) ) {
+     *    // don't use MSAA
+     * }
+     * </pre>
+     */
+    public static final int NoMultiSamplingBuffers  = 17;
+
     /** Number of quirks known. */
-    public static final int COUNT = 17;
+    public static final int COUNT = 18;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
-                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly"
+                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
+                                                          "NoMultiSamplingBuffers"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
@@ -312,7 +336,7 @@ public class GLRendererQuirks {
      * </p>
      * @see #areSameStickyDevice(AbstractGraphicsDevice, AbstractGraphicsDevice)
      */
-    public static GLRendererQuirks getStickyDeviceQuirks(AbstractGraphicsDevice device) {
+    public static GLRendererQuirks getStickyDeviceQuirks(final AbstractGraphicsDevice device) {
         final String key = device.getUniqueID();
         final GLRendererQuirks has = stickyDeviceQuirks.get(key);
         final GLRendererQuirks res;
@@ -329,8 +353,8 @@ public class GLRendererQuirks {
      * Returns true if both devices have the same {@link AbstractGraphicsDevice#getUniqueID()},
      * otherwise false.
      */
-    public static boolean areSameStickyDevice(AbstractGraphicsDevice device1, AbstractGraphicsDevice device2) {
-        return device1.getUniqueID() == device2.getUniqueID();
+    public static boolean areSameStickyDevice(final AbstractGraphicsDevice device1, final AbstractGraphicsDevice device2) {
+        return device1.getUniqueID() == device2.getUniqueID(); // uses .intern()!
     }
 
     /**
@@ -340,7 +364,7 @@ public class GLRendererQuirks {
      * </p>
      * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
-    public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, int[] quirks, int offset, int len) throws IllegalArgumentException {
+    public static void addStickyDeviceQuirks(final AbstractGraphicsDevice device, final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
         final GLRendererQuirks sq = getStickyDeviceQuirks(device);
         sq.addQuirks(quirks, offset, len);
     }
@@ -351,7 +375,7 @@ public class GLRendererQuirks {
      * </p>
      * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
-    public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks quirks) throws IllegalArgumentException {
+    public static void addStickyDeviceQuirks(final AbstractGraphicsDevice device, final GLRendererQuirks quirks) throws IllegalArgumentException {
         final GLRendererQuirks sq = getStickyDeviceQuirks(device);
         sq.addQuirks(quirks);
     }
@@ -362,7 +386,7 @@ public class GLRendererQuirks {
      * </p>
      * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
-    public static boolean existStickyDeviceQuirk(AbstractGraphicsDevice device, int quirk) {
+    public static boolean existStickyDeviceQuirk(final AbstractGraphicsDevice device, final int quirk) {
         return getStickyDeviceQuirks(device).exist(quirk);
     }
     /**
@@ -373,7 +397,7 @@ public class GLRendererQuirks {
      * </p>
      * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
-    public static void pushStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks dest) {
+    public static void pushStickyDeviceQuirks(final AbstractGraphicsDevice device, final GLRendererQuirks dest) {
         dest.addQuirks(getStickyDeviceQuirks(device));
     }
 
@@ -389,7 +413,7 @@ public class GLRendererQuirks {
      * @param len number of quirks to read from offset within quirks array
      * @throws IllegalArgumentException if one of the quirks is out of range
      */
-    public GLRendererQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
+    public GLRendererQuirks(final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
         this();
         addQuirks(quirks, offset, len);
     }
@@ -400,7 +424,7 @@ public class GLRendererQuirks {
      * @param len number of quirks to read from offset within quirks array
      * @throws IllegalArgumentException if one of the quirks is out of range
      */
-    public final void addQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
+    public final void addQuirks(final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
         int bitmask = 0;
         if( !( 0 <= offset + len && offset + len <= quirks.length ) ) {
             throw new IllegalArgumentException("offset and len out of bounds: offset "+offset+", len "+len+", array-len "+quirks.length);
@@ -416,7 +440,7 @@ public class GLRendererQuirks {
     /**
      * @param quirks valid GLRendererQuirks to be added
      */
-    public final void addQuirks(GLRendererQuirks quirks) {
+    public final void addQuirks(final GLRendererQuirks quirks) {
         _bitmask |= quirks._bitmask;
     }
 
@@ -425,7 +449,7 @@ public class GLRendererQuirks {
      * @return true if quirk exist, otherwise false
      * @throws IllegalArgumentException if quirk is out of range
      */
-    public final boolean exist(int quirk) throws IllegalArgumentException {
+    public final boolean exist(final int quirk) throws IllegalArgumentException {
         validateQuirk(quirk);
         return 0 != ( ( 1 << quirk )  & _bitmask );
     }
@@ -457,7 +481,7 @@ public class GLRendererQuirks {
      * @param quirk the quirk to be validated, i.e. whether it is out of range
      * @throws IllegalArgumentException if quirk is out of range
      */
-    public static void validateQuirk(int quirk) throws IllegalArgumentException {
+    public static void validateQuirk(final int quirk) throws IllegalArgumentException {
         if( !( 0 <= quirk && quirk < COUNT ) ) {
             throw new IllegalArgumentException("Quirks must be in range [0.."+COUNT+"[, but quirk: "+quirk);
         }
@@ -468,7 +492,7 @@ public class GLRendererQuirks {
      * @return the String equivalent of this quirk
      * @throws IllegalArgumentException if quirk is out of range
      */
-    public static final String toString(int quirk) throws IllegalArgumentException {
+    public static final String toString(final int quirk) throws IllegalArgumentException {
         validateQuirk(quirk);
         return _names[quirk];
     }

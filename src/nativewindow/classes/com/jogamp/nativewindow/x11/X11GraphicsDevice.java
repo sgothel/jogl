@@ -54,7 +54,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      *  This constructor exist to setup a default device connection.
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int)
      */
-    public X11GraphicsDevice(String connection, int unitID) {
+    public X11GraphicsDevice(final String connection, final int unitID) {
         super(NativeWindowFactory.TYPE_X11, connection, unitID);
         handleOwner = false;
         isXineramaEnabled = false;
@@ -64,7 +64,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long)
      */
-    public X11GraphicsDevice(long display, int unitID, boolean owner) {
+    public X11GraphicsDevice(final long display, final int unitID, final boolean owner) {
         this(display, unitID, NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_X11, display), owner);
     }
 
@@ -73,7 +73,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
-    public X11GraphicsDevice(long display, int unitID, ToolkitLock locker, boolean owner) {
+    public X11GraphicsDevice(final long display, final int unitID, final ToolkitLock locker, final boolean owner) {
         super(NativeWindowFactory.TYPE_X11, X11Lib.XDisplayString(display), unitID, display, locker);
         if(0==display) {
             throw new NativeWindowException("null display");
@@ -91,14 +91,14 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
-    public X11GraphicsDevice(String displayConnection, int unitID, ToolkitLock locker) {
+    public X11GraphicsDevice(final String displayConnection, final int unitID, final ToolkitLock locker) {
         super(NativeWindowFactory.TYPE_X11, displayConnection, unitID, 0, locker);
         handleOwner = true;
         open();
         isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
 
-    private static int getDefaultScreenImpl(long dpy) {
+    private static int getDefaultScreenImpl(final long dpy) {
         return X11Lib.DefaultScreen(dpy);
     }
 
@@ -176,7 +176,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         return Boolean.valueOf(handleOwner);
     }
     @Override
-    protected Object setHandleOwnership(Object newOwnership) {
+    protected Object setHandleOwnership(final Object newOwnership) {
         final Boolean oldOwnership = Boolean.valueOf(handleOwner);
         handleOwner = ((Boolean) newOwnership).booleanValue();
         return oldOwnership;

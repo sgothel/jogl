@@ -60,7 +60,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
      * @param mode TODO
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      */
-    public FixedFuncHook (GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix) {
+    public FixedFuncHook (final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
         this.gl = gl;
         if(null != pmvMatrix) {
             this.ownsPMVMatrix = false;
@@ -77,10 +77,10 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
      * @param mode TODO
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      */
-    public FixedFuncHook(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix,
-                         Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot,
-                         String vertexColorFile, String vertexColorLightFile,
-                         String fragmentColorFile, String fragmentColorTextureFile) {
+    public FixedFuncHook(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix,
+                         final Class<?> shaderRootClass, final String shaderSrcRoot, final String shaderBinRoot,
+                         final String vertexColorFile, final String vertexColorLightFile,
+                         final String fragmentColorFile, final String fragmentColorTextureFile) {
         this.gl = gl;
         if(null != pmvMatrix) {
             this.ownsPMVMatrix = false;
@@ -96,14 +96,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
 
     public boolean verbose() { return fixedFunction.verbose(); }
 
-    public void setVerbose(boolean v) { fixedFunction.setVerbose(v); }
+    public void setVerbose(final boolean v) { fixedFunction.setVerbose(v); }
 
     public void destroy() {
         fixedFunction.destroy(gl);
         fixedFunction = null;
-        if(ownsPMVMatrix) {
-            pmvMatrix.destroy();
-        }
         pmvMatrix=null;
         gl=null;
     }
@@ -113,32 +110,32 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     //
     // FixedFuncHookIf - hooks
     //
-    public void glDrawArrays(int mode, int first, int count) {
+    public void glDrawArrays(final int mode, final int first, final int count) {
         fixedFunction.glDrawArrays(gl, mode, first, count);
     }
-    public void glDrawElements(int mode, int count, int type, java.nio.Buffer indices) {
+    public void glDrawElements(final int mode, final int count, final int type, final java.nio.Buffer indices) {
         fixedFunction.glDrawElements(gl, mode, count, type, indices);
     }
-    public void glDrawElements(int mode, int count, int type, long indices_buffer_offset) {
+    public void glDrawElements(final int mode, final int count, final int type, final long indices_buffer_offset) {
         fixedFunction.glDrawElements(gl, mode, count, type, indices_buffer_offset);
     }
 
-    public void glActiveTexture(int texture) {
+    public void glActiveTexture(final int texture) {
         fixedFunction.glActiveTexture(texture);
         gl.glActiveTexture(texture);
     }
-    public void glEnable(int cap) {
+    public void glEnable(final int cap) {
         if(fixedFunction.glEnable(cap, true)) {
             gl.glEnable(cap);
         }
     }
-    public void glDisable(int cap) {
+    public void glDisable(final int cap) {
         if(fixedFunction.glEnable(cap, false)) {
             gl.glDisable(cap);
         }
     }
     @Override
-    public void glGetFloatv(int pname, java.nio.FloatBuffer params) {
+    public void glGetFloatv(final int pname, final java.nio.FloatBuffer params) {
         if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetFloatv(pname, params);
             return;
@@ -146,7 +143,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl.glGetFloatv(pname, params);
     }
     @Override
-    public void glGetFloatv(int pname, float[] params, int params_offset) {
+    public void glGetFloatv(final int pname, final float[] params, final int params_offset) {
         if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetFloatv(pname, params, params_offset);
             return;
@@ -154,7 +151,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl.glGetFloatv(pname, params, params_offset);
     }
     @Override
-    public void glGetIntegerv(int pname, IntBuffer params) {
+    public void glGetIntegerv(final int pname, final IntBuffer params) {
         if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetIntegerv(pname, params);
             return;
@@ -162,7 +159,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl.glGetIntegerv(pname, params);
     }
     @Override
-    public void glGetIntegerv(int pname, int[] params, int params_offset) {
+    public void glGetIntegerv(final int pname, final int[] params, final int params_offset) {
         if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetIntegerv(pname, params, params_offset);
             return;
@@ -170,21 +167,21 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl.glGetIntegerv(pname, params, params_offset);
     }
 
-    public void glTexEnvi(int target, int pname, int value) {
+    public void glTexEnvi(final int target, final int pname, final int value) {
         fixedFunction.glTexEnvi(target, pname, value);
     }
-    public void glGetTexEnviv(int target, int pname,  IntBuffer params) {
+    public void glGetTexEnviv(final int target, final int pname,  final IntBuffer params) {
         fixedFunction.glGetTexEnviv(target, pname, params);
     }
-    public void glGetTexEnviv(int target, int pname,  int[] params, int params_offset) {
+    public void glGetTexEnviv(final int target, final int pname,  final int[] params, final int params_offset) {
         fixedFunction.glGetTexEnviv(target, pname, params, params_offset);
     }
-    public void glBindTexture(int target, int texture) {
+    public void glBindTexture(final int target, final int texture) {
         fixedFunction.glBindTexture(target, texture);
         gl.glBindTexture(target, texture);
     }
-    public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border,
-                             int format, int type,  Buffer pixels) {
+    public void glTexImage2D(final int target, final int level, int internalformat, final int width, final int height, final int border,
+                             final int format, final int type,  final Buffer pixels) {
         // align internalformat w/ format, an ES2 requirement
         switch(internalformat) {
             case 3: internalformat= ( GL.GL_RGBA == format ) ? GL.GL_RGBA : GL.GL_RGB; break;
@@ -193,8 +190,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         fixedFunction.glTexImage2D(target, /* level, */ internalformat, /*width, height, border, */ format /*, type, pixels*/);
         gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
     }
-    public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border,
-                             int format, int type,  long pixels_buffer_offset) {
+    public void glTexImage2D(final int target, final int level, int internalformat, final int width, final int height, final int border,
+                             final int format, final int type,  final long pixels_buffer_offset) {
         // align internalformat w/ format, an ES2 requirement
         switch(internalformat) {
             case 3: internalformat= ( GL.GL_RGBA == format ) ? GL.GL_RGBA : GL.GL_RGB; break;
@@ -204,16 +201,16 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels_buffer_offset);
     }
 
-    public void glPointSize(float size) {
+    public void glPointSize(final float size) {
         fixedFunction.glPointSize(size);
     }
-    public  void glPointParameterf(int pname, float param) {
+    public  void glPointParameterf(final int pname, final float param) {
         fixedFunction.glPointParameterf(pname, param);
     }
-    public  void glPointParameterfv(int pname, float[] params, int params_offset) {
+    public  void glPointParameterfv(final int pname, final float[] params, final int params_offset) {
         fixedFunction.glPointParameterfv(pname, params, params_offset);
     }
-    public  void glPointParameterfv(int pname, java.nio.FloatBuffer params) {
+    public  void glPointParameterfv(final int pname, final java.nio.FloatBuffer params) {
         fixedFunction.glPointParameterfv(pname, params);
     }
 
@@ -224,16 +221,16 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         return pmvMatrix.glGetMatrixMode();
     }
     @Override
-    public void glMatrixMode(int mode) {
+    public void glMatrixMode(final int mode) {
         pmvMatrix.glMatrixMode(mode);
     }
     @Override
-    public void glLoadMatrixf(java.nio.FloatBuffer m) {
+    public void glLoadMatrixf(final java.nio.FloatBuffer m) {
         pmvMatrix.glLoadMatrixf(m);
     }
     @Override
-    public void glLoadMatrixf(float[] m, int m_offset) {
-        glLoadMatrixf(GLBuffers.newDirectFloatBuffer(m, m_offset));
+    public void glLoadMatrixf(final float[] m, final int m_offset) {
+        glLoadMatrixf(Buffers.newDirectFloatBuffer(m, m_offset));
     }
     @Override
     public void glPopMatrix() {
@@ -248,37 +245,37 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         pmvMatrix.glLoadIdentity();
     }
     @Override
-    public void glMultMatrixf(java.nio.FloatBuffer m) {
+    public void glMultMatrixf(final java.nio.FloatBuffer m) {
         pmvMatrix.glMultMatrixf(m);
     }
     @Override
-    public void glMultMatrixf(float[] m, int m_offset) {
-        glMultMatrixf(GLBuffers.newDirectFloatBuffer(m, m_offset));
+    public void glMultMatrixf(final float[] m, final int m_offset) {
+        glMultMatrixf(Buffers.newDirectFloatBuffer(m, m_offset));
     }
     @Override
-    public void glTranslatef(float x, float y, float z) {
+    public void glTranslatef(final float x, final float y, final float z) {
         pmvMatrix.glTranslatef(x, y, z);
     }
     @Override
-    public void glRotatef(float angdeg, float x, float y, float z) {
+    public void glRotatef(final float angdeg, final float x, final float y, final float z) {
         pmvMatrix.glRotatef(angdeg, x, y, z);
     }
     @Override
-    public void glScalef(float x, float y, float z) {
+    public void glScalef(final float x, final float y, final float z) {
         pmvMatrix.glScalef(x, y, z);
     }
-    public void glOrtho(double left, double right, double bottom, double top, double near_val, double far_val) {
+    public void glOrtho(final double left, final double right, final double bottom, final double top, final double near_val, final double far_val) {
         glOrthof((float) left, (float) right, (float) bottom, (float) top, (float) near_val, (float) far_val);
     }
     @Override
-    public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) {
+    public void glOrthof(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
         pmvMatrix.glOrthof(left, right, bottom, top, zNear, zFar);
     }
-    public void glFrustum(double left, double right, double bottom, double top, double zNear, double zFar) {
+    public void glFrustum(final double left, final double right, final double bottom, final double top, final double zNear, final double zFar) {
         glFrustumf((float) left, (float) right, (float) bottom, (float) top, (float) zNear, (float) zFar);
     }
     @Override
-    public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar) {
+    public void glFrustumf(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
         pmvMatrix.glFrustumf(left, right, bottom, top, zNear, zFar);
     }
 
@@ -286,45 +283,45 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     // LightingIf
     //
     @Override
-    public void glColor4f(float red, float green, float blue, float alpha) {
+    public void glColor4f(final float red, final float green, final float blue, final float alpha) {
       fixedFunction.glColor4f(gl, red, green, blue, alpha);
     }
 
-    public  void glColor4ub(byte red, byte green, byte blue, byte alpha) {
+    public  void glColor4ub(final byte red, final byte green, final byte blue, final byte alpha) {
       glColor4f(ValueConv.byte_to_float(red, false),
                 ValueConv.byte_to_float(green, false),
                 ValueConv.byte_to_float(blue, false),
                 ValueConv.byte_to_float(alpha, false) );
     }
     @Override
-    public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
+    public void glLightfv(final int light, final int pname, final java.nio.FloatBuffer params) {
       fixedFunction.glLightfv(gl, light, pname, params);
     }
     @Override
-    public void glLightfv(int light, int pname, float[] params, int params_offset) {
-        glLightfv(light, pname, GLBuffers.newDirectFloatBuffer(params, params_offset));
+    public void glLightfv(final int light, final int pname, final float[] params, final int params_offset) {
+        glLightfv(light, pname, Buffers.newDirectFloatBuffer(params, params_offset));
     }
     @Override
-    public void glMaterialfv(int face, int pname, java.nio.FloatBuffer params) {
+    public void glMaterialfv(final int face, final int pname, final java.nio.FloatBuffer params) {
       fixedFunction.glMaterialfv(gl, face, pname, params);
     }
     @Override
-    public void glMaterialfv(int face, int pname, float[] params, int params_offset) {
-        glMaterialfv(face, pname, GLBuffers.newDirectFloatBuffer(params, params_offset));
+    public void glMaterialfv(final int face, final int pname, final float[] params, final int params_offset) {
+        glMaterialfv(face, pname, Buffers.newDirectFloatBuffer(params, params_offset));
     }
     @Override
-    public void glMaterialf(int face, int pname, float param) {
-        glMaterialfv(face, pname, GLBuffers.newDirectFloatBuffer(new float[] { param }));
+    public void glMaterialf(final int face, final int pname, final float param) {
+        glMaterialfv(face, pname, Buffers.newDirectFloatBuffer(new float[] { param }));
     }
 
     //
     // Misc Simple States
     //
     @Override
-    public void glShadeModel(int mode) {
+    public void glShadeModel(final int mode) {
       fixedFunction.glShadeModel(gl, mode);
     }
-    public  void glAlphaFunc(int func, float ref) {
+    public  void glAlphaFunc(final int func, final float ref) {
         fixedFunction.glAlphaFunc(func, ref);
     }
 
@@ -337,20 +334,20 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     //
     // PointerIf
     //
-    public void glClientActiveTexture(int textureUnit) {
+    public void glClientActiveTexture(final int textureUnit) {
       fixedFunction.glClientActiveTexture(textureUnit);
     }
     @Override
-    public void glEnableClientState(int glArrayIndex) {
+    public void glEnableClientState(final int glArrayIndex) {
       fixedFunction.glEnableClientState(gl, glArrayIndex);
     }
     @Override
-    public void glDisableClientState(int glArrayIndex) {
+    public void glDisableClientState(final int glArrayIndex) {
       fixedFunction.glDisableClientState(gl, glArrayIndex);
     }
 
     @Override
-    public void glVertexPointer(GLArrayData array) {
+    public void glVertexPointer(final GLArrayData array) {
       if(array.isVBO()) {
           if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
@@ -367,13 +364,13 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     @Override
-    public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer) {
+    public void glVertexPointer(final int size, final int type, final int stride, final java.nio.Buffer pointer) {
       glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                      pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     @Override
-    public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
+    public void glVertexPointer(final int size, final int type, final int stride, final long pointer_buffer_offset) {
+      final int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -382,7 +379,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     @Override
-    public void glColorPointer(GLArrayData array) {
+    public void glColorPointer(final GLArrayData array) {
       if(array.isVBO()) {
           if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
@@ -398,13 +395,13 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glColorPointer(gl, array);
     }
     @Override
-    public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer) {
+    public void glColorPointer(final int size, final int type, final int stride, final java.nio.Buffer pointer) {
       glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                     pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     @Override
-    public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
+    public void glColorPointer(final int size, final int type, final int stride, final long pointer_buffer_offset) {
+      final int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -413,7 +410,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     @Override
-    public void glNormalPointer(GLArrayData array) {
+    public void glNormalPointer(final GLArrayData array) {
       if(array.getComponentCount()!=3) {
         throw new GLException("Only 3 components per normal allowed");
       }
@@ -432,13 +429,13 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glNormalPointer(gl, array);
     }
     @Override
-    public void glNormalPointer(int type, int stride, java.nio.Buffer pointer) {
+    public void glNormalPointer(final int type, final int stride, final java.nio.Buffer pointer) {
       glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                      pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     @Override
-    public void glNormalPointer(int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
+    public void glNormalPointer(final int type, final int stride, final long pointer_buffer_offset) {
+      final int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -447,7 +444,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     @Override
-    public void glTexCoordPointer(GLArrayData array) {
+    public void glTexCoordPointer(final GLArrayData array) {
       if(array.isVBO()) {
           if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
@@ -463,14 +460,14 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glTexCoordPointer(gl, array);
     }
     @Override
-    public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer) {
+    public void glTexCoordPointer(final int size, final int type, final int stride, final java.nio.Buffer pointer) {
       glTexCoordPointer(
         GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                        pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     @Override
-    public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
+    public void glTexCoordPointer(final int size, final int type, final int stride, final long pointer_buffer_offset) {
+      final int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -481,7 +478,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
 
     @Override
     public final String toString() {
-          StringBuilder buf = new StringBuilder();
+          final StringBuilder buf = new StringBuilder();
           buf.append(getClass().getName()+" (");
           if(null!=pmvMatrix) {
               buf.append(", matrixDirty: "+ (0 != pmvMatrix.getModifiedBits(false)));

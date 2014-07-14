@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 
@@ -60,7 +60,7 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
     public void benchmark() throws IOException {
         benchmarkImpl(100, fname);
     }
-    void benchmarkImpl(int loops, String fname) throws IOException {
+    void benchmarkImpl(final int loops, final String fname) throws IOException {
         {
             final long t0 = System.currentTimeMillis();
             for(int i = 0; i< loops; i++ ) {
@@ -124,15 +124,15 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
                 final InputStream istream = urlConn.getInputStream();
                 Buffer data = null;
                 try {
-                    BufferedImage img = ImageIO.read(istream);
-                    AWTTextureData texData = new AWTTextureData(GLProfile.getGL2ES2(), 0, 0, false, img);
+                    final BufferedImage img = ImageIO.read(istream);
+                    final AWTTextureData texData = new AWTTextureData(GLProfile.getGL2ES2(), 0, 0, false, img);
                     data = texData.getBuffer(); // completes data conversion !!!
                     if(0==i || loops-1==i) {
                         System.err.println(i+": "+texData+", buffer "+data);
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     System.err.println("AWT ImageIO failure w/ file "+fname+": "+e.getMessage());
-                }        
+                }
                 istream.close();
             }
             final long t1 = System.currentTimeMillis();
@@ -141,14 +141,14 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
             System.err.println("AWT..... Loops "+loops+", dt "+dt+" ms, "+msPl+" ms/l");
         }
     }
-    
-    public static void main(String args[]) throws IOException {
+
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-file")) {
                 i++;
                 fname = args[i];
             }
         }
-        org.junit.runner.JUnitCore.main(TestJPEGJoglAWTBenchmarkNewtAWT.class.getName());        
+        org.junit.runner.JUnitCore.main(TestJPEGJoglAWTBenchmarkNewtAWT.class.getName());
     }
 }

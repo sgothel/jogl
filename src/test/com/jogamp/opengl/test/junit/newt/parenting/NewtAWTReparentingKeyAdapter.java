@@ -50,20 +50,20 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
     PointerIcon[] pointerIcons = null;
     int pointerIconIdx = 0;
 
-    public NewtAWTReparentingKeyAdapter(Frame frame, NewtCanvasAWT newtCanvasAWT, GLWindow glWindow, QuitAdapter quitAdapter) {
+    public NewtAWTReparentingKeyAdapter(final Frame frame, final NewtCanvasAWT newtCanvasAWT, final GLWindow glWindow, final QuitAdapter quitAdapter) {
         this.frame = frame;
         this.newtCanvasAWT = newtCanvasAWT;
         this.glWindow = glWindow;
         this.quitAdapter = quitAdapter;
     }
 
-    public void keyReleased(KeyEvent e) {
+    public void keyReleased(final KeyEvent e) {
         if( !e.isPrintableKey() || e.isAutoRepeat() ) {
             return;
         }
         if( e.getKeySymbol() == KeyEvent.VK_L ) {
-            javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
-            javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
+            final javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
+            final javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
             System.err.println("NewtCanvasAWT position: "+p0+", "+p1);
         } else if( e.getKeySymbol() == KeyEvent.VK_D ) {
             glWindow.setUndecorated(!glWindow.isUndecorated());
@@ -82,9 +82,9 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
             new Thread() {
                 public void run() {
                     final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                    System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                     glWindow.setFullscreen(!glWindow.isFullscreen());
-                    System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                    System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                     glWindow.setExclusiveContextThread(t);
                     if( null != quitAdapter ) {
                         quitAdapter.clear();
@@ -156,7 +156,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                         try {
                             _pointerIcon = disp.createPointerIcon(res, 8, 8);
                             System.err.println("Create PointerIcon #01: "+_pointerIcon);
-                        } catch (Exception ex) {
+                        } catch (final Exception ex) {
                             ex.printStackTrace();
                         }
                         pointerIcons[0] = _pointerIcon;
@@ -167,7 +167,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                         try {
                             _pointerIcon = disp.createPointerIcon(res, 0, 0);
                             System.err.println("Create PointerIcon #02: "+_pointerIcon);
-                        } catch (Exception ex) {
+                        } catch (final Exception ex) {
                             ex.printStackTrace();
                         }
                         pointerIcons[1] = _pointerIcon;
@@ -181,7 +181,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                             System.err.println("Create PointerIcon #03: "+image);
                             _pointerIcon = disp.createPointerIcon(image, 32, 0);
                             System.err.println("Create PointerIcon #03: "+_pointerIcon);
-                        } catch (Exception ex) {
+                        } catch (final Exception ex) {
                             ex.printStackTrace();
                         }
                         pointerIcons[2] = _pointerIcon;
@@ -226,7 +226,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
             new Thread() {
                public void run() {
                    System.err.println("[set mouse pos pre]");
-                   glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                   glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
                    System.err.println("[set mouse pos post]");
                } }.start();
         }

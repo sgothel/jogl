@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 
@@ -77,7 +78,7 @@ final class ExtensionAvailabilityCache {
   /**
    * Flush and rebuild the cache.
    */
-  final void reset(GLContextImpl context) {
+  final void reset(final GLContextImpl context) {
     flush();
     initAvailableExtensions(context);
   }
@@ -91,7 +92,7 @@ final class ExtensionAvailabilityCache {
     return availableExtensionCache.size();
   }
 
-  final boolean isExtensionAvailable(String glExtensionName) {
+  final boolean isExtensionAvailable(final String glExtensionName) {
     validateInitialization();
     return null != availableExtensionCache.get(glExtensionName);
   }
@@ -124,8 +125,8 @@ final class ExtensionAvailabilityCache {
           throw new InternalError("ExtensionAvailabilityCache not initialized!");
       }
   }
-  private final void initAvailableExtensions(GLContextImpl context) {
-      GL gl = context.getGL();
+  private final void initAvailableExtensions(final GLContextImpl context) {
+      final GL gl = context.getGL();
       // if hash is empty (meaning it was flushed), pre-cache it with the list
       // of extensions that are in the GL_EXTENSIONS string
       if (isInitialized()) {
@@ -155,14 +156,14 @@ final class ExtensionAvailabilityCache {
       }
 
       if(useGetStringi) {
-          GL2GL3 gl2gl3 = gl.getGL2GL3();
+          final GL2GL3 gl2gl3 = gl.getGL2GL3();
           final int count;
           {
-              int[] val = { 0 } ;
-              gl2gl3.glGetIntegerv(GL2GL3.GL_NUM_EXTENSIONS, val, 0);
+              final int[] val = { 0 } ;
+              gl2gl3.glGetIntegerv(GL2ES3.GL_NUM_EXTENSIONS, val, 0);
               count = val[0];
           }
-          StringBuilder sb = new StringBuilder();
+          final StringBuilder sb = new StringBuilder();
           for (int i = 0; i < count; i++) {
               final String ext = gl2gl3.glGetStringi(GL.GL_EXTENSIONS, i);
               if( null == availableExtensionCache.put(ext, ext) ) {
@@ -229,8 +230,8 @@ final class ExtensionAvailabilityCache {
 
       final int ctxOptions = context.getCtxOptions();
       final VersionNumber version = context.getGLVersionNumber();
-      int major[] = new int[] { version.getMajor() };
-      int minor[] = new int[] { version.getMinor() };
+      final int major[] = new int[] { version.getMajor() };
+      final int minor[] = new int[] { version.getMinor() };
       do{
           final String GL_XX_VERSION = ( context.isGLES() ? "GL_ES_VERSION_" : "GL_VERSION_" ) + major[0] + "_" + minor[0];
           availableExtensionCache.put(GL_XX_VERSION, GL_XX_VERSION);

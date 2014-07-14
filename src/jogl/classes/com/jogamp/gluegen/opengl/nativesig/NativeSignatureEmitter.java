@@ -61,14 +61,14 @@ import java.util.Set;
 public class NativeSignatureEmitter extends GLEmitter {
 
     @Override
-    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(Set<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
+    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
 
         // Allow superclass to do most of the work for us
-        List<? extends FunctionEmitter> res = super.generateMethodBindingEmitters(methodBindingSet, sym);
+        final List<? extends FunctionEmitter> res = super.generateMethodBindingEmitters(methodBindingSet, sym);
 
         // Filter out all non-JavaMethodBindingEmitters
-        for (Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
-            FunctionEmitter emitter = iter.next();
+        for (final Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
+            final FunctionEmitter emitter = iter.next();
             if (!(emitter instanceof JavaMethodBindingEmitter)) {
                 iter.remove();
             }
@@ -78,13 +78,13 @@ public class NativeSignatureEmitter extends GLEmitter {
             return res;
         }
 
-        PrintWriter writer = (getConfig().allStatic() ? javaWriter() : javaImplWriter());
+        final PrintWriter writer = (getConfig().allStatic() ? javaWriter() : javaImplWriter());
 
-        List<FunctionEmitter> processed = new ArrayList<FunctionEmitter>();
+        final List<FunctionEmitter> processed = new ArrayList<FunctionEmitter>();
 
         // First, filter out all emitters going to the "other" (public) writer
-        for (Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
-            FunctionEmitter emitter = iter.next();
+        for (final Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
+            final FunctionEmitter emitter = iter.next();
             if (emitter.getDefaultOutput() != writer) {
                 processed.add(emitter);
                 iter.remove();
@@ -93,12 +93,12 @@ public class NativeSignatureEmitter extends GLEmitter {
 
         // Now process all of the remaining emitters sorted by MethodBinding
         while (!res.isEmpty()) {
-            List<JavaMethodBindingEmitter> emittersForBinding = new ArrayList<JavaMethodBindingEmitter>();
-            JavaMethodBindingEmitter emitter = (JavaMethodBindingEmitter) res.remove(0);
+            final List<JavaMethodBindingEmitter> emittersForBinding = new ArrayList<JavaMethodBindingEmitter>();
+            final JavaMethodBindingEmitter emitter = (JavaMethodBindingEmitter) res.remove(0);
             emittersForBinding.add(emitter);
-            MethodBinding binding = emitter.getBinding();
-            for (Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
-                JavaMethodBindingEmitter emitter2 = (JavaMethodBindingEmitter) iter.next();
+            final MethodBinding binding = emitter.getBinding();
+            for (final Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
+                final JavaMethodBindingEmitter emitter2 = (JavaMethodBindingEmitter) iter.next();
                 if (emitter2.getBinding() == binding) {
                     emittersForBinding.add(emitter2);
                     iter.remove();
@@ -111,17 +111,17 @@ public class NativeSignatureEmitter extends GLEmitter {
         return processed;
     }
 
-    protected void generateNativeSignatureEmitters(MethodBinding binding, List<JavaMethodBindingEmitter> allEmitters) {
+    protected void generateNativeSignatureEmitters(final MethodBinding binding, final List<JavaMethodBindingEmitter> allEmitters) {
 
         if (allEmitters.isEmpty()) {
             return;
         }
 
-        PrintWriter writer = (getConfig().allStatic() ? javaWriter() : javaImplWriter());
+        final PrintWriter writer = (getConfig().allStatic() ? javaWriter() : javaImplWriter());
 
         // Give ourselves the chance to interpose on the generation of all code to keep things simple
-        List<JavaMethodBindingEmitter> newEmitters = new ArrayList<JavaMethodBindingEmitter>();
-        for (JavaMethodBindingEmitter javaEmitter : allEmitters) {
+        final List<JavaMethodBindingEmitter> newEmitters = new ArrayList<JavaMethodBindingEmitter>();
+        for (final JavaMethodBindingEmitter javaEmitter : allEmitters) {
             NativeSignatureJavaMethodBindingEmitter newEmitter = null;
             if (javaEmitter instanceof GLJavaMethodBindingEmitter) {
                 newEmitter = new NativeSignatureJavaMethodBindingEmitter((GLJavaMethodBindingEmitter) javaEmitter);
@@ -138,11 +138,11 @@ public class NativeSignatureEmitter extends GLEmitter {
         // been called with signatureOnly both true and false.
         if (signatureContainsStrings(binding) && !haveEmitterWithBody(allEmitters)) {
             // This basically handles glGetString but also any similar methods
-            NativeSignatureJavaMethodBindingEmitter javaEmitter = findEmitterWithWriter(allEmitters, writer);
+            final NativeSignatureJavaMethodBindingEmitter javaEmitter = findEmitterWithWriter(allEmitters, writer);
 
             // First, we need to clone this emitter to produce the native
             // entry point
-            NativeSignatureJavaMethodBindingEmitter emitter = new NativeSignatureJavaMethodBindingEmitter(javaEmitter);
+            final NativeSignatureJavaMethodBindingEmitter emitter = new NativeSignatureJavaMethodBindingEmitter(javaEmitter);
             emitter.removeModifier(JavaMethodBindingEmitter.PUBLIC);
             emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
             emitter.setForImplementingMethodCall(true);
@@ -158,22 +158,22 @@ public class NativeSignatureEmitter extends GLEmitter {
         }
     }
 
-    protected boolean signatureContainsStrings(MethodBinding binding) {
+    protected boolean signatureContainsStrings(final MethodBinding binding) {
         for (int i = 0; i < binding.getNumArguments(); i++) {
-            JavaType type = binding.getJavaArgumentType(i);
+            final JavaType type = binding.getJavaArgumentType(i);
             if (type.isString() || type.isStringArray()) {
                 return true;
             }
         }
-        JavaType retType = binding.getJavaReturnType();
+        final JavaType retType = binding.getJavaReturnType();
         if (retType.isString() || retType.isStringArray()) {
             return true;
         }
         return false;
     }
 
-    protected boolean haveEmitterWithBody(List<JavaMethodBindingEmitter> allEmitters) {
-        for (JavaMethodBindingEmitter emitter : allEmitters) {
+    protected boolean haveEmitterWithBody(final List<JavaMethodBindingEmitter> allEmitters) {
+        for (final JavaMethodBindingEmitter emitter : allEmitters) {
             if (!emitter.signatureOnly()) {
                 return true;
             }
@@ -181,9 +181,9 @@ public class NativeSignatureEmitter extends GLEmitter {
         return false;
     }
 
-    protected NativeSignatureJavaMethodBindingEmitter findEmitterWithWriter(List<JavaMethodBindingEmitter> allEmitters, PrintWriter writer) {
-        for (JavaMethodBindingEmitter jemitter : allEmitters) {
-            NativeSignatureJavaMethodBindingEmitter emitter = (NativeSignatureJavaMethodBindingEmitter)jemitter;
+    protected NativeSignatureJavaMethodBindingEmitter findEmitterWithWriter(final List<JavaMethodBindingEmitter> allEmitters, final PrintWriter writer) {
+        for (final JavaMethodBindingEmitter jemitter : allEmitters) {
+            final NativeSignatureJavaMethodBindingEmitter emitter = (NativeSignatureJavaMethodBindingEmitter)jemitter;
             if (emitter.getDefaultOutput() == writer) {
                 return emitter;
             }

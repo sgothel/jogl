@@ -35,7 +35,7 @@ import javax.media.nativewindow.VisualIDHolder;
 public class X11Capabilities extends Capabilities {
   final private XVisualInfo xVisualInfo; // maybe null if !onscreen
 
-  public X11Capabilities(XVisualInfo xVisualInfo) {
+  public X11Capabilities(final XVisualInfo xVisualInfo) {
       super();
       this.xVisualInfo = xVisualInfo;
   }
@@ -49,7 +49,7 @@ public class X11Capabilities extends Capabilities {
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new NativeWindowException(e);
     }
   }
@@ -59,7 +59,7 @@ public class X11Capabilities extends Capabilities {
   final public boolean hasXVisualInfo() { return null!=xVisualInfo; }
 
   @Override
-  final public int getVisualID(VIDType type) throws NativeWindowException {
+  final public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
           case INTRINSIC:
           case NATIVE:

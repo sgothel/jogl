@@ -42,12 +42,12 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
     List<EventObject> queue = new ArrayList<EventObject>();
     boolean verbose = true;
 
-    public AWTKeyAdapter(String prefix) {
+    public AWTKeyAdapter(final String prefix) {
         this.prefix = prefix;
         reset();
     }
 
-    public synchronized void setVerbose(boolean v) { verbose = v; }
+    public synchronized void setVerbose(final boolean v) { verbose = v; }
 
     public synchronized boolean isPressed() {
         return pressed;
@@ -61,11 +61,11 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         return consumed;
     }
 
-    public synchronized int getKeyPressedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyPressedCount(final boolean autoRepeatOnly) {
         return keyPressed;
     }
 
-    public synchronized int getKeyReleasedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyReleasedCount(final boolean autoRepeatOnly) {
         return keyReleased;
     }
 
@@ -85,7 +85,7 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         queue.clear();
     }
 
-    public synchronized void keyPressed(KeyEvent e) {
+    public synchronized void keyPressed(final KeyEvent e) {
         pressed = true;
         keyPressed++;
         queue.add(e);
@@ -94,7 +94,7 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         }
     }
 
-    public synchronized void keyReleased(KeyEvent e) {
+    public synchronized void keyReleased(final KeyEvent e) {
         pressed = false;
         keyReleased++;
         if(e.isConsumed()) {

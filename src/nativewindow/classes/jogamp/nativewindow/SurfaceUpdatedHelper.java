@@ -42,17 +42,17 @@ public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
     // Management Utils
     //
     public final int size() { return surfaceUpdatedListeners.size(); }
-    public final SurfaceUpdatedListener get(int i) { return surfaceUpdatedListeners.get(i); }
+    public final SurfaceUpdatedListener get(final int i) { return surfaceUpdatedListeners.get(i); }
 
     //
     // Implementation of NativeSurface SurfaceUpdatedListener methods
     //
 
-    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void addSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         addSurfaceUpdatedListener(-1, l);
     }
 
-    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l)
+    public final void addSurfaceUpdatedListener(int index, final SurfaceUpdatedListener l)
         throws IndexOutOfBoundsException
     {
         if(l == null) {
@@ -67,7 +67,7 @@ public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
         }
     }
 
-    public final boolean removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final boolean removeSurfaceUpdatedListener(final SurfaceUpdatedListener l) {
         if (l == null) {
             return false;
         }
@@ -79,7 +79,7 @@ public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
     }
 
     @Override
-    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public final void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
         if( isEmpty ) {
             return;
         }

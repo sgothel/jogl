@@ -21,18 +21,18 @@ public class GaspRange {
     public static final int GASP_GRIDFIT = 1;
     public static final int GASP_DOGRAY = 2;
 
-    private int rangeMaxPPEM;
-    private int rangeGaspBehavior;
+    private final int rangeMaxPPEM;
+    private final int rangeGaspBehavior;
 
     /** Creates new GaspRange */
-    protected GaspRange(DataInput di) throws IOException {
+    protected GaspRange(final DataInput di) throws IOException {
         rangeMaxPPEM = di.readUnsignedShort();
         rangeGaspBehavior = di.readUnsignedShort();
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("  rangeMaxPPEM:        ").append(rangeMaxPPEM)
             .append("\n  rangeGaspBehavior:   0x").append(rangeGaspBehavior);
         if ((rangeGaspBehavior & GASP_GRIDFIT) != 0) {

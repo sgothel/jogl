@@ -122,7 +122,7 @@ public abstract class PngChunk {
 	 * (not implmemented in this library) to the factory, so that the PngReader
 	 * knows about it.
 	 */
-	public static void factoryRegister(String chunkId, Class<? extends PngChunk> chunkClass) {
+	public static void factoryRegister(final String chunkId, final Class<? extends PngChunk> chunkClass) {
 		factoryMap.put(chunkId, chunkClass);
 	}
 
@@ -137,11 +137,11 @@ public abstract class PngChunk {
 	 * <p>
 	 * Unknown chunks will be parsed as instances of {@link PngChunkUNKNOWN}
 	 */
-	public static boolean isKnown(String id) {
+	public static boolean isKnown(final String id) {
 		return factoryMap.containsKey(id);
 	}
 
-	protected PngChunk(String id, ImageInfo imgInfo) {
+	protected PngChunk(final String id, final ImageInfo imgInfo) {
 		this.id = id;
 		this.imgInfo = imgInfo;
 		this.crit = ChunkHelper.isCritical(id);
@@ -153,8 +153,8 @@ public abstract class PngChunk {
 	 * This factory creates the corresponding chunk and parses the raw chunk.
 	 * This is used when reading.
 	 */
-	public static PngChunk factory(ChunkRaw chunk, ImageInfo info) {
-		PngChunk c = factoryFromId(ChunkHelper.toString(chunk.idbytes), info);
+	public static PngChunk factory(final ChunkRaw chunk, final ImageInfo info) {
+		final PngChunk c = factoryFromId(ChunkHelper.toString(chunk.idbytes), info);
 		c.length = chunk.len;
 		c.parseFromRaw(chunk);
 		return c;
@@ -164,15 +164,15 @@ public abstract class PngChunk {
 	 * Creates one new blank chunk of the corresponding type, according to
 	 * factoryMap (PngChunkUNKNOWN if not known)
 	 */
-	public static PngChunk factoryFromId(String cid, ImageInfo info) {
+	public static PngChunk factoryFromId(final String cid, final ImageInfo info) {
 		PngChunk chunk = null;
 		try {
-			Class<? extends PngChunk> cla = factoryMap.get(cid);
+			final Class<? extends PngChunk> cla = factoryMap.get(cid);
 			if (cla != null) {
-				Constructor<? extends PngChunk> constr = cla.getConstructor(ImageInfo.class);
+				final Constructor<? extends PngChunk> constr = cla.getConstructor(ImageInfo.class);
 				chunk = constr.newInstance(info);
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			// this can happen for unkown chunks
 		}
 		if (chunk == null)
@@ -180,8 +180,8 @@ public abstract class PngChunk {
 		return chunk;
 	}
 
-	protected final ChunkRaw createEmptyChunk(int len, boolean alloc) {
-		ChunkRaw c = new ChunkRaw(len, ChunkHelper.toBytes(id), alloc);
+	protected final ChunkRaw createEmptyChunk(final int len, final boolean alloc) {
+		final ChunkRaw c = new ChunkRaw(len, ChunkHelper.toBytes(id), alloc);
 		return c;
 	}
 
@@ -189,8 +189,8 @@ public abstract class PngChunk {
 	 * Makes a clone (deep copy) calling {@link #cloneDataFromRead(PngChunk)}
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends PngChunk> T cloneChunk(T chunk, ImageInfo info) {
-		PngChunk cn = factoryFromId(chunk.id, info);
+	public static <T extends PngChunk> T cloneChunk(final T chunk, final ImageInfo info) {
+		final PngChunk cn = factoryFromId(chunk.id, info);
 		if (cn.getClass() != chunk.getClass())
 			throw new PngjExceptionInternal("bad class cloning chunk: " + cn.getClass() + " " + chunk.getClass());
 		cn.cloneDataFromRead(chunk);
@@ -210,7 +210,7 @@ public abstract class PngChunk {
 	/**
 	 * @see #getChunkGroup()
 	 */
-	final public void setChunkGroup(int chunkGroup) {
+	final public void setChunkGroup(final int chunkGroup) {
 		this.chunkGroup = chunkGroup;
 	}
 
@@ -218,12 +218,12 @@ public abstract class PngChunk {
 		return priority;
 	}
 
-	public void setPriority(boolean priority) {
+	public void setPriority(final boolean priority) {
 		this.priority = priority;
 	}
 
-	final void write(OutputStream os) {
-		ChunkRaw c = createRawChunk();
+	final void write(final OutputStream os) {
+		final ChunkRaw c = createRawChunk();
 		if (c == null)
 			throw new PngjExceptionInternal("null chunk ! creation failed for " + this);
 		c.writeChunk(os);
@@ -241,7 +241,7 @@ public abstract class PngChunk {
 		return offset;
 	}
 
-	public void setOffset(long offset) {
+	public void setOffset(final long offset) {
 		this.offset = offset;
 	}
 

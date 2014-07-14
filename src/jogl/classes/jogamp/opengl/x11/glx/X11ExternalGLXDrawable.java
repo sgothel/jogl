@@ -55,30 +55,30 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
 
-  private X11ExternalGLXDrawable(GLDrawableFactory factory, NativeSurface surface) {
+  private X11ExternalGLXDrawable(final GLDrawableFactory factory, final NativeSurface surface) {
     super(factory, surface, true);
   }
 
-  protected static X11ExternalGLXDrawable create(GLDrawableFactory factory, GLProfile glp) {
-    long context = GLX.glXGetCurrentContext();
+  protected static X11ExternalGLXDrawable create(final GLDrawableFactory factory, final GLProfile glp) {
+    final long context = GLX.glXGetCurrentContext();
     if (context == 0) {
       throw new GLException("Error: current context null");
     }
-    long display = GLX.glXGetCurrentDisplay();
+    final long display = GLX.glXGetCurrentDisplay();
     if (display == 0) {
       throw new GLException("Error: current display null");
     }
-    long drawable = GLX.glXGetCurrentDrawable();
+    final long drawable = GLX.glXGetCurrentDrawable();
     if (drawable == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
     }
-    IntBuffer val = Buffers.newDirectIntBuffer(1);
+    final IntBuffer val = Buffers.newDirectIntBuffer(1);
 
     GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val);
-    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
+    final X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
 
     GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val);
-    X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val.get(0));
+    final X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val.get(0));
 
     int w, h;
     GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val);
@@ -96,16 +96,16 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public GLContext createContext(final GLContext shareWith) {
     return new Context(this, shareWith);
   }
 
-  public void setSize(int newWidth, int newHeight) {
+  public void setSize(final int newWidth, final int newHeight) {
     throw new GLException("Should not call this");
   }
 
-  class Context extends X11GLXContext {
-    Context(X11GLXDrawable drawable, GLContext shareWith) {
+  static class Context extends X11GLXContext {
+    Context(final X11GLXDrawable drawable, final GLContext shareWith) {
       super(drawable, shareWith);
     }
   }

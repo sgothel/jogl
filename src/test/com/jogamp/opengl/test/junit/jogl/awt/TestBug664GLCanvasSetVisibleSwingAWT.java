@@ -44,6 +44,7 @@ import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 
@@ -95,7 +96,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
 
                     final JFrame jFrame1 = new JFrame("JFrame #"+num);
                     // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
+                    jFrame1.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
                     jFrame1.getContentPane().add(jPanel[0]);
                     jFrame1.setSize(width, height);
 
@@ -147,33 +148,33 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
 
     private volatile int frameCount = 0;
 
-    protected void runTestGL(boolean onscreen, GLCapabilities caps)
+    protected void runTestGL(final boolean onscreen, final GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
 
         for(int i=0; i<1; i++) {
-            Animator anim = new Animator();
+            final Animator anim = new Animator();
             final GLCanvas glc = new GLCanvas(caps);
             Assert.assertNotNull(glc);
             anim.add(glc);
             if( !onscreen ) {
                 glc.setShallUseOffscreenLayer(true);
             }
-            Dimension glc_sz = new Dimension(width, height);
+            final Dimension glc_sz = new Dimension(width, height);
             glc.setMinimumSize(glc_sz);
             glc.setPreferredSize(glc_sz);
             glc.setSize(glc_sz);
             glc.addGLEventListener(new GLEventListener() {
                 @Override
-                public void init(GLAutoDrawable drawable) {}
+                public void init(final GLAutoDrawable drawable) {}
                 @Override
-                public void dispose(GLAutoDrawable drawable) {}
+                public void dispose(final GLAutoDrawable drawable) {}
                 @Override
-                public void display(GLAutoDrawable drawable) {
+                public void display(final GLAutoDrawable drawable) {
                     frameCount++;
                 }
                 @Override
-                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
             });
             final GearsES2 gears = new GearsES2(1);
             gears.setVerbose(false);
@@ -235,7 +236,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
             System.err.println("Offscreen test requested or platform requires it.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
@@ -251,7 +252,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
             System.err.println("Platform doesn't support offscreen test.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
@@ -259,13 +260,13 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
         runTestGL(false, caps);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     durationPerTest = Long.parseLong(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                } catch (final Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-layeredFBO")) {
                 shallUseOffscreenFBOLayer = true;
             } else if(args[i].equals("-layeredPBuffer")) {

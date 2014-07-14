@@ -2,6 +2,8 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import java.util.Arrays;
 
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
 import jogamp.opengl.ProjectFloat;
 
 import com.jogamp.opengl.math.FloatUtil;
@@ -16,77 +18,98 @@ import org.junit.runners.MethodSorters;
 public class TestPMVMatrix03NOUI {
 
     static final float epsilon = 0.00001f;
-    
+
     // Simple 10 x 10 view port
     static final int[] viewport = new int[] { 0,0,10,10};
-        
+
     @Test
     public void test01() {
-        float[] winA00 = new float[4];
-        float[] winA01 = new float[4];
-        float[] winA10 = new float[4];
-        float[] winA11 = new float[4];
-        PMVMatrix m = new PMVMatrix();
-                
+        final float[] vec4Tmp1 = new float[4];
+        final float[] vec4Tmp2 = new float[4];
+
+        final float[] winA00 = new float[4];
+        final float[] winA01 = new float[4];
+        final float[] winA10 = new float[4];
+        final float[] winA11 = new float[4];
+        final float[] winB00 = new float[4];
+        final float[] winB01 = new float[4];
+        final float[] winB10 = new float[4];
+        final float[] winB11 = new float[4];
+
+        final PMVMatrix m = new PMVMatrix();
+        final float[] mat4PMv = new float[16];
+        m.multPMvMatrixf(mat4PMv, 0);
+        System.err.println(FloatUtil.matrixToString(null, "mat4PMv", "%10.5f", mat4PMv, 0, 4, 4, false /* rowMajorOrder */));
+
         m.gluProject(1f, 0f, 0f, viewport, 0, winA00, 0);
-        System.out.println("A.0.0 - Project 1,0 -->" + Arrays.toString(winA00));
-        
+        System.err.println("A.0.0 - Project 1,0 -->" + Arrays.toString(winA00));
+        FloatUtil.mapObjToWinCoords(1f, 0f, 0f, mat4PMv, viewport, 0, winB00, 0, vec4Tmp1, vec4Tmp2);
+        System.err.println("B.0.0 - Project 1,0 -->" + Arrays.toString(winB00));
+
         m.gluProject(0f, 0f, 0f, viewport, 0, winA01, 0);
-        System.out.println("A.0.1 - Project 0,0 -->" + Arrays.toString(winA01));
-        
-        m.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        System.err.println("A.0.1 - Project 0,0 -->" + Arrays.toString(winA01));
+        FloatUtil.mapObjToWinCoords(0f, 0f, 0f, mat4PMv, viewport, 0, winB01, 0, vec4Tmp1, vec4Tmp2);
+        System.err.println("B.0.1 - Project 0,0 -->" + Arrays.toString(winB01));
+
+        m.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         m.glOrthof(0, 10, 0, 10, 1, -1);
-        System.out.println("MATRIX - Ortho 0,0,10,10 - Locate the origin in the bottom left and scale");
-        System.out.println(m);
-        float[] projMatrixA = new float[16];
-        float[] modelMatrixA = new float[16];
-        m.glGetFloatv(PMVMatrix.GL_PROJECTION, projMatrixA, 0);
-        m.glGetFloatv(PMVMatrix.GL_MODELVIEW, modelMatrixA, 0);
-        
+        System.err.println("MATRIX - Ortho 0,0,10,10 - Locate the origin in the bottom left and scale");
+        System.err.println(m);
+        m.multPMvMatrixf(mat4PMv, 0);
+        System.err.println(FloatUtil.matrixToString(null, "mat4PMv", "%10.5f", mat4PMv, 0, 4, 4, false /* rowMajorOrder */));
+
         m.gluProject(1f, 0f, 0f, viewport, 0, winA10, 0);
-        System.out.println("A.1.0 - Project 1,0 -->" +Arrays.toString(winA10));
-        
+        System.err.println("A.1.0 - Project 1,0 -->" +Arrays.toString(winA10));
+        FloatUtil.mapObjToWinCoords(1f, 0f, 0f, mat4PMv, viewport, 0, winB10, 0, vec4Tmp1, vec4Tmp2);
+        System.err.println("B.1.0 - Project 1,0 -->" +Arrays.toString(winB10));
+
         m.gluProject(0f, 0f, 0f, viewport, 0, winA11, 0);
-        System.out.println("A.1.1 - Project 0,0 -->" +Arrays.toString(winA11));
-        
-        
-        ////////////////////
-        /////////////////////
-        
-        float[] winB00 = new float[4];
-        float[] winB01 = new float[4];
-        float[] winB10 = new float[4];
-        float[] winB11 = new float[4];
-        float[] projMatrixB = new float[16];
-        float[] modelMatrixB = new float[16];
-        FloatUtil.makeIdentityf(projMatrixB, 0);
-        FloatUtil.makeIdentityf(modelMatrixB, 0);        
-        final ProjectFloat projectFloat = new ProjectFloat(true);
-        
-        projectFloat.gluProject(1f, 0f, 0f, modelMatrixB, 0, projMatrixB, 0, viewport, 0, winB00, 0);
-        System.out.println("B.0.0 - Project 1,0 -->" +Arrays.toString(winB00));
-        
-        projectFloat.gluProject(0f, 0f, 0f, modelMatrixB, 0, projMatrixB, 0, viewport, 0, winB01, 0);
-        System.out.println("B.0.1 - Project 0,0 -->" +Arrays.toString(winB01));
-                
-        glOrthof(projMatrixB, 0, 10, 0, 10, 1, -1);
-        System.out.println("FloatUtil - Ortho 0,0,10,10 - Locate the origin in the bottom left and scale");
-        System.out.println("Projection");
-        System.err.println(FloatUtil.matrixToString(null, null, "%10.5f", projMatrixB, 0, 4, 4, false /* rowMajorOrder */));
-        System.out.println("Modelview");
-        System.err.println(FloatUtil.matrixToString(null, null, "%10.5f", modelMatrixB, 0, 4, 4, false /* rowMajorOrder */));
-                
-        projectFloat.gluProject(1f, 0f, 0f, modelMatrixB, 0, projMatrixB, 0, viewport, 0, winB10, 0);
-        System.out.println("B.1.0 - Project 1,0 -->" +Arrays.toString(winB10));
-        
-        projectFloat.gluProject(0f, 0f, 0f, modelMatrixB, 0, projMatrixB, 0, viewport, 0, winB11, 0);
-        System.out.println("B.1.1 - Project 0,0 -->" +Arrays.toString(winB11));
-        
+        System.err.println("A.1.1 - Project 0,0 -->" +Arrays.toString(winA11));
+        FloatUtil.mapObjToWinCoords(0f, 0f, 0f, mat4PMv, viewport, 0, winB11, 0, vec4Tmp1, vec4Tmp2);
+        System.err.println("B.1.1 - Project 0,0 -->" +Arrays.toString(winB11));
+
         Assert.assertArrayEquals("A/B 0.0 Project 1,0 failure", winB00, winA00, epsilon);
         Assert.assertArrayEquals("A/B 0.1 Project 0,0 failure", winB01, winA01, epsilon);
         Assert.assertArrayEquals("A/B 1.0 Project 1,0 failure", winB10, winA10, epsilon);
         Assert.assertArrayEquals("A/B 1.1 Project 0,0 failure", winB11, winA11, epsilon);
-        
+
+        ////////////////////
+        /////////////////////
+
+        final float[] winC00 = new float[4];
+        final float[] winC01 = new float[4];
+        final float[] winC10 = new float[4];
+        final float[] winC11 = new float[4];
+        final float[] projMatrixC = new float[16];
+        final float[] modelMatrixC = new float[16];
+        FloatUtil.makeIdentity(projMatrixC);
+        FloatUtil.makeIdentity(modelMatrixC);
+        final ProjectFloat projectFloat = new ProjectFloat();
+
+        projectFloat.gluProject(1f, 0f, 0f, modelMatrixC, 0, projMatrixC, 0, viewport, 0, winC00, 0);
+        System.err.println("C.0.0 - Project 1,0 -->" +Arrays.toString(winC00));
+
+        projectFloat.gluProject(0f, 0f, 0f, modelMatrixC, 0, projMatrixC, 0, viewport, 0, winC01, 0);
+        System.err.println("C.0.1 - Project 0,0 -->" +Arrays.toString(winC01));
+
+        glOrthof(projMatrixC, 0, 10, 0, 10, 1, -1);
+        System.err.println("FloatUtil - Ortho 0,0,10,10 - Locate the origin in the bottom left and scale");
+        System.err.println("Projection");
+        System.err.println(FloatUtil.matrixToString(null, null, "%10.5f", projMatrixC, 0, 4, 4, false /* rowMajorOrder */));
+        System.err.println("Modelview");
+        System.err.println(FloatUtil.matrixToString(null, null, "%10.5f", modelMatrixC, 0, 4, 4, false /* rowMajorOrder */));
+
+        projectFloat.gluProject(1f, 0f, 0f, modelMatrixC, 0, projMatrixC, 0, viewport, 0, winC10, 0);
+        System.err.println("C.1.0 - Project 1,0 -->" +Arrays.toString(winC10));
+
+        projectFloat.gluProject(0f, 0f, 0f, modelMatrixC, 0, projMatrixC, 0, viewport, 0, winC11, 0);
+        System.err.println("B.1.1 - Project 0,0 -->" +Arrays.toString(winC11));
+
+        Assert.assertArrayEquals("A/C 0.0 Project 1,0 failure", winC00, winA00, epsilon);
+        Assert.assertArrayEquals("A/C 0.1 Project 0,0 failure", winC01, winA01, epsilon);
+        Assert.assertArrayEquals("A/C 1.0 Project 1,0 failure", winC10, winA10, epsilon);
+        Assert.assertArrayEquals("A/C 1.1 Project 0,0 failure", winC11, winA11, epsilon);
+
         Assert.assertEquals("A 0.0 Project 1,0 failure X", 10.0, winA00[0], epsilon);
         Assert.assertEquals("A 0.0 Project 1,0 failure Y",  5.0, winA00[1], epsilon);
         Assert.assertEquals("A.0.1 Project 0,0 failure X",  5.0, winA01[0], epsilon);
@@ -96,9 +119,9 @@ public class TestPMVMatrix03NOUI {
         Assert.assertEquals("A.1.1 Project 0,0 failure X",  0.0, winA11[0], epsilon);
         Assert.assertEquals("A.1.1 Project 0,0 failure Y",  0.0, winA11[1], epsilon);
     }
-    
+
     public final void glOrthof(final float[] m, final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
-        // Ortho matrix: 
+        // Ortho matrix:
         //  2/dx  0     0    tx
         //  0     2/dy  0    ty
         //  0     0     2/dz tz
@@ -110,8 +133,8 @@ public class TestPMVMatrix03NOUI {
         final float ty=-1.0f*(top+bottom)/dy;
         final float tz=-1.0f*(zFar+zNear)/dz;
 
-        float[] matrixOrtho = new float[16];
-        FloatUtil.makeIdentityf(matrixOrtho, 0);
+        final float[] matrixOrtho = new float[16];
+        FloatUtil.makeIdentity(matrixOrtho);
         matrixOrtho[0+4*0] =  2.0f/dx;
         matrixOrtho[1+4*1] =  2.0f/dy;
         matrixOrtho[2+4*2] = -2.0f/dz;
@@ -119,10 +142,10 @@ public class TestPMVMatrix03NOUI {
         matrixOrtho[1+4*3] = ty;
         matrixOrtho[2+4*3] = tz;
 
-        FloatUtil.multMatrixf(m, 0, matrixOrtho, 0);
+        FloatUtil.multMatrix(m, 0, matrixOrtho, 0);
     }
-    
-    public static void main(String args[]) {
+
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestPMVMatrix03NOUI.class.getName());
     }
 }

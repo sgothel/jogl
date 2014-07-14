@@ -47,14 +47,14 @@ import java.util.*;
 
 public class LevelSet {
   // Maintained in sorted order by increasing Y coordinate
-  private List<Level> levels = new ArrayList<Level>();
+  private final List<Level> levels = new ArrayList<Level>();
   private int nextAddY;
-  private int w;
+  private final int w;
   private int h;
 
   /** A LevelSet manages all of the backing store for a region of a
       specified width and height. */
-  public LevelSet(int w, int h) {
+  public LevelSet(final int w, final int h) {
     this.w = w;
     this.h = h;
   }
@@ -66,14 +66,14 @@ public class LevelSet {
       the LevelSet given its current dimensions, false if not. Caller
       is responsible for performing compaction, expansion, etc. as a
       consequence. */
-  public boolean add(Rect rect) {
+  public boolean add(final Rect rect) {
     if (rect.w() > w)
       return false;
 
     // Go in reverse order through the levels seeing whether we can
     // trivially satisfy the allocation request
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = levels.get(i);
+      final Level level = levels.get(i);
       if (level.add(rect))
         return true;
     }
@@ -82,7 +82,7 @@ public class LevelSet {
     // increases the computational complexity of the addition process,
     // but prevents us from expanding unnecessarily.
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = levels.get(i);
+      final Level level = levels.get(i);
       if (level.couldAllocateIfCompacted(rect))
         return false;
     }
@@ -92,19 +92,19 @@ public class LevelSet {
     if (nextAddY + rect.h() > h)
       return false;
 
-    Level newLevel = new Level(w, rect.h(), nextAddY, this);
+    final Level newLevel = new Level(w, rect.h(), nextAddY, this);
     levels.add(newLevel);
     nextAddY += rect.h();
-    boolean res = newLevel.add(rect);
+    final boolean res = newLevel.add(rect);
     if (!res)
       throw new RuntimeException("Unexpected failure in addition to new Level");
     return true;
   }
 
   /** Removes the given Rect from this LevelSet. */
-  public boolean remove(Rect rect) {
+  public boolean remove(final Rect rect) {
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = levels.get(i);
+      final Level level = levels.get(i);
       if (level.remove(rect))
         return true;
     }
@@ -116,14 +116,14 @@ public class LevelSet {
       if necessary. This is the correct fallback path to {@link
       #add(Rect)} above. Returns true if allocated successfully, false
       otherwise (indicating the need to expand the backing store). */
-  public boolean compactAndAdd(Rect rect,
-                               Object backingStore,
-                               BackingStoreManager manager) {
+  public boolean compactAndAdd(final Rect rect,
+                               final Object backingStore,
+                               final BackingStoreManager manager) {
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = levels.get(i);
+      final Level level = levels.get(i);
       if (level.couldAllocateIfCompacted(rect)) {
         level.compact(backingStore, manager);
-        boolean res = level.add(rect);
+        final boolean res = level.add(rect);
         if (!res)
           throw new RuntimeException("Unexpected failure to add after compaction");
         return true;
@@ -136,7 +136,7 @@ public class LevelSet {
   /** Indicates whether it's legal to trivially increase the height of
       the given Level. This is only possible if it's the last Level
       added and there's enough room in the backing store. */
-  public boolean canExpand(Level level, int height) {
+  public boolean canExpand(final Level level, final int height) {
     if (levels.isEmpty())
       return false; // Should not happen
     if (levels.get(levels.size() - 1) == level &&
@@ -145,7 +145,7 @@ public class LevelSet {
     return false;
   }
 
-  public void expand(Level level, int oldHeight, int newHeight) {
+  public void expand(final Level level, final int oldHeight, final int newHeight) {
     nextAddY += (newHeight - oldHeight);
   }
 
@@ -156,7 +156,7 @@ public class LevelSet {
 
   /** Sets the height of this LevelSet. It is only legal to reduce the
       height to greater than or equal to the currently used height. */
-  public void setHeight(int height) throws IllegalArgumentException {
+  public void setHeight(final int height) throws IllegalArgumentException {
     if (height < getUsedHeight()) {
       throw new IllegalArgumentException("May not reduce height below currently used height");
     }
@@ -170,11 +170,11 @@ public class LevelSet {
       it may be profitable to perform a compaction. */
   public float verticalFragmentationRatio() {
     int freeHeight = 0;
-    int usedHeight = getUsedHeight();
+    final int usedHeight = getUsedHeight();
     if (usedHeight == 0)
       return 0.0f;
-    for (Iterator<Level> iter = iterator(); iter.hasNext(); ) {
-      Level level = iter.next();
+    for (final Iterator<Level> iter = iterator(); iter.hasNext(); ) {
+      final Level level = iter.next();
       if (level.isEmpty()) {
         freeHeight += level.h();
       }
@@ -187,9 +187,9 @@ public class LevelSet {
   }
 
   /** Visits all Rects contained in this LevelSet. */
-  public void visit(RectVisitor visitor) {
-    for (Iterator<Level> iter = levels.iterator(); iter.hasNext(); ) {
-      Level level = iter.next();
+  public void visit(final RectVisitor visitor) {
+    for (final Iterator<Level> iter = levels.iterator(); iter.hasNext(); ) {
+      final Level level = iter.next();
       level.visit(visitor);
     }
   }
@@ -199,8 +199,8 @@ public class LevelSet {
       update the new Rects in a newly laid-out LevelSet with the
       original Rects. */
   public void updateRectangleReferences() {
-    for (Iterator<Level> iter = levels.iterator(); iter.hasNext(); ) {
-      Level level = iter.next();
+    for (final Iterator<Level> iter = levels.iterator(); iter.hasNext(); ) {
+      final Level level = iter.next();
       level.updateRectangleReferences();
     }
   }

@@ -67,14 +67,14 @@ public class TestMultisampleES1AWT extends UITestCase {
   static long durationPerTest = 60; // ms
   private GLCanvas canvas;
 
-  public static void main(String[] args) {
+  public static void main(final String[] args) {
      for(int i=0; i<args.length; i++) {
         if(args[i].equals("-time")) {
             durationPerTest = MiscUtils.atoi(args[++i], 500);
         }
      }
      System.out.println("durationPerTest: "+durationPerTest);
-     String tstname = TestMultisampleES1AWT.class.getName();
+     final String tstname = TestMultisampleES1AWT.class.getName();
      org.junit.runner.JUnitCore.main(tstname);
   }
 
@@ -93,11 +93,11 @@ public class TestMultisampleES1AWT extends UITestCase {
     testMultiSampleAAImpl(8);
   }
 
-  private void testMultiSampleAAImpl(int reqSamples) throws InterruptedException, InvocationTargetException {
+  private void testMultiSampleAAImpl(final int reqSamples) throws InterruptedException, InvocationTargetException {
     final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
-    GLProfile glp = GLProfile.getMaxFixedFunc(true);
-    GLCapabilities caps = new GLCapabilities(glp);
-    GLCapabilitiesChooser chooser = new MultisampleChooser01();
+    final GLProfile glp = GLProfile.getMaxFixedFunc(true);
+    final GLCapabilities caps = new GLCapabilities(glp);
+    final GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
     if(reqSamples>0) {
         caps.setSampleBuffers(true);
@@ -108,12 +108,12 @@ public class TestMultisampleES1AWT extends UITestCase {
     canvas.addGLEventListener(new MultisampleDemoES1(reqSamples>0?true:false));
     canvas.addGLEventListener(new GLEventListener() {
         int displayCount = 0;
-        public void init(GLAutoDrawable drawable) {}
-        public void dispose(GLAutoDrawable drawable) {}
-        public void display(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {}
+        public void display(final GLAutoDrawable drawable) {
             snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
         }
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
     });
 
     final Frame frame = new Frame("Multi Samples "+reqSamples);

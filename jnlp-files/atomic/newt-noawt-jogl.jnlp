@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/atomic/newt-core.jar" />
+      <jar href="jar/atomic/newt.jar" />
       <jar href="jar/atomic/newt-ogl.jar" />
       <extension name="jogl-noawt" href="JOGL_CODEBASE_TAG/jogl-noawt.jnlp" />
     </resources>

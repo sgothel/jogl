@@ -88,7 +88,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     }
 
     @Override
-    public void setSurfaceHandle(long handle) {
+    public void setSurfaceHandle(final long handle) {
         surfaceHandle = handle ;
     }
 
@@ -98,27 +98,27 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     }
 
     @Override
-    protected void requestFocusImpl(boolean reparented) {
+    protected void requestFocusImpl(final boolean reparented) {
     }
 
     @Override
-    public void setPosition(int x, int y) {
+    public void setPosition(final int x, final int y) {
         // nop
     }
 
     @Override
-    public boolean setFullscreen(boolean fullscreen) {
+    public boolean setFullscreen(final boolean fullscreen) {
         return false; // nop
     }
 
     @Override
-    public boolean setFullscreen(List<MonitorDevice> monitors) {
+    public boolean setFullscreen(final List<MonitorDevice> monitors) {
         return false; // nop
     }
 
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         sizeChanged(false, width, height, false);
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
@@ -135,7 +135,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     }
 
     @Override
-    public Point getLocationOnScreen(Point storage) {
+    public Point getLocationOnScreen(final Point storage) {
      if(null!=storage) {
         storage.set(0, 0);
         return storage;
@@ -144,12 +144,12 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected Point getLocationOnScreenImpl(final int x, final int y) {
         return new Point(x,y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected void updateInsetsImpl(final Insets insets) {
         // nop ..
     }
 }

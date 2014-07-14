@@ -25,18 +25,18 @@ public class TestAWTCloseX11DisplayBug565 {
     try {
       for ( int j = 0; j < 10; j++ ) {
         final int open0;
-        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {        
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
             open0 = X11Util.getOpenDisplayConnectionNumber();
         } else {
             open0 = 0;
         }
-                
-        GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault( ) );
+
+        final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault( ) );
         final Frame frame = new Frame( "AWT Resource X11 Leak - #" + j );
-  
+
         final GLCanvas glCanvas = new GLCanvas( caps );
         frame.add( glCanvas );
-  
+
         try {
           javax.swing.SwingUtilities.invokeAndWait( new Runnable() {
             public void run() {
@@ -45,7 +45,7 @@ public class TestAWTCloseX11DisplayBug565 {
             }
           } );
         }
-        catch ( Throwable t ) {
+        catch ( final Throwable t ) {
           t.printStackTrace();
           Assert.fail(t.getMessage());
         }
@@ -59,7 +59,7 @@ public class TestAWTCloseX11DisplayBug565 {
             }
           } );
         }
-        catch ( Throwable t ) {
+        catch ( final Throwable t ) {
           t.printStackTrace();
           Assert.fail(t.getMessage());
         }
@@ -74,16 +74,16 @@ public class TestAWTCloseX11DisplayBug565 {
         }
       }
     }
-    catch ( Exception e ) {
+    catch ( final Exception e ) {
       e.printStackTrace();
       Assert.fail(e.getMessage());
     }
   }
 
 
-  public static void main(String args[]) {
+  public static void main(final String args[]) {
     org.junit.runner.JUnitCore.main(TestAWTCloseX11DisplayBug565.class.getName());
   }
-  
+
 }
 

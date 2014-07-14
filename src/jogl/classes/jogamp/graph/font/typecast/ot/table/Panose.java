@@ -26,7 +26,7 @@ public class Panose {
   byte bXHeight = 0;
 
   /** Creates new Panose */
-  public Panose(byte[] panose) {
+  public Panose(final byte[] panose) {
     bFamilyType = panose[0];
     bSerifStyle = panose[1];
     bWeight = panose[2];
@@ -81,7 +81,7 @@ public class Panose {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append(String.valueOf(bFamilyType)).append(" ")
       .append(String.valueOf(bSerifStyle)).append(" ")
       .append(String.valueOf(bWeight)).append(" ")

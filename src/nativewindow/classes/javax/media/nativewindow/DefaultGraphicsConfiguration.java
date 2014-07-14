@@ -41,8 +41,8 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     protected CapabilitiesImmutable capabilitiesChosen;
     protected CapabilitiesImmutable capabilitiesRequested;
 
-    public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen,
-                                        CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
+    public DefaultGraphicsConfiguration(final AbstractGraphicsScreen screen,
+                                        final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested) {
         if(null == screen) {
             throw new IllegalArgumentException("Null screen");
         }
@@ -51,9 +51,6 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         }
         if(null == capsRequested) {
             throw new IllegalArgumentException("Null requested caps");
-        }
-        if( ! ( capsChosen instanceof VisualIDHolder ) ) {
-            throw new IllegalArgumentException("Chosen caps is not implementing NativeVisualID");
         }
         this.screen = screen;
         this.capabilitiesChosen = capsChosen;
@@ -64,7 +61,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     public Object clone() {
         try {
           return super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
           throw new NativeWindowException(e);
         }
     }
@@ -90,7 +87,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     }
 
     @Override
-    final public int getVisualID(VIDType type) throws NativeWindowException {
+    final public int getVisualID(final VIDType type) throws NativeWindowException {
         return capabilitiesChosen.getVisualID(type);
     }
 
@@ -103,7 +100,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      * </p>
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
-    protected void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
+    protected void setChosenCapabilities(final CapabilitiesImmutable capsChosen) {
         this.capabilitiesChosen = capsChosen;
     }
 
@@ -115,7 +112,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      * a change of the graphics device in a multi-screen environment.
      * </p>
      */
-    protected void setScreen(AbstractGraphicsScreen screen) {
+    protected void setScreen(final AbstractGraphicsScreen screen) {
         this.screen = screen;
     }
 
@@ -127,11 +124,11 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
                                        "]";
     }
 
-    public static String toHexString(int val) {
+    public static String toHexString(final int val) {
         return "0x"+Integer.toHexString(val);
     }
 
-    public static String toHexString(long val) {
+    public static String toHexString(final long val) {
         return "0x"+Long.toHexString(val);
     }
 }

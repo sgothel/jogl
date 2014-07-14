@@ -165,6 +165,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  * <table border="1">
  *   <tr><th colspan=5>Big Buck Bunny 24f 16:9</th></tr>
  *   <tr><td>Big Buck Bunny</td><td>320p</td><td>h264<td>aac 48000Hz 2 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4</td></tr>
+ *   <tr><td>Big Buck Bunny</td><td>240p</td><td>h264<td>aac 48000Hz 2 chan</td><td>http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4</td></tr>
  *   <tr><td>Big Buck Bunny</td><td>720p</td><td>mpeg4<td>ac3 48000Hz 5.1 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_surround.avi</td></tr>
  *   <tr><td>Big Buck Bunny</td><td>720p</td><td>msmpeg4v2<td>mp3 48000Hz 2 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_stereo.avi</td></tr>
  *   <tr><td>Big Buck Bunny</td><td>720p</td><td>theora<td>vorbis 48000Hz 2 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_stereo.ogg</td></tr>
@@ -245,10 +246,10 @@ public interface GLMediaPlayer extends TextureSequence {
      */
     @SuppressWarnings("serial")
     public static class StreamException extends Exception {
-        public StreamException(Throwable cause) {
+        public StreamException(final Throwable cause) {
             super(cause);
         }
-        public StreamException(String message, Throwable cause) {
+        public StreamException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }
@@ -317,7 +318,7 @@ public interface GLMediaPlayer extends TextureSequence {
 
         public final int id;
 
-        State(int id){
+        State(final int id){
             this.id = id;
         }
     }

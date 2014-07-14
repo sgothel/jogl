@@ -10,15 +10,15 @@ package jogamp.opengl.util.pngj;
 public class PngjExceptionInternal extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
-	public PngjExceptionInternal(String message, Throwable cause) {
+	public PngjExceptionInternal(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public PngjExceptionInternal(String message) {
+	public PngjExceptionInternal(final String message) {
 		super(message);
 	}
 
-	public PngjExceptionInternal(Throwable cause) {
+	public PngjExceptionInternal(final Throwable cause) {
 		super(cause);
 	}
 }

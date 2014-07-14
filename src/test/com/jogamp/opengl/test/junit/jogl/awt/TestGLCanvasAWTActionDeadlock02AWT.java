@@ -202,14 +202,14 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         height = 300;
         final MiniPApplet applet = this;
 
-        GraphicsEnvironment environment =
+        final GraphicsEnvironment environment =
           GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
+        final GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
         frame = new Frame(displayDevice.getDefaultConfiguration());
 
         final Rectangle fullScreenRect;
         if (fullScreen) {
-          DisplayMode mode = displayDevice.getDisplayMode();
+          final DisplayMode mode = displayDevice.getDisplayMode();
           fullScreenRect = new Rectangle(0, 0, mode.getWidth(), mode.getHeight());
         } else {
           fullScreenRect = null;
@@ -228,7 +228,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                         frame.setBounds(fullScreenRect);
                         frame.setVisible(true);
                     }});
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 t.printStackTrace();
                 Assume.assumeNoException(t);
             }
@@ -251,21 +251,21 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                                        (fullScreenRect.height - applet.height) / 2,
                                        applet.width, applet.height);
                     } else {
-                      Insets insets = frame.getInsets();
+                      final Insets insets = frame.getInsets();
 
-                      int windowW = applet.width + insets.left + insets.right;
-                      int windowH = applet.height + insets.top + insets.bottom;
-                      int locationX = 100;
-                      int locationY = 100;
+                      final int windowW = applet.width + insets.left + insets.right;
+                      final int windowH = applet.height + insets.top + insets.bottom;
+                      final int locationX = 100;
+                      final int locationY = 100;
 
                       frame.setSize(windowW, windowH);
                       frame.setLocation(locationX, locationY);
 
-                      int usableWindowH = windowH - insets.top - insets.bottom;
+                      final int usableWindowH = windowH - insets.top - insets.bottom;
                       applet.setBounds((windowW - width)/2, insets.top + (usableWindowH - height)/2, width, height);
                     }
                 }});
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
@@ -273,10 +273,10 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
 
         frame.add(this);
         frame.addWindowListener(new WindowAdapter() {
-          public void windowClosing(WindowEvent e) {
+          public void windowClosing(final WindowEvent e) {
               try {
                   dispose();
-              } catch (Exception ex) {
+              } catch (final Exception ex) {
                   Assume.assumeNoException(ex);
               }
           }
@@ -388,7 +388,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         }
       }
 
-      void draw(GL2 gl) {
+      void draw(final GL2 gl) {
         if( !osxCALayerAWTModBug || !justInitialized ) {
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                 public void run() {
@@ -408,8 +408,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
           System.out.println(OPENGL_VERSION);
           System.out.println(OPENGL_EXTENSIONS);
 
-          int[] temp = { 0 };
-          gl.glGetIntegerv(GL2.GL_MAX_SAMPLES, temp, 0);
+          final int[] temp = { 0 };
+          gl.glGetIntegerv(GL2ES3.GL_MAX_SAMPLES, temp, 0);
           System.out.println("Maximum number of samples supported by the hardware: " + temp[0]);
           System.out.println("Frame: "+frame);
           System.out.println("Applet: "+MiniPApplet.this);
@@ -418,7 +418,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         }
 
         if (currentSamples == -1) {
-          int[] temp = { 0 };
+          final int[] temp = { 0 };
           gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);
           currentSamples = temp[0];
           if (numSamples != currentSamples) {
@@ -439,7 +439,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         }
 
         if (restarted) {
-          int[] temp = { 0 };
+          final int[] temp = { 0 };
           gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);
           if (numSamples != temp[0]) {
             System.err.println("Multisampling level requested " + numSamples + " not supported. Using " + temp[0] + "samples instead.");
@@ -465,7 +465,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         gl.glFlush();
 
         fcount += 1;
-        int m = (int) (System.currentTimeMillis() - millisOffset);
+        final int m = (int) (System.currentTimeMillis() - millisOffset);
         if (m - lastm > 1000 * fint) {
           frate = (float)(fcount) / fint;
           fcount = 0;
@@ -475,14 +475,14 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       }
 
       void clock() {
-        long afterTime = System.nanoTime();
-        long timeDiff = afterTime - beforeTime;
-        long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
+        final long afterTime = System.nanoTime();
+        final long timeDiff = afterTime - beforeTime;
+        final long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
 
         if (sleepTime > 0) {  // some time left in this cycle
           try {
             Thread.sleep(sleepTime / 1000000L, (int) (sleepTime % 1000000L));
-          } catch (InterruptedException ex) { }
+          } catch (final InterruptedException ex) { }
 
           overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
 
@@ -495,48 +495,48 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
 
       class SimpleListener implements GLEventListener {
         @Override
-        public void display(GLAutoDrawable drawable) {
+        public void display(final GLAutoDrawable drawable) {
             draw(drawable.getGL().getGL2());
             justInitialized = false;
         }
 
         @Override
-        public void dispose(GLAutoDrawable drawable) { }
+        public void dispose(final GLAutoDrawable drawable) { }
 
         @Override
-        public void init(GLAutoDrawable drawable) {
+        public void init(final GLAutoDrawable drawable) {
             justInitialized = true;
         }
 
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) { }
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int w, final int h) { }
       }
 
-      public void mouseDragged(MouseEvent ev) {
+      public void mouseDragged(final MouseEvent ev) {
         if (printEventInfo) {
           System.err.println("Mouse dragged event: " + ev);
         }
       }
 
-      public void mouseMoved(MouseEvent ev) {
+      public void mouseMoved(final MouseEvent ev) {
         if (printEventInfo) {
           System.err.println("Mouse moved event: " + ev);
         }
       }
 
-      public void keyPressed(KeyEvent ev) {
+      public void keyPressed(final KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key pressed event: " + ev);
         }
       }
 
-      public void keyReleased(KeyEvent ev) {
+      public void keyReleased(final KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key released event: " + ev);
         }
       }
 
-      public void keyTyped(KeyEvent ev) {
+      public void keyTyped(final KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key typed event: " + ev);
         }
@@ -545,18 +545,18 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       /** An Animator subclass which renders one frame at the time
        *  upon calls to the requestRender() method.
        **/
-      public class CustomAnimator extends AnimatorBase {
+      public static class CustomAnimator extends AnimatorBase {
           private Timer timer = null;
           private TimerTask task = null;
           private volatile boolean shouldRun;
 
-          protected String getBaseName(String prefix) {
+          protected String getBaseName(final String prefix) {
               return "Custom" + prefix + "Animator" ;
           }
 
           /** Creates an CustomAnimator with an initial drawable to
            * animate. */
-          public CustomAnimator(GLAutoDrawable drawable) {
+          public CustomAnimator(final GLAutoDrawable drawable) {
               if (drawable != null) {
                   add(drawable);
               }
@@ -629,8 +629,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
               }
               animThread = null;
               try {
-                  Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
-              } catch (InterruptedException e) { }
+                  Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads / holding the lock is OK here!
+              } catch (final InterruptedException e) { }
               return true;
           }
 
@@ -644,21 +644,21 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
   public void test00() {
     TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet mini;
     try {
-      Class<?> c = Thread.currentThread().getContextClassLoader().loadClass(TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet.class.getName());
+      final Class<?> c = Thread.currentThread().getContextClassLoader().loadClass(TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet.class.getName());
       mini = (TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet) c.newInstance();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
     if (mini != null) {
       try {
           mini.run();
-      } catch (Exception ex) {
+      } catch (final Exception ex) {
           Assume.assumeNoException(ex);
       }
     }
   }
 
-  public static void main(String args[]) {
+  public static void main(final String args[]) {
     for(int i=0; i<args.length; i++) {
         if(args[i].equals("-frames")) {
             framesPerTest = MiscUtils.atoi(args[++i], framesPerTest);

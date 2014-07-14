@@ -35,16 +35,14 @@ import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-
 import com.jogamp.opengl.util.Animator;
-
+import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
-
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
@@ -74,7 +72,6 @@ public class TestGearsES2SWT extends UITestCase {
     static boolean opaque = true;
     static int forceAlpha = -1;
     static boolean fullscreen = false;
-    static boolean pmvUseBackingArray = true;
     static int swapInterval = 1;
     static boolean showFPS = false;
     static int loops = 1;
@@ -133,7 +130,7 @@ public class TestGearsES2SWT extends UITestCase {
                 display.dispose();
                }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
@@ -142,18 +139,17 @@ public class TestGearsES2SWT extends UITestCase {
         composite = null;
     }
 
-    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
 
         final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null);
         Assert.assertNotNull( canvas );
 
         final GearsES2 demo = new GearsES2(swapInterval);
-        demo.setPMVUseBackingArray(pmvUseBackingArray);
         canvas.addGLEventListener(demo);
 
-        Animator animator = new Animator();
-        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator();
+        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.setExclusiveContext(exclusiveContext);
 
         animator.add(canvas);
@@ -183,7 +179,7 @@ public class TestGearsES2SWT extends UITestCase {
         }
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());
-        System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
+        System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
@@ -197,7 +193,7 @@ public class TestGearsES2SWT extends UITestCase {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
-            System.err.println("window resize pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
+            System.err.println("window resize pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
         }
 
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -256,7 +252,7 @@ public class TestGearsES2SWT extends UITestCase {
         runTestGL(caps);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         mainRun = true;
 
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
@@ -273,8 +269,6 @@ public class TestGearsES2SWT extends UITestCase {
                 forceAlpha = MiscUtils.atoi(args[i], 0);
             } else if(args[i].equals("-fullscreen")) {
                 fullscreen = true;
-            } else if(args[i].equals("-pmvDirect")) {
-                pmvUseBackingArray = false;
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
@@ -331,7 +325,6 @@ public class TestGearsES2SWT extends UITestCase {
         System.err.println("translucent "+(!opaque));
         System.err.println("forceAlpha "+forceAlpha);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);

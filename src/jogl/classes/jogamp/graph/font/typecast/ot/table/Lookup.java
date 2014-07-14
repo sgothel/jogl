@@ -66,14 +66,14 @@ public class Lookup {
     public static final int IGNORE_BASE_MARKS = 0x0008;
     public static final int MARK_ATTACHMENT_TYPE = 0xFF00;
 
-    private int _type;
-    private int _flag;
-    private int _subTableCount;
-    private int[] _subTableOffsets;
-    private LookupSubtable[] _subTables;
+    private final int _type;
+    private final int _flag;
+    private final int _subTableCount;
+    private final int[] _subTableOffsets;
+    private final LookupSubtable[] _subTables;
 
     /** Creates new Lookup */
-    public Lookup(LookupSubtableFactory factory, DataInputStream dis, int offset)
+    public Lookup(final LookupSubtableFactory factory, final DataInputStream dis, final int offset)
     throws IOException {
 
         // Ensure we're in the right place
@@ -102,7 +102,7 @@ public class Lookup {
         return _subTableCount;
     }
 
-    public LookupSubtable getSubtable(int i) {
+    public LookupSubtable getSubtable(final int i) {
         return _subTables[i];
     }
 

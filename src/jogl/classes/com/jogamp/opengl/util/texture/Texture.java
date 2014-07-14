@@ -205,22 +205,49 @@ public class Texture {
     private static final boolean disableNPOT    = Debug.isPropertyDefined("jogl.texture.nonpot", true);
     private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect", true);
 
-    public Texture(GL gl, TextureData data) throws GLException {
+    public Texture(final GL gl, final TextureData data) throws GLException {
         texID = 0;
         updateImage(gl, data);
     }
 
-    // Constructor for use when creating e.g. cube maps, where there is
-    // no initial texture data
-    public Texture(int target) {
+    /**
+     * Constructor for use when creating e.g. cube maps, where there is
+     * no initial texture data
+     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
+     *               GL2.GL_TEXTURE_RECTANGLE
+     */
+    public Texture(final int target) {
         texID = 0;
         this.target = target;
     }
 
-    // Package-private constructor for creating a texture object which wraps
-    // an existing texture ID from another package
-    Texture(int textureID, int target, int texWidth, int texHeight, int imgWidth, int imgHeight,
-            boolean mustFlipVertically) {
+    /**
+     * Constructor to wrap an OpenGL texture ID from an external library and allows
+     * some of the base methods from the Texture class, such as
+     * binding and querying of texture coordinates, to be used with
+     * it. Attempts to update such textures' contents will yield
+     * undefined results.
+     *
+     * @param textureID the OpenGL texture object to wrap
+     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
+     *               GL2.GL_TEXTURE_RECTANGLE
+     * @param texWidth the width of the texture in pixels
+     * @param texHeight the height of the texture in pixels
+     * @param imgWidth the width of the image within the texture in
+     *          pixels (if the content is a sub-rectangle in the upper
+     *          left corner); otherwise, pass in texWidth
+     * @param imgHeight the height of the image within the texture in
+     *          pixels (if the content is a sub-rectangle in the upper
+     *          left corner); otherwise, pass in texHeight
+     * @param mustFlipVertically indicates whether the texture
+     *                           coordinates must be flipped vertically
+     *                           in order to properly display the
+     *                           texture
+     */
+    public Texture(final int textureID, final int target,
+                   final int texWidth, final int texHeight,
+                   final int imgWidth, final int imgHeight,
+                   final boolean mustFlipVertically) {
         this.texID = textureID;
         this.target = target;
         this.mustFlipVertically = mustFlipVertically;
@@ -251,7 +278,7 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void enable(GL gl) throws GLException {
+    public void enable(final GL gl) throws GLException {
         if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != target) {
             gl.glEnable(target);
         }
@@ -278,7 +305,7 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void disable(GL gl) throws GLException {
+    public void disable(final GL gl) throws GLException {
         if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != target ) {
             gl.glDisable(target);
         }
@@ -298,7 +325,7 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void bind(GL gl) throws GLException {
+    public void bind(final GL gl) throws GLException {
         validateTexID(gl, true);
         gl.glBindTexture(target, texID);
     }
@@ -308,7 +335,7 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void destroy(GL gl) throws GLException {
+    public void destroy(final GL gl) throws GLException {
         if(0!=texID) {
             gl.glDeleteTextures(1, new int[] {texID}, 0);
             texID = 0;
@@ -410,7 +437,7 @@ public class Texture {
      *
      * @return the texture coordinates corresponding to the specified sub-image
      */
-    public TextureCoords getSubImageTexCoords(int x1, int y1, int x2, int y2) {
+    public TextureCoords getSubImageTexCoords(final int x1, final int y1, final int x2, final int y2) {
         if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
             if (mustFlipVertically) {
                 return new TextureCoords(x1, texHeight - y1, x2, texHeight - y2);
@@ -418,12 +445,12 @@ public class Texture {
                 return new TextureCoords(x1, y1, x2, y2);
             }
         } else {
-            float tx1 = (float)x1 / (float)texWidth;
-            float ty1 = (float)y1 / (float)texHeight;
-            float tx2 = (float)x2 / (float)texWidth;
-            float ty2 = (float)y2 / (float)texHeight;
+            final float tx1 = (float)x1 / (float)texWidth;
+            final float ty1 = (float)y1 / (float)texHeight;
+            final float tx2 = (float)x2 / (float)texWidth;
+            final float ty2 = (float)y2 / (float)texHeight;
             if (mustFlipVertically) {
-                float yMax = (float) imgHeight / (float) texHeight;
+                final float yMax = (float) imgHeight / (float) texHeight;
                 return new TextureCoords(tx1, yMax - ty1, tx2, yMax - ty2);
             } else {
                 return new TextureCoords(tx1, ty1, tx2, ty2);
@@ -437,7 +464,7 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateImage(GL gl, TextureData data) throws GLException {
+    public void updateImage(final GL gl, final TextureData data) throws GLException {
         updateImage(gl, data, 0);
     }
 
@@ -460,7 +487,7 @@ public class Texture {
      * No-op if no change, otherwise generates new {@link TextureCoords}.
      * </p>
      */
-    public void setMustFlipVertically(boolean v) {
+    public void setMustFlipVertically(final boolean v) {
         if( v != mustFlipVertically ) {
             mustFlipVertically = v;
             updateTexCoords();
@@ -474,7 +501,7 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateImage(GL gl, TextureData data, int targetOverride) throws GLException {
+    public void updateImage(final GL gl, final TextureData data, final int targetOverride) throws GLException {
         validateTexID(gl, true);
 
         imgWidth = data.getWidth();
@@ -495,7 +522,7 @@ public class Texture {
         data.setHaveGL12(gl.isExtensionAvailable(GLExtensions.VERSION_1_2));
 
         // Indicates whether both width and height are power of two
-        boolean isPOT = isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight);
+        final boolean isPOT = isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight);
 
         // Note that automatic mipmap generation doesn't work for
         // GL_ARB_texture_rectangle
@@ -607,7 +634,7 @@ public class Texture {
         }
 
         if (data.getMipmap() && !haveAutoMipmapGeneration) {
-            int[] align = new int[1];
+            final int[] align = new int[1];
             gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, align, 0); // save alignment
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
 
@@ -617,7 +644,7 @@ public class Texture {
 
             try {
                 // FIXME: may need check for GLUnsupportedException
-                GLU glu = GLU.createGLU(gl);
+                final GLU glu = GLU.createGLU(gl);
                 glu.gluBuild2DMipmaps(texTarget, data.getInternalFormat(),
                                       data.getWidth(), data.getHeight(),
                                       data.getPixelFormat(), data.getPixelType(), data.getBuffer());
@@ -626,7 +653,7 @@ public class Texture {
             }
         } else {
             checkCompressedTextureExtensions(gl, data);
-            Buffer[] mipmapData = data.getMipmapData();
+            final Buffer[] mipmapData = data.getMipmapData();
             if (mipmapData != null) {
                 int width = texWidth;
                 int height = texHeight;
@@ -657,7 +684,7 @@ public class Texture {
                                                   texWidth, texHeight, data.getBorder(),
                                                   data.getBuffer().capacity(), data.getBuffer());
                     } else {
-                        ByteBuffer buf = DDSImage.allocateBlankBuffer(texWidth,
+                        final ByteBuffer buf = DDSImage.allocateBlankBuffer(texWidth,
                                                                       texHeight,
                                                                       data.getInternalFormat());
                         gl.glCompressedTexImage2D(texTarget, 0, data.getInternalFormat(),
@@ -683,9 +710,9 @@ public class Texture {
             }
         }
 
-        int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
-        int magFilter = GL.GL_LINEAR;
-        int wrapMode = (gl.isExtensionAvailable(GLExtensions.VERSION_1_2) || !gl.isGL2()) ? GL.GL_CLAMP_TO_EDGE : GL2.GL_CLAMP;
+        final int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
+        final int magFilter = GL.GL_LINEAR;
+        final int wrapMode = (gl.isExtensionAvailable(GLExtensions.VERSION_1_2) || !gl.isGL2()) ? GL.GL_CLAMP_TO_EDGE : GL2.GL_CLAMP;
 
         // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
         if (texTarget != GL2.GL_TEXTURE_RECTANGLE_ARB) {
@@ -693,8 +720,8 @@ public class Texture {
             gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_MAG_FILTER, magFilter);
             gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_S, wrapMode);
             gl.glTexParameteri(texParamTarget, GL.GL_TEXTURE_WRAP_T, wrapMode);
-            if (this.target == GL2.GL_TEXTURE_CUBE_MAP) {
-                gl.glTexParameteri(texParamTarget, GL2.GL_TEXTURE_WRAP_R, wrapMode);
+            if (this.target == GL.GL_TEXTURE_CUBE_MAP) {
+                gl.glTexParameteri(texParamTarget, GL2ES2.GL_TEXTURE_WRAP_R, wrapMode);
             }
         }
 
@@ -731,7 +758,7 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateSubImage(GL gl, TextureData data, int mipmapLevel, int x, int y) throws GLException {
+    public void updateSubImage(final GL gl, final TextureData data, final int mipmapLevel, final int x, final int y) throws GLException {
         if (usingAutoMipmapGeneration && mipmapLevel != 0) {
             // When we're using mipmap generation via GL_GENERATE_MIPMAP, we
             // don't need to update other mipmap levels
@@ -771,10 +798,10 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void updateSubImage(GL gl, TextureData data, int mipmapLevel,
-                               int dstx, int dsty,
-                               int srcx, int srcy,
-                               int width, int height) throws GLException {
+    public void updateSubImage(final GL gl, final TextureData data, final int mipmapLevel,
+                               final int dstx, final int dsty,
+                               final int srcx, final int srcy,
+                               final int width, final int height) throws GLException {
         if (data.isDataCompressed()) {
             throw new GLException("updateSubImage specifying a sub-rectangle is not supported for compressed TextureData");
         }
@@ -796,8 +823,8 @@ public class Texture {
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
-    public void setTexParameterf(GL gl, int parameterName,
-                                 float value) {
+    public void setTexParameterf(final GL gl, final int parameterName,
+                                 final float value) {
         bind(gl);
         gl.glTexParameterf(target, parameterName, value);
     }
@@ -809,8 +836,8 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameterfv(GL gl, int parameterName,
-                                  FloatBuffer params) {
+    public void setTexParameterfv(final GL gl, final int parameterName,
+                                  final FloatBuffer params) {
         bind(gl);
         gl.glTexParameterfv(target, parameterName, params);
     }
@@ -822,8 +849,8 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameterfv(GL gl, int parameterName,
-                                  float[] params, int params_offset) {
+    public void setTexParameterfv(final GL gl, final int parameterName,
+                                  final float[] params, final int params_offset) {
         bind(gl);
         gl.glTexParameterfv(target, parameterName, params, params_offset);
     }
@@ -838,8 +865,8 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameteri(GL gl, int parameterName,
-                                 int value) {
+    public void setTexParameteri(final GL gl, final int parameterName,
+                                 final int value) {
         bind(gl);
         gl.glTexParameteri(target, parameterName, value);
     }
@@ -851,8 +878,8 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameteriv(GL gl, int parameterName,
-                                  IntBuffer params) {
+    public void setTexParameteriv(final GL gl, final int parameterName,
+                                  final IntBuffer params) {
         bind(gl);
         gl.glTexParameteriv(target, parameterName, params);
     }
@@ -864,8 +891,8 @@ public class Texture {
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void setTexParameteriv(GL gl, int parameterName,
-                                  int[] params, int params_offset) {
+    public void setTexParameteriv(final GL gl, final int parameterName,
+                                  final int[] params, final int params_offset) {
         bind(gl);
         gl.glTexParameteriv(target, parameterName, params, params_offset);
     }
@@ -881,7 +908,7 @@ public class Texture {
      *           otherwise it may be <code>null</code>.
      * @see #getTextureObject()
      */
-    public int getTextureObject(GL gl) {
+    public int getTextureObject(final GL gl) {
         validateTexID(gl, false);
         return texID;
     }
@@ -930,7 +957,7 @@ public class Texture {
      *
      * @return true if the given value is a power of two, false otherwise
      */
-    private static boolean isPowerOfTwo(int val) {
+    private static boolean isPowerOfTwo(final int val) {
         return ((val & (val - 1)) == 0);
     }
 
@@ -942,7 +969,7 @@ public class Texture {
      * @param val the value
      * @return the next power of two
      */
-    private static int nextPowerOfTwo(int val) {
+    private static int nextPowerOfTwo(final int val) {
         int ret = 1;
         while (ret < val) {
             ret <<= 1;
@@ -954,7 +981,7 @@ public class Texture {
      * Updates the actual image dimensions; usually only called from
      * <code>updateImage</code>.
      */
-    private void setImageSize(int width, int height, int target) {
+    private void setImageSize(final int width, final int height, final int target) {
         imgWidth = width;
         imgHeight = height;
         updateTexCoords();
@@ -983,7 +1010,7 @@ public class Texture {
         }
     }
 
-    private void updateSubImageImpl(GL gl, TextureData data, int newTarget, int mipmapLevel,
+    private void updateSubImageImpl(final GL gl, final TextureData data, final int newTarget, final int mipmapLevel,
                                     int dstx, int dsty,
                                     int srcx, int srcy, int width, int height) throws GLException {
         data.setHaveEXTABGR(gl.isExtensionAvailable(GLExtensions.EXT_abgr));
@@ -1054,15 +1081,15 @@ public class Texture {
                                          data.getInternalFormat(),
                                          buffer.remaining(), buffer);
         } else {
-            int[] align = { 0 };
-            int[] rowLength = { 0 };
-            int[] skipRows = { 0 };
-            int[] skipPixels = { 0 };
+            final int[] align = { 0 };
+            final int[] rowLength = { 0 };
+            final int[] skipRows = { 0 };
+            final int[] skipPixels = { 0 };
             gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT,   align,      0); // save alignment
             if(gl.isGL2GL3()) {
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
+                gl.glGetIntegerv(GL2ES2.GL_UNPACK_ROW_LENGTH,  rowLength,  0); // save row length
+                gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_ROWS,   skipRows,   0); // save skipped rows
+                gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_PIXELS, skipPixels, 0); // save skipped pixels
             }
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, data.getAlignment());
             if (DEBUG && VERBOSE) {
@@ -1075,9 +1102,9 @@ public class Texture {
                 System.out.println("height      = " + height);
             }
             if(gl.isGL2GL3()) {
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH, rowlen);
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS, srcy);
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, srcx);
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, rowlen);
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, srcy);
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, srcx);
             } else {
                 if ( rowlen!=0 && rowlen!=width &&
                      srcy!=0 && srcx!=0 ) {
@@ -1091,14 +1118,14 @@ public class Texture {
                                buffer);
             gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT,   align[0]);      // restore alignment
             if(gl.isGL2GL3()) {
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH,  rowLength[0]);  // restore row length
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS,   skipRows[0]);   // restore skipped rows
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, skipPixels[0]); // restore skipped pixels
             }
         }
     }
 
-    private void checkCompressedTextureExtensions(GL gl, TextureData data) {
+    private void checkCompressedTextureExtensions(final GL gl, final TextureData data) {
         if (data.isDataCompressed()) {
             switch (data.getInternalFormat()) {
             case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
@@ -1118,10 +1145,10 @@ public class Texture {
         }
     }
 
-    private boolean validateTexID(GL gl, boolean throwException) {
+    private boolean validateTexID(final GL gl, final boolean throwException) {
         if( 0 == texID ) {
             if( null != gl ) {
-                int[] tmp = new int[1];
+                final int[] tmp = new int[1];
                 gl.glGenTextures(1, tmp, 0);
                 texID = tmp[0];
                 if ( 0 == texID && throwException ) {
@@ -1135,22 +1162,22 @@ public class Texture {
     }
 
     // Helper routines for disabling certain codepaths
-    private static boolean haveNPOT(GL gl) {
+    private static boolean haveNPOT(final GL gl) {
         return !disableNPOT && gl.isNPOTTextureAvailable();
     }
 
-    private static boolean haveTexRect(GL gl) {
+    private static boolean haveTexRect(final GL gl) {
         return (!disableTexRect &&
                 TextureIO.isTexRectEnabled() &&
                 gl.isExtensionAvailable(GLExtensions.ARB_texture_rectangle));
     }
 
-    private static boolean preferTexRect(GL gl) {
+    private static boolean preferTexRect(final GL gl) {
         // Prefer GL_ARB_texture_rectangle on ATI hardware on Mac OS X
         // due to software fallbacks
 
         if (NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {
-            String vendor = gl.glGetString(GL.GL_VENDOR);
+            final String vendor = gl.glGetString(GL.GL_VENDOR);
             if (vendor != null && vendor.startsWith("ATI")) {
                 return true;
             }

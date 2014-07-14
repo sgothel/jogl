@@ -69,12 +69,12 @@ public class GlyfCompositeComp {
     public static final short WE_HAVE_INSTRUCTIONS = 0x0100;
     public static final short USE_MY_METRICS = 0x0200;
 
-    private int _firstIndex;
-    private int _firstContour;
+    private final int _firstIndex;
+    private final int _firstContour;
     private short _argument1;
     private short _argument2;
-    private int _flags;
-    private int _glyphIndex;
+    private final int _flags;
+    private final int _glyphIndex;
     private double _xscale = 1.0;
     private double _yscale = 1.0;
     private double _scale01 = 0.0;
@@ -84,7 +84,7 @@ public class GlyfCompositeComp {
     private int _point1 = 0;
     private int _point2 = 0;
 
-    protected GlyfCompositeComp(int firstIndex, int firstContour, DataInput di)
+    protected GlyfCompositeComp(final int firstIndex, final int firstContour, final DataInput di)
     throws IOException {
         _firstIndex = firstIndex;
         _firstContour = firstContour;
@@ -96,8 +96,8 @@ public class GlyfCompositeComp {
             _argument1 = di.readShort();
             _argument2 = di.readShort();
         } else {
-            _argument1 = (short) di.readByte();
-            _argument2 = (short) di.readByte();
+            _argument1 = di.readByte();
+            _argument2 = di.readByte();
         }
 
         // Assign the arguments according to the flags
@@ -111,7 +111,7 @@ public class GlyfCompositeComp {
 
         // Get the scale values (if any)
         if ((_flags & WE_HAVE_A_SCALE) != 0) {
-            int i = di.readShort();
+            final int i = di.readShort();
             _xscale = _yscale = (double) i / (double) 0x4000;
         } else if ((_flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0) {
             short i = di.readShort();
@@ -184,8 +184,8 @@ public class GlyfCompositeComp {
      * @param y The y-coordinate of the point to transform
      * @return The transformed x-coordinate
      */
-    public int scaleX(int x, int y) {
-        return (int)((double) x * _xscale + (double) y * _scale10);
+    public int scaleX(final int x, final int y) {
+        return (int)(x * _xscale + y * _scale10);
     }
 
     /**
@@ -194,7 +194,7 @@ public class GlyfCompositeComp {
      * @param y The y-coordinate of the point to transform
      * @return The transformed y-coordinate
      */
-    public int scaleY(int x, int y) {
-        return (int)((double) x * _scale01 + (double) y * _yscale);
+    public int scaleY(final int x, final int y) {
+        return (int)(x * _scale01 + y * _yscale);
     }
 }
