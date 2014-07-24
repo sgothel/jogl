@@ -29,6 +29,7 @@ package jogamp.graph.font.typecast;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -51,6 +52,29 @@ public class TypecastFontConstructor implements FontConstructor  {
                 OTFontCollection fontset;
                 try {
                     fontset = OTFontCollection.create(ffile);
+                    return new TypecastFont(fontset);
+                } catch (final IOException e) {
+                    return e;
+                }
+            }
+        });
+        if(o instanceof Font) {
+            return (Font)o;
+        }
+        if(o instanceof IOException) {
+            throw (IOException)o;
+        }
+        throw new InternalError("Unexpected Object: "+o);
+    }
+
+    @Override
+    public Font create(final InputStream istream) throws IOException {
+        final Object o = AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                OTFontCollection fontset;
+                try {
+                    fontset = OTFontCollection.create(istream);
                     return new TypecastFont(fontset);
                 } catch (final IOException e) {
                     return e;

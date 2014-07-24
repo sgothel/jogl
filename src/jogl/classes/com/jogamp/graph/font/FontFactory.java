@@ -29,6 +29,7 @@ package com.jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URLConnection;
 
@@ -89,6 +90,10 @@ public class FontFactory {
 
     public static final Font get(final File file) throws IOException {
         return fontConstr.create(file);
+    }
+
+    public static final Font get(final InputStream stream) throws IOException {
+        return fontConstr.create(stream);
     }
 
     public static final Font get(final URLConnection conn) throws IOException {
