@@ -72,6 +72,7 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
@@ -562,34 +563,34 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   private boolean gotGammaRampLength;
   private int gammaRampLength;
   @Override
-  protected final synchronized int getGammaRampLength() {
+  protected final synchronized int getGammaRampLength(final NativeSurface surface) {
     if (gotGammaRampLength) {
       return gammaRampLength;
     }
-
-    final long display = getOrCreateSharedDpy(defaultDevice);
+    final long display = surface.getDisplayHandle();
     if(0 == display) {
         return 0;
     }
+    final int screenIdx = surface.getScreenIndex();
 
     final int[] size = new int[1];
-    final boolean res = X11Lib.XF86VidModeGetGammaRampSize(display,
-                                                      X11Lib.DefaultScreen(display),
-                                                      size, 0);
+    final boolean res = X11Lib.XF86VidModeGetGammaRampSize(display, screenIdx, size, 0);
     if (!res) {
       return 0;
     }
     gotGammaRampLength = true;
     gammaRampLength = size[0];
+    System.err.println("XXX: Gamma ramp size: "+gammaRampLength);
     return gammaRampLength;
   }
 
   @Override
-  protected final boolean setGammaRamp(final float[] ramp) {
-    final long display = getOrCreateSharedDpy(defaultDevice);
+  protected final boolean setGammaRamp(final NativeSurface surface, final float[] ramp) {
+    final long display = surface.getDisplayHandle();
     if(0 == display) {
         return false;
     }
+    final int screenIdx = surface.getScreenIndex();
 
     final int len = ramp.length;
     final short[] rampData = new short[len];
@@ -597,36 +598,52 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       rampData[i] = (short) (ramp[i] * 65535);
     }
 
-    final boolean res = X11Lib.XF86VidModeSetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
+    final boolean res = X11Lib.XF86VidModeSetGammaRamp(display, screenIdx,
                                               rampData.length,
                                               rampData, 0,
                                               rampData, 0,
                                               rampData, 0);
+    if( DEBUG ) {
+        dumpRamp("SET__", rampData.length, rampData, rampData, rampData);
+    }
     return res;
   }
 
+  private static void dumpRamp(final String prefix, final int size, final ShortBuffer r, final ShortBuffer g, final ShortBuffer b) {
+      for(int i=0; i<size; i++) {
+          if( 0 == i % 4 ) {
+              System.err.printf("%n%4d/%4d %s: ", i, size, prefix);
+          }
+          System.err.printf(" [%04X %04X %04X], ",  r.get(i), g.get(i), b.get(i));
+      }
+      System.err.println();
+  }
+  private static void dumpRamp(final String prefix, final int size, final short[] r, final short[] g, final short[] b) {
+      for(int i=0; i<size; i++) {
+          if( 0 == i % 4 ) {
+              System.err.printf("%n%4d/%4d %s: ", i, size, prefix);
+          }
+          System.err.printf(" [%04X %04X %04X], ",  r[i], g[i], b[i]);
+      }
+      System.err.println();
+  }
+
   @Override
-  protected final Buffer getGammaRamp() {
-    final long display = getOrCreateSharedDpy(defaultDevice);
+  protected final Buffer getGammaRamp(final NativeSurface surface) {
+    final long display = surface.getDisplayHandle();
     if(0 == display) {
         return null;
     }
+    final int screenIdx = surface.getScreenIndex();
 
-    final int size = getGammaRampLength();
-    final ShortBuffer rampData = ShortBuffer.wrap(new short[3 * size]);
-    rampData.position(0);
-    rampData.limit(size);
-    final ShortBuffer redRampData = rampData.slice();
-    rampData.position(size);
-    rampData.limit(2 * size);
-    final ShortBuffer greenRampData = rampData.slice();
-    rampData.position(2 * size);
-    rampData.limit(3 * size);
-    final ShortBuffer blueRampData = rampData.slice();
+    final int size = getGammaRampLength(surface);
 
-    final boolean res = X11Lib.XF86VidModeGetGammaRamp(display,
-                                              X11Lib.DefaultScreen(display),
+    final ShortBuffer rampData = Buffers.newDirectShortBuffer(3 * size);
+    final ShortBuffer redRampData   = Buffers.slice(rampData, 0 * size, size);
+    final ShortBuffer greenRampData = Buffers.slice(rampData, 1 * size, size);
+    final ShortBuffer blueRampData  = Buffers.slice(rampData, 2 * size, size);
+
+    final boolean res = X11Lib.XF86VidModeGetGammaRamp(display, screenIdx,
                                               size,
                                               redRampData,
                                               greenRampData,
@@ -634,40 +651,62 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if (!res) {
       return null;
     }
+    if( DEBUG ) {
+        dumpRamp("GET__", size, redRampData, greenRampData, blueRampData);
+    }
     return rampData;
   }
 
   @Override
-  protected final void resetGammaRamp(final Buffer originalGammaRamp) {
+  protected final void resetGammaRamp(final NativeSurface surface, final Buffer originalGammaRamp) {
     if (originalGammaRamp == null) {
         return; // getGammaRamp failed originally
     }
-    final long display = getOrCreateSharedDpy(defaultDevice);
+    final long display = surface.getDisplayHandle();
     if(0 == display) {
         return;
     }
+    final int screenIdx = surface.getScreenIndex();
 
+    resetGammaRamp(display, screenIdx, originalGammaRamp);
+  }
+
+  @Override
+  protected final void resetGammaRamp(final DeviceScreenID deviceScreenID, final Buffer originalGammaRamp) {
+    if (originalGammaRamp == null) {
+        return; // getGammaRamp failed originally
+    }
+    final long display = X11Util.openDisplay(deviceScreenID.deviceConnection);
+    if( 0 == display ) {
+        return;
+    }
+    try {
+        resetGammaRamp(display, deviceScreenID.screenIdx, originalGammaRamp);
+    } finally {
+        X11Util.closeDisplay(display);
+    }
+  }
+
+  private static final void resetGammaRamp(final long display, final int screenIdx, final Buffer originalGammaRamp) {
     final ShortBuffer rampData = (ShortBuffer) originalGammaRamp;
     final int capacity = rampData.capacity();
     if ((capacity % 3) != 0) {
       throw new IllegalArgumentException("Must not be the original gamma ramp");
     }
     final int size = capacity / 3;
-    rampData.position(0);
-    rampData.limit(size);
-    final ShortBuffer redRampData = rampData.slice();
-    rampData.position(size);
-    rampData.limit(2 * size);
-    final ShortBuffer greenRampData = rampData.slice();
-    rampData.position(2 * size);
-    rampData.limit(3 * size);
-    final ShortBuffer blueRampData = rampData.slice();
 
-    X11Lib.XF86VidModeSetGammaRamp(display,
-                                X11Lib.DefaultScreen(display),
-                                size,
-                                redRampData,
-                                greenRampData,
-                                blueRampData);
+    final ShortBuffer redRampData   = Buffers.slice(rampData, 0 * size, size);
+    final ShortBuffer greenRampData = Buffers.slice(rampData, 1 * size, size);
+    final ShortBuffer blueRampData  = Buffers.slice(rampData, 2 * size, size);
+    if( DEBUG ) {
+        dumpRamp("RESET", size, redRampData, greenRampData, blueRampData);
+    }
+
+    X11Lib.XF86VidModeSetGammaRamp(display, screenIdx,
+                                   size,
+                                   redRampData,
+                                   greenRampData,
+                                   blueRampData);
   }
+
 }

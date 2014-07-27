@@ -39,69 +39,79 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.*;
-import jogamp.opengl.*;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
 
-/** Provides control over the primary display's gamma, brightness and
-    contrast controls via the hardware gamma ramp tables. Not
-    supported on all platforms or graphics hardware. <P>
+import com.jogamp.common.util.locks.RecursiveLock;
 
-    Thanks to the LWJGL project for illustrating how to access gamma
-    control on the various platforms.
-*/
-
+/**
+ * Provides convenient wrapper for {@link GLDrawableFactory} control over
+ * individual display's gamma, brightness and contrast values
+ * via the hardware gamma ramp tables.
+ * <p>
+ * Not supported on all platforms or graphics hardware.
+ * </p>
+ * <p>
+ * Thanks to the LWJGL project for illustrating how to access gamma
+ * control on the various platforms.
+ * </p>
+ */
 public class Gamma {
   private Gamma() {}
 
   /**
-   * Sets the gamma, brightness, and contrast of the current main
-   * display. This functionality is not available on all platforms and
-   * graphics hardware. Returns true if the settings were successfully
-   * changed, false if not. This method may return false for some
-   * values of the incoming arguments even on hardware which does
-   * support the underlying functionality. <P>
-   *
-   * If this method returns true, the display settings will
-   * automatically be reset to their original values upon JVM exit
-   * (assuming the JVM does not crash); if the user wishes to change
-   * the display settings back to normal ahead of time, use {@link
-   * #resetDisplayGamma resetDisplayGamma}(). It is recommended to
-   * call {@link #resetDisplayGamma resetDisplayGamma} before calling
-   * e.g. <code>System.exit()</code> from the application rather than
-   * rely on the shutdown hook functionality due to inevitable race
-   * conditions and unspecified behavior during JVM teardown. <P>
-   *
-   * This method may be called multiple times during the application's
-   * execution, but calling {@link #resetDisplayGamma
-   * resetDisplayGamma} will only reset the settings to the values
-   * before the first call to this method. <P>
-   *
-   * @param gamma The gamma value, typically > 1.0 (default values
-   *   vary, but typically roughly 1.0)
-   * @param brightness The brightness value between -1.0 and 1.0,
-   *   inclusive (default values vary, but typically 0)
-   * @param contrast The contrast, greater than 0.0 (default values
-   *   vary, but typically 1)
-   * @return true if gamma settings were successfully changed, false
-   *   if not
-   * @throws IllegalArgumentException if any of the parameters were
-   *   out-of-bounds
+   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(javax.media.nativewindow.NativeSurface, float, float, float)}.
+   * <p>
+   * Use {@link #setDisplayGamma(GLAutoDrawable, float, float, float)} in case of using an {#link GLAutoDrawable}.
+   * </p>
    */
-  public static boolean setDisplayGamma(final GL gl, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
-    return GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).setDisplayGamma(gamma, brightness, contrast);
+  public static boolean setDisplayGamma(final GLDrawable drawable, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
+    return GLDrawableFactory.getFactory(drawable.getGLProfile()).setDisplayGamma(drawable.getNativeSurface(), gamma, brightness, contrast);
   }
 
   /**
-   * Resets the gamma, brightness and contrast values for the primary
-   * display to their original values before {@link #setDisplayGamma
-   * setDisplayGamma} was called the first time. {@link
-   * #setDisplayGamma setDisplayGamma} must be called before calling
-   * this method or an unspecified exception will be thrown. While it
-   * is not explicitly required that this method be called before
-   * exiting, calling it is recommended because of the inevitable
-   * unspecified behavior during JVM teardown.
+   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(javax.media.nativewindow.NativeSurface, float, float, float)}
+   * locking {@link GLAutoDrawable#getUpstreamLock()} to ensure proper atomic operation.
    */
-  public static void resetDisplayGamma(final GL gl) {
-    GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).resetDisplayGamma();
+  public static boolean setDisplayGamma(final GLAutoDrawable drawable, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
+    final RecursiveLock lock = drawable.getUpstreamLock();
+    lock.lock();
+    try {
+        return GLDrawableFactory.getFactory(drawable.getGLProfile()).setDisplayGamma(drawable.getNativeSurface(), gamma, brightness, contrast);
+    } finally {
+        lock.unlock();
+    }
+  }
+
+  /**
+   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(javax.media.nativewindow.NativeSurface)}.
+   * <p>
+   * Use {@link #resetDisplayGamma(GLAutoDrawable)} in case of using an {#link GLAutoDrawable}.
+   * </p>
+   */
+  public static void resetDisplayGamma(final GLDrawable drawable) {
+    GLDrawableFactory.getFactory(drawable.getGLProfile()).resetDisplayGamma(drawable.getNativeSurface());
+  }
+
+  /**
+   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(javax.media.nativewindow.NativeSurface)}
+   * locking {@link GLAutoDrawable#getUpstreamLock()} to ensure proper atomic operation.
+   */
+  public static void resetDisplayGamma(final GLAutoDrawable drawable) {
+    final RecursiveLock lock = drawable.getUpstreamLock();
+    lock.lock();
+    try {
+        GLDrawableFactory.getFactory(drawable.getGLProfile()).resetDisplayGamma(drawable.getNativeSurface());
+    } finally {
+        lock.unlock();
+    }
+  }
+
+  /**
+   * Convenient wrapper for {@link GLDrawableFactory#resetAllDisplayGamma()}.
+   */
+  public static void resetAllDisplayGamma(final GLDrawable drawable) {
+    GLDrawableFactory.getFactory(drawable.getGLProfile()).resetAllDisplayGamma();
   }
 }

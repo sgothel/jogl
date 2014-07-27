@@ -559,12 +559,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final int GAMMA_RAMP_LENGTH = 256;
 
   @Override
-  protected final int getGammaRampLength() {
+  protected final int getGammaRampLength(final NativeSurface surface) {
     return GAMMA_RAMP_LENGTH;
   }
 
   @Override
-  protected final boolean setGammaRamp(final float[] ramp) {
+  protected final boolean setGammaRamp(final NativeSurface surface, final float[] ramp) {
     final short[] rampData = new short[3 * GAMMA_RAMP_LENGTH];
     for (int i = 0; i < GAMMA_RAMP_LENGTH; i++) {
       final short scaledValue = (short) (ramp[i] * 65535);
@@ -573,18 +573,26 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       rampData[i + 2 * GAMMA_RAMP_LENGTH] = scaledValue;
     }
 
-    final long screenDC = GDI.GetDC(0);
-    final boolean res = GDI.SetDeviceGammaRamp(screenDC, ShortBuffer.wrap(rampData));
-    GDI.ReleaseDC(0, screenDC);
+    final long hDC = surface.getSurfaceHandle();
+    if( 0 == hDC ) {
+        return false;
+    }
+    // final long screenDC = GDI.GetDC(0);
+    final boolean res = GDI.SetDeviceGammaRamp(hDC, ShortBuffer.wrap(rampData));
+    // GDI.ReleaseDC(0, screenDC);
     return res;
   }
 
   @Override
-  protected final Buffer getGammaRamp() {
+  protected final Buffer getGammaRamp(final NativeSurface surface) {
     final ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
-    final long screenDC = GDI.GetDC(0);
-    final boolean res = GDI.GetDeviceGammaRamp(screenDC, rampData);
-    GDI.ReleaseDC(0, screenDC);
+    final long hDC = surface.getSurfaceHandle();
+    if( 0 == hDC ) {
+        return null;
+    }
+    // final long screenDC = GDI.GetDC(0);
+    final boolean res = GDI.GetDeviceGammaRamp(hDC, rampData);
+    // GDI.ReleaseDC(0, screenDC);
     if (!res) {
       return null;
     }
@@ -592,7 +600,22 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final void resetGammaRamp(final Buffer originalGammaRamp) {
+  protected final void resetGammaRamp(final NativeSurface surface, final Buffer originalGammaRamp) {
+    if (originalGammaRamp == null) {
+      // getGammaRamp failed earlier
+      return;
+    }
+    final long hDC = surface.getSurfaceHandle();
+    if( 0 == hDC ) {
+        return;
+    }
+    // final long screenDC = GDI.GetDC(0);
+    GDI.SetDeviceGammaRamp(hDC, originalGammaRamp);
+    // GDI.ReleaseDC(0, hDC);
+  }
+
+  @Override
+  protected final void resetGammaRamp(final DeviceScreenID deviceScreenID, final Buffer originalGammaRamp) {
     if (originalGammaRamp == null) {
       // getGammaRamp failed earlier
       return;
@@ -601,6 +624,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     GDI.SetDeviceGammaRamp(screenDC, originalGammaRamp);
     GDI.ReleaseDC(0, screenDC);
   }
+
 
   static interface CPUAffinity {
       boolean set(final int newAffinity);
