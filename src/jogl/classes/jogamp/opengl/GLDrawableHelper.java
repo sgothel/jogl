@@ -40,6 +40,7 @@
 
 package jogamp.opengl;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
@@ -1066,7 +1067,21 @@ public class GLDrawableHelper {
     return exclusiveContextThread;
   }
 
-  private static final ThreadLocal<Runnable> perThreadInitAction = new ThreadLocal<Runnable>();
+  private static final ThreadLocal<WeakReference<Runnable>> perThreadInitAction = new ThreadLocal<WeakReference<Runnable>>();
+  private static final Runnable getLastInitAction() {
+      final WeakReference<Runnable> lastInitActionWR = perThreadInitAction.get();
+      if( null != lastInitActionWR ) {
+          final Runnable lastInitAction = lastInitActionWR.get();
+          if( null == lastInitAction ) {
+              perThreadInitAction.set(null);
+          }
+          return lastInitAction;
+      }
+      return null;
+  }
+  private static final void setLastInitAction(final Runnable initAction) {
+      perThreadInitAction.set(new WeakReference<Runnable>(initAction));
+  }
 
   /** Principal helper method which runs a Runnable with the context
       made current. This could have been made part of GLContext, but a
@@ -1128,7 +1143,7 @@ public class GLDrawableHelper {
             lastContext = null;
         } else {
             // utilize recursive locking
-            lastInitAction = perThreadInitAction.get();
+            lastInitAction = getLastInitAction();
             lastContext.release();
         }
     }
@@ -1202,7 +1217,7 @@ public class GLDrawableHelper {
               lastContext = null;
           } else {
               // utilize recursive locking
-              lastInitAction = perThreadInitAction.get();
+              lastInitAction = getLastInitAction();
               lastContext.release();
           }
       }
@@ -1217,7 +1232,7 @@ public class GLDrawableHelper {
           }
           if (GLContext.CONTEXT_NOT_CURRENT != res) {
               try {
-                  perThreadInitAction.set(initAction);
+                  setLastInitAction(initAction);
                   if (GLContext.CONTEXT_CURRENT_NEW == res) {
                       if (DEBUG) {
                           System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
@@ -1291,7 +1306,7 @@ public class GLDrawableHelper {
               lastContext = null;
           } else {
               // utilize recursive locking
-              lastInitAction = perThreadInitAction.get();
+              lastInitAction = getLastInitAction();
               lastContext.release();
           }
       }
@@ -1315,7 +1330,7 @@ public class GLDrawableHelper {
           }
           if (GLContext.CONTEXT_NOT_CURRENT != res) {
               try {
-                  perThreadInitAction.set(initAction);
+                  setLastInitAction(initAction);
                   if (GLContext.CONTEXT_CURRENT_NEW == res) {
                       if (DEBUG) {
                           System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
