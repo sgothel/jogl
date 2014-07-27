@@ -68,6 +68,7 @@ import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDIDummyUpstreamSurfaceHook;
 import jogamp.nativewindow.windows.GDISurface;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
+import jogamp.opengl.Debug;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -83,10 +84,34 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
+  /**
+   * Property integer value <code>jogl.debug.windows.cpu_affinity_mode</code>:
+   * <ul>
+   *   <li>0 - none (default, no affinity required for Windows NV driver >= 266.58 from 2011-01-24)</li>
+   *   <li>1 - process affinity (was required w/ Windows NV driver 260.99 from 2010-12-11, see commit 5166d6a6b617ccb15c40fcb8d4eac2800527aa7b)</li>
+   *   <li>2 - thread affinity (experimental)</li>
+   * </ul>
+   */
+  private static final int CPU_AFFINITY_MODE = Debug.getIntProperty("jogl.debug.windows.cpu_affinity_mode", true, 0);
+
   private static DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper = null;
+
+  private final CPUAffinity cpuAffinity;
 
   public WindowsWGLDrawableFactory() {
     super();
+
+    switch( CPU_AFFINITY_MODE ) {
+        case 1:
+            cpuAffinity = new WindowsProcessAffinity();
+            break;
+        case 2:
+            cpuAffinity = new WindowsThreadAffinity();
+            break;
+        default:
+            cpuAffinity = new NopCPUAffinity();
+            break;
+    }
 
     synchronized(WindowsWGLDrawableFactory.class) {
         if( null == windowsWGLDynamicLookupHelper ) {
@@ -168,45 +193,23 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       return windowsWGLDynamicLookupHelper;
   }
 
+  /* pp */ static String toHexString(final long l) { return "0x"+Long.toHexString(l); }
+
   private WindowsGraphicsDevice defaultDevice;
   private SharedResourceRunner sharedResourceRunner;
   private HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap;
 
-  private long processAffinityChanges = 0;
-  private final PointerBuffer procMask = PointerBuffer.allocateDirect(1);
-  private final PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
-
   @Override
   protected void enterThreadCriticalZone() {
-    synchronized (sysMask) {
-        if( 0 == processAffinityChanges) {
-            final long pid = GDI.GetCurrentProcess();
-            if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
-                if(DEBUG) {
-                    System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
-                    // Thread.dumpStack();
-                }
-                processAffinityChanges = pid;
-                GDI.SetProcessAffinityMask(pid, 1);
-            }
-        }
+    synchronized (cpuAffinity) {
+        cpuAffinity.set(1);
     }
   }
 
   @Override
   protected void leaveThreadCriticalZone() {
-    synchronized (sysMask) {
-        if( 0 != processAffinityChanges) {
-            final long pid = GDI.GetCurrentProcess();
-            if( pid != processAffinityChanges) {
-                throw new GLException("PID doesn't match: set PID 0x" + Long.toHexString(processAffinityChanges) +
-                                                       " this PID 0x" + Long.toHexString(pid) );
-            }
-            if(DEBUG) {
-                System.err.println("WindowsWGLDrawableFactory.leaveThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
-            }
-            GDI.SetProcessAffinityMask(pid, sysMask.get(0));
-        }
+    synchronized (cpuAffinity) {
+        cpuAffinity.reset();
     }
   }
 
@@ -597,5 +600,143 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     final long screenDC = GDI.GetDC(0);
     GDI.SetDeviceGammaRamp(screenDC, originalGammaRamp);
     GDI.ReleaseDC(0, screenDC);
+  }
+
+  static interface CPUAffinity {
+      boolean set(final int newAffinity);
+      boolean reset();
+  }
+  static final class WindowsThreadAffinity implements CPUAffinity {
+      private long threadHandle;
+      private long threadOrigAffinity;
+      private long threadNewAffinity;
+      public WindowsThreadAffinity() {
+          threadHandle = 0;
+          threadOrigAffinity = 0;
+          threadNewAffinity = 0;
+      }
+      @Override
+      public boolean set(final int newAffinity) {
+          final long tid = GDI.GetCurrentThread();
+          if( 0 != threadHandle ) {
+              throw new IllegalStateException("Affinity already set");
+          }
+          final long threadLastAffinity = GDI.SetThreadAffinityMask(tid, newAffinity);
+          final int werr = GDI.GetLastError();
+          final boolean res;
+          if( 0 != threadLastAffinity ) {
+              res = true;
+              this.threadHandle = tid;
+              this.threadNewAffinity = newAffinity;
+              this.threadOrigAffinity = threadLastAffinity;
+          } else {
+              res = false;
+          }
+          if(DEBUG) {
+              System.err.println("WindowsThreadAffinity.set() - tid " + toHexString(tid) + " - " + getThreadName() +
+                      ": OK "+res+" (werr "+werr+"), Affinity: "+toHexString(threadOrigAffinity) + " -> " + toHexString(newAffinity));
+          }
+          return res;
+      }
+      @Override
+      public boolean reset() {
+          if( 0 == threadHandle ) {
+              return true;
+          }
+          final long tid = GDI.GetCurrentThread();
+          if( tid != threadHandle) {
+              throw new IllegalStateException("TID doesn't match: set TID " + toHexString(threadHandle) +
+                                                               " this TID " + toHexString(tid) );
+          }
+          final long preThreadAffinity = GDI.SetThreadAffinityMask(threadHandle, threadOrigAffinity);
+          final boolean res = 0 != preThreadAffinity;
+          if(DEBUG) {
+              System.err.println("WindowsThreadAffinity.reset() - tid " + toHexString(threadHandle) + " - " + getThreadName() +
+                      ": OK "+res+" (werr "+GDI.GetLastError()+"), Affinity: "+toHexString(threadNewAffinity)+" -> orig "+ toHexString(threadOrigAffinity));
+          }
+          this.threadHandle = 0;
+          this.threadNewAffinity = this.threadOrigAffinity;
+          return res;
+      }
+  }
+  static final class WindowsProcessAffinity implements CPUAffinity {
+      private long processHandle;
+      private long newAffinity;
+      private final PointerBuffer procMask;
+      private final PointerBuffer sysMask;
+
+      public WindowsProcessAffinity() {
+          processHandle = 0;
+          newAffinity = 0;
+          procMask = PointerBuffer.allocateDirect(1);
+          sysMask = PointerBuffer.allocateDirect(1);
+      }
+      @Override
+      public boolean set(final int newAffinity) {
+          if( 0 != processHandle ) {
+              throw new IllegalStateException("Affinity already set");
+          }
+          final long pid = GDI.GetCurrentProcess();
+          final boolean res;
+          if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
+              if( GDI.SetProcessAffinityMask(pid, newAffinity) ) {
+                  this.processHandle = pid;
+                  this.newAffinity = newAffinity;
+                  res = true;
+              } else {
+                  res = false;
+              }
+              if(DEBUG) {
+                  System.err.println("WindowsProcessAffinity.set() - pid " + toHexString(pid) + " - " + getThreadName() +
+                          ": OK "+res+" (werr "+GDI.GetLastError()+"), Affinity: procMask "+ toHexString(procMask.get(0)) + ", sysMask "+ toHexString(sysMask.get(0)) +
+                          " -> "+toHexString(newAffinity));
+              }
+          } else {
+              if(DEBUG) {
+                  System.err.println("WindowsProcessAffinity.set() - pid " + toHexString(pid) + " - " + getThreadName() +
+                          ": Error, could not GetProcessAffinityMask, werr "+GDI.GetLastError());
+              }
+              res = false;
+          }
+          return res;
+      }
+      @Override
+      public boolean reset() {
+          if( 0 == processHandle ) {
+              return true;
+          }
+          final long pid = GDI.GetCurrentProcess();
+          if( pid != processHandle) {
+              throw new IllegalStateException("PID doesn't match: set PID " + toHexString(processHandle) +
+                                                               " this PID " + toHexString(pid) );
+          }
+          final long origProcAffinity = procMask.get(0);
+          final boolean res = GDI.SetProcessAffinityMask(processHandle, origProcAffinity);
+          if(DEBUG) {
+              final int werr = GDI.GetLastError();
+              System.err.println("WindowsProcessAffinity.reset() - pid " + toHexString(processHandle) + " - " + getThreadName() +
+                      ": OK "+res+" (werr "+werr+"), Affinity: "+toHexString(newAffinity)+" -> procMask "+ toHexString(origProcAffinity));
+          }
+          this.processHandle = 0;
+          this.newAffinity = origProcAffinity;
+          return res;
+      }
+  }
+  static final class NopCPUAffinity implements CPUAffinity {
+      public NopCPUAffinity() { }
+      @Override
+      public boolean set(final int newAffinity) {
+          if(DEBUG) {
+              System.err.println("NopCPUAffinity.set() - " + getThreadName());
+          }
+          return false;
+      }
+      @Override
+      public boolean reset() {
+          if(DEBUG) {
+              System.err.println("NopCPUAffinity.reset() - " + getThreadName());
+          }
+          return false;
+      }
   }
 }

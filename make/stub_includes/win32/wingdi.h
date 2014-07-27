@@ -48,8 +48,10 @@ WINUSERAPI HWND WINAPI GetParent(HWND hWnd);
 WINUSERAPI HWND WINAPI SetParent(HWND hWndChild,HWND hWndNewParent);
 
 WINUSERAPI HANDLE WINAPI GetCurrentProcess(void);
-WINUSERAPI BOOL WINAPI GetProcessAffinityMask(HANDLE hProcess,PDWORD_PTR lpProcessAffinityMask,PDWORD_PTR lpSystemAffinityMask);
-WINUSERAPI BOOL WINAPI SetProcessAffinityMask(HANDLE hProcess,DWORD_PTR dwProcessAffinityMask);
+WINUSERAPI HANDLE WINAPI GetCurrentThread(void);
+WINUSERAPI BOOL WINAPI GetProcessAffinityMask(HANDLE hProcess, PDWORD_PTR lpProcessAffinityMask, PDWORD_PTR lpSystemAffinityMask);
+WINUSERAPI BOOL WINAPI SetProcessAffinityMask(HANDLE hProcess, DWORD_PTR dwProcessAffinityMask);
+WINUSERAPI DWORD_PTR WINAPI SetThreadAffinityMask(HANDLE hThread, DWORD_PTR dwThreadAffinityMask);
 
 
 // Routines for changing gamma ramp of display device
