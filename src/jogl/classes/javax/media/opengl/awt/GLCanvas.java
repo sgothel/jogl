@@ -300,6 +300,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public final RecursiveLock getUpstreamLock() { return lock; }
+
+  @Override
+  public final boolean isThreadGLCapable() { return Threading.isOpenGLThread(); }
+
+  @Override
   public void setShallUseOffscreenLayer(final boolean v) {
       shallUseOffscreenLayer = v;
   }
@@ -1040,12 +1046,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public boolean invoke(final boolean wait, final GLRunnable glRunnable) {
+  public boolean invoke(final boolean wait, final GLRunnable glRunnable) throws IllegalStateException {
     return helper.invoke(this, wait, glRunnable);
   }
 
   @Override
-  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) throws IllegalStateException {
     return helper.invoke(this, wait, glRunnables);
   }
 

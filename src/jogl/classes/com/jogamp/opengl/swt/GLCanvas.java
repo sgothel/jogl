@@ -638,6 +638,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
+   public final RecursiveLock getUpstreamLock() { return lock; }
+
+   @Override
    public int getSurfaceWidth() {
       return clientArea.width;
    }
@@ -755,12 +758,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public boolean invoke(final boolean wait, final GLRunnable runnable) {
+   public boolean invoke(final boolean wait, final GLRunnable runnable) throws IllegalStateException {
       return helper.invoke(this, wait, runnable);
    }
 
    @Override
-   public boolean invoke(final boolean wait, final List<GLRunnable> runnables) {
+   public boolean invoke(final boolean wait, final List<GLRunnable> runnables) throws IllegalStateException {
       return helper.invoke(this, wait, runnables);
    }
 
@@ -877,6 +880,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    public void swapBuffers() throws GLException {
       runInGLThread(swapBuffersOnGLAction);
    }
+
+   /**
+    * {@inheritDoc}
+    * <p>
+    * Implementation always supports multithreading, hence method always returns <code>true</code>.
+    * </p>
+    */
+   @Override
+   public final boolean isThreadGLCapable() { return true; }
 
    /**
     * Runs the specified action in an SWT compatible thread, which is:

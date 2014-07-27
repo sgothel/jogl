@@ -43,16 +43,16 @@ package javax.media.nativewindow;
  * </p>
  */
 public interface NativeSurface extends SurfaceUpdatedListener {
-  /** Unlocked state */
+  /** Unlocked state, {@value}. */
   public static final int LOCK_SURFACE_UNLOCKED = 0;
 
-  /** Returned by {@link #lockSurface()} if the surface is not ready to be locked. */
+  /** Returned by {@link #lockSurface()} if the surface is not ready to be locked, {@value}. */
   public static final int LOCK_SURFACE_NOT_READY = 1;
 
-  /** Returned by {@link #lockSurface()} if the surface is locked, but has changed. */
+  /** Returned by {@link #lockSurface()} if the surface is locked, but has changed, {@value}. */
   public static final int LOCK_SURFACE_CHANGED = 2;
 
-  /** Returned by {@link #lockSurface()} if the surface is locked, and is unchanged. */
+  /** Returned by {@link #lockSurface()} if the surface is locked, and is unchanged, {@value}. */
   public static final int LOCK_SUCCESS = 3;
 
   /**

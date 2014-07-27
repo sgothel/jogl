@@ -230,6 +230,8 @@ public abstract class GLContextImpl extends GLContext {
         if(!lockHeld) {
             makeCurrent();
         }
+        // sync GL ctx w/ drawable's framebuffer before de-association
+        gl.glFinish();
         associateDrawable(false);
         if(!lockHeld) {
             release();

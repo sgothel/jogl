@@ -143,6 +143,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         return window;
     }
 
+    @Override
+    public final RecursiveLock getUpstreamLock() {
+        return window.getLock();
+    }
+
     /**
      * Creates a new GLWindow attaching a new Window referencing a
      * new default Screen and default Display with the given GLCapabilities.
@@ -641,11 +646,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //----------------------------------------------------------------------
     // OpenGL-related methods and state
     //
-
-    @Override
-    protected final RecursiveLock getLock() {
-        return window.getLock();
-    }
 
     @Override
     public void display() {

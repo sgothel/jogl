@@ -98,6 +98,8 @@ import jogamp.opengl.util.glsl.GLSLTextureRaster;
 
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
@@ -231,6 +233,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
       return singleAWTGLPixelBufferProvider;
   }
+
+  /** Currently not used internally, exist merely to satisfy {@link #getUpstreamLock()}. */
+  private final RecursiveLock lock = LockFactory.createRecursiveLock();
 
   private final GLDrawableHelper helper;
   private boolean autoSwapBufferMode;
@@ -430,6 +435,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   public final Object getUpstreamWidget() {
     return this;
   }
+
+  @Override
+  public final RecursiveLock getUpstreamLock() { return lock; }
+
+  @Override
+  public final boolean isThreadGLCapable() { return EventQueue.isDispatchThread(); }
 
   @Override
   public void display() {
@@ -927,12 +938,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public boolean invoke(final boolean wait, final GLRunnable glRunnable) {
+  public boolean invoke(final boolean wait, final GLRunnable glRunnable) throws IllegalStateException {
     return helper.invoke(this, wait, glRunnable);
   }
 
   @Override
-  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) throws IllegalStateException {
     return helper.invoke(this, wait, glRunnables);
   }
 

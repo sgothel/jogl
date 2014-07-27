@@ -208,19 +208,23 @@ public class GLDrawableHelper {
   /**
    * Switch {@link GLContext} / {@link GLDrawable} association.
    * <p>
-   * The <code>oldCtx</code> will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
-   * otherwise dis-associate <code>oldCtx</code> from <code>drawable</code>
-   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) oldCtx.setGLDrawable(null, true);}.
-   * </p>
-   * <p>
-   * Re-associate <code>newCtx</code> with <code>drawable</code>
-   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * </p>
-   * <p>
-   * If the old or new context was current on this thread, it is being released before switching the drawable.
-   * </p>
-   * <p>
-   * No locking is being performed on the drawable, caller is required to take care of it.
+   * Remarks:
+   * <ul>
+   *   <li>The <code>oldCtx</code> will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
+   *       otherwise disassociate <code>oldCtx</code> from <code>drawable</code>
+   *       via {@link GLContext#setGLDrawable(GLDrawable, boolean) oldCtx.setGLDrawable(null, true);} including {@link GL#glFinish() glFinish()}.</li>
+   *   <li>Reassociate <code>newCtx</code> with <code>drawable</code>
+   *       via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.</li>
+   *   <li>If the old context was current on this thread, it is being released after disassociating the drawable.</li>
+   *   <li>If the new context was current on this thread, it is being released before associating the drawable
+   *       and made current afterwards.</li>
+   *   <li>Implementation may issue {@link #makeCurrent()} and {@link #release()} while drawable reassociation.</li>
+   *   <li>The user shall take extra care of thread synchronization,
+   *       i.e. lock the involved {@link GLDrawable#getNativeSurface() drawable's} {@link NativeSurface}s
+   *       to avoid a race condition. In case {@link GLAutoDrawable auto-drawable's} are used,
+   *       their {@link GLAutoDrawable#getUpstreamLock() upstream-lock} must be locked beforehand
+   *       see <a href="../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+   * </ul>
    * </p>
    *
    * @param drawable the drawable which context is changed
@@ -795,6 +799,30 @@ public class GLDrawableHelper {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() : false ;
   }
 
+  public static final boolean isLockedByOtherThread(final GLAutoDrawable d) {
+      final Thread currentThread = Thread.currentThread();
+      final Thread upstreamLockOwner = d.getUpstreamLock().getOwner();
+      if( null != upstreamLockOwner && currentThread != upstreamLockOwner ) {
+          return true;
+      } else {
+          final NativeSurface s = d.getNativeSurface();
+          final Thread surfaceLockOwner = null != s ? s.getSurfaceLockOwner() : null;
+          return null != surfaceLockOwner  && currentThread != surfaceLockOwner;
+      }
+  }
+
+  public static final boolean isLockedByThisThread(final GLAutoDrawable d) {
+      final Thread currentThread = Thread.currentThread();
+      final Thread upstreamLockOwner = d.getUpstreamLock().getOwner();
+      if( currentThread == upstreamLockOwner ) {
+          return true;
+      } else {
+          final NativeSurface s = d.getNativeSurface();
+          final Thread surfaceLockOwner = null != s ? s.getSurfaceLockOwner() : null;
+          return currentThread == surfaceLockOwner;
+      }
+  }
+
   /**
    * <p>
    * If <code>wait</code> is <code>true</code> the call blocks until the <code>glRunnable</code>
@@ -805,13 +833,32 @@ public class GLDrawableHelper {
    * the call is ignored and returns <code>false</code>.<br>
    * This helps avoiding deadlocking the caller.
    * </p>
+   * <p>
+   * <pre>
+   * 0 == deferredHere && 0 == isGLThread -> display() will issue on GL thread, blocking!
+   *
+   *         deferredHere wait isGLThread   lockedByThisThread  Note
+   *  OK     0            x    1            x
+   *  OK     0            x    0            0
+   *  ERROR  0            x    0            1                   Will be deferred on GL thread by display() (blocking),
+   *                                                            but locked by this thread -> ERROR
+   *
+   *         1            0    x            x                   All good, due to no wait, non blocking
+   *
+   *         1            1    1            0
+   *         1            1    0            0
+   *  SWITCH 1            1    1            1                   Run immediately, don't defer since locked by this thread, but isGLThread
+   *  ERROR  1            1    0            1                   Locked by this thread, but _not_ isGLThread -> ERROR
+   * </pre>
+   * </p>
    *
    * @param drawable the {@link GLAutoDrawable} to be used
    * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediatly w/o waiting
    * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
    * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
+   * @throws IllegalStateException in case the drawable is locked by this thread, no animator is running on another thread and <code>wait</code> is <code>true</code>.
    */
-  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final GLRunnable glRunnable) {
+  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final GLRunnable glRunnable) throws IllegalStateException {
     if( null == glRunnable || null == drawable ||
         wait && ( !drawable.isRealized() || null==drawable.getContext() ) ) {
         return false;
@@ -821,18 +868,33 @@ public class GLDrawableHelper {
     final Object rTaskLock = new Object();
     Throwable throwable = null;
     synchronized(rTaskLock) {
-        final boolean deferred;
+        boolean deferredHere;
         synchronized(glRunnablesLock) {
-            deferred = isAnimatorAnimatingOnOtherThread();
-            if(!deferred) {
-                wait = false; // don't wait if exec immediatly
+            final boolean isGLThread = drawable.isThreadGLCapable();
+            deferredHere = isAnimatorAnimatingOnOtherThread();
+            if( deferredHere ) {
+                if( wait && isLockedByThisThread(drawable) ) {
+                    if( isGLThread ) {
+                        // Run immediately, don't defer since locked by this thread, but isGLThread
+                        deferredHere = false;
+                    } else {
+                        // Locked by this thread, but _not_ isGLThread -> ERROR
+                        throw new IllegalStateException("Deferred, wait, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                    }
+                }
+            } else {
+                if( !isGLThread && isLockedByThisThread(drawable) ) {
+                    // Will be deferred on GL thread by display() (blocking), but locked by this thread -> ERROR
+                    throw new IllegalStateException("Not deferred, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                }
+                wait = false; // don't wait if exec immediately
             }
             rTask = new GLRunnableTask(glRunnable,
                                        wait ? rTaskLock : null,
                                        wait  /* catch Exceptions if waiting for result */);
             glRunnables.add(rTask);
         }
-        if( !deferred ) {
+        if( !deferredHere ) {
             drawable.display();
         } else if( wait ) {
             try {
@@ -851,7 +913,16 @@ public class GLDrawableHelper {
     return true;
   }
 
-  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final List<GLRunnable> newGLRunnables) {
+  /**
+   * @see #invoke(GLAutoDrawable, boolean, GLRunnable)
+   *
+   * @param drawable
+   * @param wait
+   * @param newGLRunnables
+   * @return
+   * @throws IllegalStateException
+   */
+  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final List<GLRunnable> newGLRunnables) throws IllegalStateException {
     if( null == newGLRunnables || newGLRunnables.size() == 0 || null == drawable ||
         wait && ( !drawable.isRealized() || null==drawable.getContext() ) ) {
         return false;
@@ -862,10 +933,25 @@ public class GLDrawableHelper {
     final Object rTaskLock = new Object();
     Throwable throwable = null;
     synchronized(rTaskLock) {
-        final boolean deferred;
+        boolean deferredHere;
         synchronized(glRunnablesLock) {
-            deferred = isAnimatorAnimatingOnOtherThread() || !drawable.isRealized();
-            if(!deferred) {
+            final boolean isGLThread = drawable.isThreadGLCapable();
+            deferredHere = isAnimatorAnimatingOnOtherThread();
+            if( deferredHere ) {
+                if( wait && isLockedByThisThread(drawable) ) {
+                    if( isGLThread ) {
+                        // Run immediately, don't defer since locked by this thread, but isGLThread
+                        deferredHere = false;
+                    } else {
+                        // Locked by this thread, but _not_ isGLThread -> ERROR
+                        throw new IllegalStateException("Deferred, wait, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                    }
+                }
+            } else {
+                if( !isGLThread && isLockedByThisThread(drawable) ) {
+                    // Will be deferred on GL thread by display() (blocking), but locked by this thread -> ERROR
+                    throw new IllegalStateException("Not deferred, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                }
                 wait = false; // don't wait if exec immediately
             }
             for(int i=0; i<count-1; i++) {
@@ -876,7 +962,7 @@ public class GLDrawableHelper {
                                        wait  /* catch Exceptions if waiting for result */);
             glRunnables.add(rTask);
         }
-        if( !deferred ) {
+        if( !deferredHere ) {
             drawable.display();
         } else if( wait ) {
             try {

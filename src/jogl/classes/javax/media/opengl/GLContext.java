@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -282,15 +283,24 @@ public abstract class GLContext {
   }
 
   /**
-   * Sets the read/write drawable for framebuffer operations.
+   * Sets the read/write drawable for framebuffer operations, i.e. reassociation of the context's drawable.
    * <p>
    * If the arguments reflect the current state of this context
    * this method is a no-operation and returns the old and current {@link GLDrawable}.
    * </p>
    * <p>
-   * If the context was current on this thread, it is being released before switching the drawable
-   * and made current afterwards. However the user shall take extra care that not other thread
-   * attempts to make this context current. Otherwise a race condition may happen.
+   * Remarks:
+   * <ul>
+   *   <li>{@link GL#glFinish() glFinish()} is issued if context {@link #isCreated()} and a {@link #getGLDrawable() previous drawable} was bound before disassociation.</li>
+   *   <li>If the context was current on this thread, it is being released before drawable reassociation
+   *       and made current afterwards.</li>
+   *   <li>Implementation may issue {@link #makeCurrent()} and {@link #release()} while drawable reassociation.</li>
+   *   <li>The user shall take extra care of thread synchronization,
+   *       i.e. lock the involved {@link GLDrawable#getNativeSurface() drawable's} {@link NativeSurface}s
+   *       to avoid a race condition. In case {@link GLAutoDrawable auto-drawable's} are used,
+   *       their {@link GLAutoDrawable#getUpstreamLock() upstream-lock} must be locked beforehand
+   *       see <a href="GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+   * </ul>
    * </p>
    * @param readWrite The read/write drawable for framebuffer operations, maybe <code>null</code> to remove association.
    * @param setWriteOnly Only change the write-drawable, if <code>setWriteOnly</code> is <code>true</code> and

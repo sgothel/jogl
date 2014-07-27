@@ -108,6 +108,10 @@ public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
         ThreadingImpl.invokeOnWorkerThread(wait, r);
         break;
 
+      case MT:
+        r.run();
+        break;
+
       default:
         throw new InternalError("Illegal single-threading mode " + ThreadingImpl.getMode());
     }

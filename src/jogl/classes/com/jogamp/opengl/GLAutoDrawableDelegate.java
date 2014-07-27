@@ -143,7 +143,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
     private final RecursiveLock lock;
 
     @Override
-    protected final RecursiveLock getLock() { return lock; }
+    public final RecursiveLock getUpstreamLock() { return lock; }
 
     @Override
     public final Object getUpstreamWidget() {

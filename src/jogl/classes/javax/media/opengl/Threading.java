@@ -117,9 +117,35 @@ import jogamp.opengl.ThreadingImpl;
 */
 
 public class Threading {
+    public static enum Mode {
+        /**
+         * Full multithreaded OpenGL,
+         * i.e. any {@link Threading#invoke(boolean, Runnable, Object) invoke}
+         * {@link Threading#invokeOnOpenGLThread(boolean, Runnable) commands}
+         * will be issued on the current thread immediately.
+         */
+        MT(0),
+
+        /** Single-Threaded OpenGL on AWT EDT */
+        ST_AWT(1),
+
+        /** Single-Threaded OpenGL on dedicated worker thread. */
+        ST_WORKER(2);
+
+        public final int id;
+
+        Mode(final int id){
+            this.id = id;
+        }
+    }
 
     /** No reason to ever instantiate this class */
     private Threading() {}
+
+    /** Returns the threading mode */
+    public static Mode getMode() {
+        return ThreadingImpl.getMode();
+    }
 
     /** If an implementation of the javax.media.opengl APIs offers a
         multithreading option but the default behavior is single-threading,
@@ -150,10 +176,14 @@ public class Threading {
         return ThreadingImpl.isToolkitThread();
     }
 
-    /** Indicates whether the current thread is the single thread on
-        which this implementation of the javax.media.opengl APIs
-        performs all of its OpenGL-related work. This method should only
-        be called if the single-thread model is in effect. */
+    /**
+     * Indicates whether the current thread is capable of
+     * performing OpenGL-related work.
+     * <p>
+     * Method always returns <code>true</code>
+     * if {@link #getMode()} == {@link Mode#MT} or {@link #isSingleThreaded()} == <code>false</code>.
+     * </p>
+     */
     public static final boolean isOpenGLThread() throws GLException {
         return ThreadingImpl.isOpenGLThread();
     }
@@ -173,7 +203,7 @@ public class Threading {
     }
 
     /**
-     * If {@link #isSingleThreaded()} <b>and</b> not {@link #isOpenGLThread()}
+     * If not {@link #isOpenGLThread()}
      * <b>and</b> the <code>lock</code> is not being hold by this thread,
      * invoke Runnable <code>r</code> on the OpenGL thread via {@link #invokeOnOpenGLThread(boolean, Runnable)}.
      * <p>
@@ -186,7 +216,7 @@ public class Threading {
      * @throws GLException
      */
     public static final void invoke(final boolean wait, final Runnable r, final Object lock) throws GLException {
-        if ( isSingleThreaded() && !isOpenGLThread() &&
+        if ( !isOpenGLThread() &&
              ( null == lock || !Thread.holdsLock(lock) ) ) {
             invokeOnOpenGLThread(wait, r);
         } else {
