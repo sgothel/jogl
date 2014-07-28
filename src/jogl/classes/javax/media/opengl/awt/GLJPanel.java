@@ -182,6 +182,7 @@ import com.jogamp.opengl.util.texture.TextureState;
 @SuppressWarnings("serial")
 public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol, AWTPrintLifecycle, GLSharedContextSetter, ScalableSurface {
   private static final boolean DEBUG;
+  private static final boolean DEBUG_FRAMES;
   private static final boolean DEBUG_VIEWPORT;
   private static final boolean USE_GLSL_TEXTURE_RASTERIZER;
   private static final boolean SKIP_VERTICAL_FLIP_DEFAULT;
@@ -198,6 +199,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   static {
       Debug.initSingleton();
       DEBUG = Debug.debug("GLJPanel");
+      DEBUG_FRAMES = PropertyAccess.isPropertyDefined("jogl.debug.GLJPanel.Frames", true);
       DEBUG_VIEWPORT = PropertyAccess.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
       USE_GLSL_TEXTURE_RASTERIZER = !PropertyAccess.isPropertyDefined("jogl.gljpanel.noglsl", true);
       SKIP_VERTICAL_FLIP_DEFAULT = PropertyAccess.isPropertyDefined("jogl.gljpanel.noverticalflip", true);
@@ -1540,7 +1542,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                                                     panelWidth, panelHeight);
           updateWrappedSurfaceScale(offscreenDrawable);
           offscreenDrawable.setRealized(true);
-          if( DEBUG ) {
+          if( DEBUG_FRAMES ) {
               offscreenDrawable.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
                   @Override
                   public final void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
@@ -1689,7 +1691,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     @Override
     public final void postGL(final Graphics g, final boolean isDisplay) {
       if (isDisplay) {
-        if(DEBUG) {
+        if( DEBUG_FRAMES ) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: - frameCount "+frameCount);
         }
 
@@ -1784,7 +1786,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         }
 
         // Must now copy pixels from offscreen context into surface
-        if(DEBUG) {
+        if( DEBUG_FRAMES ) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.readPixels: - frameCount "+frameCount);
         }
 
@@ -1875,7 +1877,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       helper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
 
       if ( null != alignedImage ) {
-        if( DEBUG ) {
+        if( DEBUG_FRAMES ) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.doPaintComponent.drawImage: - frameCount "+frameCount);
         }
         // Draw resulting image in one shot
