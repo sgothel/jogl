@@ -130,19 +130,19 @@ import com.jogamp.opengl.util.texture.TextureState;
     using {@link GLDrawableFactory#createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int) GLDrawableFactory.createOffscreenDrawable(..)}.<br/>
     </p>
     <p>
-    <a name="verticalFlip">
-    In case</a> the drawable {@link #isGLOriented()} and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped},
-    this component performs the required vertical flip to bring the content from OpenGL's orientation into AWT's orientation.
+    <a name="verticalFlip">A vertical-flip is required</a>, if the drawable {@link #isGLOriented()} and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped}.<br>
+    In this case this component performs the required vertical flip to bring the content from OpenGL's orientation into AWT's orientation.<br>
+    In case <a href="#fboGLSLVerticalFlip">GLSL based vertical-flip</a> is not available,
+    the CPU intensive {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line.
     See details about <a href="#fboGLSLVerticalFlip">FBO and GLSL vertical flipping</a>.
+    </p>
+    <p>
+    For performance reasons, as well as for <a href="#bug842">GL state sideeffects</a>,
+    <b>{@link #setSkipGLOrientationVerticalFlip(boolean) skipping vertical flip} is highly recommended</b>!
     </p>
     <p>
     The OpenGL path is concluded by copying the rendered pixels an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
     for later Java2D composition.
-    </p>
-    <p>
-    In case {@link #setSkipGLOrientationVerticalFlip(boolean) vertical-flip is not skipped} and <a href="#fboGLSLVerticalFlip">GLSL based vertical-flip</a> is not performed,
-    {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line.
-    This step causes more CPU load per frame and is not hardware-accelerated.
     </p>
     <p>
     Finally the Java2D compositioning takes place via via {@link Graphics#drawImage(java.awt.Image, int, int, int, int, java.awt.image.ImageObserver) Graphics.drawImage(...)}
@@ -153,7 +153,8 @@ import com.jogamp.opengl.util.texture.TextureState;
  *  </P>
  *
     <a name="fboGLSLVerticalFlip"><h5>FBO / GLSL Vertical Flip</h5></a>
-    In case FBO is used and GLSL is available and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped}, a fragment shader is utilized
+    If <a href="#verticalFlip">vertical flip is required</a>,
+    FBO is used, GLSL is available and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped}, a fragment shader is utilized
     to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
     <p>
     The FBO / GLSL code path uses one texture-unit and binds the FBO texture to it's active texture-target,
@@ -167,7 +168,7 @@ import com.jogamp.opengl.util.texture.TextureState;
     The current gl-viewport is preserved.
     </p>
     <p>
-    <i>Warning (Bug 842)</i>: Certain GL states other than viewport and texture (see above)
+    <a name="bug842"><i>Warning (Bug 842)</i></a>: Certain GL states other than viewport and texture (see above)
     influencing rendering, will also influence the GLSL vertical flip, e.g. {@link GL#glFrontFace(int) glFrontFace}({@link GL#GL_CCW}).
     It is recommended to reset those states to default when leaving the {@link GLEventListener#display(GLAutoDrawable)} method!
     We may change this behavior in the future, i.e. preserve all influencing states.
