@@ -105,7 +105,7 @@ public class StereoClientRenderer implements GLEventListener {
                 }
                 fbos[i].setSamplingSink(ssink);
                 fbos[i].resetSamplingSink(gl); // validate
-                fboTexs[i] = fbos[i].getSamplingSink();
+                fboTexs[i] = fbos[i].getSamplingSink().getTextureAttachment();
             } else {
                 fboTexs[i] = fbos[i].attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 fbos[i].attachRenderbuffer(gl, Type.DEPTH, 24);
@@ -125,9 +125,9 @@ public class StereoClientRenderer implements GLEventListener {
             }
             numSamples = fbos[i].getNumSamples();
             if(numSamples>0) {
-                fboTexs[i] = fbos[i].getSamplingSink();
+                fboTexs[i] = fbos[i].getSamplingSink().getTextureAttachment();
             } else {
-                fboTexs[i] = (TextureAttachment) fbos[i].getColorbuffer(0);
+                fboTexs[i] = fbos[i].getColorbuffer(0).getTextureAttachment();
             }
         }
     }

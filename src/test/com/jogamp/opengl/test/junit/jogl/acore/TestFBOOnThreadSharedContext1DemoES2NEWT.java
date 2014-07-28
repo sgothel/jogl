@@ -144,14 +144,14 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         fbod1.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
             public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
-                mixerDemo.setTexID0(fbod1.getTextureBuffer(GL.GL_FRONT).getName());
+                mixerDemo.setTexID0(fbod1.getColorbuffer(GL.GL_FRONT).getName());
             } });
         fbod1.display(); // init
         System.err.println("FBOD1 "+fbod1);
         Assert.assertTrue(fbod1.isInitialized());
 
         // preinit texIDs
-        mixerDemo.setTexID0(fbod1.getTextureBuffer(GL.GL_FRONT).getName());
+        mixerDemo.setTexID0(fbod1.getColorbuffer(GL.GL_FRONT).getName());
 
         glWindow.addWindowListener(new WindowAdapter() {
             @Override

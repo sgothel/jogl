@@ -173,8 +173,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
             fbo0.resetSamplingSink(gl);
             fbo1.attachColorbuffer(gl, 0, true);
             fbo1.resetSamplingSink(gl);
-            fbo0Tex = fbo0.getSamplingSink();
-            fbo1Tex = fbo1.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
+            fbo1Tex = fbo1.getSamplingSink().getTextureAttachment();
         } else {
             fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
             fbo1Tex = fbo1.attachTexture2D(gl, 0, true);
@@ -194,11 +194,11 @@ public class FBOMix2DemosES2 implements GLEventListener {
         }
         numSamples = fbo0.getNumSamples();
         if(numSamples>0) {
-            fbo0Tex = fbo0.getSamplingSink();
-            fbo1Tex = fbo1.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
+            fbo1Tex = fbo1.getSamplingSink().getTextureAttachment();
         } else {
-            fbo0Tex = (TextureAttachment) fbo0.getColorbuffer(0);
-            fbo1Tex = (TextureAttachment) fbo1.getColorbuffer(0);
+            fbo0Tex = fbo0.getColorbuffer(0).getTextureAttachment();
+            fbo1Tex = fbo1.getColorbuffer(0).getTextureAttachment();
         }
     }
 

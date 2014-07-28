@@ -147,7 +147,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         fbod1.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
             public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
-                mixerDemo.setTexID0(fbod1.getTextureBuffer(GL.GL_FRONT).getName());
+                mixerDemo.setTexID0(fbod1.getColorbuffer(GL.GL_FRONT).getName());
             } });
         fbod1.display(); // init
         System.err.println("FBOD1 "+fbod1);
@@ -163,15 +163,15 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         fbod2.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
             public void surfaceUpdated(final Object updater, final NativeSurface ns, final long when) {
-                mixerDemo.setTexID1(fbod2.getTextureBuffer(GL.GL_FRONT).getName());
+                mixerDemo.setTexID1(fbod2.getColorbuffer(GL.GL_FRONT).getName());
             } });
         fbod2.display(); // init
         System.err.println("FBOD2 "+fbod2);
         Assert.assertTrue(fbod2.isInitialized());
 
         // preinit texIDs
-        mixerDemo.setTexID0(fbod1.getTextureBuffer(GL.GL_FRONT).getName());
-        mixerDemo.setTexID1(fbod2.getTextureBuffer(GL.GL_FRONT).getName());
+        mixerDemo.setTexID0(fbod1.getColorbuffer(GL.GL_FRONT).getName());
+        mixerDemo.setTexID1(fbod2.getColorbuffer(GL.GL_FRONT).getName());
 
         glWindow.addGLEventListener(mixerDemo);
         glWindow.addGLEventListener(new GLEventListener() {

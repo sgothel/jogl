@@ -152,7 +152,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
         if(numSamples>0) {
             fbo0.attachColorbuffer(gl, 0, true);
             fbo0.resetSamplingSink(gl);
-            fbo0Tex = fbo0.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
         } else {
             fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
         }
@@ -165,9 +165,9 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
         fbo0.reset(gl, width, height, numSamples, true);
         numSamples = fbo0.getNumSamples();
         if(numSamples>0) {
-            fbo0Tex = fbo0.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
         } else {
-            fbo0Tex = (TextureAttachment) fbo0.getColorbuffer(0);
+            fbo0Tex = fbo0.getColorbuffer(0).getTextureAttachment();
         }
     }
 

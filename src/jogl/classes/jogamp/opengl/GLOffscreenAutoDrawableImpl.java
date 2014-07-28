@@ -128,13 +128,24 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
         }
 
         @Override
-        public final FBObject.TextureAttachment getTextureBuffer(final int bufferName) {
-            return ((GLFBODrawableImpl)drawable).getTextureBuffer(bufferName);
+        public final FBObject.Colorbuffer getColorbuffer(final int bufferName) {
+            return ((GLFBODrawableImpl)drawable).getColorbuffer(bufferName);
         }
 
         @Override
         public void resetSize(final GL gl) throws GLException {
             ((GLFBODrawableImpl)drawable).resetSize(gl);
+        }
+
+        @Override
+        public final void setFBOMode(final int modeBits) throws IllegalStateException {
+            ((GLFBODrawableImpl)drawable).setFBOMode(modeBits);
+
+        }
+
+        @Override
+        public final int getFBOMode() {
+            return ((GLFBODrawableImpl)drawable).getFBOMode();
         }
     }
 }

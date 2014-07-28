@@ -51,6 +51,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private GLCapabilitiesImmutable origParentChosenCaps;
 
     private boolean initialized;
+    private int fboModeBits;
     private int texUnit;
     private int samples;
     private boolean fboResetQuirk;
@@ -89,6 +90,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                                 final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
         super(factory, surface, fboCaps, false);
         this.initialized = false;
+        this.fboModeBits = FBOMODE_USE_TEXTURE | FBOMODE_USE_DEPTH;
 
         this.parent = parent;
         this.origParentChosenCaps = getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
@@ -138,25 +140,56 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             fboIBack = 0;                // head
             fboIFront = fbos.length - 1; // tail
 
+            final boolean useTexture = 0 != ( FBOMODE_USE_TEXTURE & fboModeBits );
+            final boolean useDepth   = 0 != ( FBOMODE_USE_DEPTH   & fboModeBits );
+            final boolean useStencil = chosenFBOCaps.getStencilBits() > 0;
+            final boolean useAlpha = chosenFBOCaps.getAlphaBits() > 0;
+            final int width = getSurfaceWidth();
+            final int height = getSurfaceHeight();
+
             for(int i=0; i<fbosN; i++) {
                 fbos[i] = new FBObject();
-                fbos[i].reset(gl, getSurfaceWidth(), getSurfaceHeight(), samples, false);
+                fbos[i].reset(gl, width, height, samples, false);
                 if(fbos[i].getNumSamples() != samples) {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+i+"] "+fbos[i]);
                 }
-                if(samples > 0) {
-                    fbos[i].attachColorbuffer(gl, 0, chosenFBOCaps.getAlphaBits()>0);
+                if(samples > 0 || !useTexture) {
+                    fbos[i].attachColorbuffer(gl, 0, useAlpha);
                 } else {
-                    fbos[i].attachTexture2D(gl, 0, chosenFBOCaps.getAlphaBits()>0);
+                    fbos[i].attachTexture2D(gl, 0, useAlpha);
                 }
-                if( chosenFBOCaps.getStencilBits() > 0 ) {
-                    fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
-                } else {
+                if( useStencil ) {
+                    if( useDepth ) {
+                        fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+                    } else {
+                        fbos[i].attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
+                    }
+                } else if( useDepth ) {
                     fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                 }
+                if(samples > 0) {
+                    final FBObject ssink = new FBObject();
+                    {
+                        ssink.reset(gl, width, height);
+                        if( !useTexture ) {
+                            ssink.attachColorbuffer(gl, 0, useAlpha);
+                        } else {
+                            ssink.attachTexture2D(gl, 0, useAlpha);
+                        }
+                        if( useStencil ) {
+                            if( useDepth ) {
+                                ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+                            } else {
+                                ssink.attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
+                            }
+                        } else if( useDepth ) {
+                            ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                        }
+                    }
+                    fbos[i].setSamplingSink(ssink);
+                    fbos[i].resetSamplingSink(gl); // validate
+                }
             }
-            fbos[fboIFront].resetSamplingSink(gl);
-
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
         } else {
@@ -414,17 +447,16 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         fboIBack  = ( fboIBack  + 1 ) % fbos.length;
 
         final Colorbuffer colorbuffer = samples > 0 ? fbos[fboIFront].getSamplingSink() : fbos[fboIFront].getColorbuffer(0);
-        final TextureAttachment texAttachment;
-        if(colorbuffer instanceof TextureAttachment) {
-            texAttachment = (TextureAttachment) colorbuffer;
-        } else {
-            if(null == colorbuffer) {
-                throw new GLException("Front colorbuffer is null: samples "+samples+", "+this);
-            } else {
-                throw new GLException("Front colorbuffer is not a texture: "+colorbuffer.getClass().getName()+": samples "+samples+", "+colorbuffer+", "+this);
-            }
+        if(null == colorbuffer) {
+            throw new GLException("Front colorbuffer is null: samples "+samples+", "+this);
         }
-        gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit);
+        final TextureAttachment texAttachment;
+        if( colorbuffer.isTextureAttachment() ) {
+            texAttachment = colorbuffer.getTextureAttachment();
+            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit);
+        } else {
+            texAttachment = null;
+        }
         fbos[fboIFront].use(gl, texAttachment);
 
         /* Included in above use command:
@@ -444,6 +476,19 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     @Override
     public final boolean isInitialized() {
         return initialized;
+    }
+
+    @Override
+    public final void setFBOMode(final int modeBits) throws IllegalStateException {
+        if( isInitialized() ) {
+            throw new IllegalStateException("Already initialized: "+this);
+        }
+        this.fboModeBits = modeBits;
+    }
+
+    @Override
+    public final int getFBOMode() {
+        return fboModeBits;
     }
 
     @Override
@@ -519,24 +564,24 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     @Override
-    public final TextureAttachment getTextureBuffer(final int bufferName) throws IllegalArgumentException {
+    public final Colorbuffer getColorbuffer(final int bufferName) throws IllegalArgumentException {
         if(!initialized) {
             return null;
         }
-        final TextureAttachment res;
+        final Colorbuffer res;
         switch(bufferName) {
             case GL.GL_FRONT:
                 if( samples > 0 ) {
                     res = fbos[0].getSamplingSink();
                 } else {
-                    res = (TextureAttachment) fbos[fboIFront].getColorbuffer(0);
+                    res = fbos[fboIFront].getColorbuffer(0);
                 }
                 break;
             case GL.GL_BACK:
                 if( samples > 0 ) {
                     throw new IllegalArgumentException("Cannot access GL_BACK buffer of MSAA FBO: "+this);
                 } else {
-                    res = (TextureAttachment) fbos[fboIBack].getColorbuffer(0);
+                    res = fbos[fboIBack].getColorbuffer(0);
                 }
                 break;
             default:

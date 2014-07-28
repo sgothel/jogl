@@ -1812,7 +1812,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
             // perform vert-flipping via OpenGL/FBO
             final GLFBODrawable fboDrawable = (GLFBODrawable)offscreenDrawable;
-            final FBObject.TextureAttachment fboTex = fboDrawable.getTextureBuffer(GL.GL_FRONT);
+            final FBObject.TextureAttachment fboTex = fboDrawable.getColorbuffer(GL.GL_FRONT).getTextureAttachment();
 
             fboFlipped.bind(gl);
 

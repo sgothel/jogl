@@ -427,7 +427,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
         gl.glActiveTexture(GL.GL_TEXTURE0 + gcu_FboTexUnit.intValue());
 
-        fbo.use(gl, fbo.getSamplingSink());
+        fbo.use(gl, fbo.getSamplingSink().getTextureAttachment());
         gca_FboVerticesAttr.enableBuffer(gl, true);
         gca_FboTexCoordsAttr.enableBuffer(gl, true);
         indicesFbo.bindBuffer(gl, true); // keeps VBO binding
@@ -457,7 +457,10 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             fbo.reset(gl, fboWidth, fboHeight, sampleCount[0], false);
             sampleCount[0] = fbo.getNumSamples();
             fbo.attachColorbuffer(gl, 0, true);
-            fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            if( !blendingEnabled ) {
+                // no depth-buffer w/ blending
+                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            }
             final FBObject ssink = new FBObject();
             {
                 ssink.reset(gl, fboWidth, fboHeight);

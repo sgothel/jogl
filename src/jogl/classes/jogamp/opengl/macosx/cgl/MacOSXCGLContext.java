@@ -828,7 +828,7 @@ public class MacOSXCGLContext extends GLContextImpl
                   final long drawableHandle = drawable.getHandle();
                   if(drawable instanceof GLFBODrawableImpl) {
                       final GLFBODrawableImpl fbod = (GLFBODrawableImpl)drawable;
-                      texID = fbod.getTextureBuffer(GL.GL_FRONT).getName();
+                      texID = fbod.getColorbuffer(GL.GL_FRONT).getName();
                       pbufferHandle = 0;
                       fbod.setSwapBufferContext(new GLFBODrawableImpl.SwapBufferContext() {
                           @Override
@@ -1043,7 +1043,7 @@ public class MacOSXCGLContext extends GLContextImpl
                       final boolean valid;
                       final boolean isFBO = drawable instanceof GLFBODrawableImpl;
                       if( isFBO ){
-                          texID = ((GLFBODrawableImpl)drawable).getTextureBuffer(GL.GL_FRONT).getName();
+                          texID = ((GLFBODrawableImpl)drawable).getColorbuffer(GL.GL_FRONT).getName();
                           valid = 0 != texID;
                       } else {
                           texID = 0;
