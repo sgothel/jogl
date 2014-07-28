@@ -1530,6 +1530,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       if(DEBUG) {
           System.err.println(getThreadName()+": OffscreenBackend: initialize() - frameCount "+frameCount);
       }
+      GLException glException = null;
       try {
           final GLContext[] shareWith = { null };
           if( helper.isSharedGLContextPending(shareWith) ) {
@@ -1550,6 +1551,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   } } );
           }
 
+          //
+          // Pre context configuration
+          //
+          flipVertical = !GLJPanel.this.skipGLOrientationVerticalFlip && offscreenDrawable.isGLOriented();
+          offscreenIsFBO = offscreenDrawable.getRequestedGLCapabilities().isFBO();
+          final boolean useGLSLFlip_pre = flipVertical && offscreenIsFBO && offscreenCaps.getGLProfile().isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER;
+          if( offscreenIsFBO && !useGLSLFlip_pre ) {
+              // Texture attachment only required for GLSL vertical flip, hence simply use a color-renderbuffer attachment.
+              ((GLFBODrawable)offscreenDrawable).setFBOMode(GLFBODrawable.FBOMODE_USE_DEPTH);
+          }
+
           offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith[0]);
           offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);
           if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
@@ -1557,16 +1569,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               helper.setAutoSwapBufferMode(false); // we handle swap-buffers, see handlesSwapBuffer()
 
               final GL gl = offscreenContext.getGL();
-              flipVertical = !GLJPanel.this.skipGLOrientationVerticalFlip && offscreenDrawable.isGLOriented();
               final GLCapabilitiesImmutable chosenCaps = offscreenDrawable.getChosenGLCapabilities();
-              offscreenIsFBO = chosenCaps.isFBO();
               final boolean glslCompliant = !offscreenContext.hasRendererQuirk(GLRendererQuirks.GLSLNonCompliant);
-              final boolean useGLSLFlip = flipVertical && offscreenIsFBO && gl.isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER && glslCompliant;
+              final boolean useGLSLFlip = useGLSLFlip_pre && gl.isGL2ES2() && glslCompliant;
               if( DEBUG ) {
                   System.err.println(getThreadName()+": OffscreenBackend.initialize: useGLSLFlip "+useGLSLFlip+
                           " [flip "+flipVertical+", isFBO "+offscreenIsFBO+", isGL2ES2 "+gl.isGL2ES2()+
                           ", noglsl "+!USE_GLSL_TEXTURE_RASTERIZER+", glslNonCompliant "+!glslCompliant+
-                          ", isGL2ES2 " + gl.isGL2ES2()+"]");
+                          ", isGL2ES2 " + gl.isGL2ES2()+"\n "+offscreenDrawable+"]");
               }
               if( useGLSLFlip ) {
                   final GLFBODrawable fboDrawable = (GLFBODrawable) offscreenDrawable;
@@ -1574,7 +1584,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   try {
                       fboFlipped = new FBObject();
                       fboFlipped.reset(gl, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight(), 0, false);
-                      fboFlipped.attachTexture2D(gl, 0, chosenCaps.getAlphaBits()>0);
+                      fboFlipped.attachColorbuffer(gl, 0, chosenCaps.getAlphaBits()>0);
                       // fboFlipped.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                       glslTextureRaster = new GLSLTextureRaster(fboDrawable.getTextureUnit(), true);
                       glslTextureRaster.init(gl.getGL2ES2());
@@ -1598,6 +1608,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           } else {
               isInitialized = false;
           }
+      } catch( final GLException gle ) {
+          glException = gle;
       } finally {
           if( !isInitialized ) {
               if(null != offscreenContext) {
@@ -1608,6 +1620,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   offscreenDrawable.setRealized(false);
                   offscreenDrawable = null;
               }
+          }
+          if( null != glException ) {
+              throw new GLException("Handled GLException: "+glException.getMessage(), glException);
           }
       }
     }
