@@ -43,6 +43,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.FBObject.Attachment.Type;
 
 /**
@@ -60,8 +61,15 @@ import com.jogamp.opengl.FBObject.Attachment.Type;
  * <p>FIXME: Implement support for {@link Type#DEPTH_TEXTURE}, {@link Type#STENCIL_TEXTURE} .</p>
  */
 public class FBObject {
-    protected static final boolean DEBUG = Debug.debug("FBObject");
+    protected static final boolean DEBUG;
+    private static final int USER_MAX_TEXTURE_SIZE;
     private static final boolean FBOResizeQuirk = false;
+
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.debug("FBObject");
+        USER_MAX_TEXTURE_SIZE = PropertyAccess.getIntProperty("jogl.debug.FBObject.MaxTextureSize", true, 0);
+    }
 
     private static enum DetachAction { NONE, DISPOSE, RECREATE };
 
@@ -75,20 +83,20 @@ public class FBObject {
          * @return <code>true</code> if newly initialized, otherwise <code>false</code>.
          * @throws GLException if buffer generation or setup fails. The just created buffer name will be deleted in this case.
          */
-        boolean initialize(GL gl) throws GLException;
+        boolean initialize(final GL gl) throws GLException;
 
         /**
          * Releases the color buffer if initialized, i.e. name is not <code>zero</code>.
          * @throws GLException if buffer release fails.
          */
-        void free(GL gl) throws GLException;
+        void free(final GL gl) throws GLException;
 
         /**
          * Writes the internal format to the given GLCapabilities object.
          * @param caps the destination for format bits
          * @param rgba8Avail whether rgba8 is available
          */
-        void formatToGLCapabilities(GLCapabilities caps, boolean rgba8Avail);
+        void formatToGLCapabilities(final GLCapabilities caps, final boolean rgba8Avail);
 
         /**
          * Returns <code>true</code> if instance is of type {@link TextureAttachment}
@@ -276,7 +284,7 @@ public class FBObject {
          * @return <code>true</code> if newly initialized, otherwise <code>false</code>.
          * @throws GLException if buffer generation or setup fails. The just created buffer name will be deleted in this case.
          */
-        public abstract boolean initialize(GL gl) throws GLException;
+        public abstract boolean initialize(final GL gl) throws GLException;
 
         /**
          * Releases the attachment if initialized, i.e. name is not <code>zero</code>.
@@ -288,7 +296,7 @@ public class FBObject {
          * </pre>
          * @throws GLException if buffer release fails.
          */
-        public abstract void free(GL gl) throws GLException;
+        public abstract void free(final GL gl) throws GLException;
 
         /**
          * <p>
@@ -942,8 +950,11 @@ public class FBObject {
         maxSamples = gl.getMaxRenderbufferSamples();
         gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
         final int _maxTextureSize = val[0];
-        // FIXME maxTextureSize = 512;
-        maxTextureSize = _maxTextureSize;
+        if( 0 < USER_MAX_TEXTURE_SIZE ) {
+            maxTextureSize = USER_MAX_TEXTURE_SIZE;
+        } else {
+            maxTextureSize = _maxTextureSize;
+        }
         gl.glGetIntegerv(GL.GL_MAX_RENDERBUFFER_SIZE, val, 0);
         maxRenderbufferSize = val[0];
 
@@ -977,9 +988,11 @@ public class FBObject {
 
         checkNoError(null, gl.glGetError(), "FBObject Init.pre"); // throws GLException if error
 
-        if(width > 2 + maxTextureSize  || height> 2 + maxTextureSize ||
-           width > maxRenderbufferSize || height> maxRenderbufferSize  ) {
-            throw new GLException("size "+width+"x"+height+" exceeds on of the maxima [texture "+maxTextureSize+", renderbuffer "+maxRenderbufferSize+"]");
+        if( textureAttachmentCount > 0 && ( width > 2 + maxTextureSize  || height > 2 + maxTextureSize ) ) {
+            throw new GLException("Size "+width+"x"+height+" exceeds on of the maximum texture size "+maxTextureSize+": \n\t"+this);
+        }
+        if( width > maxRenderbufferSize || height > maxRenderbufferSize  ) {
+            throw new GLException("Size "+width+"x"+height+" exceeds on of the maxima renderbuffer size "+maxRenderbufferSize+": \n\t"+this);
         }
 
         resetSamplingSink(gl);
@@ -1004,6 +1017,7 @@ public class FBObject {
         vStatus = GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT; // always incomplete w/o attachments!
         if(DEBUG) {
             System.err.println("FBObject.init() END: "+this);
+            Thread.dumpStack();
         }
     }
 
@@ -1067,10 +1081,10 @@ public class FBObject {
             if( 0 >= newWidth )  { newWidth = 1; }
             if( 0 >= newHeight ) { newHeight = 1; }
             if( textureAttachmentCount > 0 && ( newWidth > 2 + maxTextureSize  || newHeight > 2 + maxTextureSize ) ) {
-                throw new GLException("size "+width+"x"+height+" exceeds on of the maximum texture size "+maxTextureSize);
+                throw new GLException("Size "+newWidth+"x"+newHeight+" exceeds on of the maximum texture size "+maxTextureSize+": \n\t"+this);
             }
             if( newWidth > maxRenderbufferSize || newHeight > maxRenderbufferSize  ) {
-                throw new GLException("size "+width+"x"+height+" exceeds on of the maxima renderbuffer size "+maxRenderbufferSize);
+                throw new GLException("Size "+newWidth+"x"+newHeight+" exceeds on of the maxima renderbuffer size "+maxRenderbufferSize+": \n\t"+this);
             }
 
             if(DEBUG) {
@@ -1112,6 +1126,18 @@ public class FBObject {
             if(DEBUG) {
                 System.err.println("FBObject.reset - END - "+this);
             }
+        }
+    }
+
+    private void validateAttachmentSize(final Attachment a) {
+        final int aWidth = a.getWidth();
+        final int aHeight = a.getHeight();
+
+        if( a instanceof TextureAttachment && ( aWidth > 2 + maxTextureSize  || aHeight > 2 + maxTextureSize ) ) {
+            throw new GLException("Size "+aWidth+"x"+aHeight+" of "+a+" exceeds on of the maximum texture size "+maxTextureSize+": \n\t"+this);
+        }
+        if( aWidth > maxRenderbufferSize || aHeight > maxRenderbufferSize  ) {
+            throw new GLException("Size "+aWidth+"x"+aHeight+" of "+a+" exceeds on of the maxima renderbuffer size "+maxRenderbufferSize+": \n\t"+this);
         }
     }
 
@@ -1424,6 +1450,7 @@ public class FBObject {
     private final Colorbuffer attachColorbufferImpl(final GL gl, final int attachmentPoint, final Colorbuffer colbuf) throws GLException {
         validateAddColorAttachment(attachmentPoint, colbuf);
 
+        validateAttachmentSize((Attachment)colbuf);
         final boolean initializedColorbuf = colbuf.initialize(gl);
         addColorAttachment(attachmentPoint, colbuf);
 
@@ -1610,6 +1637,7 @@ public class FBObject {
                 depth.setSize(width, height);
                 depth.setSamples(samples);
             }
+            validateAttachmentSize(depth);
             depth.initialize(gl);
         } else if( Attachment.Type.STENCIL == atype ) {
             if(null == stencil) {
@@ -1618,6 +1646,7 @@ public class FBObject {
                 stencil.setSize(width, height);
                 stencil.setSamples(samples);
             }
+            validateAttachmentSize(stencil);
             stencil.initialize(gl);
         } else if( Attachment.Type.DEPTH_STENCIL == atype ) {
             if(null == depth) {
@@ -1629,6 +1658,7 @@ public class FBObject {
                 depth.setSize(width, height);
                 depth.setSamples(samples);
             }
+            validateAttachmentSize(depth);
             depth.initialize(gl);
             // DEPTH_STENCIL shares buffer w/ depth and stencil
             stencil = depth;
