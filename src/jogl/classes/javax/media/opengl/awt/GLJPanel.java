@@ -1103,13 +1103,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   /**
-   * Set skipping {@link #isGLOriented()} based vertical flip,
+   * Skip {@link #isGLOriented()} based vertical flip,
    * which usually is required by the offscreen backend,
    * see details about <a href="#verticalFlip">vertical flip</a>
    * and <a href="#fboGLSLVerticalFlip">FBO / GLSL vertical flip</a>.
    * <p>
    * If set to <code>true</code>, user needs to flip the OpenGL rendered scene
-   * <i>if {@link #isGLOriented()} == true</i>, e.g. via the PMV matrix.<br/>
+   * <i>if {@link #isGLOriented()} == true</i>, e.g. via the projection matrix.<br/>
    * See constraints of {@link #isGLOriented()}.
    * </p>
    */
