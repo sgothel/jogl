@@ -63,7 +63,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      */
     public FixedFuncHook (final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
-        this.gl2es1GLProfile = GLProfile.createCustomGLProfile(GLProfile.GL2ES1, gl.getGLProfile());
+        this.gl2es1GLProfile = GLProfile.createCustomGLProfile(GLProfile.GL2ES1, gl.getGLProfile().getImpl());
         this.gl = gl;
         if(null != pmvMatrix) {
             this.ownsPMVMatrix = false;
@@ -84,7 +84,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
                          final Class<?> shaderRootClass, final String shaderSrcRoot, final String shaderBinRoot,
                          final String vertexColorFile, final String vertexColorLightFile,
                          final String fragmentColorFile, final String fragmentColorTextureFile) {
-        this.gl2es1GLProfile = GLProfile.createCustomGLProfile(GLProfile.GL2ES1, gl.getGLProfile());
+        this.gl2es1GLProfile = GLProfile.createCustomGLProfile(GLProfile.GL2ES1, gl.getGLProfile().getImpl());
         this.gl = gl;
         if(null != pmvMatrix) {
             this.ownsPMVMatrix = false;
