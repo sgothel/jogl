@@ -509,7 +509,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestX11DefaultDisplay $*
@@ -751,7 +751,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 
 #
 # Texture / TextureUtils

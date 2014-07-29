@@ -874,8 +874,12 @@ public class ShaderCode {
 
     /** Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}: {@value #es3_default_precision_vp} */
     public static final String es3_default_precision_vp = es2_default_precision_vp;
-    /** Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es3_default_precision_fp} */
-    public static final String es3_default_precision_fp = es2_default_precision_fp;
+    /**
+     * Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es3_default_precision_fp},
+     * same as for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}, i.e {@link #es3_default_precision_vp},
+     * due to ES 3.x requirements of using same precision for uniforms!
+     */
+    public static final String es3_default_precision_fp = es3_default_precision_vp;
 
     /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader} or {@link GL3#GL_GEOMETRY_SHADER geometry-shader}: {@value #gl3_default_precision_vp_gp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
     public static final String gl3_default_precision_vp_gp = "\nprecision highp float;\nprecision highp int;\n";
