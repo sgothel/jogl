@@ -7,7 +7,7 @@ REM scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
@@ -66,6 +66,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDraw
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 %*
 
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT %*
@@ -182,7 +183,7 @@ REM scripts\java-win.bat testawt com.jogamp.opengl.test.junit.jogl.caps.TestMult
 REM scripts\java-win.bat testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT %*
 REM scripts\java-win.bat testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT %*
 REM scripts\java-win.bat testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT %*
-REM scripts\java-win.bat  com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT %*
+scripts\java-win.bat  com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT

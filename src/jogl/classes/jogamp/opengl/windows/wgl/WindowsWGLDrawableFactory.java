@@ -85,14 +85,42 @@ import com.jogamp.opengl.GLRendererQuirks;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   /**
+   * Bug 1036: NVidia Windows Driver 'Threaded optimization' workaround.
+   * <p>
+   * https://jogamp.org/bugzilla/show_bug.cgi?id=1036
+   * </p>
+   * <p>
+   * Since NV driver 260.99 from 2010-12-11 a 'Threaded optimization' feature has been introduced.
+   * The driver spawns off a dedicated thread to off-load certain OpenGL tasks from the calling thread
+   * to perform them async and off-thread.
+   * </p>
+   * <p>
+   * If 'Threaded optimization' is manually enabled 'on', the driver may crash with JOGL's consistent
+   * multi-threaded usage - this is a driver bug.
+   * </p>
+   * <p>
+   * If 'Threaded optimization' is manually disabled 'off', the driver always works correctly.
+   * </p>
+   * <p>
+   * 'Threaded optimization' default setting is 'auto' and the driver may crash without this workaround.
+   * </p>
+   * <p>
+   * If setting the process affinity to '1' (1st CPU) while initialization and launching
+   * the  {@link SharedResourceRunner}, the driver does not crash anymore in 'auto' mode.
+   * This might be either because the driver does not enable 'Threaded optimization'
+   * or because the driver's worker thread is bound to the same CPU.
+   * </p>
    * Property integer value <code>jogl.debug.windows.cpu_affinity_mode</code>:
    * <ul>
-   *   <li>0 - none (default, no affinity required for Windows NV driver >= 266.58 from 2011-01-24)</li>
-   *   <li>1 - process affinity (was required w/ Windows NV driver 260.99 from 2010-12-11, see commit 5166d6a6b617ccb15c40fcb8d4eac2800527aa7b)</li>
-   *   <li>2 - thread affinity (experimental)</li>
+   *   <li>0 - none (no affinity, may cause driver crash with 'Threaded optimization' = ['auto', 'on'])</li>
+   *   <li>1 - process affinity (default, workaround for driver crash for 'Threaded optimization' = 'auto', still crashes if set to 'on')</li>
    * </ul>
+   * <p>
+   * Test case reproducing the crash reliable is: com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT<br>
+   * (don't ask why ..)
+   * </p>
    */
-  private static final int CPU_AFFINITY_MODE = Debug.getIntProperty("jogl.debug.windows.cpu_affinity_mode", true, 0);
+  private static final int CPU_AFFINITY_MODE = Debug.getIntProperty("jogl.debug.windows.cpu_affinity_mode", true, 1);
 
   private static DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper = null;
 
@@ -102,14 +130,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     super();
 
     switch( CPU_AFFINITY_MODE ) {
-        case 1:
-            cpuAffinity = new WindowsProcessAffinity();
+        case 0:
+            cpuAffinity = new NopCPUAffinity();
             break;
+        /**
+         * Doesn't work !
         case 2:
             cpuAffinity = new WindowsThreadAffinity();
             break;
+         */
         default:
-            cpuAffinity = new NopCPUAffinity();
+            cpuAffinity = new WindowsProcessAffinity();
             break;
     }
 
