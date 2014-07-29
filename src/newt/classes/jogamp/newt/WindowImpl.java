@@ -1119,8 +1119,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                   if(childWindows.size()>0) {
                     // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
                     @SuppressWarnings("unchecked")
-                    final
-                    ArrayList<NativeWindow> clonedChildWindows = (ArrayList<NativeWindow>) childWindows.clone();
+                    final ArrayList<NativeWindow> clonedChildWindows = (ArrayList<NativeWindow>) childWindows.clone();
                     while( clonedChildWindows.size() > 0 ) {
                       final NativeWindow nw = clonedChildWindows.remove(0);
                       if(nw instanceof WindowImpl) {
