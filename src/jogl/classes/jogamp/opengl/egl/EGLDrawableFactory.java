@@ -184,7 +184,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
             }
             if( null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper ) {
-                if(isANGLE && !enableANGLE) {
+                if(isANGLE && !GLProfile.enableANGLE) {
                     if(DEBUG || GLProfile.DEBUG) {
                         System.err.println("Info: EGLDrawableFactory.init - EGL/ES2 ANGLE disabled");
                     }

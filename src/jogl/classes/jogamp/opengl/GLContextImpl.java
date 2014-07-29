@@ -881,7 +881,7 @@ public abstract class GLContextImpl extends GLContext {
             /**
              * OSX 10.9 GLRendererQuirks.GL4NeedsGL3Request, quirk is added as usual @ setRendererQuirks(..)
              */
-            if( !hasGL4 && !hasGL3 ) {
+            if( !GLProfile.disableOpenGLCore && !hasGL4 && !hasGL3 ) {
                 hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
                 success |= hasGL3;
                 if( hasGL3 ) {
@@ -898,25 +898,27 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
         }
-        if( !hasGL4 ) {
-            hasGL4   = createContextARBMapVersionsAvailable(4, CTX_PROFILE_CORE);    // GL4
-            success |= hasGL4;
-            if( hasGL4 ) {
-                if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
-                    // Map hw-accel GL4 to all lower core profiles: GL3
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    if( PROFILE_ALIASING ) {
-                        hasGL3   = true;
+        if( !GLProfile.disableOpenGLCore ) {
+            if( !hasGL4 ) {
+                hasGL4   = createContextARBMapVersionsAvailable(4, CTX_PROFILE_CORE);    // GL4
+                success |= hasGL4;
+                if( hasGL4 ) {
+                    if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
+                        // Map hw-accel GL4 to all lower core profiles: GL3
+                        GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        if( PROFILE_ALIASING ) {
+                            hasGL3   = true;
+                        }
                     }
+                    resetStates(false); // clean context states, since creation was temporary
                 }
-                resetStates(false); // clean context states, since creation was temporary
             }
-        }
-        if( !hasGL3 ) {
-            hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
-            success |= hasGL3;
-            if( hasGL3 ) {
-                resetStates(false); // clean this context states, since creation was temporary
+            if( !hasGL3 ) {
+                hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
+                success |= hasGL3;
+                if( hasGL3 ) {
+                    resetStates(false); // clean this context states, since creation was temporary
+                }
             }
         }
         if( !hasGL4bc ) {

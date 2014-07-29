@@ -116,6 +116,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
     #D_ARGS="-Djogl.disable.opengles"
+    D_ARGS="-Djogl.disable.openglcore"
     #D_ARGS="-Djogl.debug.DebugGL -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.TraceGL -Djogl.debug.GLBufferStateTracker"
@@ -368,7 +369,7 @@ function testawtswt() {
 #testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.oculusvr.OVRVersion $*
 
-#testnoawt com.jogamp.newt.opengl.GLWindow $*
+testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
@@ -509,7 +510,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
 
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestX11DefaultDisplay $*

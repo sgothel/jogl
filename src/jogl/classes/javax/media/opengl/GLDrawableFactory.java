@@ -98,23 +98,6 @@ public abstract class GLDrawableFactory {
 
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
-  /**
-   * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome.
-   * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
-   * <p>
-   * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
-   * <code>jogl.enable.ANGLE</code>.
-   * </p>
-   */
-  protected static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
-
-  /**
-   * In case no OpenGL ES implementation is required
-   * and if the running platform may have a buggy implementation,
-   * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation.
-   */
-  protected static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
-
   private static volatile boolean isInit = false;
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
@@ -179,7 +162,7 @@ public abstract class GLDrawableFactory {
     }
     tmp = null;
 
-    if(!disableOpenGLES) {
+    if(!GLProfile.disableOpenGLES) {
         try {
             tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
         } catch (final Exception jre) {

@@ -77,6 +77,30 @@ public class GLProfile {
 
     public static final boolean DEBUG = Debug.debug("GLProfile");
 
+    /**
+     * In case no OpenGL ES profiles are required
+     * and if the running platform may have a buggy implementation,
+     * setting the property <code>jogl.disable.opengles</code> disables querying possible existing OpenGL ES profiles.
+     */
+    public static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
+
+    /**
+     * In case no native OpenGL core profiles are required
+     * and if the running platform may have a buggy implementation,
+     * setting the property <code>jogl.disable.openglcore</code> disables querying possible existing native OpenGL core profiles.
+     */
+    public static final boolean disableOpenGLCore = Debug.isPropertyDefined("jogl.disable.openglcore", true);
+
+    /**
+     * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome.
+     * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
+     * <p>
+     * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
+     * <code>jogl.enable.ANGLE</code>.
+     * </p>
+     */
+    public static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
+
     static {
         // Also initializes TempJarCache if shall be used.
         Platform.initSingleton();
