@@ -1051,9 +1051,9 @@ public abstract class GLContext {
   }
 
   /**
-   * Indicates whether this GLContext's native profile does not implement a default <i>vertex array object</i> (VAO),
-   * starting w/ OpenGL 3.1 core and GLES3.
-   * <p>Includes [ GL4, GL3, GLES3 ].</p>
+   * Indicates whether this GLContext's native profile does not implement a <i>default vertex array object</i> (VAO),
+   * starting w/ OpenGL 3.1 core.
+   * <p>Includes [ GL4, GL3 ].</p>
    * <pre>
      Due to GL 3.1 core spec: E.1. DEPRECATED AND REMOVED FEATURES (p 296),
             GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
@@ -1062,8 +1062,17 @@ public abstract class GLContext {
      More clear is GL 4.3 core spec: 10.4 (p 307).
    * </pre>
    * <pre>
-     GLES3 is included, since upcoming ES releases &gt; 3.0 may behave the same:
+     ES 3.x is <i>not</i> included here.
+     Due to it's ES 2.0 backward compatibility it still supports the following features:
+            <i>client side vertex arrays</i>
+            <i>default vertex array object</i>
+
+     Binding a custom VAO with ES 3.0 would cause <i>client side vertex arrays</i> via {@link GL2ES1#glVertexPointer(int, int, int, java.nio.Buffer) glVertexPointer}
+     to produce <code>GL_INVALID_OPERATION</code>.
+
+     However, they are marked <i>deprecated</i>:
             GL ES 3.0 spec F.1. Legacy Features (p 322).
+            GL ES 3.1 spec F.1. Legacy Features (p 454).
    * </pre>
    * <p>
    * If no default VAO is implemented in the native OpenGL profile,
@@ -1072,7 +1081,7 @@ public abstract class GLContext {
    * @see #getDefaultVAO()
    */
   public final boolean hasNoDefaultVAO() {
-      return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
+      return // ES 3.x not included, see above. ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
              ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
                0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
                ctxVersion.compareTo(Version310) >= 0
