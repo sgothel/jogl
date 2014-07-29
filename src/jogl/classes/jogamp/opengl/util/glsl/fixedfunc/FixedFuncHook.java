@@ -36,6 +36,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLLightingFunc;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
@@ -50,6 +51,7 @@ import com.jogamp.opengl.util.glsl.fixedfunc.ShaderSelectionMode;
 public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFunc {
     public static final int MAX_TEXTURE_UNITS = 8;
 
+    protected final GLProfile gl2es1GLProfile;
     protected FixedFuncPipeline fixedFunction;
     protected PMVMatrix pmvMatrix;
     protected boolean ownsPMVMatrix;
@@ -61,6 +63,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      */
     public FixedFuncHook (final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
+        this.gl2es1GLProfile = GLProfile.createCustomGLProfile(GLProfile.GL2ES1, gl.getGLProfile());
         this.gl = gl;
         if(null != pmvMatrix) {
             this.ownsPMVMatrix = false;
@@ -81,6 +84,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
                          final Class<?> shaderRootClass, final String shaderSrcRoot, final String shaderBinRoot,
                          final String vertexColorFile, final String vertexColorLightFile,
                          final String fragmentColorFile, final String fragmentColorTextureFile) {
+        this.gl2es1GLProfile = GLProfile.createCustomGLProfile(GLProfile.GL2ES1, gl.getGLProfile());
         this.gl = gl;
         if(null != pmvMatrix) {
             this.ownsPMVMatrix = false;
@@ -110,6 +114,24 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     //
     // FixedFuncHookIf - hooks
     //
+    public final boolean isGL4core() {
+        return false;
+    }
+    public final boolean isGL3core() {
+        return false;
+    }
+    public final boolean isGLcore() {
+        return false;
+    }
+    public final boolean isGLES2Compatible() {
+        return false;
+    }
+    public final boolean isGLES3Compatible() {
+        return false;
+    }
+    public final GLProfile getGLProfile() {
+        return gl2es1GLProfile;
+    }
     public void glDrawArrays(final int mode, final int first, final int count) {
         fixedFunction.glDrawArrays(gl, mode, first, count);
     }

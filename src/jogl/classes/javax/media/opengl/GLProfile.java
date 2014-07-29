@@ -1529,7 +1529,7 @@ public class GLProfile {
 
     @Override
     public String toString() {
-        return "GLProfile[" + getName() + "/" + getImplName() + "."+(this.isHardwareRasterizer?"hw":"sw")+"]";
+        return "GLProfile[" + getName() + "/" + getImplName() + "."+(this.isHardwareRasterizer?"hw":"sw")+(isCustom?".custom":"")+"]";
     }
 
     private static /*final*/ boolean isAWTAvailable;
@@ -1952,13 +1952,13 @@ public class GLProfile {
             if( null != profileImpl ) {
                 final GLProfile glProfile;
                 if( profile.equals( profileImpl ) ) {
-                    glProfile = new GLProfile(profile, null, isHardwareRasterizer[0]);
+                    glProfile = new GLProfile(profile, null, isHardwareRasterizer[0], false /* custom */);
                 } else {
                     final GLProfile _mglp = _mappedProfiles.get( profileImpl );
                     if( null == _mglp ) {
                         throw new InternalError("XXX0 profile["+i+"]: "+profile+" -> profileImpl "+profileImpl+" !!! not mapped ");
                     }
-                    glProfile = new GLProfile(profile, _mglp, isHardwareRasterizer[0]);
+                    glProfile = new GLProfile(profile, _mglp, isHardwareRasterizer[0], false /* custom */);
                 }
                 _mappedProfiles.put(profile, glProfile);
                 if (DEBUG) {
@@ -2180,13 +2180,19 @@ public class GLProfile {
         }
     }
 
-    private GLProfile(final String profile, final GLProfile profileImpl, final boolean isHardwareRasterizer) {
+    private GLProfile(final String profile, final GLProfile profileImpl, final boolean isHardwareRasterizer, final boolean isCustom) {
         this.profile = profile;
         this.profileImpl = profileImpl;
         this.isHardwareRasterizer = isHardwareRasterizer;
+        this.isCustom = isCustom;
+    }
+
+    public static GLProfile createCustomGLProfile(final String profile, final GLProfile profileImpl) {
+        return new GLProfile(profile, profileImpl, profileImpl.isHardwareRasterizer, true);
     }
 
     private final GLProfile profileImpl;
     private final String profile;
     private final boolean isHardwareRasterizer;
+    private final boolean isCustom;
 }

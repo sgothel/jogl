@@ -91,6 +91,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
 
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -132,6 +133,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline"
@@ -322,6 +324,9 @@ function jrun() {
     fi
     echo
     echo "Test Start: $*"
+    echo
+    # export __GL_THREADED_OPTIMIZATIONS=1
+    echo __GL_THREADED_OPTIMIZATIONS $__GL_THREADED_OPTIMIZATIONS
     echo
     echo "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
     #gdb --args "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
@@ -706,7 +711,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
@@ -746,7 +751,7 @@ testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 
 #
 # Texture / TextureUtils
