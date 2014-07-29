@@ -110,11 +110,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
    * This might be either because the driver does not enable 'Threaded optimization'
    * or because the driver's worker thread is bound to the same CPU.
    * </p>
+   * <p>
    * Property integer value <code>jogl.debug.windows.cpu_affinity_mode</code>:
    * <ul>
    *   <li>0 - none (no affinity, may cause driver crash with 'Threaded optimization' = ['auto', 'on'])</li>
    *   <li>1 - process affinity (default, workaround for driver crash for 'Threaded optimization' = 'auto', still crashes if set to 'on')</li>
    * </ul>
+   * </p>
    * <p>
    * Test case reproducing the crash reliable is: com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT<br>
    * (don't ask why ..)
