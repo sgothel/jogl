@@ -51,7 +51,6 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
@@ -298,13 +297,12 @@ public class X11GLXContext extends GLContextImpl {
     }
 
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    final GLProfile glp = glCaps.getGLProfile();
 
     if( !config.hasFBConfig() ) {
         // not able to use FBConfig -> GLX 1.1
         forceGLXVersionOneOne();
-        if(glp.isGL3()) {
-          throw new GLException(getThreadName()+": Unable to create OpenGL >= 3.1 context");
+        if(glCaps.getGLProfile().isGL3()) {
+          throw new GLException(getThreadName()+": Unable to create OpenGL >= 3.1 context w/o FBConfig");
         }
         contextHandle = GLX.glXCreateContext(display, config.getXVisualInfo(), shareWithHandle, direct);
         if ( 0 == contextHandle ) {
@@ -380,16 +378,11 @@ public class X11GLXContext extends GLContextImpl {
             }
         }
     } else {
-        if( glp.isGL3() ) {
-          glXMakeContextCurrent(display, 0, 0, 0);
-          GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ctx !ARB, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glp+", current: "+getGLVersion());
-        }
         if(DEBUG) {
-          System.err.println(getThreadName()+": X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion());
+          System.err.println(getThreadName()+": X11GLXContext.createContextImpl via ARB failed, fall back to !ARB context "+getGLVersion());
         }
 
-        // continue with temp context for GL <= 3.0
+        // continue with temp context
         contextHandle = temp_ctx;
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
           glXMakeContextCurrent(display, 0, 0, 0);

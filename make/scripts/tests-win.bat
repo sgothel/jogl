@@ -1,5 +1,5 @@
 REM scripts\java-win.bat jogamp.newt.awt.opengl.VersionApplet
-REM scripts\java-win.bat com.jogamp.newt.opengl.GLWindow
+scripts\java-win.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win.bat javax.media.opengl.awt.GLCanvas
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
 REM scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
@@ -183,7 +183,7 @@ REM scripts\java-win.bat testawt com.jogamp.opengl.test.junit.jogl.caps.TestMult
 REM scripts\java-win.bat testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT %*
 REM scripts\java-win.bat testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT %*
 REM scripts\java-win.bat testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT %*
-scripts\java-win.bat  com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT %*
+REM scripts\java-win.bat  com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT

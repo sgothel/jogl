@@ -360,16 +360,11 @@ public class WindowsWGLContext extends GLContextImpl {
             }
         }
     } else {
-        if( glCaps.getGLProfile().isGL3() ) {
-          WGL.wglMakeCurrent(0, 0);
-          WGL.wglDeleteContext(temp_ctx);
-          throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
-        }
         if(DEBUG) {
-          System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion());
+          System.err.println("WindowsWGLContext.createContext via ARB failed, fall back to !ARB context "+getGLVersion());
         }
 
-        // continue with temp context for GL < 3.0
+        // continue with temp context
         contextHandle = temp_ctx;
         if ( !wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
             WGL.wglMakeCurrent(0, 0);

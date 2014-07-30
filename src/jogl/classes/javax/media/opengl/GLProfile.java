@@ -44,6 +44,7 @@ import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -75,21 +76,34 @@ import java.util.Map;
  */
 public class GLProfile {
 
-    public static final boolean DEBUG = Debug.debug("GLProfile");
+    public static final boolean DEBUG;
 
     /**
      * In case no OpenGL ES profiles are required
-     * and if the running platform may have a buggy implementation,
+     * and if one platform may have a buggy implementation,
      * setting the property <code>jogl.disable.opengles</code> disables querying possible existing OpenGL ES profiles.
      */
-    public static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
+    public static final boolean disableOpenGLES;
 
     /**
      * In case no native OpenGL core profiles are required
-     * and if the running platform may have a buggy implementation,
+     * and if one platform may have a buggy implementation,
      * setting the property <code>jogl.disable.openglcore</code> disables querying possible existing native OpenGL core profiles.
+     * <p>
+     * This exclusion is disabled for {@link Platform.OSType#MACOS}.
+     * </p>
      */
-    public static final boolean disableOpenGLCore = Debug.isPropertyDefined("jogl.disable.openglcore", true);
+    public static final boolean disableOpenGLCore;
+
+    /**
+     * In case the implementation of the <i>ARB_create_context</i>
+     * context creation extension is buggy on one platform,
+     * setting the property <code>jogl.disable.openglarbcontext</code> disables utilizing it.
+     * <p>
+     * This exclusion is disabled for {@link Platform.OSType#MACOS}.
+     * </p>
+     */
+    public static final boolean disableOpenGLARBContext;
 
     /**
      * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome.
@@ -99,11 +113,18 @@ public class GLProfile {
      * <code>jogl.enable.ANGLE</code>.
      * </p>
      */
-    public static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
+    public static final boolean enableANGLE;
 
     static {
         // Also initializes TempJarCache if shall be used.
         Platform.initSingleton();
+        final boolean isOSX = Platform.OSType.MACOS == Platform.getOSType();
+
+        DEBUG = Debug.debug("GLProfile");
+        disableOpenGLES = PropertyAccess.isPropertyDefined("jogl.disable.opengles", true);
+        disableOpenGLCore = PropertyAccess.isPropertyDefined("jogl.disable.openglcore", true) && !isOSX;
+        disableOpenGLARBContext = PropertyAccess.isPropertyDefined("jogl.disable.openglarbcontext", true) && !isOSX;
+        enableANGLE = PropertyAccess.isPropertyDefined("jogl.enable.ANGLE", true);
     }
 
     /**

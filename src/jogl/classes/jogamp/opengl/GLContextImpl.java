@@ -820,6 +820,9 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected final long createContextARB(final long share, final boolean direct)
   {
+    if( GLProfile.disableOpenGLARBContext ) {
+        return 0;
+    }
     final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
