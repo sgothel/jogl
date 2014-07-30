@@ -663,7 +663,7 @@ static BOOL SetProcessThreadsAffinityMask( DWORD dwOwnerPID, DWORD_PTR newTAffin
 }
 
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SetProcessThreadsAffinityMask0
-  (JNIEnv *env, jclass unused, long affinityMask, jboolean verbose)
+  (JNIEnv *env, jclass unused, jlong affinityMask, jboolean verbose)
 {
     SetProcessThreadsAffinityMask( GetCurrentProcessId(), (DWORD_PTR)(intptr_t)affinityMask, (BOOL)verbose );
 }
@@ -671,7 +671,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SetProcessThread
 #else
 
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SetProcessThreadsAffinityMask0
-  (JNIEnv *env, jclass unused, long affinityMask, jboolean verbose)
+  (JNIEnv *env, jclass unused, jlong affinityMask, jboolean verbose)
 {
 }
 
