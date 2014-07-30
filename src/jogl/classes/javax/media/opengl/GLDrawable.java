@@ -174,16 +174,35 @@ public interface GLDrawable extends NativeSurfaceHolder {
   public void swapBuffers() throws GLException;
 
   /** Fetches the {@link GLCapabilitiesImmutable} corresponding to the chosen
-      OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.<br>
+      OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.
+      <p>
+      This query only returns the chosen capabilities if {@link #isRealized()}.
+      </p>
+      <p>
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
-      value in this case. <br>
+      value in this case.
+      </p>
+      <p>
       This object shall be directly associated to the attached {@link NativeSurface}'s
       {@link AbstractGraphicsConfiguration}, and if changes are necessary,
       they should reflect those as well.
+      </p>
       @return The immutable queried instance.
+      @see #getRequestedGLCapabilities()
     */
   public GLCapabilitiesImmutable getChosenGLCapabilities();
+
+  /** Fetches the {@link GLCapabilitiesImmutable} corresponding to the user requested
+      OpenGL capabilities (pixel format / visual / GLProfile) for this drawable.
+      <p>
+      If {@link #isRealized() realized}, {@link #getChosenGLCapabilities() the chosen capabilities}
+      reflect the actual selected OpenGL capabilities.
+      </p>
+      @return The immutable queried instance.
+      @see #getChosenGLCapabilities()
+    */
+  public GLCapabilitiesImmutable getRequestedGLCapabilities();
 
   /** Fetches the {@link GLProfile} for this drawable.
       Returns the GLProfile object, no copy.

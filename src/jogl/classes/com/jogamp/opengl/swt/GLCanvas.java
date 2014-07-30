@@ -832,14 +832,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getChosenGLCapabilities() : null;
    }
 
-   /**
-    * Accessor for the GLCapabilities that were requested (via the constructor parameter).
-    *
-    * @return Non-null GLCapabilities.
-    */
+   @Override
    public GLCapabilitiesImmutable getRequestedGLCapabilities() {
       final GLDrawable _drawable = drawable;
-      return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities() : null;
+      return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getRequestedGLCapabilities() : null;
    }
 
    @Override

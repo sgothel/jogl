@@ -1146,6 +1146,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     return (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities();
   }
 
+  @Override
   public GLCapabilitiesImmutable getRequestedGLCapabilities() {
     if( null == awtConfig ) {
         return capsReqUser;

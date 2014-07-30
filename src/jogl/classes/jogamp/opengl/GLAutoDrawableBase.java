@@ -735,6 +735,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
+    public final GLCapabilitiesImmutable getRequestedGLCapabilities() {
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getRequestedGLCapabilities() : null;
+    }
+
+    @Override
     public final GLProfile getGLProfile() {
         final GLDrawable _drawable = drawable;
         return null != _drawable ? _drawable.getGLProfile() : null;

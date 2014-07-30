@@ -249,8 +249,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // Data used for either pbuffers or pixmap-based offscreen surfaces
   //
   private AWTGLPixelBufferProvider customPixelBufferProvider = null;
-  /** Single buffered offscreen caps */
-  private GLCapabilitiesImmutable offscreenCaps;
+  /** Requested single buffered offscreen caps */
+  private final GLCapabilitiesImmutable reqOffscreenCaps;
   private final GLProfile             glProfile;
   private final GLDrawableFactoryImpl factory;
   private final GLCapabilitiesChooser chooser;
@@ -357,9 +357,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             caps = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDevice()));
         }
         caps.setDoubleBuffered(false);
-        offscreenCaps = caps;
+        reqOffscreenCaps = caps;
     }
-    this.glProfile = offscreenCaps.getGLProfile();
+    this.glProfile = reqOffscreenCaps.getGLProfile();
     this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
     this.chooser = chooser;
 
@@ -1138,6 +1138,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public final GLCapabilitiesImmutable getRequestedGLCapabilities() {
+    return reqOffscreenCaps;
+  }
+
+  @Override
   public final GLProfile getGLProfile() {
     return glProfile;
   }
@@ -1504,7 +1509,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     protected IntBuffer readBackIntsForCPUVFlip;
 
     // Implementation using software rendering
-    private volatile GLDrawableImpl offscreenDrawable; // volatile: avoid locking for read-only access
+    private volatile GLDrawable offscreenDrawable; // volatile: avoid locking for read-only access
     private boolean offscreenIsFBO;
     private FBObject fboFlipped;
     private GLSLTextureRaster glslTextureRaster;
@@ -1543,9 +1548,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           if( helper.isSharedGLContextPending(shareWith) ) {
               return; // pending ..
           }
-          offscreenDrawable = (GLDrawableImpl) factory.createOffscreenDrawable(
+          offscreenDrawable = factory.createOffscreenDrawable(
                                                     null /* default platform device */,
-                                                    offscreenCaps,
+                                                    reqOffscreenCaps,
                                                     chooser,
                                                     panelWidth, panelHeight);
           updateWrappedSurfaceScale(offscreenDrawable);
@@ -1563,7 +1568,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           //
           flipVertical = !GLJPanel.this.skipGLOrientationVerticalFlip && offscreenDrawable.isGLOriented();
           offscreenIsFBO = offscreenDrawable.getRequestedGLCapabilities().isFBO();
-          final boolean useGLSLFlip_pre = flipVertical && offscreenIsFBO && offscreenCaps.getGLProfile().isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER;
+          final boolean useGLSLFlip_pre = flipVertical && offscreenIsFBO && reqOffscreenCaps.getGLProfile().isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER;
           if( offscreenIsFBO && !useGLSLFlip_pre ) {
               // Texture attachment only required for GLSL vertical flip, hence simply use a color-renderbuffer attachment.
               ((GLFBODrawable)offscreenDrawable).setFBOMode(GLFBODrawable.FBOMODE_USE_DEPTH);
@@ -1629,7 +1634,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               }
           }
           if( null != glException ) {
-              throw new GLException("Handled GLException: "+glException.getMessage(), glException);
+              throw new GLException("Caught GLException: "+glException.getMessage(), glException);
           }
       }
     }
@@ -1915,7 +1920,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     public final boolean handleReshape() {
-        GLDrawableImpl _drawable = offscreenDrawable;
+        GLDrawableImpl _drawable = (GLDrawableImpl)offscreenDrawable;
         {
             final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, offscreenContext, panelWidth, panelHeight);
             if(_drawable != _drawableNew) {
@@ -2333,29 +2338,29 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
               j2dContext.makeCurrent();
               final GL gl = j2dContext.getGL();
-              if ((getGLInteger(gl, GL.GL_RED_BITS)         < offscreenCaps.getRedBits())        ||
-                  (getGLInteger(gl, GL.GL_GREEN_BITS)       < offscreenCaps.getGreenBits())      ||
-                  (getGLInteger(gl, GL.GL_BLUE_BITS)        < offscreenCaps.getBlueBits())       ||
+              if ((getGLInteger(gl, GL.GL_RED_BITS)         < reqOffscreenCaps.getRedBits())        ||
+                  (getGLInteger(gl, GL.GL_GREEN_BITS)       < reqOffscreenCaps.getGreenBits())      ||
+                  (getGLInteger(gl, GL.GL_BLUE_BITS)        < reqOffscreenCaps.getBlueBits())       ||
                   //                  (getGLInteger(gl, GL.GL_ALPHA_BITS)       < offscreenCaps.getAlphaBits())      ||
-                  (getGLInteger(gl, GL2.GL_ACCUM_RED_BITS)   < offscreenCaps.getAccumRedBits())   ||
-                  (getGLInteger(gl, GL2.GL_ACCUM_GREEN_BITS) < offscreenCaps.getAccumGreenBits()) ||
-                  (getGLInteger(gl, GL2.GL_ACCUM_BLUE_BITS)  < offscreenCaps.getAccumBlueBits())  ||
-                  (getGLInteger(gl, GL2.GL_ACCUM_ALPHA_BITS) < offscreenCaps.getAccumAlphaBits()) ||
+                  (getGLInteger(gl, GL2.GL_ACCUM_RED_BITS)   < reqOffscreenCaps.getAccumRedBits())   ||
+                  (getGLInteger(gl, GL2.GL_ACCUM_GREEN_BITS) < reqOffscreenCaps.getAccumGreenBits()) ||
+                  (getGLInteger(gl, GL2.GL_ACCUM_BLUE_BITS)  < reqOffscreenCaps.getAccumBlueBits())  ||
+                  (getGLInteger(gl, GL2.GL_ACCUM_ALPHA_BITS) < reqOffscreenCaps.getAccumAlphaBits()) ||
                   //          (getGLInteger(gl, GL2.GL_DEPTH_BITS)       < offscreenCaps.getDepthBits())      ||
-                  (getGLInteger(gl, GL.GL_STENCIL_BITS)     < offscreenCaps.getStencilBits())) {
+                  (getGLInteger(gl, GL.GL_STENCIL_BITS)     < reqOffscreenCaps.getStencilBits())) {
                 if (DEBUG) {
                   System.err.println(getThreadName()+": GLJPanel: Falling back to pbuffer-based support because Java2D context insufficient");
                   System.err.println("                    Available              Required");
-                  System.err.println("GL_RED_BITS         " + getGLInteger(gl, GL.GL_RED_BITS)         + "              " + offscreenCaps.getRedBits());
-                  System.err.println("GL_GREEN_BITS       " + getGLInteger(gl, GL.GL_GREEN_BITS)       + "              " + offscreenCaps.getGreenBits());
-                  System.err.println("GL_BLUE_BITS        " + getGLInteger(gl, GL.GL_BLUE_BITS)        + "              " + offscreenCaps.getBlueBits());
-                  System.err.println("GL_ALPHA_BITS       " + getGLInteger(gl, GL.GL_ALPHA_BITS)       + "              " + offscreenCaps.getAlphaBits());
-                  System.err.println("GL_ACCUM_RED_BITS   " + getGLInteger(gl, GL2.GL_ACCUM_RED_BITS)   + "              " + offscreenCaps.getAccumRedBits());
-                  System.err.println("GL_ACCUM_GREEN_BITS " + getGLInteger(gl, GL2.GL_ACCUM_GREEN_BITS) + "              " + offscreenCaps.getAccumGreenBits());
-                  System.err.println("GL_ACCUM_BLUE_BITS  " + getGLInteger(gl, GL2.GL_ACCUM_BLUE_BITS)  + "              " + offscreenCaps.getAccumBlueBits());
-                  System.err.println("GL_ACCUM_ALPHA_BITS " + getGLInteger(gl, GL2.GL_ACCUM_ALPHA_BITS) + "              " + offscreenCaps.getAccumAlphaBits());
-                  System.err.println("GL_DEPTH_BITS       " + getGLInteger(gl, GL.GL_DEPTH_BITS)       + "              " + offscreenCaps.getDepthBits());
-                  System.err.println("GL_STENCIL_BITS     " + getGLInteger(gl, GL.GL_STENCIL_BITS)     + "              " + offscreenCaps.getStencilBits());
+                  System.err.println("GL_RED_BITS         " + getGLInteger(gl, GL.GL_RED_BITS)         + "              " + reqOffscreenCaps.getRedBits());
+                  System.err.println("GL_GREEN_BITS       " + getGLInteger(gl, GL.GL_GREEN_BITS)       + "              " + reqOffscreenCaps.getGreenBits());
+                  System.err.println("GL_BLUE_BITS        " + getGLInteger(gl, GL.GL_BLUE_BITS)        + "              " + reqOffscreenCaps.getBlueBits());
+                  System.err.println("GL_ALPHA_BITS       " + getGLInteger(gl, GL.GL_ALPHA_BITS)       + "              " + reqOffscreenCaps.getAlphaBits());
+                  System.err.println("GL_ACCUM_RED_BITS   " + getGLInteger(gl, GL2.GL_ACCUM_RED_BITS)   + "              " + reqOffscreenCaps.getAccumRedBits());
+                  System.err.println("GL_ACCUM_GREEN_BITS " + getGLInteger(gl, GL2.GL_ACCUM_GREEN_BITS) + "              " + reqOffscreenCaps.getAccumGreenBits());
+                  System.err.println("GL_ACCUM_BLUE_BITS  " + getGLInteger(gl, GL2.GL_ACCUM_BLUE_BITS)  + "              " + reqOffscreenCaps.getAccumBlueBits());
+                  System.err.println("GL_ACCUM_ALPHA_BITS " + getGLInteger(gl, GL2.GL_ACCUM_ALPHA_BITS) + "              " + reqOffscreenCaps.getAccumAlphaBits());
+                  System.err.println("GL_DEPTH_BITS       " + getGLInteger(gl, GL.GL_DEPTH_BITS)       + "              " + reqOffscreenCaps.getDepthBits());
+                  System.err.println("GL_STENCIL_BITS     " + getGLInteger(gl, GL.GL_STENCIL_BITS)     + "              " + reqOffscreenCaps.getStencilBits());
                 }
                 isInitialized = false;
                 backend = null;
