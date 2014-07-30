@@ -704,13 +704,32 @@ public abstract class GLContextImpl extends GLContext {
                     } else {
                         reqMajor = ctxVersion.getMajor();
                     }
+                    final boolean isCompat;
                     if( 0 != ( ctxOptions & GLContext.CTX_PROFILE_CORE) ) {
                         reqProfile = GLContext.CTX_PROFILE_CORE;
+                        isCompat = false;
                     } else {
                         reqProfile = GLContext.CTX_PROFILE_COMPAT;
+                        isCompat = true;
                     }
-                    GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
-                                                    ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                    GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                    // Perform all required profile mappings
+                    if( isCompat ) {
+                        // COMPAT via non ARB
+                        GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        if( reqMajor >= 4 ) {
+                            GLContext.mapAvailableGLVersion(device, 3, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                            GLContext.mapAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        }
+                        if( reqMajor >= 3 ) {
+                            GLContext.mapAvailableGLVersion(device, 2, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        }
+                    } else {
+                        // CORE via non ARB, unlikely, however ..
+                        if( reqMajor >= 4 ) {
+                            GLContext.mapAvailableGLVersion(device, 3, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        }
+                    }
                     GLContext.setAvailableGLVersionsSet(device);
 
                     if (DEBUG) {

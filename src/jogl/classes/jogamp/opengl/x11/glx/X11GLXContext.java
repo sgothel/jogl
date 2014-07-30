@@ -51,6 +51,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
@@ -297,11 +298,12 @@ public class X11GLXContext extends GLContextImpl {
     }
 
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final GLProfile glp = glCaps.getGLProfile();
 
     if( !config.hasFBConfig() ) {
         // not able to use FBConfig -> GLX 1.1
         forceGLXVersionOneOne();
-        if(glCaps.getGLProfile().isGL3()) {
+        if( glp.isGL3() ) {
           throw new GLException(getThreadName()+": Unable to create OpenGL >= 3.1 context w/o FBConfig");
         }
         contextHandle = GLX.glXCreateContext(display, config.getXVisualInfo(), shareWithHandle, direct);
@@ -341,7 +343,7 @@ public class X11GLXContext extends GLContextImpl {
             throw new GLException(getThreadName()+": Unable to create temp OpenGL context(1)");
         }
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), temp_ctx) ) {
-          throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
+            throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */); // use GL_VERSION
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
@@ -349,7 +351,7 @@ public class X11GLXContext extends GLContextImpl {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
             final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
             final boolean isExtARBCreateContextAvailable = isExtensionAvailable("GLX_ARB_create_context");
-            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable && !GLProfile.disableOpenGLARBContext ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(shareWithHandle, direct);
                 createContextARBTried=true;
@@ -360,9 +362,11 @@ public class X11GLXContext extends GLContextImpl {
                         System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+toHexString(shareWithHandle));
                     }
                 }
-            } else if (DEBUG) {
+            } else if( DEBUG ) {
                 System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
-                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
+                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+
+                                   ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable+
+                                   ", disableOpenGLARBContext "+GLProfile.disableOpenGLARBContext);
             }
         }
     } else {
@@ -378,16 +382,24 @@ public class X11GLXContext extends GLContextImpl {
             }
         }
     } else {
+        if( glp.isGL3() && createContextARBTried ) {
+            // We shall not allow context creation >= GL3 w/ non ARB methods if ARB is used,
+            // otherwise context of similar profile but different creation method may not be share-able.
+            glXMakeContextCurrent(display, 0, 0, 0);
+            GLX.glXDestroyContext(display, temp_ctx);
+            throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glp+", current: "+getGLVersion());
+        }
+
         if(DEBUG) {
-          System.err.println(getThreadName()+": X11GLXContext.createContextImpl via ARB failed, fall back to !ARB context "+getGLVersion());
+            System.err.println(getThreadName()+": X11GLXContext.createContextImpl ARB not used, fall back to !ARB context "+getGLVersion());
         }
 
         // continue with temp context
         contextHandle = temp_ctx;
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
-          glXMakeContextCurrent(display, 0, 0, 0);
-          GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException(getThreadName()+": Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
+            glXMakeContextCurrent(display, 0, 0, 0);
+            GLX.glXDestroyContext(display, temp_ctx);
+            throw new GLException(getThreadName()+": Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         if (DEBUG) {
             System.err.println(getThreadName() + ": createContextImpl: OK (old-2) share "+toHexString(shareWithHandle));

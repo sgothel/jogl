@@ -976,8 +976,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL4bc()
    */
   public final boolean isGL4bc() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
+      return 0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
              ctxVersion.getMajor() >= 4;
   }
 
@@ -986,8 +985,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL4()
    */
   public final boolean isGL4() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
+      return 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.getMajor() >= 4;
   }
 
@@ -995,8 +993,7 @@ public abstract class GLContext {
    * Indicates whether this GLContext uses a GL4 core profile. <p>Includes [ GL4 ].</p>
    */
   public final boolean isGL4core() {
-      return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
-             0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+      return 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.getMajor() >= 4;
   }
 
@@ -1005,8 +1002,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL3bc()
    */
   public final boolean isGL3bc() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
+      return 0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
              ctxVersion.compareTo(Version310) >= 0 ;
   }
 
@@ -1015,8 +1011,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL3()
    */
   public final boolean isGL3() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
+      return 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.compareTo(Version310) >= 0 ;
   }
 
@@ -1024,8 +1019,7 @@ public abstract class GLContext {
    * Indicates whether this GLContext uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
    */
   public final boolean isGL3core() {
-      return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
-             0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+      return 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.compareTo(Version310) >= 0;
   }
 
@@ -1034,8 +1028,7 @@ public abstract class GLContext {
    */
   public final boolean isGLcore() {
       return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ) ||
-             ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
-               0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+             ( 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
                ctxVersion.compareTo(Version310) >= 0
              ) ;
   }

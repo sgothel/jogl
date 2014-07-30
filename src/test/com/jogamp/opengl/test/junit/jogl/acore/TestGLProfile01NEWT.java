@@ -78,6 +78,7 @@ public class TestGLProfile01NEWT extends UITestCase {
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL4bc));
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL4));
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL3bc));
+            Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL3));
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL2));
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL2GL3));
             if( gles3CompatAvail ) {
