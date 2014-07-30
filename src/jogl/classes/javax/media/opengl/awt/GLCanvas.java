@@ -875,7 +875,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               newGLADCaps.setSampleBuffers(0 < printNumSamples);
               newGLADCaps.setNumSamples(printNumSamples);
           }
-          final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(gladCaps, newGLADCaps);
+          final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
 
           final boolean reqNewGLAD = ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
 

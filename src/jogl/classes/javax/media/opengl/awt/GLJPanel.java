@@ -726,7 +726,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               newGLADCaps.setSampleBuffers(0 < printNumSamples);
               newGLADCaps.setNumSamples(printNumSamples);
           }
-          final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(gladCaps, newGLADCaps);
+          final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
 
           final boolean reqNewGLAD = ( reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
 

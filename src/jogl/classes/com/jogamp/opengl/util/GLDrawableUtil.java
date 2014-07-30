@@ -28,7 +28,6 @@
 package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
-
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -158,23 +157,41 @@ public class GLDrawableUtil {
      * <ul>
      *   <li>Switching between on- and offscreen and one of the following is <code>true</code>:
      *     <ul>
-     *       <li>{@link GLCapabilitiesImmutable#getSampleBuffers() MSAA is used}[1], or
-     *       <li>{@link GLCapabilitiesImmutable#getStereo() Stereo is used}
+     *       <li>{@link GLCapabilitiesImmutable#getSampleBuffers() MSAA is <i>used</i>} [1] in <code>chosenCapsA</code> or <code>chosenCapsB</code></li>
+     *       <li>{@link GLCapabilitiesImmutable#getStereo() Stereo is <i>used</i>} in <code>chosenCapsA</code> or <code>chosenCapsB</code></li>
+     *       <li>{@link GLCapabilitiesImmutable#getAccumAlphaBits() Accumulator Buffer is <i>requested</i>} [2] in <code>requestedCaps</code></li>
      *     </ul></li>
      * </ul>
      * Otherwise method returns <code>true</code>
      * </p>
-     * <p>
+     * <pre>
      * [1] See Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
-     * </p>
+     *     On NVidia GPUs w/ it's proprietary driver context swapping does not work if MSAA is involved
+     *     and when swapping on- to offscreen.
+     * </pre>
+     * <pre>
+     * [2] On AMD GPUs w/ it's proprietary driver, requesting an accumulator buffer leads to receive an accumulator buffer configuration,
+     *     for which context swapping does not work when swapping on- to offscreen and vice-versa, i.e. cannot make context current.
+     *     With AMD and Mesa drivers we only receive an accumulator buffer if requested,
+     *     where on NVidia drivers all configurations contain the accumulator buffer.
+     *     On both drivers, NVidia and Mesa, context swapping with accumulator buffer works.
+     * </pre>
+     * @param requestedCaps requested {@link GLCapabilitiesImmutable} which are intended for usage by both {@link GLAutoDrawable}s A and B
+     * @param chosenCapsA chosen {@link GLCapabilitiesImmutable} of {@link GLAutoDrawable} A, which {@link GLContext} is intended to be swapped
+     * @param chosenCapsB chosen {@link GLCapabilitiesImmutable} of {@link GLAutoDrawable} B, which {@link GLContext} is intended to be swapped
      * @see #swapGLContext(GLAutoDrawable, GLAutoDrawable)
      * @see #swapGLContextAndAllGLEventListener(GLAutoDrawable, GLAutoDrawable)
      */
-    public static boolean isSwapGLContextSafe(final GLCapabilitiesImmutable a, final GLCapabilitiesImmutable b) {
-        if( ( a.isOnscreen() && !b.isOnscreen() || !a.isOnscreen() && b.isOnscreen() ) && // switching between on- and offscreen
+    public static boolean isSwapGLContextSafe(final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesImmutable chosenCapsA, final GLCapabilitiesImmutable chosenCapsB) {
+        final boolean usingAccumulatorBuffer = requestedCaps.getAccumAlphaBits() > 0 ||
+                                               requestedCaps.getAccumRedBits()   > 0 ||
+                                               requestedCaps.getAccumGreenBits() > 0 ||
+                                               requestedCaps.getAccumBlueBits()  > 0;
+        if( ( chosenCapsA.isOnscreen() && !chosenCapsB.isOnscreen() || !chosenCapsA.isOnscreen() && chosenCapsB.isOnscreen() ) && // switching between on- and offscreen
             (
-              ( a.getSampleBuffers() || b.getSampleBuffers() ) ||  // MSAA involved
-              ( a.getStereo() || b.getStereo() )                   // Stereo involved
+              ( chosenCapsA.getSampleBuffers() || chosenCapsB.getSampleBuffers() ) ||  // MSAA involved
+              ( chosenCapsA.getStereo() || chosenCapsB.getStereo() )               ||  // Stereo involved
+              usingAccumulatorBuffer                                                   // Using accumulator buffer
             )
           )
         {
@@ -207,7 +224,7 @@ public class GLDrawableUtil {
      * e.g. via {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}.
      * </p>
      * @throws GLException if the {@link AbstractGraphicsDevice} are incompatible w/ each other.
-     * @see #isSwapGLContextSafe(GLCapabilitiesImmutable, GLCapabilitiesImmutable)
+     * @see #isSwapGLContextSafe(GLCapabilitiesImmutable, GLCapabilitiesImmutable, GLCapabilitiesImmutable)
      */
     public static final void swapGLContextAndAllGLEventListener(final GLAutoDrawable a, final GLAutoDrawable b) {
         final GLEventListenerState gllsA = GLEventListenerState.moveFrom(a, true);
@@ -249,7 +266,7 @@ public class GLDrawableUtil {
      * </p>
      * @param a
      * @param b
-     * @see #isSwapGLContextSafe(GLCapabilitiesImmutable, GLCapabilitiesImmutable)
+     * @see #isSwapGLContextSafe(GLCapabilitiesImmutable, GLCapabilitiesImmutable, GLCapabilitiesImmutable)
      */
     public static final void swapGLContext(final GLAutoDrawable a, final GLAutoDrawable b) {
         final GLAnimatorControl aAnim = a.getAnimator();

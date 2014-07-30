@@ -657,7 +657,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     newGLADCaps.setSampleBuffers(0 < printNumSamples);
                     newGLADCaps.setNumSamples(printNumSamples);
                 }
-                final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(gladCaps, newGLADCaps);
+                final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(glad.getRequestedGLCapabilities(), gladCaps, newGLADCaps);
 
                 final boolean reqNewGLAD = ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
 

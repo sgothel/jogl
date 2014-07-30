@@ -183,17 +183,17 @@ public abstract class GLContextDrawableSwitchBase0 extends UITestCase {
         testImpl(reqGLCaps, true);
     }
 
-    private void testImpl(final GLCapabilitiesImmutable srcCaps, final boolean dstOnscreen) throws InterruptedException, InvocationTargetException {
+    private void testImpl(final GLCapabilitiesImmutable srcCapsRequested, final boolean dstOnscreen) throws InterruptedException, InvocationTargetException {
         final QuitAdapter quitAdapter = new QuitAdapter();
-        final GLAutoDrawable gladSource = createGLAutoDrawable(quitAdapter, srcCaps, width, height);
+        final GLAutoDrawable gladSource = createGLAutoDrawable(quitAdapter, srcCapsRequested, width, height);
 
         final GLCapabilitiesImmutable srcCapsChosen = gladSource.getChosenGLCapabilities();
 
         final GLCapabilities dstCaps = (GLCapabilities) srcCapsChosen.cloneMutable();
         dstCaps.setOnscreen(dstOnscreen);
 
-        final boolean isSwapGLContextSafe = GLDrawableUtil.isSwapGLContextSafe(srcCapsChosen, dstCaps);
-        System.err.println("Source Caps Requested: "+srcCaps);
+        final boolean isSwapGLContextSafe = GLDrawableUtil.isSwapGLContextSafe(srcCapsRequested, srcCapsChosen, dstCaps);
+        System.err.println("Source Caps Requested: "+srcCapsRequested);
         System.err.println("Source Caps Chosen   : "+srcCapsChosen);
         System.err.println("Dest   Caps Requested: "+dstCaps);
         System.err.println("Is SwapGLContext safe: "+isSwapGLContextSafe);
