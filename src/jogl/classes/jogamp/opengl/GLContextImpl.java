@@ -925,14 +925,6 @@ public abstract class GLContextImpl extends GLContext {
             hasGL4bc = createContextARBMapVersionsAvailable(4, CTX_PROFILE_COMPAT);  // GL4bc
             success |= hasGL4bc;
             if( hasGL4bc ) {
-                if( !hasGL4 ) { // last chance .. ignore hw-accel
-                    GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    hasGL4   = true;
-                }
-                if( !hasGL3 ) { // last chance .. ignore hw-accel
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    hasGL3   = true;
-                }
                 if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
                     // Map hw-accel GL4bc to all lower compatible profiles: GL3bc, GL2
                     GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
@@ -949,10 +941,6 @@ public abstract class GLContextImpl extends GLContext {
             hasGL3bc = createContextARBMapVersionsAvailable(3, CTX_PROFILE_COMPAT);  // GL3bc
             success |= hasGL3bc;
             if( hasGL3bc ) {
-                if(!hasGL3) {  // last chance .. ignore hw-accel
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    hasGL3   = true;
-                }
                 if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
                     // Map hw-accel GL3bc to all lower compatible profiles: GL2
                     GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
