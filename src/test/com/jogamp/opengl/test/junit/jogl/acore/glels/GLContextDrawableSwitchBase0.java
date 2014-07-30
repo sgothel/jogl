@@ -34,6 +34,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.Threading;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;
@@ -226,8 +227,17 @@ public abstract class GLContextDrawableSwitchBase0 extends UITestCase {
                     s++;
                     System.err.println(s+" - switch - START "+ ( t1 - t0 ));
 
+                    final Runnable switchAction = new Runnable() {
+                            public void run() {
+                                GLDrawableUtil.swapGLContextAndAllGLEventListener(gladSource, gladDest);
+                            } };
+
                     // switch context _and_ the demo synchronously
-                    GLDrawableUtil.swapGLContextAndAllGLEventListener(gladSource, gladDest);
+                    if( gladSource.isThreadGLCapable() && gladDest.isThreadGLCapable() ) {
+                        switchAction.run();
+                    } else {
+                        Threading.invokeOnOpenGLThread(true, switchAction);
+                    }
                     snapshotGLEventListener.setMakeSnapshot();
 
                     System.err.println(s+" - switch - END "+ ( t1 - t0 ));

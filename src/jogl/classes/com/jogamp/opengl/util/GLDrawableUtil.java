@@ -28,6 +28,7 @@
 package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -38,6 +39,7 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.Threading;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLEventListenerState;
@@ -165,6 +167,8 @@ public class GLDrawableUtil {
      * <p>
      * [1] See Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
      * </p>
+     * @see #swapGLContext(GLAutoDrawable, GLAutoDrawable)
+     * @see #swapGLContextAndAllGLEventListener(GLAutoDrawable, GLAutoDrawable)
      */
     public static boolean isSwapGLContextSafe(final GLCapabilitiesImmutable a, final GLCapabilitiesImmutable b) {
         if( ( a.isOnscreen() && !b.isOnscreen() || !a.isOnscreen() && b.isOnscreen() ) && // switching between on- and offscreen
@@ -196,9 +200,14 @@ public class GLDrawableUtil {
      * hence atomicity of operation is guaranteed,
      * see <a href="../../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.
      * </p>
-     * @param a
-     * @param b
+     * <p>
+     * Because of above mentioned locking, if this method is not performed
+     * on {@link GLAutoDrawable#isThreadGLCapable() a OpenGL capable thread} of <i>both</i>
+     * {@link GLAutoDrawable}s, it must be invoked on such an OpenGL capable thread,
+     * e.g. via {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}.
+     * </p>
      * @throws GLException if the {@link AbstractGraphicsDevice} are incompatible w/ each other.
+     * @see #isSwapGLContextSafe(GLCapabilitiesImmutable, GLCapabilitiesImmutable)
      */
     public static final void swapGLContextAndAllGLEventListener(final GLAutoDrawable a, final GLAutoDrawable b) {
         final GLEventListenerState gllsA = GLEventListenerState.moveFrom(a, true);
@@ -232,8 +241,15 @@ public class GLDrawableUtil {
      * hence atomicity of operation is guaranteed,
      * see <a href="../../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.
      * </p>
+     * <p>
+     * Because of above mentioned locking, if this method is not performed
+     * on {@link GLAutoDrawable#isThreadGLCapable() a OpenGL capable thread} of <i>both</i>
+     * {@link GLAutoDrawable}s, it must be invoked on such an OpenGL capable thread,
+     * e.g. via {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}.
+     * </p>
      * @param a
      * @param b
+     * @see #isSwapGLContextSafe(GLCapabilitiesImmutable, GLCapabilitiesImmutable)
      */
     public static final void swapGLContext(final GLAutoDrawable a, final GLAutoDrawable b) {
         final GLAnimatorControl aAnim = a.getAnimator();
