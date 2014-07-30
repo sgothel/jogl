@@ -61,7 +61,7 @@ import org.junit.runners.MethodSorters;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLContextDrawableSwitch12AWT extends GLContextDrawableSwitchBase {
+public class TestGLContextDrawableSwitch12AWT extends GLContextDrawableSwitchBase1 {
 
     @Test(timeout=30000)
     public void test01GLCanvasOnscreenGL2ES2() throws InterruptedException {

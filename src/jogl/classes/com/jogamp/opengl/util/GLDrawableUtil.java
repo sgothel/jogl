@@ -149,6 +149,37 @@ public class GLDrawableUtil {
     }
 
     /**
+     * Return a heuristic value whether switching the {@link GLContext} is safe between {@lin GLAutoDrawable}s,
+     * i.e. via {@link #swapGLContext(GLAutoDrawable, GLAutoDrawable)} or {@link #swapGLContextAndAllGLEventListener(GLAutoDrawable, GLAutoDrawable)}.
+     * <p>
+     * Method currently returns <code>false</code> if:
+     * <ul>
+     *   <li>Switching between on- and offscreen and one of the following is <code>true</code>:
+     *     <ul>
+     *       <li>{@link GLCapabilitiesImmutable#getSampleBuffers() MSAA is used}[1], or
+     *       <li>{@link GLCapabilitiesImmutable#getStereo() Stereo is used}
+     *     </ul></li>
+     * </ul>
+     * Otherwise method returns <code>true</code>
+     * </p>
+     * <p>
+     * [1] See Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
+     * </p>
+     */
+    public static boolean isSwapGLContextSafe(final GLCapabilitiesImmutable a, final GLCapabilitiesImmutable b) {
+        if( ( a.isOnscreen() && !b.isOnscreen() || !a.isOnscreen() && b.isOnscreen() ) && // switching between on- and offscreen
+            (
+              ( a.getSampleBuffers() || b.getSampleBuffers() ) ||  // MSAA involved
+              ( a.getStereo() || b.getStereo() )                   // Stereo involved
+            )
+          )
+        {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    /**
      * Swaps the {@link GLContext} and all {@link GLEventListener} between {@link GLAutoDrawable} <code>a</code> and <code>b</code>,
      * while preserving it's initialized state, resets the GL-Viewport and issuing {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape(..)}.
      * <p>

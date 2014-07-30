@@ -73,7 +73,7 @@ import org.junit.runners.MethodSorters;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLContextDrawableSwitch21Newt2AWT extends GLContextDrawableSwitchBase {
+public class TestGLContextDrawableSwitch13Newt2AWT extends GLContextDrawableSwitchBase1 {
 
     @Test(timeout=30000)
     public void test01GLCanvasOnScrn2GLWindowGL2ES2() throws InterruptedException {
@@ -190,6 +190,6 @@ public class TestGLContextDrawableSwitch21Newt2AWT extends GLContextDrawableSwit
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */
-        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch21Newt2AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch13Newt2AWT.class.getName());
     }
 }

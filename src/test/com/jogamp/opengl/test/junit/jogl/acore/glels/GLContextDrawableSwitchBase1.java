@@ -68,7 +68,7 @@ import org.junit.BeforeClass;
  * See Bug 665 - https://jogamp.org/bugzilla/show_bug.cgi?id=665.
  * </p>
  */
-public abstract class GLContextDrawableSwitchBase extends UITestCase {
+public abstract class GLContextDrawableSwitchBase1 extends UITestCase {
     static protected enum GLADType { GLCanvasOnscreen, GLCanvasOffscreen, GLWindow, GLOffscreen };
 
     // default period for 1 GLAD cycle

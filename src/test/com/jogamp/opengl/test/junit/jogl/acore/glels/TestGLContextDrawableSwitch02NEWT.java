@@ -28,22 +28,14 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Frame;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import com.jogamp.newt.event.TraceWindowAdapter;
-import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.awt.GLCanvas;
-
-import jogamp.nativewindow.awt.AWTMisc;
 
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
@@ -52,36 +44,24 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Test re-association (switching) of GLContext/GLDrawables,
- * from GLCanvas to an GLOffscreenAutoDrawable and back.
+ * Test re-association (switching) of GLWindow /GLDrawables,
+ * from GLWindow/GLOffscreenAutoDrawable to an GLOffscreenAutoDrawable and back.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLContextDrawableSwitch02AWT extends GLContextDrawableSwitchBase0 {
-
+public class TestGLContextDrawableSwitch02NEWT extends GLContextDrawableSwitchBase0 {
     @Override
     public GLAutoDrawable createGLAutoDrawable(final QuitAdapter quitAdapter, final GLCapabilitiesImmutable caps, final int width, final int height) throws InterruptedException, InvocationTargetException {
         final GLAutoDrawable glad;
         if( caps.isOnscreen() ) {
-            final Frame frame = new Frame("Gears AWT Test");
-            Assert.assertNotNull(frame);
+            final GLWindow glWindow = GLWindow.create(caps);
+            Assert.assertNotNull(glWindow);
+            glad = glWindow;
 
-            final GLCanvas glCanvas = new GLCanvas(caps);
-            Assert.assertNotNull(glCanvas);
-            final Dimension glc_sz = new Dimension(width, height);
-            glCanvas.setMinimumSize(glc_sz);
-            glCanvas.setPreferredSize(glc_sz);
-            glCanvas.setSize(glc_sz);
-            glad = glCanvas;
+            if( null != quitAdapter ) {
+                glWindow.addWindowListener(quitAdapter);
+            }
 
-            new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
-
-            frame.setLayout(new BorderLayout());
-            frame.add(glCanvas, BorderLayout.CENTER);
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    frame.pack();
-                    frame.setVisible(true);
-                }});
+            glWindow.setVisible(true);
         } else {
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
             glad = factory.createOffscreenAutoDrawable(null, caps, null, width, height);
@@ -92,16 +72,7 @@ public class TestGLContextDrawableSwitch02AWT extends GLContextDrawableSwitchBas
 
     @Override
     public void destroyGLAutoDrawable(final GLAutoDrawable glad) throws InterruptedException, InvocationTargetException {
-        if( glad.getChosenGLCapabilities().isOnscreen() ) {
-            final Frame frame = AWTMisc.getFrame((Component)glad);
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    final Frame _frame = frame;
-                    _frame.dispose();
-                }});
-        } else {
-            glad.destroy();
-        }
+        glad.destroy();
     }
 
     public static void main(final String args[]) throws IOException {
@@ -124,6 +95,6 @@ public class TestGLContextDrawableSwitch02AWT extends GLContextDrawableSwitchBas
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */
-        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch02AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch02NEWT.class.getName());
     }
 }
