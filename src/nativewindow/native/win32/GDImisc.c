@@ -572,3 +572,107 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsUndecorate
     return bIsUndecorated ? JNI_TRUE : JNI_FALSE;
 }
 
+#if 0
+
+#include <tlhelp32.h>
+#include <tchar.h>
+
+static void printError( TCHAR* msg )
+{
+  DWORD eNum;
+  TCHAR sysMsg[256];
+  TCHAR* p;
+
+  eNum = GetLastError( );
+  FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+         NULL, eNum,
+         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+         sysMsg, 256, NULL );
+
+  // Trim the end of the line and terminate it with a null
+  p = sysMsg;
+  while( ( *p > 31 ) || ( *p == 9 ) )
+    ++p;
+  do { *p-- = 0; } while( ( p >= sysMsg ) &&
+                          ( ( *p == '.' ) || ( *p < 33 ) ) );
+
+  // Display the message
+  _ftprintf(stderr, TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg );
+}
+
+static BOOL SetProcessThreadsAffinityMask( DWORD dwOwnerPID, DWORD_PTR newTAffinity, BOOL verbose ) 
+{ 
+  HANDLE hThreadSnap = INVALID_HANDLE_VALUE; 
+  THREADENTRY32 te32; 
+  DWORD_PTR preTAffinity;
+  HANDLE threadHandle;
+ 
+  // Take a snapshot of all running threads  
+  hThreadSnap = CreateToolhelp32Snapshot( TH32CS_SNAPTHREAD, 0 ); 
+  if( hThreadSnap == INVALID_HANDLE_VALUE ) 
+    return( FALSE ); 
+ 
+  // Fill in the size of the structure before using it. 
+  te32.dwSize = sizeof(THREADENTRY32 ); 
+ 
+  // Retrieve information about the first thread,
+  // and exit if unsuccessful
+  if( !Thread32First( hThreadSnap, &te32 ) ) 
+  {
+    if( verbose ) {
+        printError( TEXT("Thread32First") );  // Show cause of failure
+    }
+    CloseHandle( hThreadSnap );     // Must clean up the snapshot object!
+    return( FALSE );
+  }
+
+  // Now walk the thread list of the system,
+  // and display information about each thread
+  // associated with the specified process
+  do 
+  { 
+    if( te32.th32OwnerProcessID == dwOwnerPID )
+    {
+      if( verbose ) {
+          _ftprintf(stderr, TEXT("\n     THREAD ID      = 0x%08X, %d"), te32.th32ThreadID, te32.th32ThreadID); 
+          _ftprintf(stderr, TEXT("\n     base priority  = %d"), te32.tpBasePri ); 
+          _ftprintf(stderr, TEXT("\n     delta priority = %d"), te32.tpDeltaPri ); 
+      }
+      threadHandle = OpenThread(THREAD_ALL_ACCESS, FALSE, te32.th32ThreadID);
+      if( NULL != threadHandle ) {
+          preTAffinity = SetThreadAffinityMask(threadHandle, newTAffinity);
+          CloseHandle(threadHandle);
+          if( verbose ) {
+              _ftprintf(stderr, TEXT("\n     affinity %p -> %p"), preTAffinity, newTAffinity);
+          }
+      } else {
+          if( verbose ) {
+              _ftprintf(stderr, TEXT("\n     OpenThread failed %d"), (int)GetLastError());
+          }
+      }
+    }
+  } while( Thread32Next(hThreadSnap, &te32 ) );
+
+  if( verbose ) {
+      _ftprintf(stderr, TEXT("\n"));
+  }
+
+//  Don't forget to clean up the snapshot object.
+  CloseHandle( hThreadSnap );
+  return( TRUE );
+}
+
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SetProcessThreadsAffinityMask0
+  (JNIEnv *env, jclass unused, long affinityMask, jboolean verbose)
+{
+    SetProcessThreadsAffinityMask( GetCurrentProcessId(), (DWORD_PTR)(intptr_t)affinityMask, (BOOL)verbose );
+}
+
+#else
+
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SetProcessThreadsAffinityMask0
+  (JNIEnv *env, jclass unused, long affinityMask, jboolean verbose)
+{
+}
+
+#endif
