@@ -322,10 +322,10 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             }
         }
         if(null != tFBO) {
-            throw new GLException("GLFBODrawableImpl.reset(..) FBObject.reset(..) exception", tFBO);
+            throw GLException.newGLException(tFBO);
         }
         if(null != tGL) {
-            throw new GLException("GLFBODrawableImpl.reset(..) GLContext.release() exception", tGL);
+            throw GLException.newGLException(tGL);
         }
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.reset(newSamples "+newSamples+"): END "+this);

@@ -511,15 +511,24 @@ public class GLDrawableHelper {
    * </p>
    * @param autoDrawable
    * @return the disposal count
+   * @throws GLException caused by {@link GLEventListener#dispose(GLAutoDrawable)}
    */
-  public final int disposeAllGLEventListener(final GLAutoDrawable autoDrawable, final boolean remove) {
+  public final int disposeAllGLEventListener(final GLAutoDrawable autoDrawable, final boolean remove) throws GLException {
+    Throwable firstCaught = null;
     int disposeCount = 0;
     synchronized(listenersLock) {
         if( remove ) {
             for (int count = listeners.size(); 0 < count && 0 < listeners.size(); count--) {
               final GLEventListener listener = listeners.remove(0);
               if( !listenersToBeInit.remove(listener) ) {
-                  listener.dispose(autoDrawable);
+                  try {
+                      listener.dispose(autoDrawable);
+                  } catch (final Throwable t) {
+                      if( null == firstCaught ) {
+                          firstCaught = t;
+                      }
+                      GLException.dumpThrowable(t);
+                  }
                   disposeCount++;
               }
             }
@@ -527,12 +536,22 @@ public class GLDrawableHelper {
             for (int i = 0; i < listeners.size(); i++) {
               final GLEventListener listener = listeners.get(i);
               if( !listenersToBeInit.contains(listener) ) {
-                  listener.dispose(autoDrawable);
+                  try {
+                      listener.dispose(autoDrawable);
+                  } catch (final Throwable t) {
+                      if( null == firstCaught ) {
+                          firstCaught = t;
+                      }
+                      GLException.dumpThrowable(t);
+                  }
                   listenersToBeInit.add(listener);
                   disposeCount++;
               }
             }
         }
+    }
+    if( null != firstCaught ) {
+        throw GLException.newGLException(firstCaught);
     }
     return disposeCount;
   }
@@ -1048,8 +1067,7 @@ public class GLDrawableHelper {
             try {
                 forceNativeRelease(context);
             } catch (final Throwable ex) {
-                ex.printStackTrace();
-                throw new GLException(ex);
+                throw GLException.newGLException(ex);
             }
         }
         exclusiveContextThread = t;
@@ -1105,8 +1123,8 @@ public class GLDrawableHelper {
                              final Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
-            final Exception e = new GLException(getThreadName()+" Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
-            e.printStackTrace();
+            final Exception e = new GLException("Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
+            GLException.dumpThrowable(e);
         }
         return;
     }
@@ -1131,9 +1149,11 @@ public class GLDrawableHelper {
    * @param autoDrawable
    * @param context
    * @param destroyContext destroy context in the end while holding the lock
+   * @throws GLException caused by {@link GLEventListener#dispose(GLAutoDrawable)} or context closing
+   *
    */
   public final void disposeGL(final GLAutoDrawable autoDrawable,
-                              final GLContext context, final boolean destroyContext) {
+                              final GLContext context, final boolean destroyContext) throws GLException {
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     GLContext lastContext = GLContext.getCurrent();
@@ -1148,15 +1168,22 @@ public class GLDrawableHelper {
         }
     }
 
+    GLException disposeCaught = null;
+    Throwable contextCloseCaught = null;
+
     int res;
     try {
       res = context.makeCurrent();
       if (GLContext.CONTEXT_NOT_CURRENT != res) {
         if(GLContext.CONTEXT_CURRENT_NEW == res) {
-            throw new GLException(getThreadName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
+            throw new GLException(GLDrawableHelper.getThreadName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
         }
         if( listeners.size() > 0 && null != autoDrawable ) {
-            disposeAllGLEventListener(autoDrawable, false);
+            try {
+                disposeAllGLEventListener(autoDrawable, false);
+            } catch(final GLException t) {
+                disposeCaught = t;
+            }
         }
       }
     } finally {
@@ -1167,15 +1194,21 @@ public class GLDrawableHelper {
               forceNativeRelease(context);
           }
           flushGLRunnables();
-      } catch (final Exception e) {
-          System.err.println("Caught exception on thread "+getThreadName());
-          e.printStackTrace();
+      } catch (final Throwable t) {
+          GLException.dumpThrowable(t);
+          contextCloseCaught = t;
       }
       if (lastContext != null) {
         final int res2 = lastContext.makeCurrent();
         if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
           lastInitAction.run();
         }
+      }
+      if( null != disposeCaught ) {
+          throw disposeCaught;
+      }
+      if( null != contextCloseCaught ) {
+          throw GLException.newGLException(contextCloseCaught);
       }
     }
   }
@@ -1185,6 +1218,9 @@ public class GLDrawableHelper {
           final Runnable  runnable,
           final Runnable  initAction) {
       final Thread currentThread = Thread.currentThread();
+
+      Throwable glEventListenerCaught = null;
+      Throwable contextReleaseCaught = null;
 
       // Exclusive Cases:
       //   1: lock - unlock  : default
@@ -1243,6 +1279,9 @@ public class GLDrawableHelper {
                   if ( autoSwapBufferMode ) {
                       drawable.swapBuffers();
                   }
+              } catch (final Throwable t) {
+                  GLException.dumpThrowable(t);
+                  glEventListenerCaught = t;
               } finally {
                   if( _releaseExclusiveThread ) {
                       exclusiveContextThread = null;
@@ -1253,9 +1292,9 @@ public class GLDrawableHelper {
                   if( releaseContext ) {
                       try {
                           context.release();
-                      } catch (final Exception e) {
-                          System.err.println("Caught exception on thread "+getThreadName());
-                          e.printStackTrace();
+                      } catch (final Throwable t) {
+                          GLException.dumpThrowable(t);
+                          contextReleaseCaught = t;
                       }
                   }
               }
@@ -1267,6 +1306,12 @@ public class GLDrawableHelper {
                   lastInitAction.run();
               }
           }
+          if( null != glEventListenerCaught ) {
+              throw GLException.newGLException(glEventListenerCaught);
+          }
+          if( null != contextReleaseCaught ) {
+              throw GLException.newGLException(contextReleaseCaught);
+          }
       }
   }
 
@@ -1275,6 +1320,9 @@ public class GLDrawableHelper {
           final Runnable  runnable,
           final Runnable  initAction) {
       final Thread currentThread = Thread.currentThread();
+
+      Throwable glEventListenerCaught = null;
+      Throwable contextReleaseCaught = null;
 
       // Exclusive Cases:
       //   1: lock - unlock  : default
@@ -1347,6 +1395,9 @@ public class GLDrawableHelper {
                       tdX = System.currentTimeMillis();
                       tdS = tdX - tdS; // swapBuffers
                   }
+              } catch (final Throwable t) {
+                  GLException.dumpThrowable(t);
+                  glEventListenerCaught = t;
               } finally {
                   if( _releaseExclusiveThread ) {
                       exclusiveContextSwitch = 0;
@@ -1359,9 +1410,9 @@ public class GLDrawableHelper {
                       try {
                           context.release();
                           ctxReleased = true;
-                      } catch (final Exception e) {
-                          System.err.println("Caught exception on thread "+getThreadName());
-                          e.printStackTrace();
+                      } catch (final Throwable t) {
+                          GLException.dumpThrowable(t);
+                          contextReleaseCaught = t;
                       }
                   }
               }
@@ -1374,11 +1425,16 @@ public class GLDrawableHelper {
                   lastInitAction.run();
               }
           }
+          if( null != glEventListenerCaught ) {
+              throw GLException.newGLException(glEventListenerCaught);
+          }
+          if( null != contextReleaseCaught ) {
+              throw GLException.newGLException(contextReleaseCaught);
+          }
       }
       final long td = System.currentTimeMillis() - t0;
       System.err.println("td0 "+td+"ms, fps "+(1.0/(td/1000.0))+", td-makeCurrent: "+tdA+"ms, td-render "+tdR+"ms, td-swap "+tdS+"ms, td-release "+tdX+"ms, ctx claimed: "+ctxClaimed+", ctx release: "+ctxReleased+", ctx destroyed "+ctxDestroyed);
   }
 
   protected static String getThreadName() { return Thread.currentThread().getName(); }
-
 }

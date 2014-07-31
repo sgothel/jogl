@@ -475,6 +475,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLException01NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
@@ -538,7 +539,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext12FPSAnimNEWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch02NEWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch02AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch02AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch10NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*

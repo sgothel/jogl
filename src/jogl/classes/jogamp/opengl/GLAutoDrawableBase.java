@@ -356,25 +356,48 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             preserveGLStateAtDestroy(false);
             preserveGLEventListenerState();
         }
+
+        GLException exceptionOnDisposeGL = null;
         if( null != context ) {
             if( context.isCreated() ) {
-                // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                // so we can continue with the destruction.
                 try {
                     helper.disposeGL(this, context, true);
                 } catch (final GLException gle) {
-                    gle.printStackTrace();
+                    exceptionOnDisposeGL = gle;
                 }
             }
             context = null;
         }
+
+        final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+        Throwable exceptionOnUnrealize = null;
         if( null != drawable ) {
-            final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-            drawable.setRealized(false);
+            try {
+                drawable.setRealized(false);
+            } catch( final Throwable re ) {
+                exceptionOnUnrealize = re;
+            }
             drawable = null;
+        }
+
+        Throwable exceptionOnDeviceClose = null;
+        try {
             if( ownsDevice ) {
                 device.close();
             }
+        } catch (final Throwable re) {
+            exceptionOnDeviceClose = re;
+        }
+
+        // throw exception in order of occurrence ..
+        if( null != exceptionOnDisposeGL ) {
+            throw exceptionOnDisposeGL;
+        }
+        if( null != exceptionOnUnrealize ) {
+            throw GLException.newGLException(exceptionOnUnrealize);
+        }
+        if( null != exceptionOnDeviceClose ) {
+            throw GLException.newGLException(exceptionOnDeviceClose);
         }
     }
 

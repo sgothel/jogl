@@ -1338,19 +1338,32 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if ( null != backend ) {
             final GLContext _context = backend.getContext();
             final boolean backendDestroy = !backend.isUsingOwnLifecycle();
+
+            GLException exceptionOnDisposeGL = null;
             if( null != _context && _context.isCreated() ) {
-                // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                // so we can continue with the destruction.
                 try {
                     helper.disposeGL(GLJPanel.this, _context, !backendDestroy);
                 } catch (final GLException gle) {
-                    gle.printStackTrace();
+                    exceptionOnDisposeGL = gle;
                 }
             }
+            Throwable exceptionBackendDestroy = null;
             if ( backendDestroy ) {
-                backend.destroy();
+                try {
+                    backend.destroy();
+                } catch( final Throwable re ) {
+                    exceptionBackendDestroy = re;
+                }
                 backend = null;
                 isInitialized = false;
+            }
+
+            // throw exception in order of occurrence ..
+            if( null != exceptionOnDisposeGL ) {
+                throw exceptionOnDisposeGL;
+            }
+            if( null != exceptionBackendDestroy ) {
+                throw GLException.newGLException(exceptionBackendDestroy);
             }
         }
     }

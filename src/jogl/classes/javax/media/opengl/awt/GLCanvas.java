@@ -1232,32 +1232,46 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 animatorPaused = false;
             }
 
+            GLException exceptionOnDisposeGL = null;
+
             // OLS will be detached by disposeGL's context destruction below
             if( null != context ) {
                 if( context.isCreated() ) {
-                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                    // so we can continue with the destruction.
                     try {
                         helper.disposeGL(GLCanvas.this, context, true);
                         if(DEBUG) {
                             System.err.println(getThreadName()+": destroyOnEDTAction() - post ctx: "+context);
                         }
                     } catch (final GLException gle) {
-                        gle.printStackTrace();
+                        exceptionOnDisposeGL = gle;
                     }
                 }
                 context = null;
             }
+
+            Throwable exceptionOnUnrealize = null;
             if( null != drawable ) {
-                drawable.setRealized(false);
-                if(DEBUG) {
-                    System.err.println(getThreadName()+": destroyOnEDTAction() - post drawable: "+drawable);
+                try {
+                    drawable.setRealized(false);
+                    if(DEBUG) {
+                        System.err.println(getThreadName()+": destroyOnEDTAction() - post drawable: "+drawable);
+                    }
+                } catch( final Throwable re ) {
+                    exceptionOnUnrealize = re;
                 }
                 drawable = null;
             }
 
             if(animatorPaused) {
                 animator.resume();
+            }
+
+            // throw exception in order of occurrence ..
+            if( null != exceptionOnDisposeGL ) {
+                throw exceptionOnDisposeGL;
+            }
+            if( null != exceptionOnUnrealize ) {
+                throw GLException.newGLException(exceptionOnUnrealize);
             }
 
             if(DEBUG) {

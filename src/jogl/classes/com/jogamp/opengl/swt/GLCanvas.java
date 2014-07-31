@@ -205,10 +205,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                  animatorPaused = false;
              }
 
-             if ( null != context ) {
+             GLException exceptionOnDisposeGL = null;
+             if( null != context ) {
                  if( context.isCreated() ) {
-                     // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                     // so we can continue with the destruction.
                      try {
                          if( !GLCanvas.this.isDisposed() ) {
                              helper.disposeGL(GLCanvas.this, context, true);
@@ -216,28 +215,50 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                              context.destroy();
                          }
                      } catch (final GLException gle) {
-                         gle.printStackTrace();
+                         exceptionOnDisposeGL = gle;
                      }
                  }
                  context = null;
              }
-             if ( null != drawable ) {
-                 drawable.setRealized(false);
+
+             Throwable exceptionOnUnrealize = null;
+             if( null != drawable ) {
+                 try {
+                     drawable.setRealized(false);
+                 } catch( final Throwable re ) {
+                     exceptionOnUnrealize = re;
+                 }
                  drawable = null;
              }
-             if( 0 != x11Window) {
-                 SWTAccessor.destroyX11Window(screen.getDevice(), x11Window);
-                 x11Window = 0;
-             } else if( 0 != gdkWindow) {
-                 SWTAccessor.destroyGDKWindow(gdkWindow);
-                 gdkWindow = 0;
+
+             Throwable exceptionOnDeviceClose = null;
+             try {
+                 if( 0 != x11Window) {
+                     SWTAccessor.destroyX11Window(screen.getDevice(), x11Window);
+                     x11Window = 0;
+                 } else if( 0 != gdkWindow) {
+                     SWTAccessor.destroyGDKWindow(gdkWindow);
+                     gdkWindow = 0;
+                 }
+                 screen.getDevice().close();
+             } catch (final Throwable re) {
+                 exceptionOnDeviceClose = re;
              }
-             screen.getDevice().close();
 
              if (animatorPaused) {
                  animator.resume();
              }
 
+             // throw exception in order of occurrence ..
+             if( null != exceptionOnDisposeGL ) {
+                 throw exceptionOnDisposeGL;
+             }
+             if( null != exceptionOnUnrealize ) {
+                 throw GLException.newGLException(exceptionOnUnrealize);
+             }
+             if( null != exceptionOnDeviceClose ) {
+                 throw GLException.newGLException(exceptionOnDeviceClose);
+             }
          } finally {
              _lock.unlock();
          }
