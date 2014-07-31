@@ -369,24 +369,23 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             context = null;
         }
 
-        final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
         Throwable exceptionOnUnrealize = null;
+        Throwable exceptionOnDeviceClose = null;
         if( null != drawable ) {
+            final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
             try {
                 drawable.setRealized(false);
             } catch( final Throwable re ) {
                 exceptionOnUnrealize = re;
             }
             drawable = null;
-        }
-
-        Throwable exceptionOnDeviceClose = null;
-        try {
-            if( ownsDevice ) {
-                device.close();
+            try {
+                if( ownsDevice ) {
+                    device.close();
+                }
+            } catch (final Throwable re) {
+                exceptionOnDeviceClose = re;
             }
-        } catch (final Throwable re) {
-            exceptionOnDeviceClose = re;
         }
 
         // throw exception in order of occurrence ..
