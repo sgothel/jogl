@@ -78,6 +78,7 @@ import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
@@ -111,7 +112,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
    * or because the driver's worker thread is bound to the same CPU.
    * </p>
    * <p>
-   * Property integer value <code>jogl.debug.windows.cpu_affinity_mode</code>:
+   * Property integer value <code>jogl.windows.cpu_affinity_mode</code>:
    * <ul>
    *   <li>0 - none (no affinity, may cause driver crash with 'Threaded optimization' = ['auto', 'on'])</li>
    *   <li>1 - process affinity (default, workaround for driver crash for 'Threaded optimization' = 'auto', still crashes if set to 'on')</li>
@@ -122,7 +123,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
    * (don't ask why ..)
    * </p>
    */
-  private static final int CPU_AFFINITY_MODE = Debug.getIntProperty("jogl.debug.windows.cpu_affinity_mode", true, 1);
+  private static final int CPU_AFFINITY_MODE;
+
+  static {
+      Debug.initSingleton();
+      CPU_AFFINITY_MODE = PropertyAccess.getIntProperty("jogl.windows.cpu_affinity_mode", true, 1);
+  }
 
   private static DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper = null;
 
