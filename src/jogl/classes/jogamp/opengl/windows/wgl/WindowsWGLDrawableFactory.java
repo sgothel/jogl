@@ -386,6 +386,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
             if (null != sr.context) {
                 // may cause JVM SIGSEGV: sharedContext.destroy();
+                sr.context.destroy(); // will also pull the dummy MutableSurface
                 sr.context = null;
             }
 
