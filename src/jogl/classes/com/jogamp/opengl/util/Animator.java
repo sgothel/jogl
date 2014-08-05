@@ -132,6 +132,8 @@ public class Animator extends AnimatorBase {
 
         @Override
         public void run() {
+            GLException displayCaught = null;
+
             try {
                 synchronized (Animator.this) {
                     if(DEBUG) {
@@ -158,7 +160,14 @@ public class Animator extends AnimatorBase {
                             if ( exclusiveContext && !drawablesEmpty && !ectCleared ) {
                                 ectCleared = true;
                                 setDrawablesExclCtxState(false);
-                                display(); // propagate exclusive change!
+                                try {
+                                    display(); // propagate exclusive change!
+                                } catch (final Throwable t) {
+                                    displayCaught = GLException.newGLException(t);
+                                    stopIssued = true;
+                                    isAnimating = false;
+                                    break; // end pause loop
+                                }
                             }
                             isAnimating = false;
                             Animator.this.notifyAll();
@@ -185,7 +194,14 @@ public class Animator extends AnimatorBase {
                         }
                     } // sync Animator.this
                     if (!stopIssued) {
-                        display();
+                        try {
+                            display();
+                        } catch (final Throwable t) {
+                            displayCaught = GLException.newGLException(t);
+                            stopIssued = true;
+                            isAnimating = false;
+                            break; // end animation loop
+                        }
                     }
                     if (!stopIssued && !runAsFastAsPossible) {
                         // Avoid swamping the CPU
@@ -201,16 +217,32 @@ public class Animator extends AnimatorBase {
                 if( exclusiveContext && !drawablesEmpty ) {
                     setDrawablesExclCtxState(false);
                     display(); // propagate exclusive change!
+                    try {
+                        display(); // propagate exclusive change!
+                    } catch (final Throwable t) {
+                        if( null == displayCaught ) {
+                            displayCaught = GLException.newGLException(t);
+                        } else {
+                            GLException.newGLException(t).printStackTrace();
+                        }
+                    }
                 }
                 synchronized (Animator.this) {
                     if(DEBUG) {
                         System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
+                        if( null != displayCaught ) {
+                            System.err.println("Animator caught: "+displayCaught.getMessage());
+                            displayCaught.printStackTrace();
+                        }
                     }
                     stopIssued = false;
                     pauseIssued = false;
                     animThread = null;
                     isAnimating = false;
                     Animator.this.notifyAll();
+                    if( null != displayCaught ) {
+                        throw displayCaught;
+                    }
                 }
             }
         }

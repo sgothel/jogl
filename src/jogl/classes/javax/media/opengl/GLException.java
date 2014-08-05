@@ -66,8 +66,10 @@ public class GLException extends RuntimeException {
     super(cause);
   }
 
-  /** Constructs a GLException object with the specified root
-      cause with a decorating message including the current thread name. */
+  /**
+   * Constructs a GLException object with the specified root
+   * cause with a decorating message including the current thread name.
+   */
   public static GLException newGLException(final Throwable t) {
       return new GLException("Caught "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName(), t);
   }
