@@ -304,6 +304,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * Sets the size of the window's surface in pixel units which claims the window's client area excluding decorations.
      *
      * <p>
+     * In multiple monitor mode, setting the window's surface size in pixel units
+     * might not be possible due to unknown <i>scale</i> values of the target display.
+     * Hence re-setting the pixel unit size after window creation is recommended.
+     * </p>
+     * <p>
      * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
      * <pre>
      * if ( visible && 0 != windowHandle && ( 0 &ge; width || 0 &ge; height ) ) {
