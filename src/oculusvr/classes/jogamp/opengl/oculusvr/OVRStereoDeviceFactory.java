@@ -37,7 +37,10 @@ import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 public class OVRStereoDeviceFactory extends StereoDeviceFactory {
 
     public static boolean isAvailable() {
-        return OVR.ovr_Initialize(); // recursive ..
+        if( OVR.ovr_Initialize() ) { // recursive ..
+            return 0 < OVR.ovrHmd_Detect();
+        }
+        return false;
     }
 
     @Override
