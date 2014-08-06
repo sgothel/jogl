@@ -526,8 +526,9 @@ public class GLDrawableHelper {
                   } catch (final Throwable t) {
                       if( null == firstCaught ) {
                           firstCaught = t;
+                      } else {
+                          GLException.dumpThrowable("subsequent", t);
                       }
-                      GLException.dumpThrowable(t);
                   }
                   disposeCount++;
               }
@@ -541,8 +542,9 @@ public class GLDrawableHelper {
                   } catch (final Throwable t) {
                       if( null == firstCaught ) {
                           firstCaught = t;
+                      } else {
+                          GLException.dumpThrowable("subsequent", t);
                       }
-                      GLException.dumpThrowable(t);
                   }
                   listenersToBeInit.add(listener);
                   disposeCount++;
@@ -1125,8 +1127,7 @@ public class GLDrawableHelper {
                              final Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
-            final Exception e = new GLException("Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
-            GLException.dumpThrowable(e);
+            GLException.dumpThrowable("informal", new GLException("Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext"));
         }
         return;
     }
@@ -1196,7 +1197,6 @@ public class GLDrawableHelper {
               forceNativeRelease(context);
           }
       } catch (final Throwable t) {
-          GLException.dumpThrowable(t);
           contextCloseCaught = t;
       }
       flushGLRunnables(); // always flush GLRunnables at dispose
@@ -1208,6 +1208,9 @@ public class GLDrawableHelper {
         }
       }
       if( null != disposeCaught ) {
+          if( null != contextCloseCaught ) {
+              GLException.dumpThrowable("subsequent", contextCloseCaught);
+          }
           throw disposeCaught;
       }
       if( null != contextCloseCaught ) {
@@ -1283,7 +1286,6 @@ public class GLDrawableHelper {
                       drawable.swapBuffers();
                   }
               } catch (final Throwable t) {
-                  GLException.dumpThrowable(t);
                   glEventListenerCaught = t;
               } finally {
                   if( _releaseExclusiveThread ) {
@@ -1296,7 +1298,6 @@ public class GLDrawableHelper {
                       try {
                           context.release();
                       } catch (final Throwable t) {
-                          GLException.dumpThrowable(t);
                           contextReleaseCaught = t;
                       }
                   }
@@ -1311,6 +1312,9 @@ public class GLDrawableHelper {
           }
           if( null != glEventListenerCaught ) {
               flushGLRunnables();
+              if( null != contextReleaseCaught ) {
+                  GLException.dumpThrowable("subsequent", contextReleaseCaught);
+              }
               throw GLException.newGLException(glEventListenerCaught);
           }
           if( null != contextReleaseCaught ) {
@@ -1401,7 +1405,6 @@ public class GLDrawableHelper {
                       tdS = tdX - tdS; // swapBuffers
                   }
               } catch (final Throwable t) {
-                  GLException.dumpThrowable(t);
                   glEventListenerCaught = t;
               } finally {
                   if( _releaseExclusiveThread ) {
@@ -1416,7 +1419,6 @@ public class GLDrawableHelper {
                           context.release();
                           ctxReleased = true;
                       } catch (final Throwable t) {
-                          GLException.dumpThrowable(t);
                           contextReleaseCaught = t;
                       }
                   }
@@ -1432,6 +1434,9 @@ public class GLDrawableHelper {
           }
           if( null != glEventListenerCaught ) {
               flushGLRunnables();
+              if( null != contextReleaseCaught ) {
+                  GLException.dumpThrowable("subsequent", contextReleaseCaught);
+              }
               throw GLException.newGLException(glEventListenerCaught);
           }
           if( null != contextReleaseCaught ) {

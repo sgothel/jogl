@@ -132,7 +132,7 @@ public class Animator extends AnimatorBase {
 
         @Override
         public void run() {
-            GLException displayCaught = null;
+            UncaughtAnimatorException displayCaught = null;
 
             try {
                 synchronized (Animator.this) {
@@ -161,9 +161,9 @@ public class Animator extends AnimatorBase {
                                 ectCleared = true;
                                 setDrawablesExclCtxState(false);
                                 try {
-                                    display(); // propagate exclusive change!
-                                } catch (final Throwable t) {
-                                    displayCaught = GLException.newGLException(t);
+                                    display(); // propagate exclusive context -> off!
+                                } catch (final UncaughtAnimatorException dre) {
+                                    displayCaught = dre;
                                     stopIssued = true;
                                     isAnimating = false;
                                     break; // end pause loop
@@ -189,15 +189,15 @@ public class Animator extends AnimatorBase {
                             // Resume from pause or drawablesEmpty,
                             // implies !pauseIssued and !drawablesEmpty
                             isAnimating = true;
-                            setDrawablesExclCtxState(exclusiveContext);
+                            setDrawablesExclCtxState(exclusiveContext); // may re-enable exclusive context
                             Animator.this.notifyAll();
                         }
                     } // sync Animator.this
                     if (!stopIssued) {
                         try {
                             display();
-                        } catch (final Throwable t) {
-                            displayCaught = GLException.newGLException(t);
+                        } catch (final UncaughtAnimatorException dre) {
+                            displayCaught = dre;
                             stopIssued = true;
                             isAnimating = false;
                             break; // end animation loop
@@ -216,14 +216,13 @@ public class Animator extends AnimatorBase {
             } finally {
                 if( exclusiveContext && !drawablesEmpty ) {
                     setDrawablesExclCtxState(false);
-                    display(); // propagate exclusive change!
                     try {
-                        display(); // propagate exclusive change!
-                    } catch (final Throwable t) {
+                        display(); // propagate exclusive context -> off!
+                    } catch (final UncaughtAnimatorException dre) {
                         if( null == displayCaught ) {
-                            displayCaught = GLException.newGLException(t);
+                            displayCaught = dre;
                         } else {
-                            GLException.newGLException(t).printStackTrace();
+                            dre.printStackTrace();
                         }
                     }
                 }
@@ -237,12 +236,12 @@ public class Animator extends AnimatorBase {
                     }
                     stopIssued = false;
                     pauseIssued = false;
-                    animThread = null;
                     isAnimating = false;
-                    Animator.this.notifyAll();
                     if( null != displayCaught ) {
-                        throw displayCaught;
+                        handleUncaughtException(displayCaught);
                     }
+                    animThread = null;
+                    Animator.this.notifyAll();
                 }
             }
         }

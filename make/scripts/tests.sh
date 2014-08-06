@@ -149,6 +149,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLContext.NoProfileAliasing"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.X11Util -Dnativewindow.debug.NativeWindow -Dnewt.debug.Display -Dnewt.debug.Screen -Dnewt.debug.Window"
+    #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug.Animator -Djogl.debug.GLDrawable -Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLCanvas"

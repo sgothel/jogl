@@ -1059,6 +1059,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public void flushGLRunnables() {
+      helper.flushGLRunnables();
+  }
+
+  @Override
   public GLContext setContext(final GLContext newCtx, final boolean destroyPrevCtx) {
       final RecursiveLock _lock = lock;
       _lock.lock();

@@ -148,6 +148,8 @@ public class FPSAnimator extends AnimatorBase {
 
         @Override
         public void run() {
+            UncaughtAnimatorException displayCaught = null;
+
             if( justStarted ) {
                 justStarted = false;
                 synchronized (FPSAnimator.this) {
@@ -160,7 +162,7 @@ public class FPSAnimator extends AnimatorBase {
                         shouldRun = false; // isAnimating:=false @ pause below
                     } else {
                         shouldRun = true;
-                        setDrawablesExclCtxState(exclusiveContext);
+                        setDrawablesExclCtxState(exclusiveContext); // may re-enable exclusive context
                         FPSAnimator.this.notifyAll();
                     }
                     if(DEBUG) {
@@ -168,32 +170,17 @@ public class FPSAnimator extends AnimatorBase {
                     }
                 }
             }
-            if( shouldRun ) {
-                display();
-            } else if( shouldStop ) { // STOP
-                if(DEBUG) {
-                    System.err.println("FPSAnimator P4: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
+            if( shouldRun && !shouldStop ) { // RUN
+                try {
+                    display();
+                } catch (final UncaughtAnimatorException dre) {
+                    displayCaught = dre;
+                    shouldRun = false;
+                    shouldStop = true;
                 }
-                this.cancel();
-
-                if( !alreadyStopped ) {
-                    alreadyStopped = true;
-                    if( exclusiveContext && !drawablesEmpty ) {
-                        setDrawablesExclCtxState(false);
-                        display(); // propagate exclusive change!
-                    }
-                    synchronized (FPSAnimator.this) {
-                        if(DEBUG) {
-                            System.err.println("FPSAnimator stop " + Thread.currentThread() + ": " + toString());
-                        }
-                        animThread = null;
-                        isAnimating = false;
-                        FPSAnimator.this.notifyAll();
-                    }
-                }
-            } else {
+            } else if( !shouldRun && !shouldStop ) { // PAUSE
                 if(DEBUG) {
-                    System.err.println("FPSAnimator P5: "+alreadyPaused+", "+ Thread.currentThread() + ": " + toString());
+                    System.err.println("FPSAnimator pausing: "+alreadyPaused+", "+ Thread.currentThread() + ": " + toString());
                 }
                 this.cancel();
 
@@ -201,13 +188,58 @@ public class FPSAnimator extends AnimatorBase {
                     alreadyPaused = true;
                     if( exclusiveContext && !drawablesEmpty ) {
                         setDrawablesExclCtxState(false);
-                        display(); // propagate exclusive change!
+                        try {
+                            display(); // propagate exclusive context -> off!
+                        } catch (final UncaughtAnimatorException dre) {
+                            displayCaught = dre;
+                            shouldRun = false;
+                            shouldStop = true;
+                        }
+                    }
+                    if( null == displayCaught ) {
+                        synchronized (FPSAnimator.this) {
+                            if(DEBUG) {
+                                System.err.println("FPSAnimator pause " + Thread.currentThread() + ": " + toString());
+                            }
+                            isAnimating = false;
+                            FPSAnimator.this.notifyAll();
+                        }
+                    }
+                }
+            }
+            if( shouldStop ) { // STOP
+                if(DEBUG) {
+                    System.err.println("FPSAnimator stopping: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
+                }
+                this.cancel();
+
+                if( !alreadyStopped ) {
+                    alreadyStopped = true;
+                    if( exclusiveContext && !drawablesEmpty ) {
+                        setDrawablesExclCtxState(false);
+                        try {
+                            display(); // propagate exclusive context -> off!
+                        } catch (final UncaughtAnimatorException dre) {
+                            if( null == displayCaught ) {
+                                displayCaught = dre;
+                            } else {
+                                dre.printStackTrace();
+                            }
+                        }
                     }
                     synchronized (FPSAnimator.this) {
                         if(DEBUG) {
-                            System.err.println("FPSAnimator pause " + Thread.currentThread() + ": " + toString());
+                            System.err.println("FPSAnimator stop " + Thread.currentThread() + ": " + toString());
+                            if( null != displayCaught ) {
+                                System.err.println("AnimatorBase.setExclusiveContextThread: caught: "+displayCaught.getMessage());
+                                displayCaught.printStackTrace();
+                            }
                         }
                         isAnimating = false;
+                        if( null != displayCaught ) {
+                            handleUncaughtException(displayCaught);
+                        }
+                        animThread = null;
                         FPSAnimator.this.notifyAll();
                     }
                 }

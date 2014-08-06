@@ -201,6 +201,7 @@ public interface GLDrawable extends NativeSurfaceHolder {
       </p>
       @return The immutable queried instance.
       @see #getChosenGLCapabilities()
+      @since 2.2
     */
   public GLCapabilitiesImmutable getRequestedGLCapabilities();
 

@@ -69,14 +69,18 @@ public class GLException extends RuntimeException {
   /**
    * Constructs a GLException object with the specified root
    * cause with a decorating message including the current thread name.
+   * @since 2.2
    */
   public static GLException newGLException(final Throwable t) {
       return new GLException("Caught "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName(), t);
   }
 
-  /** Dumps a Throwable in a decorating message including the current thread name, and stack trace. */
-  public static void dumpThrowable(final Throwable t) {
-      System.err.println("Caught "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
+  /**
+   * Dumps a Throwable in a decorating message including the current thread name, and stack trace.
+   * @since 2.2
+   */
+  public static void dumpThrowable(final String additionalDescr, final Throwable t) {
+      System.err.println("Caught "+additionalDescr+" "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
       t.printStackTrace();
   }
 }

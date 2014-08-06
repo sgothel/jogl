@@ -90,8 +90,10 @@ public class GLRunnableTask implements GLRunnable {
 
     /**
      * Simply flush this task and notify a waiting executor.
+     * <p>
      * The executor which might have been blocked until notified
      * will be unblocked and the task removed from the queue.
+     * </p>
      *
      * @see #isFlushed()
      * @see #isInQueue()

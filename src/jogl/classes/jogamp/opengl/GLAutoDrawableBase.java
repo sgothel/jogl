@@ -279,7 +279,13 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             shallClose = true;
         }
         if( shallClose ) {
-            destroyAvoidAwareOfLocking();
+            try {
+                destroyAvoidAwareOfLocking();
+            } catch( final Throwable t ) {
+                // Intentionally catch and ignore exception,
+                // so the destroy mechanism of the native windowing system is not corrupted!
+                GLException.dumpThrowable("ignored", t);
+            }
         }
     }
 
@@ -599,6 +605,11 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     @Override
     public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) throws IllegalStateException {
         return helper.invoke(this, wait, glRunnables);
+    }
+
+    @Override
+    public void flushGLRunnables() {
+        helper.flushGLRunnables();
     }
 
     @Override

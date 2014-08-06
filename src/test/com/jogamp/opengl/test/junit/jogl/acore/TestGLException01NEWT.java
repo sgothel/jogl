@@ -28,6 +28,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.jogamp.newt.opengl.GLWindow;
@@ -36,10 +38,12 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -51,6 +55,19 @@ import org.junit.runners.MethodSorters;
 public class TestGLException01NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
+
+    @SuppressWarnings("serial")
+    static class AnimException extends RuntimeException {
+        final Thread thread;
+        final GLAnimatorControl animator;
+        final GLAutoDrawable drawable;
+        public AnimException(final Thread thread, final GLAnimatorControl animator, final GLAutoDrawable drawable, final Throwable cause) {
+            super(cause);
+            this.thread = thread;
+            this.animator = animator;
+            this.drawable = drawable;
+        }
+    }
 
     @BeforeClass
     public static void initClass() {
@@ -67,72 +84,129 @@ public class TestGLException01NEWT extends UITestCase {
 
     protected void runTestGL(final GLCapabilities caps, final boolean onThread,
                              final boolean throwInInit, final boolean throwInDisplay,
-                             final boolean throwInReshape, final boolean throwInDispose) throws InterruptedException {
+                             final boolean throwInReshape, final boolean throwInInvoke,
+                             final boolean throwInDispose) throws InterruptedException {
         final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("NEWT Exception Test");
+        glWindow.setTitle(getTestMethodName());
         final GearsES2 demo1 = new GearsES2();
         demo1.setVerbose(false);
         glWindow.addGLEventListener(demo1);
-        final AtomicInteger initCount = new AtomicInteger();
-        final AtomicInteger disposeCount = new AtomicInteger();
-        final AtomicInteger displayCount = new AtomicInteger();
-        final AtomicInteger reshapeCount = new AtomicInteger();
+        final AtomicInteger cleanInitCount = new AtomicInteger();
+        final AtomicInteger cleanDisposeCount = new AtomicInteger();
+        final AtomicInteger cleanDisplayCount = new AtomicInteger();
+        final AtomicInteger cleanReshapeCount = new AtomicInteger();
+        final AtomicInteger cleanInvokeCount = new AtomicInteger();
+        final AtomicInteger allInitCount = new AtomicInteger();
+        final AtomicInteger allDisposeCount = new AtomicInteger();
+        final AtomicInteger allDisplayCount = new AtomicInteger();
+        final AtomicInteger allReshapeCount = new AtomicInteger();
+        final AtomicInteger allInvokeCount = new AtomicInteger();
         final AtomicInteger exceptionSent = new AtomicInteger();
 
         glWindow.addGLEventListener(new GLEventListener() {
             @Override
             public void init(final GLAutoDrawable drawable) {
-                if( throwInInit && 0 == exceptionSent.get() ) {
+                if( throwInInit ) {
                     exceptionSent.incrementAndGet();
-                    throw new RuntimeException("Injected GLEventListener exception in init");
+                    throw new RuntimeException("<Injected GLEventListener exception in init: #"+exceptionSent.get()+" on thread "+Thread.currentThread().getName()+">");
                 }
             }
             @Override
             public void dispose(final GLAutoDrawable drawable) {
-                if( throwInDispose && 0 == exceptionSent.get() ) {
+                if( throwInDispose ) {
                     exceptionSent.incrementAndGet();
-                    throw new RuntimeException("Injected GLEventListener exception in dispose");
+                    throw new RuntimeException("<Injected GLEventListener exception in dispose: #"+exceptionSent.get()+" on thread "+Thread.currentThread().getName()+">");
                 }
             }
             @Override
             public void display(final GLAutoDrawable drawable) {
-                if( throwInDisplay && 0 == exceptionSent.get() ) {
+                if( throwInDisplay ) {
                     exceptionSent.incrementAndGet();
-                    throw new RuntimeException("Injected GLEventListener exception in display");
+                    throw new RuntimeException("<Injected GLEventListener exception in display: #"+exceptionSent.get()+" on thread "+Thread.currentThread().getName()+">");
                 }
             }
             @Override
             public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-                if( throwInReshape && 0 == exceptionSent.get() ) {
+                if( throwInReshape ) {
                     exceptionSent.incrementAndGet();
-                    throw new RuntimeException("Injected GLEventListener exception in reshape");
+                    throw new RuntimeException("<Injected GLEventListener exception in reshape: #"+exceptionSent.get()+" on thread "+Thread.currentThread().getName()+">");
                 }
             }
         });
+        final GLRunnable glRunnableInject = new GLRunnable() {
+            @Override
+            public boolean run(final GLAutoDrawable drawable) {
+                if( throwInInvoke ) {
+                    exceptionSent.incrementAndGet();
+                    throw new RuntimeException("<Injected GLEventListener exception in invoke: #"+exceptionSent.get()+" on thread "+Thread.currentThread().getName()+">");
+                }
+                return true;
+            }
+        };
+        final GLRunnable glRunnableCount = new GLRunnable() {
+            @Override
+            public boolean run(final GLAutoDrawable drawable) {
+                if( 0 == exceptionSent.get() ) {
+                    cleanInvokeCount.incrementAndGet();
+                }
+                allInvokeCount.incrementAndGet();
+                return true;
+            }
+        };
+
         glWindow.addGLEventListener(new GLEventListener() {
             @Override
             public void init(final GLAutoDrawable drawable) {
-                initCount.incrementAndGet();
+                if( 0 == exceptionSent.get() ) {
+                    cleanInitCount.incrementAndGet();
+                }
+                allInitCount.incrementAndGet();
             }
             @Override
             public void dispose(final GLAutoDrawable drawable) {
-                disposeCount.incrementAndGet();
+                if( 0 == exceptionSent.get() ) {
+                    cleanDisposeCount.incrementAndGet();
+                }
+                allDisposeCount.incrementAndGet();
             }
             @Override
             public void display(final GLAutoDrawable drawable) {
-                displayCount.incrementAndGet();
+                if( 0 == exceptionSent.get() ) {
+                    cleanDisplayCount.incrementAndGet();
+                }
+                allDisplayCount.incrementAndGet();
             }
             @Override
             public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-                reshapeCount.incrementAndGet();
+                if( 0 == exceptionSent.get() ) {
+                    cleanReshapeCount.incrementAndGet();
+                }
+                allReshapeCount.incrementAndGet();
             }
         });
 
-        RuntimeException execptionAtInitReshapeDisplay = null;
-        RuntimeException execptionAtDispose = null;
+        RuntimeException exceptionAtInitReshapeDisplay = null;
+        RuntimeException exceptionAtInvoke = null;
+        RuntimeException exceptionAtDispose = null;
+        final List<AnimException> exceptionsAtGLAnimatorControl = new ArrayList<AnimException>();
+        final GLAnimatorControl.UncaughtGLAnimatorExceptionHandler uncaughtGLAnimatorExceptionHandler;
 
-        final Animator animator = !onThread ? new Animator(glWindow) : null;
+        final Animator animator;
+        if( onThread ) {
+            animator = null;
+            uncaughtGLAnimatorExceptionHandler = null;
+        } else {
+            animator = new Animator(glWindow);
+            uncaughtGLAnimatorExceptionHandler = new GLAnimatorControl.UncaughtGLAnimatorExceptionHandler() {
+                @Override
+                public void uncaughtException(final GLAnimatorControl animator, final GLAutoDrawable drawable, final Throwable cause) {
+                    final AnimException ae = new AnimException(animator.getThread(), animator, drawable, cause);
+                    exceptionsAtGLAnimatorControl.add(ae);
+                    dumpThrowable(ae);
+                } };
+            animator.setUncaughtExceptionHandler(uncaughtGLAnimatorExceptionHandler);
+        }
 
         glWindow.setSize(width, height);
 
@@ -143,7 +217,15 @@ public class TestGLException01NEWT extends UITestCase {
         try {
             glWindow.setVisible(true);
         } catch (final RuntimeException re) {
-            execptionAtInitReshapeDisplay = re;
+            exceptionAtInitReshapeDisplay = re;
+            dumpThrowable(re);
+        }
+
+        try {
+            glWindow.invoke(true, glRunnableInject);
+            glWindow.invoke(true, glRunnableCount);
+        } catch (final RuntimeException re) {
+            exceptionAtInvoke = re;
             dumpThrowable(re);
         }
 
@@ -154,7 +236,7 @@ public class TestGLException01NEWT extends UITestCase {
                 try {
                     glWindow.display();
                 } catch (final RuntimeException re) {
-                    execptionAtInitReshapeDisplay = re;
+                    exceptionAtInitReshapeDisplay = re;
                     dumpThrowable(re);
                 }
             }
@@ -168,23 +250,81 @@ public class TestGLException01NEWT extends UITestCase {
         try {
             glWindow.destroy();
         } catch (final RuntimeException re) {
-            execptionAtDispose = re;
+            exceptionAtDispose = re;
             dumpThrowable(re);
         }
 
-        if( throwInInit || throwInReshape || throwInDisplay || throwInDispose ) {
-            Assert.assertEquals("Not one exception sent", 1, exceptionSent.get());
+        final boolean onAnimThread = !onThread && !throwInDispose; /** dispose happens on [AWT|NEWT] EDT, not on animator thread! */
+
+        System.err.println("This-Thread                     : "+onThread);
+        System.err.println("Anim-Thread                     : "+onAnimThread);
+        System.err.println("ExceptionSent                   : "+exceptionSent.get());
+        System.err.println("Exception @ Init/Reshape/Display: "+(null != exceptionAtInitReshapeDisplay));
+        System.err.println("Exception @ Invoke              : "+(null != exceptionAtInvoke));
+        System.err.println("Exception @ Dispose             : "+(null != exceptionAtDispose));
+        System.err.println("Exception @ GLAnimatorControl   : "+exceptionsAtGLAnimatorControl.size());
+        System.err.println("Init Count                      : "+cleanInitCount.get()+" / "+allInitCount.get());
+        System.err.println("Reshape Count                   : "+cleanReshapeCount.get()+" / "+allReshapeCount.get());
+        System.err.println("Display Count                   : "+cleanDisplayCount.get()+" / "+allDisplayCount.get());
+        System.err.println("Invoke Count                    : "+cleanInvokeCount.get()+" / "+allInvokeCount.get());
+        System.err.println("Dispose Count                   : "+cleanDisposeCount.get()+" / "+allDisposeCount.get());
+
+        if( throwInInit || throwInReshape || throwInDisplay || throwInDispose || throwInInvoke ) {
+            Assert.assertTrue("Not one exception sent, but "+exceptionSent.get(), 0 < exceptionSent.get());
+            if( onAnimThread ) {
+                Assert.assertEquals("No exception forwarded from init to animator-handler", 1, exceptionsAtGLAnimatorControl.size());
+                Assert.assertNull("Exception forwarded from init, on-thread", exceptionAtInitReshapeDisplay);
+            }
             if( throwInInit ) {
-                Assert.assertNotNull("No exception forwarded from init", execptionAtInitReshapeDisplay);
-            }
-            if( throwInReshape ) {
-                Assert.assertNotNull("No exception forwarded from reshape", execptionAtInitReshapeDisplay);
-            }
-            if( throwInDisplay ) {
-                Assert.assertNotNull("No exception forwarded from display", execptionAtInitReshapeDisplay);
-            }
-            if( throwInDispose ) {
-                Assert.assertNotNull("No exception forwarded from dispose", execptionAtDispose);
+                if( !onAnimThread ) {
+                    Assert.assertNotNull("No exception forwarded from init, on-thread", exceptionAtInitReshapeDisplay);
+                    Assert.assertEquals("Exception forwarded from init to animator-handler", 0, exceptionsAtGLAnimatorControl.size());
+                }
+                Assert.assertEquals("Init Count", 0, cleanInitCount.get());
+                Assert.assertEquals("Reshape Count", 0, cleanReshapeCount.get());
+                Assert.assertEquals("Display Count", 0, cleanDisplayCount.get());
+                Assert.assertEquals("Invoke Count", 0, cleanInvokeCount.get());
+                Assert.assertEquals("Dispose Count", 0, cleanDisposeCount.get());
+            } else if( throwInReshape ) {
+                if( !onAnimThread ) {
+                    Assert.assertNotNull("No exception forwarded from reshape, on-thread", exceptionAtInitReshapeDisplay);
+                    Assert.assertEquals("Exception forwarded from init to animator-handler", 0, exceptionsAtGLAnimatorControl.size());
+                }
+                Assert.assertEquals("Init Count", 1, cleanInitCount.get());
+                Assert.assertEquals("Reshape Count", 0, cleanReshapeCount.get());
+                Assert.assertEquals("Display Count", 0, cleanDisplayCount.get());
+                Assert.assertEquals("Invoke Count", 0, cleanInvokeCount.get());
+                Assert.assertEquals("Dispose Count", 0, cleanDisposeCount.get());
+            } else if( throwInDisplay ) {
+                if( !onAnimThread ) {
+                    Assert.assertNotNull("No exception forwarded from display, on-thread", exceptionAtInitReshapeDisplay);
+                    Assert.assertEquals("Exception forwarded from init to animator-handler", 0, exceptionsAtGLAnimatorControl.size());
+                }
+                Assert.assertEquals("Init Count", 1, cleanInitCount.get());
+                Assert.assertEquals("Reshape Count", 1, cleanReshapeCount.get());
+                Assert.assertEquals("Display Count", 0, cleanDisplayCount.get());
+                Assert.assertEquals("Invoke Count", 0, cleanInvokeCount.get());
+                Assert.assertEquals("Dispose Count", 0, cleanDisposeCount.get());
+            } else if( throwInInvoke ) {
+                if( !onAnimThread ) {
+                    Assert.assertNotNull("No exception forwarded from invoke, on-thread", exceptionAtInvoke);
+                    Assert.assertEquals("Exception forwarded from init to animator-handler", 0, exceptionsAtGLAnimatorControl.size());
+                }
+                Assert.assertEquals("Init Count", 1, cleanInitCount.get());
+                Assert.assertEquals("Reshape Count", 1, cleanReshapeCount.get());
+                Assert.assertTrue  ("Display count not greater-equal 1, but "+cleanDisplayCount.get(), 1 <= cleanDisplayCount.get());
+                Assert.assertEquals("Invoke Count", 0, cleanInvokeCount.get());
+                Assert.assertEquals("Dispose Count", 0, cleanDisposeCount.get());
+            } else if( throwInDispose ) {
+                if( !onAnimThread ) {
+                    Assert.assertNotNull("No exception forwarded from dispose, on-thread", exceptionAtDispose);
+                    Assert.assertEquals("Exception forwarded from init to animator-handler", 0, exceptionsAtGLAnimatorControl.size());
+                }
+                Assert.assertEquals("Init Count", 1, cleanInitCount.get());
+                Assert.assertEquals("Reshape Count", 1, cleanReshapeCount.get());
+                Assert.assertTrue  ("Display count not greater-equal 1, but "+cleanDisplayCount.get(), 1 <= cleanDisplayCount.get());
+                Assert.assertEquals("Invoke Count", 1, cleanInvokeCount.get());
+                Assert.assertEquals("Dispose Count", 0, cleanDisposeCount.get());
             }
         }
     }
@@ -193,25 +333,62 @@ public class TestGLException01NEWT extends UITestCase {
     public void test01OnThreadAtInit() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBackgroundOpaque(true); // default
-        runTestGL(caps, true /* onThread */, true /* init */, false /* display */, false /* reshape */, false /* dispose */);
+        runTestGL(caps, true /* onThread */, true /* init */, false /* display */, false /* reshape */, false /* invoke */, false /* dispose */);
     }
     @Test
     public void test02OnThreadAtReshape() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBackgroundOpaque(true); // default
-        runTestGL(caps, true /* onThread */, false /* init */, false /* display */, true /* reshape */, false /* dispose */);
+        runTestGL(caps, true /* onThread */, false /* init */, false /* display */, true /* reshape */, false /* invoke */, false /* dispose */);
     }
     @Test
     public void test03OnThreadAtDisplay() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBackgroundOpaque(true); // default
-        runTestGL(caps, true /* onThread */, false /* init */, true /* display */, false /* reshape */, false /* dispose */);
+        runTestGL(caps, true /* onThread */, false /* init */, true /* display */, false /* reshape */, false /* invoke */, false /* dispose */);
     }
     @Test
-    public void test04OnThreadAtDispose() throws InterruptedException {
+    public void test04OnThreadAtInvoke() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setBackgroundOpaque(true); // default
-        runTestGL(caps, true /* onThread */, false /* init */, false /* display */, false /* reshape */, true /* dispose */);
+        runTestGL(caps, true /* onThread */, false /* init */, true /* display */, false /* reshape */, true /* invoke */, false /* dispose */);
+    }
+    @Test
+    public void test05OnThreadAtDispose() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, true /* onThread */, false /* init */, false /* display */, false /* reshape */, false /* invoke */, true /* dispose */);
+    }
+
+    @Test
+    public void test11OffThreadAtInit() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, false /* onThread */, true /* init */, false /* display */, false /* reshape */, false /* invoke */, false /* dispose */);
+    }
+    @Test
+    public void test12OffThreadAtReshape() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, false /* onThread */, false /* init */, false /* display */, true /* reshape */, false /* invoke */, false /* dispose */);
+    }
+    @Test
+    public void test13OffThreadAtDisplay() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, false /* onThread */, false /* init */, true /* display */, false /* reshape */, false /* invoke */, false /* dispose */);
+    }
+    @Test
+    public void test14OffThreadAtInvoke() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, false /* onThread */, false /* init */, true /* display */, false /* reshape */, true /* invoke */, false /* dispose */);
+    }
+    @Test
+    public void test15OffThreadAtDispose() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBackgroundOpaque(true); // default
+        runTestGL(caps, false /* onThread */, false /* init */, false /* display */, false /* reshape */, false /* invoke */, true /* dispose */);
     }
 
     static long duration = 500; // ms

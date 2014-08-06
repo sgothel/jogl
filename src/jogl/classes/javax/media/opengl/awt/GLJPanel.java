@@ -958,6 +958,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public void flushGLRunnables() {
+      helper.flushGLRunnables();
+  }
+
+  @Override
   public GLContext createContext(final GLContext shareWith) {
     final Backend b = backend;
     if ( null == b ) {

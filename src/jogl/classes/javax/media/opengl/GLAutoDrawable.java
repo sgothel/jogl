@@ -229,6 +229,7 @@ public interface GLAutoDrawable extends GLDrawable {
 
   /**
    * Returns true if all added {@link GLEventListener} are initialized, otherwise false.
+   * @since 2.2
    */
   boolean areAllGLEventListenerInitialized();
 
@@ -458,6 +459,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * @see #display()
    * @see GLRunnable
    * @see #invoke(boolean, List)
+   * @see #flushGLRunnables()
    */
   public boolean invoke(boolean wait, GLRunnable glRunnable) throws IllegalStateException ;
 
@@ -469,8 +471,21 @@ public interface GLAutoDrawable extends GLDrawable {
    * @return <code>true</code> if the {@link GLRunnable}s has been processed or queued, otherwise <code>false</code>.
    * @throws IllegalStateException in case of a detected deadlock situation ahead, see {@link #invoke(boolean, GLRunnable)}.
    * @see #invoke(boolean, GLRunnable)
+   * @see #flushGLRunnables()
    */
   public boolean invoke(boolean wait, List<GLRunnable> glRunnables) throws IllegalStateException;
+
+  /**
+   * Flushes all {@link #invoke(boolean, GLRunnable) enqueued} {@link GLRunnable} of this {@link GLAutoDrawable}
+   * including notifying waiting executor.
+   * <p>
+   * The executor which might have been blocked until notified
+   * will be unblocked and all tasks removed from the queue.
+   * </p>
+   * @see #invoke(boolean, GLRunnable)
+   * @since 2.2
+   */
+  public void flushGLRunnables();
 
   /** Destroys all resources associated with this GLAutoDrawable,
       inclusive the GLContext.
@@ -602,6 +617,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * <p>
    * See <a href="#locking">GLAutoDrawable Locking</a>.
    * </p>
+   * @since 2.2
    */
   public RecursiveLock getUpstreamLock();
 
@@ -613,6 +629,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * whether {@link #display()} performs the OpenGL commands on the current thread directly
    * or spawns them on the dedicated OpenGL thread.
    * </p>
+   * @since 2.2
    */
   public boolean isThreadGLCapable();
 

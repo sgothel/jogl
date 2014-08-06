@@ -789,6 +789,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
+   public void flushGLRunnables() {
+       helper.flushGLRunnables();
+   }
+
+   @Override
    public void setAnimator(final GLAnimatorControl arg0) throws GLException {
       helper.setAnimator(arg0);
    }

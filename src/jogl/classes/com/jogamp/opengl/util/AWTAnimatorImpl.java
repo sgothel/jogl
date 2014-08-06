@@ -41,11 +41,13 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.JComponent;
 import javax.swing.RepaintManager;
 import javax.swing.SwingUtilities;
-
 import javax.media.opengl.GLAutoDrawable;
+
+import com.jogamp.opengl.util.AnimatorBase.UncaughtAnimatorException;
 
 /** Abstraction to factor out AWT dependencies from the Animator's
     implementation in a way that still allows the FPSAnimator to pick
@@ -61,7 +63,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     @Override
     public void display(final ArrayList<GLAutoDrawable> drawables,
                         final boolean ignoreExceptions,
-                        final boolean printExceptions) {
+                        final boolean printExceptions) throws UncaughtAnimatorException {
         for (int i=0; i<drawables.size(); i++) {
             final GLAutoDrawable drawable = drawables.get(i);
             if (drawable instanceof JComponent) {
@@ -73,13 +75,13 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
             } else {
                 try {
                     drawable.display();
-                } catch (final RuntimeException e) {
+                } catch (final Throwable t) {
                     if (ignoreExceptions) {
                         if (printExceptions) {
-                            e.printStackTrace();
+                            t.printStackTrace();
                         }
                     } else {
-                        throw(e);
+                        throw new UncaughtAnimatorException(drawable, t);
                     }
                 }
             }
