@@ -34,14 +34,14 @@ package javax.media.opengl;
  */
 public interface GLAnimatorControl extends FPSCounter {
     /**
-     * A {@link GLAnimatorControl#setUncaughtExceptionHandler(UncaughtGLAnimatorExceptionHandler) registered}
-     * {@link UncaughtGLAnimatorExceptionHandler} instance is invoked when an {@link GLAnimatorControl animator} abruptly {@link #stop() stops}
+     * A {@link GLAnimatorControl#setUncaughtExceptionHandler(UncaughtExceptionHandler) registered}
+     * {@link UncaughtExceptionHandler} instance is invoked when an {@link GLAnimatorControl animator} abruptly {@link #stop() stops}
      * due to an uncaught exception from one of its {@link GLAutoDrawable}s.
      * @see #uncaughtException(GLAnimatorControl, GLAutoDrawable, Throwable)
-     * @see GLAnimatorControl#setUncaughtExceptionHandler(UncaughtGLAnimatorExceptionHandler)
+     * @see GLAnimatorControl#setUncaughtExceptionHandler(UncaughtExceptionHandler)
      * @since 2.2
      */
-    public static interface UncaughtGLAnimatorExceptionHandler {
+    public static interface UncaughtExceptionHandler {
         /**
          * Method invoked when the given {@link GLAnimatorControl} is {@link GLAnimatorControl#stop() stopped} due to the
          * given uncaught exception happened on the given {@link GLAutoDrawable}.
@@ -60,7 +60,7 @@ public interface GLAnimatorControl extends FPSCounter {
          * @param animator the {@link GLAnimatorControl}
          * @param drawable the causing {@link GLAutoDrawable}
          * @param cause the uncaught exception
-         * @see GLAnimatorControl#setUncaughtExceptionHandler(UncaughtGLAnimatorExceptionHandler)
+         * @see GLAnimatorControl#setUncaughtExceptionHandler(UncaughtExceptionHandler)
          * @since 2.2
          */
         void uncaughtException(final GLAnimatorControl animator, final GLAutoDrawable drawable, final Throwable cause);
@@ -215,22 +215,22 @@ public interface GLAnimatorControl extends FPSCounter {
     void remove(GLAutoDrawable drawable);
 
     /**
-     * Returns the {@link UncaughtGLAnimatorExceptionHandler} invoked when this {@link GLAnimatorControl animator} abruptly {@link #stop() stops}
+     * Returns the {@link UncaughtExceptionHandler} invoked when this {@link GLAnimatorControl animator} abruptly {@link #stop() stops}
      * due to an uncaught exception from one of its {@link GLAutoDrawable}s.
      * <p>
      * Default is <code>null</code>.
      * </p>
      * @since 2.2
      */
-    UncaughtGLAnimatorExceptionHandler getUncaughtExceptionHandler();
+    UncaughtExceptionHandler getUncaughtExceptionHandler();
 
     /**
      * Set the handler invoked when this {@link GLAnimatorControl animator} abruptly {@link #stop() stops}
      * due to an uncaught exception from one of its {@link GLAutoDrawable}s.
-     * @param handler the {@link UncaughtGLAnimatorExceptionHandler} to use as this {@link GLAnimatorControl animator}'s uncaught exception
+     * @param handler the {@link UncaughtExceptionHandler} to use as this {@link GLAnimatorControl animator}'s uncaught exception
      * handler. Pass <code>null</code> to unset the handler.
-     * @see UncaughtGLAnimatorExceptionHandler#uncaughtException(GLAnimatorControl, GLAutoDrawable, Throwable)
+     * @see UncaughtExceptionHandler#uncaughtException(GLAnimatorControl, GLAutoDrawable, Throwable)
      * @since 2.2
      */
-    void setUncaughtExceptionHandler(final UncaughtGLAnimatorExceptionHandler handler);
+    void setUncaughtExceptionHandler(final UncaughtExceptionHandler handler);
 }

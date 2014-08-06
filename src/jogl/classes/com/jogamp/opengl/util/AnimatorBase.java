@@ -100,7 +100,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected boolean printExceptions;
     protected boolean exclusiveContext;
     protected Thread userExclusiveContextThread;
-    protected UncaughtGLAnimatorExceptionHandler uncaughtExceptionHandler;
+    protected UncaughtExceptionHandler uncaughtExceptionHandler;
     protected FPSCounterImpl fpsCounter = new FPSCounterImpl();
 
     private final static Class<?> awtAnimatorImplClazz;
@@ -513,12 +513,12 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     @Override
-    public final UncaughtGLAnimatorExceptionHandler getUncaughtExceptionHandler() {
+    public final UncaughtExceptionHandler getUncaughtExceptionHandler() {
         return uncaughtExceptionHandler;
     }
 
     @Override
-    public final void setUncaughtExceptionHandler(final UncaughtGLAnimatorExceptionHandler handler) {
+    public final void setUncaughtExceptionHandler(final UncaughtExceptionHandler handler) {
         uncaughtExceptionHandler = handler;
     }
 

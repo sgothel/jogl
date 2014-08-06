@@ -190,22 +190,22 @@ public class TestGLException01NEWT extends UITestCase {
         RuntimeException exceptionAtInvoke = null;
         RuntimeException exceptionAtDispose = null;
         final List<AnimException> exceptionsAtGLAnimatorControl = new ArrayList<AnimException>();
-        final GLAnimatorControl.UncaughtGLAnimatorExceptionHandler uncaughtGLAnimatorExceptionHandler;
+        final GLAnimatorControl.UncaughtExceptionHandler uncaughtExceptionHandler;
 
         final Animator animator;
         if( onThread ) {
             animator = null;
-            uncaughtGLAnimatorExceptionHandler = null;
+            uncaughtExceptionHandler = null;
         } else {
             animator = new Animator(glWindow);
-            uncaughtGLAnimatorExceptionHandler = new GLAnimatorControl.UncaughtGLAnimatorExceptionHandler() {
+            uncaughtExceptionHandler = new GLAnimatorControl.UncaughtExceptionHandler() {
                 @Override
                 public void uncaughtException(final GLAnimatorControl animator, final GLAutoDrawable drawable, final Throwable cause) {
                     final AnimException ae = new AnimException(animator.getThread(), animator, drawable, cause);
                     exceptionsAtGLAnimatorControl.add(ae);
                     dumpThrowable(ae);
                 } };
-            animator.setUncaughtExceptionHandler(uncaughtGLAnimatorExceptionHandler);
+            animator.setUncaughtExceptionHandler(uncaughtExceptionHandler);
         }
 
         glWindow.setSize(width, height);
