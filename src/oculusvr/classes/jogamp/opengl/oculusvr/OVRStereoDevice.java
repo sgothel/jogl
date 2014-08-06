@@ -41,6 +41,7 @@ import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.util.stereo.StereoDevice;
+import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 import com.jogamp.opengl.util.stereo.StereoUtil;
 
@@ -48,6 +49,7 @@ public class OVRStereoDevice implements StereoDevice {
     /** 1.6 up, 5 forward */
     private static final float[] DEFAULT_EYE_POSITION_OFFSET = { 0.0f, 1.6f, -5.0f };
 
+    private final StereoDeviceFactory factory;
     public final OvrHmdContext handle;
     public final int deviceIndex;
     public final ovrHmdDesc hmdDesc;
@@ -57,7 +59,11 @@ public class OVRStereoDevice implements StereoDevice {
     private final int[] eyeRenderOrder;
     private final int supportedDistortionBits, recommendedDistortionBits, minimumDistortionBits;
 
-    public OVRStereoDevice(final OvrHmdContext nativeContext, final int deviceIndex) {
+    public OVRStereoDevice(final StereoDeviceFactory factory, final OvrHmdContext nativeContext, final int deviceIndex) {
+        if( null == nativeContext ) {
+            throw new IllegalArgumentException("Passed null nativeContext");
+        }
+        this.factory = factory;
         this.handle = nativeContext;
         this.deviceIndex = deviceIndex;
         this.hmdDesc = ovrHmdDesc.create();
@@ -73,6 +79,9 @@ public class OVRStereoDevice implements StereoDevice {
         recommendedDistortionBits = supportedDistortionBits & ~StereoDeviceRenderer.DISTORTION_TIMEWARP;
         minimumDistortionBits = StereoDeviceRenderer.DISTORTION_BARREL;
     }
+
+    @Override
+    public final StereoDeviceFactory getFactory() { return factory; }
 
     @Override
     public final String toString() {

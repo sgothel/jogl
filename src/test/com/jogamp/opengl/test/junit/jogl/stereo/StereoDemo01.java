@@ -41,7 +41,6 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -88,6 +87,16 @@ import com.jogamp.opengl.util.stereo.StereoUtil;
  * java StereoDemo01 -time 10000000 -filmURI http://whoknows.not/Some_SBS_3D_Movie.mkv
  * </pre>
  * <p>
+ * In case user likes to utilize the {@link StereoDeviceFactory.DeviceType#Generic Generic} software implementation,
+ * which is selected {@link StereoDeviceFactory.DeviceType#Default Default} if no other device is available
+ * or explicit via <code>-device Generic</code>, the user can chose between different <i>generic</i> stereo modes:
+ * <pre>
+ *   mono            : <code>-device Generic -deviceIndex 0</code>
+ *   stereo-sbs      : <code>-device Generic -deviceIndex 1</code>
+ *   stereo-sbs-lense: <code>-device Generic -deviceIndex 2</code>
+ * </pre>
+ * </p>
+ * <p>
  * Key 'R' enables/disables the VR's sensors, i.e. head rotation ..
  * </p>
  *
@@ -106,7 +115,6 @@ public class StereoDemo01 {
     static boolean useAutoSwap = false;
     static String useFilmFile = null;
     static String useFilmURI = null;
-    static String stereoRendererListenerName = null;
     static StereoDeviceFactory.DeviceType deviceType = StereoDeviceFactory.DeviceType.Default;
     static int deviceIndex = 0;
 
@@ -162,22 +170,12 @@ public class StereoDemo01 {
             } else if(args[i].equals("-autoSwap")) {
                 i++;
                 useAutoSwap = MiscUtils.atob(args[i], useAutoSwap);
-            } else if(args[i].equals("-test")) {
-                i++;
-                stereoRendererListenerName = args[i];
             } else if(args[i].equals("-filmFile")) {
                 i++;
                 useFilmFile = args[i];
             } else if(args[i].equals("-filmURI")) {
                 i++;
                 useFilmURI = args[i];
-            }
-        }
-        if( null != stereoRendererListenerName ) {
-            try {
-                final Object stereoRendererListener = ReflectionUtil.createInstance(stereoRendererListenerName, null);
-            } catch (final Exception e) {
-                e.printStackTrace();
             }
         }
         final StereoGLEventListener upstream;
@@ -256,10 +254,10 @@ public class StereoDemo01 {
 
         final PointImmutable devicePos = stereoDevice.getPosition();
         final DimensionImmutable deviceRes = stereoDevice.getSurfaceSize();
-        window.setSize(deviceRes.getWidth(), deviceRes.getHeight());
         if( useStereoScreen ) {
             window.setPosition(devicePos.getX(), devicePos.getY());
         }
+        window.setSurfaceSize(deviceRes.getWidth(), deviceRes.getHeight()); // might be not correct ..
         window.setAutoSwapBufferMode(useAutoSwap);
         window.setUndecorated(true);
 
@@ -281,8 +279,9 @@ public class StereoDemo01 {
             System.err.println("Default Fov[1]: "+defaultEyeFov[1].toStringInDegrees());
         }
 
-        final float[] eyePositionOffset = null == movieSimple || isGenericDevice ? stereoDevice.getDefaultEyePositionOffset() // default
-                                                                                 : new float[] { 0f, 0.3f, 0f };              // better fixed movie position
+        final boolean usesLenses = 0 != ( StereoDeviceRenderer.DISTORTION_BARREL & stereoDevice.getMinimumDistortionBits() );
+        final float[] eyePositionOffset = null != movieSimple && usesLenses ? new float[] { 0f, 0.3f, 0f }                // better fixed movie position w/ lenses
+                                                                            : stereoDevice.getDefaultEyePositionOffset(); // default
         System.err.println("Eye Position Offset: "+Arrays.toString(eyePositionOffset));
 
         final int textureUnit = 0;
@@ -338,6 +337,15 @@ public class StereoDemo01 {
             animator.start();
         }
         window.setVisible(true);
+
+        // Correct window size to actual pixel size,
+        // which ration is unknown before window creation when using multiple displays!
+        System.err.println("Window.0.windowSize : "+window.getWidth()+" x "+window.getHeight());
+        System.err.println("Window.0.surfaceSize: "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setSurfaceSize(deviceRes.getWidth(), deviceRes.getHeight());
+        System.err.println("Window.1.windowSize : "+window.getWidth()+" x "+window.getHeight());
+        System.err.println("Window.1.surfaceSize: "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, System.err);
         }

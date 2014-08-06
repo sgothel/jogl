@@ -44,9 +44,16 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
     }
 
     @Override
-    public final StereoDevice createDevice(final int deviceIndex, Config config, final boolean verbose) {
+    public final StereoDevice createDevice(final int deviceIndex, final Config config, final boolean verbose) {
         final OvrHmdContext hmdCtx = OVR.ovrHmd_Create(deviceIndex);
-        final OVRStereoDevice ctx = new OVRStereoDevice(hmdCtx, deviceIndex);
+        if( null == hmdCtx ) {
+            if( verbose ) {
+                System.err.println("Failed to create hmdCtx for device index "+deviceIndex+" on thread "+Thread.currentThread().getName());
+                Thread.dumpStack();
+            }
+            return null;
+        }
+        final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdCtx, deviceIndex);
         if( verbose ) {
             System.err.println(OVRVersion.getAvailableCapabilitiesInfo(ctx.hmdDesc, deviceIndex, null).toString());
         }

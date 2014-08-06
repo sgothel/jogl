@@ -203,6 +203,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 renderString(drawable, font, pixelSize, text4, 1 /* col */, -2 /* row */, 0, height,  1, true);
             }
         } };
+    private final boolean enableTextRendererGLEL = false;
     private InfoTextRendererGLELBase textRendererGLEL = null;
     private boolean displayOSD = false;
 
@@ -534,8 +535,12 @@ public class MovieSBSStereo implements StereoGLEventListener {
         }
         final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
         final boolean lowPerfDevice = gl.isGLES();
-        textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
-        textRendererGLEL.init(drawable);
+        if( enableTextRendererGLEL ) {
+            textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
+            textRendererGLEL.init(drawable);
+        } else {
+            textRendererGLEL = null;
+        }
     }
 
     protected void updateInterleavedVBO(final GL gl, final GLArrayDataServer iVBO, final Texture tex, final int eyeNum) {
@@ -608,7 +613,9 @@ public class MovieSBSStereo implements StereoGLEventListener {
         }
 
         System.out.println("pR "+mPlayer);
-        textRendererGLEL.reshape(drawable, x, y, width, height);
+        if( null != textRendererGLEL ) {
+            textRendererGLEL.reshape(drawable, 0, 0, width, height);
+        }
     }
 
     private final float zNear = 0.1f;
@@ -666,13 +673,17 @@ public class MovieSBSStereo implements StereoGLEventListener {
         st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
-        textRendererGLEL.reshape(drawable, x, y, width, height);
+        if( null != textRendererGLEL ) {
+            textRendererGLEL.reshape(drawable, 0, 0, width, height);
+        }
     }
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
-        textRendererGLEL.dispose(drawable);
-        textRendererGLEL = null;
+        if( null != textRendererGLEL ) {
+            textRendererGLEL.dispose(drawable);
+            textRendererGLEL = null;
+        }
         disposeImpl(drawable, true);
     }
 
@@ -747,7 +758,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(0, 0, zoom);
-        if(rotate > 0) {
+        if( rotate > 0) {
             final float ang = ((System.currentTimeMillis() - startTime) * 360.0f) / 8000.0f;
             pmvMatrix.glRotatef(ang, 0, 0, 1);
         } else {
@@ -778,7 +789,9 @@ public class MovieSBSStereo implements StereoGLEventListener {
         st.useProgram(gl, false);
         pmvMatrix.glPopMatrix();
 
-        textRendererGLEL.display(drawable);
+        if( null != textRendererGLEL ) {
+            textRendererGLEL.display(drawable);
+        }
     }
 
     static class StereoGLMediaEventListener implements GLMediaEventListener {

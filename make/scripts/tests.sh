@@ -284,7 +284,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
-    #D_ARGS="-Djogl.debug.StereoDevice"
+    D_ARGS="-Djogl.debug.StereoDevice"
 
     if [ $awton -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -382,7 +382,7 @@ function testawtswt() {
 #
 # Stereo
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI
@@ -476,7 +476,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLException01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLException01NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*

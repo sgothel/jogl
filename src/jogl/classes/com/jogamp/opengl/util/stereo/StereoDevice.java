@@ -46,6 +46,9 @@ public interface StereoDevice {
         // NOP
     }
 
+    /** Return the factory used to create this device. */
+    public StereoDeviceFactory getFactory();
+
     /** Disposes this {@link StereoDevice}. */
     public void dispose();
 
