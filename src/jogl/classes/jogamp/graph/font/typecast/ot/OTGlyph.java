@@ -65,10 +65,10 @@ import com.jogamp.opengl.math.geom.AABBox;
  * @version $Id: Glyph.java,v 1.3 2007-02-21 12:23:54 davidsch Exp $
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>, Sven Gothel
  */
-public class OTGlyph {
+public final class OTGlyph {
 
-    protected short _leftSideBearing;
-    protected int _advanceWidth;
+    private final short _leftSideBearing;
+    private final int _advanceWidth;
     private Point[] _points;
     AABBox _bbox;
 
@@ -102,33 +102,32 @@ public class OTGlyph {
         }
     }
 
-    public void clearPointData() {
+    public final void clearPointData() {
         _points = null;
     }
 
-    public AABBox getBBox() {
+    public final AABBox getBBox() {
         return _bbox;
     }
 
-    public int getAdvanceWidth() {
+    public final int getAdvanceWidth() {
         return _advanceWidth;
     }
 
-    public short getLeftSideBearing() {
+    public final short getLeftSideBearing() {
         return _leftSideBearing;
     }
 
-    public Point getPoint(final int i) {
+    public final Point getPoint(final int i) {
         return _points[i];
     }
 
-    public int getPointCount() {
+    public final int getPointCount() {
         return null != _points ? _points.length : 0;
     }
 
     /**
      * @param factor a 16.16 fixed value
-     */
     public void scale(final int factor) {
         for (int i = 0; i < _points.length; i++) {
             //points[i].x = ( points[i].x * factor ) >> 6;
@@ -139,11 +138,12 @@ public class OTGlyph {
         _leftSideBearing = (short)(( _leftSideBearing * factor) >> 6);
         _advanceWidth = (_advanceWidth * factor) >> 6;
     }
+     */
 
     /**
      * Set the points of a glyph from the GlyphDescription
      */
-    private void describe(final GlyphDescription gd) {
+    private final void describe(final GlyphDescription gd) {
         int endPtIndex = 0;
         _points = new Point[gd.getPointCount() /* + 2 */ ];
         for (int i = 0; i < gd.getPointCount(); i++) {
