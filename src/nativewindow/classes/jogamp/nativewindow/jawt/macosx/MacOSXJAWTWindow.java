@@ -327,7 +327,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
             }
         }
         if(null == errMsg) {
-            long jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
+            final long jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
             OSXUtil.RunOnMainThread(false, false, new Runnable() {
                     @Override
                     public void run() {
