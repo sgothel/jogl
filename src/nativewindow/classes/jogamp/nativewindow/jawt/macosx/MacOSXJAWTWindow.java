@@ -109,6 +109,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                       OSXUtil.DestroyCALayer(rootSurfaceLayer);
                       rootSurfaceLayer = 0;
                   }
+                  unlockSurfaceImpl();
               }
           });
       }
