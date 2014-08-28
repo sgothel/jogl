@@ -68,7 +68,7 @@ public class GLStateTracker {
   private IntIntHashMap pixelStateMap;
   private final ArrayList<SavedState> stack;
 
-  private static class SavedState {
+  static class SavedState {
 
     /**
      * Empty pixel-store state
@@ -78,15 +78,14 @@ public class GLStateTracker {
     /**
      * set (client) pixel-store state, deep copy
      */
-    private final void setPixelStateMap(final IntIntHashMap pixelStateMap) {
+    final void setPixelStateMap(final IntIntHashMap pixelStateMap) {
         this.pixelStateMap = (IntIntHashMap) pixelStateMap.clone();
     }
 
     /**
      * get (client) pixel-store state, return reference
      */
-    private final IntIntHashMap getPixelStateMap() { return pixelStateMap; }
-
+    final IntIntHashMap getPixelStateMap() { return pixelStateMap; }
   }
 
 
@@ -163,10 +162,11 @@ public class GLStateTracker {
         if(null==state) {
             throw new GLException("null stack element (remaining stack size "+stack.size()+")");
         }
+        final IntIntHashMap statePixelStateMap = state.getPixelStateMap();
 
-        if ( null != state.getPixelStateMap() ) {
+        if ( null != statePixelStateMap ) {
             // use pulled client pixel-store state from stack
-            pixelStateMap = state.getPixelStateMap();
+            pixelStateMap = statePixelStateMap;
         } // else: empty-slot, not pushed by GL_CLIENT_PIXEL_STORE_BIT
     }
   }
