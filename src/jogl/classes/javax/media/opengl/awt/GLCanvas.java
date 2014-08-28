@@ -156,10 +156,12 @@ import jogamp.opengl.awt.AWTTilePainter;
  *   <li><pre>sun.awt.noerasebackground=true</pre></li>
  * </ul>
  *
+ * <p>
  * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
  * To share a {@link GLContext} see the following note in the documentation overview:
- * <a href="../../../spec-overview.html#SHARING">context sharing</a>
+ * <a href="../../../../overview-summary.html#SHARING">context sharing</a>
  * as well as {@link GLSharedContextSetter}.
+ * </p>
  */
 
 @SuppressWarnings("serial")

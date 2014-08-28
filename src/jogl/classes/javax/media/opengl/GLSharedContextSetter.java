@@ -35,9 +35,12 @@ package javax.media.opengl;
  * and textures among OpenGL contexts is supported with this interface.
  * </p>
  * <p>
- * A <i>master</i> {@link GLContext} is the {@link GLContext} which is created first,
- * shared {@link GLContext} w/ this master are referred as slave {@link GLContext}
- * and controls the shared object's lifecycle, i.e. their construction and destruction.
+ * A <i>master</i> {@link GLContext} is the {@link GLContext} which is created first.
+ * Subsequent shared {@link GLContext} w/ the <i>master</i> are referred as <i>slave</i> {@link GLContext}.
+ * </p>
+ * <p>
+ * Implementations of this interface control the <i>slave's</i> {@link GLContext} and {@link GLAutoDrawable} realization,
+ * i.e. the <i>slave</i> {@link GLAutoDrawable} will not be realized before their associated <i>master</i>.
  * </p>
  * <p>
  * Using the nearest or same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType) visual ID}
@@ -50,12 +53,17 @@ package javax.media.opengl;
  * At least this has been experienced w/ OSX 10.9.
  * </p>
  * <p>
- * Be aware that the <i>master</i> {@link GLContext} and related resources
- * <i>shall not</i> be destroyed before it's <i>slave</i> {@link GLContext} instances <i>while they are using them</i>.<br>
- * Otherwise the OpenGL driver implementation may crash w/ SIGSEGV, since using already destroyed resources,
- * e.g. OpenGL buffer objects, may not be validated by the driver!<br>
+ * In general, destroying a <i>master</i> {@link GLContext} before their shared <i>slaves</i>
+ * shall be permissible, i.e. the OpenGL driver needs to handle pending destruction of shared resources.
+ * This is confirmed to work properly on most platform/driver combinations,
+ * see unit test <code>com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3</code> and similar.
  * </p>
  * <p>
+ * However, to avoid scenarios with buggy drivers, users <i>may not</i> destroy the
+ * <i>master</i> {@link GLContext} before its shared <i>slave</i> {@link GLContext} instances
+ * <i>as long as they are using them</i>.<br>
+ * Otherwise the OpenGL driver may crash w/ SIGSEGV, due to using already destroyed shared resources,
+ * if not handling the pending destruction of the latter!<br>
  * Either proper lifecycle synchronization is implemented, e.g. by notifying the <i>slaves</i> about the loss of the shared resources,
  * <i>or</i> the <i>slaves</i> validate whether the resources are still valid.
  * </p>

@@ -60,8 +60,9 @@ public interface GLDrawable extends NativeSurfaceHolder {
    * The GLContext <code>share</code> need not be associated with this
    * GLDrawable and may be null if sharing of display lists and other
    * objects is not desired. See the note in the overview
-   * documentation on
-   * <a href="../../../spec-overview.html#SHARING">context sharing</a>.
+   * documentation
+   * <a href="../../../overview-summary.html#SHARING">context sharing</a>
+   * as well as {@link GLSharedContextSetter}.
    * </p>
    */
   public GLContext createContext(GLContext shareWith);

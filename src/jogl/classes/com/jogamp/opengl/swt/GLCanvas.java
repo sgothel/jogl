@@ -85,6 +85,12 @@ import com.jogamp.opengl.JoglVersion;
  * <p>
  * Implementation allows use of custom {@link GLCapabilities}.
  * </p>
+ * <p>
+ * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+ * To share a {@link GLContext} see the following note in the documentation overview:
+ * <a href="../../../../overview-summary.html#SHARING">context sharing</a>
+ * as well as {@link GLSharedContextSetter}.
+ * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextSetter {
   private static final boolean DEBUG = Debug.debug("GLCanvas");

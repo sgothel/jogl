@@ -173,10 +173,12 @@ import com.jogamp.opengl.util.texture.TextureState;
     It is recommended to reset those states to default when leaving the {@link GLEventListener#display(GLAutoDrawable)} method!
     We may change this behavior in the future, i.e. preserve all influencing states.
     </p>
+    <p>
     <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
     To share a {@link GLContext} see the following note in the documentation overview:
-    <a href="../../../spec-overview.html#SHARING">context sharing</a>
+    <a href="../../../../overview-summary.html#SHARING">context sharing</a>
     as well as {@link GLSharedContextSetter}.
+    </p>
 */
 
 @SuppressWarnings("serial")
