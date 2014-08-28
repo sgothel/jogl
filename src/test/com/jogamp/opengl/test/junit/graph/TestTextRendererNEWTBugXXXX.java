@@ -53,7 +53,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -61,26 +60,15 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTextRendererNEWT10 extends UITestCase {
-    static final boolean DEBUG = false;
-    static final boolean TRACE = false;
+public class TestTextRendererNEWTBugXXXX extends UITestCase {
     static long duration = 100; // ms
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean useMSAA = true;
+    static boolean onlyIssues = false;
 
-    static Font font;
-    static float fontSize = 24;
-    static String customStr = null;
-
-    @BeforeClass
-    public static void setup() throws IOException {
-        if( null == font ) {
-            font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            // font = FontFactory.get(FontFactory.JAVA).getDefault();
-        }
-    }
+    static final float fontSize = 24;
 
     static int atoi(final String a) {
         try {
@@ -100,18 +88,9 @@ public class TestTextRendererNEWT10 extends UITestCase {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
-            } else if(args[i].equals("-font")) {
-                i++;
-                font = FontFactory.get(IOUtil.getResource(TestTextRendererNEWT10.class, args[i]));
-            } else if(args[i].equals("-fontSize")) {
-                i++;
-                fontSize = MiscUtils.atof(args[i], fontSize);
-            } else if(args[i].equals("-text")) {
-                i++;
-                customStr = args[i];
             }
         }
-        final String tstname = TestTextRendererNEWT10.class.getName();
+        final String tstname = TestTextRendererNEWTBugXXXX.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
@@ -122,22 +101,11 @@ public class TestTextRendererNEWT10 extends UITestCase {
         } catch (final InterruptedException ie) {}
     }
 
-    // @Test
-    public void test00TextRendererNONE00() throws InterruptedException, GLException, IOException {
-        testTextRendererImpl(0, 0);
-    }
-
-    // @Test
-    public void test01TextRendererMSAA04() throws InterruptedException, GLException, IOException {
-        testTextRendererImpl(0, 4);
-    }
-
     @Test
-    public void test02TextRendererVBAA04() throws InterruptedException, GLException, IOException {
-        testTextRendererImpl(Region.VBAA_RENDERING_BIT, 4);
+    public void test00() throws InterruptedException, GLException, IOException {
+        testTextRendererImpl(FontSet01.getSet01(), Region.VBAA_RENDERING_BIT, 4);
     }
-
-    void testTextRendererImpl(final int renderModes, final int sampleCount) throws InterruptedException, GLException, IOException {
+    void testTextRendererImpl(final Font[] fonts, final int renderModes, final int sampleCount) throws InterruptedException, GLException, IOException {
         final GLProfile glp;
         if(forceGL3) {
             glp = GLProfile.get(GLProfile.GL3);
@@ -156,7 +124,9 @@ public class TestTextRendererNEWT10 extends UITestCase {
         System.err.println("Requested: "+caps);
         System.err.println("Requested: "+Region.getRenderModeString(renderModes));
 
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(caps, 800, 400, true);
+        final NEWTGLContext.WindowContext winctx =
+                // NEWTGLContext.createOnscreenWindow(caps, 800, 400, true);
+                NEWTGLContext.createOffscreenWindow(caps, 800, 200*fonts.length, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 
@@ -184,21 +154,18 @@ public class TestTextRendererNEWT10 extends UITestCase {
         final int[] sampleCountIO = { sampleCount };
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        if( null == customStr ) {
-            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0,  0, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000,sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, -1000, sampleCountIO);
-
-            int c = 0;
-            renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, -1000, sampleCountIO);
-        } else {
-            renderString(drawable, gl, renderer, textRenderUtil, customStr, 0,  0, -1000, sampleCountIO);
+        for(int i=0; i<fonts.length; i++) {
+            final Font font = fonts[i];
+            renderString(drawable, gl, renderer, font, textRenderUtil, font.getFullFamilyName(null).toString()+": "+issues, 0,  0==i?0:-1, -1000, sampleCountIO);
+            if(!onlyIssues) {
+                renderString(drawable, gl, renderer, font, textRenderUtil, "012345678901234567890123456789", 0,  -1, -1000, sampleCountIO);
+                renderString(drawable, gl, renderer, font, textRenderUtil, "abcdefghijklmnopqrstuvwxyz", 0, -1, -1000, sampleCountIO);
+                renderString(drawable, gl, renderer, font, textRenderUtil, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, -1, -1000, sampleCountIO);
+                renderString(drawable, gl, renderer, font, textRenderUtil, "", 0, -1, -1000, sampleCountIO);
+                renderString(drawable, gl, renderer, font, textRenderUtil, "", 0, -1, -1000, sampleCountIO);
+            }
         }
+
         drawable.swapBuffers();
         printScreen(renderModes, drawable, gl, false, sampleCount);
 
@@ -211,10 +178,11 @@ public class TestTextRendererNEWT10 extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);
     }
 
+    private static final String issues = "m M n u 8 g q Q";
     private GLReadBufferUtil screenshot;
     int lastRow = -1;
 
-    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
+    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final Font font, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
         final int height = drawable.getSurfaceHeight();
 
         int dx = 0;
@@ -244,7 +212,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         final String modeS = Region.getRenderModeString(renderModes);
         final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                 drawable.getChosenGLCapabilities().getNumSamples(),
-                TestTextRendererNEWT10.fontSize, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
+                TestTextRendererNEWTBugXXXX.fontSize, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
         final String filename = dir + bname +".png";
         if(screenshot.readPixels(gl, false)) {
             screenshot.write(new File(filename));
