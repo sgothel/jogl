@@ -278,4 +278,9 @@ public class Outline implements Comparable<Outline> {
     public final int hashCode() {
         throw new InternalError("hashCode not designed");
     }
+    @Override
+    public String toString() {
+        // Avoid calling this.hashCode() !
+        return getClass().getName() + "@" + Integer.toHexString(super.hashCode());
+    }
 }
