@@ -284,7 +284,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
-    D_ARGS="-Djogl.debug.StereoDevice"
+    #D_ARGS="-Djogl.debug.StereoDevice"
 
     if [ $awton -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -377,12 +377,12 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
 # Stereo
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI
@@ -800,6 +800,8 @@ testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTBugXXXX $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*

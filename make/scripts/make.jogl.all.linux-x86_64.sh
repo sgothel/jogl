@@ -2,6 +2,12 @@
 
 SDIR=`dirname $0` 
 
+#J2RE_HOME=/opt-linux-x86_64/jre1.7.0_45
+#JAVA_HOME=/opt-linux-x86_64/jdk1.7.0_45
+#J2RE_HOME=/opt-linux-x86_64/jre7
+#JAVA_HOME=/opt-linux-x86_64/j2se7
+#export J2RE_HOME JAVA_HOME
+
 if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
     . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
 fi

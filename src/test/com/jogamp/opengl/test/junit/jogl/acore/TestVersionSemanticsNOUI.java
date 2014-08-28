@@ -37,7 +37,6 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.osjava.jardiff.DiffCriteria;
-import org.osjava.jardiff.SimpleDiffCriteria;
 import org.semver.Delta;
 
 import com.jogamp.common.util.JogampVersion;
@@ -49,11 +48,12 @@ import com.jogamp.opengl.JoglVersion;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestVersionSemanticsNOUI extends JunitTracer {
     static final String jarFile = "jogl-all.jar";
-    static final VersionNumberString preVersionNumber = new VersionNumberString("2.1.5");
-    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+    static final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
+    // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
-    static final DiffCriteria diffCriteria = new SimpleDiffCriteria();
-    // static final DiffCriteria diffCriteria = new PublicDiffCriteria();
+    static final DiffCriteria diffCriteria = new org.osjava.jardiff.SimpleDiffCriteria();
+    // static final DiffCriteria diffCriteria = new org.osjava.jardiff.PublicDiffCriteria();
 
     static final JogampVersion curVersion = JoglVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
@@ -78,6 +78,11 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     // @Test
     public void testVersionV214V215() throws IllegalArgumentException, IOException, URISyntaxException {
         testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.4", "2.1.5");
+    }
+
+    // @Test
+    public void testVersionV215V220() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.5", "2.2.0");
     }
 
     void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
