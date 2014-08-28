@@ -122,12 +122,12 @@ public class TestTextRendererNEWT10 extends UITestCase {
         } catch (final InterruptedException ie) {}
     }
 
-    // @Test
+    @Test
     public void test00TextRendererNONE00() throws InterruptedException, GLException, IOException {
         testTextRendererImpl(0, 0);
     }
 
-    // @Test
+    @Test
     public void test01TextRendererMSAA04() throws InterruptedException, GLException, IOException {
         testTextRendererImpl(0, 4);
     }
