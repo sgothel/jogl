@@ -109,8 +109,7 @@ public abstract class CompileShader {
                 tmpFile.getAbsolutePath(),
                 outputFile.getAbsolutePath()
             }); // , null, processorDir);
-        new StreamMonitor(process.getInputStream());
-        new StreamMonitor(process.getErrorStream());
+        new IOUtil.StreamMonitor( new InputStream[] { process.getInputStream(), process.getErrorStream() }, System.out, null );
         process.waitFor();
         // Delete the temporary file
         // tmpFile.delete();
@@ -151,37 +150,6 @@ public abstract class CompileShader {
             }
         } catch (final Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private static class StreamMonitor implements Runnable {
-        private final InputStream istream;
-        public StreamMonitor(final InputStream stream) {
-            istream = stream;
-            new Thread(this, "Output Reader Thread").start();
-        }
-
-        @Override
-        public void run()
-        {
-            final byte[] buffer = new byte[4096];
-            try {
-                int numRead = 0;
-                do {
-                    numRead = istream.read(buffer);
-                    if (numRead > 0) {
-                        System.out.write(buffer, 0, numRead);
-                        System.out.flush();
-                    }
-                } while (numRead >= 0);
-            }
-            catch (final IOException e) {
-                try {
-                    istream.close();
-                } catch (final IOException e2) {
-                }
-                // Should allow clean exit when process shuts down
-            }
         }
     }
 }
