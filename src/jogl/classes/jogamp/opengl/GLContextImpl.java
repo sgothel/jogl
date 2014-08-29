@@ -197,11 +197,11 @@ public abstract class GLContextImpl extends GLContext {
         throw new GLException("Setting read drawable feature not available");
     }
     final Thread currentThread = Thread.currentThread();
-    if( lock.isLockedByOtherThread() ) {
-        throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
+    if( contextLock.isLockedByOtherThread() ) {
+        throw new GLException("GLContext current by other thread "+contextLock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
     }
-    final boolean lockHeld = lock.isOwner(currentThread);
-    if( lockHeld && lock.getHoldCount() > 1 ) {
+    final boolean lockHeld = contextLock.isOwner(currentThread);
+    if( lockHeld && contextLock.getHoldCount() > 1 ) {
         // would need to makeCurrent * holdCount
         throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
     }
@@ -225,11 +225,11 @@ public abstract class GLContextImpl extends GLContext {
   public final GLDrawable setGLDrawable(final GLDrawable readWrite, final boolean setWriteOnly) {
     // Validate constraints first!
     final Thread currentThread = Thread.currentThread();
-    if( lock.isLockedByOtherThread() ) {
-        throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
+    if( contextLock.isLockedByOtherThread() ) {
+        throw new GLException("GLContext current by other thread "+contextLock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
     }
-    final boolean lockHeld = lock.isOwner(currentThread);
-    if( lockHeld && lock.getHoldCount() > 1 ) {
+    final boolean lockHeld = contextLock.isOwner(currentThread);
+    if( lockHeld && contextLock.getHoldCount() > 1 ) {
         // would need to makeCurrent * holdCount
         throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
     }
@@ -330,11 +330,11 @@ public abstract class GLContextImpl extends GLContext {
   private void release(final boolean inDestruction) throws GLException {
       if( TRACE_SWITCH ) {
           final long drawH = null != drawable ? drawable.getHandle() : 0;
-          System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+(null!=drawable)+" "+toHexString(drawH)+", inDestruction: "+inDestruction+", "+lock);
+          System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+(null!=drawable)+" "+toHexString(drawH)+", inDestruction: "+inDestruction+", "+contextLock);
       }
-      if ( !lock.isOwner(Thread.currentThread()) ) {
+      if ( !contextLock.isOwner(Thread.currentThread()) ) {
           final long drawH = null != drawable ? drawable.getHandle() : 0;
-          final String msg = getThreadName() +": Context not current on thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+(null!=drawable)+" "+toHexString(drawH)+", inDestruction: "+inDestruction+", "+lock;
+          final String msg = getThreadName() +": Context not current on thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+(null!=drawable)+" "+toHexString(drawH)+", inDestruction: "+inDestruction+", "+contextLock;
           if( DEBUG_TRACE_SWITCH ) {
               System.err.println(msg);
               if( null != lastCtxReleaseStack ) {
@@ -348,7 +348,7 @@ public abstract class GLContextImpl extends GLContext {
       }
 
       Throwable drawableContextMadeCurrentException = null;
-      final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
+      final boolean actualRelease = ( inDestruction || contextLock.getHoldCount() == 1 ) && 0 != contextHandle;
       try {
           if( actualRelease ) {
               if( !inDestruction ) {
@@ -366,9 +366,9 @@ public abstract class GLContextImpl extends GLContext {
               setCurrent(null);
           }
           drawable.unlockSurface();
-          lock.unlock();
+          contextLock.unlock();
           if( DEBUG_TRACE_SWITCH ) {
-              final String msg = getThreadName() +": GLContext.ContextSwitch[release.X]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - "+lock;
+              final String msg = getThreadName() +": GLContext.ContextSwitch[release.X]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - "+contextLock;
               lastCtxReleaseStack = new Throwable(msg);
               if( TRACE_SWITCH ) {
                   System.err.println(msg);
@@ -388,7 +388,7 @@ public abstract class GLContextImpl extends GLContext {
       if ( DEBUG_TRACE_SWITCH ) {
           final long drawH = null != drawable ? drawable.getHandle() : 0;
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
-                  ", surf "+(null!=drawable)+" "+toHexString(drawH)+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
+                  ", surf "+(null!=drawable)+" "+toHexString(drawH)+", isShared "+GLContextShareSet.isShared(this)+" - "+contextLock);
       }
       if ( 0 != contextHandle ) { // isCreated() ?
           if ( null == drawable ) {
@@ -406,17 +406,17 @@ public abstract class GLContextImpl extends GLContext {
               }
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
-              lock.lock(); // holdCount++ -> 1 - n (1: not locked, 2-n: destroy while rendering)
+              contextLock.lock(); // holdCount++ -> 1 - n (1: not locked, 2-n: destroy while rendering)
               if ( DEBUG_TRACE_SWITCH ) {
-                  if ( lock.getHoldCount() > 2 ) {
+                  if ( contextLock.getHoldCount() > 2 ) {
                       final String msg = getThreadName() + ": GLContextImpl.destroy: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle);
-                      System.err.println(msg+" - Lock was hold more than once - makeCurrent/release imbalance: "+lock);
+                      System.err.println(msg+" - Lock was hold more than once - makeCurrent/release imbalance: "+contextLock);
                       Thread.dumpStack();
                   }
               }
               try {
                   // if not current, makeCurrent(), to call associateDrawable(..) and to disable debug handler
-                  if ( lock.getHoldCount() == 1 ) {
+                  if ( contextLock.getHoldCount() == 1 ) {
                       if ( GLContext.CONTEXT_NOT_CURRENT == makeCurrent() ) {
                           throw new GLException("GLContext.makeCurrent() failed: "+toString());
                       }
@@ -434,7 +434,7 @@ public abstract class GLContextImpl extends GLContext {
                       defaultVAO = 0;
                   }
                   glDebugHandler.enable(false);
-                  if(lock.getHoldCount() > 1) {
+                  if(contextLock.getHoldCount() > 1) {
                       // pending release() after makeCurrent()
                       release(true);
                   }
@@ -447,10 +447,10 @@ public abstract class GLContextImpl extends GLContext {
                   }
                   resetStates(false);
               } finally {
-                  lock.unlock();
+                  contextLock.unlock();
                   if ( DEBUG_TRACE_SWITCH ) {
                       System.err.println(getThreadName() + ": GLContextImpl.destroy.X: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
-                              ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
+                              ", isShared "+GLContextShareSet.isShared(this)+" - "+contextLock);
                   }
               }
           } finally {
@@ -536,11 +536,11 @@ public abstract class GLContextImpl extends GLContext {
     final boolean hasDrawable = null != drawable;
     if( TRACE_SWITCH ) {
         final long drawH = null != drawable ? drawable.getHandle() : 0;
-        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+hasDrawable+" "+toHexString(drawH)+" - "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+hasDrawable+" "+toHexString(drawH)+" - "+contextLock);
     }
     if( !hasDrawable ) {
         if( DEBUG_TRACE_SWITCH ) {
-            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - NULL Drawable - CONTEXT_NOT_CURRENT - "+lock);
+            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - NULL Drawable - CONTEXT_NOT_CURRENT - "+contextLock);
         }
         return CONTEXT_NOT_CURRENT;
     }
@@ -548,7 +548,7 @@ public abstract class GLContextImpl extends GLContext {
     final int lockRes = drawable.lockSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
         if( DEBUG_TRACE_SWITCH ) {
-            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X1]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - Surface Not Ready - CONTEXT_NOT_CURRENT - "+lock);
+            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X1]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - Surface Not Ready - CONTEXT_NOT_CURRENT - "+contextLock);
         }
         return CONTEXT_NOT_CURRENT;
     }
@@ -560,7 +560,7 @@ public abstract class GLContextImpl extends GLContext {
             if ( 0 == drawable.getHandle() ) {
                 throw new GLException("drawable has invalid handle: "+drawable);
             }
-            lock.lock();
+            contextLock.lock();
             try {
                 // One context can only be current by one thread,
                 // and one thread can only have one context current!
@@ -572,7 +572,7 @@ public abstract class GLContextImpl extends GLContext {
                         drawableUpdatedNotify();
                         unlockResources = false; // success
                         if( TRACE_SWITCH ) {
-                            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X2]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);
+                            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X2]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+contextLock);
                         }
                         return CONTEXT_CURRENT;
                     } else {
@@ -595,9 +595,9 @@ public abstract class GLContextImpl extends GLContext {
             } finally {
               if (unlockResources) {
                 if( DEBUG_TRACE_SWITCH ) {
-                  System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.1]: Context lock.unlock() due to error, res "+makeCurrentResultToString(res)+", "+lock);
+                  System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.1]: Context lock.unlock() due to error, res "+makeCurrentResultToString(res)+", "+contextLock);
                 }
-                lock.unlock();
+                contextLock.unlock();
               }
             }
         } /* if ( drawable.isRealized() ) */
@@ -648,7 +648,7 @@ public abstract class GLContextImpl extends GLContext {
       */
     }
     if( TRACE_SWITCH ) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X3]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - "+makeCurrentResultToString(res)+" - stateTracker.on "+glStateTracker.isEnabled()+" - "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X3]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - "+makeCurrentResultToString(res)+" - stateTracker.on "+glStateTracker.isEnabled()+" - "+contextLock);
     }
     return res;
   }
@@ -2210,7 +2210,7 @@ public abstract class GLContextImpl extends GLContext {
    * </p>
    */
   public final boolean isOwner(final Thread thread) {
-      return lock.isOwner(thread);
+      return contextLock.isOwner(thread);
   }
 
   /**
@@ -2220,7 +2220,7 @@ public abstract class GLContextImpl extends GLContext {
    * </p>
    */
   public final boolean hasWaiters() {
-    return lock.getQueueLength()>0;
+    return contextLock.getQueueLength()>0;
   }
 
   /**
@@ -2230,7 +2230,7 @@ public abstract class GLContextImpl extends GLContext {
    * </p>
    */
   public final int getLockCount() {
-      return lock.getHoldCount();
+      return contextLock.getHoldCount();
   }
 
   //---------------------------------------------------------------------------

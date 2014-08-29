@@ -205,7 +205,7 @@ public abstract class GLContext {
   private final HashMap<String, Object> attachedObjects = new HashMap<String, Object>();
 
   // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.
-  protected final RecursiveLock lock = LockFactory.createRecursiveLock();
+  protected final RecursiveLock contextLock = LockFactory.createRecursiveLock();
 
   /** The underlying native OpenGL context */
   protected volatile long contextHandle; // volatile: avoid locking for read-only access
