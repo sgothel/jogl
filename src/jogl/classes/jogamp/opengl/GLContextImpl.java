@@ -137,6 +137,9 @@ public abstract class GLContextImpl extends GLContext {
   public GLContextImpl(final GLDrawableImpl drawable, final GLContext shareWith) {
     super();
 
+    if( null == drawable ) {
+        throw new IllegalArgumentException("Null drawable");
+    }
     bufferStateTracker = new GLBufferStateTracker();
     if ( null != shareWith ) {
       GLContextShareSet.registerSharing(this, shareWith);
@@ -189,14 +192,21 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final GLDrawable setGLReadDrawable(final GLDrawable read) {
+    // Validate constraints first!
     if(!isGLReadDrawableAvailable()) {
         throw new GLException("Setting read drawable feature not available");
     }
-    final boolean lockHeld = lock.isOwner(Thread.currentThread());
+    final Thread currentThread = Thread.currentThread();
+    if( lock.isLockedByOtherThread() ) {
+        throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
+    }
+    final boolean lockHeld = lock.isOwner(currentThread);
+    if( lockHeld && lock.getHoldCount() > 1 ) {
+        // would need to makeCurrent * holdCount
+        throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
+    }
     if(lockHeld) {
-        release();
-    } else if(lock.isLockedByOtherThread()) { // still could glitch ..
-        throw new GLException("GLContext current by other thread ("+lock.getOwner()+"), operation not allowed.");
+        release(false);
     }
     final GLDrawable old = drawableRead;
     drawableRead = ( null != read ) ? (GLDrawableImpl) read : drawable;
@@ -213,9 +223,7 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final GLDrawable setGLDrawable(final GLDrawable readWrite, final boolean setWriteOnly) {
-    if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
-        return drawable; // no change.
-    }
+    // Validate constraints first!
     final Thread currentThread = Thread.currentThread();
     if( lock.isLockedByOtherThread() ) {
         throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
@@ -224,6 +232,9 @@ public abstract class GLContextImpl extends GLContext {
     if( lockHeld && lock.getHoldCount() > 1 ) {
         // would need to makeCurrent * holdCount
         throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
+    }
+    if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
+        return drawable; // no change.
     }
     final GLDrawableImpl old = drawable;
     if( isCreated() && null != old && old.isRealized() ) {
@@ -234,11 +245,11 @@ public abstract class GLContextImpl extends GLContext {
         gl.glFinish();
         associateDrawable(false);
         if(!lockHeld) {
-            release();
+            release(false);
         }
     }
     if(lockHeld) {
-        release();
+        release(false);
     }
     if( !setWriteOnly || drawableRead == drawable ) { // if !setWriteOnly || !explicitReadDrawable
         drawableRead = (GLDrawableImpl) readWrite;
@@ -248,7 +259,7 @@ public abstract class GLContextImpl extends GLContext {
     if( isCreated() && null != drawable && drawable.isRealized() ) {
         makeCurrent(true); // implicit: associateDrawable(true)
         if( !lockHeld ) {
-            release();
+            release(false);
         }
     }
     return old;
@@ -260,7 +271,7 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   public final GLDrawableImpl getDrawableImpl() {
-    return (GLDrawableImpl) getGLDrawable();
+    return drawable;
   }
 
   @Override
@@ -317,56 +328,57 @@ public abstract class GLContextImpl extends GLContext {
     release(false);
   }
   private void release(final boolean inDestruction) throws GLException {
-    if( TRACE_SWITCH ) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock);
-    }
-    if ( !lock.isOwner(Thread.currentThread()) ) {
-        final String msg = getThreadName() +": Context not current on thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock;
-        if( DEBUG_TRACE_SWITCH ) {
-            System.err.println(msg);
-            if( null != lastCtxReleaseStack ) {
-                System.err.print("Last release call: ");
-                lastCtxReleaseStack.printStackTrace();
-            } else {
-                System.err.println("Last release call: NONE");
-            }
-        }
-        throw new GLException(msg);
-    }
-
-    Throwable drawableContextMadeCurrentException = null;
-    final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
-    try {
-        if( actualRelease ) {
-            if( !inDestruction ) {
-                try {
-                    contextMadeCurrent(false);
-                } catch (final Throwable t) {
-                    drawableContextMadeCurrentException = t;
-                }
-            }
-            releaseImpl();
-        }
-    } finally {
-      // exception prone ..
-      if( actualRelease ) {
-          setCurrent(null);
+      if( TRACE_SWITCH ) {
+          final long drawH = null != drawable ? drawable.getHandle() : 0;
+          System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+(null!=drawable)+" "+toHexString(drawH)+", inDestruction: "+inDestruction+", "+lock);
       }
-      drawable.unlockSurface();
-      lock.unlock();
-      if( DEBUG_TRACE_SWITCH ) {
-          final String msg = getThreadName() +": GLContext.ContextSwitch[release.X]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - "+lock;
-          lastCtxReleaseStack = new Throwable(msg);
-          if( TRACE_SWITCH ) {
+      if ( !lock.isOwner(Thread.currentThread()) ) {
+          final long drawH = null != drawable ? drawable.getHandle() : 0;
+          final String msg = getThreadName() +": Context not current on thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+(null!=drawable)+" "+toHexString(drawH)+", inDestruction: "+inDestruction+", "+lock;
+          if( DEBUG_TRACE_SWITCH ) {
               System.err.println(msg);
-              // Thread.dumpStack();
+              if( null != lastCtxReleaseStack ) {
+                  System.err.print("Last release call: ");
+                  lastCtxReleaseStack.printStackTrace();
+              } else {
+                  System.err.println("Last release call: NONE");
+              }
+          }
+          throw new GLException(msg);
+      }
+
+      Throwable drawableContextMadeCurrentException = null;
+      final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
+      try {
+          if( actualRelease ) {
+              if( !inDestruction ) {
+                  try {
+                      contextMadeCurrent(false);
+                  } catch (final Throwable t) {
+                      drawableContextMadeCurrentException = t;
+                  }
+              }
+              releaseImpl();
+          }
+      } finally {
+          // exception prone ..
+          if( actualRelease ) {
+              setCurrent(null);
+          }
+          drawable.unlockSurface();
+          lock.unlock();
+          if( DEBUG_TRACE_SWITCH ) {
+              final String msg = getThreadName() +": GLContext.ContextSwitch[release.X]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - "+lock;
+              lastCtxReleaseStack = new Throwable(msg);
+              if( TRACE_SWITCH ) {
+                  System.err.println(msg);
+                  // Thread.dumpStack();
+              }
           }
       }
-    }
-    if(null != drawableContextMadeCurrentException) {
-      throw new GLException("GLContext.release(false) during GLDrawableImpl.contextMadeCurrent(this, false)", drawableContextMadeCurrentException);
-    }
-
+      if(null != drawableContextMadeCurrentException) {
+          throw new GLException("GLContext.release(false) during GLDrawableImpl.contextMadeCurrent(this, false)", drawableContextMadeCurrentException);
+      }
   }
   private Throwable lastCtxReleaseStack = null;
   protected abstract void releaseImpl() throws GLException;
@@ -376,7 +388,7 @@ public abstract class GLContextImpl extends GLContext {
       if ( DEBUG_TRACE_SWITCH ) {
           final long drawH = null != drawable ? drawable.getHandle() : 0;
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
-                  ", surf "+toHexString(drawH)+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
+                  ", surf "+(null!=drawable)+" "+toHexString(drawH)+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if ( 0 != contextHandle ) { // isCreated() ?
           if ( null == drawable ) {
@@ -395,9 +407,9 @@ public abstract class GLContextImpl extends GLContext {
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
               lock.lock(); // holdCount++ -> 1 - n (1: not locked, 2-n: destroy while rendering)
-              if ( lock.getHoldCount() > 2 ) {
-                  final String msg = getThreadName() + ": GLContextImpl.destroy: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle);
-                  if ( DEBUG_TRACE_SWITCH ) {
+              if ( DEBUG_TRACE_SWITCH ) {
+                  if ( lock.getHoldCount() > 2 ) {
+                      final String msg = getThreadName() + ": GLContextImpl.destroy: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle);
                       System.err.println(msg+" - Lock was hold more than once - makeCurrent/release imbalance: "+lock);
                       Thread.dumpStack();
                   }
@@ -521,10 +533,17 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   protected final int makeCurrent(boolean forceDrawableAssociation) throws GLException {
+    final boolean hasDrawable = null != drawable;
     if( TRACE_SWITCH ) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+lock);
+        final long drawH = null != drawable ? drawable.getHandle() : 0;
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+hasDrawable+" "+toHexString(drawH)+" - "+lock);
     }
-
+    if( !hasDrawable ) {
+        if( DEBUG_TRACE_SWITCH ) {
+            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - NULL Drawable - CONTEXT_NOT_CURRENT - "+lock);
+        }
+        return CONTEXT_NOT_CURRENT;
+    }
     // Note: the surface is locked within [makeCurrent .. swap .. release]
     final int lockRes = drawable.lockSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
@@ -591,12 +610,12 @@ public abstract class GLContextImpl extends GLContext {
       }
     }
 
-    if (res != CONTEXT_NOT_CURRENT) {
+    if (res != CONTEXT_NOT_CURRENT) { // still locked!
       setCurrent(this);
       if(res == CONTEXT_CURRENT_NEW) {
         // check if the drawable's and the GL's GLProfile are equal
         // throws an GLException if not
-        getGLDrawable().getGLProfile().verifyEquality(gl.getGLProfile());
+        drawable.getGLProfile().verifyEquality(gl.getGLProfile());
 
         glDebugHandler.init( isGL2GL3() && isGLDebugEnabled() );
 
@@ -1398,7 +1417,7 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
-        setGL( createGL( getGLDrawable().getGLProfile() ) );
+        setGL( createGL( drawable.getGLProfile() ) );
     }
     updateGLXProcAddressTable();
 
