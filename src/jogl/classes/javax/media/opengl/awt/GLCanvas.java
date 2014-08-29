@@ -842,68 +842,74 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable setupPrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if( !validateGLDrawable() ) {
-              if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {
+              if( !validateGLDrawable() ) {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
+                  }
+                  printActive = false;
+                  return; // not yet available ..
               }
-              printActive = false;
-              return; // not yet available ..
-          }
-          if( !isVisible() ) {
-              if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, canvas not visible");
+              if( !isVisible() ) {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, canvas not visible");
+                  }
+                  printActive = false;
+                  return; // not yet available ..
               }
-              printActive = false;
-              return; // not yet available ..
-          }
-          sendReshape = false; // clear reshape flag
-          printAnimator =  helper.getAnimator();
-          if( null != printAnimator ) {
-              printAnimator.remove(GLCanvas.this);
-          }
-          printGLAD = GLCanvas.this; // _not_ default, shall be replaced by offscreen GLAD
-          final GLCapabilitiesImmutable gladCaps = getChosenGLCapabilities();
-          final int printNumSamples = printAWTTiles.getNumSamples(gladCaps);
-          GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
-          final boolean reqNewGLADSamples = printNumSamples != gladCaps.getNumSamples();
-          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
-                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
-          final boolean reqNewGLADOnscrn = gladCaps.isOnscreen();
+              sendReshape = false; // clear reshape flag
+              printAnimator =  helper.getAnimator();
+              if( null != printAnimator ) {
+                  printAnimator.remove(GLCanvas.this);
+              }
+              printGLAD = GLCanvas.this; // _not_ default, shall be replaced by offscreen GLAD
+              final GLCapabilitiesImmutable gladCaps = getChosenGLCapabilities();
+              final int printNumSamples = printAWTTiles.getNumSamples(gladCaps);
+              GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
+              final boolean reqNewGLADSamples = printNumSamples != gladCaps.getNumSamples();
+              final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                             printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
+              final boolean reqNewGLADOnscrn = gladCaps.isOnscreen();
 
-          final GLCapabilities newGLADCaps = (GLCapabilities)gladCaps.cloneMutable();
-          newGLADCaps.setDoubleBuffered(false);
-          newGLADCaps.setOnscreen(false);
-          if( printNumSamples != newGLADCaps.getNumSamples() ) {
-              newGLADCaps.setSampleBuffers(0 < printNumSamples);
-              newGLADCaps.setNumSamples(printNumSamples);
-          }
-          final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
+              final GLCapabilities newGLADCaps = (GLCapabilities)gladCaps.cloneMutable();
+              newGLADCaps.setDoubleBuffered(false);
+              newGLADCaps.setOnscreen(false);
+              if( printNumSamples != newGLADCaps.getNumSamples() ) {
+                  newGLADCaps.setSampleBuffers(0 < printNumSamples);
+                  newGLADCaps.setNumSamples(printNumSamples);
+              }
+              final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
 
-          final boolean reqNewGLAD = ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
+              final boolean reqNewGLAD = ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
 
-          if( DEBUG ) {
-              System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+", safe "+reqNewGLADSafe+"], "+
-                                 ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
-                                 ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
-                                 ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
-                                 ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
-          }
-          if( reqNewGLAD ) {
-              final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
-              printGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
-                      printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
-              GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
-              printDrawable = printGLAD.getDelegatedDrawable();
-          }
-          printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
-          printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
-          printAWTTiles.renderer.attachAutoDrawable(printGLAD);
-          if( DEBUG ) {
-              System.err.println("AWT print.setup "+printAWTTiles);
-              System.err.println("AWT print.setup AA "+printNumSamples+", "+newGLADCaps);
-              System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
-              System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
+              if( DEBUG ) {
+                  System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+", safe "+reqNewGLADSafe+"], "+
+                                     ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
+                                     ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
+                                     ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
+                                     ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
+              }
+              if( reqNewGLAD ) {
+                  final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
+                  printGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
+                          printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
+                          printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
+                  GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
+                  printDrawable = printGLAD.getDelegatedDrawable();
+              }
+              printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
+              printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
+              printAWTTiles.renderer.attachAutoDrawable(printGLAD);
+              if( DEBUG ) {
+                  System.err.println("AWT print.setup "+printAWTTiles);
+                  System.err.println("AWT print.setup AA "+printNumSamples+", "+newGLADCaps);
+                  System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+                  System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
+              }
+          } finally {
+              _lock.unlock();
           }
       }
   };
@@ -919,23 +925,29 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable releasePrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if( DEBUG ) {
-              System.err.println("AWT print.release "+printAWTTiles);
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {
+              if( DEBUG ) {
+                  System.err.println("AWT print.release "+printAWTTiles);
+              }
+              printAWTTiles.dispose();
+              printAWTTiles= null;
+              if( printGLAD != GLCanvas.this ) {
+                  GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLCanvas.this);
+                  printGLAD.destroy();
+              }
+              printGLAD = null;
+              if( null != printAnimator ) {
+                  printAnimator.add(GLCanvas.this);
+                  printAnimator = null;
+              }
+              sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
+              printActive = false;
+              display();
+          } finally {
+              _lock.unlock();
           }
-          printAWTTiles.dispose();
-          printAWTTiles= null;
-          if( printGLAD != GLCanvas.this ) {
-              GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLCanvas.this);
-              printGLAD.destroy();
-          }
-          printGLAD = null;
-          if( null != printAnimator ) {
-              printAnimator.add(GLCanvas.this);
-              printAnimator = null;
-          }
-          sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
-          printActive = false;
-          display();
       }
   };
 

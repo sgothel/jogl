@@ -282,7 +282,6 @@ public class GLDrawableHelper {
           if( currentContext != context ) {
               context.makeCurrent();
           }
-          context.getGL().glFinish();
           context.setGLDrawable(null, true); // dis-associate
       }
 
@@ -300,7 +299,7 @@ public class GLDrawableHelper {
       }
 
       if(null != context) {
-          context.setGLDrawable(drawable, true); // re-association
+          context.setGLDrawable(drawable, true); // re-association, implicit glFinish() ctx/drawable sync
       }
 
       if( null != currentContext ) {

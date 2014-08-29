@@ -239,7 +239,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return singleAWTGLPixelBufferProvider;
   }
 
-  /** Currently not used internally, exist merely to satisfy {@link #getUpstreamLock()}. */
   private final RecursiveLock lock = LockFactory.createRecursiveLock();
 
   private final GLDrawableHelper helper;
@@ -538,28 +537,34 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return;
     }
 
-    if( !isInitialized ) {
-        initializeBackendImpl();
-    }
-
-    if (!isInitialized || printActive) {
-      return;
-    }
-
-    // NOTE: must do this when the context is not current as it may
-    // involve destroying the pbuffer (current context) and
-    // re-creating it -- tricky to do properly while the context is
-    // current
-    if( !printActive ) {
-        if (handleReshape) {
-          handleReshape = false;
-          sendReshape = handleReshape();
+    final RecursiveLock _lock = lock;
+    _lock.lock();
+    try {
+        if( !isInitialized ) {
+            initializeBackendImpl();
         }
 
-        if( isShowing ) {
-          updater.setGraphics(g);
-          backend.doPaintComponent(g);
+        if (!isInitialized || printActive) {
+          return;
         }
+
+        // NOTE: must do this when the context is not current as it may
+        // involve destroying the pbuffer (current context) and
+        // re-creating it -- tricky to do properly while the context is
+        // current
+        if( !printActive ) {
+            if (handleReshape) {
+              handleReshape = false;
+              sendReshape = handleReshape();
+            }
+
+            if( isShowing ) {
+              updater.setGraphics(g);
+              backend.doPaintComponent(g);
+            }
+        }
+    } finally {
+        _lock.unlock();
     }
   }
 
@@ -689,72 +694,78 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable setupPrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if( !isInitialized ) {
-              initializeBackendImpl();
-          }
-          if (!isInitialized) {
-              if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {
+              if( !isInitialized ) {
+                  initializeBackendImpl();
               }
-              printActive = false;
-              return; // not yet available ..
-          }
-          if( !isVisible() ) {
-              if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, panel not visible");
+              if (!isInitialized) {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
+                  }
+                  printActive = false;
+                  return; // not yet available ..
               }
-              printActive = false;
-              return; // not yet available ..
-          }
-          sendReshape = false; // clear reshape flag
-          handleReshape = false; // ditto
-          printAnimator =  helper.getAnimator();
-          if( null != printAnimator ) {
-              printAnimator.remove(GLJPanel.this);
-          }
+              if( !isVisible() ) {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, panel not visible");
+                  }
+                  printActive = false;
+                  return; // not yet available ..
+              }
+              sendReshape = false; // clear reshape flag
+              handleReshape = false; // ditto
+              printAnimator =  helper.getAnimator();
+              if( null != printAnimator ) {
+                  printAnimator.remove(GLJPanel.this);
+              }
 
-          printGLAD = GLJPanel.this; // default: re-use
-          final GLCapabilitiesImmutable gladCaps = getChosenGLCapabilities();
-          final int printNumSamples = printAWTTiles.getNumSamples(gladCaps);
-          GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
-          final boolean reqNewGLADSamples = printNumSamples != gladCaps.getNumSamples();
-          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
-                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
+              printGLAD = GLJPanel.this; // default: re-use
+              final GLCapabilitiesImmutable gladCaps = getChosenGLCapabilities();
+              final int printNumSamples = printAWTTiles.getNumSamples(gladCaps);
+              GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
+              final boolean reqNewGLADSamples = printNumSamples != gladCaps.getNumSamples();
+              final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                             printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
 
-          final GLCapabilities newGLADCaps = (GLCapabilities)gladCaps.cloneMutable();
-          newGLADCaps.setDoubleBuffered(false);
-          newGLADCaps.setOnscreen(false);
-          if( printNumSamples != newGLADCaps.getNumSamples() ) {
-              newGLADCaps.setSampleBuffers(0 < printNumSamples);
-              newGLADCaps.setNumSamples(printNumSamples);
-          }
-          final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
+              final GLCapabilities newGLADCaps = (GLCapabilities)gladCaps.cloneMutable();
+              newGLADCaps.setDoubleBuffered(false);
+              newGLADCaps.setOnscreen(false);
+              if( printNumSamples != newGLADCaps.getNumSamples() ) {
+                  newGLADCaps.setSampleBuffers(0 < printNumSamples);
+                  newGLADCaps.setNumSamples(printNumSamples);
+              }
+              final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
 
-          final boolean reqNewGLAD = ( reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
+              final boolean reqNewGLAD = ( reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
 
-          if( DEBUG ) {
-              System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ samples "+reqNewGLADSamples+", size "+reqNewGLADSize+", safe "+reqNewGLADSafe+"], "+
-                                 ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
-                                 ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
-                                 ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
-                                 ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
-          }
-          if( reqNewGLAD ) {
-              final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
-              printGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
-                      printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
-              GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
-              printDrawable = printGLAD.getDelegatedDrawable();
-          }
-          printAWTTiles.setGLOrientation( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented(), printGLAD.isGLOriented() );
-          printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
-          printAWTTiles.renderer.attachAutoDrawable(printGLAD);
-          if( DEBUG ) {
-              System.err.println("AWT print.setup "+printAWTTiles);
-              System.err.println("AWT print.setup AA "+printNumSamples+", "+newGLADCaps);
-              System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
-              System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
+              if( DEBUG ) {
+                  System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ samples "+reqNewGLADSamples+", size "+reqNewGLADSize+", safe "+reqNewGLADSafe+"], "+
+                                     ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
+                                     ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
+                                     ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
+                                     ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
+              }
+              if( reqNewGLAD ) {
+                  final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
+                  printGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
+                          printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
+                          printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
+                  GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
+                  printDrawable = printGLAD.getDelegatedDrawable();
+              }
+              printAWTTiles.setGLOrientation( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented(), printGLAD.isGLOriented() );
+              printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
+              printAWTTiles.renderer.attachAutoDrawable(printGLAD);
+              if( DEBUG ) {
+                  System.err.println("AWT print.setup "+printAWTTiles);
+                  System.err.println("AWT print.setup AA "+printNumSamples+", "+newGLADCaps);
+                  System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+                  System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
+              }
+          } finally {
+              _lock.unlock();
           }
       }
   };
@@ -772,43 +783,49 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable releasePrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if( DEBUG ) {
-              System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0 "+printAWTTiles);
-          }
-          printAWTTiles.dispose();
-          printAWTTiles= null;
-          if( printGLAD != GLJPanel.this ) {
-              GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLJPanel.this);
-              printGLAD.destroy();
-          }
-          printGLAD = null;
-          if( null != printAnimator ) {
-              printAnimator.add(GLJPanel.this);
-              printAnimator = null;
-          }
-
-          // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
-          final int awtWidth = GLJPanel.this.getWidth();
-          final int awtHeight= GLJPanel.this.getHeight();
-          final int scaledAWTWidth = awtWidth * hasPixelScale[0];
-          final int scaledAWTHeight= awtHeight * hasPixelScale[1];
-          final GLDrawable drawable = GLJPanel.this.getDelegatedDrawable();
-          if( scaledAWTWidth != panelWidth || scaledAWTHeight != panelHeight ||
-              drawable.getSurfaceWidth() != panelWidth || drawable.getSurfaceHeight() != panelHeight ) {
-              // -> !( awtSize == panelSize == drawableSize )
-              if ( DEBUG ) {
-                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resizeWithinPrint panel " +panelWidth+"x"+panelHeight + " @ scale "+getPixelScaleStr()+
-                          ", draw "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+
-                          " -> " + awtWidth+"x"+awtHeight+" * "+getPixelScaleStr()+" -> "+scaledAWTWidth+"x"+scaledAWTHeight);
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {
+              if( DEBUG ) {
+                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0 "+printAWTTiles);
               }
-              reshapeWidth = scaledAWTWidth;
-              reshapeHeight = scaledAWTHeight;
-              sendReshape = handleReshape(); // reshapeSize -> panelSize, backend reshape w/ GL reshape
-          } else {
-              sendReshape = true; // only GL reshape
+              printAWTTiles.dispose();
+              printAWTTiles= null;
+              if( printGLAD != GLJPanel.this ) {
+                  GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLJPanel.this);
+                  printGLAD.destroy();
+              }
+              printGLAD = null;
+              if( null != printAnimator ) {
+                  printAnimator.add(GLJPanel.this);
+                  printAnimator = null;
+              }
+
+              // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
+              final int awtWidth = GLJPanel.this.getWidth();
+              final int awtHeight= GLJPanel.this.getHeight();
+              final int scaledAWTWidth = awtWidth * hasPixelScale[0];
+              final int scaledAWTHeight= awtHeight * hasPixelScale[1];
+              final GLDrawable drawable = GLJPanel.this.getDelegatedDrawable();
+              if( scaledAWTWidth != panelWidth || scaledAWTHeight != panelHeight ||
+                  drawable.getSurfaceWidth() != panelWidth || drawable.getSurfaceHeight() != panelHeight ) {
+                  // -> !( awtSize == panelSize == drawableSize )
+                  if ( DEBUG ) {
+                      System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resizeWithinPrint panel " +panelWidth+"x"+panelHeight + " @ scale "+getPixelScaleStr()+
+                              ", draw "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+
+                              " -> " + awtWidth+"x"+awtHeight+" * "+getPixelScaleStr()+" -> "+scaledAWTWidth+"x"+scaledAWTHeight);
+                  }
+                  reshapeWidth = scaledAWTWidth;
+                  reshapeHeight = scaledAWTHeight;
+                  sendReshape = handleReshape(); // reshapeSize -> panelSize, backend reshape w/ GL reshape
+              } else {
+                  sendReshape = true; // only GL reshape
+              }
+              printActive = false;
+              display();
+          } finally {
+              _lock.unlock();
           }
-          printActive = false;
-          display();
       }
   };
 
@@ -966,11 +983,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public GLContext createContext(final GLContext shareWith) {
-    final Backend b = backend;
-    if ( null == b ) {
-        return null;
+    final RecursiveLock _lock = lock;
+    _lock.lock();
+    try {
+        final Backend b = backend;
+        if ( null == b ) {
+            return null;
+        }
+        return b.createContext(shareWith);
+    } finally {
+        _lock.unlock();
     }
-    return b.createContext(shareWith);
   }
 
   @Override
@@ -984,14 +1007,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public GLContext setContext(final GLContext newCtx, final boolean destroyPrevCtx) {
-    final Backend b = backend;
-    if ( null == b ) {
-        return null;
+    final RecursiveLock _lock = lock;
+    _lock.lock();
+    try {
+        final Backend b = backend;
+        if ( null == b ) {
+            return null;
+        }
+        final GLContext oldCtx = b.getContext();
+        GLDrawableHelper.switchContext(b.getDrawable(), oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
+        b.setContext(newCtx);
+        return oldCtx;
+    } finally {
+        _lock.unlock();
     }
-    final GLContext oldCtx = b.getContext();
-    GLDrawableHelper.switchContext(b.getDrawable(), oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
-    b.setContext(newCtx);
-    return oldCtx;
   }
 
 
@@ -1342,36 +1371,42 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable disposeAction = new Runnable() {
     @Override
     public void run() {
-        if ( null != backend ) {
-            final GLContext _context = backend.getContext();
-            final boolean backendDestroy = !backend.isUsingOwnLifecycle();
+        final RecursiveLock _lock = lock;
+        _lock.lock();
+        try {
+            if ( null != backend ) {
+                final GLContext _context = backend.getContext();
+                final boolean backendDestroy = !backend.isUsingOwnLifecycle();
 
-            GLException exceptionOnDisposeGL = null;
-            if( null != _context && _context.isCreated() ) {
-                try {
-                    helper.disposeGL(GLJPanel.this, _context, !backendDestroy);
-                } catch (final GLException gle) {
-                    exceptionOnDisposeGL = gle;
+                GLException exceptionOnDisposeGL = null;
+                if( null != _context && _context.isCreated() ) {
+                    try {
+                        helper.disposeGL(GLJPanel.this, _context, !backendDestroy);
+                    } catch (final GLException gle) {
+                        exceptionOnDisposeGL = gle;
+                    }
+                }
+                Throwable exceptionBackendDestroy = null;
+                if ( backendDestroy ) {
+                    try {
+                        backend.destroy();
+                    } catch( final Throwable re ) {
+                        exceptionBackendDestroy = re;
+                    }
+                    backend = null;
+                    isInitialized = false;
+                }
+
+                // throw exception in order of occurrence ..
+                if( null != exceptionOnDisposeGL ) {
+                    throw exceptionOnDisposeGL;
+                }
+                if( null != exceptionBackendDestroy ) {
+                    throw GLException.newGLException(exceptionBackendDestroy);
                 }
             }
-            Throwable exceptionBackendDestroy = null;
-            if ( backendDestroy ) {
-                try {
-                    backend.destroy();
-                } catch( final Throwable re ) {
-                    exceptionBackendDestroy = re;
-                }
-                backend = null;
-                isInitialized = false;
-            }
-
-            // throw exception in order of occurrence ..
-            if( null != exceptionOnDisposeGL ) {
-                throw exceptionOnDisposeGL;
-            }
-            if( null != exceptionBackendDestroy ) {
-                throw GLException.newGLException(exceptionBackendDestroy);
-            }
+        } finally {
+            _lock.unlock();
         }
     }
   };

@@ -108,10 +108,17 @@ public abstract class GLContextImpl extends GLContext {
   private final int[] boundFBOTarget = new int[] { 0, 0 }; // { draw, read }
   private int defaultVAO = 0;
 
+  /**
+   * <ul>
+   *   <li>[GLAutoDrawable.upstreamLock].lock()</li>
+   *   <li>drawable.surface.lock()</li>
+   *   <li>contextLock.lock()</li>
+   * </ul>
+   */
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
 
-  private volatile boolean pixelDataEvaluated;
+  private boolean pixelDataEvaluated;
   private int /* pixelDataInternalFormat, */ pixelDataFormat, pixelDataType;
 
   protected GL gl;
@@ -192,28 +199,28 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final GLDrawable setGLReadDrawable(final GLDrawable read) {
-    // Validate constraints first!
-    if(!isGLReadDrawableAvailable()) {
-        throw new GLException("Setting read drawable feature not available");
-    }
-    final Thread currentThread = Thread.currentThread();
-    if( contextLock.isLockedByOtherThread() ) {
-        throw new GLException("GLContext current by other thread "+contextLock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
-    }
-    final boolean lockHeld = contextLock.isOwner(currentThread);
-    if( lockHeld && contextLock.getHoldCount() > 1 ) {
-        // would need to makeCurrent * holdCount
-        throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
-    }
-    if(lockHeld) {
-        release(false);
-    }
-    final GLDrawable old = drawableRead;
-    drawableRead = ( null != read ) ? (GLDrawableImpl) read : drawable;
-    if(lockHeld) {
-        makeCurrent();
-    }
-    return old;
+      // Validate constraints first!
+      if(!isGLReadDrawableAvailable()) {
+          throw new GLException("Setting read drawable feature not available");
+      }
+      final Thread currentThread = Thread.currentThread();
+      if( contextLock.isLockedByOtherThread() ) {
+          throw new GLException("GLContext current by other thread "+contextLock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
+      }
+      final boolean lockHeld = contextLock.isOwner(currentThread);
+      if( lockHeld && contextLock.getHoldCount() > 1 ) {
+          // would need to makeCurrent * holdCount
+          throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
+      }
+      if(lockHeld) {
+          release(false);
+      }
+      final GLDrawable old = drawableRead;
+      drawableRead = ( null != read ) ? (GLDrawableImpl) read : drawable;
+      if(lockHeld) {
+          makeCurrent();
+      }
+      return old;
   }
 
   @Override
@@ -223,46 +230,46 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final GLDrawable setGLDrawable(final GLDrawable readWrite, final boolean setWriteOnly) {
-    // Validate constraints first!
-    final Thread currentThread = Thread.currentThread();
-    if( contextLock.isLockedByOtherThread() ) {
-        throw new GLException("GLContext current by other thread "+contextLock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
-    }
-    final boolean lockHeld = contextLock.isOwner(currentThread);
-    if( lockHeld && contextLock.getHoldCount() > 1 ) {
-        // would need to makeCurrent * holdCount
-        throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
-    }
-    if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
-        return drawable; // no change.
-    }
-    final GLDrawableImpl old = drawable;
-    if( isCreated() && null != old && old.isRealized() ) {
-        if(!lockHeld) {
-            makeCurrent();
-        }
-        // sync GL ctx w/ drawable's framebuffer before de-association
-        gl.glFinish();
-        associateDrawable(false);
-        if(!lockHeld) {
-            release(false);
-        }
-    }
-    if(lockHeld) {
-        release(false);
-    }
-    if( !setWriteOnly || drawableRead == drawable ) { // if !setWriteOnly || !explicitReadDrawable
-        drawableRead = (GLDrawableImpl) readWrite;
-    }
-    drawableRetargeted |= null != drawable && readWrite != drawable;
-    drawable = (GLDrawableImpl) readWrite ;
-    if( isCreated() && null != drawable && drawable.isRealized() ) {
-        makeCurrent(true); // implicit: associateDrawable(true)
-        if( !lockHeld ) {
-            release(false);
-        }
-    }
-    return old;
+      // Validate constraints first!
+      final Thread currentThread = Thread.currentThread();
+      if( contextLock.isLockedByOtherThread() ) {
+          throw new GLException("GLContext current by other thread "+contextLock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
+      }
+      final boolean lockHeld = contextLock.isOwner(currentThread);
+      if( lockHeld && contextLock.getHoldCount() > 1 ) {
+          // would need to makeCurrent * holdCount
+          throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
+      }
+      if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
+          return drawable; // no change.
+      }
+      final GLDrawableImpl old = drawable;
+      if( isCreated() && null != old && old.isRealized() ) {
+          if(!lockHeld) {
+              makeCurrent();
+          }
+          // sync GL ctx w/ drawable's framebuffer before de-association
+          gl.glFinish();
+          associateDrawable(false);
+          if(!lockHeld) {
+              release(false);
+          }
+      }
+      if(lockHeld) {
+          release(false);
+      }
+      if( !setWriteOnly || drawableRead == drawable ) { // if !setWriteOnly || !explicitReadDrawable
+          drawableRead = (GLDrawableImpl) readWrite;
+      }
+      drawableRetargeted |= null != drawable && readWrite != drawable;
+      drawable = (GLDrawableImpl) readWrite ;
+      if( isCreated() && null != drawable && drawable.isRealized() ) {
+          makeCurrent(true); // implicit: associateDrawable(true)
+          if( !lockHeld ) {
+              release(false);
+          }
+      }
+      return old;
   }
 
   @Override
@@ -365,8 +372,8 @@ public abstract class GLContextImpl extends GLContext {
           if( actualRelease ) {
               setCurrent(null);
           }
-          drawable.unlockSurface();
           contextLock.unlock();
+          drawable.unlockSurface();
           if( DEBUG_TRACE_SWITCH ) {
               final String msg = getThreadName() +": GLContext.ContextSwitch[release.X]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - "+contextLock;
               lastCtxReleaseStack = new Throwable(msg);
@@ -544,6 +551,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         return CONTEXT_NOT_CURRENT;
     }
+
     // Note: the surface is locked within [makeCurrent .. swap .. release]
     final int lockRes = drawable.lockSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
@@ -670,7 +678,9 @@ public abstract class GLContextImpl extends GLContext {
         final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getCreatedShare(this);
         final long shareWithHandle;
         if (null != shareWith) {
-            shareWith.getDrawableImpl().lockSurface();
+            if ( NativeSurface.LOCK_SURFACE_NOT_READY >= shareWith.drawable.lockSurface() ) {
+                throw new GLException("GLContextShareSet could not lock surface: "+shareWith.drawable);
+            }
             shareWithHandle = shareWith.getHandle();
             if (0 == shareWithHandle) {
                 throw new GLException("GLContextShareSet returned an invalid OpenGL context: "+this);
@@ -693,7 +703,7 @@ public abstract class GLContextImpl extends GLContext {
             }
         } finally {
             if (null != shareWith) {
-                shareWith.getDrawableImpl().unlockSurface();
+                shareWith.drawable.unlockSurface();
             }
         }
         if ( DEBUG_TRACE_SWITCH ) {
@@ -789,8 +799,8 @@ public abstract class GLContextImpl extends GLContext {
    *
    * The implementation <b>must</b> leave the context current.<br>
    *
-   * @param share the shared context or null
-   * @return the valid and current context if successful, or null
+   * @param sharedWithHandle the shared context handle or 0
+   * @return true if successful, or false
    * @throws GLException
    */
   protected abstract boolean createImpl(long sharedWithHandle) throws GLException ;
@@ -2151,35 +2161,31 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   private final void evalPixelDataType() {
-    if(!pixelDataEvaluated) {
-        synchronized(this) {
-            if(!pixelDataEvaluated) {
-                boolean ok = false;
-                /* if(isGL2GL3() && 3 == components) {
-                    pixelDataInternalFormat=GL.GL_RGB;
-                    pixelDataFormat=GL.GL_RGB;
-                    pixelDataType = GL.GL_UNSIGNED_BYTE;
-                    ok = true;
-                } else */ if( isGLES2Compatible() || isExtensionAvailable(GLExtensions.OES_read_format) ) {
-                    final int[] glImplColorReadVals = new int[] { 0, 0 };
-                    gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
-                    gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);
-                    // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
-                    pixelDataFormat = glImplColorReadVals[0];
-                    pixelDataType = glImplColorReadVals[1];
-                    ok = 0 != pixelDataFormat && 0 != pixelDataType;
-                }
-                if( !ok ) {
-                    // RGBA read is safe for all GL profiles
-                    // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
-                    pixelDataFormat=GL.GL_RGBA;
-                    pixelDataType = GL.GL_UNSIGNED_BYTE;
-                }
-                // TODO: Consider:
-                // return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
-                pixelDataEvaluated = true;
-            }
+    if(!pixelDataEvaluated) { // only valid while context is made current
+        boolean ok = false;
+        /* if(isGL2GL3() && 3 == components) {
+            pixelDataInternalFormat=GL.GL_RGB;
+            pixelDataFormat=GL.GL_RGB;
+            pixelDataType = GL.GL_UNSIGNED_BYTE;
+            ok = true;
+        } else */ if( isGLES2Compatible() || isExtensionAvailable(GLExtensions.OES_read_format) ) {
+            final int[] glImplColorReadVals = new int[] { 0, 0 };
+            gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
+            gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);
+            // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
+            pixelDataFormat = glImplColorReadVals[0];
+            pixelDataType = glImplColorReadVals[1];
+            ok = 0 != pixelDataFormat && 0 != pixelDataType;
         }
+        if( !ok ) {
+            // RGBA read is safe for all GL profiles
+            // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
+            pixelDataFormat=GL.GL_RGBA;
+            pixelDataType = GL.GL_UNSIGNED_BYTE;
+        }
+        // TODO: Consider:
+        // return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
+        pixelDataEvaluated = true;
     }
   }
 

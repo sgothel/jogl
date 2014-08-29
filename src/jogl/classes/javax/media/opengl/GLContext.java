@@ -326,6 +326,9 @@ public abstract class GLContext {
    * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
    * it equals to the write-drawable (default).
    * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    * @see #setGLDrawable(GLDrawable, boolean)
    * @see #setGLReadDrawable(GLDrawable)
    */
@@ -363,6 +366,9 @@ public abstract class GLContext {
    * <p>
    * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
    * it equals to the write-drawable (default).
+   * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
    * </p>
    * @see #isGLReadDrawableAvailable()
    * @see #setGLReadDrawable(GLDrawable)
@@ -1262,6 +1268,9 @@ public abstract class GLContext {
   /**
    * Return the framebuffer name bound to this context,
    * see {@link GL#glBindFramebuffer(int, int)}.
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    */
   public abstract int getBoundFramebuffer(int target);
 
@@ -1272,6 +1281,9 @@ public abstract class GLContext {
    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
    * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    */
   public abstract int getDefaultDrawFramebuffer();
 
@@ -1281,6 +1293,9 @@ public abstract class GLContext {
    * May differ from it's default <code>zero</code>
    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
+   * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
    * </p>
    */
   public abstract int getDefaultReadFramebuffer();
@@ -1306,13 +1321,26 @@ public abstract class GLContext {
    * Note-3: See {@link com.jogamp.opengl.util.GLDrawableUtil#swapBuffersBeforeRead(GLCapabilitiesImmutable) swapBuffersBeforeRead}
    * for read-pixels and swap-buffers implications.
    * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    */
   public abstract int getDefaultReadBuffer();
 
-  /** Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
+  /**
+   * Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}.
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
+   */
   public abstract int getDefaultPixelDataType();
 
-  /** Get the default pixel data format, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
+  /**
+   * Get the default pixel data format, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}.
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
+   */
   public abstract int getDefaultPixelDataFormat();
 
   /**
