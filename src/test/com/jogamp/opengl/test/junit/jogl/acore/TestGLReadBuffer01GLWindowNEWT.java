@@ -44,6 +44,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;
@@ -51,7 +52,11 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Test synchronous GLAutoDrawable display, swap-buffer and read-pixels with NEWT
+ * including non-MSAA and MSAA framebuffer.
+ * <p>
+ * See {@link GLReadBuffer00Base} for related bugs and further details.
+ * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
@@ -73,9 +78,16 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         try {
             glad.setPosition(64, 64);
             glad.setSize(320, 240);
-            final GearsES2 gears = new GearsES2(1);
-            gears.setVerbose(false);
-            glad.addGLEventListener(gears);
+            {
+                final GearsES2 gears = new GearsES2(1);
+                gears.setVerbose(false);
+                glad.addGLEventListener(gears);
+            }
+            {
+                final MultisampleDemoES2 demo = new MultisampleDemoES2(caps.getSampleBuffers());
+                demo.setClearBuffers(false);;
+                glad.addGLEventListener(demo);
+            }
             textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
             glad.addGLEventListener(textRendererGLEL);
             if( doSnapshot ) {

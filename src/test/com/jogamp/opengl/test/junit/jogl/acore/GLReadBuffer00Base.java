@@ -48,7 +48,18 @@ import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Test synchronous GLAutoDrawable display, swap-buffer and read-pixels
+ * including non-MSAA and MSAA framebuffer.
+ * <p>
+ * Analyzes behavior of reported bugs
+ * <ul>
+ *   <li>Bug 841 - GLJPanel "lagging" by one frame, https://jogamp.org/bugzilla/show_bug.cgi?id=841</li>
+ *   <li>Bug 975 - GLJPanel's OffscreenDrawable shall not double swap (custom swap by GLEventListener using [AWT]GLReadBufferUtil),
+ *       https://jogamp.org/bugzilla/show_bug.cgi?id=975</li>
+ *   <li>Bug 1020 - First frame on a mac nvidia card not antialiased, https://jogamp.org/bugzilla/show_bug.cgi?id=841</li>
+ * </ul>
+ * </p>
+ *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class GLReadBuffer00Base extends UITestCase {
