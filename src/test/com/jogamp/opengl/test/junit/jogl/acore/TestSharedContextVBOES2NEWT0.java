@@ -122,8 +122,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         Assert.assertTrue("Ctx is shared before shared creation", !ctx1.isShared());
         final InsetsImmutable insets = f1.getInsets();
 
-        System.err.println("XXX-C-2.1:");
-        MiscUtils.dumpSharedGLContext(ctx1);
+        MiscUtils.dumpSharedGLContext("XXX-C-1.1", ctx1);
 
         //
         // 2nd
@@ -139,10 +138,8 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
-            System.err.println("XXX-C-2.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-C-2.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-C-2.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-C-2.2", ctx2);
 
             Assert.assertEquals("Ctx1 has unexpected number of created shares", 1, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 1, ctx2Shares.size());
@@ -165,12 +162,9 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-C-3.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-C-3.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-C-3.3:");
-            MiscUtils.dumpSharedGLContext(ctx3);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.3", ctx3);
 
             Assert.assertEquals("Ctx1 has unexpected number of created shares", 2, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 2, ctx2Shares.size());
@@ -197,12 +191,9 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-D-0.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-D-0.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-D-0.3:");
-            MiscUtils.dumpSharedGLContext(ctx3);
+            MiscUtils.dumpSharedGLContext("XXX-D-0.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-D-0.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-D-0.3", ctx3);
 
             Assert.assertTrue("Ctx1 is shared", ctx1.isShared());
             Assert.assertTrue("Ctx2 is shared", ctx2.isShared());
@@ -221,12 +212,9 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-D-1.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-D-1.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-D-1.3:");
-            MiscUtils.dumpSharedGLContext(ctx3);
+            MiscUtils.dumpSharedGLContext("XXX-D-1.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-D-1.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-D-1.3", ctx3);
 
             Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
             Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
@@ -245,12 +233,9 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-D-2.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-D-2.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-D-2.3:");
-            MiscUtils.dumpSharedGLContext(ctx3);
+            MiscUtils.dumpSharedGLContext("XXX-D-2.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-D-2.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-D-2.3", ctx3);
 
             Assert.assertTrue("Ctx1 is not shared", !ctx1.isShared());
             Assert.assertTrue("Ctx2 is not shared", !ctx2.isShared());

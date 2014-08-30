@@ -138,12 +138,13 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(glWindow, true));
 
-        System.err.println("Master Context: ");
-        MiscUtils.dumpSharedGLContext(sharedDrawable.getContext());
-        System.err.println("New    Context: ");
-        MiscUtils.dumpSharedGLContext(glWindow.getContext());
+        MiscUtils.dumpSharedGLContext("Master Context", sharedDrawable.getContext());
+        MiscUtils.dumpSharedGLContext("New    Context", glWindow.getContext());
         if( useShared ) {
             Assert.assertEquals("Master Context not shared as expected", true, sharedDrawable.getContext().isShared());
+            Assert.assertEquals("Master Context is different", sharedDrawable.getContext(), glWindow.getContext().getSharedMaster());
+        } else {
+
         }
         Assert.assertEquals("New    Context not shared as expected", useShared, glWindow.getContext().isShared());
         Assert.assertEquals("Gears is not shared as expected", useShared, gears.usesSharedGears());

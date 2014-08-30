@@ -250,6 +250,16 @@ public abstract class GLContext {
       return GLContextShareSet.isShared(this);
   }
 
+  /**
+   * Returns the shared master GLContext of this GLContext if shared, otherwise return <code>null</code>.
+   * <p>
+   * Returns this GLContext, if it is a shared master.
+   * </p>
+   */
+  public final GLContext getSharedMaster() {
+      return GLContextShareSet.getSharedMaster(this);
+  }
+
   /** Returns a new list of created GLContext shared with this GLContext. */
   public final List<GLContext> getCreatedShares() {
       return GLContextShareSet.getCreatedShares(this);

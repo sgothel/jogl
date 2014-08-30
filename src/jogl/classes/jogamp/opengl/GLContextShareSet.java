@@ -61,21 +61,33 @@ public class GLContextShareSet {
   // to a share set, containing all shared contexts itself.
 
   private static final Map<GLContext, ShareSet> shareMap = new IdentityHashMap<GLContext, ShareSet>();
-  private static final Object dummyValue = new Object();
 
   private static class ShareSet {
-    private final Map<GLContext, Object> allShares       = new IdentityHashMap<GLContext, Object>();
-    private final Map<GLContext, Object> createdShares   = new IdentityHashMap<GLContext, Object>();
-    private final Map<GLContext, Object> destroyedShares = new IdentityHashMap<GLContext, Object>();
+    private final Map<GLContext, GLContext> createdShares   = new IdentityHashMap<GLContext, GLContext>();
+    private final Map<GLContext, GLContext> destroyedShares = new IdentityHashMap<GLContext, GLContext>();
 
-    public void add(final GLContext ctx) {
-      if (allShares.put(ctx, dummyValue) == null) {
-        if (ctx.isCreated()) {
-          createdShares.put(ctx, dummyValue);
+    public final void addNew(final GLContext slave, final GLContext master) {
+        final GLContext preMaster;
+        if ( slave.isCreated() ) {
+            preMaster = createdShares.put(slave, master);
         } else {
-          destroyedShares.put(ctx, dummyValue);
+            preMaster= destroyedShares.put(slave, master);
         }
-      }
+        if( null != preMaster ) {
+            throw new InternalError("State of ShareSet corrupted: Slave "+toHexString(slave.hashCode())+
+                                    " is not new w/ master "+toHexString(preMaster.hashCode()));
+        }
+    }
+    public final void addIfNew(final GLContext slave, final GLContext master) {
+        final GLContext preMaster = getMaster(master);
+        if( null == preMaster ) {
+            addNew(slave, master);
+        }
+    }
+
+    public final GLContext getMaster(final GLContext ctx) {
+        final GLContext c = createdShares.get(ctx);
+        return null != c ? c : destroyedShares.get(ctx);
     }
 
     public Set<GLContext> getCreatedShares() {
@@ -86,57 +98,55 @@ public class GLContextShareSet {
         return destroyedShares.keySet();
     }
 
-    public GLContext getCreatedShare(final GLContext ignore) {
-      for (final Iterator<GLContext> iter = createdShares.keySet().iterator(); iter.hasNext(); ) {
-        final GLContext ctx = iter.next();
-        if (ctx != ignore) {
-          return ctx;
-        }
-      }
-      return null;
-    }
-
     public void contextCreated(final GLContext ctx) {
-      final Object res = destroyedShares.remove(ctx);
-      assert res != null : "State of ShareSet corrupted; thought context " +
-        ctx + " should have been in destroyed set but wasn't";
-      final Object res2 = createdShares.put(ctx, dummyValue);
-      assert res2 == null : "State of ShareSet corrupted; thought context " +
-        ctx + " shouldn't have been in created set but was";
+      final GLContext ctxMaster = destroyedShares.remove(ctx);
+      if( null == ctxMaster ) {
+            throw new InternalError("State of ShareSet corrupted: Context "+toHexString(ctx.hashCode())+
+                                    " should have been in destroyed-set");
+      }
+      final GLContext delMaster = createdShares.put(ctx, ctxMaster);
+      if( null != delMaster ) {
+            throw new InternalError("State of ShareSet corrupted: Context "+toHexString(ctx.hashCode())+
+                                    " shouldn't have been in created-set");
+      }
     }
 
     public void contextDestroyed(final GLContext ctx) {
-      final Object res = createdShares.remove(ctx);
-      assert res != null : "State of ShareSet corrupted; thought context " +
-        ctx + " should have been in created set but wasn't";
-      final Object res2 = destroyedShares.put(ctx, dummyValue);
-      assert res2 == null : "State of ShareSet corrupted; thought context " +
-        ctx + " shouldn't have been in destroyed set but was";
+      final GLContext ctxMaster = createdShares.remove(ctx);
+      if( null == ctxMaster ) {
+            throw new InternalError("State of ShareSet corrupted: Context "+toHexString(ctx.hashCode())+
+                                    " should have been in created-set");
+      }
+      final GLContext delMaster = destroyedShares.put(ctx, ctxMaster);
+      if( null != delMaster ) {
+            throw new InternalError("State of ShareSet corrupted: Context "+toHexString(ctx.hashCode())+
+                                    " shouldn't have been in destroyed-set");
+      }
     }
   }
 
-  /** Indicate that contexts <code>share1</code> and
-      <code>share2</code> will share textures and display lists. Both
+  /** Indicate that contexts <code>slave</code> and
+      <code>master</code> will share textures and display lists. Both
       must be non-null. */
-  public static synchronized void registerSharing(final GLContext share1, final GLContext share2) {
-    if (share1 == null || share2 == null) {
-      throw new IllegalArgumentException("Both share1 and share2 must be non-null");
-    }
-    ShareSet share = entryFor(share1);
-    if (share == null) {
-      share = entryFor(share2);
-    }
-    if (share == null) {
-      share = new ShareSet();
-    }
-    share.add(share1);
-    share.add(share2);
-    addEntry(share1, share);
-    addEntry(share2, share);
-    if (DEBUG) {
-      System.err.println("GLContextShareSet: registereSharing: 1: " +
-              toHexString(share1.getHandle()) + ", 2: " + toHexString(share2.getHandle()));
-    }
+  public static synchronized void registerSharing(final GLContext slave, final GLContext master) {
+      if (slave == null || master == null) {
+          throw new IllegalArgumentException("Both slave and master must be non-null");
+      }
+      ShareSet share = entryFor(slave);
+      if ( null == share ) {
+          share = entryFor(master);
+      }
+      if ( null == share ) {
+          share = new ShareSet();
+      }
+      share.addNew(slave, master);
+      share.addIfNew(master, master); // this master could have a different master shared registered earlier!
+      addEntry(slave, share);
+      addEntry(master, share);
+      if (DEBUG) {
+          System.err.println("GLContextShareSet: registereSharing: 1: " +
+                  toHexString(slave.hashCode()) + ", 2: " + toHexString(master.hashCode()));
+      }
   }
 
   public static synchronized void unregisterSharing(final GLContext lastContext) {
@@ -157,7 +167,7 @@ public class GLContextShareSet {
     }
     if (DEBUG) {
       System.err.println("GLContextShareSet: unregisterSharing: " +
-              toHexString(lastContext.getHandle())+", entries: "+s.size());
+              toHexString(lastContext.hashCode())+", entries: "+s.size());
     }
     for(final Iterator<GLContext> iter = s.iterator() ; iter.hasNext() ; ) {
         final GLContext ctx = iter.next();
@@ -176,13 +186,18 @@ public class GLContextShareSet {
     return share != null;
   }
 
-  /** Returns one created GLContext shared with the given <code>context</code>, otherwise return <code>null</code>. */
-  public static synchronized GLContext getCreatedShare(final GLContext context) {
+  /**
+   * Returns the shared master GLContext of the given <code>context</code> if shared, otherwise return <code>null</code>.
+   * <p>
+   * Returns the given <code>context</code>, if it is a shared master.
+   * </p>
+   */
+  public static synchronized GLContext getSharedMaster(final GLContext context) {
     final ShareSet share = entryFor(context);
     if (share == null) {
       return null;
     }
-    return share.getCreatedShare(context);
+    return share.getMaster(context);
   }
 
   private static synchronized Set<GLContext> getCreatedSharesImpl(final GLContext context) {

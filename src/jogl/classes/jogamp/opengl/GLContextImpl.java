@@ -151,7 +151,9 @@ public abstract class GLContextImpl extends GLContext {
     if ( null != shareWith ) {
       GLContextShareSet.registerSharing(this, shareWith);
       bufferObjectTracker = ((GLContextImpl)shareWith).getBufferObjectTracker();
-      assert (bufferObjectTracker != null) : "shared context hash null GLBufferObjectTracker: "+shareWith;
+      if( null == bufferObjectTracker ) {
+          throw new InternalError("shared-master context hash null GLBufferObjectTracker: "+toHexString(shareWith.hashCode()));
+      }
     } else {
       bufferObjectTracker = new GLBufferObjectTracker();
     }
@@ -661,6 +663,10 @@ public abstract class GLContextImpl extends GLContext {
     return res;
   }
 
+  private final GLContextImpl getOtherSharedMaster() {
+      final GLContextImpl sharedMaster = (GLContextImpl) GLContextShareSet.getSharedMaster(this);
+      return this != sharedMaster ? sharedMaster : null;
+  }
   private final int makeCurrentWithinLock(final int surfaceLockRes) throws GLException {
       if (!isCreated()) {
         if( 0 >= drawable.getSurfaceWidth() || 0 >= drawable.getSurfaceHeight() ) {
@@ -675,22 +681,23 @@ public abstract class GLContextImpl extends GLContext {
             additionalCtxCreationFlags |= GLContext.CTX_OPTION_DEBUG ;
         }
 
-        final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getCreatedShare(this);
-        final long shareWithHandle;
-        if (null != shareWith) {
-            if ( NativeSurface.LOCK_SURFACE_NOT_READY >= shareWith.drawable.lockSurface() ) {
-                throw new GLException("GLContextShareSet could not lock surface: "+shareWith.drawable);
-            }
-            shareWithHandle = shareWith.getHandle();
-            if (0 == shareWithHandle) {
-                throw new GLException("GLContextShareSet returned an invalid OpenGL context: "+this);
-            }
-        } else {
-            shareWithHandle = 0;
-        }
         final boolean created;
+        final GLContextImpl sharedMaster = getOtherSharedMaster();
+        if ( null != sharedMaster ) {
+            if ( NativeSurface.LOCK_SURFACE_NOT_READY >= sharedMaster.drawable.lockSurface() ) {
+                throw new GLException("GLContextShareSet could not lock sharedMaster surface: "+sharedMaster.drawable);
+            }
+        }
         try {
-            created = createImpl(shareWithHandle); // may throws exception if fails
+            if ( null != sharedMaster ) {
+                final long sharedMasterHandle = sharedMaster.getHandle();
+                if ( 0 == sharedMasterHandle ) {
+                    throw new GLException("GLContextShareSet returned an invalid sharedMaster context: "+sharedMaster);
+                }
+                created = createImpl(sharedMasterHandle); // may throws exception if fails
+            } else {
+                created = createImpl(0); // may throws exception if fails
+            }
             if( created && hasNoDefaultVAO() ) {
                 final int[] tmp = new int[1];
                 final GL rootGL = gl.getRootGL();
@@ -702,8 +709,8 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
         } finally {
-            if (null != shareWith) {
-                shareWith.drawable.unlockSurface();
+            if ( null != sharedMaster ) {
+                sharedMaster.drawable.unlockSurface();
             }
         }
         if ( DEBUG_TRACE_SWITCH ) {

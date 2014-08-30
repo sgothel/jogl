@@ -29,15 +29,16 @@
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -52,19 +53,15 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Sharing the VBO of 3 GearsES2 instances, each in their own GLWindow.
+ * Test sharing w/ different shared-master context.
  * <p>
- * This is achieved by using the 1st GLWindow's GLContext as the <i>master</i>
+ * This is achieved by using the 1st GLWindow as the <i>master</i>
  * and synchronizing via GLSharedContextSetter to postpone creation
  * of the 2nd and 3rd GLWindow until the 1st GLWindow's GLContext becomes created.
  * </p>
- * <p>
- * Above method allows random creation of the 1st GLWindow, which triggers
- * creation of the <i>dependent</i> other GLWindow sharing it's GLContext.
- * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSharedContextVBOES2NEWT2 extends UITestCase {
+public class TestSharedContextVBOES2NEWT4 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
@@ -95,16 +92,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     }
 
     @Test
-    public void test01SyncedOneAnimatorCleanDtorOrder() throws InterruptedException {
-        syncedOneAnimator(true);
-    }
-
-    @Test
-    public void test02SyncedOneAnimatorDirtyDtorOrder() throws InterruptedException {
-        syncedOneAnimator(false);
-    }
-
-    public void syncedOneAnimator(final boolean destroyCleanOrder) throws InterruptedException {
+    public void test01() throws InterruptedException {
         final Animator animator = new Animator();
         animator.start();
 
@@ -125,8 +113,23 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         g3.setSharedGears(g1);
         final GLWindow f3 = createGLWindow(f1.getX()+0,
                                            f1.getY()+height+insets.getTotalHeight(), g3);
-        f3.setSharedAutoDrawable(f1);
+        f3.setSharedAutoDrawable(f2); // Mixed master!
         animator.add(f3);
+        final AtomicBoolean gotAnimException = new AtomicBoolean(false);
+        final AtomicBoolean gotOtherException = new AtomicBoolean(false);
+        animator.setUncaughtExceptionHandler(new GLAnimatorControl.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(final GLAnimatorControl _animator, final GLAutoDrawable _drawable, final Throwable _cause) {
+                if( _animator == animator && _drawable == f3 && _cause instanceof RuntimeException ) {
+                    System.err.println("Caught expected exception: "+_cause.getMessage());
+                    gotAnimException.set(true);
+                } else {
+                    System.err.println("Caught unexpected exception: "+_cause.getMessage());
+                    _cause.printStackTrace();
+                    gotOtherException.set(true);
+                }
+            }
+        });
         f3.setVisible(true);
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
@@ -158,6 +161,9 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
+        Assert.assertFalse("Unexpected exception (animator) caught", gotAnimException.get());
+        Assert.assertFalse("Unexpected exception (other) caught", gotOtherException.get());
+
         final GLContext ctx1 = f1.getContext();
         final GLContext ctx2 = f2.getContext();
         final GLContext ctx3 = f3.getContext();
@@ -177,7 +183,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 2, ctx3Shares.size());
             Assert.assertEquals("Ctx1 Master Context is different", ctx1, ctx1.getSharedMaster());
             Assert.assertEquals("Ctx2 Master Context is different", ctx1, ctx2.getSharedMaster());
-            Assert.assertEquals("Ctx3 Master Context is different", ctx1, ctx3.getSharedMaster());
+            Assert.assertEquals("Ctx3 Master Context is different", ctx2, ctx3.getSharedMaster()); // Mixed master!
         }
 
         Assert.assertTrue("Gears1 is shared", !g1.usesSharedGears());
@@ -192,143 +198,11 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
 
-        if( destroyCleanOrder ) {
-            System.err.println("XXX Destroy in clean order NOW");
-            f3.destroy();
-            f2.destroy();
-            f1.destroy();
-        } else {
-            System.err.println("XXX Destroy in creation order NOW - Driver Impl. May trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
-            f1.destroy();
-            f2.destroy();
-            f3.destroy();
-        }
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-    }
+        System.err.println("XXX Destroy in clean order NOW");
+        f3.destroy();
+        f2.destroy();
+        f1.destroy();
 
-    @Test
-    public void test11AsyncEachAnimatorCleanDtorOrder() throws InterruptedException {
-        asyncEachAnimator(true);
-    }
-
-    @Test
-    public void test12AsyncEachAnimatorDirtyDtorOrder() throws InterruptedException {
-        asyncEachAnimator(false);
-    }
-
-    public void asyncEachAnimator(final boolean destroyCleanOrder) throws InterruptedException {
-        final Animator a1 = new Animator();
-        final GearsES2 g1 = new GearsES2(0);
-        final GLWindow f1 = createGLWindow(0, 0, g1);
-        a1.add(f1);
-        a1.start();
-
-        final InsetsImmutable insets = f1.getInsets();
-
-        final Animator a2 = new Animator();
-        final GearsES2 g2 = new GearsES2(0);
-        g2.setSharedGears(g1);
-        final GLWindow f2 = createGLWindow(f1.getX()+width+insets.getTotalWidth(),
-                                           f1.getY()+0, g2);
-        f2.setSharedAutoDrawable(f1);
-        a2.add(f2);
-        a2.start();
-        f2.setVisible(true);
-
-        final Animator a3 = new Animator();
-        final GearsES2 g3 = new GearsES2(0);
-        g3.setSharedGears(g1);
-        final GLWindow f3 = createGLWindow(f1.getX()+0,
-                                           f1.getY()+height+insets.getTotalHeight(), g3);
-        f3.setSharedAutoDrawable(f1);
-        a3.add(f3);
-        a3.start();
-        f3.setVisible(true);
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
-
-        f1.setVisible(true); // kicks off f1 GLContext .. and hence gears of f2 + f3 completion
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, true));
-        Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, true));
-        Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
-        Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
-
-        final GLContext ctx1 = f1.getContext();
-        final GLContext ctx2 = f2.getContext();
-        final GLContext ctx3 = f3.getContext();
-        {
-            final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
-            final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
-            final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            MiscUtils.dumpSharedGLContext("XXX-C-3.1", ctx1);
-            MiscUtils.dumpSharedGLContext("XXX-C-3.2", ctx2);
-            MiscUtils.dumpSharedGLContext("XXX-C-3.3", ctx3);
-
-            Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
-            Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
-            Assert.assertTrue("Ctx3 is not shared", ctx3.isShared());
-            Assert.assertEquals("Ctx1 has unexpected number of created shares", 2, ctx1Shares.size());
-            Assert.assertEquals("Ctx2 has unexpected number of created shares", 2, ctx2Shares.size());
-            Assert.assertEquals("Ctx3 has unexpected number of created shares", 2, ctx3Shares.size());
-            Assert.assertEquals("Ctx1 Master Context is different", ctx1, ctx1.getSharedMaster());
-            Assert.assertEquals("Ctx2 Master Context is different", ctx1, ctx2.getSharedMaster());
-            Assert.assertEquals("Ctx3 Master Context is different", ctx1, ctx3.getSharedMaster());
-        }
-
-        Assert.assertTrue("Gears1 is shared", !g1.usesSharedGears());
-        Assert.assertTrue("Gears2 is not shared", g2.usesSharedGears());
-        Assert.assertTrue("Gears3 is not shared", g3.usesSharedGears());
-
-        try {
-            Thread.sleep(duration);
-        } catch(final Exception e) {
-            e.printStackTrace();
-        }
-        // Stopped animator allows native windowing system 'repaint' event
-        // to trigger GLAD 'display'
-        a1.stop();
-        Assert.assertEquals(false, a1.isAnimating());
-        a2.stop();
-        Assert.assertEquals(false, a2.isAnimating());
-        a3.stop();
-        Assert.assertEquals(false, a3.isAnimating());
-
-        if( destroyCleanOrder ) {
-            System.err.println("XXX Destroy in clean order NOW");
-            f3.destroy();
-            f2.destroy();
-            f1.destroy();
-        } else {
-            System.err.println("XXX Destroy in creation order NOW - Driver Impl. May trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
-            f1.destroy();
-            f2.destroy();
-            f3.destroy();
-        }
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
@@ -352,6 +226,6 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */
-        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2NEWT2.class.getName());
+        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2NEWT4.class.getName());
     }
 }
