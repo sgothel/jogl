@@ -726,7 +726,7 @@ public class MacOSXCGLContext extends GLContextImpl
                           final RecursiveLock surfaceLock = ols.getLock();
                           if( surfaceLock.tryLock( maxwait ) ) {
                               try {
-                                  if( MacOSXCGLContext.this.contextLock.tryLock( maxwait ) ) {
+                                  if( MacOSXCGLContext.this.lock.tryLock( maxwait ) ) {
                                       try {
                                           nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, shaderProgram, pfmt, pbuffer, texID, isOpaque,
                                                                                   texWidth, texHeight, winWidth, winHeight);
@@ -739,7 +739,7 @@ public class MacOSXCGLContext extends GLContextImpl
                                               System.err.println("NSOpenGLLayer.Attach: OK, layer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbuffer)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", drawableHandle "+toHexString(drawable.getHandle())+" - "+getThreadName());
                                           }
                                       } finally {
-                                          MacOSXCGLContext.this.contextLock.unlock();
+                                          MacOSXCGLContext.this.lock.unlock();
                                       }
                                   }
                               } finally {
