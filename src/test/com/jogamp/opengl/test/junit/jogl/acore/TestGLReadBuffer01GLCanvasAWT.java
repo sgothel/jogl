@@ -31,7 +31,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Frame;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.SwingUtilities;
@@ -41,6 +44,8 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -83,6 +88,23 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00BaseAWT {
                     // panel.setDoubleBuffered(useSwingDoubleBuffer);
                     // frame.getContentPane().add(panel);
 
+                    glad.addGLEventListener(new GLEventListener() {
+                        @Override
+                        public void init(final GLAutoDrawable drawable) {
+                            final GL gl = drawable.getGL();
+                            System.err.println(VersionUtil.getPlatformInfo());
+                            System.err.println("GLEventListener init on "+Thread.currentThread());
+                            System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
+                            System.err.println("INIT GL IS: " + gl.getClass().getName());
+                            System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+                        }
+                        @Override
+                        public void dispose(final GLAutoDrawable drawable) {}
+                        @Override
+                        public void display(final GLAutoDrawable drawable) {}
+                        @Override
+                        public void reshape(final GLAutoDrawable drawable, final int x,final int y, final int width, final int height) {}
+                    });
                     {
                         final GearsES2 gears = new GearsES2(1);
                         gears.setVerbose(false);
