@@ -127,6 +127,9 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00BaseAWT {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        if( keyFrame ) {
+            waitForKey("Post init: Frame# "+textRendererGLEL.frameNo);
+        }
         glad.display(); // trigger initialization to get chosen-caps!
         final Dimension size0 = frame.getSize();
         final Dimension size1 = new Dimension(size0.width+100, size0.height+100);
