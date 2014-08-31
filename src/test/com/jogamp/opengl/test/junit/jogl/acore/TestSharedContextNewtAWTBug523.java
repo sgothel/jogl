@@ -79,7 +79,6 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLBuffers;
 
 
 /**
@@ -819,19 +818,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                 }
             }
         }
-
-        final String testname = TestSharedContextNewtAWTBug523.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            testname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+testname+".xml" } );
+        org.junit.runner.JUnitCore.main(TestSharedContextNewtAWTBug523.class.getName());
     }
 
 }
