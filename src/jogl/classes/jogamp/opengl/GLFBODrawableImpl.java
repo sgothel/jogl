@@ -60,9 +60,9 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private int fboIBack;  // points to GL_BACK buffer
     private int fboIFront; // points to GL_FRONT buffer
     private int pendingFBOReset = -1;
-    /** Indicated whether the FBO is bound. */
+    /** Indicates whether the FBO is bound. */
     private boolean fboBound;
-    /** Indicated whether the FBO is swapped, resets to false after makeCurrent -> contextMadeCurrent. */
+    /** Indicates whether the FBO is swapped, resets to false after makeCurrent -> contextMadeCurrent. */
     private boolean fboSwapped;
 
     /** dump fboResetQuirk info only once pre ClassLoader and only in DEBUG mode */
@@ -189,7 +189,17 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                     fbos[i].setSamplingSink(ssink);
                     fbos[i].resetSamplingSink(gl); // validate
                 }
+                // Clear the framebuffer allowing defined state not exposing previous content.
+                // Also remedy for Bug 1020, i.e. OSX/Nvidia's FBO needs to be cleared before blitting,
+                // otherwise first MSAA frame lacks antialiasing.
+                fbos[i].bind(gl);
+                if( useDepth ) {
+                    gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+                } else {
+                    gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+                }
             }
+            fbos[fbosN-1].unbind(gl);
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
         } else {

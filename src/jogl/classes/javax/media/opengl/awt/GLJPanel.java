@@ -1636,6 +1636,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               helper.setAutoSwapBufferMode(false); // we handle swap-buffers, see handlesSwapBuffer()
 
               final GL gl = offscreenContext.getGL();
+              // Remedy for Bug 1020, i.e. OSX/Nvidia's FBO needs to be cleared before blitting,
+              // otherwise first MSAA frame lacks antialiasing.
+              // Clearing of FBO is performed within GLFBODrawableImpl.initialize(..):
+              //   gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
               final GLCapabilitiesImmutable chosenCaps = offscreenDrawable.getChosenGLCapabilities();
               final boolean glslCompliant = !offscreenContext.hasRendererQuirk(GLRendererQuirks.GLSLNonCompliant);
               final boolean useGLSLFlip = useGLSLFlip_pre && gl.isGL2ES2() && glslCompliant;
@@ -1653,6 +1658,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                       fboFlipped.reset(gl, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight(), 0, false);
                       fboFlipped.attachColorbuffer(gl, 0, chosenCaps.getAlphaBits()>0);
                       // fboFlipped.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                      gl.glClear(GL.GL_COLOR_BUFFER_BIT); // Bug 1020 (see above), cannot do in FBObject due to unknown 'first bind' state.
                       glslTextureRaster = new GLSLTextureRaster(fboDrawable.getTextureUnit(), true);
                       glslTextureRaster.init(gl.getGL2ES2());
                       glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight());
