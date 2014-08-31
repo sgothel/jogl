@@ -947,7 +947,7 @@ public class FBObject {
         colorbufferCount = 0;
         textureAttachmentCount = 0;
 
-        maxSamples = gl.getMaxRenderbufferSamples();
+        maxSamples = gl.getMaxRenderbufferSamples(); // if > 0 implies fullFBOSupport
         gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
         final int _maxTextureSize = val[0];
         if( 0 < USER_MAX_TEXTURE_SIZE ) {
@@ -2282,9 +2282,9 @@ public class FBObject {
     /**
      * Bind this FBO, i.e. bind write framebuffer to {@link #getWriteFramebuffer()}.
      *
-     * <p>If multisampling is used, it sets the read framebuffer to the sampling sink {@link #getWriteFramebuffer()},
-     * if full FBO is supported.</p>
-     *
+     * <p>
+     * If multisampling is used, it sets the read framebuffer to the sampling sink {@link #getWriteFramebuffer()}.
+     * </p>
      * <p>
      * In case you have attached more than one color buffer,
      * you may want to setup {@link GL2ES3#glDrawBuffers(int, int[], int)}.
@@ -2295,15 +2295,12 @@ public class FBObject {
     public final void bind(final GL gl) throws GLException {
         if(!bound || fbName != gl.getBoundFramebuffer(GL.GL_FRAMEBUFFER)) {
             checkInitialized();
-            if(samples > 0 && fullFBOSupport) {
-                // draw to multisampling - read from samplesSink
-                gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, getWriteFramebuffer());
-                gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, getReadFramebuffer());
+            if( fullFBOSupport ) {
+                gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, getWriteFramebuffer()); // this fb, msaa or normal
+                gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, getReadFramebuffer());  // msaa: sampling sink, normal: this fb
             } else {
-                // one for all
-                gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, getWriteFramebuffer());
+                gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, getWriteFramebuffer()); // normal: read/write
             }
-
             bound = true;
             samplingSinkDirty = true;
         }
@@ -2384,12 +2381,12 @@ public class FBObject {
      */
     public final void syncSamplingSink(final GL gl) {
         markUnbound();
-        if(samples>0 && samplingSinkDirty) {
+        if(samples>0 && samplingSinkDirty) { // implies fullFBOSupport
             samplingSinkDirty = false;
             resetSamplingSink(gl);
             checkPreGLError(gl);
-            gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, fbName);
-            gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, samplingSink.getWriteFramebuffer());
+            gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, fbName); // read from this MSAA fb
+            gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, samplingSink.getWriteFramebuffer()); // write to sampling sink
             ((GL2ES3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2ES3 is OK
                                            GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
             checkNoError(null, gl.glGetError(), "FBObject syncSampleSink"); // throws GLException if error
