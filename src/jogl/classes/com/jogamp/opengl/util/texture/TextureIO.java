@@ -575,6 +575,10 @@ public class TextureIO {
      * when it is written to disk, regardless of whether the underlying
      * file format supports multiple mipmaps in a given file.
      *
+     * <p>
+     * Method required a {@link GL2GL3} {@link GLProfile#GL2GL3 profile}.
+     * </p>
+     *
      * @throws IOException if an error occurred during writing or no
      *   suitable writer was found
      * @throws GLException if no OpenGL context was current or an
@@ -590,7 +594,7 @@ public class TextureIO {
         if (!_gl.isGL2GL3()) {
             throw new GLException("Implementation only supports GL2GL3 (Use GLReadBufferUtil and the TextureData variant), have: " + _gl);
         }
-        final GL2GL3 gl = _gl.getGL2();
+        final GL2GL3 gl = _gl.getGL2GL3();
 
         texture.bind(gl);
         final int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_INTERNAL_FORMAT);
