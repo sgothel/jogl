@@ -2123,16 +2123,6 @@ public class GLProfile {
                             return GL4bc;
                         }
                     }
-                    if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
-                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
-                            return GL3;
-                        }
-                    }
-                    if( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
-                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
-                            return GL3bc;
-                        }
-                    }
                 }
                 if(gles3Available) {
                     isHardwareRasterizer[0] = es3HardwareRasterizer[0];

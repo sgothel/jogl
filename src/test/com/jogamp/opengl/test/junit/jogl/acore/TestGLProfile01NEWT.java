@@ -217,7 +217,11 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertTrue(gl.isGL3());
         Assert.assertTrue(gl.isGL2());
         Assert.assertTrue(gl.isGL2GL3());
-        Assert.assertFalse(gl.isGL4ES3());
+        if( gles3CompatAvail ) { // possible w/ GL3 implementations!
+            Assert.assertTrue(gl.isGL4ES3());
+        } else {
+            Assert.assertFalse(gl.isGL4ES3());
+        }
         Assert.assertTrue(gl.isGL3ES3());
         Assert.assertTrue(gl.isGL2ES2());
         Assert.assertTrue(gl.isGL2ES1());
@@ -231,9 +235,12 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertTrue(ctx.isGL3());
         Assert.assertTrue(ctx.isGL2());
         Assert.assertTrue(ctx.isGL2GL3());
-        Assert.assertFalse(ctx.isGL4ES3());
+        if( gles3CompatAvail ) { // possible w/ GL3 implementations!
+            Assert.assertTrue(ctx.isGL4ES3());
+        } else {
+            Assert.assertFalse(ctx.isGL4ES3());
+        }
         Assert.assertTrue(ctx.isGL3ES3());
-        Assert.assertFalse(gles3CompatAvail);
         Assert.assertTrue(ctx.isGL2ES2());
         Assert.assertTrue(ctx.isGL2ES1());
         Assert.assertFalse(ctx.isGLES3());
@@ -266,7 +273,11 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertTrue(gl.isGL3());
         Assert.assertFalse(gl.isGL2());
         Assert.assertTrue(gl.isGL2GL3());
-        Assert.assertFalse(gl.isGL4ES3());
+        if( gles3CompatAvail ) { // possible w/ GL3 implementations!
+            Assert.assertTrue(gl.isGL4ES3());
+        } else {
+            Assert.assertFalse(gl.isGL4ES3());
+        }
         Assert.assertTrue(gl.isGL3ES3());
         Assert.assertTrue(gl.isGL2ES2());
         Assert.assertFalse(gl.isGL2ES1());
@@ -280,9 +291,12 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertTrue(ctx.isGL3());
         Assert.assertFalse(ctx.isGL2());
         Assert.assertTrue(ctx.isGL2GL3());
-        Assert.assertFalse(ctx.isGL4ES3());
+        if( gles3CompatAvail ) { // possible w/ GL3 implementations!
+            Assert.assertTrue(ctx.isGL4ES3());
+        } else {
+            Assert.assertFalse(ctx.isGL4ES3());
+        }
         Assert.assertTrue(ctx.isGL3ES3());
-        Assert.assertFalse(gles3CompatAvail);
         Assert.assertTrue(ctx.isGL2ES2());
         Assert.assertFalse(ctx.isGL2ES1());
         Assert.assertFalse(ctx.isGLES3());
@@ -366,7 +380,6 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertFalse(gl.isGL2GL3());
         Assert.assertTrue(gl.isGL4ES3());
         Assert.assertTrue(gl.isGL3ES3());
-        Assert.assertTrue(gles3CompatAvail);
         Assert.assertTrue(gl.isGL2ES2());
         Assert.assertFalse(gl.isGL2ES1());
         Assert.assertTrue(gl.isGLES3());
@@ -416,7 +429,6 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertFalse(gl.isGL2GL3());
         Assert.assertFalse(gl.isGL4ES3());
         Assert.assertFalse(gl.isGL3ES3());
-        Assert.assertFalse(gles3CompatAvail);
         Assert.assertTrue(gl.isGL2ES2());
         Assert.assertFalse(gl.isGL2ES1());
         Assert.assertFalse(gl.isGLES3());
@@ -466,7 +478,6 @@ public class TestGLProfile01NEWT extends UITestCase {
         Assert.assertFalse(gl.isGL2GL3());
         Assert.assertFalse(gl.isGL4ES3());
         Assert.assertFalse(gl.isGL3ES3());
-        Assert.assertFalse(gles3CompatAvail);
         Assert.assertFalse(gl.isGL2ES2());
         Assert.assertTrue(gl.isGL2ES1());
         Assert.assertFalse(gl.isGLES3());
