@@ -470,7 +470,7 @@ public class GLProfile {
 
         if(null != map) {
             for (final Map.Entry<String,GLProfile> entry : map.entrySet()) {
-                if( !GL_DEFAULT.equals(entry.getKey()) ) {
+                if( GL_DEFAULT != entry.getKey() ) {
                     if(useIndent) {
                         doIndent(sb.append(Platform.getNewline()), indent, indentCount);
                     }
@@ -513,44 +513,46 @@ public class GLProfile {
 
     /** The desktop OpenGL compatibility profile 4.x, with x >= 0, ie GL2 plus GL4.<br>
         <code>bc</code> stands for backward compatibility. */
-    public static final String GL4bc = "GL4bc";
+    public static final String GL4bc = "GL4bc".intern();
 
     /** The desktop OpenGL core profile 4.x, with x >= 0 */
-    public static final String GL4   = "GL4";
+    public static final String GL4   = "GL4".intern();
 
     /** The desktop OpenGL compatibility profile 3.x, with x >= 1, ie GL2 plus GL3.<br>
         <code>bc</code> stands for backward compatibility. */
-    public static final String GL3bc = "GL3bc";
+    public static final String GL3bc = "GL3bc".intern();
 
     /** The desktop OpenGL core profile 3.x, with x >= 1 */
-    public static final String GL3   = "GL3";
+    public static final String GL3   = "GL3".intern();
 
     /** The desktop OpenGL profile 1.x up to 3.0 */
-    public static final String GL2   = "GL2";
+    public static final String GL2   = "GL2".intern();
 
     /** The embedded OpenGL profile ES 1.x, with x >= 0 */
-    public static final String GLES1 = "GLES1";
+    public static final String GLES1 = "GLES1".intern();
 
     /** The embedded OpenGL profile ES 2.x, with x >= 0 */
-    public static final String GLES2 = "GLES2";
+    public static final String GLES2 = "GLES2".intern();
 
     /** The embedded OpenGL profile ES 3.x, with x >= 0 */
-    public static final String GLES3 = "GLES3";
+    public static final String GLES3 = "GLES3".intern();
 
     /** The intersection of the desktop GL2 and embedded ES1 profile */
-    public static final String GL2ES1 = "GL2ES1";
+    public static final String GL2ES1 = "GL2ES1".intern();
 
     /** The intersection of the desktop GL3, GL2 and embedded ES2 profile */
-    public static final String GL2ES2 = "GL2ES2";
+    public static final String GL2ES2 = "GL2ES2".intern();
 
     /** The intersection of the desktop GL3 and GL2 profile */
-    public static final String GL2GL3 = "GL2GL3";
+    public static final String GL2GL3 = "GL2GL3".intern();
 
     /** The intersection of the desktop GL4 and ES3 profile, available only if either ES3 or GL4 w/ <code>GL_ARB_ES3_compatibility</code> is available. */
-    public static final String GL4ES3 = "GL4ES3";
+    public static final String GL4ES3 = "GL4ES3".intern();
 
     /** The default profile, used for the device default profile map  */
-    private static final String GL_DEFAULT = "GL_DEFAULT";
+    private static final String GL_DEFAULT = "GL_DEFAULT".intern();
+    /** The default profile, used for the device default profile map  */
+    private static final String GL_GL = "GL".intern();
 
     /**
      * All GL Profiles in the order of default detection.
@@ -936,7 +938,7 @@ public class GLProfile {
     public static GLProfile get(final AbstractGraphicsDevice device, String profile)
         throws GLException
     {
-        if(null==profile || profile.equals("GL")) {
+        if(null==profile || profile == GL_GL) {
             profile = GL_DEFAULT;
         }
         final HashMap<String /*GLProfile_name*/, GLProfile> glpMap = getProfileMap(device, true);
@@ -1008,21 +1010,21 @@ public class GLProfile {
      * This requires an EGL interface.
      */
     public static boolean usesNativeGLES1(final String profileImpl) {
-        return GLES1.equals(profileImpl);
+        return GLES1 == profileImpl;
     }
 
     /** Indicates whether the native OpenGL ES3 or ES2 profile is in use.
      * This requires an EGL, ES3 or ES2 compatible interface.
      */
     public static boolean usesNativeGLES2(final String profileImpl) {
-        return GLES3.equals(profileImpl) || GLES2.equals(profileImpl);
+        return GLES3 == profileImpl || GLES2 == profileImpl;
     }
 
     /** Indicates whether the native OpenGL ES2 profile is in use.
      * This requires an EGL, ES3 compatible interface.
      */
     public static boolean usesNativeGLES3(final String profileImpl) {
-        return GLES3.equals(profileImpl);
+        return GLES3 == profileImpl;
     }
 
     /** Indicates whether either of the native OpenGL ES profiles are in use. */
@@ -2039,7 +2041,7 @@ public class GLProfile {
      * Returns the profile implementation
      */
     private static String computeProfileImpl(final AbstractGraphicsDevice device, final String profile, final boolean desktopCtxUndef, final boolean esCtxUndef, final boolean isHardwareRasterizer[]) {
-        if (GL2ES1.equals(profile)) {
+        if (GL2ES1 == profile) {
             final boolean es1HardwareRasterizer[] = new boolean[1];
             final boolean gles1Available = hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, es1HardwareRasterizer) );
             final boolean gles1HWAvailable = gles1Available && es1HardwareRasterizer[0] ;
@@ -2064,7 +2066,7 @@ public class GLProfile {
                 isHardwareRasterizer[0] = es1HardwareRasterizer[0];
                 return GLES1;
             }
-        } else if (GL2ES2.equals(profile)) {
+        } else if (GL2ES2 == profile) {
             final boolean es2HardwareRasterizer[] = new boolean[1];
             final boolean gles2Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
             final boolean gles2HWAvailable = gles2Available && es2HardwareRasterizer[0] ;
@@ -2106,7 +2108,7 @@ public class GLProfile {
                 isHardwareRasterizer[0] = es2HardwareRasterizer[0];
                 return GLES2;
             }
-        } else if (GL4ES3.equals(profile)) {
+        } else if (GL4ES3 == profile) {
             final boolean gles3CompatAvail = GLContext.isGLES3CompatibleAvailable(device);
             if( desktopCtxUndef || esCtxUndef || gles3CompatAvail ) {
                 final boolean es3HardwareRasterizer[] = new boolean[1];
@@ -2129,7 +2131,7 @@ public class GLProfile {
                     return GLES3;
                 }
             }
-        } else if(GL2GL3.equals(profile)) {
+        } else if(GL2GL3 == profile) {
             if(hasGL234Impl) {
                 if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
                     return GL4bc;
@@ -2143,21 +2145,21 @@ public class GLProfile {
                     return GL2;
                 }
             }
-        } else if(GL4bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device, isHardwareRasterizer))) {
+        } else if(GL4bc == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL4bc : GLContext.getAvailableGLProfileName(device, 4, GLContext.CTX_PROFILE_COMPAT);
-        } else if(GL4.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device, isHardwareRasterizer))) {
+        } else if(GL4 == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL4 : GLContext.getAvailableGLProfileName(device, 4, GLContext.CTX_PROFILE_CORE);
-        } else if(GL3bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer))) {
+        } else if(GL3bc == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL3bc : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_COMPAT);
-        } else if(GL3.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
+        } else if(GL3 == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_CORE);
-        } else if(GL2.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
+        } else if(GL2 == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_COMPAT);
-        } else if(GLES3.equals(profile) && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, isHardwareRasterizer))) {
+        } else if(GLES3 == profile && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, isHardwareRasterizer))) {
             return esCtxUndef ? GLES3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_ES);
-        } else if(GLES2.equals(profile) && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
+        } else if(GLES2 == profile && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
             return esCtxUndef ? GLES2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_ES);
-        } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, isHardwareRasterizer))) {
+        } else if(GLES1 == profile && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, isHardwareRasterizer))) {
             return esCtxUndef ? GLES1 : GLContext.getAvailableGLProfileName(device, 1, GLContext.CTX_PROFILE_ES);
         }
         return null;
