@@ -440,7 +440,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLWindowInit03NEWT $*
 
 #
@@ -533,6 +533,7 @@ testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLOffscreenAutoDrawableBug1044AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT $*
