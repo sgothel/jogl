@@ -148,6 +148,8 @@ public abstract class GLContext {
 
   protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
 
+  private static final String S_EMPTY = "";
+
   //
   // Cached keys, bits [0..15]
   //
@@ -818,8 +820,8 @@ public abstract class GLContext {
    * <pre>
    *    #version 110
    *    ..
-   *    #version 150
-   *    #version 330
+   *    #version 150 core
+   *    #version 330 compatibility
    *    ...
    * </pre>
    * And for ES:
@@ -835,11 +837,20 @@ public abstract class GLContext {
    */
   public final String getGLSLVersionString() {
       if( ctxGLSLVersion.isZero() ) {
-          return "";
+          return S_EMPTY;
       }
       final int minor = ctxGLSLVersion.getMinor();
-      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : "";
-      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + esSuffix + "\n" ;
+      final String profileOpt;
+      if( isGLES() ) {
+          profileOpt = ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : S_EMPTY;
+      } else if( isGLCoreProfile() ) {
+          profileOpt = ctxGLSLVersion.compareTo(Version150) >= 0 ? " core" : S_EMPTY;
+      } else if( isGLCompatibilityProfile() ) {
+          profileOpt = ctxGLSLVersion.compareTo(Version150) >= 0 ? " compatibility" : S_EMPTY;
+      } else {
+          throw new InternalError("Neither ES, Core nor Compat: "+this); // see validateProfileBits(..)
+      }
+      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + profileOpt + "\n" ;
   }
 
   protected static final VersionNumber getStaticGLSLVersionNumber(final int glMajorVersion, final int glMinorVersion, final int ctxOptions) {
