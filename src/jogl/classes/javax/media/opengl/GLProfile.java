@@ -513,46 +513,46 @@ public class GLProfile {
 
     /** The desktop OpenGL compatibility profile 4.x, with x >= 0, ie GL2 plus GL4.<br>
         <code>bc</code> stands for backward compatibility. */
-    public static final String GL4bc = "GL4bc".intern();
+    public static final String GL4bc = "GL4bc"; // Implicitly intern(), see Bug 1059
 
     /** The desktop OpenGL core profile 4.x, with x >= 0 */
-    public static final String GL4   = "GL4".intern();
+    public static final String GL4   = "GL4"; // Implicitly intern(), see Bug 1059
 
     /** The desktop OpenGL compatibility profile 3.x, with x >= 1, ie GL2 plus GL3.<br>
         <code>bc</code> stands for backward compatibility. */
-    public static final String GL3bc = "GL3bc".intern();
+    public static final String GL3bc = "GL3bc"; // Implicitly intern(), see Bug 1059
 
     /** The desktop OpenGL core profile 3.x, with x >= 1 */
-    public static final String GL3   = "GL3".intern();
+    public static final String GL3   = "GL3"; // Implicitly intern(), see Bug 1059
 
     /** The desktop OpenGL profile 1.x up to 3.0 */
-    public static final String GL2   = "GL2".intern();
+    public static final String GL2   = "GL2"; // Implicitly intern(), see Bug 1059
 
     /** The embedded OpenGL profile ES 1.x, with x >= 0 */
-    public static final String GLES1 = "GLES1".intern();
+    public static final String GLES1 = "GLES1"; // Implicitly intern(), see Bug 1059
 
     /** The embedded OpenGL profile ES 2.x, with x >= 0 */
-    public static final String GLES2 = "GLES2".intern();
+    public static final String GLES2 = "GLES2"; // Implicitly intern(), see Bug 1059
 
     /** The embedded OpenGL profile ES 3.x, with x >= 0 */
-    public static final String GLES3 = "GLES3".intern();
+    public static final String GLES3 = "GLES3"; // Implicitly intern(), see Bug 1059
 
     /** The intersection of the desktop GL2 and embedded ES1 profile */
-    public static final String GL2ES1 = "GL2ES1".intern();
+    public static final String GL2ES1 = "GL2ES1"; // Implicitly intern(), see Bug 1059
 
     /** The intersection of the desktop GL3, GL2 and embedded ES2 profile */
-    public static final String GL2ES2 = "GL2ES2".intern();
+    public static final String GL2ES2 = "GL2ES2"; // Implicitly intern(), see Bug 1059
 
     /** The intersection of the desktop GL3 and GL2 profile */
-    public static final String GL2GL3 = "GL2GL3".intern();
+    public static final String GL2GL3 = "GL2GL3"; // Implicitly intern(), see Bug 1059
 
     /** The intersection of the desktop GL4 and ES3 profile, available only if either ES3 or GL4 w/ <code>GL_ARB_ES3_compatibility</code> is available. */
-    public static final String GL4ES3 = "GL4ES3".intern();
+    public static final String GL4ES3 = "GL4ES3"; // Implicitly intern(), see Bug 1059
 
     /** The default profile, used for the device default profile map  */
-    private static final String GL_DEFAULT = "GL_DEFAULT".intern();
+    private static final String GL_DEFAULT = "GL_DEFAULT"; // Implicitly intern(), see Bug 1059
     /** The default profile, used for the device default profile map  */
-    private static final String GL_GL = "GL".intern();
+    private static final String GL_GL = "GL"; // Implicitly intern(), see Bug 1059
 
     /**
      * All GL Profiles in the order of default detection.

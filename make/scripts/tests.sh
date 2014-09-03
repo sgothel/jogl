@@ -127,7 +127,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLBufferStateTracker -Djogl.debug.GLBufferObjectTracker"
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker"
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker -Djogl.debug.GLArrayData -Djogl.debug.TraceGL -Djogl.debug.DebugGL"
-    D_ARGS="-Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
@@ -167,7 +167,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
-    #D_ARGS="-Dnewt.debug.Screen"
+    D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
@@ -378,7 +378,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
 # Stereo
@@ -426,7 +426,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
 
 #
 # av demos
