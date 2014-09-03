@@ -64,6 +64,10 @@ import com.jogamp.common.util.VersionNumber;
  * {@link #create(GL2ES2, int, Class, String, String, String, boolean) here} and
  * {@link #create(GL2ES2, int, int, Class, String, String[], String, String) here}.
  * </p>
+ * <p>
+ * Support for {@link GL4#GL_TESS_CONTROL_SHADER} and {@link GL4#GL_TESS_EVALUATION_SHADER}
+ * was added since 2.2.1.
+ * </p>
  */
 public class ShaderCode {
     public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true);
@@ -80,16 +84,28 @@ public class ShaderCode {
     /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in binary: <code>{@value}</code> */
     public static final String SUFFIX_GEOMETRY_BINARY = "bgp" ;
 
-    /** Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in source code: <code>{@value}</code> */
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in source code: <code>{@value}</code>
+     * @since 2.2.1
+     */
     public static final String SUFFIX_TESS_CONTROL_SOURCE =  "tcp" ;
 
-    /** Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in binary: <code>{@value}</code> */
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in binary: <code>{@value}</code>
+     * @since 2.2.1
+     */
     public static final String SUFFIX_TESS_CONTROL_BINARY = "btcp" ;
 
-    /** Unique resource suffix for {@link GL4#GL_TESS_EVALUATION_SHADER} in source code: <code>{@value}</code> */
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_EVALUATION_SHADER} in source code: <code>{@value}</code>
+     * @since 2.2.1
+     */
     public static final String SUFFIX_TESS_EVALUATION_SOURCE =  "tep" ;
 
-    /** Unique resource suffix for {@link GL4#GL_TESS_EVALUATION_SHADER} in binary: <code>{@value}</code> */
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_EVALUATION_SHADER} in binary: <code>{@value}</code>
+     * @since 2.2.1
+     */
     public static final String SUFFIX_TESS_EVALUATION_BINARY = "btep" ;
 
     /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in source code: <code>{@value}</code> */

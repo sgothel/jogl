@@ -257,6 +257,7 @@ public abstract class GLContext {
    * <p>
    * Returns this GLContext, if it is a shared master.
    * </p>
+   * @since 2.2.1
    */
   public final GLContext getSharedMaster() {
       return GLContextShareSet.getSharedMaster(this);
