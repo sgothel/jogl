@@ -128,6 +128,21 @@ public class GLProfile {
     }
 
     /**
+     * @return <code>true</code> if JOGL has been initialized, i.e. manually via {@link #initSingleton()} or implicit,
+     *         otherwise returns <code>false</code>.
+     *
+     * @since 2.2.1
+     */
+    public static boolean isInitialized() {
+        initLock.lock();
+        try {
+            return initialized;
+        } finally {
+            initLock.unlock();
+        }
+    }
+
+    /**
      * Static initialization of JOGL.
      *
      * <p>

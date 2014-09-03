@@ -58,7 +58,14 @@ public class TestGLProfile00NEWT extends UITestCase {
 
     @Test
     public void test02InitSingleton() throws InterruptedException {
+        Assert.assertFalse("JOGL is initialized before usage", GLProfile.isInitialized());
         GLProfile.initSingleton();
+        Assert.assertTrue("JOGL is not initialized after enforced initialization", GLProfile.isInitialized());
+    }
+
+    @Test
+    public void test11DumpDesktopGLInfo() throws InterruptedException {
+        Assert.assertTrue("JOGL is not initialized ...", GLProfile.isInitialized());
         System.err.println("Desktop");
         final GLDrawableFactory desktopFactory = GLDrawableFactory.getDesktopFactory();
         if( null != desktopFactory ) {
@@ -67,7 +74,11 @@ public class TestGLProfile00NEWT extends UITestCase {
         } else {
             System.err.println("\tNULL");
         }
+    }
 
+    @Test
+    public void test12DumpEGLGLInfo() throws InterruptedException {
+        Assert.assertTrue("JOGL is not initialized ...", GLProfile.isInitialized());
         System.err.println("EGL");
         final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
         if( null != eglFactory ) {
