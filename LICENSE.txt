@@ -8,6 +8,7 @@ if not stated otherwise.
 
     A.7) The JOGL source tree _may_ contain code from Oculus VR, Inc.
          which is covered by it's own permissive Oculus VR Rift SDK Software License.
+         (Optional, see A.7 below for details)
 
 Below you find a detailed list of licenses used in this project.
 
