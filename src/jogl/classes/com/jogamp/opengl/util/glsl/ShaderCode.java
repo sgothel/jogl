@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -53,6 +54,7 @@ import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionNumber;
@@ -832,7 +834,8 @@ public class ShaderCode {
                     URLConnection nextConn = null;
 
                     // Try relative of current shader location
-                    nextConn = IOUtil.openURL(IOUtil.getRelativeOf(conn.getURL(), includeFile), "ShaderCode.relativeOf ");
+                    final Uri relUri = Uri.valueOf( conn.getURL() ).getRelativeOf(new Uri.Encoded( includeFile, Uri.PATH_LEGAL ));
+                    nextConn = IOUtil.openURL(relUri.toURL(), "ShaderCode.relativeOf ");
                     if (nextConn == null) {
                         // Try relative of class and absolute
                         nextConn = IOUtil.getResource(context, includeFile);
@@ -846,6 +849,8 @@ public class ShaderCode {
                     result.append(line + "\n");
                 }
             }
+        } catch (final URISyntaxException e) {
+            throw new IOException(e);
         } finally {
             IOUtil.close(reader, false);
         }

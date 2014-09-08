@@ -28,7 +28,6 @@
 package com.jogamp.opengl.test.junit.jogl.stereo;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
@@ -40,7 +39,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 
-import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.net.Uri;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -180,14 +179,14 @@ public class StereoDemo01 {
         }
         final StereoGLEventListener upstream;
         final MovieSBSStereo movieSimple;
-        final URI movieURI;
+        final Uri movieURI;
         if( null != useFilmFile ) {
             movieSimple = new MovieSBSStereo();
-            movieURI = IOUtil.toURISimple(new File(useFilmFile));
+            movieURI = Uri.valueOf(new File(useFilmFile));
             upstream = movieSimple;
         } else if( null != useFilmURI ) {
             movieSimple = new MovieSBSStereo();
-            movieURI = new URI(useFilmURI);
+            movieURI = Uri.cast(useFilmURI);
             upstream = movieSimple;
         } else {
             final GearsES2 demo = new GearsES2(0);
@@ -204,7 +203,7 @@ public class StereoDemo01 {
     }
 
     public void doIt(final StereoDeviceFactory.DeviceType deviceType, final int deviceIndex, final int posx, final int posy,
-                     final StereoGLEventListener upstream, final MovieSBSStereo movieSimple, final URI movieURI,
+                     final StereoGLEventListener upstream, final MovieSBSStereo movieSimple, final Uri movieURI,
                      final boolean biLinear, final int numSamples, final boolean useSingleFBO,
                      final boolean useRecommendedDistortionBits, final boolean useVignette, final boolean useChromatic, final boolean useTimewarp,
                      final boolean useAutoSwap, final boolean useAnimator, final boolean exclusiveContext) throws InterruptedException {

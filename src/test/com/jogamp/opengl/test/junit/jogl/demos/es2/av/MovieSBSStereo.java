@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.FloatBuffer;
 
@@ -41,6 +40,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -117,13 +117,13 @@ public class MovieSBSStereo implements StereoGLEventListener {
     private static final String myTextureLookupName = "myTexture2D";
 
     /** Blender's Big Buck Bunny: 24f 416p H.264,  AAC 48000 Hz, 2 ch, mpeg stream. */
-    public static final URI defURI;
+    public static final Uri defURI;
     static {
-        URI _defURI = null;
+        Uri _defURI = null;
         try {
             // Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream.
             // _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
-            _defURI = new URI("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
+            _defURI = Uri.cast("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
         } catch (final URISyntaxException e) {
             e.printStackTrace();
         }
@@ -189,7 +189,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                     mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
             final String text3 = String.format("video: id %d, kbps %d, codec %s",
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
-            final String text4 = mPlayer.getURI().getRawPath();
+            final String text4 = mPlayer.getUri().path.decode();
             if( displayOSD && null != renderer ) {
                 // We share ClearColor w/ MovieSimple's init !
                 final float pixelSize = font.getPixelSize(fontSize, dpiH);
@@ -327,7 +327,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         System.out.println("pC.1a "+mPlayer);
     }
 
-    public void initStream(final URI streamLoc, final int vid, final int aid, final int textureCount) {
+    public void initStream(final Uri streamLoc, final int vid, final int aid, final int textureCount) {
         mPlayer.initStream(streamLoc, vid, aid, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }

@@ -28,7 +28,6 @@
 package jogamp.opengl.util.av;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,7 +45,8 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 
-import com.jogamp.common.net.URIQueryProps;
+import com.jogamp.common.net.UriQueryProps;
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
@@ -92,15 +92,15 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private final int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
 
     /** User requested URI stream location. */
-    private URI streamLoc = null;
+    private Uri streamLoc = null;
 
     /**
      * In case {@link #streamLoc} is a {@link GLMediaPlayer#CameraInputScheme},
      * {@link #cameraPath} holds the URI's path portion
-     * as parsed in {@link #initStream(URI, int, int, int)}.
+     * as parsed in {@link #initStream(Uri, int, int, int)}.
      * @see #cameraProps
      */
-    protected String cameraPath = null;
+    protected Uri.Encoded cameraPath = null;
     /** Optional camera properties, see {@link #cameraPath}. */
     protected Map<String, String> cameraProps = null;
 
@@ -530,7 +530,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public final void initStream(final URI streamLoc, final int vid, final int aid, final int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
+    public final void initStream(final Uri streamLoc, final int vid, final int aid, final int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
         synchronized( stateLock ) {
             if(State.Uninitialized != state) {
                 throw new IllegalStateException("Instance not in state unintialized: "+this);
@@ -556,13 +556,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             // Pre-parse for camera-input scheme
             cameraPath = null;
             cameraProps = null;
-            final String streamLocScheme = streamLoc.getScheme();
+            final Uri.Encoded streamLocScheme = streamLoc.scheme;
             if( null != streamLocScheme && streamLocScheme.equals(CameraInputScheme) ) {
-                final String rawPath = streamLoc.getRawPath();
+                final Uri.Encoded rawPath = streamLoc.path;
                 if( null != rawPath && rawPath.length() > 0 ) {
                     // cut-off root fwd-slash
                     cameraPath = rawPath.substring(1);
-                    final URIQueryProps props = URIQueryProps.create(streamLoc, ';');
+                    final UriQueryProps props = UriQueryProps.create(streamLoc, ';');
                     cameraProps = props.getProperties();
                 } else {
                     throw new IllegalArgumentException("Camera path is empty: "+streamLoc.toString());
@@ -1472,7 +1472,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public final URI getURI() { return streamLoc; }
+    public final Uri getUri() { return streamLoc; }
 
     @Override
     public final int getVID() { return vid; }

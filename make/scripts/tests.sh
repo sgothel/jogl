@@ -167,7 +167,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
-    D_ARGS="-Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
@@ -414,7 +414,7 @@ function testawtswt() {
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
@@ -811,7 +811,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*

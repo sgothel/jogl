@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -36,7 +37,6 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import java.io.File;
-import java.net.URI;
 
 /**
  * Parallel media player that demonstrate CrossFade of audio volume during playback.
@@ -141,7 +141,7 @@ public class CrossFadePlayer
                         if(!file.exists()){
                             System.out.println("File do not exist");
                         } else {
-                            final URI uri = file.toURI();
+                            final Uri uri = Uri.valueOf(file);
                             System.out.println("State of player "+ i +": " + player[i].getState().toString());
                             System.out.println("...initializing stream "+ i +"...");
                             player[i].initStream(uri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
