@@ -46,6 +46,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 
@@ -376,7 +377,7 @@ public class GLBuffers extends Buffers {
               rowLength = glGetInteger(gl, GL2ES3.GL_PACK_ROW_LENGTH, tmp);
               skipRows = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_ROWS, tmp);
               skipPixels = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_PIXELS, tmp);
-              if (depth > 1) {
+              if (depth > 1 && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version120) >= 0 ) {
                   imageHeight = glGetInteger(gl, GL2GL3.GL_PACK_IMAGE_HEIGHT, tmp);
                   skipImages = glGetInteger(gl, GL2GL3.GL_PACK_SKIP_IMAGES, tmp);
               }
@@ -387,7 +388,7 @@ public class GLBuffers extends Buffers {
               rowLength = glGetInteger(gl, GL2ES2.GL_UNPACK_ROW_LENGTH, tmp);
               skipRows = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_ROWS, tmp);
               skipPixels = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_PIXELS, tmp);
-              if (depth > 1) {
+              if (depth > 1 && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version120) >= 0 ) {
                   imageHeight = glGetInteger(gl, GL2ES3.GL_UNPACK_IMAGE_HEIGHT, tmp);
                   skipImages = glGetInteger(gl, GL2ES3.GL_UNPACK_SKIP_IMAGES, tmp);
                }

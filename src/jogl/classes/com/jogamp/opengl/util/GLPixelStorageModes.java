@@ -171,7 +171,7 @@ public class GLPixelStorageModes {
      */
     public final void resetPack(final GL gl) {
         // Compared w/ ES2, ES3 and GL3-core spec
-        gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 4);                        // es2, es3, gl3
+        gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 4);                            // es2, es3, gl3
         if( gl.isGL2ES3() ) {
             gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, 0);                   // es3, gl3
             gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, 0);                    // es3, gl3
@@ -179,8 +179,10 @@ public class GLPixelStorageModes {
             if( gl.isGL2GL3() ) {
                 gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES,     GL.GL_FALSE); // gl3
                 gl.glPixelStorei(GL2GL3.GL_PACK_LSB_FIRST,      GL.GL_FALSE); // gl3
-                gl.glPixelStorei(GL2GL3.GL_PACK_IMAGE_HEIGHT,   0);           // gl3
-                gl.glPixelStorei(GL2GL3.GL_PACK_SKIP_IMAGES,    0);           // gl3
+                if( gl.getContext().getGLVersionNumber().compareTo(GLContext.Version120) >= 0 ) {
+                    gl.glPixelStorei(GL2GL3.GL_PACK_IMAGE_HEIGHT,   0);       // gl3, GL_VERSION_1_2
+                    gl.glPixelStorei(GL2GL3.GL_PACK_SKIP_IMAGES,    0);       // gl3, GL_VERSION_1_2
+                }
             }
         }
     }
@@ -242,16 +244,21 @@ public class GLPixelStorageModes {
      */
     public final void resetUnpack(final GL gl) {
         // Compared w/ ES2, ES3 and GL3-core spec
-        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);                      // es2, es3, gl3
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);                          // es2, es3, gl3
         if( gl.isGL2ES3() ) {
             gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, 0);                 // es3, gl3
             gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, 0);                  // es3, gl3
             gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, 0);                // es3, gl3
-            gl.glPixelStorei(GL2ES3.GL_UNPACK_IMAGE_HEIGHT, 0);               // es3, gl3
-            gl.glPixelStorei(GL2ES3.GL_UNPACK_SKIP_IMAGES,  0);               // es3, gl3
             if( gl.isGL2GL3() ) {
+                if( gl.getContext().getGLVersionNumber().compareTo(GLContext.Version120) >= 0 ) {
+                    gl.glPixelStorei(GL2ES3.GL_UNPACK_IMAGE_HEIGHT, 0);       // es3, gl3, GL_VERSION_1_2
+                    gl.glPixelStorei(GL2ES3.GL_UNPACK_SKIP_IMAGES,  0);       // es3, gl3, GL_VERSION_1_2
+                }
                 gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES,   GL.GL_FALSE); // gl3
                 gl.glPixelStorei(GL2GL3.GL_UNPACK_LSB_FIRST,    GL.GL_FALSE); // gl3
+            } else {
+                gl.glPixelStorei(GL2ES3.GL_UNPACK_IMAGE_HEIGHT, 0);           // es3, gl3, GL_VERSION_1_2
+                gl.glPixelStorei(GL2ES3.GL_UNPACK_SKIP_IMAGES,  0);           // es3, gl3, GL_VERSION_1_2
             }
         }
     }
