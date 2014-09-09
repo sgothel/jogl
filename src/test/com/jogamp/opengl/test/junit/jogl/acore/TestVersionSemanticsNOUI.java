@@ -49,8 +49,8 @@ import com.jogamp.opengl.JoglVersion;
 public class TestVersionSemanticsNOUI extends JunitTracer {
     static final String jarFile = "jogl-all.jar";
     static final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
-    // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+    // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
     static final DiffCriteria diffCriteria = new org.osjava.jardiff.SimpleDiffCriteria();
     // static final DiffCriteria diffCriteria = new org.osjava.jardiff.PublicDiffCriteria();
