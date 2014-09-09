@@ -33,6 +33,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
 /**
