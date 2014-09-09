@@ -33,6 +33,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
 /**
@@ -60,7 +61,7 @@ public class GLPixelStorageModes {
     /**
      * Sets the {@link GL#GL_PACK_ALIGNMENT}.
      * <p>
-     * Saves the PACK pixel storage modes if not saved yet, see {@link #savePack(GL)}.
+     * Saves the PACK pixel storage modes and {@link #resetPack(GL) resets} them if not saved yet, see {@link #savePack(GL)}.
      * </p>
      */
     public final void setPackAlignment(final GL gl, final int packAlignment) {
@@ -71,7 +72,7 @@ public class GLPixelStorageModes {
     /**
      * Sets the {@link GL#GL_UNPACK_ALIGNMENT}.
      * <p>
-     * Saves the UNPACK pixel storage modes if not saved yet, see {@link #saveUnpack(GL)}.
+     * Saves the UNPACK pixel storage modes and {@link #resetUnpack(GL) resets} them if not saved yet, see {@link #saveUnpack(GL)}.
      * </p>
      */
     public final void setUnpackAlignment(final GL gl, final int unpackAlignment) {
@@ -82,7 +83,7 @@ public class GLPixelStorageModes {
     /**
      * Sets the {@link GL#GL_PACK_ALIGNMENT} and {@link GL#GL_UNPACK_ALIGNMENT}.
      * <p>
-     * Saves the PACK and UNPACK pixel storage modes if not saved yet, see {@link #saveAll(GL)}.
+     * Saves the PACK and UNPACK pixel storage modes and resets them if not saved yet, see {@link #saveAll(GL)}.
      * </p>
      */
     public final void setAlignment(final GL gl, final int packAlignment, final int unpackAlignment) {
@@ -93,7 +94,7 @@ public class GLPixelStorageModes {
     /**
      * Sets the {@link GL2ES3#GL_PACK_ROW_LENGTH}.
      * <p>
-     * Saves the PACK pixel storage modes if not saved yet, see {@link #savePack(GL)}.
+     * Saves the PACK pixel storage modes and {@link #resetPack(GL) resets} them if not saved yet, see {@link #savePack(GL)}.
      * </p>
      */
     public final void setPackRowLength(final GL2ES3 gl, final int packRowLength) {
@@ -104,18 +105,18 @@ public class GLPixelStorageModes {
     /**
      * Sets the {@link GL2ES2#GL_UNPACK_ROW_LENGTH}.
      * <p>
-     * Saves the UNPACK pixel storage modes if not saved yet, see {@link #saveUnpack(GL)}.
+     * Saves the UNPACK pixel storage modes and {@link #resetUnpack(GL) resets} them if not saved yet, see {@link #saveUnpack(GL)}.
      * </p>
      */
-    public final void setUnpackRowLength(final GL2ES2 gl, final int unpackRowLength) {
+    public final void setUnpackRowLength(final GL2ES3 gl, final int unpackRowLength) {
         saveUnpack(gl);
         gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, unpackRowLength);
     }
 
     /**
-     * Sets the {@link GL2ES3#GL_PACK_ROW_LENGTH} and {@link GL2ES2#GL_UNPACK_ROW_LENGTH}.
+     * Sets the {@link GL2ES3#GL_PACK_ROW_LENGTH} and {@link GL2ES2#GL_UNPACK_ROW_LENGTH} if {@link GL#isGL2ES3()}.
      * <p>
-     * Saves the PACK and UNPACK pixel storage modes if not saved yet, see {@link #saveAll(GL)}.
+     * Saves the PACK and UNPACK pixel storage modes and resets them if not saved yet, see {@link #saveAll(GL)}.
      * </p>
      */
     public final void setRowLength(final GL2ES3 gl, final int packRowLength, final int unpackRowLength) {

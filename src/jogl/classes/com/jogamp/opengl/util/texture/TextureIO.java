@@ -60,7 +60,6 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -69,6 +68,7 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.spi.DDSImage;
@@ -634,17 +634,8 @@ public class TextureIO {
             }
 
             // Fetch using glGetTexImage
-            final int packAlignment  = glGetInteger(gl, GL.GL_PACK_ALIGNMENT);
-            final int packRowLength  = glGetInteger(gl, GL2ES3.GL_PACK_ROW_LENGTH);
-            final int packSkipRows   = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_ROWS);
-            final int packSkipPixels = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_PIXELS);
-            final int packSwapBytes  = glGetInteger(gl, GL2GL3.GL_PACK_SWAP_BYTES);
-
-            gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
-            gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, 0);
-            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, 0);
-            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_PIXELS, 0);
-            gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES, 0);
+            final GLPixelStorageModes psm = new GLPixelStorageModes();
+            psm.setPackAlignment(gl, 1);
 
             final ByteBuffer res = ByteBuffer.allocate((width + (2 * border)) *
                                                  (height + (2 * border)) *
@@ -655,11 +646,7 @@ public class TextureIO {
             }
             gl.glGetTexImage(GL.GL_TEXTURE_2D, 0, fetchedFormat, GL.GL_UNSIGNED_BYTE, res);
 
-            gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, packAlignment);
-            gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, packRowLength);
-            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, packSkipRows);
-            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_PIXELS, packSkipPixels);
-            gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES, packSwapBytes);
+            psm.restore(gl);
 
             data = new TextureData(gl.getGLProfile(), internalFormat, width, height, border, fetchedFormat, GL.GL_UNSIGNED_BYTE,
                                    false, false, false, res, null);
@@ -1407,12 +1394,6 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // Helper routines
     //
-
-    private static int glGetInteger(final GL gl, final int pname) {
-        final int[] tmp = new int[1];
-        gl.glGetIntegerv(pname, tmp, 0);
-        return tmp[0];
-    }
 
     private static int glGetTexLevelParameteri(final GL2GL3 gl, final int target, final int level, final int pname) {
         final int[] tmp = new int[1];
