@@ -213,6 +213,25 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, glJPanel, caps);
                     Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+                } else if(e.getKeyChar()=='m') {
+                    final GLCapabilitiesImmutable capsPre = glJPanel.getChosenGLCapabilities();
+                    final GLCapabilities capsNew = new GLCapabilities(capsPre.getGLProfile());
+                    capsNew.copyFrom(capsPre);
+                    final boolean msaa;
+                    if( capsPre.getSampleBuffers() ) {
+                        capsNew.setSampleBuffers(false);
+                        msaa = false;
+                    } else {
+                        capsNew.setSampleBuffers(true);
+                        capsNew.setNumSamples(4);
+                        msaa = true;
+                    }
+                    System.err.println("[set MSAA "+msaa+" Caps had]: "+capsPre);
+                    System.err.println("[set MSAA "+msaa+" Caps new]: "+capsNew);
+                    System.err.println("XXX-A1: "+animator.toString());
+                    glJPanel.setRequestedGLCapabilities(capsNew);
+                    System.err.println("XXX-A2: "+animator.toString());
+                    System.err.println("XXX: "+glJPanel.toString());
                 }
             } };
         new AWTKeyAdapter(kl, glJPanel).addTo(glJPanel);

@@ -251,9 +251,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   //
   private AWTGLPixelBufferProvider customPixelBufferProvider = null;
   /** Requested single buffered offscreen caps */
-  private final GLCapabilitiesImmutable reqOffscreenCaps;
-  private final GLProfile             glProfile;
-  private final GLDrawableFactoryImpl factory;
+  private volatile GLCapabilitiesImmutable reqOffscreenCaps;
+  private volatile GLDrawableFactoryImpl factory;
   private final GLCapabilitiesChooser chooser;
   private int additionalCtxCreationFlags = 0;
 
@@ -360,8 +359,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         caps.setDoubleBuffered(false);
         reqOffscreenCaps = caps;
     }
-    this.glProfile = reqOffscreenCaps.getGLProfile();
-    this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
+    this.factory = GLDrawableFactoryImpl.getFactoryImpl( reqOffscreenCaps.getGLProfile() ); // pre-fetch, reqOffscreenCaps may changed
     this.chooser = chooser;
 
     helper = new GLDrawableHelper();
@@ -464,7 +462,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  protected void dispose() {
+  protected void dispose(final Runnable post) {
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - start");
         // Thread.dumpStack();
@@ -487,15 +485,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           backend.destroy();
           isInitialized = false;
       }
+      if( null != post ) {
+          post.run();
+      }
 
       if( animatorPaused ) {
         animator.resume();
       }
     }
-    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-    nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-    nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - stop");
@@ -645,7 +642,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   public void removeNotify() {
     awtWindowClosingProtocol.removeClosingListener();
 
-    dispose();
+    dispose(null);
+    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+
     super.removeNotify();
   }
 
@@ -1180,9 +1182,41 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     return reqOffscreenCaps;
   }
 
+  /**
+   * Set a new requested {@link GLCapabilitiesImmutable} for this GLJPanel
+   * allowing reconfiguration.
+   * <p>
+   * Method shall be invoked from the {@link #isThreadGLCapable() AWT-EDT thread}.
+   * In case it is not invoked on the AWT-EDT thread, an attempt is made to do so.
+   * </p>
+   * <p>
+   * Method will dispose a previous {@link #isRealized() realized} GLContext and offscreen backend!
+   * </p>
+   * @param caps new capabilities.
+   */
+  public final void setRequestedGLCapabilities(final GLCapabilitiesImmutable caps) {
+    if( null == caps ) {
+        throw new IllegalArgumentException("null caps");
+    }
+    Threading.invoke(true,
+        new Runnable() {
+            @Override
+            public void run() {
+                dispose( new Runnable() {
+                    @Override
+                    public void run() {
+                        // switch to new caps and re-init backend
+                        // after actual dispose, but before resume animator
+                        reqOffscreenCaps = caps;
+                        initializeBackendImpl();
+                    } } );
+            }
+        }, getTreeLock());
+  }
+
   @Override
   public final GLProfile getGLProfile() {
-    return glProfile;
+    return reqOffscreenCaps.getGLProfile();
   }
 
   @Override
@@ -1273,12 +1307,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 if ( oglPipelineUsable() ) {
                     backend = new J2DOGLBackend();
                 } else {
-                    backend = new OffscreenBackend(glProfile, customPixelBufferProvider);
+                    backend = new OffscreenBackend(customPixelBufferProvider);
                 }
                 isInitialized = false;
             }
 
             if (!isInitialized) {
+                this.factory = GLDrawableFactoryImpl.getFactoryImpl( reqOffscreenCaps.getGLProfile() ); // reqOffscreenCaps may have changed
                 backend.initialize();
             }
             return isInitialized;
@@ -1578,7 +1613,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // For saving/restoring of OpenGL state during ReadPixels
     private final GLPixelStorageModes psm =  new GLPixelStorageModes();
 
-    OffscreenBackend(final GLProfile glp, final AWTGLPixelBufferProvider custom) {
+    OffscreenBackend(final AWTGLPixelBufferProvider custom) {
         if(null == custom) {
             pixelBufferProvider = getSingleAWTGLPixelBufferProvider();
         } else {
