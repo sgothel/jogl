@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
 
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
@@ -120,6 +121,56 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         final QuitAdapter quitAdapter = new QuitAdapter();
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel).addTo(glJPanel);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glJPanel).addTo(frame);
+
+        final com.jogamp.newt.event.KeyListener kl = new com.jogamp.newt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if( e.isAutoRepeat() ) {
+                    return;
+                }
+                if(e.getKeyChar()=='m') {
+                    final GLCapabilitiesImmutable capsPre = glJPanel.getChosenGLCapabilities();
+                    final GLCapabilities capsNew = new GLCapabilities(capsPre.getGLProfile());
+                    capsNew.copyFrom(capsPre);
+                    final boolean msaa;
+                    if( capsPre.getSampleBuffers() ) {
+                        capsNew.setSampleBuffers(false);
+                        capsNew.setDoubleBuffered(false);
+                        msaa = false;
+                    } else {
+                        capsNew.setSampleBuffers(true);
+                        capsNew.setNumSamples(4);
+                        msaa = true;
+                    }
+                    System.err.println("[set MSAA "+msaa+" Caps had]: "+capsPre);
+                    System.err.println("[set MSAA "+msaa+" Caps new]: "+capsNew);
+                    System.err.println("XXX-A1: "+animator.toString());
+                    glJPanel.setRequestedGLCapabilities(capsNew);
+                    System.err.println("XXX-A2: "+animator.toString());
+                    System.err.println("XXX: "+glJPanel.toString());
+                } else if(e.getKeyChar()=='b') {
+                    final GLCapabilitiesImmutable capsPre = glJPanel.getChosenGLCapabilities();
+                    final GLCapabilities capsNew = new GLCapabilities(capsPre.getGLProfile());
+                    capsNew.copyFrom(capsPre);
+                    final boolean bmp;
+                    if( capsPre.isBitmap() ) {
+                        capsNew.setBitmap(false); // auto-choose
+                        bmp = false;
+                    } else {
+                        capsNew.setBitmap(true);
+                        capsNew.setFBO(false);
+                        capsNew.setPBuffer(false);
+                        bmp = true;
+                    }
+                    System.err.println("[set Bitmap "+bmp+" Caps had]: "+capsPre);
+                    System.err.println("[set Bitmap "+bmp+" Caps new]: "+capsNew);
+                    System.err.println("XXX-A1: "+animator.toString());
+                    glJPanel.setRequestedGLCapabilities(capsNew);
+                    System.err.println("XXX-A2: "+animator.toString());
+                    System.err.println("XXX: "+glJPanel.toString());
+                }
+            } };
+        new AWTKeyAdapter(kl, glJPanel).addTo(glJPanel);
 
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
