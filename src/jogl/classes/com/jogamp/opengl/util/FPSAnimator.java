@@ -60,9 +60,9 @@ public class FPSAnimator extends AnimatorBase {
     private MainTask task = null;
     private int fps;
     private final boolean scheduleAtFixedRate;
-    private boolean isAnimating;         // MainTask feedback
-    private volatile boolean shouldRun;  // MainTask trigger
-    private volatile boolean shouldStop; // MainTask trigger
+    private boolean isAnimating;          // MainTask feedback
+    private volatile boolean pauseIssued; // MainTask trigger
+    private volatile boolean stopIssued;  // MainTask trigger
 
     @Override
     protected String getBaseName(final String prefix) {
@@ -124,8 +124,9 @@ public class FPSAnimator extends AnimatorBase {
 
         public void start(final Timer timer) {
             fpsCounter.resetFPSCounter();
-            shouldRun = true;
-            shouldStop = false;
+            pauseIssued = false;
+            stopIssued = false;
+            isAnimating = false;
 
             justStarted = true;
             alreadyStopped = false;
@@ -143,7 +144,7 @@ public class FPSAnimator extends AnimatorBase {
 
         @Override
         public final String toString() {
-            return "Task[thread "+animThread+", stopped "+alreadyStopped+", paused "+alreadyPaused+" shouldRun "+shouldRun+", shouldStop "+shouldStop+" -- started "+isStarted()+", animating "+isAnimatingImpl()+", paused "+isPaused()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
+            return "Task[thread "+animThread+", stopped "+alreadyStopped+", paused "+alreadyPaused+" pauseIssued "+pauseIssued+", stopIssued "+stopIssued+" -- started "+isStarted()+", animating "+isAnimatingImpl()+", paused "+isPaused()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
         }
 
         @Override
@@ -159,26 +160,26 @@ public class FPSAnimator extends AnimatorBase {
                     }
                     isAnimating = true;
                     if( drawablesEmpty ) {
-                        shouldRun = false; // isAnimating:=false @ pause below
+                        pauseIssued = true; // isAnimating:=false @ pause below
                     } else {
-                        shouldRun = true;
+                        pauseIssued = false;
                         setDrawablesExclCtxState(exclusiveContext); // may re-enable exclusive context
-                        FPSAnimator.this.notifyAll();
                     }
+                    FPSAnimator.this.notifyAll(); // Wakes up 'waitForStartedCondition' sync -and resume from pause or drawablesEmpty
                     if(DEBUG) {
                         System.err.println("FPSAnimator P1:" + Thread.currentThread() + ": " + toString());
                     }
                 }
             }
-            if( shouldRun && !shouldStop ) { // RUN
+            if( !pauseIssued && !stopIssued ) { // RUN
                 try {
                     display();
                 } catch (final UncaughtAnimatorException dre) {
                     displayCaught = dre;
-                    shouldRun = false;
-                    shouldStop = true;
+                    stopIssued = true;
+                    isAnimating = false;
                 }
-            } else if( !shouldRun && !shouldStop ) { // PAUSE
+            } else if( pauseIssued && !stopIssued ) { // PAUSE
                 if(DEBUG) {
                     System.err.println("FPSAnimator pausing: "+alreadyPaused+", "+ Thread.currentThread() + ": " + toString());
                 }
@@ -192,8 +193,8 @@ public class FPSAnimator extends AnimatorBase {
                             display(); // propagate exclusive context -> off!
                         } catch (final UncaughtAnimatorException dre) {
                             displayCaught = dre;
-                            shouldRun = false;
-                            shouldStop = true;
+                            stopIssued = true;
+                            isAnimating = false;
                         }
                     }
                     if( null == displayCaught ) {
@@ -206,8 +207,7 @@ public class FPSAnimator extends AnimatorBase {
                         }
                     }
                 }
-            }
-            if( shouldStop ) { // STOP
+            } else if( stopIssued ) { // STOP
                 if(DEBUG) {
                     System.err.println("FPSAnimator stopping: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
                 }
@@ -220,11 +220,7 @@ public class FPSAnimator extends AnimatorBase {
                         try {
                             display(); // propagate exclusive context -> off!
                         } catch (final UncaughtAnimatorException dre) {
-                            if( null == displayCaught ) {
-                                displayCaught = dre;
-                            } else {
-                                dre.printStackTrace();
-                            }
+                            displayCaught = dre;
                         }
                     }
                     synchronized (FPSAnimator.this) {
@@ -256,7 +252,7 @@ public class FPSAnimator extends AnimatorBase {
 
     @Override
     public final synchronized boolean isPaused() {
-        return animThread != null && ( !shouldRun && !shouldStop ) ;
+        return animThread != null && pauseIssued;
     }
 
     static int timerNo = 0;
@@ -311,8 +307,7 @@ public class FPSAnimator extends AnimatorBase {
             // start/resume case w/ drawablesEmpty
             res = true;
         } else {
-            shouldRun = false;
-            shouldStop = true;
+            stopIssued = true;
             res = finishLifecycleAction(waitForStoppedCondition, POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
         }
 
@@ -338,7 +333,7 @@ public class FPSAnimator extends AnimatorBase {
 
     @Override
     public final synchronized boolean pause() {
-        if ( !isStarted() || ( null != task && isPaused() ) ) {
+        if ( !isStarted() || pauseIssued ) {
             return false;
         }
         if(DEBUG) {
@@ -349,7 +344,7 @@ public class FPSAnimator extends AnimatorBase {
             // start/resume case w/ drawablesEmpty
             res = true;
         } else {
-            shouldRun = false;
+            pauseIssued = true;
             res = finishLifecycleAction(waitForPausedCondition, POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
         }
 
@@ -366,12 +361,12 @@ public class FPSAnimator extends AnimatorBase {
         @Override
         public boolean eval() {
             // end waiting if stopped as well
-            return isAnimating && isStarted();
+            return isStarted() && isAnimating;
         } };
 
     @Override
     public final synchronized boolean resume() {
-        if ( null != task || !isStarted() || !isPaused() ) {
+        if ( !isStarted() || !pauseIssued ) {
             return false;
         }
         if(DEBUG) {
@@ -381,6 +376,14 @@ public class FPSAnimator extends AnimatorBase {
         if( drawablesEmpty ) {
             res = true;
         } else {
+            if( null != task ) {
+                if( DEBUG ) {
+                    System.err.println("FPSAnimator.resume() Ops: !pauseIssued, but task != null: "+toString());
+                    Thread.dumpStack();
+                }
+                task.cancel();
+                task = null;
+            }
             task = new MainTask();
             task.start(timer);
             res = finishLifecycleAction(waitForResumeCondition, POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
@@ -396,4 +399,9 @@ public class FPSAnimator extends AnimatorBase {
             // end waiting if stopped as well
             return !drawablesEmpty && !isAnimating && isStarted();
         } };
+
+    @Override
+    public String toString() {
+        return super.toString()+", "+task;
+    }
 }
