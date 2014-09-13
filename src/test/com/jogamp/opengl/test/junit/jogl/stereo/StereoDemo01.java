@@ -191,6 +191,7 @@ public class StereoDemo01 {
             upstream = movieSimple;
         } else {
             final GearsES2 demo = new GearsES2(0);
+            demo.setZ(2f, 10000f, 20f); // start closer to eye
             demo.setVerbose(false);
             upstream = demo;
             movieSimple = null;

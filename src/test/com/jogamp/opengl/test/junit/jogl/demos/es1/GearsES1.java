@@ -248,7 +248,7 @@ public class GearsES1 implements GLEventListener {
 
   public void display(final GLAutoDrawable drawable) {
     // Turn the gears' teeth
-    angle += 2.0f;
+    angle += 0.5f;
 
     // Get the GL corresponding to the drawable we are animating
     final GL2ES1 gl = drawable.getGL().getGL2ES1();

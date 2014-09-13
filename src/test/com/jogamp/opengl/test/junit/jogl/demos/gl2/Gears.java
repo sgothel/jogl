@@ -314,7 +314,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   private void displayImpl(final GL2 gl) {
     if( doRotate ) {
         // Turn the gears' teeth
-        angle += 2.0f;
+        angle += 0.5f;
     }
     // Rotate the entire assembly of gears based on how the user
     // dragged the mouse around
