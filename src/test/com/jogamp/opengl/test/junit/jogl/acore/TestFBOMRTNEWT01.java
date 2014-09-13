@@ -73,7 +73,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2GL3()), width/step, height/step, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();

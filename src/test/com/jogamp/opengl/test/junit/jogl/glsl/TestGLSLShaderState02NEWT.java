@@ -74,7 +74,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
 
     private void testShaderState01Validation(final boolean linkSP1) throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2ES2()), 480, 480, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
@@ -240,7 +240,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
     @Test(timeout=240000)
     public void testShaderState01PerformanceDouble() throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2ES2()), 480, 480, false);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();

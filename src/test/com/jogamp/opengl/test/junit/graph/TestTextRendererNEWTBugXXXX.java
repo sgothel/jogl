@@ -39,18 +39,15 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
@@ -102,10 +99,14 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
     }
 
     @Test
-    public void test00() throws InterruptedException, GLException, IOException {
-        testTextRendererImpl(FontSet01.getSet01(), Region.VBAA_RENDERING_BIT, 4);
+    public void test00All() throws InterruptedException, GLException, IOException {
+        testTextRendererImpl(FontSet01.getSet01(), Region.VBAA_RENDERING_BIT, 4, false);
     }
-    void testTextRendererImpl(final Font[] fonts, final int renderModes, final int sampleCount) throws InterruptedException, GLException, IOException {
+    @Test
+    public void test01OnlyIssues() throws InterruptedException, GLException, IOException {
+        testTextRendererImpl(FontSet01.getSet01(), Region.VBAA_RENDERING_BIT, 4, true);
+    }
+    void testTextRendererImpl(final Font[] fonts, final int renderModes, final int sampleCount, final boolean onlyIssues) throws InterruptedException, GLException, IOException {
         final GLProfile glp;
         if(forceGL3) {
             glp = GLProfile.get(GLProfile.GL3);
@@ -121,12 +122,13 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
             caps.setSampleBuffers(true);
             caps.setNumSamples(sampleCount);
         }
+        caps.setOnscreen(false);
         System.err.println("Requested: "+caps);
         System.err.println("Requested: "+Region.getRenderModeString(renderModes));
 
+        final int totalHeight = ( (int)fontSize + 1 ) * ( onlyIssues ? 3 : 6 ) * fonts.length;
         final NEWTGLContext.WindowContext winctx =
-                // NEWTGLContext.createOnscreenWindow(caps, 800, 400, true);
-                NEWTGLContext.createOffscreenWindow(caps, 800, 200*fonts.length, true);
+                NEWTGLContext.createWindow(caps, 800, totalHeight, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 
@@ -161,9 +163,9 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
                 renderString(drawable, gl, renderer, font, textRenderUtil, "012345678901234567890123456789", 0,  -1, -1000, sampleCountIO);
                 renderString(drawable, gl, renderer, font, textRenderUtil, "abcdefghijklmnopqrstuvwxyz", 0, -1, -1000, sampleCountIO);
                 renderString(drawable, gl, renderer, font, textRenderUtil, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, -1, -1000, sampleCountIO);
-                renderString(drawable, gl, renderer, font, textRenderUtil, "", 0, -1, -1000, sampleCountIO);
-                renderString(drawable, gl, renderer, font, textRenderUtil, "", 0, -1, -1000, sampleCountIO);
             }
+            renderString(drawable, gl, renderer, font, textRenderUtil, "", 0, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, font, textRenderUtil, "", 0, -1, -1000, sampleCountIO);
         }
 
         drawable.swapBuffers();

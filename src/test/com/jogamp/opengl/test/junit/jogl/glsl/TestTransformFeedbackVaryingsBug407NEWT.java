@@ -88,7 +88,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
     final static String glps = GLProfile.GL3;
 
     private NEWTGLContext.WindowContext prepareTest() throws GLException, InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getMaxProgrammable(true)), 480, 480, debugGL);
         if(!winctx.context.getGL().isGL3()) {
             System.err.println("GL3 not available");

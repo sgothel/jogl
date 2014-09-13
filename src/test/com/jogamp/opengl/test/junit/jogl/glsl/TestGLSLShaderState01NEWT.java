@@ -67,7 +67,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
     @Test
     public void test00NoShaderState_Validation() throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2ES2()), 480, 480, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
@@ -183,7 +183,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
     @Test
     public void test01ShaderState_Validation() throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2ES2()), 480, 480, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
@@ -306,7 +306,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
     private void testShaderState_PerformanceSingleImpl(final boolean toggleEnable) throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2ES2()), 480, 480, false);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
@@ -395,7 +395,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
     @Test(timeout=240000)
     public void test04ShaderState_PerformanceDouble() throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
                 new GLCapabilities(GLProfile.getGL2ES2()), 480, 480, false);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();

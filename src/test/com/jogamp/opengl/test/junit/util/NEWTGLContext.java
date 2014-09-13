@@ -53,45 +53,7 @@ public class NEWTGLContext {
         }
     }
 
-    public static WindowContext createOffscreenWindow(final GLCapabilities caps, final int width, final int height, final boolean debugGL) throws InterruptedException {
-        caps.setOnscreen(false);
-        caps.setPBuffer(true);
-
-        //
-        // Create native windowing resources .. X11/Win/OSX
-        //
-        final Display display = NewtFactory.createDisplay(null); // local display
-        Assert.assertNotNull(display);
-
-        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
-        Assert.assertNotNull(screen);
-
-        final Window window = NewtFactory.createWindow(screen, caps);
-        Assert.assertNotNull(window);
-        window.setSize(width, height);
-        window.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
-
-        final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        final GLDrawable drawable = factory.createGLDrawable(window);
-        Assert.assertNotNull(drawable);
-
-        drawable.setRealized(true);
-        Assert.assertTrue(drawable.isRealized());
-
-        final GLContext context = drawable.createContext(null);
-        Assert.assertNotNull(context);
-
-        context.enableGLDebugMessage(debugGL);
-
-        final int res = context.makeCurrent();
-        Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
-
-        return new WindowContext(window, drawable, context);
-    }
-
-    public static WindowContext createOnscreenWindow(final GLCapabilities caps, final int width, final int height, final boolean debugGL) throws InterruptedException {
+    public static WindowContext createWindow(final GLCapabilities caps, final int width, final int height, final boolean debugGL) throws InterruptedException {
         //
         // Create native windowing resources .. X11/Win/OSX
         //

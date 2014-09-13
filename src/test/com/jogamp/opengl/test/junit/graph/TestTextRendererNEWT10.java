@@ -156,7 +156,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         System.err.println("Requested: "+caps);
         System.err.println("Requested: "+Region.getRenderModeString(renderModes));
 
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(caps, 800, 400, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(caps, 800, 400, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 

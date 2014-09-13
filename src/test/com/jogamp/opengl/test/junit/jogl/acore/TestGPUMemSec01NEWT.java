@@ -61,8 +61,10 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     }
 
     static NEWTGLContext.WindowContext createCurrentGLOffscreenWindow(final GLProfile glp, final int width, final int height) throws GLException, InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
-                new GLCapabilities(glp), width, height, true);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setOnscreen(false);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
+                caps, width, height, true);
         final GL gl = winctx.context.getGL();
 
         // System.err.println("Pre GL Error: 0x"+Integer.toHexString(gl.glGetError()));
