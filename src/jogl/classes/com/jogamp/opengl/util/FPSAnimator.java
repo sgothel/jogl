@@ -399,9 +399,4 @@ public class FPSAnimator extends AnimatorBase {
             // end waiting if stopped as well
             return !drawablesEmpty && !isAnimating && isStarted();
         } };
-
-    @Override
-    public String toString() {
-        return super.toString()+", "+task;
-    }
 }
