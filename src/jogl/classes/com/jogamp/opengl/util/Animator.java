@@ -62,7 +62,7 @@ public class Animator extends AnimatorBase {
     private Runnable runnable;
     private boolean runAsFastAsPossible;
     protected boolean isAnimating;
-    protected boolean pauseIssued;
+    protected volatile boolean pauseIssued;
     protected volatile boolean stopIssued;
 
     /**
@@ -149,7 +149,7 @@ public class Animator extends AnimatorBase {
                     synchronized (Animator.this) {
                         // Pause; Also don't consume CPU unless there is work to be done and not paused
                         boolean ectCleared = false;
-                        while (!stopIssued && (pauseIssued || drawablesEmpty)) {
+                        while ( !stopIssued && ( pauseIssued || drawablesEmpty ) ) {
                             if( drawablesEmpty ) {
                                 pauseIssued = true;
                             }
@@ -193,7 +193,7 @@ public class Animator extends AnimatorBase {
                             Animator.this.notifyAll();
                         }
                     } // sync Animator.this
-                    if (!stopIssued) {
+                    if ( !pauseIssued && !stopIssued ) {
                         try {
                             display();
                         } catch (final UncaughtAnimatorException dre) {
@@ -202,10 +202,10 @@ public class Animator extends AnimatorBase {
                             isAnimating = false;
                             break; // end animation loop
                         }
-                    }
-                    if (!stopIssued && !runAsFastAsPossible) {
-                        // Avoid swamping the CPU
-                        Thread.yield();
+                        if ( !runAsFastAsPossible ) {
+                            // Avoid swamping the CPU
+                            Thread.yield();
+                        }
                     }
                 }
             } catch( final ThreadDeath td) {

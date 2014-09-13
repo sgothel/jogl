@@ -471,10 +471,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     if (backend != null && backend.getContext() != null) {
-      boolean animatorPaused = false;
+      final boolean animatorPaused;
       final GLAnimatorControl animator =  getAnimator();
       if(null!=animator) {
         animatorPaused = animator.pause();
+      } else {
+        animatorPaused = false;
       }
 
       if(backend.getContext().isCreated()) {
@@ -486,7 +488,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           isInitialized = false;
       }
 
-      if(animatorPaused) {
+      if( animatorPaused ) {
         animator.resume();
       }
     }
