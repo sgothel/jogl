@@ -352,9 +352,15 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
     }
 
-    private final float zNear = 2f;
-    private final float zFar = 10000f;
-    private final float zViewDist = 20.0f;
+    private float zNear = 5f;
+    private float zFar = 10000f;
+    private float zViewDist = 40.0f;
+
+    public void setZ(final float zNear, final float zFar, final float zViewDist) {
+        this.zNear = zNear;
+        this.zFar = zFar;
+        this.zViewDist = zViewDist;
+    }
 
     void reshapeImpl(final GL2ES2 gl, final int tileX, final int tileY, final int tileWidth, final int tileHeight, final int imageWidth, final int imageHeight) {
         final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
