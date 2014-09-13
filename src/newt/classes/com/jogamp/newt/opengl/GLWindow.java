@@ -606,10 +606,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
 
         @Override
         public synchronized boolean pauseRenderingAction() {
-            boolean animatorPaused = false;
+            final boolean animatorPaused;
             savedAnimator = GLWindow.this.getAnimator();
             if ( null != savedAnimator ) {
                 animatorPaused = savedAnimator.pause();
+            } else {
+                animatorPaused = false;
             }
             return animatorPaused;
         }

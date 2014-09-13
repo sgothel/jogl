@@ -85,8 +85,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
          * @param printExceptions
          * @throws UncaughtAnimatorException as caused by {@link GLAutoDrawable#display()}
          */
-        void display(ArrayList<GLAutoDrawable> drawables, boolean ignoreExceptions, boolean printExceptions) throws UncaughtAnimatorException;
-        boolean blockUntilDone(Thread thread);
+        void display(final ArrayList<GLAutoDrawable> drawables, final boolean ignoreExceptions, final boolean printExceptions) throws UncaughtAnimatorException;
+        boolean blockUntilDone(final Thread thread);
     }
 
     protected int modeBits;
@@ -559,7 +559,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @param waitCondition method will wait until TO is reached or {@link Condition#eval() waitCondition.eval()} returns <code>false</code>.
      * @param pollPeriod if <code>0</code>, method will wait until TO is reached or being notified.
      *                   if &gt; <code>0</code>, method will wait for the given <code>pollPeriod</code> in milliseconds.
-     * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>, otherwise <code>false</code>.
+     * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>
+     *         or if {@link AnimatorImpl#blockUntilDone(Thread) non-blocking}. Otherwise returns <code>false</code>.
      */
     protected final synchronized boolean finishLifecycleAction(final Condition waitCondition, long pollPeriod) {
         /**
@@ -572,6 +573,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         final boolean blocking;
         long remaining;
         boolean nok;
+
         if( impl.blockUntilDone(animThread) ) {
             blocking = true;
             remaining = TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION;
@@ -605,12 +607,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 nok = waitCondition.eval();
             }
         }
+        final boolean res = !nok || !blocking;
         if(DEBUG || blocking && nok) { // Info only if DEBUG or ( blocking && not-ok ) ; !blocking possible if AWT
             if( blocking && remaining<=0 && nok ) {
                 System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + getThreadName());
             }
             System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): OK "+(!nok)+
-                    "- pollPeriod "+pollPeriod+", blocking "+blocking+
+                    "- pollPeriod "+pollPeriod+", blocking "+blocking+" -> res "+res+
                     ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION +
                     " - " + getThreadName());
             System.err.println(" - "+toString());
@@ -618,7 +621,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 Thread.dumpStack();
             }
         }
-        return !nok;
+        return res;
     }
 
     @Override
