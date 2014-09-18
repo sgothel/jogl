@@ -34,6 +34,7 @@ import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Colorbuffer;
 import com.jogamp.opengl.FBObject.ColorAttachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
+import com.jogamp.opengl.GLRendererQuirks;
 
 /**
  * Platform-independent {@link GLDrawable} specialization,
@@ -94,6 +95,10 @@ public interface GLFBODrawable extends GLDrawable {
      * Set the FBO mode bits used for FBO creation.
      * <p>
      * See {@link #FBOMODE_DEFAULT} values.
+     * </p>
+     * <p>
+     * If {@link GLRendererQuirks#BuggyColorRenderbuffer} is set,
+     * {@link #FBOMODE_USE_TEXTURE} is always added at initialization.
      * </p>
      *
      * @param modeBits custom FBO mode bits like {@link #FBOMODE_USE_TEXTURE} and {@link #FBOMODE_USE_DEPTH}.

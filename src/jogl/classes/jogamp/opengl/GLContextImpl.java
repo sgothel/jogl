@@ -1921,6 +1921,15 @@ public abstract class GLContextImpl extends GLContext {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
             }
             quirks.addQuirk( quirk );
+        } else {
+            // software
+            if( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // FIXME: Is it fixed in >= 8.0.0 ?
+                final int quirk = GLRendererQuirks.BuggyColorRenderbuffer;
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
+                }
+                quirks.addQuirk( quirk );
+            }
         }
         if (compatCtx && (major > 3 || (major == 3 && minor >= 1))) {
             // FIXME: Apply vendor version constraints!
@@ -1963,10 +1972,19 @@ public abstract class GLContextImpl extends GLContext {
     //
     // Property related quirks
     //
-    if( FORCE_MIN_FBO_SUPPORT ) {
-        final int quirk = GLRendererQuirks.NoFullFBOSupport;
+    if( FORCE_NO_COLOR_RENDERBUFFER ) {
+        final int quirk = GLRendererQuirks.BuggyColorRenderbuffer;
         if(DEBUG) {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: property");
+        }
+        quirks.addQuirk( quirk );
+    }
+    if( FORCE_MIN_FBO_SUPPORT || quirks.exist(GLRendererQuirks.BuggyColorRenderbuffer) ) {
+        final int quirk = GLRendererQuirks.NoFullFBOSupport;
+        if(DEBUG) {
+            final String causeProps = FORCE_MIN_FBO_SUPPORT ? "property, " : "";
+            final String causeQuirk = quirks.exist(GLRendererQuirks.BuggyColorRenderbuffer) ? "BuggyColorRenderbuffer" : "";
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: "+causeProps+causeQuirk);
         }
         quirks.addQuirk( quirk );
     }
