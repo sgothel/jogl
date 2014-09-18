@@ -191,7 +191,12 @@ public class GLRendererQuirks {
      *       <li>GL_RENDERER: <i>Gallium 0.4 on SVGA3D; build: RELEASE;</i> </li>
      *     </ul></li>
      * </ul>
+     * <p>
+     * Also enabled via {@link #BuggyColorRenderbuffer}.
+     * </p>
+     * <p>
      * Quirk can also be enabled via property: <code>jogl.fbo.force.min</code>.
+     * </p>
      */
     public static final int NoFullFBOSupport = 11;
 
@@ -312,8 +317,32 @@ public class GLRendererQuirks {
      */
     public static final int NoMultiSamplingBuffers  = 17;
 
+    /**
+     * With certain drivers no reliable FBO color renderbuffer target
+     * is available, read <i>a crash</i> may occur.
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>GL_VENDOR       Brian Paul</li>
+     *   <li>GL_RENDERER     Mesa X11</li>
+     *   <li>GL_VERSION      2.1 Mesa 7.2</li>
+     * </ul>
+     * TODO: We have to determine the exact version range, i.e. not adding the quirk with fixed driver version!
+     * </p>
+     * <p>
+     * Note: Also enables {@link #NoFullFBOSupport}.
+     * </p>
+     * <p>
+     * Note: GLFBODrawable always uses texture attachments if set.
+     * </p>
+     * <p>
+     * Quirk can also be enabled via property: <code>jogl.fbo.force.nocolorrenderbuffer</code>.
+     * </p>
+     */
+    public static final int BuggyColorRenderbuffer  = 18;
+
     /** Number of quirks known. */
-    public static final int COUNT = 18;
+    public static final int COUNT = 19;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -321,7 +350,7 @@ public class GLRendererQuirks {
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
-                                                          "NoMultiSamplingBuffers"
+                                                          "NoMultiSamplingBuffers", "BuggyColorRenderbuffer"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();

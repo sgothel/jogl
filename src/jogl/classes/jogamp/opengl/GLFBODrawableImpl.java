@@ -15,6 +15,7 @@ import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.Colorbuffer;
 import com.jogamp.opengl.FBObject.TextureAttachment;
@@ -44,7 +45,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     static {
         Debug.initSingleton();
         DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
-        DEBUG_SWAP = DEBUG || PropertyAccess.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+        DEBUG_SWAP = PropertyAccess.isPropertyDefined("jogl.debug.FBObject.Swap", true);
     }
 
     private final GLDrawableImpl parent;
@@ -197,6 +198,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             fbos = new FBObject[fbosN];
             fboIBack = 0;                // head
             fboIFront = fbos.length - 1; // tail
+
+            if( 0 == ( FBOMODE_USE_TEXTURE & fboModeBits ) &&
+                gl.getContext().hasRendererQuirk(GLRendererQuirks.BuggyColorRenderbuffer) ) {
+                // GLRendererQuirks.BuggyColorRenderbuffer also disables MSAA, i.e. full FBO support
+                fboModeBits |= FBOMODE_USE_TEXTURE;
+            }
 
             final boolean useTexture = 0 != ( FBOMODE_USE_TEXTURE & fboModeBits );
             final boolean useDepth   = 0 != ( FBOMODE_USE_DEPTH   & fboModeBits );
