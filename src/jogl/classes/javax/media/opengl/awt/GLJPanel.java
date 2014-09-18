@@ -540,6 +540,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     _lock.lock();
     try {
         if( !isInitialized ) {
+            handleReshape = false;
             initializeBackendImpl();
         }
 
@@ -552,7 +553,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         // re-creating it -- tricky to do properly while the context is
         // current
         if( !printActive ) {
-            if (handleReshape) {
+            if ( handleReshape ) {
               handleReshape = false;
               sendReshape = handleReshape();
             }
@@ -668,17 +669,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private void reshapeImpl(final int width, final int height) {
     final int scaledWidth = width * hasPixelScale[0];
     final int scaledHeight = height * hasPixelScale[1];
+    if( !printActive && ( scaledWidth != panelWidth || scaledHeight != panelHeight ) ) {
+        reshapeWidth = scaledWidth;
+        reshapeHeight = scaledHeight;
+        handleReshape = true;
+    }
     if( DEBUG ) {
         System.err.println(getThreadName()+": GLJPanel.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+
                 " [ this "+getWidth()+"x"+getHeight()+", pixelScale "+getPixelScaleStr()+
                 ", panel "+panelWidth+"x"+panelHeight +
-                ", reshape: " +reshapeWidth+"x"+reshapeHeight +
-                "] -> "+(printActive?"[skipped] ":"") + width+"x"+height+" * "+getPixelScaleStr()+" -> "+scaledWidth+"x"+scaledHeight);
-    }
-    if( !printActive ) {
-        reshapeWidth = scaledWidth;
-        reshapeHeight = scaledHeight;
-        handleReshape = true;
+                "] -> "+(handleReshape?"":"[skipped] ") + width+"x"+height+" * "+getPixelScaleStr()+" -> "+scaledWidth+"x"+scaledHeight);
     }
   }
 
@@ -1123,12 +1123,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public int getSurfaceWidth() {
-      return panelWidth; // FIXME HiDPI: Accurate or: getWidth() * hasPixelScale[0];
+      return panelWidth; // scaled surface width in pixel units, current as-from reshape
   }
 
   @Override
   public int getSurfaceHeight() {
-      return panelHeight; // FIXME HiDPI: Accurate or: getHeight() * hasPixelScale[1];
+      return panelHeight; // scaled surface height in pixel units, current as-from reshape
   }
 
   /**
@@ -1692,13 +1692,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   fboDrawable.setTextureUnit( GLJPanel.this.requestedTextureUnit );
                   try {
                       fboFlipped = new FBObject();
-                      fboFlipped.reset(gl, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight(), 0, false);
+                      fboFlipped.reset(gl, panelWidth, panelHeight, 0, false);
                       fboFlipped.attachColorbuffer(gl, 0, chosenCaps.getAlphaBits()>0);
                       // fboFlipped.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                       gl.glClear(GL.GL_COLOR_BUFFER_BIT); // Bug 1020 (see above), cannot do in FBObject due to unknown 'first bind' state.
                       glslTextureRaster = new GLSLTextureRaster(fboDrawable.getTextureUnit(), true);
                       glslTextureRaster.init(gl.getGL2ES2());
-                      glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, fboDrawable.getSurfaceWidth(), fboDrawable.getSurfaceHeight());
+                      glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, panelWidth, panelHeight);
                   } catch (final Exception ex) {
                       ex.printStackTrace();
                       if(null != glslTextureRaster) {
@@ -1928,14 +1928,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             final int[] usrViewport = new int[] { 0, 0, 0, 0 };
             gl.glGetIntegerv(GL.GL_VIEWPORT, usrViewport, 0);
             viewportChange = 0 != usrViewport[0] || 0 != usrViewport[1] ||
-                             offscreenDrawable.getSurfaceWidth() != usrViewport[2] || offscreenDrawable.getSurfaceHeight() != usrViewport[3];
+                             panelWidth != usrViewport[2] || panelHeight != usrViewport[3];
             if( DEBUG_VIEWPORT ) {
                 System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: "+GLJPanel.this.getName()+" Viewport: change "+viewportChange+
                          ", "+usrViewport[0]+"/"+usrViewport[1]+" "+usrViewport[2]+"x"+usrViewport[3]+
-                         " -> 0/0 "+offscreenDrawable.getSurfaceWidth()+"x"+offscreenDrawable.getSurfaceHeight());
+                         " -> 0/0 "+panelWidth+"x"+panelHeight);
             }
             if( viewportChange ) {
-                gl.glViewport(0, 0, offscreenDrawable.getSurfaceWidth(), offscreenDrawable.getSurfaceHeight());
+                gl.glViewport(0, 0, panelWidth, panelHeight);
             }
 
             // perform vert-flipping via OpenGL/FBO
@@ -2038,8 +2038,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
                 try {
                     final GL gl = offscreenContext.getGL();
-                    fboFlipped.reset(gl, _drawable.getSurfaceWidth(), _drawable.getSurfaceHeight(), 0, false);
-                    glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, _drawable.getSurfaceWidth(), _drawable.getSurfaceHeight());
+                    fboFlipped.reset(gl, panelWidth, panelHeight, 0, false);
+                    glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, panelWidth, panelHeight);
                 } finally {
                     offscreenContext.release();
                 }
