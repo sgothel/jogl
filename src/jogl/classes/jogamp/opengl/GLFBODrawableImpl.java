@@ -96,12 +96,70 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         this.origParentChosenCaps = getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
         this.texUnit = textureUnit;
         this.samples = fboCaps.getNumSamples();
-        fboResetQuirk = false;
-
-        // default .. // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
-        // this.doubleBufferMode = ( samples > 0 || fboCaps.getDoubleBuffered() ) ? DoubleBufferMode.FBO : DoubleBufferMode.NONE ;
-
+        this.fboResetQuirk = false;
         this.swapBufferContext = null;
+    }
+
+    private final void setupFBO(final GL gl, final int idx, final int width, final int height, final int samples,
+                                final boolean useAlpha, final boolean useStencil, final boolean useDepth, final boolean useTexture,
+                                final boolean realUnbind) {
+        final FBObject fbo = new FBObject();
+        fbos[idx] = fbo;
+
+        fbo.reset(gl, width, height, samples, false);
+        if(fbo.getNumSamples() != samples) {
+            throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbo);
+        }
+        if(samples > 0 || !useTexture) {
+            fbo.attachColorbuffer(gl, 0, useAlpha);
+        } else {
+            fbo.attachTexture2D(gl, 0, useAlpha);
+        }
+        if( useStencil ) {
+            if( useDepth ) {
+                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+            } else {
+                fbo.attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
+            }
+        } else if( useDepth ) {
+            fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+        }
+        if(samples > 0) {
+            final FBObject ssink = new FBObject();
+            {
+                ssink.reset(gl, width, height);
+                if( !useTexture ) {
+                    ssink.attachColorbuffer(gl, 0, useAlpha);
+                } else {
+                    ssink.attachTexture2D(gl, 0, useAlpha);
+                }
+                if( useStencil ) {
+                    if( useDepth ) {
+                        ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+                    } else {
+                        ssink.attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
+                    }
+                } else if( useDepth ) {
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                }
+            }
+            fbo.setSamplingSink(ssink);
+            fbo.resetSamplingSink(gl); // validate
+        }
+        // Clear the framebuffer allowing defined state not exposing previous content.
+        // Also remedy for Bug 1020, i.e. OSX/Nvidia's FBO needs to be cleared before blitting,
+        // otherwise first MSAA frame lacks antialiasing.
+        fbo.bind(gl);
+        if( useDepth ) {
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        } else {
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+        }
+        if( realUnbind ) {
+            fbo.unbind(gl);
+        } else {
+            fbo.markUnbound();
+        }
     }
 
     private final void initialize(final boolean realize, final GL gl) {
@@ -148,58 +206,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             final int height = getSurfaceHeight();
 
             for(int i=0; i<fbosN; i++) {
-                fbos[i] = new FBObject();
-                fbos[i].reset(gl, width, height, samples, false);
-                if(fbos[i].getNumSamples() != samples) {
-                    throw new InternalError("Sample number mismatch: "+samples+", fbos["+i+"] "+fbos[i]);
-                }
-                if(samples > 0 || !useTexture) {
-                    fbos[i].attachColorbuffer(gl, 0, useAlpha);
-                } else {
-                    fbos[i].attachTexture2D(gl, 0, useAlpha);
-                }
-                if( useStencil ) {
-                    if( useDepth ) {
-                        fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
-                    } else {
-                        fbos[i].attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
-                    }
-                } else if( useDepth ) {
-                    fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
-                }
-                if(samples > 0) {
-                    final FBObject ssink = new FBObject();
-                    {
-                        ssink.reset(gl, width, height);
-                        if( !useTexture ) {
-                            ssink.attachColorbuffer(gl, 0, useAlpha);
-                        } else {
-                            ssink.attachTexture2D(gl, 0, useAlpha);
-                        }
-                        if( useStencil ) {
-                            if( useDepth ) {
-                                ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
-                            } else {
-                                ssink.attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
-                            }
-                        } else if( useDepth ) {
-                            ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
-                        }
-                    }
-                    fbos[i].setSamplingSink(ssink);
-                    fbos[i].resetSamplingSink(gl); // validate
-                }
-                // Clear the framebuffer allowing defined state not exposing previous content.
-                // Also remedy for Bug 1020, i.e. OSX/Nvidia's FBO needs to be cleared before blitting,
-                // otherwise first MSAA frame lacks antialiasing.
-                fbos[i].bind(gl);
-                if( useDepth ) {
-                    gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-                } else {
-                    gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-                }
+                setupFBO(gl, i, width, height, samples, useAlpha, useStencil, useDepth, useTexture, fbosN-1==i);
             }
-            fbos[fbosN-1].unbind(gl);
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
         } else {
@@ -223,7 +231,9 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         swapBufferContext = sbc;
     }
 
-    private final void reset(final GL gl, final int idx, final int width, final int height, final int samples, final int alphaBits, final int stencilBits) {
+    private final void reset(final GL gl, final int idx, final int width, final int height, final int samples,
+                             final boolean useAlpha, final boolean useStencil) {
+        final boolean useDepth   = 0 != ( FBOMODE_USE_DEPTH   & fboModeBits );
         if( !fboResetQuirk ) {
             try {
                 fbos[idx].reset(gl, width, height, samples, false);
@@ -233,19 +243,15 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 return;
             } catch (final GLException e) {
                 fboResetQuirk = true;
-                if(DEBUG) {
+                if( DEBUG ) {
                     if(!resetQuirkInfoDumped) {
                         resetQuirkInfoDumped = true;
                         System.err.println("GLFBODrawable: FBO Reset failed: "+e.getMessage());
                         System.err.println("GLFBODrawable: Enabling FBOResetQuirk, due to GL driver bug.");
                         final JoglVersion joglVersion = JoglVersion.getInstance();
-                        if(DEBUG) {
-                            System.err.println(VersionUtil.getPlatformInfo());
-                            System.err.println(joglVersion.toString());
-                            System.err.println(JoglVersion.getGLInfo(gl, null));
-                        } else {
-                            System.err.println(joglVersion.getBriefOSGLBuildInfo(gl, null));
-                        }
+                        System.err.println(VersionUtil.getPlatformInfo());
+                        System.err.println(joglVersion.toString());
+                        System.err.println(JoglVersion.getGLInfo(gl, null));
                         e.printStackTrace();
                     }
                 }
@@ -254,21 +260,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         }
         // resetQuirk fallback
         fbos[idx].destroy(gl);
-        fbos[idx] = new FBObject();
-        fbos[idx].reset(gl, getSurfaceWidth(), getSurfaceHeight(), samples, false);
-        if(fbos[idx].getNumSamples() != samples) {
-            throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
-        }
-        if(samples > 0) {
-            fbos[idx].attachColorbuffer(gl, 0, alphaBits>0);
-        } else {
-            fbos[idx].attachTexture2D(gl, 0, alphaBits>0);
-        }
-        if( stencilBits > 0 ) {
-            fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
-        } else {
-            fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
-        }
+        final boolean useTexture = 0 != ( FBOMODE_USE_TEXTURE & fboModeBits );
+        setupFBO(gl, idx, width, height, samples, useAlpha, useStencil, useDepth, useTexture, true);
     }
 
     private final void reset(final GL gl, int newSamples) throws GLException {
@@ -313,7 +306,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
                 for(int i=0; i<fbos.length; i++) {
                     if( pendingFBOReset != i ) {
-                        reset(gl, i, nWidth, nHeight, samples, caps.getAlphaBits(), caps.getStencilBits());
+                        reset(gl, i, nWidth, nHeight, samples, caps.getAlphaBits()>0, caps.getStencilBits()>0);
                     }
                 }
                 final GLCapabilities fboCapsNative = (GLCapabilities) surface.getGraphicsConfiguration().getChosenCapabilities();
@@ -440,7 +433,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // Safely reset the previous front FBO - after completing propagating swap
         if(0 <= pendingFBOReset) {
             final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
-            reset(glc.getGL(), pendingFBOReset, getSurfaceWidth(), getSurfaceHeight(), samples, caps.getAlphaBits(), caps.getStencilBits());
+            reset(glc.getGL(), pendingFBOReset, getSurfaceWidth(), getSurfaceHeight(), samples, caps.getAlphaBits()>0, caps.getStencilBits()>0);
             pendingFBOReset = -1;
         }
     }
