@@ -1038,10 +1038,11 @@ public class FBObject {
      * @param gl the current GL context
      * @param newWidth
      * @param newHeight
+     * @return {@code true} if this instance has been modified, otherwise {@code false}.
      * @throws GLException in case of an error
      */
-    public final void reset(final GL gl, final int newWidth, final int newHeight) {
-        reset(gl, newWidth, newHeight, 0, false);
+    public final boolean reset(final GL gl, final int newWidth, final int newHeight) {
+        return reset(gl, newWidth, newHeight, 0, false);
     }
 
     /**
@@ -1066,13 +1067,13 @@ public class FBObject {
      *                          <code>false</code> postpones resetting the sampling sink until {@link #use(GL, TextureAttachment)} or {@link #syncSamplingSink(GL)},
      *                          allowing to use the samples sink's FBO and texture until then. The latter is useful to benefit
      *                          from implicit double buffering while resetting the sink just before it's being used, eg. at swap-buffer.
-     *
+     * @return {@code true} if this instance has been modified, otherwise {@code false}.
      * @throws GLException in case of an error, i.e. size too big, etc ..
      */
-    public final void reset(final GL gl, int newWidth, int newHeight, int newSamples, final boolean resetSamplingSink) {
+    public final boolean reset(final GL gl, int newWidth, int newHeight, int newSamples, final boolean resetSamplingSink) {
         if( !initialized ) {
             init(gl, newWidth, newHeight, newSamples);
-            return;
+            return true;
         }
 
         newSamples = newSamples <= maxSamples ? newSamples : maxSamples; // clamp
@@ -1126,6 +1127,9 @@ public class FBObject {
             if(DEBUG) {
                 System.err.println("FBObject.reset - END - "+this);
             }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -2156,34 +2160,42 @@ public class FBObject {
      * if access to sampling sink resources is required.
      * </p>
      * @param gl the current GL context
+     * @return {@code true} if this instance has been modified, otherwise {@code false}.
      * @throws GLException in case of an error, i.e. size too big, etc ..
      */
-    public final void resetSamplingSink(final GL gl) throws GLException {
+    public final boolean resetSamplingSink(final GL gl) throws GLException {
         if(DEBUG) {
             System.err.println("FBObject.resetSamplingSink.0");
         }
         if( 0 == samples ) {
+            final boolean res;
             // MSAA off
             if(null != samplingSink && samplingSink.initialized) {
                 // cleanup
                 samplingSink.detachAll(gl);
+                res = true;
+            } else {
+                res = false;
             }
             if(DEBUG) {
-                System.err.println("FBObject.resetSamplingSink.X1: zero samples \n\tTHIS "+this);
+                System.err.println("FBObject.resetSamplingSink.X1: zero samples, mod "+res+"\n\tTHIS "+this);
             }
-            return;
+            return res;
         }
+
+        boolean res = false;
 
         if( null == samplingSink ) {
             samplingSink = new FBObject();
+            res = true;
         }
-
         if( !samplingSink.initialized ) {
             samplingSink.init(gl, width, height, 0);
+            res = true;
         }
 
         if(DEBUG) {
-            System.err.println("FBObject.resetSamplingSink.1: \n\tTHIS "+this+",\n\tSINK "+samplingSink);
+            System.err.println("FBObject.resetSamplingSink.1: mod "+res+"\n\tTHIS "+this+",\n\tSINK "+samplingSink);
         }
         boolean sampleSinkFormatMismatch = sampleSinkFormatMismatch(gl);
         boolean sampleSinkSizeMismatch = sampleSinkSizeMismatch();
@@ -2192,10 +2204,10 @@ public class FBObject {
 
         if(!sampleSinkFormatMismatch && !sampleSinkSizeMismatch && !sampleColorsinkUninit && !sampleSinkDepthStencilMismatch) {
             if(DEBUG) {
-                System.err.println("FBObject.resetSamplingSink.X2: Matching: format "+!sampleSinkFormatMismatch+", size "+!sampleSinkSizeMismatch +", csUninit "+!sampleColorsinkUninit +", depthStencil "+!sampleSinkDepthStencilMismatch);
+                System.err.println("FBObject.resetSamplingSink.X2: Matching: format "+!sampleSinkFormatMismatch+", size "+!sampleSinkSizeMismatch +", csUninit "+!sampleColorsinkUninit +", depthStencil "+!sampleSinkDepthStencilMismatch+", mod "+res);
             }
             // all properties match ..
-            return;
+            return res;
         }
 
         unbind(gl);
@@ -2207,6 +2219,7 @@ public class FBObject {
 
         if( sampleSinkDepthStencilMismatch ) {
             samplingSink.detachAllRenderbuffer(gl);
+            res = true;
         }
 
         final Colorbuffer preSamplingColorSink = samplingColorSink;
@@ -2215,8 +2228,10 @@ public class FBObject {
         if( sampleSinkFormatMismatch ) {
             samplingSink.detachAllColorbuffer(gl);
             samplingColorSink = null;
+            res = true;
         } else if( sampleSinkSizeMismatch ) {
             samplingSink.reset(gl, width, height);
+            res = true;
         }
 
         if(null == samplingColorSink) {
@@ -2226,11 +2241,13 @@ public class FBObject {
             } else {
                 samplingColorSink = samplingSink.attachColorbuffer(gl, 0, hasAlpha);
             }
+            res = true;
         } else if( 0 == samplingColorSink.getName() ) {
             // final boolean dispose = true;
             // detachColorbufferImpl(gl, 0, dispose ? DetachAction.DISPOSE : DetachAction.NONE);
             ((Attachment)samplingColorSink).setSize(width, height);
             samplingSink.attachColorbuffer(gl, 0, samplingColorSink);
+            res = true;
         }
 
         if( sampleSinkDepthStencilMismatch ) {
@@ -2238,6 +2255,7 @@ public class FBObject {
             if( null != stencil && !isDepthStencilPackedFormat() ) {
                 samplingSink.attachRenderbuffer(gl, stencil.format);
             }
+            res = true;
         }
 
         sampleSinkFormatMismatch = sampleSinkFormatMismatch(gl);
@@ -2250,9 +2268,10 @@ public class FBObject {
         }
 
         if(DEBUG) {
-            System.err.println("FBObject.resetSamplingSink.XX: END\n\tTHIS "+this+",\n\tSINK "+samplingSink+
+            System.err.println("FBObject.resetSamplingSink.XX: END mod "+res+"\n\tTHIS "+this+",\n\tSINK "+samplingSink+
                                "\n\t Matching: format "+!sampleSinkFormatMismatch+", size "+!sampleSinkSizeMismatch +", csUninit "+!sampleColorsinkUninit +", depthStencil "+!sampleSinkDepthStencilMismatch);
         }
+        return res;
     }
 
     /**
