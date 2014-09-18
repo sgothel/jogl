@@ -358,6 +358,17 @@ public class GLRendererQuirks {
     }
 
     /**
+     * {@link #addQuirk(int) Adding given quirk} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
+     */
+    public static void addStickyDeviceQuirk(final AbstractGraphicsDevice device, final int quirk) throws IllegalArgumentException {
+        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
+        sq.addQuirk(quirk);
+    }
+    /**
      * {@link #addQuirks(int[], int, int) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
      * <p>
      * Not thread safe.
@@ -416,6 +427,15 @@ public class GLRendererQuirks {
     public GLRendererQuirks(final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
         this();
         addQuirks(quirks, offset, len);
+    }
+
+    /**
+     * @param quirk valid quirk to be added
+     * @throws IllegalArgumentException if the quirk is out of range
+     */
+    public final void addQuirk(final int quirk) throws IllegalArgumentException {
+        validateQuirk(quirk);
+        _bitmask |= 1 << quirk;
     }
 
     /**
