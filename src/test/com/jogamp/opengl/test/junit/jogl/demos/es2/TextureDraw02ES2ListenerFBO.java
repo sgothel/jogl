@@ -138,14 +138,12 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
 
         st.useProgram(gl, false);
 
+        initFBOs(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+
         gl.glEnable(GL.GL_DEPTH_TEST);
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {
-        // remove all texture attachments, since MSAA uses just color-render-buffer
-        // and non-MSAA uses texture2d-buffer
-        fbo0.detachAllColorbuffer(gl);
-
         fbo0.reset(gl, width, height, numSamples, false);
         numSamples = fbo0.getNumSamples();
 
@@ -236,16 +234,11 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
         }
 
-        if( !fbo0.isInitialized() ) {
-            System.err.println("**** Reshape.Init: "+width+"x"+height);
-            initFBOs(gl, width, height);
-        } else {
-            System.err.println("**** Reshape.Reset: "+width+"x"+height);
-            if( keepTextureBound ) {
-                fbo0.unuse(gl);
-            }
-            resetFBOs(gl, width, height);
+        System.err.println("**** Reshape.Reset: "+width+"x"+height);
+        if( keepTextureBound ) {
+            fbo0.unuse(gl);
         }
+        resetFBOs(gl, width, height);
 
         fbo0.bind(gl);
         demo.reshape(drawable, x, y, width, height);
