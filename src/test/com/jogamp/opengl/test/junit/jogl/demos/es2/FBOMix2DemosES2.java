@@ -156,11 +156,6 @@ public class FBOMix2DemosES2 implements GLEventListener {
     }
 
     private void initFBOs(final GL gl, final GLAutoDrawable drawable) {
-        // remove all texture attachments, since MSAA uses just color-render-buffer
-        // and non-MSAA uses texture2d-buffer
-        fbo0.detachAllColorbuffer(gl);
-        fbo1.detachAllColorbuffer(gl);
-
         fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
         fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
