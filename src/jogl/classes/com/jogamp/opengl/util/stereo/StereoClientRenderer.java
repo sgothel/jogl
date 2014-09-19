@@ -87,7 +87,6 @@ public class StereoClientRenderer implements GLEventListener {
 
     private void initFBOs(final GL gl, final DimensionImmutable size) {
         for(int i=0; i<fbos.length; i++) {
-            fbos[i].detachAllColorbuffer(gl);
             fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples, false);
             if( i>0 && fbos[i-1].getNumSamples() != fbos[i].getNumSamples()) {
                 throw new InternalError("sample size mismatch: \n\t0: "+fbos[i-1]+"\n\t1: "+fbos[i]);
