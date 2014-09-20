@@ -580,7 +580,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             texA = fbo.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
             if( !blendingEnabled ) {
                 // no depth-buffer w/ blending
-                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
             }
             if( DEBUG_FBO_1 ) {
                 System.err.printf("XXX.createFBO: %dx%d%n%s%n", fboWidth, fboHeight, fbo.toString());

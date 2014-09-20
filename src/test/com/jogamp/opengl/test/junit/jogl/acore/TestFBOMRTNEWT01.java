@@ -176,7 +176,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             texA1 = null;
             System.err.println("FBO supports only one attachment, no MRT available!");
         }
-        fbo_mrt.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo_mrt.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         Assert.assertTrue( fbo_mrt.isStatusValid() ) ;
         fbo_mrt.unbind(gl);
 

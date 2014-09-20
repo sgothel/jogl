@@ -37,6 +37,7 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLBase;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -1604,6 +1605,68 @@ public class FBObject {
         return colbuf;
     }
 
+    private final int getDepthIFormat(final int reqBits) {
+        if( 32 <= reqBits && depth32Avail ) {
+            return GL.GL_DEPTH_COMPONENT32;
+        } else if( 24 <= reqBits && ( depth24Avail || depth32Avail ) ) {
+            if( depth24Avail ) {
+                return GL.GL_DEPTH_COMPONENT24;
+            } else {
+                return GL.GL_DEPTH_COMPONENT32;
+            }
+        } else {
+            return GL.GL_DEPTH_COMPONENT16;
+        }
+    }
+    private final int getStencilIFormat(final int reqBits) {
+        if( 16 <= reqBits && stencil16Avail ) {
+            return GL2GL3.GL_STENCIL_INDEX16;
+        } else if( 8 <= reqBits && ( stencil08Avail || stencil16Avail ) ) {
+            if( stencil08Avail ) {
+                return GL.GL_STENCIL_INDEX8;
+            } else {
+                return GL2GL3.GL_STENCIL_INDEX16;
+            }
+        } else if( 4 <= reqBits && ( stencil04Avail || stencil08Avail || stencil16Avail ) ) {
+            if( stencil04Avail ) {
+                return GL.GL_STENCIL_INDEX4;
+            } else if( stencil08Avail ) {
+                return GL.GL_STENCIL_INDEX8;
+            } else {
+                return GL2GL3.GL_STENCIL_INDEX16;
+            }
+        } else if( 1 <= reqBits && ( stencil01Avail || stencil04Avail || stencil08Avail || stencil16Avail ) ) {
+            if( stencil01Avail ) {
+                return GL.GL_STENCIL_INDEX1;
+            } else if( stencil04Avail ) {
+                return GL.GL_STENCIL_INDEX4;
+            } else if( stencil08Avail ) {
+                return GL.GL_STENCIL_INDEX8;
+            } else {
+                return GL2GL3.GL_STENCIL_INDEX16;
+            }
+        } else {
+            throw new GLException("stencil buffer n/a");
+        }
+    }
+
+    /** Request default bit count for depth- or stencil buffer (depth 24 bits, stencil 8 bits), value {@value} */
+    public static final int DEFAULT_BITS = 0;
+
+    /**
+     * Request current context drawable's <i>requested</i>
+     * {@link GLCapabilitiesImmutable#getDepthBits() depth-} or {@link GLCapabilitiesImmutable#getStencilBits() stencil-}bits; value {@value} */
+    public static final int REQUESTED_BITS = -1;
+
+    /**
+     * Request current context drawable's <i>chosen</i>
+     * {@link GLCapabilitiesImmutable#getDepthBits() depth-} or {@link GLCapabilitiesImmutable#getStencilBits() stencil-}bits; value {@value} */
+    public static final int CHOSEN_BITS = -2;
+
+    /** Request maximum bit count for depth- or stencil buffer (depth 32 bits, stencil 16 bits), value {@value} */
+    public static final int MAXIMUM_BITS = -3;
+
+
     /**
      * Attaches one depth, stencil or packed-depth-stencil buffer to this FBO's instance,
      * selecting the internalFormat automatically.
@@ -1611,7 +1674,8 @@ public class FBObject {
      * Stencil and depth buffer can be attached only once.
      * </p>
      * <p>
-     * In case the desired type or bit-number is not supported, the next available one is chosen.
+     * In case the bit-count is not supported,
+     * the next available one is chosen, i.e. next higher (preferred) or lower bit-count.
      * </p>
      * <p>
      * Use {@link #getDepthAttachment()} and/or {@link #getStencilAttachment()} to retrieve details
@@ -1623,68 +1687,58 @@ public class FBObject {
      *
      * @param gl
      * @param atype either {@link Type#DEPTH}, {@link Type#STENCIL} or {@link Type#DEPTH_STENCIL}
-     * @param reqBits desired bits for depth or -1 for default (24 bits)
+     * @param reqBits desired bits for depth or stencil,
+     *                may use generic values {@link #DEFAULT_BITS}, {@link #REQUESTED_BITS}, {@link #CHOSEN_BITS} or {@link #MAXIMUM_BITS}.
      * @throws GLException in case the renderbuffer couldn't be allocated or one is already attached.
      * @throws IllegalArgumentException
      * @see #getDepthAttachment()
      * @see #getStencilAttachment()
      */
-    public final void attachRenderbuffer(final GL gl, final Attachment.Type atype, int reqBits) throws GLException, IllegalArgumentException {
-        if( 0 > reqBits ) {
-            reqBits = 24;
+    public final void attachRenderbuffer(final GL gl, final Attachment.Type atype, final int reqBits) throws GLException, IllegalArgumentException {
+        final int reqDepth, reqStencil;
+        if( MAXIMUM_BITS > reqBits ) {
+            throw new IllegalArgumentException("reqBits out of range, shall be >= "+MAXIMUM_BITS);
+        } else if( MAXIMUM_BITS == reqBits ) {
+            reqDepth = 32;
+            reqStencil = 16;
+        } else if( CHOSEN_BITS == reqBits ) {
+            final GLCapabilitiesImmutable caps = gl.getContext().getGLDrawable().getChosenGLCapabilities();
+            reqDepth = caps.getDepthBits();
+            reqStencil = caps.getStencilBits();
+        } else if( REQUESTED_BITS == reqBits ) {
+            final GLCapabilitiesImmutable caps = gl.getContext().getGLDrawable().getRequestedGLCapabilities();
+            reqDepth = caps.getDepthBits();
+            reqStencil = caps.getStencilBits();
+        } else if( DEFAULT_BITS == reqBits ) {
+            reqDepth = 24;
+            reqStencil = 8;
+        } else {
+            reqDepth = reqBits;
+            reqStencil = reqBits;
         }
         final int internalFormat;
         int internalStencilFormat = -1;
 
         switch ( atype ) {
             case DEPTH:
-                if( 32 <= reqBits && depth32Avail ) {
-                    internalFormat = GL.GL_DEPTH_COMPONENT32;
-                } else if( 24 <= reqBits && depth24Avail ) {
-                    internalFormat = GL.GL_DEPTH_COMPONENT24;
-                } else {
-                    internalFormat = GL.GL_DEPTH_COMPONENT16;
-                }
+                internalFormat = getDepthIFormat(reqDepth);
                 break;
 
             case STENCIL:
-                if( 16 <= reqBits && stencil16Avail ) {
-                    internalFormat = GL2GL3.GL_STENCIL_INDEX16;
-                } else if( 8 <= reqBits && stencil08Avail ) {
-                    internalFormat = GL.GL_STENCIL_INDEX8;
-                } else if( 4 <= reqBits && stencil04Avail ) {
-                    internalFormat = GL.GL_STENCIL_INDEX4;
-                } else if( 1 <= reqBits && stencil01Avail ) {
-                    internalFormat = GL.GL_STENCIL_INDEX1;
-                } else {
-                    throw new GLException("stencil buffer n/a");
-                }
+                internalFormat = getStencilIFormat(reqStencil);
                 break;
 
             case DEPTH_STENCIL:
                 if( packedDepthStencilAvail ) {
                     internalFormat = GL.GL_DEPTH24_STENCIL8;
                 } else {
-                    if( 24 <= reqBits && depth24Avail ) {
-                        internalFormat = GL.GL_DEPTH_COMPONENT24;
-                    } else {
-                        internalFormat = GL.GL_DEPTH_COMPONENT16;
-                    }
-                    if( stencil08Avail ) {
-                        internalStencilFormat = GL.GL_STENCIL_INDEX8;
-                    } else if( stencil04Avail ) {
-                        internalStencilFormat = GL.GL_STENCIL_INDEX4;
-                    } else if( stencil01Avail ) {
-                        internalStencilFormat = GL.GL_STENCIL_INDEX1;
-                    } else {
-                        throw new GLException("stencil buffer n/a");
-                    }
+                    internalFormat = getDepthIFormat(reqDepth);
+                    internalStencilFormat = getStencilIFormat(reqStencil);
                 }
                 break;
             default:
                 throw new IllegalArgumentException("only depth/stencil types allowed, was "+atype+", "+this);
         }
-
         attachRenderbufferImpl(gl, atype, internalFormat);
 
         if(0<=internalStencilFormat) {

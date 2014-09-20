@@ -1663,7 +1663,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           final boolean useGLSLFlip_pre = flipVertical && offscreenIsFBO && reqOffscreenCaps.getGLProfile().isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER;
           if( offscreenIsFBO && !useGLSLFlip_pre ) {
               // Texture attachment only required for GLSL vertical flip, hence simply use a color-renderbuffer attachment.
-              ((GLFBODrawable)offscreenDrawable).setFBOMode(GLFBODrawable.FBOMODE_USE_DEPTH);
+              ((GLFBODrawable)offscreenDrawable).setFBOMode(0);
           }
 
           offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith[0]);

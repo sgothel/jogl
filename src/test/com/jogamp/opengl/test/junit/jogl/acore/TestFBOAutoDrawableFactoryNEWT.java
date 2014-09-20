@@ -83,13 +83,14 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
-        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_DEPTH, new GearsES2(0));
+        testGLFBODrawableImpl(caps, 0, new GearsES2(0));
     }
     @Test
     public void test01c_GL2ES2_Demo1_SingleBuffer_NoTexNoDepth() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
+        caps.setDepthBits(0);
         testGLFBODrawableImpl(caps, 0, new GearsES2(0));
     }
 
@@ -115,7 +116,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
-        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_DEPTH, new MultisampleDemoES2(true));
+        testGLFBODrawableImpl(caps, 0, new MultisampleDemoES2(true));
     }
     @Test
     public void test03c_GL2ES2_Demo2MSAA4_NoTexNoDepth() throws InterruptedException {
@@ -123,6 +124,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
+        caps.setDepthBits(0);
         testGLFBODrawableImpl(caps, 0, new MultisampleDemoES2(true));
     }
 
@@ -179,6 +181,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
                 factory.createOffscreenAutoDrawable(null, caps, null, widthStep*szStep, heightStep*szStep);
         Assert.assertNotNull(glad);
 
+        System.out.println("Requested:     "+caps);
         System.out.println("Realized GLAD: "+glad);
         System.out.println("Realized GLAD: "+glad.getChosenGLCapabilities());
         Assert.assertTrue("FBO drawable is initialized before ctx creation", !glad.isInitialized());
@@ -192,8 +195,12 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         }
         Assert.assertTrue("FBO drawable is not initialized after ctx creation", glad.isInitialized());
 
-        // final boolean useTexture = 0 != ( GLFBODrawable.FBOMODE_USE_TEXTURE & glad.getFBOMode() );
-        final boolean useDepth = 0 != ( GLFBODrawable.FBOMODE_USE_DEPTH & glad.getFBOMode() );
+        final boolean expDepth = caps.getDepthBits() > 0;
+        final boolean reqDepth = glad.getRequestedGLCapabilities().getDepthBits() > 0;
+        final boolean hasDepth = glad.getChosenGLCapabilities().getDepthBits() > 0;
+        System.out.println("Depth: exp "+expDepth+", req "+reqDepth+", has "+hasDepth);
+        Assert.assertEquals("Depth: expected not passed to requested", expDepth, reqDepth);
+        Assert.assertEquals("Depth: requested not passed to chosen", reqDepth, hasDepth);
 
         //
         // FBO incl. MSAA is fully initialized now
@@ -230,6 +237,13 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             color1 = null;
         }
 
+        final boolean expTexture = 0 != ( GLFBODrawable.FBOMODE_USE_TEXTURE & glad.getFBOMode() );
+        System.out.println("Texture: exp "+expTexture+", hasFront "+color0.isTextureAttachment());
+        Assert.assertEquals("Texture: Front", expTexture, color0.isTextureAttachment());
+        if(0==glad.getNumSamples()) {
+            Assert.assertEquals("Texture: Back", expTexture, color1.isTextureAttachment());
+        }
+
         final FBObject.Colorbuffer colorA, colorB;
         final FBObject.RenderAttachment depthA, depthB;
 
@@ -238,7 +252,14 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         colorB = fboBack.getColorbuffer(0);
         Assert.assertNotNull(colorB);
 
-        if( useDepth ) {
+        Assert.assertEquals("Texture: Front", expTexture, colorA.isTextureAttachment());
+        if(0==glad.getNumSamples()) {
+            Assert.assertEquals("Texture: Back", expTexture, colorB.isTextureAttachment());
+        } else {
+            Assert.assertEquals("Texture: MSAA Back is Texture", false, colorB.isTextureAttachment());
+        }
+
+        if( hasDepth ) {
             depthA = fboFront.getDepthAttachment();
             Assert.assertNotNull(depthA);
             depthB = fboBack.getDepthAttachment();
@@ -254,7 +275,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             // double buffer or MSAA
             Assert.assertNotEquals("Color attachments are equal: "+colorB+" == "+colorA, colorA, colorB);
             Assert.assertNotSame(colorB, colorA);
-            if( useDepth ) {
+            if( hasDepth ) {
                 Assert.assertNotEquals("Depth attachments are equal: "+depthB+" == "+depthA, depthA, depthB);
                 Assert.assertNotSame(depthB, depthA);
             }
@@ -343,14 +364,14 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             FBObject.RenderAttachment _depth = _fboFront.getDepthAttachment();
             System.err.println("Resize1.oldDepth "+depthA);
             System.err.println("Resize1.newDepth "+_depth);
-            if( useDepth ) {
+            if( hasDepth ) {
                 Assert.assertNotNull(_depth);
             }
 
             Assert.assertEquals(depthA, _depth);
             Assert.assertSame(depthA, _depth);
             _depth = _fboBack.getDepthAttachment();
-            if( useDepth ) {
+            if( hasDepth ) {
                 Assert.assertNotNull(_depth);
             }
             Assert.assertEquals(depthB, _depth);
@@ -394,14 +415,14 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             Assert.assertSame(colorB, _color);
 
             FBObject.RenderAttachment _depth = fboBack.getDepthAttachment();
-            if( useDepth ) {
+            if( hasDepth ) {
                 Assert.assertNotNull(_depth); // MSAA back w/ depth
             }
             Assert.assertEquals(depthB, _depth);
             Assert.assertSame(depthB, _depth);
 
             _depth = fboFront.getDepthAttachment();
-            if( useDepth ) {
+            if( hasDepth ) {
                 Assert.assertNotNull(_depth);
             }
             Assert.assertEquals(depthA, _depth);

@@ -27,7 +27,9 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.InputStream;
@@ -47,6 +49,7 @@ import javax.media.opengl.fixedfunc.GLLightingFunc;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 import javax.swing.JApplet;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 
@@ -57,7 +60,7 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
- * Bug 818: OSX GLJPanel Crash
+ * Bug 818: OSX GLJPanel [and GLCanvas] Crash
  * <pre>
  *   - NVIDIA GeForce GT 330M
  *     - GL_VENDOR: "NVIDIA Corporation"
@@ -66,7 +69,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
  *   - Mac OSX 10.6.8
  * </pre>
  */
-public class Bug818GLJPanelApplet extends JApplet {
+public class Bug818GLJPanelAndGLCanvasApplet extends JApplet {
 
     private static final long serialVersionUID = 1L;
 
@@ -81,7 +84,7 @@ public class Bug818GLJPanelApplet extends JApplet {
   static public void main(final String args[]) {
     isApplet = false;
 
-    final JApplet myApplet = new Bug818GLJPanelApplet();
+    final JApplet myApplet = new Bug818GLJPanelAndGLCanvasApplet();
 
     appletHolder = new JPanel();
 
@@ -115,19 +118,25 @@ public class Bug818GLJPanelApplet extends JApplet {
     public void init() {
 
         final JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(2, 2));
+        System.err.println("Pre  Orientation L2R: "+panel.getComponentOrientation().isLeftToRight());
+        panel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+        System.err.println("Post Orientation L2R: "+panel.getComponentOrientation().isLeftToRight());
         setContentPane(panel);
-
-        final GLCanvas glCanvas = new GLCanvas();
-        glCanvas.addGLEventListener(new JOGLQuad(true));
-        animatorCanvas = new Animator(glCanvas);
-        glCanvas.setPreferredSize(new Dimension(300, 300));
-        panel.add(glCanvas);
+        panel.add(new JLabel("GLJPanel"));
+        panel.add(new JLabel("GLCanvas"));
 
         final GLJPanel gljPanel = new GLJPanel();
         gljPanel.addGLEventListener(new JOGLQuad(false));
         animatorPanel = new Animator(gljPanel);
         gljPanel.setPreferredSize(new Dimension(300, 300));
         panel.add(gljPanel);
+
+        final GLCanvas glCanvas = new GLCanvas();
+        glCanvas.addGLEventListener(new JOGLQuad(true));
+        animatorCanvas = new Animator(glCanvas);
+        glCanvas.setPreferredSize(new Dimension(300, 300));
+        panel.add(glCanvas);
     }
 
     @Override
@@ -271,7 +280,7 @@ public class Bug818GLJPanelApplet extends JApplet {
 
             // set the color of the quad
             if (canvas) {
-                gl.glColor3f(0.2f, 1.0f, 1.0f);
+                gl.glColor3f(0.2f, 0.2f, 1.0f);
             } else {
                 gl.glColor3f(1.0f, 0.2f, 0.2f);
             }

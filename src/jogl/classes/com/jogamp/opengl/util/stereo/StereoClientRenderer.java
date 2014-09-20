@@ -95,19 +95,19 @@ public class StereoClientRenderer implements GLEventListener {
 
             if(numSamples>0) {
                 fbos[i].attachColorbuffer(gl, 0, true); // MSAA requires alpha
-                fbos[i].attachRenderbuffer(gl, Type.DEPTH, 24);
+                fbos[i].attachRenderbuffer(gl, Type.DEPTH, FBObject.DEFAULT_BITS);
                 final FBObject ssink = new FBObject();
                 {
                     ssink.init(gl, size.getWidth(), size.getHeight(), 0);
                     ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
-                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
                 }
                 fbos[i].setSamplingSink(ssink);
                 fbos[i].resetSamplingSink(gl); // validate
                 fboTexs[i] = fbos[i].getSamplingSink().getTextureAttachment();
             } else {
                 fboTexs[i] = fbos[i].attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
-                fbos[i].attachRenderbuffer(gl, Type.DEPTH, 24);
+                fbos[i].attachRenderbuffer(gl, Type.DEPTH, FBObject.DEFAULT_BITS);
             }
             fbos[i].unbind(gl);
             System.err.println("FBO["+i+"]: "+fbos[i]);
