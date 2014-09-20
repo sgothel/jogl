@@ -24,9 +24,45 @@ public class Teapot implements GLEventListener {
     private GLUT glut;
 
     /* glTexGen stuff: */
-    private final float sgenparams[] = { 1.0f, 1.0f, 1.0f, 0.0f };
+    // private final float sgenparams[] = { 1.0f, 1.0f, 1.0f, 0.0f };
 
     private Texture tex = null;
+
+    private void enableStates(final GL2 gl, final boolean enable) {
+        if( enable ) {
+            if( null != tex ) {
+                tex.bind(gl);
+            }
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glDepthFunc(GL.GL_LESS); // default
+            // gl.glEnable(GL2.GL_TEXTURE_GEN_S);
+            // gl.glEnable(GL2.GL_TEXTURE_1D);
+            gl.glEnable(GL.GL_TEXTURE_2D);
+            gl.glEnable(GL.GL_CULL_FACE);
+            gl.glEnable(GLLightingFunc.GL_LIGHTING);
+            gl.glEnable(GLLightingFunc.GL_LIGHT0);
+            gl.glEnable(GL2.GL_AUTO_NORMAL);
+            gl.glEnable(GLLightingFunc.GL_NORMALIZE);
+            gl.glFrontFace(GL.GL_CW);
+            gl.glCullFace(GL.GL_BACK); // default
+            gl.glMaterialf(GL.GL_FRONT, GLLightingFunc.GL_SHININESS, 64.0f);
+            gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+        } else {
+            if( null != tex ) {
+                gl.glBindTexture(tex.getTarget(), 0);
+            }
+            gl.glDisable(GL.GL_DEPTH_TEST);
+            // gl.glDisable(GL2.GL_TEXTURE_GEN_S);
+            // gl.glDisable(GL2.GL_TEXTURE_1D);
+            gl.glDisable(GL.GL_TEXTURE_2D);
+            gl.glDisable(GL.GL_CULL_FACE);
+            gl.glDisable(GLLightingFunc.GL_LIGHTING);
+            gl.glDisable(GLLightingFunc.GL_LIGHT0);
+            gl.glDisable(GL2.GL_AUTO_NORMAL);
+            gl.glDisable(GLLightingFunc.GL_NORMALIZE);
+            gl.glFrontFace(GL.GL_CCW); // default
+        }
+    }
 
     @Override
     public void init(final GLAutoDrawable drawable) {
@@ -41,7 +77,7 @@ public class Teapot implements GLEventListener {
         } catch (final Exception e) {
             e.printStackTrace();
         }
-        tex.bind(gl);
+        // tex.bind(gl);
 
         // uncomment this and comment the above to see a working texture
         // makeStripeImage();
@@ -57,24 +93,10 @@ public class Teapot implements GLEventListener {
         // gl.glTexImage1D(GL2.GL_TEXTURE_1D, 0, 3, stripeImageWidth, 0,
         // GL.GL_RGB, GL.GL_UNSIGNED_BYTE, stripeImageBuf);
 
-        gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+        // gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
 
         // gl.glTexGeni(GL2.GL_S, GL2.GL_TEXTURE_GEN_MODE, GL2.GL_OBJECT_LINEAR);
         // gl.glTexGenfv(GL2.GL_S, GL2.GL_OBJECT_PLANE, sgenparams, 0);
-
-        gl.glEnable(GL.GL_DEPTH_TEST);
-        gl.glDepthFunc(GL.GL_LESS);
-        // gl.glEnable(GL2.GL_TEXTURE_GEN_S);
-        // gl.glEnable(GL2.GL_TEXTURE_1D);
-        gl.glEnable(GL.GL_TEXTURE_2D);
-        gl.glEnable(GL.GL_CULL_FACE);
-        gl.glEnable(GLLightingFunc.GL_LIGHTING);
-        gl.glEnable(GLLightingFunc.GL_LIGHT0);
-        gl.glEnable(GL2.GL_AUTO_NORMAL);
-        gl.glEnable(GLLightingFunc.GL_NORMALIZE);
-        gl.glFrontFace(GL.GL_CW);
-        gl.glCullFace(GL.GL_BACK);
-        gl.glMaterialf(GL.GL_FRONT, GLLightingFunc.GL_SHININESS, 64.0f);
     }
 
     float angleZ = 0.0f;
@@ -85,8 +107,7 @@ public class Teapot implements GLEventListener {
     public void display(final GLAutoDrawable gLDrawable) {
         final GL2 gl = gLDrawable.getGL().getGL2();
 
-        tex.bind(gl);
-        gl.glEnable(GL.GL_TEXTURE_2D);
+        enableStates(gl, true);
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         gl.glPushMatrix();
@@ -101,13 +122,14 @@ public class Teapot implements GLEventListener {
             rotDir = +1.0f;
         }
         angleZ += rotIncr * rotDir;
+
+        enableStates(gl, false);
     }
 
     @Override
     public void reshape(final GLAutoDrawable gLDrawable, final int x, final int y, final int w, final int h) {
         final GL2 gl = gLDrawable.getGL().getGL2();
 
-        gl.glViewport(0, 0, w, h);
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         if (w <= h) {
