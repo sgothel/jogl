@@ -52,6 +52,7 @@ import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
+import javax.swing.SwingConstants;
 
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
@@ -123,8 +124,8 @@ public class Bug818GLJPanelAndGLCanvasApplet extends JApplet {
         panel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
         System.err.println("Post Orientation L2R: "+panel.getComponentOrientation().isLeftToRight());
         setContentPane(panel);
-        panel.add(new JLabel("GLJPanel"));
-        panel.add(new JLabel("GLCanvas"));
+        panel.add(new JLabel("GLJPanel", SwingConstants.CENTER));
+        panel.add(new JLabel("GLCanvas", SwingConstants.CENTER));
 
         final GLJPanel gljPanel = new GLJPanel();
         gljPanel.addGLEventListener(new JOGLQuad(false));
