@@ -107,7 +107,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         final FBObject fbo = new FBObject();
         fbos[idx] = fbo;
 
-        fbo.reset(gl, width, height, samples, false);
+        fbo.init(gl, width, height, samples);
         if(fbo.getNumSamples() != samples) {
             throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbo);
         }
@@ -128,7 +128,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if(samples > 0) {
             final FBObject ssink = new FBObject();
             {
-                ssink.reset(gl, width, height);
+                ssink.init(gl, width, height, 0);
                 if( !useTexture ) {
                     ssink.attachColorbuffer(gl, 0, useAlpha);
                 } else {
@@ -243,7 +243,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         final boolean useDepth   = 0 != ( FBOMODE_USE_DEPTH   & fboModeBits );
         if( !fboResetQuirk ) {
             try {
-                fbos[idx].reset(gl, width, height, samples, false);
+                fbos[idx].reset(gl, width, height, samples);
                 if(fbos[idx].getNumSamples() != samples) {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
                 }

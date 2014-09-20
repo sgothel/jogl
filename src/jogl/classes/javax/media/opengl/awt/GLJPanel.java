@@ -1692,7 +1692,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   fboDrawable.setTextureUnit( GLJPanel.this.requestedTextureUnit );
                   try {
                       fboFlipped = new FBObject();
-                      fboFlipped.reset(gl, panelWidth, panelHeight, 0, false);
+                      fboFlipped.init(gl, panelWidth, panelHeight, 0);
                       fboFlipped.attachColorbuffer(gl, 0, chosenCaps.getAlphaBits()>0);
                       // fboFlipped.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                       gl.glClear(GL.GL_COLOR_BUFFER_BIT); // Bug 1020 (see above), cannot do in FBObject due to unknown 'first bind' state.
@@ -2038,7 +2038,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
                 try {
                     final GL gl = offscreenContext.getGL();
-                    fboFlipped.reset(gl, panelWidth, panelHeight, 0, false);
+                    fboFlipped.reset(gl, panelWidth, panelHeight, 0);
                     glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, panelWidth, panelHeight);
                 } finally {
                     offscreenContext.release();

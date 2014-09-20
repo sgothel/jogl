@@ -573,7 +573,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                 fboTexSize.put(1, fboHeight);
             }
             fbo = new FBObject();
-            fbo.reset(gl, fboWidth, fboHeight);
+            fbo.init(gl, fboWidth, fboHeight, 0);
             // Shall not use bilinear (GL_LINEAR), due to own VBAA. Result is smooth w/o it now!
             // FIXME: FXAA requires bilinear filtering!
             // texA = fbo.attachTexture2D(gl, 0, true, GL.GL_LINEAR, GL.GL_LINEAR, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
@@ -586,7 +586,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                 System.err.printf("XXX.createFBO: %dx%d%n%s%n", fboWidth, fboHeight, fbo.toString());
             }
         } else if( newFboWidth != fboWidth || newFboHeight != fboHeight ) {
-            fbo.reset(gl, newFboWidth, newFboHeight);
+            fbo.reset(gl, newFboWidth, newFboHeight, 0);
             fbo.bind(gl);
             if( DEBUG_FBO_1 ) {
                 System.err.printf("XXX.resetFBO: %dx%d -> %dx%d, target %dx%d%n", fboWidth, fboHeight, newFboWidth, newFboHeight, targetFboWidth, targetFboHeight);

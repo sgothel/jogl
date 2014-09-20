@@ -62,14 +62,14 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFBOMix2DemosES2NEWT extends UITestCase {
-    static long duration = 500; // ms
+    static long duration = 1000; // ms
     static int swapInterval = 1;
     static boolean showFPS = false;
     static boolean forceES2 = false;
     static boolean doRotate = true;
     static boolean demo0Only = false;
     static int globalNumSamples = 0;
-    static boolean mainRun = false;
+    static boolean manual = false;
 
     @AfterClass
     public static void releaseClass() {
@@ -81,7 +81,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
         final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
-        if(mainRun) {
+        if(manual) {
             glWindow.setSize(512, 512);
         } else {
             glWindow.setSize(128, 128);
@@ -100,7 +100,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
             }
             public void dispose(final GLAutoDrawable drawable) {}
             public void display(final GLAutoDrawable drawable) {
-                if(mainRun) return;
+                if(manual) return;
 
                 final int dw = drawable.getSurfaceWidth();
                 final int dh = drawable.getSurfaceHeight();
@@ -112,18 +112,24 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                         snapshot(i++, "msaa"+demo.getMSAA(), drawable.getGL(), screenshot, TextureIO.PNG, null);
                     }
                     if( 3 == c ) {
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                demo.setMSAA(4);
-                            } }.start();
+                        demo.setMSAA(4);
                     } else if( 6 == c ) {
                         new Thread() {
                             @Override
                             public void run() {
-                                demo.setMSAA(8);
+                                glWindow.setSize(dw+64, dh+64);
                             } }.start();
-                    } else if(9 == c) {
+                    } else if( 9 == c ) {
+                        demo.setMSAA(8);
+                    } else if( 12 == c ) {
+                        demo.setMSAA(0);
+                    } else if( 15 == c ) {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                glWindow.setSize(dw+128, dh+128);
+                            } }.start();
+                    } else if( 18 == c ) {
                         c=0;
                         new Thread() {
                             @Override
@@ -203,8 +209,8 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test01_Main() throws InterruptedException {
-        if( mainRun ) {
+    public void test00_Manual() throws InterruptedException {
+        if( manual ) {
             final GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
             caps.setAlphaBits(1);
             runTestGL(caps, globalNumSamples);
@@ -212,17 +218,25 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test01() throws InterruptedException {
-        if( mainRun ) return ;
+    public void test01_startMSAA0() throws InterruptedException {
+        if( manual ) return ;
         final GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
         caps.setAlphaBits(1);
         runTestGL(caps, 0);
     }
 
+    @Test
+    public void test02_startMSAA4() throws InterruptedException {
+        if( manual ) return ;
+        final GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+        caps.setAlphaBits(1);
+        runTestGL(caps, 4);
+    }
+
     public static void main(final String args[]) throws IOException {
         boolean waitForKey = false;
 
-        mainRun = true;
+        manual = false;
 
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -244,13 +258,14 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                 demo0Only = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
-            } else if(args[i].equals("-nomain")) {
-                mainRun = false;
+            } else if(args[i].equals("-manual")) {
+                manual = true;
             }
         }
 
         System.err.println("swapInterval "+swapInterval);
         System.err.println("forceES2 "+forceES2);
+        System.err.println("manual "+manual);
 
         if(waitForKey) {
             final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));

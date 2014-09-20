@@ -167,7 +167,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
 
         // FBO w/ 2 texture2D color buffers
         final FBObject fbo_mrt = new FBObject();
-        fbo_mrt.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        fbo_mrt.init(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0);
         final TextureAttachment texA0 = fbo_mrt.attachTexture2D(gl, texA0Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
         final TextureAttachment texA1;
         if(fbo_mrt.getMaxColorAttachments() > 1) {
@@ -257,7 +257,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
                 final int w = width/step * j;
                 final int h = height/step * j;
                 System.err.println("resize: "+step_i+" -> "+j+" - "+w+"x"+h);
-                fbo_mrt.reset(gl, w, h);
+                fbo_mrt.reset(gl, w, h, 0);
                 winctx.window.setSize(w, h);
                 step_i = j;
             }
