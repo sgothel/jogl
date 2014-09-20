@@ -459,7 +459,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             fbo.attachColorbuffer(gl, 0, true);
             if( !blendingEnabled ) {
                 // no depth-buffer w/ blending
-                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
             }
             final FBObject ssink = new FBObject();
             {
@@ -469,7 +469,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 ssink.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 if( !blendingEnabled ) {
                     // no depth-buffer w/ blending
-                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
                 }
             }
             fbo.setSamplingSink(ssink);

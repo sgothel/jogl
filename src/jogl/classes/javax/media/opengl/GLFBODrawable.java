@@ -80,11 +80,14 @@ public interface GLFBODrawable extends GLDrawable {
 
     /** FBO Mode Bit: Use a {@link TextureAttachment} for the {@link #getColorbuffer(int) render colorbuffer} ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}. */
     public static final int FBOMODE_USE_TEXTURE = 1 << 0;
-    /** FBO Mode Bit: Use a depth renderbuffer ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}. */
+    /**
+     * FBO Mode Bit: Use a depth renderbuffer ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}.
+     * @deprecated Use {@link GLCapabilities#setDepthBits(int)}!
+     */
     public static final int FBOMODE_USE_DEPTH   = 1 << 1;
 
-    /** FBO Default Mode Bit: {@link #FBOMODE_USE_TEXTURE} | {@link #FBOMODE_USE_DEPTH}. */
-    public static final int FBOMODE_DEFAULT   = FBOMODE_USE_TEXTURE | FBOMODE_USE_DEPTH;
+    /** FBO Default Mode Bit: {@link #FBOMODE_USE_TEXTURE}. */
+    public static final int FBOMODE_DEFAULT   = FBOMODE_USE_TEXTURE;
 
     /**
      * @return <code>true</code> if initialized, i.e. a {@link GLContext} is bound and made current once, otherwise <code>false</code>.
@@ -101,8 +104,8 @@ public interface GLFBODrawable extends GLDrawable {
      * {@link #FBOMODE_USE_TEXTURE} is always added at initialization.
      * </p>
      *
-     * @param modeBits custom FBO mode bits like {@link #FBOMODE_USE_TEXTURE} and {@link #FBOMODE_USE_DEPTH}.
-     * @throws IllegalStateException if the underlying FBO is already {@link #isInitialized()}.
+     * @param modeBits custom FBO mode bits like {@link #FBOMODE_USE_TEXTURE}.
+     * @throws IllegalStateException if already initialized, see {@link #isInitialized()}.
      */
     void setFBOMode(final int modeBits) throws IllegalStateException;
 
@@ -155,9 +158,9 @@ public interface GLFBODrawable extends GLDrawable {
      * Must be called before {@link #isInitialized() initialization}, otherwise an exception is thrown.
      * </p>
      * @return the new number of buffers (FBO) used, maybe different than the requested <code>bufferCount</code> (see above)
-     * @throws GLException if already initialized, see {@link #isInitialized()}.
+     * @throws IllegalStateException if already initialized, see {@link #isInitialized()}.
      */
-    int setNumBuffers(final int bufferCount) throws GLException;
+    int setNumBuffers(final int bufferCount) throws /* IllegalStateException, */ GLException;
 
     /**
      * @return the number of buffers (FBO) being used. 1 if not using {@link GLCapabilities#getDoubleBuffered() double buffering},

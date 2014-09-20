@@ -175,9 +175,9 @@ public class FBOMix2DemosES2 implements GLEventListener {
             fbo1Tex = fbo1.attachTexture2D(gl, 0, true);
         }
         numSamples=fbo0.getNumSamples();
-        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo0.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         fbo0.unbind(gl);
-        fbo1.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo1.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         fbo1.unbind(gl);
     }
 

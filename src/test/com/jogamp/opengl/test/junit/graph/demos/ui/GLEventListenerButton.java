@@ -89,8 +89,8 @@ public class GLEventListenerButton extends TextureSeqButton {
 
             final GLContext ctx = gl.getContext();
             final GLDrawable drawable = ctx.getGLDrawable();
-            final GLCapabilitiesImmutable capsHas = drawable.getChosenGLCapabilities();
-            final GLCapabilities caps = (GLCapabilities) capsHas.cloneMutable();
+            final GLCapabilitiesImmutable reqCaps = drawable.getRequestedGLCapabilities();
+            final GLCapabilities caps = (GLCapabilities) reqCaps.cloneMutable();
             caps.setFBO(true);
             caps.setDoubleBuffered(false);
             if( !useAlpha ) {

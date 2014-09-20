@@ -91,7 +91,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                                 final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
         super(factory, surface, fboCaps, false);
         this.initialized = false;
-        this.fboModeBits = FBOMODE_USE_TEXTURE | FBOMODE_USE_DEPTH;
+        this.fboModeBits = FBOMODE_USE_TEXTURE;
 
         this.parent = parent;
         this.origParentChosenCaps = getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
@@ -102,10 +102,13 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     private final void setupFBO(final GL gl, final int idx, final int width, final int height, final int samples,
-                                final boolean useAlpha, final boolean useStencil, final boolean useDepth, final boolean useTexture,
-                                final boolean realUnbind) {
+                                final boolean useAlpha, final int depthBits, final int stencilBits,
+                                final boolean useTexture, final boolean realUnbind) {
         final FBObject fbo = new FBObject();
         fbos[idx] = fbo;
+
+        final boolean useDepth   = depthBits > 0 || 0 != ( FBOMODE_USE_DEPTH & fboModeBits );
+        final boolean useStencil = stencilBits > 0;
 
         fbo.init(gl, width, height, samples);
         if(fbo.getNumSamples() != samples) {
@@ -118,12 +121,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         }
         if( useStencil ) {
             if( useDepth ) {
-                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, depthBits);
             } else {
-                fbo.attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
+                fbo.attachRenderbuffer(gl, Attachment.Type.STENCIL, stencilBits);
             }
         } else if( useDepth ) {
-            fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, depthBits);
         }
         if(samples > 0) {
             final FBObject ssink = new FBObject();
@@ -136,12 +139,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 }
                 if( useStencil ) {
                     if( useDepth ) {
-                        ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+                        ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, depthBits);
                     } else {
-                        ssink.attachRenderbuffer(gl, Attachment.Type.STENCIL, 24);
+                        ssink.attachRenderbuffer(gl, Attachment.Type.STENCIL, stencilBits);
                     }
                 } else if( useDepth ) {
-                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, depthBits);
                 }
             }
             fbo.setSamplingSink(ssink);
@@ -206,14 +209,13 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             }
 
             final boolean useTexture = 0 != ( FBOMODE_USE_TEXTURE & fboModeBits );
-            final boolean useDepth   = 0 != ( FBOMODE_USE_DEPTH   & fboModeBits );
-            final boolean useStencil = chosenFBOCaps.getStencilBits() > 0;
             final boolean useAlpha = chosenFBOCaps.getAlphaBits() > 0;
             final int width = getSurfaceWidth();
             final int height = getSurfaceHeight();
 
             for(int i=0; i<fbosN; i++) {
-                setupFBO(gl, i, width, height, samples, useAlpha, useStencil, useDepth, useTexture, fbosN-1==i);
+                setupFBO(gl, i, width, height, samples, useAlpha,
+                         chosenFBOCaps.getDepthBits(), chosenFBOCaps.getStencilBits(), useTexture, fbosN-1==i);
             }
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
@@ -239,8 +241,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     private final void reset(final GL gl, final int idx, final int width, final int height, final int samples,
-                             final boolean useAlpha, final boolean useStencil) {
-        final boolean useDepth   = 0 != ( FBOMODE_USE_DEPTH   & fboModeBits );
+                             final boolean useAlpha, final int depthBits, final int stencilBits) {
         if( !fboResetQuirk ) {
             try {
                 fbos[idx].reset(gl, width, height, samples);
@@ -268,7 +269,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // resetQuirk fallback
         fbos[idx].destroy(gl);
         final boolean useTexture = 0 != ( FBOMODE_USE_TEXTURE & fboModeBits );
-        setupFBO(gl, idx, width, height, samples, useAlpha, useStencil, useDepth, useTexture, true);
+        setupFBO(gl, idx, width, height, samples, useAlpha, depthBits, stencilBits, useTexture, true);
     }
 
     private final void reset(final GL gl, int newSamples) throws GLException {
@@ -313,7 +314,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
                 for(int i=0; i<fbos.length; i++) {
                     if( pendingFBOReset != i ) {
-                        reset(gl, i, nWidth, nHeight, samples, caps.getAlphaBits()>0, caps.getStencilBits()>0);
+                        reset(gl, i, nWidth, nHeight, samples, caps.getAlphaBits()>0, caps.getDepthBits(), caps.getStencilBits());
                     }
                 }
                 final GLCapabilities fboCapsNative = (GLCapabilities) surface.getGraphicsConfiguration().getChosenCapabilities();
@@ -440,7 +441,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // Safely reset the previous front FBO - after completing propagating swap
         if(0 <= pendingFBOReset) {
             final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
-            reset(glc.getGL(), pendingFBOReset, getSurfaceWidth(), getSurfaceHeight(), samples, caps.getAlphaBits()>0, caps.getStencilBits()>0);
+            reset(glc.getGL(), pendingFBOReset, getSurfaceWidth(), getSurfaceHeight(), samples,
+                  caps.getAlphaBits()>0, caps.getDepthBits(), caps.getStencilBits());
             pendingFBOReset = -1;
         }
     }
@@ -523,9 +525,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
 
     @Override
-    public final int setNumBuffers(final int bufferCount) throws GLException {
+    public final int setNumBuffers(final int bufferCount) throws /* IllegalStateException, */ GLException {
+        if( isInitialized() ) {
+            throw new IllegalStateException("Already initialized: "+this);
+        }
         // FIXME: Implement
-        return bufferCount;
+        return GLFBODrawableImpl.bufferCount;
     }
 
     @Override

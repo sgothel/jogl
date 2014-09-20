@@ -102,7 +102,7 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
         }
 
         @Override
-        public final int setNumBuffers(final int bufferCount) throws GLException {
+        public final int setNumBuffers(final int bufferCount) throws /* IllegalStateException, */ GLException {
             return ((GLFBODrawableImpl)drawable).setNumBuffers(bufferCount);
         }
 

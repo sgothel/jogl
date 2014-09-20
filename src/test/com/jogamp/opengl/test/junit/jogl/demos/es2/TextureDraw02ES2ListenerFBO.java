@@ -155,7 +155,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
             fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
         }
         numSamples=fbo0.getNumSamples();
-        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo0.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         fbo0.unbind(gl);
     }
 
