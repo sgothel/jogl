@@ -1093,7 +1093,7 @@ public class FBObject {
         if( !initialized ) {
             throw new IllegalStateException("FBO not initialized");
         }
-        return reset(gl, newWidth, newHeight, newSamples, true);
+        return resetImpl(gl, newWidth, newHeight, newSamples, true);
     }
 
     /**
@@ -1113,7 +1113,7 @@ public class FBObject {
      * @deprecated Use {@link #init(GL, int, int, int)} or {@link #reset(GL, int, int, int)}
      */
     public final void reset(final GL gl, final int newWidth, final int newHeight) {
-        reset(gl, newWidth, newHeight, 0, false);
+        resetImpl(gl, newWidth, newHeight, 0, false);
     }
 
     /**
@@ -1138,10 +1138,14 @@ public class FBObject {
      * @throws GLException in case of an error, i.e. size too big, etc ..
      * @deprecated Use {@link #init(GL, int, int, int)} or {@link #reset(GL, int, int, int)}
      */
-    public final void reset(final GL gl, int newWidth, int newHeight, int newSamples, final boolean resetSamplingSink) {
+    public final void reset(final GL gl, final int newWidth, final int newHeight, final int newSamples, final boolean resetSamplingSink) {
+        resetImpl(gl, newWidth, newHeight, newSamples, resetSamplingSink);
+    }
+
+    private final boolean resetImpl(final GL gl, int newWidth, int newHeight, int newSamples, final boolean resetSamplingSink) {
         if( !initialized ) {
             init(gl, newWidth, newHeight, newSamples);
-            return;
+            return true;
         }
 
         newSamples = newSamples <= maxSamples ? newSamples : maxSamples; // clamp
@@ -1191,6 +1195,9 @@ public class FBObject {
             if(DEBUG) {
                 System.err.println("FBObject.reset - END - wasBound, "+wasBound+", "+this);
             }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -2313,7 +2320,7 @@ public class FBObject {
             if(DEBUG) {
                 System.err.println("FBObject.resetSamplingSink.X1: zero samples, mod "+modifiedInstance+"\n\tTHIS "+this);
             }
-            return modifiedInstance;
+            return; // modifiedInstance;
         }
 
         boolean modifiedInstance = false;
@@ -2354,7 +2361,7 @@ public class FBObject {
                 // all properties match ..
                 samplingSink.modified = false;
                 this.modified = false;
-                return modifiedInstance;
+                return; // modifiedInstance;
             }
         }
 
@@ -2439,7 +2446,7 @@ public class FBObject {
                                "\n\t Matching: exFormat "+!sampleSinkExFormatMismatch+
                                ", size "+!sampleSinkSizeMismatch +", depthStencil "+!sampleSinkDepthStencilMismatch);
         }
-        return modifiedInstance;
+        return; // modifiedInstance;
     }
 
     /**
