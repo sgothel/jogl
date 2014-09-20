@@ -1090,60 +1090,9 @@ public class FBObject {
      * @throws IllegalStateException if not initialized via {@link #init(GL, int, int, int)}.
      * @throws GLException in case of an error, i.e. size too big, etc ..
      */
-    public final boolean reset(final GL gl, final int newWidth, final int newHeight, final int newSamples) throws GLException, IllegalStateException {
+    public final boolean reset(final GL gl, int newWidth, int newHeight, int newSamples) throws GLException, IllegalStateException {
         if( !initialized ) {
             throw new IllegalStateException("FBO not initialized");
-        }
-        return reset(gl, newWidth, newHeight, newSamples, true);
-    }
-
-    /**
-     * Initializes or resets this FBO's instance.
-     * <p>
-     * In case the new parameters are compatible with the current ones
-     * no action will be performed. Otherwise all attachments will be recreated
-     * to match the new given parameters.
-     * </p>
-     *
-     * <p>Leaves the FBO bound state untouched</p>
-     *
-     * @param gl the current GL context
-     * @param newWidth
-     * @param newHeight
-     * @return {@code true} if this instance has been modified, otherwise {@code false}.
-     * @throws GLException in case of an error
-     * @deprecated Use {@link #init(GL, int, int, int)} or {@link #reset(GL, int, int, int)}
-     */
-    public final boolean reset(final GL gl, final int newWidth, final int newHeight) {
-        return reset(gl, newWidth, newHeight, 0, false);
-    }
-
-    /**
-     * Initializes or resets this FBO's instance.
-     * <p>
-     * In case the new parameters are compatible with the current ones
-     * no action will be performed. Otherwise all attachments will be recreated
-     * to match the new given parameters.
-     * </p>
-     *
-     * <p>Leaves the FBO bound state untouched</p>
-     *
-     * @param gl the current GL context
-     * @param newWidth the new width, it's minimum is capped to 1
-     * @param newHeight the new height, it's minimum is capped to 1
-     * @param newSamples if > 0, MSAA will be used, otherwise no multisampling. Will be capped to {@link #getMaxSamples()}.
-     * @param resetSamplingSink <code>true</code> calls {@link #resetSamplingSink(GL)} immediatly.
-     *                          <code>false</code> postpones resetting the sampling sink until {@link #use(GL, TextureAttachment)} or {@link #syncSamplingSink(GL)},
-     *                          allowing to use the samples sink's FBO and texture until then. The latter is useful to benefit
-     *                          from implicit double buffering while resetting the sink just before it's being used, eg. at swap-buffer.
-     * @return {@code true} if this instance has been modified, otherwise {@code false}.
-     * @throws GLException in case of an error, i.e. size too big, etc ..
-     * @deprecated Use {@link #init(GL, int, int, int)} or {@link #reset(GL, int, int, int)}
-     */
-    public final boolean reset(final GL gl, int newWidth, int newHeight, int newSamples, final boolean resetSamplingSink) {
-        if( !initialized ) {
-            init(gl, newWidth, newHeight, newSamples);
-            return true;
         }
 
         newSamples = newSamples <= maxSamples ? newSamples : maxSamples; // clamp
@@ -1182,9 +1131,7 @@ public class FBObject {
             samplingSinkDirty = true;
 
             detachAllImpl(gl, true, true, sampleCountChange);
-            if( resetSamplingSink ) {
-                resetSamplingSink(gl);
-            }
+            resetSamplingSink(gl);
 
             if(!wasBound) {
                 unbind(gl);
@@ -2508,7 +2455,7 @@ public class FBObject {
      * @throws GLException if this FBO doesn't use MSAA or the given sink uses MSAA itself
      * @throws IllegalStateException if the {@code newSamplingSink} is not null and not initialized
      */
-    public FBObject setSamplingSink(final FBObject newSamplingSink) throws /* IllegalStateException, */ GLException {
+    public FBObject setSamplingSink(final FBObject newSamplingSink) throws IllegalStateException, GLException {
         final FBObject prev = samplingSink;
         if( null == newSamplingSink) {
             samplingSink = null;

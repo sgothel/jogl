@@ -80,11 +80,6 @@ public interface GLFBODrawable extends GLDrawable {
 
     /** FBO Mode Bit: Use a {@link TextureAttachment} for the {@link #getColorbuffer(int) render colorbuffer} ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}. */
     public static final int FBOMODE_USE_TEXTURE = 1 << 0;
-    /**
-     * FBO Mode Bit: Use a depth renderbuffer ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}.
-     * @deprecated Use {@link GLCapabilities#setDepthBits(int)}!
-     */
-    public static final int FBOMODE_USE_DEPTH   = 1 << 1;
 
     /** FBO Default Mode Bit: {@link #FBOMODE_USE_TEXTURE}. */
     public static final int FBOMODE_DEFAULT   = FBOMODE_USE_TEXTURE;
@@ -160,7 +155,7 @@ public interface GLFBODrawable extends GLDrawable {
      * @return the new number of buffers (FBO) used, maybe different than the requested <code>bufferCount</code> (see above)
      * @throws IllegalStateException if already initialized, see {@link #isInitialized()}.
      */
-    int setNumBuffers(final int bufferCount) throws /* IllegalStateException, */ GLException;
+    int setNumBuffers(final int bufferCount) throws IllegalStateException, GLException;
 
     /**
      * @return the number of buffers (FBO) being used. 1 if not using {@link GLCapabilities#getDoubleBuffered() double buffering},
