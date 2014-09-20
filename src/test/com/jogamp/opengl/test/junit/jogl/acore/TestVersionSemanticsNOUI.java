@@ -64,6 +64,7 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
         excludeV221toV222.add("^\\Qjogamp/\\E.*$");
         excludeV221toV222.add("^\\Qcom/jogamp/opengl/GLRendererQuirks\\E$"); // COUNT increased by one
         excludeV221toV222.add("^\\Qcom/jogamp/opengl/util/Animator\\E$");    // pauseIssued -> volatile
+        excludeV221toV222.add("^\\Qjavax/media/opengl/GLFBODrawable\\E$");   // FBOMODE_DEFAULT (removed USE_DEPTH)
     }
 
 
