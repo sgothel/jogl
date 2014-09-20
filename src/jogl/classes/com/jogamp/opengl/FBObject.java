@@ -422,8 +422,10 @@ public class FBObject {
         public boolean initialize(final GL gl) throws GLException {
             final boolean init = 0 == getName();
             if( init ) {
-                checkPreGLError(gl);
-
+                final boolean checkError = DEBUG || GLContext.DEBUG_GL;
+                if( checkError ) {
+                    checkPreGLError(gl);
+                }
                 final int[] name = new int[] { -1 };
                 gl.glGenRenderbuffers(1, name, 0);
                 setName(name[0]);
@@ -434,11 +436,13 @@ public class FBObject {
                 } else {
                     gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
                 }
-                final int glerr = gl.glGetError();
-                if(GL.GL_NO_ERROR != glerr) {
-                    gl.glDeleteRenderbuffers(1, name, 0);
-                    setName(0);
-                    throw new GLException("GL Error "+toHexString(glerr)+" while creating "+this);
+                if( checkError ) {
+                    final int glerr = gl.glGetError();
+                    if(GL.GL_NO_ERROR != glerr) {
+                        gl.glDeleteRenderbuffers(1, name, 0);
+                        setName(0);
+                        throw new GLException("GL Error "+toHexString(glerr)+" while creating "+this);
+                    }
                 }
                 if(DEBUG) {
                     System.err.println("Attachment.init.X: "+this);
@@ -528,8 +532,10 @@ public class FBObject {
         public boolean initialize(final GL gl) throws GLException {
             final boolean init = 0 == getName();
             if( init ) {
-                checkPreGLError(gl);
-
+                final boolean checkError = DEBUG || GLContext.DEBUG_GL;
+                if( checkError ) {
+                    checkPreGLError(gl);
+                }
                 final int[] name = new int[] { -1 };
                 gl.glGenTextures(1, name, 0);
                 if(0 == name[0]) {
@@ -550,17 +556,21 @@ public class FBObject {
                 if( 0 < wrapT ) {
                     gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, wrapT);
                 }
-                boolean preTexImage2D = true;
-                int glerr = gl.glGetError();
-                if(GL.GL_NO_ERROR == glerr) {
-                    preTexImage2D = false;
+                if( checkError ) {
+                    boolean preTexImage2D = true;
+                    int glerr = gl.glGetError();
+                    if(GL.GL_NO_ERROR == glerr) {
+                        preTexImage2D = false;
+                        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
+                        glerr = gl.glGetError();
+                    }
+                    if(GL.GL_NO_ERROR != glerr) {
+                        gl.glDeleteTextures(1, name, 0);
+                        setName(0);
+                        throw new GLException("GL Error "+toHexString(glerr)+" while creating (pre TexImage2D "+preTexImage2D+") "+this);
+                    }
+                } else {
                     gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
-                    glerr = gl.glGetError();
-                }
-                if(GL.GL_NO_ERROR != glerr) {
-                    gl.glDeleteTextures(1, name, 0);
-                    setName(0);
-                    throw new GLException("GL Error "+toHexString(glerr)+" while creating (pre TexImage2D "+preTexImage2D+") "+this);
                 }
                 if(DEBUG) {
                     System.err.println("Attachment.init.X: "+this);
@@ -1009,8 +1019,6 @@ public class FBObject {
         gl.glGetIntegerv(GL.GL_MAX_RENDERBUFFER_SIZE, val, 0);
         maxRenderbufferSize = val[0];
 
-        checkPreGLError(gl);
-
         this.width = 0 < newWidth ? newWidth : 1;
         this.height = 0 < newHeight ? newHeight : 1;
         this.samples = newSamples <= maxSamples ? newSamples : maxSamples;
@@ -1035,7 +1043,7 @@ public class FBObject {
             System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
         }
 
-        checkNoError(null, gl.glGetError(), "FBObject Init.pre"); // throws GLException if error
+        checkPreGLError(gl);
 
         if( width > maxRenderbufferSize || height > maxRenderbufferSize  ) {
             throw new GLException("Size "+width+"x"+height+" exceeds on of the maxima renderbuffer size "+maxRenderbufferSize+": \n\t"+this);
@@ -2584,12 +2592,17 @@ public class FBObject {
             if( isModified() ) {
                 resetSamplingSink(gl);
             }
-            checkPreGLError(gl);
+            final boolean checkError = DEBUG || GLContext.DEBUG_GL;
+            if( checkError ) {
+                checkPreGLError(gl);
+            }
             gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, fbName); // read from this MSAA fb
             gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, samplingSink.getWriteFramebuffer()); // write to sampling sink
             ((GL2ES3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2ES3 is OK
                                            GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
-            checkNoError(null, gl.glGetError(), "FBObject syncSampleSink"); // throws GLException if error
+            if( checkError ) {
+                checkNoError(null, gl.glGetError(), "FBObject syncSampleSink"); // throws GLException if error
+            }
         } else {
             modified = false;
         }

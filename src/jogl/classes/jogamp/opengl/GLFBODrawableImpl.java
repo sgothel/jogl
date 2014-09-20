@@ -52,6 +52,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private GLCapabilitiesImmutable origParentChosenCaps;
 
     private boolean initialized;
+    private int maxSamples;
     private int fboModeBits;
     private int texUnit;
     private int samples;
@@ -180,7 +181,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if(realize) {
             final GLCapabilities chosenFBOCaps = (GLCapabilities) getChosenGLCapabilities(); // cloned at setRealized(true)
 
-            final int maxSamples = gl.getMaxRenderbufferSamples();
+            maxSamples = gl.getMaxRenderbufferSamples(); // if > 0 implies fullFBOSupport
             {
                 final int newSamples = samples <= maxSamples ? samples : maxSamples;
                 if(DEBUG) {
@@ -292,7 +293,6 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         fboBound = false; // clear bound-flag immediatly, caused by contextMadeCurrent(..) - otherwise we would swap @ release
         fboSwapped = false;
         try {
-            final int maxSamples = gl.getMaxRenderbufferSamples();
             newSamples = newSamples <= maxSamples ? newSamples : maxSamples;
 
             if(0==samples && 0<newSamples || 0<samples && 0==newSamples) {
