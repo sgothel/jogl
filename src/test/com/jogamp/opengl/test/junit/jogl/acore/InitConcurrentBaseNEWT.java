@@ -52,6 +52,10 @@ import com.jogamp.opengl.util.Animator;
  * <p>
  * Rendering is always lock-free and independent of the EDT.
  * </p>
+ * <p>
+ * Each test is decorated w/ {@link GLProfile#shutdown()} to ensure that
+ * implicit {@link GLProfile#initSingleton()} is also being tested.
+ * </p>
  */
 public abstract class InitConcurrentBaseNEWT extends UITestCase {
 
@@ -185,6 +189,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
     }
 
     protected void runJOGLTasks(final int num, final boolean reuse) throws InterruptedException {
+        GLProfile.shutdown();
         System.err.println("InitConcurrentBaseNEWT "+num+" threads, reuse display: "+reuse);
         final String currentThreadName = Thread.currentThread().getName();
         final Object syncDone = new Object();
@@ -222,5 +227,6 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             i++;
         }
         Assert.assertTrue("Threads are still alive after 3s. Alive: "+isAliveDump(threads), isDead(threads));
+        GLProfile.shutdown();
     }
 }
