@@ -462,6 +462,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
+  /**
+   * @deprecated Use {@link #dispose(Runnable)}.
+   */
+  protected void dispose() {
+      dispose(null);
+  }
   protected void dispose(final Runnable post) {
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - start");
