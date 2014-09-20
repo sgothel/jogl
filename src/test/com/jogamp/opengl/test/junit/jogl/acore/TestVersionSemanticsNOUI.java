@@ -109,9 +109,9 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     }
 
     @Test
-    public void testVersionV221V222() throws IllegalArgumentException, IOException, URISyntaxException {
-        // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+    public void testVersionV221V23x() throws IllegalArgumentException, IOException, URISyntaxException {
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
         final VersionNumberString preVersionNumber = new VersionNumberString("2.2.1");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
@@ -121,7 +121,7 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
         VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
                                          previousJar, preVersionNumber,
                                          curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludeV221toV222);
+                                         excludesDefault);
     }
 
     public static void main(final String args[]) throws IOException {
