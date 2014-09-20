@@ -49,7 +49,7 @@ public class FBOMix2DemosES2 implements GLEventListener {
     private final GearsES2 demo0;
     private final RedSquareES2 demo1;
     private final int swapInterval;
-    private int numSamples;
+    private volatile int numSamples;
     private boolean demo0Only;
 
 
@@ -156,8 +156,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
     }
 
     private void initFBOs(final GL gl, final GLAutoDrawable drawable) {
-        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
-        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
+        fbo0.init(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
+        fbo1.init(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }
@@ -182,8 +182,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
     }
 
     private void resetFBOs(final GL gl, final GLAutoDrawable drawable) {
-        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, true);
-        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, true);
+        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
+        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }

@@ -144,7 +144,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {
-        fbo0.reset(gl, width, height, numSamples, false);
+        fbo0.init(gl, width, height, numSamples);
         numSamples = fbo0.getNumSamples();
 
         if(numSamples>0) {
@@ -160,7 +160,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
     }
 
     private void resetFBOs(final GL gl, final int width, final int height) {
-        fbo0.reset(gl, width, height, numSamples, true);
+        fbo0.reset(gl, width, height, numSamples);
         numSamples = fbo0.getNumSamples();
         if(numSamples>0) {
             fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();

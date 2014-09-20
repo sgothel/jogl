@@ -87,7 +87,7 @@ public class StereoClientRenderer implements GLEventListener {
 
     private void initFBOs(final GL gl, final DimensionImmutable size) {
         for(int i=0; i<fbos.length; i++) {
-            fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples, false);
+            fbos[i].init(gl, size.getWidth(), size.getHeight(), numSamples);
             if( i>0 && fbos[i-1].getNumSamples() != fbos[i].getNumSamples()) {
                 throw new InternalError("sample size mismatch: \n\t0: "+fbos[i-1]+"\n\t1: "+fbos[i]);
             }
@@ -98,7 +98,7 @@ public class StereoClientRenderer implements GLEventListener {
                 fbos[i].attachRenderbuffer(gl, Type.DEPTH, 24);
                 final FBObject ssink = new FBObject();
                 {
-                    ssink.reset(gl, size.getWidth(), size.getHeight());
+                    ssink.init(gl, size.getWidth(), size.getHeight(), 0);
                     ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                     ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                 }
@@ -118,7 +118,7 @@ public class StereoClientRenderer implements GLEventListener {
     @SuppressWarnings("unused")
     private void resetFBOs(final GL gl, final DimensionImmutable size) {
         for(int i=0; i<fbos.length; i++) {
-            fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples, true);
+            fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples);
             if( i>0 && fbos[i-1].getNumSamples() != fbos[i].getNumSamples()) {
                 throw new InternalError("sample size mismatch: \n\t0: "+fbos[i-1]+"\n\t1: "+fbos[i]);
             }
