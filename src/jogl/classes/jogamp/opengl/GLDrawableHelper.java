@@ -727,11 +727,10 @@ public class GLDrawableHelper {
         }
     }
     if(setViewport) {
-        final GL gl = drawable.getGL();
-        final int glerr0 = gl.glGetError();
-        if( GL.GL_NO_ERROR != glerr0 ) {
-            System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
-            if(DEBUG) {
+        if( GLContext.DEBUG_GL || DEBUG ) {
+            final int glerr0 = drawable.getGL().glGetError();
+            if( GL.GL_NO_ERROR != glerr0 ) {
+                System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
                 Thread.dumpStack();
             }
         }
