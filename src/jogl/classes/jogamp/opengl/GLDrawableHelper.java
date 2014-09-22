@@ -899,6 +899,7 @@ public class GLDrawableHelper {
                     if( isGLThread ) {
                         // Run immediately, don't defer since locked by this thread, but isGLThread
                         deferredHere = false;
+                        wait = false;
                     } else {
                         // Locked by this thread, but _not_ isGLThread -> ERROR
                         throw new IllegalStateException("Deferred, wait, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
@@ -964,6 +965,7 @@ public class GLDrawableHelper {
                     if( isGLThread ) {
                         // Run immediately, don't defer since locked by this thread, but isGLThread
                         deferredHere = false;
+                        wait = false;
                     } else {
                         // Locked by this thread, but _not_ isGLThread -> ERROR
                         throw new IllegalStateException("Deferred, wait, isLocked on current and not GL-Thread: thread "+Thread.currentThread());

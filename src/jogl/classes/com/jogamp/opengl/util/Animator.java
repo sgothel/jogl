@@ -237,11 +237,14 @@ public class Animator extends AnimatorBase {
                     stopIssued = false;
                     pauseIssued = false;
                     isAnimating = false;
-                    if( null != displayCaught ) {
-                        handleUncaughtException(displayCaught);
+                    try {
+                        if( null != displayCaught ) {
+                            handleUncaughtException(displayCaught); // may throw exception if null handler
+                        }
+                    } finally {
+                        animThread = null;
+                        Animator.this.notifyAll();
                     }
-                    animThread = null;
-                    Animator.this.notifyAll();
                 }
             }
         }
