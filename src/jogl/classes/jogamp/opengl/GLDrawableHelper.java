@@ -78,7 +78,8 @@ public class GLDrawableHelper {
   private final ArrayList<GLEventListener> listeners = new ArrayList<GLEventListener>();
   private final HashSet<GLEventListener> listenersToBeInit = new HashSet<GLEventListener>();
   private final Object glRunnablesLock = new Object();
-  private volatile ArrayList<GLRunnableTask> glRunnables = new ArrayList<GLRunnableTask>();
+  private ArrayList<GLRunnableTask> glRunnables = new ArrayList<GLRunnableTask>();
+  private volatile int glRunnableCount = 0;
   private boolean autoSwapBufferMode;
   private volatile Thread exclusiveContextThread;
   /** -1 release, 0 nop, 1 claim */
@@ -103,6 +104,7 @@ public class GLDrawableHelper {
     exclusiveContextThread = null;
     exclusiveContextSwitch = 0;
     synchronized(glRunnablesLock) {
+        glRunnableCount = 0;
         glRunnables.clear();
     }
     animatorCtrl = null;
@@ -669,7 +671,7 @@ public class GLDrawableHelper {
   public final void display(final GLAutoDrawable drawable) {
     displayImpl(drawable);
     // runForAllGLEventListener(drawable, displayAction);
-    if( glRunnables.size()>0 && !execGLRunnables(drawable) ) { // glRunnables volatile OK; execGL.. only executed if size > 0
+    if( glRunnableCount > 0 && !execGLRunnables(drawable) ) { // glRunnableCount volatile OK; execGL.. only executed if size > 0
         displayImpl(drawable);
         // runForAllGLEventListener(drawable, displayAction);
     }
@@ -748,43 +750,29 @@ public class GLDrawableHelper {
   }
 
   private final boolean execGLRunnables(final GLAutoDrawable drawable) { // glRunnables.size()>0
-    boolean res = true;
     // swap one-shot list asap
     final ArrayList<GLRunnableTask> _glRunnables;
     synchronized(glRunnablesLock) {
-        if(glRunnables.size()>0) {
+        if( glRunnables.size() > 0 ) {
+            glRunnableCount = 0;
             _glRunnables = glRunnables;
             glRunnables = new ArrayList<GLRunnableTask>();
         } else {
-            _glRunnables = null;
+            return true;
         }
     }
-
-    if(null!=_glRunnables) {
-        for (int i=0; i < _glRunnables.size(); i++) {
-            res = _glRunnables.get(i).run(drawable) && res;
-        }
+    boolean res = true;
+    for (int i=0; i < _glRunnables.size(); i++) {
+        res = _glRunnables.get(i).run(drawable) && res;
     }
     return res;
   }
 
   public final void flushGLRunnables() {
-    if(glRunnables.size()>0) { // volatile OK
-        // swap one-shot list asap
-        final ArrayList<GLRunnableTask> _glRunnables;
-        synchronized(glRunnablesLock) {
-            if(glRunnables.size()>0) {
-                _glRunnables = glRunnables;
-                glRunnables = new ArrayList<GLRunnableTask>();
-            } else {
-                _glRunnables = null;
-            }
-        }
-
-        if(null!=_glRunnables) {
-            for (int i=0; i < _glRunnables.size(); i++) {
-                _glRunnables.get(i).flush();
-            }
+    synchronized(glRunnablesLock) {
+        glRunnableCount = 0;
+        while( glRunnables.size() > 0 ) {
+            glRunnables.remove(0).flush();
         }
     }
   }
@@ -914,6 +902,7 @@ public class GLDrawableHelper {
             rTask = new GLRunnableTask(glRunnable,
                                        wait ? rTaskLock : null,
                                        wait  /* catch Exceptions if waiting for result */);
+            glRunnableCount++;
             glRunnables.add(rTask);
         }
         if( !deferredHere ) {
@@ -978,11 +967,13 @@ public class GLDrawableHelper {
                 wait = false; // don't wait if exec immediately
             }
             for(int i=0; i<count-1; i++) {
+                glRunnableCount++;
                 glRunnables.add( new GLRunnableTask(newGLRunnables.get(i), null, false) );
             }
             rTask = new GLRunnableTask(newGLRunnables.get(count-1),
                                        wait ? rTaskLock : null,
                                        wait  /* catch Exceptions if waiting for result */);
+            glRunnableCount++;
             glRunnables.add(rTask);
         }
         if( !deferredHere ) {
@@ -1009,6 +1000,7 @@ public class GLDrawableHelper {
         return;
     }
     synchronized(glRunnablesLock) {
+        glRunnableCount++;
         glRunnables.add( new GLRunnableTask(glRunnable, null, false) );
     }
   }

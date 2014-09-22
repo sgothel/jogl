@@ -177,7 +177,6 @@ public class FPSAnimator extends AnimatorBase {
                 } catch (final UncaughtAnimatorException dre) {
                     displayCaught = dre;
                     stopIssued = true;
-                    isAnimating = false;
                 }
             } else if( pauseIssued && !stopIssued ) { // PAUSE
                 if(DEBUG) {
@@ -194,7 +193,6 @@ public class FPSAnimator extends AnimatorBase {
                         } catch (final UncaughtAnimatorException dre) {
                             displayCaught = dre;
                             stopIssued = true;
-                            isAnimating = false;
                         }
                     }
                     if( null == displayCaught ) {
@@ -207,7 +205,8 @@ public class FPSAnimator extends AnimatorBase {
                         }
                     }
                 }
-            } else if( stopIssued ) { // STOP
+            }
+            if( stopIssued ) { // STOP incl. immediate exception handling of 'displayCaught'
                 if(DEBUG) {
                     System.err.println("FPSAnimator stopping: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
                 }
@@ -220,25 +219,39 @@ public class FPSAnimator extends AnimatorBase {
                         try {
                             display(); // propagate exclusive context -> off!
                         } catch (final UncaughtAnimatorException dre) {
-                            displayCaught = dre;
+                            if(DEBUG) {
+                                System.err.println("AnimatorBase.setExclusiveContextThread: caught: "+dre.getMessage());
+                                dre.printStackTrace();
+                            }
+                            if( null == displayCaught ) {
+                                displayCaught = dre;
+                            }
                         }
                     }
-                    synchronized (FPSAnimator.this) {
-                        if(DEBUG) {
-                            System.err.println("FPSAnimator stop " + Thread.currentThread() + ": " + toString());
-                            if( null != displayCaught ) {
-                                System.err.println("AnimatorBase.setExclusiveContextThread: caught: "+displayCaught.getMessage());
-                                displayCaught.printStackTrace();
+                    boolean flushGLRunnables = false;
+                    try {
+                        synchronized (FPSAnimator.this) {
+                            if(DEBUG) {
+                                System.err.println("FPSAnimator stop " + Thread.currentThread() + ": " + toString());
+                                if( null != displayCaught ) {
+                                    System.err.println("Animator caught: "+displayCaught.getMessage());
+                                    displayCaught.printStackTrace();
+                                }
+                            }
+                            isAnimating = false;
+                            try {
+                                if( null != displayCaught ) {
+                                    flushGLRunnables = true;
+                                    handleUncaughtException(displayCaught); // may throw exception if null handler
+                                }
+                            } finally {
+                                animThread = null;
+                                FPSAnimator.this.notifyAll();
                             }
                         }
-                        isAnimating = false;
-                        try {
-                            if( null != displayCaught ) {
-                                handleUncaughtException(displayCaught); // may throw exception if null handler
-                            }
-                        } finally {
-                            animThread = null;
-                            FPSAnimator.this.notifyAll();
+                    } finally {
+                        if( flushGLRunnables ) {
+                            flushGLRunnables();
                         }
                     }
                 }
