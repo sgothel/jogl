@@ -202,7 +202,7 @@
         <antcall target="test.package.android" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="test.manual.run" depends="test.compile">
+    <target name="test.manual.run" depends="test.compile, junit.run.settings">
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
@@ -585,7 +585,7 @@
         </junit>
     </target>
 
-    <target name="junit.run.awt.singletest" depends="test.compile">
+    <target name="junit.run.awt.singletest" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -611,6 +611,50 @@
 
             <test name="${testclass}"/>
         </junit>
+    </target>
+
+    <target name="junit.run.newt.headless.singletest" depends="test.compile, junit.run.settings">
+        <!-- Test*NEWT* 
+
+             Emulation of junit task,
+             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+
+             Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
+          --> 
+        <var name="test.class.result.file" value="${results.test}/TEST-${testclass}.xml"/>
+        <echo message="Testing ${testclass} -- ${test.class.result.file}"/>
+        <apply dir="." executable="${jvmJava.exe}"
+             parallel="false" 
+             timeout="${batchtest.timeout}"
+             vmlauncher="false"
+             relative="true"
+             failonerror="false">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <env key="CLASSPATH" value="${junit_jogl_noawt.run.jars}"/>
+            <arg line="${junit.run.arg0}"/>
+            <arg line="${junit.run.arg1}"/>
+            <arg line="${jvmDataModel.arg}"/>
+            <arg value="-Djava.library.path=${obj.all.paths}"/>
+            <arg line="${jvmarg.headless}"/>
+            <arg line="${jvmarg.mainthrd}"/>
+            <!--
+            <arg line="-Dnewt.debug.EDT"/>
+            -->
+            <arg line="com.jogamp.newt.util.MainThread"/>
+            <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
+            <!-- srcfile/ -->
+            <arg line="${testclass}"/>
+            <arg line="filtertrace=true"/>
+            <arg line="haltOnError=false"/>
+            <arg line="haltOnFailure=false"/>
+            <arg line="showoutput=true"/>
+            <arg line="outputtoformatters=true"/>
+            <arg line="logfailedtests=true"/>
+            <arg line="logtestlistenerevents=true"/>
+            <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter"/>
+            <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
+            <fileset dir="${results.test}" includes="dummy.txt"/>
+        </apply>
     </target>
 
     <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." if="isSWTRuntimeAvailable">
@@ -1131,6 +1175,7 @@ ${line.separator}
             <fileset dir="." includes="hs_err_pid*.log" />
         </delete>
         <mkdir dir="${results.test}" />
+        <touch file="${results.test}/dummy.txt"/>
     </target>
 
     <target name="junit.run.if.enabled" unless="junit.is.disabled">
