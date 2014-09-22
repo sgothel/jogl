@@ -232,11 +232,14 @@ public class FPSAnimator extends AnimatorBase {
                             }
                         }
                         isAnimating = false;
-                        if( null != displayCaught ) {
-                            handleUncaughtException(displayCaught);
+                        try {
+                            if( null != displayCaught ) {
+                                handleUncaughtException(displayCaught); // may throw exception if null handler
+                            }
+                        } finally {
+                            animThread = null;
+                            FPSAnimator.this.notifyAll();
                         }
-                        animThread = null;
-                        FPSAnimator.this.notifyAll();
                     }
                 }
             }

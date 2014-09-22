@@ -1,5 +1,5 @@
 REM scripts\java-win.bat jogamp.newt.awt.opengl.VersionApplet
-scripts\java-win.bat com.jogamp.newt.opengl.GLWindow
+REM scripts\java-win.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win.bat javax.media.opengl.awt.GLCanvas
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
 REM scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
@@ -82,7 +82,8 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDr
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch11NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLException01NEWT %*
+
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT %*
