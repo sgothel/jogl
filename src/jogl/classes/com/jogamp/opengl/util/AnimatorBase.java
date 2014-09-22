@@ -524,23 +524,24 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     /**
      * Should be called in case of an uncaught exception
-     * from within the animator thread to flush all animator
+     * from within the animator thread, throws given exception if no handler has been installed.
      */
     protected final synchronized void handleUncaughtException(final UncaughtAnimatorException ue) {
         if( null != uncaughtExceptionHandler ) {
             try {
                 uncaughtExceptionHandler.uncaughtException(this, ue.getGLAutoDrawable(), ue.getCause());
             } catch (final Throwable t) { /* ignore intentionally */ }
-            flushGLRunnables();
         } else {
-            flushGLRunnables();
             throw ue;
         }
     }
 
     /**
      * Should be called in case of an uncaught exception
-     * from within the animator thread to flush all animator
+     * from within the animator thread to flush all animator.
+     * <p>
+     * The animator instance shall not be locked when calling this method!
+     * </p>
      */
     protected final synchronized void flushGLRunnables() {
         for (int i=0; i<drawables.size(); i++) {

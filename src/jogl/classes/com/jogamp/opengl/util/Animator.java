@@ -165,7 +165,6 @@ public class Animator extends AnimatorBase {
                                 } catch (final UncaughtAnimatorException dre) {
                                     displayCaught = dre;
                                     stopIssued = true;
-                                    isAnimating = false;
                                     break; // end pause loop
                                 }
                             }
@@ -199,7 +198,6 @@ public class Animator extends AnimatorBase {
                         } catch (final UncaughtAnimatorException dre) {
                             displayCaught = dre;
                             stopIssued = true;
-                            isAnimating = false;
                             break; // end animation loop
                         }
                         if ( !runAsFastAsPossible ) {
@@ -226,24 +224,32 @@ public class Animator extends AnimatorBase {
                         }
                     }
                 }
-                synchronized (Animator.this) {
-                    if(DEBUG) {
-                        System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
-                        if( null != displayCaught ) {
-                            System.err.println("Animator caught: "+displayCaught.getMessage());
-                            displayCaught.printStackTrace();
+                boolean flushGLRunnables = false;
+                try {
+                    synchronized (Animator.this) {
+                        if(DEBUG) {
+                            System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
+                            if( null != displayCaught ) {
+                                System.err.println("Animator caught: "+displayCaught.getMessage());
+                                displayCaught.printStackTrace();
+                            }
+                        }
+                        stopIssued = false;
+                        pauseIssued = false;
+                        isAnimating = false;
+                        try {
+                            if( null != displayCaught ) {
+                                flushGLRunnables = true;
+                                handleUncaughtException(displayCaught); // may throw exception if null handler
+                            }
+                        } finally {
+                            animThread = null;
+                            Animator.this.notifyAll();
                         }
                     }
-                    stopIssued = false;
-                    pauseIssued = false;
-                    isAnimating = false;
-                    try {
-                        if( null != displayCaught ) {
-                            handleUncaughtException(displayCaught); // may throw exception if null handler
-                        }
-                    } finally {
-                        animThread = null;
-                        Animator.this.notifyAll();
+                } finally {
+                    if( flushGLRunnables ) {
+                        flushGLRunnables();
                     }
                 }
             }
