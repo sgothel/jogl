@@ -1607,6 +1607,10 @@ public abstract class GLContextImpl extends GLContext {
         ctxProfileBits &= ~ ( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_ES3_COMPAT ) ;
     }
 
+    if(!isCurrentContextHardwareRasterizer()) {
+        ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
+    }
+
     final VersionNumberString vendorVersion = GLVersionNumber.createVendorVersion(glVersion);
 
     setRendererQuirks(adevice, getDrawableImpl().getFactoryImpl(),
@@ -1618,10 +1622,6 @@ public abstract class GLContextImpl extends GLContext {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL is not compliant: "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion)+", "+glRenderer);
         }
         return false;
-    }
-
-    if(!isCurrentContextHardwareRasterizer()) {
-        ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
     }
 
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
