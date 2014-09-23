@@ -103,7 +103,7 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     }
 
     @Test
-    public void testVersionV220V222() throws IllegalArgumentException, IOException, URISyntaxException {
+    public void testVersionV220V22X() throws IllegalArgumentException, IOException, URISyntaxException {
         // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
@@ -119,7 +119,7 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     }
 
     @Test
-    public void testVersionV221V222() throws IllegalArgumentException, IOException, URISyntaxException {
+    public void testVersionV221V22X() throws IllegalArgumentException, IOException, URISyntaxException {
         // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
