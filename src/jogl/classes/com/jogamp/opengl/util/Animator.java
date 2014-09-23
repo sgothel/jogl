@@ -58,12 +58,21 @@ import javax.media.opengl.GLException;
  * </p>
  */
 public class Animator extends AnimatorBase {
+    /** @deprecated no more used */
     protected ThreadGroup threadGroup;
+    /** @deprecated no more used */
+    protected boolean isAnimating;
+    /** @deprecated no more used */
+    protected boolean pauseIssued;
+    /** @deprecated no more used */
+    protected volatile boolean stopIssued;
+
+    private ThreadGroup threadGroup2;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
-    protected boolean isAnimating;
-    protected volatile boolean pauseIssued;
-    protected volatile boolean stopIssued;
+    boolean isAnimating2;
+    volatile boolean pauseIssued2;
+    volatile boolean stopIssued2;
 
     /**
      * Creates a new, empty Animator.
@@ -82,7 +91,7 @@ public class Animator extends AnimatorBase {
         super();
         setThreadGroup(tg);
         if(DEBUG) {
-            System.err.println("Animator created, ThreadGroup: "+threadGroup);
+            System.err.println("Animator created, ThreadGroup: "+threadGroup2);
         }
     }
 
@@ -105,7 +114,7 @@ public class Animator extends AnimatorBase {
         setThreadGroup(tg);
         add(drawable);
         if(DEBUG) {
-            System.err.println("Animator created, ThreadGroup: "+threadGroup+" and "+drawable);
+            System.err.println("Animator created, ThreadGroup: "+threadGroup2+" and "+drawable);
         }
     }
 
@@ -142,19 +151,19 @@ public class Animator extends AnimatorBase {
                     }
                     fpsCounter.resetFPSCounter();
                     animThread = Thread.currentThread();
-                    isAnimating = false;
+                    isAnimating2 = false;
                     // 'waitForStartedCondition' wake-up is handled below!
                 }
 
-                while (!stopIssued) {
+                while (!stopIssued2) {
                     synchronized (Animator.this) {
                         // Pause; Also don't consume CPU unless there is work to be done and not paused
                         boolean ectCleared = false;
-                        while ( !stopIssued && ( pauseIssued || drawablesEmpty ) ) {
+                        while ( !stopIssued2 && ( pauseIssued2 || drawablesEmpty ) ) {
                             if( drawablesEmpty ) {
-                                pauseIssued = true;
+                                pauseIssued2 = true;
                             }
-                            final boolean wasPaused = pauseIssued;
+                            final boolean wasPaused = pauseIssued2;
                             if (DEBUG) {
                                 System.err.println("Animator pause on " + animThread.getName() + ": " + toString());
                             }
@@ -165,11 +174,11 @@ public class Animator extends AnimatorBase {
                                     display(); // propagate exclusive context -> off!
                                 } catch (final UncaughtAnimatorException dre) {
                                     caughtException = dre;
-                                    stopIssued = true;
+                                    stopIssued2 = true;
                                     break; // end pause loop
                                 }
                             }
-                            isAnimating = false;
+                            isAnimating2 = false;
                             Animator.this.notifyAll();
                             try {
                                 Animator.this.wait();
@@ -183,22 +192,22 @@ public class Animator extends AnimatorBase {
                                 }
                             }
                         }
-                        if (!stopIssued && !isAnimating) {
+                        if (!stopIssued2 && !isAnimating2) {
                             // Wakes up 'waitForStartedCondition' sync
                             // - and -
                             // Resume from pause or drawablesEmpty,
                             // implies !pauseIssued and !drawablesEmpty
-                            isAnimating = true;
+                            isAnimating2 = true;
                             setDrawablesExclCtxState(exclusiveContext); // may re-enable exclusive context
                             Animator.this.notifyAll();
                         }
                     } // sync Animator.this
-                    if ( !pauseIssued && !stopIssued ) {
+                    if ( !pauseIssued2 && !stopIssued2 ) {
                         try {
                             display();
                         } catch (final UncaughtAnimatorException dre) {
                             caughtException = dre;
-                            stopIssued = true;
+                            stopIssued2 = true;
                             break; // end animation loop
                         }
                         if ( !runAsFastAsPossible ) {
@@ -237,12 +246,17 @@ public class Animator extends AnimatorBase {
                         caughtException.printStackTrace();
                     }
                 }
-                stopIssued = false;
-                pauseIssued = false;
-                isAnimating = false;
+                stopIssued2 = false;
+                pauseIssued2 = false;
+                isAnimating2 = false;
                 if( null != caughtException ) {
                     flushGLRunnables = true;
-                    throwCaughtException = !handleUncaughtException(caughtException);
+                    if( null != uncaughtExceptionHandler ) {
+                        handleUncaughtException(caughtException);
+                        throwCaughtException = false;
+                    } else {
+                        throwCaughtException = true;
+                    }
                 }
                 animThread = null;
                 Animator.this.notifyAll();
@@ -261,12 +275,12 @@ public class Animator extends AnimatorBase {
 
     @Override
     public final synchronized boolean isAnimating() {
-        return animThread != null && isAnimating ;
+        return animThread != null && isAnimating2 ;
     }
 
     @Override
     public final synchronized boolean isPaused() {
-        return animThread != null && pauseIssued ;
+        return animThread != null && pauseIssued2 ;
     }
 
     /**
@@ -279,7 +293,7 @@ public class Animator extends AnimatorBase {
         if ( isStarted() ) {
             throw new GLException("Animator already started.");
         }
-        threadGroup = tg;
+        threadGroup2 = tg;
     }
 
     @Override
@@ -293,10 +307,10 @@ public class Animator extends AnimatorBase {
         fpsCounter.resetFPSCounter();
         final String threadName = getThreadName()+"-"+baseName;
         Thread thread;
-        if(null==threadGroup) {
+        if(null==threadGroup2) {
             thread = new Thread(runnable, threadName);
         } else {
-            thread = new Thread(threadGroup, runnable, threadName);
+            thread = new Thread(threadGroup2, runnable, threadName);
         }
         thread.setDaemon(false); // force to be non daemon, regardless of parent thread
         if(DEBUG) {
@@ -309,7 +323,7 @@ public class Animator extends AnimatorBase {
     private final Condition waitForStartedCondition = new Condition() {
         @Override
         public boolean eval() {
-            return !isStarted() || (!drawablesEmpty && !isAnimating) ;
+            return !isStarted() || (!drawablesEmpty && !isAnimating2) ;
         } };
 
     @Override
@@ -317,7 +331,7 @@ public class Animator extends AnimatorBase {
         if ( !isStarted() ) {
             return false;
         }
-        stopIssued = true;
+        stopIssued2 = true;
         return finishLifecycleAction(waitForStoppedCondition, 0);
     }
     private final Condition waitForStoppedCondition = new Condition() {
@@ -328,31 +342,31 @@ public class Animator extends AnimatorBase {
 
     @Override
     public final synchronized boolean pause() {
-        if ( !isStarted() || pauseIssued ) {
+        if ( !isStarted() || pauseIssued2 ) {
             return false;
         }
-        pauseIssued = true;
+        pauseIssued2 = true;
         return finishLifecycleAction(waitForPausedCondition, 0);
     }
     private final Condition waitForPausedCondition = new Condition() {
         @Override
         public boolean eval() {
             // end waiting if stopped as well
-            return isStarted() && isAnimating;
+            return isStarted() && isAnimating2;
         } };
 
     @Override
     public final synchronized boolean resume() {
-        if ( !isStarted() || !pauseIssued ) {
+        if ( !isStarted() || !pauseIssued2 ) {
             return false;
         }
-        pauseIssued = false;
+        pauseIssued2 = false;
         return finishLifecycleAction(waitForResumeCondition, 0);
     }
     private final Condition waitForResumeCondition = new Condition() {
         @Override
         public boolean eval() {
             // end waiting if stopped as well
-            return isStarted() && ( !drawablesEmpty && !isAnimating || drawablesEmpty && !pauseIssued ) ;
+            return isStarted() && ( !drawablesEmpty && !isAnimating2 || drawablesEmpty && !pauseIssued2 ) ;
         } };
 }

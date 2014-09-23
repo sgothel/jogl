@@ -107,7 +107,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         final FBObject fbo = new FBObject();
         fbos[idx] = fbo;
 
-        final boolean useDepth   = depthBits > 0 || 0 != ( FBOMODE_USE_DEPTH & fboModeBits );
+        final boolean useDepth   = depthBits > 0;
         final boolean useStencil = stencilBits > 0;
 
         fbo.init(gl, width, height, samples);

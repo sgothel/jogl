@@ -55,16 +55,10 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     static final JogampVersion curVersion = JoglVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
-    static final Set<String> excludesDefault, excludeV221toV222;
+    static final Set<String> excludesDefault;
     static {
         excludesDefault = new HashSet<String>();
         excludesDefault.add("^\\Qjogamp/\\E.*$");
-
-        excludeV221toV222 = new HashSet<String>();
-        excludeV221toV222.add("^\\Qjogamp/\\E.*$");
-        excludeV221toV222.add("^\\Qcom/jogamp/opengl/GLRendererQuirks\\E$"); // COUNT increased by one
-        excludeV221toV222.add("^\\Qcom/jogamp/opengl/util/Animator\\E$");    // pauseIssued -> volatile
-        excludeV221toV222.add("^\\Qjavax/media/opengl/GLFBODrawable\\E$");   // FBOMODE_DEFAULT (removed USE_DEPTH)
     }
 
 
@@ -109,6 +103,22 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     }
 
     @Test
+    public void testVersionV220V222() throws IllegalArgumentException, IOException, URISyntaxException {
+        // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+
+        final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
+        final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
+
+        final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
+
+        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
+                                         previousJar, preVersionNumber,
+                                         curVersion.getClass(), currentCL, curVersionNumber,
+                                         excludesDefault);
+    }
+
+    @Test
     public void testVersionV221V222() throws IllegalArgumentException, IOException, URISyntaxException {
         // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
@@ -121,7 +131,7 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
         VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
                                          previousJar, preVersionNumber,
                                          curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludeV221toV222);
+                                         excludesDefault);
     }
 
     public static void main(final String args[]) throws IOException {

@@ -525,17 +525,12 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     /**
      * Should be called in case of an uncaught exception
      * from within the animator thread, throws given exception if no handler has been installed.
-     * @return {@code true} if handled, otherwise {@code false}. In case of {@code false},
-     *         caller needs to propagate the exception.
      */
-    protected final synchronized boolean handleUncaughtException(final UncaughtAnimatorException ue) {
+    protected final synchronized void handleUncaughtException(final UncaughtAnimatorException ue) {
         if( null != uncaughtExceptionHandler ) {
             try {
                 uncaughtExceptionHandler.uncaughtException(this, ue.getGLAutoDrawable(), ue.getCause());
             } catch (final Throwable t) { /* ignore intentionally */ }
-            return true;
-        } else {
-            return false;
         }
     }
 

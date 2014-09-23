@@ -76,7 +76,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
-        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, new GearsES2(0));
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
     }
     @Test
     public void test01b_GL2ES2_Demo1_SingleBuffer_NoTex() throws InterruptedException {
@@ -99,7 +99,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // default
-        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, new GearsES2(0));
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
     }
 
     @Test
@@ -108,7 +108,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
-        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, new MultisampleDemoES2(true));
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new MultisampleDemoES2(true));
     }
     @Test
     public void test03b_GL2ES2_Demo2MSAA4_NoTex() throws InterruptedException {
@@ -136,7 +136,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
-        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, demo);
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, demo);
     }
 
     @Test
@@ -144,7 +144,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
-            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, new GearsES2(0));
+            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
         } else {
             System.err.println("EGL ES2 n/a");
         }
@@ -157,7 +157,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             final GLCapabilities caps = new GLCapabilities(glp);
             caps.setSampleBuffers(true);
             caps.setNumSamples(4);
-            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, new GearsES2(0));
+            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
         } else {
             System.err.println("EGL ES2 n/a");
         }
@@ -168,7 +168,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         if( GLProfile.isAvailable(GLProfile.GL3) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GL3);
             final GLCapabilities caps = new GLCapabilities(glp);
-            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_DEFAULT, new GearsES2(0));
+            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
         } else {
             System.err.println("GL3 n/a");
         }

@@ -240,7 +240,12 @@ public class FPSAnimator extends AnimatorBase {
                         isAnimating = false;
                         if( null != caughtException ) {
                             flushGLRunnables = true;
-                            throwCaughtException = !handleUncaughtException(caughtException);
+                            if( null != uncaughtExceptionHandler ) {
+                                handleUncaughtException(caughtException);
+                                throwCaughtException = false;
+                            } else {
+                                throwCaughtException = true;
+                            }
                         }
                         animThread = null;
                         FPSAnimator.this.notifyAll();

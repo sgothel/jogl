@@ -78,16 +78,17 @@ import com.jogamp.opengl.GLRendererQuirks;
 public interface GLFBODrawable extends GLDrawable {
     // public enum DoubleBufferMode { NONE, TEXTURE, FBO }; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
 
-    /** FBO Mode Bit: Use a {@link TextureAttachment} for the {@link #getColorbuffer(int) render colorbuffer} ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}. */
+    /** FBO Mode Bit: Use a {@link TextureAttachment} for the {@link #getColorbuffer(int) render colorbuffer}, see {@link #setFBOMode(int)}. */
     public static final int FBOMODE_USE_TEXTURE = 1 << 0;
     /**
-     * FBO Mode Bit: Use a depth renderbuffer ({@link #FBOMODE_DEFAULT default}), see {@link #setFBOMode(int)}.
-     * @deprecated Use {@link GLCapabilities#setDepthBits(int)}!
+     * @deprecated Use {@link GLCapabilities#setDepthBits(int)}, this bit is w/o function now.
      */
     public static final int FBOMODE_USE_DEPTH   = 1 << 1;
 
-    /** FBO Default Mode Bit: {@link #FBOMODE_USE_TEXTURE}. */
-    public static final int FBOMODE_DEFAULT   = FBOMODE_USE_TEXTURE;
+    /**
+     * @deprecated Use dedicated values, e.g. {@link #FBOMODE_USE_TEXTURE}.
+     */
+    public static final int FBOMODE_DEFAULT   = FBOMODE_USE_TEXTURE | FBOMODE_USE_DEPTH;
 
     /**
      * @return <code>true</code> if initialized, i.e. a {@link GLContext} is bound and made current once, otherwise <code>false</code>.
@@ -97,7 +98,7 @@ public interface GLFBODrawable extends GLDrawable {
     /**
      * Set the FBO mode bits used for FBO creation.
      * <p>
-     * See {@link #FBOMODE_DEFAULT} values.
+     * See {@link #FBOMODE_USE_TEXTURE}.
      * </p>
      * <p>
      * If {@link GLRendererQuirks#BuggyColorRenderbuffer} is set,
@@ -206,8 +207,9 @@ public interface GLFBODrawable extends GLDrawable {
      * </p>
      * <p>
      * Depending on the {@link #setFBOMode(int) fbo mode} the resulting {@link Colorbuffer}
-     * is either a {@link TextureAttachment} ({@link #FBOMODE_DEFAULT default}) or a {@link ColorAttachment},
-     * see {@link Colorbuffer#isTextureAttachment()}.
+     * is either a {@link TextureAttachment} if {@link #FBOMODE_USE_TEXTURE} is set,
+     * otherwise a {@link ColorAttachment}.
+     * See {@link Colorbuffer#isTextureAttachment()}.
      * </p>
      * @param bufferName {@link GL#GL_FRONT} and {@link GL#GL_BACK} are valid buffer names
      * @return the named {@link Colorbuffer}

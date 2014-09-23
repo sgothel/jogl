@@ -341,8 +341,11 @@ public class GLRendererQuirks {
      */
     public static final int BuggyColorRenderbuffer  = 18;
 
-    /** Number of quirks known. */
-    public static final int COUNT = 19;
+    /** @deprecated Use {@link #getCount()}, this value is no more valid! */
+    public static final int COUNT = 18;
+
+    /** Return the number of known quirks. */
+    public static final int getCount() { return 19; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -509,7 +512,7 @@ public class GLRendererQuirks {
         }
         sb.append("[");
         boolean first=true;
-        for(int i=0; i<COUNT; i++) {
+        for(int i=0; i<getCount(); i++) {
             final int testmask = 1 << i;
             if( 0 != ( _bitmask & testmask ) ) {
                 if(!first) { sb.append(", "); }
@@ -531,8 +534,8 @@ public class GLRendererQuirks {
      * @throws IllegalArgumentException if quirk is out of range
      */
     public static void validateQuirk(final int quirk) throws IllegalArgumentException {
-        if( !( 0 <= quirk && quirk < COUNT ) ) {
-            throw new IllegalArgumentException("Quirks must be in range [0.."+COUNT+"[, but quirk: "+quirk);
+        if( !( 0 <= quirk && quirk < getCount() ) ) {
+            throw new IllegalArgumentException("Quirks must be in range [0.."+getCount()+"[, but quirk: "+quirk);
         }
     }
 
