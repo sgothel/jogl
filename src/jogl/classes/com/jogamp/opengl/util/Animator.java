@@ -132,7 +132,8 @@ public class Animator extends AnimatorBase {
 
         @Override
         public void run() {
-            UncaughtAnimatorException displayCaught = null;
+            ThreadDeath caughtThreadDeath = null;
+            UncaughtAnimatorException caughtException = null;
 
             try {
                 synchronized (Animator.this) {
@@ -163,7 +164,7 @@ public class Animator extends AnimatorBase {
                                 try {
                                     display(); // propagate exclusive context -> off!
                                 } catch (final UncaughtAnimatorException dre) {
-                                    displayCaught = dre;
+                                    caughtException = dre;
                                     stopIssued = true;
                                     break; // end pause loop
                                 }
@@ -196,7 +197,7 @@ public class Animator extends AnimatorBase {
                         try {
                             display();
                         } catch (final UncaughtAnimatorException dre) {
-                            displayCaught = dre;
+                            caughtException = dre;
                             stopIssued = true;
                             break; // end animation loop
                         }
@@ -206,52 +207,54 @@ public class Animator extends AnimatorBase {
                         }
                     }
                 }
-            } catch( final ThreadDeath td) {
+            } catch(final ThreadDeath td) {
                 if(DEBUG) {
                     System.err.println("Animator caught: "+td.getClass().getName()+": "+td.getMessage());
                     td.printStackTrace();
                 }
-            } finally {
-                if( exclusiveContext && !drawablesEmpty ) {
-                    setDrawablesExclCtxState(false);
-                    try {
-                        display(); // propagate exclusive context -> off!
-                    } catch (final UncaughtAnimatorException dre) {
-                        if( null == displayCaught ) {
-                            displayCaught = dre;
-                        } else {
-                            dre.printStackTrace();
-                        }
-                    }
-                }
-                boolean flushGLRunnables = false;
+                caughtThreadDeath = td;
+            }
+            if( exclusiveContext && !drawablesEmpty ) {
+                setDrawablesExclCtxState(false);
                 try {
-                    synchronized (Animator.this) {
-                        if(DEBUG) {
-                            System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
-                            if( null != displayCaught ) {
-                                System.err.println("Animator caught: "+displayCaught.getMessage());
-                                displayCaught.printStackTrace();
-                            }
-                        }
-                        stopIssued = false;
-                        pauseIssued = false;
-                        isAnimating = false;
-                        try {
-                            if( null != displayCaught ) {
-                                flushGLRunnables = true;
-                                handleUncaughtException(displayCaught); // may throw exception if null handler
-                            }
-                        } finally {
-                            animThread = null;
-                            Animator.this.notifyAll();
-                        }
-                    }
-                } finally {
-                    if( flushGLRunnables ) {
-                        flushGLRunnables();
+                    display(); // propagate exclusive context -> off!
+                } catch (final UncaughtAnimatorException dre) {
+                    if( null == caughtException ) {
+                        caughtException = dre;
+                    } else {
+                        System.err.println("Animator.setExclusiveContextThread: caught: "+dre.getMessage());
+                        dre.printStackTrace();
                     }
                 }
+            }
+            boolean flushGLRunnables = false;
+            boolean throwCaughtException = false;
+            synchronized (Animator.this) {
+                if(DEBUG) {
+                    System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
+                    if( null != caughtException ) {
+                        System.err.println("Animator caught: "+caughtException.getMessage());
+                        caughtException.printStackTrace();
+                    }
+                }
+                stopIssued = false;
+                pauseIssued = false;
+                isAnimating = false;
+                if( null != caughtException ) {
+                    flushGLRunnables = true;
+                    throwCaughtException = !handleUncaughtException(caughtException);
+                }
+                animThread = null;
+                Animator.this.notifyAll();
+            }
+            if( flushGLRunnables ) {
+                flushGLRunnables();
+            }
+            if( throwCaughtException ) {
+                throw caughtException;
+            }
+            if( null != caughtThreadDeath ) {
+                throw caughtThreadDeath;
             }
         }
     }

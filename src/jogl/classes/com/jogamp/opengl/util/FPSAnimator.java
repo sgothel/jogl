@@ -149,7 +149,7 @@ public class FPSAnimator extends AnimatorBase {
 
         @Override
         public void run() {
-            UncaughtAnimatorException displayCaught = null;
+            UncaughtAnimatorException caughtException = null;
 
             if( justStarted ) {
                 justStarted = false;
@@ -175,7 +175,7 @@ public class FPSAnimator extends AnimatorBase {
                 try {
                     display();
                 } catch (final UncaughtAnimatorException dre) {
-                    displayCaught = dre;
+                    caughtException = dre;
                     stopIssued = true;
                 }
             } else if( pauseIssued && !stopIssued ) { // PAUSE
@@ -191,11 +191,11 @@ public class FPSAnimator extends AnimatorBase {
                         try {
                             display(); // propagate exclusive context -> off!
                         } catch (final UncaughtAnimatorException dre) {
-                            displayCaught = dre;
+                            caughtException = dre;
                             stopIssued = true;
                         }
                     }
-                    if( null == displayCaught ) {
+                    if( null == caughtException ) {
                         synchronized (FPSAnimator.this) {
                             if(DEBUG) {
                                 System.err.println("FPSAnimator pause " + Thread.currentThread() + ": " + toString());
@@ -219,40 +219,37 @@ public class FPSAnimator extends AnimatorBase {
                         try {
                             display(); // propagate exclusive context -> off!
                         } catch (final UncaughtAnimatorException dre) {
-                            if(DEBUG) {
-                                System.err.println("AnimatorBase.setExclusiveContextThread: caught: "+dre.getMessage());
+                            if( null == caughtException ) {
+                                caughtException = dre;
+                            } else {
+                                System.err.println("FPSAnimator.setExclusiveContextThread: caught: "+dre.getMessage());
                                 dre.printStackTrace();
-                            }
-                            if( null == displayCaught ) {
-                                displayCaught = dre;
                             }
                         }
                     }
                     boolean flushGLRunnables = false;
-                    try {
-                        synchronized (FPSAnimator.this) {
-                            if(DEBUG) {
-                                System.err.println("FPSAnimator stop " + Thread.currentThread() + ": " + toString());
-                                if( null != displayCaught ) {
-                                    System.err.println("Animator caught: "+displayCaught.getMessage());
-                                    displayCaught.printStackTrace();
-                                }
-                            }
-                            isAnimating = false;
-                            try {
-                                if( null != displayCaught ) {
-                                    flushGLRunnables = true;
-                                    handleUncaughtException(displayCaught); // may throw exception if null handler
-                                }
-                            } finally {
-                                animThread = null;
-                                FPSAnimator.this.notifyAll();
+                    boolean throwCaughtException = false;
+                    synchronized (FPSAnimator.this) {
+                        if(DEBUG) {
+                            System.err.println("FPSAnimator stop " + Thread.currentThread() + ": " + toString());
+                            if( null != caughtException ) {
+                                System.err.println("Animator caught: "+caughtException.getMessage());
+                                caughtException.printStackTrace();
                             }
                         }
-                    } finally {
-                        if( flushGLRunnables ) {
-                            flushGLRunnables();
+                        isAnimating = false;
+                        if( null != caughtException ) {
+                            flushGLRunnables = true;
+                            throwCaughtException = !handleUncaughtException(caughtException);
                         }
+                        animThread = null;
+                        FPSAnimator.this.notifyAll();
+                    }
+                    if( flushGLRunnables ) {
+                        flushGLRunnables();
+                    }
+                    if( throwCaughtException ) {
+                        throw caughtException;
                     }
                 }
             }
