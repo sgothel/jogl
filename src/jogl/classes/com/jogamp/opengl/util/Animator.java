@@ -58,12 +58,12 @@ import javax.media.opengl.GLException;
  * </p>
  */
 public class Animator extends AnimatorBase {
-    protected ThreadGroup threadGroup;
+    private ThreadGroup threadGroup;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
-    protected boolean isAnimating;
-    protected volatile boolean pauseIssued;
-    protected volatile boolean stopIssued;
+    boolean isAnimating;
+    volatile boolean pauseIssued;
+    volatile boolean stopIssued;
 
     /**
      * Creates a new, empty Animator.

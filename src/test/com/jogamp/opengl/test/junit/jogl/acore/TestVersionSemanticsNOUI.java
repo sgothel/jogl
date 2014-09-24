@@ -55,16 +55,10 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     static final JogampVersion curVersion = JoglVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
-    static final Set<String> excludesDefault, excludeV221toV222;
+    static final Set<String> excludesDefault;
     static {
         excludesDefault = new HashSet<String>();
         excludesDefault.add("^\\Qjogamp/\\E.*$");
-
-        excludeV221toV222 = new HashSet<String>();
-        excludeV221toV222.add("^\\Qjogamp/\\E.*$");
-        excludeV221toV222.add("^\\Qcom/jogamp/opengl/GLRendererQuirks\\E$"); // COUNT increased by one
-        excludeV221toV222.add("^\\Qcom/jogamp/opengl/util/Animator\\E$");    // pauseIssued -> volatile
-        excludeV221toV222.add("^\\Qjavax/media/opengl/GLFBODrawable\\E$");   // FBOMODE_DEFAULT (removed USE_DEPTH)
     }
 
 
