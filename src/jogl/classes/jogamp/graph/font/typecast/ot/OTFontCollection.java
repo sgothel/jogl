@@ -25,6 +25,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import java.util.ArrayList;
 
@@ -58,9 +59,9 @@ public class OTFontCollection {
     /**
      * @param file The OpenType font file
      */
-    public static OTFontCollection create(final File file) throws IOException {
+    public static OTFontCollection create(final InputStream istream) throws IOException {
         final OTFontCollection fc = new OTFontCollection();
-        fc.read(file);
+        fc.read(istream);
         return fc;
     }
 
@@ -119,11 +120,19 @@ public class OTFontCollection {
             }
             _resourceFork = true;
         }
+    	
+    	read(new FileInputStream(file));
+    }
+    
+    /**
+     * @param inputstream The OpenType font stream
+     */
+    protected void read(InputStream file) throws IOException {
 
         final DataInputStream dis = new DataInputStream(
             new BufferedInputStream(
-                new FileInputStream(file), (int) file.length()));
-        dis.mark((int) file.length());
+                file));
+        //dis.mark((int) file.length());
 
         if (_resourceFork || _pathName.endsWith(".dfont")) {
 
