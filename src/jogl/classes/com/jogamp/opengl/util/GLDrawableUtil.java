@@ -150,7 +150,7 @@ public class GLDrawableUtil {
     }
 
     /**
-     * Return a heuristic value whether switching the {@link GLContext} is safe between {@lin GLAutoDrawable}s,
+     * Return a heuristic value whether switching the {@link GLContext} is safe between {@link GLAutoDrawable}s,
      * i.e. via {@link #swapGLContext(GLAutoDrawable, GLAutoDrawable)} or {@link #swapGLContextAndAllGLEventListener(GLAutoDrawable, GLAutoDrawable)}.
      * <p>
      * Method currently returns <code>false</code> if:

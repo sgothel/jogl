@@ -275,7 +275,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                                              final GLCapabilitiesChooser chooser,
                                                              final int width, final int height) {
     final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
-    drawable.setRealized(true);
+    try {
+        drawable.setRealized(true);
+    } catch( final GLException gle) {
+        try {
+            drawable.setRealized(false);
+        } catch( final GLException gle2) { /* ignore */ }
+        throw gle;
+    }
     if(drawable instanceof GLFBODrawableImpl) {
         return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, null, null, null );
     }
@@ -285,7 +292,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   @Override
   public final GLAutoDrawable createDummyAutoDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
       final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, capsRequested, chooser);
-      drawable.setRealized(true);
+      try {
+          drawable.setRealized(true);
+      } catch( final GLException gle) {
+          try {
+              drawable.setRealized(false);
+          } catch( final GLException gle2) { /* ignore */ }
+          throw gle;
+      }
       final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
       return sharedDrawable;
   }

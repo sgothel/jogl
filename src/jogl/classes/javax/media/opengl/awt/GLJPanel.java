@@ -759,11 +759,22 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               }
               if( reqNewGLAD ) {
                   final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
-                  printGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
-                          printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                          printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
-                  GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
-                  printDrawable = printGLAD.getDelegatedDrawable();
+                  GLOffscreenAutoDrawable offGLAD = null;
+                  try {
+                      offGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
+                              printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
+                              printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
+                  } catch (final GLException gle) {
+                      if( DEBUG ) {
+                          System.err.println("Caught: "+gle.getMessage());
+                          gle.printStackTrace();
+                      }
+                  }
+                  if( null != offGLAD ) {
+                      printGLAD = offGLAD;
+                      GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
+                      printDrawable = printGLAD.getDelegatedDrawable();
+                  }
               }
               printAWTTiles.setGLOrientation( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented(), printGLAD.isGLOriented() );
               printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
