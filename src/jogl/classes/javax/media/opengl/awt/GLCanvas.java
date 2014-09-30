@@ -82,6 +82,7 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLSharedContextSetter;
@@ -893,11 +894,22 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               }
               if( reqNewGLAD ) {
                   final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
-                  printGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
-                          printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                          printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
-                  GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
-                  printDrawable = printGLAD.getDelegatedDrawable();
+                  GLOffscreenAutoDrawable offGLAD = null;
+                  try {
+                      offGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
+                                  printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
+                                  printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
+                  } catch (final GLException gle) {
+                      if( DEBUG ) {
+                          System.err.println("Caught: "+gle.getMessage());
+                          gle.printStackTrace();
+                      }
+                  }
+                  if( null != offGLAD ) {
+                      printGLAD = offGLAD;
+                      GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
+                      printDrawable = printGLAD.getDelegatedDrawable();
+                  }
               }
               printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
               printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
