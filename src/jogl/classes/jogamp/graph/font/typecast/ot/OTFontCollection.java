@@ -59,9 +59,19 @@ public class OTFontCollection {
     /**
      * @param file The OpenType font file
      */
-    public static OTFontCollection create(final InputStream istream) throws IOException {
+    public static OTFontCollection create(final File file) throws IOException {
         final OTFontCollection fc = new OTFontCollection();
-        fc.read(istream);
+        fc.read(file);
+        return fc;
+    }
+
+    /**
+     * @param istream The OpenType font input stream
+     * @param streamLen TODO
+     */
+    public static OTFontCollection create(final InputStream istream, final int streamLen) throws IOException {
+        final OTFontCollection fc = new OTFontCollection();
+        fc.read(istream, streamLen);
         return fc;
     }
 
@@ -120,20 +130,40 @@ public class OTFontCollection {
             }
             _resourceFork = true;
         }
-    	
-    	read(new FileInputStream(file));
+        final int streamLen = (int) file.length();
+        final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file), streamLen);
+        try {
+            readImpl(bis, streamLen);
+        } finally {
+            bis.close();
+        }
     }
-    
+
     /**
-     * @param inputstream The OpenType font stream
+     * @param is The OpenType font stream
+     * @param streamLen the total length of the stream
      */
-    protected void read(InputStream file) throws IOException {
+    protected void read(final InputStream is, final int streamLen) throws IOException {
+        _pathName = "";
+        _fileName = "";
+        final InputStream bis;
+        if( is.markSupported() ) {
+            bis = is;
+        } else {
+            bis = new BufferedInputStream(is, streamLen);
+        }
+        readImpl(bis, streamLen);
+    }
 
-        final DataInputStream dis = new DataInputStream(
-            new BufferedInputStream(
-                file));
-        //dis.mark((int) file.length());
-
+    /**
+     * @param is The OpenType font stream, must {@link InputStream#markSupported() support mark}!
+     */
+    private void readImpl(final InputStream bis, final int streamLen) throws IOException {
+        if( !bis.markSupported() ) {
+            throw new IllegalArgumentException("stream of type "+bis.getClass().getName()+" doesn't support mark");
+        }
+        bis.mark(streamLen);
+        final DataInputStream dis = new DataInputStream(bis);
         if (_resourceFork || _pathName.endsWith(".dfont")) {
 
             // This is a Macintosh font suitcase resource
@@ -174,6 +204,5 @@ public class OTFontCollection {
             _fonts[0] = new OTFont(this);
             _fonts[0].read(dis, 0, 0);
         }
-        dis.close();
     }
 }

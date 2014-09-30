@@ -27,8 +27,11 @@
  */
 package jogamp.graph.font;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -89,6 +92,9 @@ public class JavaFontLoader implements FontSet {
 
     @Override
     public Font get(final int family, final int style) throws IOException {
+        if(null == javaFontPath) {
+            throw new GLException("java font path undefined");
+        }
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -139,20 +145,41 @@ public class JavaFontLoader implements FontSet {
     }
 
     Font abspath(final String fname, final int family, final int style) throws IOException {
-        if(null == javaFontPath) {
-            throw new GLException("java font path undefined");
-        }
-        final String err = "Problem loading font "+fname+", file "+javaFontPath+fname ;
-
         try {
-            final Font f = FontFactory.get( new File(javaFontPath+fname) );
+            final Font f = abspathImpl(javaFontPath+fname, family, style);
+            if(null != f) {
+                return f;
+            }
+            throw new IOException (String.format("Problem loading font %s, file %s%s", fname, javaFontPath, fname));
+        } catch (final IOException ioe) {
+            throw new IOException(String.format("Problem loading font %s, file %s%s", fname, javaFontPath, fname), ioe);
+        }
+    }
+    private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
+        final Exception[] privErr = { null };
+        final int[] streamLen = { 0 };
+        final InputStream stream = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+            @Override
+            public InputStream run() {
+                try {
+                    final File file = new File(fname);
+                    streamLen[0] = (int) file.length();
+                    return new BufferedInputStream(new FileInputStream(file), streamLen[0]);
+                } catch (final Exception e) {
+                    privErr[0] = e;
+                    return null;
+                }
+            } } );
+        if( null != privErr[0] ) {
+            throw new IOException(privErr[0]);
+        }
+        if(null != stream) {
+            final Font f= FontFactory.get ( stream, streamLen[0], true ) ;
             if(null != f) {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;
             }
-            throw new IOException (err);
-        } catch (final IOException ioe) {
-            throw new IOException(err, ioe);
         }
+        return null;
     }
 }

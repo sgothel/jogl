@@ -29,6 +29,7 @@ package com.jogamp.opengl.test.junit.graph;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -75,6 +76,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static int SwapInterval = 0;
 
     static String fontFileName = null;
+    static URL fontURL = null;
     static int fontSet = 0;
     static int fontFamily = 0;
     static int fontStylebits = 0;
@@ -92,6 +94,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 Duration = atoi(args[i]);
+            } else if(args[i].equals("-fontURL")) {
+                i++;
+                fontURL = new URL(args[i]);
             } else if(args[i].equals("-fontFile")) {
                 i++;
                 fontFileName = args[i];
@@ -279,7 +284,15 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
             regionFPS = GLRegion.create(renderModes, null);
             regionFPSAnim = GLRegion.create(renderModes, null);
-            if( null != fontFileName ) {
+            if( null != fontURL ) {
+                Font _font = null;
+                try {
+                    _font = FontFactory.get(fontURL.openStream(), true);
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+                font = _font;
+            } else if( null != fontFileName ) {
                 Font _font = null;
                 try {
                     _font = FontFactory.get(getClass(), fontFileName, false);

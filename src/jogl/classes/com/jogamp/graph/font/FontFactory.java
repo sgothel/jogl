@@ -27,12 +27,15 @@
  */
 package com.jogamp.graph.font;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URLConnection;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
@@ -88,32 +91,113 @@ public class FontFactory {
         }
     }
 
+    /**
+     * Creates a Font instance.
+     * @param file font file
+     * @return the new Font instance
+     * @throws IOException
+     */
     public static final Font get(final File file) throws IOException {
         return fontConstr.create(file);
     }
 
-    public static final Font get(final InputStream stream) throws IOException {
-        return fontConstr.create(stream);
+    /**
+     * Creates a Font instance based on a determinated font stream with its given length
+     * of the font segment.
+     * <p>
+     * No explicit stream copy is performed as in {@link #get(InputStream, boolean)}
+     * due to the known {@code streamLen}.
+     * </p>
+     * @param stream font stream
+     * @param streamLen length of the font segment within this font stream
+     * @param closeStream {@code true} to close the {@code stream}
+     * @return the new Font instance
+     * @throws IOException
+     */
+    public static final Font get(final InputStream stream, final int streamLen, final boolean closeStream) throws IOException {
+        try {
+            return fontConstr.create(stream, streamLen);
+        } finally {
+            if( closeStream ) {
+                stream.close();
+            }
+        }
     }
 
-    public static final Font get(final URLConnection conn) throws IOException {
-        return fontConstr.create(conn);
+    /**
+     * Creates a Font instance based on an undeterminated font stream length.
+     * <p>
+     * The font stream is temporarily copied into a temp file
+     * to gather it's size and to gain random access.
+     * The temporary file will be deleted at exit.
+     * </p>
+     * @param stream dedicated font stream
+     * @param closeStream {@code true} to close the {@code stream}
+     * @return the new Font instance
+     * @throws IOException
+     */
+    public static final Font get(final InputStream stream, final boolean closeStream) throws IOException {
+        final IOException[] ioe = { null };
+        final int[] streamLen = { 0 };
+        final File tempFile[] = { null };
+
+        final InputStream bis = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+            @Override
+            public InputStream run() {
+                InputStream bis = null;
+                try {
+                    tempFile[0] = IOUtil.createTempFile( "jogl.font", ".ttf", false);
+                    streamLen[0] = IOUtil.copyStream2File(stream, tempFile[0], -1);
+                    if( 0 == streamLen[0] ) {
+                        throw new IOException("Font stream has zero bytes");
+                    }
+                    bis = new BufferedInputStream(new FileInputStream(tempFile[0]), streamLen[0]);
+                } catch (final IOException e) {
+                    ioe[0] = e;
+                    if( null != tempFile[0] ) {
+                        tempFile[0].delete();
+                        tempFile[0] = null;
+                    }
+                    streamLen[0] = 0;
+                } finally {
+                    if( closeStream ) {
+                        IOUtil.close(stream, ioe, System.err);
+                    }
+                }
+                return bis;
+            } });
+        if( null != ioe[0] ) {
+            throw ioe[0];
+        }
+        if( null == bis ) {
+            throw new IOException("Could not cache font stream"); // should not be reached
+        }
+        try {
+            return fontConstr.create(bis, streamLen[0]);
+        } finally {
+            if( null != bis ) {
+                bis.close();
+            }
+            if( null != tempFile[0] ) {
+                tempFile[0].delete();
+            }
+        }
     }
 
     public static final Font get(final Class<?> context, final String fname, final boolean useTempJarCache) throws IOException {
-        URLConnection conn = null;
+        InputStream stream = null;
         if( useTempJarCache ) {
             try {
-                final URI uri = TempJarCache.getResource(fname);
-                conn = null != uri ? uri.toURL().openConnection() : null;
+                final Uri uri = TempJarCache.getResourceUri(fname);
+                stream = null != uri ? uri.toURL().openConnection().getInputStream() : null;
             } catch (final Exception e) {
                 throw new IOException(e);
             }
         } else {
-            conn = IOUtil.getResource(context, fname);
+            stream = IOUtil.getResource(context, fname).getInputStream();
         }
-        if(null != conn) {
-            return FontFactory.get ( conn ) ;
+        if( null != stream ) {
+            return FontFactory.get ( stream, true ) ;
         }
         return null;
     }

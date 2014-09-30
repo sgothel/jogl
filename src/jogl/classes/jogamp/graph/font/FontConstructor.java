@@ -30,12 +30,10 @@ package jogamp.graph.font;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLConnection;
 
 import com.jogamp.graph.font.Font;
 
 public interface FontConstructor {
-    Font create(File file) throws IOException ;
-    Font create(InputStream stream) throws IOException ;
-    Font create(URLConnection url) throws IOException ;
+    Font create(final File file) throws IOException ;
+    Font create(final InputStream stream, int streamLen) throws IOException ;
 }

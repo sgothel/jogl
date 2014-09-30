@@ -15,21 +15,21 @@ public class FontSet01 {
         fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_REGULAR, FontSet.STYLE_ITALIC);
         fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_REGULAR, FontSet.STYLE_BOLD);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeMono.ttf"));
+                "fonts/freefont/FreeMono.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeMonoBold.ttf"));
+                "fonts/freefont/FreeMonoBold.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSans.ttf"));
+                "fonts/freefont/FreeSans.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSansBold.ttf"));
+                "fonts/freefont/FreeSansBold.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerif.ttf"));
+                "fonts/freefont/FreeSerif.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerifBold.ttf"));
+                "fonts/freefont/FreeSerifBold.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerifBoldItalic.ttf"));
+                "fonts/freefont/FreeSerifBoldItalic.ttf").getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerifItalic.ttf"));
+                "fonts/freefont/FreeSerifItalic.ttf").getInputStream(), true);
         return fonts;
     }
 }
