@@ -78,6 +78,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLSharedContextSetter;
@@ -546,12 +547,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     _lock.lock();
     try {
         if( !isInitialized ) {
-            handleReshape = false;
             initializeBackendImpl();
         }
 
         if (!isInitialized || printActive) {
-          return;
+            return;
         }
 
         // NOTE: must do this when the context is not current as it may
@@ -560,13 +560,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         // current
         if( !printActive ) {
             if ( handleReshape ) {
-              handleReshape = false;
-              sendReshape = handleReshape();
+                handleReshape = false;
+                sendReshape = handleReshape();
             }
 
             if( isShowing ) {
-              updater.setGraphics(g);
-              backend.doPaintComponent(g);
+                updater.setGraphics(g);
+                backend.doPaintComponent(g);
             }
         }
     } finally {
@@ -1301,23 +1301,24 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private boolean initializeBackendImpl() {
     synchronized(initSync) {
         if( !isInitialized ) {
-            if ( 0 >= panelWidth || 0 >= panelHeight ) {
-              // See whether we have a non-zero size yet and can go ahead with
-              // initialization
-              if (0 >= reshapeWidth || 0 >= reshapeHeight ) {
-                  return false;
-              }
-
+            if( handleReshape ) {
+              panelWidth = reshapeWidth;
+              panelHeight = reshapeHeight;
+              handleReshape = false;
               if (DEBUG) {
-                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +
+                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend.1: " +
                           panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr() + " -> " +
                           reshapeWidth+"x"+reshapeHeight+" @ scale "+getPixelScaleStr());
               }
-              // Pull down reshapeWidth and reshapeHeight into panelWidth and
-              // panelHeight eagerly in order to complete initialization, and
-              // force a reshape later
-              panelWidth = reshapeWidth;
-              panelHeight = reshapeHeight;
+            } else {
+              if (DEBUG) {
+                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend.0: " +
+                          panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr());
+              }
+            }
+
+            if ( 0 >= panelWidth || 0 >= panelHeight ) {
+              return false;
             }
 
             if ( null == backend ) {
