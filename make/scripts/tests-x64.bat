@@ -4,6 +4,11 @@ set J2RE_HOME=c:\jre1.7.0_67_x64
 set JAVA_HOME=c:\jdk1.7.0_67_x64
 set ANT_PATH=C:\apache-ant-1.9.4
 
+REM set TEMP=C:\Documents and Settings\jogamp\temp
+REM set TMP=C:\Documents and Settings\jogamp\temp
+REM set TEMP=C:\Users\jogamp\temp\no-exec
+REM set TMP=C:\Users\jogamp\temp\no-exec
+
 REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc53_lavf53_lavu51-ffmpeg\x64
 REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg\x64
 set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg-2013-10-09\x64

@@ -21,7 +21,7 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\atomic\oculusvr.jar;%BLD_D
 echo CP_ALL %CP_ALL%
 
 REM set D_ARGS="-Djogamp.debug=all"
-REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
+set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogl.debug.windows.cpu_affinity_mode=0" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.GLContext"
