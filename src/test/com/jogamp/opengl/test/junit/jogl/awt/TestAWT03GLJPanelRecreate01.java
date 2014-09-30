@@ -29,16 +29,17 @@
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.awt.GLJPanel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.Label;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -51,7 +52,7 @@ import org.junit.runners.MethodSorters;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestAWT03GLCanvasRecreate01 extends UITestCase {
+public class TestAWT03GLJPanelRecreate01 extends UITestCase {
     static long durationPerTest = 500; // ms
 
     final static int sizeEps = 64;
@@ -59,13 +60,13 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
     final static Dimension size2 = new Dimension(512+sizeEps+1+256, 512+256);
     final static Dimension size3 = new Dimension(512-256,           512-sizeEps-1-256);
 
-    Frame frame1=null;
-    Frame frame2=null;
-    Frame frame3=null;
-    GLCanvas glComp=null;
-    Label label1 = null;
-    Label label2 = null;
-    Label label3 = null;
+    JFrame frame1=null;
+    JFrame frame2=null;
+    JFrame frame3=null;
+    GLJPanel glComp=null;
+    JLabel label1 = null;
+    JLabel label2 = null;
+    JLabel label3 = null;
     Animator animator = null;
 
     @BeforeClass
@@ -75,36 +76,36 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
 
     @Before
     public void init() {
-        glComp = new GLCanvas();
+        glComp = new GLJPanel();
         Assert.assertNotNull(glComp);
         glComp.addGLEventListener(new GearsES2());
 
         animator = new Animator(glComp);
         animator.start();
 
-        label1 = new Label("L1 - No GLCanvas");
+        label1 = new JLabel("L1 - No GLJPanel");
         label1.setMinimumSize(size1);
         label1.setPreferredSize(size1);
-        frame1 = new Frame("Frame 1");
+        frame1 = new JFrame("Frame 1");
         Assert.assertNotNull(frame1);
         frame1.add(label1);
         frame1.setLocation(0, 0);
 
-        label2 = new Label("L2 - No GLCanvas");
+        label2 = new JLabel("L2 - No GLJPanel");
         label2.setMinimumSize(size2);
         label2.setPreferredSize(size2);
-        frame2 = new Frame("Frame 2");
+        frame2 = new JFrame("Frame 2");
         Assert.assertNotNull(frame2);
         frame2.add(label2);
-        frame2.setLocation(size1.width + size1.width/2, 0);
+        frame2.setLocation(size1.width, 0);
 
-        label3 = new Label("L3 - No GLCanvas");
+        label3 = new JLabel("L3 - No GLJPanel");
         label3.setMinimumSize(size3);
         label3.setPreferredSize(size3);
-        frame3 = new Frame("Frame 3");
+        frame3 = new JFrame("Frame 3");
         Assert.assertNotNull(frame3);
         frame3.add(label3);
-        frame3.setLocation(0, size1.height + size1.height/2);
+        frame3.setLocation(0, size1.height);
     }
 
     @After
@@ -133,14 +134,14 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
         animator=null;
     }
 
-    private void addCanvas(final Frame frame, final Label label, final Dimension size) {
+    private void addCanvas(final JFrame frame, final JLabel label, final Dimension size) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    frame.remove(label);
+                    frame.getContentPane().remove(label);
                     glComp.setPreferredSize(size);
                     glComp.setMinimumSize(size);
-                    frame.add(glComp);
+                    frame.getContentPane().add(glComp, BorderLayout.CENTER);
                     frame.pack();
                 }});
         } catch (final Throwable t) {
@@ -149,12 +150,12 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
         }
     }
 
-    private void removeCanvas(final Frame frame, final Label label) {
+    private void removeCanvas(final JFrame frame, final JLabel label) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    frame.remove(glComp);
-                    frame.add(label);
+                    frame.getContentPane().remove(glComp);
+                    frame.getContentPane().add(label);
                     frame.pack();
                     frame.repaint();
                 }});
@@ -164,7 +165,7 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
         }
     }
 
-    private void setVisible(final Frame frame, final boolean v) {
+    private void setVisible(final JFrame frame, final boolean v) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -235,6 +236,6 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);
             }
         }
-        org.junit.runner.JUnitCore.main(TestAWT03GLCanvasRecreate01.class.getName());
+        org.junit.runner.JUnitCore.main(TestAWT03GLJPanelRecreate01.class.getName());
     }
 }

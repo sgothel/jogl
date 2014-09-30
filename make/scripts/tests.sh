@@ -662,6 +662,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLJPanelRecreate01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT $*
@@ -812,7 +813,7 @@ function testawtswt() {
 # Graph
 #
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 $*
