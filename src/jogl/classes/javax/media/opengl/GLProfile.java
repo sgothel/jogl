@@ -2056,71 +2056,95 @@ public class GLProfile {
      * Returns the profile implementation
      */
     private static String computeProfileImpl(final AbstractGraphicsDevice device, final String profile, final boolean desktopCtxUndef, final boolean esCtxUndef, final boolean isHardwareRasterizer[]) {
-        if (GL2ES1 == profile) {
-            final boolean es1HardwareRasterizer[] = new boolean[1];
-            final boolean gles1Available = hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, es1HardwareRasterizer) );
-            final boolean gles1HWAvailable = gles1Available && es1HardwareRasterizer[0] ;
+        final boolean hardwareRasterizer[] = new boolean[1];
+        if ( GL2ES1 == profile ) {
+            final boolean gles1Available;
+            final boolean gles1HWAvailable;
+            if( hasGLES1Impl ) {
+                gles1Available = esCtxUndef || GLContext.isGLES1Available(device, hardwareRasterizer);
+                gles1HWAvailable = gles1Available && hardwareRasterizer[0] ;
+            } else {
+                gles1Available = false;
+                gles1HWAvailable = false;
+            }
             if(hasGL234Impl) {
-                if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
-                    if(!gles1HWAvailable || isHardwareRasterizer[0]) {
-                        return GL4bc;
-                    }
+                final boolean gl3bcAvailable = GLContext.isGL3bcAvailable(device, hardwareRasterizer);
+                final boolean gl3bcHWAvailable = gl3bcAvailable && hardwareRasterizer[0] ;
+                final boolean gl2Available = GLContext.isGL2Available(device, hardwareRasterizer);
+                final boolean gl2HWAvailable = gl2Available && hardwareRasterizer[0] ;
+                final boolean glAnyHWAvailable = gl3bcHWAvailable || gl2HWAvailable ||
+                                                 gles1HWAvailable ;
+
+                if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer) &&
+                    ( isHardwareRasterizer[0] || !glAnyHWAvailable ) ) {
+                    return GL4bc;
                 }
-                if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
-                    if(!gles1HWAvailable || isHardwareRasterizer[0]) {
-                        return GL3bc;
-                    }
+                if( gl3bcAvailable && ( gl3bcHWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl3bcHWAvailable;
+                    return GL3bc;
                 }
-                if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
-                    if(!gles1HWAvailable || isHardwareRasterizer[0]) {
-                        return GL2;
-                    }
+                if( ( desktopCtxUndef || gl2Available ) && ( gl2HWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl2HWAvailable;
+                    return GL2;
                 }
             }
-            if(gles1Available) {
-                isHardwareRasterizer[0] = es1HardwareRasterizer[0];
+            if( gles1Available ) {
+                isHardwareRasterizer[0] = gles1HWAvailable;
                 return GLES1;
             }
-        } else if (GL2ES2 == profile) {
-            final boolean es2HardwareRasterizer[] = new boolean[1];
-            final boolean gles2Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
-            final boolean gles2HWAvailable = gles2Available && es2HardwareRasterizer[0] ;
-            final boolean es3HardwareRasterizer[] = new boolean[1];
-            final boolean gles3Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, es3HardwareRasterizer) );
-            final boolean gles3HWAvailable = gles3Available && es3HardwareRasterizer[0] ;
-            if(hasGL234Impl) {
-                if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
-                    if( (!gles3HWAvailable && !gles2HWAvailable ) || isHardwareRasterizer[0] ) {
-                        return GL4;
-                    }
+        } else if ( GL2ES2 == profile ) {
+            final boolean gles2Available, gles3Available;
+            final boolean gles2HWAvailable, gles3HWAvailable;
+            if( hasGLES3Impl ) {
+                gles2Available = esCtxUndef || GLContext.isGLES2Available(device, hardwareRasterizer);
+                gles2HWAvailable = gles2Available && hardwareRasterizer[0] ;
+                gles3Available = esCtxUndef || GLContext.isGLES3Available(device, hardwareRasterizer);
+                gles3HWAvailable = gles3Available && hardwareRasterizer[0] ;
+            } else {
+                gles2Available = false;
+                gles2HWAvailable = false;
+                gles3Available = false;
+                gles3HWAvailable = false;
+            }
+            if( hasGL234Impl ) {
+                final boolean gl4bcAvailable = GLContext.isGL4bcAvailable(device, hardwareRasterizer);
+                final boolean gl4bcHWAvailable = gl4bcAvailable && hardwareRasterizer[0] ;
+                final boolean gl3Available = GLContext.isGL3Available(device, hardwareRasterizer);
+                final boolean gl3HWAvailable = gl3Available && hardwareRasterizer[0] ;
+                final boolean gl3bcAvailable = GLContext.isGL3bcAvailable(device, hardwareRasterizer);
+                final boolean gl3bcHWAvailable = gl3bcAvailable && hardwareRasterizer[0] ;
+                final boolean gl2Available = GLContext.isGL2Available(device, hardwareRasterizer);
+                final boolean gl2HWAvailable = gl2Available && hardwareRasterizer[0] ;
+                final boolean glAnyHWAvailable = gl4bcHWAvailable || gl3HWAvailable || gl3bcHWAvailable || gl2HWAvailable ||
+                                                 gles3HWAvailable || gles2HWAvailable ;
+
+                if( GLContext.isGL4Available(device, isHardwareRasterizer) &&
+                    ( isHardwareRasterizer[0] || !glAnyHWAvailable ) ) {
+                    return GL4;
                 }
-                if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
-                    if( (!gles3HWAvailable && !gles2HWAvailable ) || isHardwareRasterizer[0] ) {
-                        return GL4bc;
-                    }
+                if( gl4bcAvailable && ( gl4bcHWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl4bcHWAvailable;
+                    return GL4bc;
                 }
-                if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
-                    if( (!gles3HWAvailable && !gles2HWAvailable ) || isHardwareRasterizer[0] ) {
-                        return GL3;
-                    }
+                if( gl3Available && ( gl3HWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl3HWAvailable;
+                    return GL3;
                 }
-                if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
-                    if( (!gles3HWAvailable && !gles2HWAvailable ) || isHardwareRasterizer[0] ) {
-                        return GL3bc;
-                    }
+                if( gl3bcAvailable && ( gl3bcHWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl3bcHWAvailable;
+                    return GL3bc;
                 }
-                if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
-                    if( (!gles3HWAvailable && !gles2HWAvailable ) || isHardwareRasterizer[0] ) {
-                        return GL2;
-                    }
+                if( ( desktopCtxUndef || gl2Available ) && ( gl2HWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl2HWAvailable;
+                    return GL2;
                 }
             }
-            if(gles3Available && ( !gles2HWAvailable || gles3HWAvailable ) ) {
-                isHardwareRasterizer[0] = es3HardwareRasterizer[0];
+            if( gles3Available && ( gles3HWAvailable || !gles2HWAvailable ) ) {
+                isHardwareRasterizer[0] = gles3HWAvailable;
                 return GLES3;
             }
-            if(gles2Available) {
-                isHardwareRasterizer[0] = es2HardwareRasterizer[0];
+            if( gles2Available ) {
+                isHardwareRasterizer[0] = gles2HWAvailable;
                 return GLES2;
             }
         } else if (GL4ES3 == profile) {
@@ -2129,16 +2153,19 @@ public class GLProfile {
                 final boolean es3HardwareRasterizer[] = new boolean[1];
                 final boolean gles3Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, es3HardwareRasterizer) );
                 final boolean gles3HWAvailable = gles3Available && es3HardwareRasterizer[0] ;
-                if(hasGL234Impl) {
-                    if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
-                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
-                            return GL4;
-                        }
+                if( hasGL234Impl ) {
+                    final boolean gl4bcAvailable = GLContext.isGL4bcAvailable(device, hardwareRasterizer);
+                    final boolean gl4bcHWAvailable = gl4bcAvailable && hardwareRasterizer[0] ;
+                    final boolean glAnyHWAvailable = gl4bcHWAvailable ||
+                                                     gles3HWAvailable;
+
+                    if( GLContext.isGL4Available(device, isHardwareRasterizer) &&
+                        ( isHardwareRasterizer[0] || !glAnyHWAvailable ) ) {
+                        return GL4;
                     }
-                    if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
-                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
-                            return GL4bc;
-                        }
+                    if( ( desktopCtxUndef || gl4bcAvailable ) && ( gl4bcHWAvailable || !glAnyHWAvailable ) ) {
+                        isHardwareRasterizer[0] = gl4bcHWAvailable;
+                        return GL4bc;
                     }
                 }
                 if(gles3Available) {
@@ -2148,15 +2175,34 @@ public class GLProfile {
             }
         } else if(GL2GL3 == profile) {
             if(hasGL234Impl) {
-                if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                final boolean gl4Available = GLContext.isGL4Available(device, hardwareRasterizer);
+                final boolean gl4HWAvailable = gl4Available && hardwareRasterizer[0] ;
+                final boolean gl3Available = GLContext.isGL3Available(device, hardwareRasterizer);
+                final boolean gl3HWAvailable = gl3Available && hardwareRasterizer[0] ;
+                final boolean gl3bcAvailable = GLContext.isGL3bcAvailable(device, hardwareRasterizer);
+                final boolean gl3bcHWAvailable = gl3bcAvailable && hardwareRasterizer[0] ;
+                final boolean gl2Available = GLContext.isGL2Available(device, hardwareRasterizer);
+                final boolean gl2HWAvailable = gl2Available && hardwareRasterizer[0] ;
+                final boolean glAnyHWAvailable = gl4HWAvailable || gl3HWAvailable || gl3bcHWAvailable || gl2HWAvailable;
+
+                if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer) &&
+                    ( isHardwareRasterizer[0] || !glAnyHWAvailable ) ) {
                     return GL4bc;
-                } else if( GLContext.isGL4Available(device, isHardwareRasterizer)) {
+                }
+                if( gl4Available && ( gl4HWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl4HWAvailable;
                     return GL4;
-                } else if( GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                }
+                if( gl3bcAvailable && ( gl3bcHWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl3bcHWAvailable;
                     return GL3bc;
-                } else if( GLContext.isGL3Available(device, isHardwareRasterizer)) {
+                }
+                if( gl3Available && ( gl3HWAvailable || !glAnyHWAvailable ) ) {
+                    isHardwareRasterizer[0] = gl3HWAvailable;
                     return GL3;
-                } else if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
+                }
+                if( desktopCtxUndef || gl2Available ) {
+                    isHardwareRasterizer[0] = gl2HWAvailable;
                     return GL2;
                 }
             }
