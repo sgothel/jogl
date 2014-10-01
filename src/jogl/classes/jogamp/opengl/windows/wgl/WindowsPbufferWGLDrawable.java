@@ -142,8 +142,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           System.out.println(getThreadName()+": Pbuffer chosenCaps: " + chosenCaps);
         }
 
-        if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(chosenCaps,
-                                        iattributes, sharedResource, -1, floatModeTmp)){
+        if( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList( sharedResource, chosenCaps,
+                                                                        iattributes, -1, floatModeTmp) ) {
           throw new GLException("Pbuffer-related extensions not supported");
         }
 

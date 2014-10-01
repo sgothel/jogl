@@ -1740,8 +1740,19 @@ public abstract class GLContextImpl extends GLContext {
     final boolean isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
     final boolean isWindows = Platform.getOSType() == Platform.OSType.WINDOWS;
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
-    final boolean isDriverATICatalyst = !isDriverMesa && ( glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ") );
-    final boolean isDriverNVIDIAGeForce = !isDriverMesa && ( glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ") );
+
+    final boolean isDriverATICatalyst;
+    final boolean isDriverNVIDIAGeForce;
+    final boolean isDriverIntel;
+    if( !isDriverMesa ) {
+        isDriverATICatalyst = glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ");
+        isDriverNVIDIAGeForce = glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ");
+        isDriverIntel = glVendor.startsWith("Intel");
+    } else {
+        isDriverATICatalyst = false;
+        isDriverNVIDIAGeForce = false;
+        isDriverIntel = false;
+    }
 
     final GLRendererQuirks quirks = new GLRendererQuirks();
 
@@ -1840,8 +1851,7 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 quirks.addQuirk( quirk );
             }
-        }
-        if (glVendor.equals("Intel") && glRenderer.equals("Intel Bear Lake B")) {
+        } else if( isDriverIntel && glRenderer.equals("Intel Bear Lake B") ) {
           	final int quirk = GLRendererQuirks.NoPBufferWithAccum;
           	if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+" and Renderer "+glRenderer+"]");
