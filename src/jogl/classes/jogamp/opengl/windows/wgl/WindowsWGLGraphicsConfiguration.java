@@ -50,6 +50,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.nativewindow.windows.DWM_BLURBEHIND;
 import jogamp.nativewindow.windows.GDI;
