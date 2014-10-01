@@ -327,9 +327,8 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                                          final long hdc, final IntBuffer iattributes, final int accelerationMode, final FloatBuffer fattributes)
     {
 
-        if ( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(capabilities,
-                iattributes, sharedResource, accelerationMode, null))
-        {
+        if ( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList( sharedResource, capabilities,
+                                                                         iattributes, accelerationMode, null) ) {
             if (DEBUG) {
                 System.err.println("wglChoosePixelFormatARB: GLCapabilities2AttribList failed: " + GDI.GetLastError());
                 Thread.dumpStack();
@@ -412,9 +411,9 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return bucket;
     }
 
-    static boolean GLCapabilities2AttribList(final GLCapabilitiesImmutable caps,
+    static boolean GLCapabilities2AttribList(final WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                             final GLCapabilitiesImmutable caps,
                                              final IntBuffer iattributes,
-                                             final WindowsWGLDrawableFactory.SharedResource sharedResource,
                                              final int accelerationValue,
                                              final int[] floatMode) throws GLException {
         if (!sharedResource.hasARBPixelFormat()) {
@@ -477,23 +476,27 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         }
         iattributes.put(niattribs++, WGLExt.WGL_DEPTH_BITS_ARB);
         iattributes.put(niattribs++, caps.getDepthBits());
-        if (!sharedResource.getRendererQuirks().exist(GLRendererQuirks.NoPBufferWithAccum) && (caps.getAccumRedBits()   > 0 ||
+
+        if( caps.getAccumRedBits()   > 0 ||
             caps.getAccumGreenBits() > 0 ||
             caps.getAccumBlueBits()  > 0 ||
-            caps.getAccumAlphaBits() > 0)) {
-          iattributes.put(niattribs++, WGLExt.WGL_ACCUM_BITS_ARB);
-          iattributes.put(niattribs++, ( caps.getAccumRedBits() +
-                                         caps.getAccumGreenBits() +
-                                         caps.getAccumBlueBits() +
-                                         caps.getAccumAlphaBits() ) );
-          iattributes.put(niattribs++, WGLExt.WGL_ACCUM_RED_BITS_ARB);
-          iattributes.put(niattribs++, caps.getAccumRedBits());
-          iattributes.put(niattribs++, WGLExt.WGL_ACCUM_GREEN_BITS_ARB);
-          iattributes.put(niattribs++, caps.getAccumGreenBits());
-          iattributes.put(niattribs++, WGLExt.WGL_ACCUM_BLUE_BITS_ARB);
-          iattributes.put(niattribs++, caps.getAccumBlueBits());
-          iattributes.put(niattribs++, WGLExt.WGL_ACCUM_ALPHA_BITS_ARB);
-          iattributes.put(niattribs++, caps.getAccumAlphaBits());
+            caps.getAccumAlphaBits() > 0 ) {
+            final GLRendererQuirks sharedQuirks = sharedResource.getRendererQuirks();
+            if ( !usePBuffer || null==sharedQuirks || !sharedQuirks.exist(GLRendererQuirks.NoPBufferWithAccum) ) {
+              iattributes.put(niattribs++, WGLExt.WGL_ACCUM_BITS_ARB);
+              iattributes.put(niattribs++, ( caps.getAccumRedBits() +
+                                             caps.getAccumGreenBits() +
+                                             caps.getAccumBlueBits() +
+                                             caps.getAccumAlphaBits() ) );
+              iattributes.put(niattribs++, WGLExt.WGL_ACCUM_RED_BITS_ARB);
+              iattributes.put(niattribs++, caps.getAccumRedBits());
+              iattributes.put(niattribs++, WGLExt.WGL_ACCUM_GREEN_BITS_ARB);
+              iattributes.put(niattribs++, caps.getAccumGreenBits());
+              iattributes.put(niattribs++, WGLExt.WGL_ACCUM_BLUE_BITS_ARB);
+              iattributes.put(niattribs++, caps.getAccumBlueBits());
+              iattributes.put(niattribs++, WGLExt.WGL_ACCUM_ALPHA_BITS_ARB);
+              iattributes.put(niattribs++, caps.getAccumAlphaBits());
+            }
         }
 
         if (caps.getSampleBuffers() && sharedResource.hasARBMultisample()) {
