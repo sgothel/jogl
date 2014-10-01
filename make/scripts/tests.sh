@@ -381,8 +381,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
 # Stereo
@@ -458,7 +458,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT2 $*
-testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT $*
 
 #
