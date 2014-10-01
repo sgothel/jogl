@@ -50,6 +50,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.nativewindow.windows.DWM_BLURBEHIND;
 import jogamp.nativewindow.windows.GDI;
@@ -476,10 +477,10 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         }
         iattributes.put(niattribs++, WGLExt.WGL_DEPTH_BITS_ARB);
         iattributes.put(niattribs++, caps.getDepthBits());
-        if (caps.getAccumRedBits()   > 0 ||
+        if (!sharedResource.getRendererQuirks().exist(GLRendererQuirks.NoPBufferWithAccum) && (caps.getAccumRedBits()   > 0 ||
             caps.getAccumGreenBits() > 0 ||
             caps.getAccumBlueBits()  > 0 ||
-            caps.getAccumAlphaBits() > 0) {
+            caps.getAccumAlphaBits() > 0)) {
           iattributes.put(niattribs++, WGLExt.WGL_ACCUM_BITS_ARB);
           iattributes.put(niattribs++, ( caps.getAccumRedBits() +
                                          caps.getAccumGreenBits() +

@@ -340,9 +340,25 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int BuggyColorRenderbuffer  = 18;
+    
+    /**
+     * Some Intel drivers under Windows wrongly claims to support pbuffers 
+     * with accumulation buffers. Then, the creation of a pbuffer fails:
+     * javax.media.opengl.GLException: pbuffer creation error: Couldn't find a suitable pixel format
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>GL_VENDOR       Intel</li>
+     *   <li>GL_RENDERER     Intel Bear Lake B</li>
+     *   <li>GL_VERSION      1.4.0 - Build 8.14.10.1930</li>
+     * </ul>
+     * 
+     * </p>
+     */
+    public static final int NoPBufferWithAccum = 19;
 
     /** Return the number of known quirks. */
-    public static final int getCount() { return 19; }
+    public static final int getCount() { return 20; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -350,7 +366,7 @@ public class GLRendererQuirks {
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
-                                                          "NoMultiSamplingBuffers", "BuggyColorRenderbuffer"
+                                                          "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
