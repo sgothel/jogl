@@ -684,6 +684,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                         }
                     }
                     if( null != offGLAD ) {
+                        printGLAD = offGLAD;
                         GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
                         printDrawable = printGLAD.getDelegatedDrawable();
                     }
