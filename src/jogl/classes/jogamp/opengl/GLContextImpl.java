@@ -1841,6 +1841,13 @@ public abstract class GLContextImpl extends GLContext {
                 quirks.addQuirk( quirk );
             }
         }
+        if (glVendor.equals("Intel") && glRenderer.equals("Intel Bear Lake B")) {
+          	final int quirk = GLRendererQuirks.NoPBufferWithAccum;
+          	if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+" and Renderer "+glRenderer+"]");
+            }
+           	quirks.addQuirk( quirk );
+        }
     } else if( Platform.OSType.ANDROID == Platform.getOSType() ) {
         //
         // ANDROID
