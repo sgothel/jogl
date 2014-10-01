@@ -30,6 +30,8 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
+import javax.media.opengl.GLProfile;
+
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -39,8 +41,12 @@ import com.jogamp.common.os.Platform;
 /**
  * Concurrent and lock-free initialization and rendering using exclusive NEWT Display EDT instances.
  * <p>
- * Rendering is always lock-free and independent of the EDT, however exclusive NEWT Display instances
+ * Rendering is always lock-free and independent of the EDT, using exclusive NEWT Display instances
  * perform lifecycle actions (window creation etc) w/o locking.
+ * </p>
+ * <p>
+ * Each test is decorated w/ {@link GLProfile#shutdown()} to ensure that
+ * implicit {@link GLProfile#initSingleton()} is also being tested.
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

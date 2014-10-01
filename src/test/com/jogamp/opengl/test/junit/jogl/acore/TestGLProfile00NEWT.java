@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -44,8 +45,27 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public class TestGLProfile00NEWT extends UITestCase {
 
     @Test
-    public void testInitSingleton() throws InterruptedException {
+    public void test01InternedString() {
+        final String s1 = "GL2";
+        final String s2 = "GL2";
+        Assert.assertEquals(s1, s2);
+        Assert.assertTrue("s1-ref != s2-ref", s1 == s2);
+        Assert.assertTrue("s1-ref != 'GL2'-ref", s1 == "GL2");
+
+        Assert.assertEquals("GL2", GLProfile.GL2);
+        Assert.assertTrue("GLProfile-ref != 'GL2'-ref", GLProfile.GL2 == "GL2");
+    }
+
+    @Test
+    public void test02InitSingleton() throws InterruptedException {
+        Assert.assertFalse("JOGL is initialized before usage", GLProfile.isInitialized());
         GLProfile.initSingleton();
+        Assert.assertTrue("JOGL is not initialized after enforced initialization", GLProfile.isInitialized());
+    }
+
+    @Test
+    public void test11DumpDesktopGLInfo() throws InterruptedException {
+        Assert.assertTrue("JOGL is not initialized ...", GLProfile.isInitialized());
         System.err.println("Desktop");
         final GLDrawableFactory desktopFactory = GLDrawableFactory.getDesktopFactory();
         if( null != desktopFactory ) {
@@ -54,7 +74,11 @@ public class TestGLProfile00NEWT extends UITestCase {
         } else {
             System.err.println("\tNULL");
         }
+    }
 
+    @Test
+    public void test12DumpEGLGLInfo() throws InterruptedException {
+        Assert.assertTrue("JOGL is not initialized ...", GLProfile.isInitialized());
         System.err.println("EGL");
         final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
         if( null != eglFactory ) {

@@ -45,7 +45,25 @@ public abstract class StereoDeviceFactory {
     private static final String GenericStereoDeviceClazzName = "jogamp.opengl.util.stereo.GenericStereoDeviceFactory";
     private static final String isAvailableMethodName = "isAvailable";
 
-    public static enum DeviceType { Default, Generic, OculusVR };
+    /** {@link StereoDevice} type used for {@link StereoDeviceFactory#createFactory(DeviceType) createFactory(type)}. */
+    public static enum DeviceType {
+        /**
+         * Auto selection of device in the following order:
+         * <ol>
+         *   <li>{@link DeviceType#OculusVR}</li>
+         *   <li>{@link DeviceType#Generic}</li>
+         * </ol>
+         */
+        Default,
+        /**
+         * Generic software implementation.
+         */
+        Generic,
+        /**
+         * OculusVR implementation.
+         */
+        OculusVR
+    };
 
     public static StereoDeviceFactory createDefaultFactory() {
         final ClassLoader cl = StereoDeviceFactory.class.getClassLoader();

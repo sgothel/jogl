@@ -67,9 +67,26 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      */
     public static final int MODE_EXPECT_AWT_RENDERING_THREAD = 1 << 0;
 
-    public interface AnimatorImpl {
-        void display(ArrayList<GLAutoDrawable> drawables, boolean ignoreExceptions, boolean printExceptions);
-        boolean blockUntilDone(Thread thread);
+
+    @SuppressWarnings("serial")
+    public static class UncaughtAnimatorException extends RuntimeException {
+        final GLAutoDrawable drawable;
+        public UncaughtAnimatorException(final GLAutoDrawable drawable, final Throwable cause) {
+            super(cause);
+            this.drawable = drawable;
+        }
+        public final GLAutoDrawable getGLAutoDrawable() { return drawable; }
+    }
+
+    public static interface AnimatorImpl {
+        /**
+         * @param drawables
+         * @param ignoreExceptions
+         * @param printExceptions
+         * @throws UncaughtAnimatorException as caused by {@link GLAutoDrawable#display()}
+         */
+        void display(final ArrayList<GLAutoDrawable> drawables, final boolean ignoreExceptions, final boolean printExceptions) throws UncaughtAnimatorException;
+        boolean blockUntilDone(final Thread thread);
     }
 
     protected int modeBits;
@@ -83,6 +100,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected boolean printExceptions;
     protected boolean exclusiveContext;
     protected Thread userExclusiveContextThread;
+    protected UncaughtExceptionHandler uncaughtExceptionHandler;
     protected FPSCounterImpl fpsCounter = new FPSCounterImpl();
 
     private final static Class<?> awtAnimatorImplClazz;
@@ -313,11 +331,16 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             }
         }
         final Thread dECT = enable ? ( null != _exclusiveContextThread ? _exclusiveContextThread : animThread ) : null ;
+        UncaughtAnimatorException displayCaught = null;
         if( propagateState ) {
             setDrawablesExclCtxState(enable);
             if( !enable ) {
                 if( Thread.currentThread() == getThread() || Thread.currentThread() == _exclusiveContextThread ) {
-                    display();
+                    try {
+                        display(); // propagate exclusive context -> off!
+                    } catch (final UncaughtAnimatorException dre) {
+                        displayCaught = dre;
+                    }
                 } else {
                     final boolean resumed = isAnimating() ? false : resume();
                     int counter = 10;
@@ -338,6 +361,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         }
         if(DEBUG) {
             System.err.println("AnimatorBase.setExclusiveContextThread: all-GLAD Ok: "+validateDrawablesExclCtxState(dECT)+", "+this);
+            if( null != displayCaught ) {
+                System.err.println("AnimatorBase.setExclusiveContextThread: caught: "+displayCaught.getMessage());
+                displayCaught.printStackTrace();
+            }
+        }
+        if( null != displayCaught ) {
+            throw displayCaught;
         }
         return oldExclusiveContext;
     }
@@ -412,7 +442,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         this to get the most optimized painting behavior for the set of
         components this Animator manages, in particular when multiple
         lightweight widgets are continually being redrawn. */
-    protected final void display() {
+    protected final void display() throws UncaughtAnimatorException {
         impl.display(drawables, ignoreExceptions, printExceptions);
         fpsCounter.tickFPS();
     }
@@ -482,7 +512,47 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         this.printExceptions = printExceptions;
     }
 
-    protected interface Condition {
+    @Override
+    public final UncaughtExceptionHandler getUncaughtExceptionHandler() {
+        return uncaughtExceptionHandler;
+    }
+
+    @Override
+    public final void setUncaughtExceptionHandler(final UncaughtExceptionHandler handler) {
+        uncaughtExceptionHandler = handler;
+    }
+
+    /**
+     * Should be called in case of an uncaught exception
+     * from within the animator thread, throws given exception if no handler has been installed.
+     * @return {@code true} if handled, otherwise {@code false}. In case of {@code false},
+     *         caller needs to propagate the exception.
+     */
+    protected final synchronized boolean handleUncaughtException(final UncaughtAnimatorException ue) {
+        if( null != uncaughtExceptionHandler ) {
+            try {
+                uncaughtExceptionHandler.uncaughtException(this, ue.getGLAutoDrawable(), ue.getCause());
+            } catch (final Throwable t) { /* ignore intentionally */ }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Should be called in case of an uncaught exception
+     * from within the animator thread to flush all animator.
+     * <p>
+     * The animator instance shall not be locked when calling this method!
+     * </p>
+     */
+    protected final void flushGLRunnables() {
+        for (int i=0; i<drawables.size(); i++) {
+            drawables.get(i).flushGLRunnables();
+        }
+    }
+
+    protected static interface Condition {
         /**
          * @return true if branching (continue waiting, action), otherwise false
          */
@@ -493,7 +563,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @param waitCondition method will wait until TO is reached or {@link Condition#eval() waitCondition.eval()} returns <code>false</code>.
      * @param pollPeriod if <code>0</code>, method will wait until TO is reached or being notified.
      *                   if &gt; <code>0</code>, method will wait for the given <code>pollPeriod</code> in milliseconds.
-     * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>, otherwise <code>false</code>.
+     * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>
+     *         or if {@link AnimatorImpl#blockUntilDone(Thread) non-blocking}. Otherwise returns <code>false</code>.
      */
     protected final synchronized boolean finishLifecycleAction(final Condition waitCondition, long pollPeriod) {
         /**
@@ -506,6 +577,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         final boolean blocking;
         long remaining;
         boolean nok;
+
         if( impl.blockUntilDone(animThread) ) {
             blocking = true;
             remaining = TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION;
@@ -539,12 +611,13 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 nok = waitCondition.eval();
             }
         }
+        final boolean res = !nok || !blocking;
         if(DEBUG || blocking && nok) { // Info only if DEBUG or ( blocking && not-ok ) ; !blocking possible if AWT
             if( blocking && remaining<=0 && nok ) {
                 System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + getThreadName());
             }
             System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): OK "+(!nok)+
-                    "- pollPeriod "+pollPeriod+", blocking "+blocking+
+                    "- pollPeriod "+pollPeriod+", blocking "+blocking+" -> res "+res+
                     ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION +
                     " - " + getThreadName());
             System.err.println(" - "+toString());
@@ -552,7 +625,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 Thread.dumpStack();
             }
         }
-        return !nok;
+        return res;
     }
 
     @Override

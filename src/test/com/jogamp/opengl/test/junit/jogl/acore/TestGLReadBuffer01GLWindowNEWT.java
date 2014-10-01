@@ -42,8 +42,11 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;
@@ -51,7 +54,11 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Test synchronous GLAutoDrawable display, swap-buffer and read-pixels with NEWT
+ * including non-MSAA and MSAA framebuffer.
+ * <p>
+ * See {@link GLReadBuffer00Base} for related bugs and further details.
+ * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
@@ -73,9 +80,33 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         try {
             glad.setPosition(64, 64);
             glad.setSize(320, 240);
-            final GearsES2 gears = new GearsES2(1);
-            gears.setVerbose(false);
-            glad.addGLEventListener(gears);
+            glad.addGLEventListener(new GLEventListener() {
+                @Override
+                public void init(final GLAutoDrawable drawable) {
+                    final GL gl = drawable.getGL();
+                    System.err.println(VersionUtil.getPlatformInfo());
+                    System.err.println("GLEventListener init on "+Thread.currentThread());
+                    System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
+                    System.err.println("INIT GL IS: " + gl.getClass().getName());
+                    System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+                }
+                @Override
+                public void dispose(final GLAutoDrawable drawable) {}
+                @Override
+                public void display(final GLAutoDrawable drawable) {}
+                @Override
+                public void reshape(final GLAutoDrawable drawable, final int x,final int y, final int width, final int height) {}
+            });
+            {
+                final GearsES2 gears = new GearsES2(1);
+                gears.setVerbose(false);
+                glad.addGLEventListener(gears);
+            }
+            {
+                final MultisampleDemoES2 demo = new MultisampleDemoES2(caps.getSampleBuffers());
+                demo.setClearBuffers(false);;
+                glad.addGLEventListener(demo);
+            }
             textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
             glad.addGLEventListener(textRendererGLEL);
             if( doSnapshot ) {

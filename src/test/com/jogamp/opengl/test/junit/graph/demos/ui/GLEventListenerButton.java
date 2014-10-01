@@ -89,8 +89,8 @@ public class GLEventListenerButton extends TextureSeqButton {
 
             final GLContext ctx = gl.getContext();
             final GLDrawable drawable = ctx.getGLDrawable();
-            final GLCapabilitiesImmutable capsHas = drawable.getChosenGLCapabilities();
-            final GLCapabilities caps = (GLCapabilities) capsHas.cloneMutable();
+            final GLCapabilitiesImmutable reqCaps = drawable.getRequestedGLCapabilities();
+            final GLCapabilities caps = (GLCapabilities) reqCaps.cloneMutable();
             caps.setFBO(true);
             caps.setDoubleBuffered(false);
             if( !useAlpha ) {
@@ -108,7 +108,7 @@ public class GLEventListenerButton extends TextureSeqButton {
             fboGLAD.addGLEventListener(glel);
             fboGLAD.display(); // 1st init!
 
-            final FBObject.TextureAttachment texA01 = fboGLAD.getTextureBuffer(GL.GL_FRONT);
+            final FBObject.TextureAttachment texA01 = fboGLAD.getColorbuffer(GL.GL_FRONT).getTextureAttachment();
             final Texture tex = new Texture(texA01.getName(), imgSeq.getTextureTarget(),
                                     fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(), fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
                                     false /* mustFlipVertically */);

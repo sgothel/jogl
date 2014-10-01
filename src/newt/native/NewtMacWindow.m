@@ -124,6 +124,9 @@ static CFStringRef CKCH_CreateStringForKey(CGKeyCode keyCode, const UCKeyboardLa
 
 static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(TISInputSourceRef keyboard) {
     CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(keyboard, kTISPropertyUnicodeKeyLayoutData);
+    if( NULL == layoutData ) {
+        return NULL;
+    }
     const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
 
     CFMutableDictionaryRef codeToCharDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 128, NULL, NULL);
@@ -149,8 +152,10 @@ static CFMutableDictionaryRef CKCH_USCodeToNNChar = NULL;
 
 static void CKCH_CreateDictionaries() {
     TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
-    CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(currentKeyboard);
-    CFRelease(currentKeyboard);
+    if( NULL != currentKeyboard ) {
+        CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(currentKeyboard);
+        CFRelease(currentKeyboard);
+    }
 }
 
 static UniChar CKCH_CharForKeyCode(jshort keyCode) {

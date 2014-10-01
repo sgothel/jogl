@@ -87,8 +87,7 @@ public class StereoClientRenderer implements GLEventListener {
 
     private void initFBOs(final GL gl, final DimensionImmutable size) {
         for(int i=0; i<fbos.length; i++) {
-            fbos[i].detachAllColorbuffer(gl);
-            fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples, false);
+            fbos[i].init(gl, size.getWidth(), size.getHeight(), numSamples);
             if( i>0 && fbos[i-1].getNumSamples() != fbos[i].getNumSamples()) {
                 throw new InternalError("sample size mismatch: \n\t0: "+fbos[i-1]+"\n\t1: "+fbos[i]);
             }
@@ -96,19 +95,19 @@ public class StereoClientRenderer implements GLEventListener {
 
             if(numSamples>0) {
                 fbos[i].attachColorbuffer(gl, 0, true); // MSAA requires alpha
-                fbos[i].attachRenderbuffer(gl, Type.DEPTH, 24);
+                fbos[i].attachRenderbuffer(gl, Type.DEPTH, FBObject.DEFAULT_BITS);
                 final FBObject ssink = new FBObject();
                 {
-                    ssink.reset(gl, size.getWidth(), size.getHeight());
+                    ssink.init(gl, size.getWidth(), size.getHeight(), 0);
                     ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
-                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
                 }
                 fbos[i].setSamplingSink(ssink);
                 fbos[i].resetSamplingSink(gl); // validate
-                fboTexs[i] = fbos[i].getSamplingSink();
+                fboTexs[i] = fbos[i].getSamplingSink().getTextureAttachment();
             } else {
                 fboTexs[i] = fbos[i].attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
-                fbos[i].attachRenderbuffer(gl, Type.DEPTH, 24);
+                fbos[i].attachRenderbuffer(gl, Type.DEPTH, FBObject.DEFAULT_BITS);
             }
             fbos[i].unbind(gl);
             System.err.println("FBO["+i+"]: "+fbos[i]);
@@ -119,15 +118,15 @@ public class StereoClientRenderer implements GLEventListener {
     @SuppressWarnings("unused")
     private void resetFBOs(final GL gl, final DimensionImmutable size) {
         for(int i=0; i<fbos.length; i++) {
-            fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples, true);
+            fbos[i].reset(gl, size.getWidth(), size.getHeight(), numSamples);
             if( i>0 && fbos[i-1].getNumSamples() != fbos[i].getNumSamples()) {
                 throw new InternalError("sample size mismatch: \n\t0: "+fbos[i-1]+"\n\t1: "+fbos[i]);
             }
             numSamples = fbos[i].getNumSamples();
             if(numSamples>0) {
-                fboTexs[i] = fbos[i].getSamplingSink();
+                fboTexs[i] = fbos[i].getSamplingSink().getTextureAttachment();
             } else {
-                fboTexs[i] = (TextureAttachment) fbos[i].getColorbuffer(0);
+                fboTexs[i] = fbos[i].getColorbuffer(0).getTextureAttachment();
             }
         }
     }

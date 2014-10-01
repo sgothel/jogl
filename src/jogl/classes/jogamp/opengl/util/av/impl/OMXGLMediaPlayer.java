@@ -100,10 +100,10 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        if(!getURI().getScheme().equals("file")) {
-            throw new IOException("Only file schemes are allowed: "+getURI());
+        if( !getUri().isFileScheme() ) {
+            throw new IOException("Only file schemes are allowed: "+getUri());
         }
-        final String path=getURI().getPath();
+        final String path=getUri().path.decode();
         if(DEBUG) {
             System.out.println("initGLStream: clean path "+path);
         }

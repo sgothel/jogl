@@ -28,7 +28,6 @@
 package com.jogamp.opengl.test.android;
 
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -41,6 +40,7 @@ import javax.media.opengl.GLRunnable;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
@@ -82,15 +82,15 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                System.getProperty("jnlp.media0_url0"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url2") };
-       final URI streamLoc0 = getURI(streamLocs, 2, false);
+       final Uri streamLoc0 = getUri(streamLocs, 2, false);
        if(null == streamLoc0) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
 
-       final URI streamLoc1;
+       final Uri  streamLoc1;
        {
-           URI _streamLoc1 = null;
+           Uri _streamLoc1 = null;
            if(mPlayerHUD && !mPlayerSharedHUD) {
                final String[] urls1 = new String[] { System.getProperty("jnlp.media1_url0") };
-               _streamLoc1 = getURI(urls1, 1, false);
+               _streamLoc1 = getUri(urls1, 1, false);
            }
            if(null == _streamLoc1) { _streamLoc1 = streamLoc0; }
            streamLoc1 = _streamLoc1;
@@ -231,15 +231,15 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
 
-   static URI getURI(final String path[], final int off, final boolean checkAvail) {
-       URI uri = null;
+   static Uri getUri(final String path[], final int off, final boolean checkAvail) {
+       Uri uri = null;
        for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
                if( checkAvail ) {
                    final URLConnection uc = IOUtil.getResource(path[i], null);
                    if( null != uc ) {
                        try {
-                           uri = uc.getURL().toURI();
+                           uri = Uri.valueOf(uc.getURL());
                        } catch (final URISyntaxException e) {
                            uri = null;
                        }
@@ -249,7 +249,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                    }
                } else {
                    try {
-                       uri = new URI(path[i]);
+                       uri = Uri.cast(path[i]);
                    } catch (final URISyntaxException e) {
                        uri = null;
                    }

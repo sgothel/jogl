@@ -57,9 +57,11 @@ import com.jogamp.opengl.GLStateKeeper;
 
 
 /**
- * Abstract common code for GLAutoDrawable implementations.
+ * Abstract common code for GLAutoDrawable implementations
+ * utilizing multithreading, i.e. {@link #isThreadGLCapable()} always returns <code>true</code>.
  *
  * @see GLAutoDrawable
+ * @see GLAutoDrawable#getThreadingMode()
  * @see GLAutoDrawableDelegate
  * @see GLOffscreenAutoDrawable
  * @see GLOffscreenAutoDrawableImpl
@@ -122,9 +124,6 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     public final void setSharedAutoDrawable(final GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
         helper.setSharedAutoDrawable(this, sharedAutoDrawable);
     }
-
-    /** Returns the recursive lock object of the upstream implementation, which synchronizes multithreaded access on top of {@link NativeSurface#lockSurface()}. */
-    protected abstract RecursiveLock getLock();
 
     @Override
     public final GLStateKeeper.Listener setGLStateKeeperListener(final Listener l) {
@@ -240,7 +239,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
                 System.err.println("GLAutoDrawableBase.sizeChanged: ("+getThreadName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(surfaceHandle));
             }
             if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
-                final RecursiveLock _lock = getLock();
+                final RecursiveLock _lock = getUpstreamLock();
                 _lock.lock();
                 try {
                     final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, context, newWidth, newHeight);
@@ -280,7 +279,13 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             shallClose = true;
         }
         if( shallClose ) {
-            destroyAvoidAwareOfLocking();
+            try {
+                destroyAvoidAwareOfLocking();
+            } catch( final Throwable t ) {
+                // Intentionally catch and ignore exception,
+                // so the destroy mechanism of the native windowing system is not corrupted!
+                GLException.dumpThrowable("ignored", t);
+            }
         }
     }
 
@@ -332,7 +337,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
      * Calls {@link #destroyImplInLock()} while claiming the lock.
      */
     protected final void defaultDestroy() {
-        final RecursiveLock lock = getLock();
+        final RecursiveLock lock = getUpstreamLock();
         lock.lock();
         try {
             destroyImplInLock();
@@ -357,30 +362,52 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             preserveGLStateAtDestroy(false);
             preserveGLEventListenerState();
         }
+
+        GLException exceptionOnDisposeGL = null;
         if( null != context ) {
             if( context.isCreated() ) {
-                // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                // so we can continue with the destruction.
                 try {
                     helper.disposeGL(this, context, true);
                 } catch (final GLException gle) {
-                    gle.printStackTrace();
+                    exceptionOnDisposeGL = gle;
                 }
             }
             context = null;
         }
+
+        Throwable exceptionOnUnrealize = null;
+        Throwable exceptionOnDeviceClose = null;
         if( null != drawable ) {
             final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-            drawable.setRealized(false);
-            drawable = null;
-            if( ownsDevice ) {
-                device.close();
+            try {
+                drawable.setRealized(false);
+            } catch( final Throwable re ) {
+                exceptionOnUnrealize = re;
             }
+            drawable = null;
+            try {
+                if( ownsDevice ) {
+                    device.close();
+                }
+            } catch (final Throwable re) {
+                exceptionOnDeviceClose = re;
+            }
+        }
+
+        // throw exception in order of occurrence ..
+        if( null != exceptionOnDisposeGL ) {
+            throw exceptionOnDisposeGL;
+        }
+        if( null != exceptionOnUnrealize ) {
+            throw GLException.newGLException(exceptionOnUnrealize);
+        }
+        if( null != exceptionOnDeviceClose ) {
+            throw GLException.newGLException(exceptionOnDeviceClose);
         }
     }
 
     public final void defaultSwapBuffers() throws GLException {
-        final RecursiveLock _lock = getLock();
+        final RecursiveLock _lock = getUpstreamLock();
         _lock.lock();
         try {
             if(null != drawable) {
@@ -421,7 +448,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             destroy();
             return;
         }
-        final RecursiveLock _lock = getLock();
+        final RecursiveLock _lock = getUpstreamLock();
         _lock.lock();
         try {
             if( null == context ) {
@@ -452,7 +479,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     protected final GLEventListener defaultDisposeGLEventListener(final GLEventListener listener, final boolean remove) {
-        final RecursiveLock _lock = getLock();
+        final RecursiveLock _lock = getUpstreamLock();
         _lock.lock();
         try {
             return helper.disposeGLEventListener(GLAutoDrawableBase.this, drawable, context, listener, remove);
@@ -473,7 +500,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
 
     @Override
     public final GLContext setContext(final GLContext newCtx, final boolean destroyPrevCtx) {
-        final RecursiveLock lock = getLock();
+        final RecursiveLock lock = getUpstreamLock();
         lock.lock();
         try {
             final GLContext oldCtx = context;
@@ -571,13 +598,18 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public final boolean invoke(final boolean wait, final GLRunnable glRunnable) {
+    public final boolean invoke(final boolean wait, final GLRunnable glRunnable) throws IllegalStateException {
         return helper.invoke(this, wait, glRunnable);
     }
 
     @Override
-    public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+    public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) throws IllegalStateException {
         return helper.invoke(this, wait, glRunnables);
+    }
+
+    @Override
+    public void flushGLRunnables() {
+        helper.flushGLRunnables();
     }
 
     @Override
@@ -603,6 +635,15 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     public final int getContextCreationFlags() {
         return additionalCtxCreationFlags;
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Implementation always supports multithreading, hence method always returns <code>true</code>.
+     * </p>
+     */
+    @Override
+    public final boolean isThreadGLCapable() { return true; }
 
     //
     // FPSCounter
@@ -664,7 +705,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
 
     @Override
     public final GLContext createContext(final GLContext shareWith) {
-        final RecursiveLock lock = getLock();
+        final RecursiveLock lock = getUpstreamLock();
         lock.lock();
         try {
             if(drawable != null) {
@@ -680,7 +721,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
 
     @Override
     public final void setRealized(final boolean realized) {
-        final RecursiveLock _lock = getLock();
+        final RecursiveLock _lock = getUpstreamLock();
         _lock.lock();
         try {
             final GLDrawable _drawable = drawable;
@@ -724,6 +765,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     public final GLCapabilitiesImmutable getChosenGLCapabilities() {
         final GLDrawable _drawable = drawable;
         return null != _drawable ? _drawable.getChosenGLCapabilities() : null;
+    }
+
+    @Override
+    public final GLCapabilitiesImmutable getRequestedGLCapabilities() {
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getRequestedGLCapabilities() : null;
     }
 
     @Override

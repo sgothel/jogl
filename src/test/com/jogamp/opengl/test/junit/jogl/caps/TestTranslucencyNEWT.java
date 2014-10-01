@@ -31,11 +31,10 @@ package com.jogamp.opengl.test.junit.jogl.caps;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.opengl.GLCapabilities;
@@ -147,13 +146,18 @@ public class TestTranslucencyNEWT extends UITestCase {
     static long duration = 500; // ms
 
     public static void main(final String args[]) {
+        boolean waitForKey = false;
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (final Exception ex) { ex.printStackTrace(); }
+                duration = MiscUtils.atol(args[i], duration);
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
+        }
+        if( waitForKey ) {
+            UITestCase.waitForKey("main");
         }
         org.junit.runner.JUnitCore.main(TestTranslucencyNEWT.class.getName());
     }

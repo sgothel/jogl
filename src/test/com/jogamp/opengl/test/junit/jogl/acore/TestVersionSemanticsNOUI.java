@@ -37,7 +37,6 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.osjava.jardiff.DiffCriteria;
-import org.osjava.jardiff.SimpleDiffCriteria;
 import org.semver.Delta;
 
 import com.jogamp.common.util.JogampVersion;
@@ -49,39 +48,48 @@ import com.jogamp.opengl.JoglVersion;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestVersionSemanticsNOUI extends JunitTracer {
     static final String jarFile = "jogl-all.jar";
-    static final VersionNumberString preVersionNumber = new VersionNumberString("2.1.5");
-    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
 
-    static final DiffCriteria diffCriteria = new SimpleDiffCriteria();
-    // static final DiffCriteria diffCriteria = new PublicDiffCriteria();
+    static final DiffCriteria diffCriteria = new org.osjava.jardiff.SimpleDiffCriteria();
+    // static final DiffCriteria diffCriteria = new org.osjava.jardiff.PublicDiffCriteria();
 
     static final JogampVersion curVersion = JoglVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
-    static final Set<String> excludes;
+    static final Set<String> excludesDefault;
     static {
-        excludes = new HashSet<String>();
-        excludes.add("^\\Qjogamp/\\E.*$");
+        excludesDefault = new HashSet<String>();
+        excludesDefault.add("^\\Qjogamp/\\E.*$");
     }
 
 
     // @Test
     public void testVersionV212V213() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.2", "2.1.3");
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.2", "2.1.3", excludesDefault);
     }
 
     // @Test
     public void testVersionV213V214() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.3", "2.1.4");
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.3", "2.1.4", excludesDefault);
     }
 
     // @Test
     public void testVersionV214V215() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.4", "2.1.5");
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.4", "2.1.5", excludesDefault);
+    }
+
+    // @Test
+    public void testVersionV215V220() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.5", "2.2.0", excludesDefault);
+    }
+
+    @Test
+    public void testVersionV220V221() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.0", "2.2.1", excludesDefault);
     }
 
     void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
-                      final String v1, final String v2) throws IllegalArgumentException, IOException, URISyntaxException {
+                      final String v1, final String v2, final Set<String> excludes)
+                              throws IllegalArgumentException, IOException, URISyntaxException {
         final VersionNumberString preVersionNumber = new VersionNumberString(v1);
         final File previousJar = new File("lib/v"+v1+"/"+jarFile);
 
@@ -95,7 +103,11 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
     }
 
     @Test
-    public void testVersionLatest() throws IllegalArgumentException, IOException, URISyntaxException {
+    public void testVersionV221V23x() throws IllegalArgumentException, IOException, URISyntaxException {
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+
+        final VersionNumberString preVersionNumber = new VersionNumberString("2.2.1");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
 
         final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
@@ -103,7 +115,7 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
         VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
                                          previousJar, preVersionNumber,
                                          curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludes);
+                                         excludesDefault);
     }
 
     public static void main(final String args[]) throws IOException {

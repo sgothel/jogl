@@ -27,12 +27,14 @@
  */
 package com.jogamp.opengl.test.junit.graph;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
@@ -42,6 +44,8 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
@@ -49,8 +53,10 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 
 
@@ -64,13 +70,16 @@ public class TestTextRendererNEWT10 extends UITestCase {
     static boolean mainRun = false;
     static boolean useMSAA = true;
 
-    static final int[] texSize = new int[] { 0 };
-    static final int fontSize = 24;
     static Font font;
+    static float fontSize = 24;
+    static String customStr = null;
 
     @BeforeClass
     public static void setup() throws IOException {
-        font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+        if( null == font ) {
+            font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+            // font = FontFactory.get(FontFactory.JAVA).getDefault();
+        }
     }
 
     static int atoi(final String a) {
@@ -91,6 +100,15 @@ public class TestTextRendererNEWT10 extends UITestCase {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
+            } else if(args[i].equals("-font")) {
+                i++;
+                font = FontFactory.get(IOUtil.getResource(TestTextRendererNEWT10.class, args[i]).getInputStream(), true);
+            } else if(args[i].equals("-fontSize")) {
+                i++;
+                fontSize = MiscUtils.atof(args[i], fontSize);
+            } else if(args[i].equals("-text")) {
+                i++;
+                customStr = args[i];
             }
         }
         final String tstname = TestTextRendererNEWT10.class.getName();
@@ -104,17 +122,22 @@ public class TestTextRendererNEWT10 extends UITestCase {
         } catch (final InterruptedException ie) {}
     }
 
-    // @Test
-    public void test00TextRendererNONE01() throws InterruptedException {
-        testTextRendererImpl(0);
+    @Test
+    public void test00TextRendererNONE00() throws InterruptedException, GLException, IOException {
+        testTextRendererImpl(0, 0);
     }
 
     @Test
-    public void testTextRendererMSAA01() throws InterruptedException {
-        testTextRendererImpl(4);
+    public void test01TextRendererMSAA04() throws InterruptedException, GLException, IOException {
+        testTextRendererImpl(0, 4);
     }
 
-    void testTextRendererImpl(final int sampleCount) throws InterruptedException {
+    @Test
+    public void test02TextRendererVBAA04() throws InterruptedException, GLException, IOException {
+        testTextRendererImpl(Region.VBAA_RENDERING_BIT, 4);
+    }
+
+    void testTextRendererImpl(final int renderModes, final int sampleCount) throws InterruptedException, GLException, IOException {
         final GLProfile glp;
         if(forceGL3) {
             glp = GLProfile.get(GLProfile.GL3);
@@ -123,15 +146,17 @@ public class TestTextRendererNEWT10 extends UITestCase {
         } else {
             glp = GLProfile.getGL2ES2();
         }
+
         final GLCapabilities caps = new GLCapabilities( glp );
         caps.setAlphaBits(4);
-        if( 0 < sampleCount ) {
+        if( 0 < sampleCount && !Region.isVBAA(renderModes) ) {
             caps.setSampleBuffers(true);
             caps.setNumSamples(sampleCount);
         }
         System.err.println("Requested: "+caps);
+        System.err.println("Requested: "+Region.getRenderModeString(renderModes));
 
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(caps, 800, 400, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(caps, 800, 400, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 
@@ -142,12 +167,13 @@ public class TestTextRendererNEWT10 extends UITestCase {
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
-        final TextRegionUtil textRenderUtil = new TextRegionUtil(0);
+        final TextRegionUtil textRenderUtil = new TextRegionUtil(renderModes);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.init(gl, 0);
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+        screenshot = new GLReadBufferUtil(false, false);
 
         // reshape
         gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
@@ -155,32 +181,40 @@ public class TestTextRendererNEWT10 extends UITestCase {
         // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
         renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
 
+        final int[] sampleCountIO = { sampleCount };
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0,  0, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, -1000);
+        if( null == customStr ) {
+            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0,  0, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000,sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, -1000, sampleCountIO);
 
-        int c = 0;
-        renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, -1000);
-        renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, -1000);
-
+            int c = 0;
+            renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, -1000, sampleCountIO);
+        } else {
+            renderString(drawable, gl, renderer, textRenderUtil, customStr, 0,  0, -1000, sampleCountIO);
+        }
         drawable.swapBuffers();
+        printScreen(renderModes, drawable, gl, false, sampleCount);
+
         sleep();
 
         // dispose
+        screenshot.dispose(gl);
         renderer.destroy(gl);
 
         NEWTGLContext.destroyWindow(winctx);
     }
 
+    private GLReadBufferUtil screenshot;
     int lastRow = -1;
 
-    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0) {
+    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
         final int height = drawable.getSurfaceHeight();
 
         int dx = 0;
@@ -196,8 +230,25 @@ public class TestTextRendererNEWT10 extends UITestCase {
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);
-        textRenderUtil.drawString3D(gl, renderer, font, fontSize, text, null, texSize);
+        textRenderUtil.drawString3D(gl, renderer, font, fontSize, text, null, sampleCount);
 
         lastRow = row;
     }
+
+    private int screenshot_num = 0;
+
+    public void printScreen(final int renderModes, final GLDrawable drawable, final GL gl, final boolean exportAlpha, final int sampleCount) throws GLException, IOException {
+        final String dir = "./";
+        final String objName = getSimpleTestName(".")+"-snap"+screenshot_num;
+        screenshot_num++;
+        final String modeS = Region.getRenderModeString(renderModes);
+        final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
+                drawable.getChosenGLCapabilities().getNumSamples(),
+                TestTextRendererNEWT10.fontSize, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
+        final String filename = dir + bname +".png";
+        if(screenshot.readPixels(gl, false)) {
+            screenshot.write(new File(filename));
+        }
+    }
+
 }

@@ -27,14 +27,13 @@
  */
 package com.jogamp.opengl.util.av;
 
-import java.net.URI;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.TimeFrameI;
@@ -46,18 +45,18 @@ import com.jogamp.opengl.util.TimeFrameI;
  * Audio maybe supported and played back internally or via an {@link AudioSink} implementation.
  * </p>
  * <p>
- * Audio and video streams can be selected or muted via {@link #initStream(URI, int, int, int)}
+ * Audio and video streams can be selected or muted via {@link #initStream(Uri, int, int, int)}
  * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
  * <p>
- * Camera input can be selected using the {@link #CameraInputScheme} URI.
+ * Camera input can be selected using the {@link #CameraInputScheme} Uri.
  * </p>
  *
  * <a name="streamworker"><h5><i>StreamWorker</i> Decoding Thread</h5></a>
  * <p>
  * Most of the stream processing is performed on the decoding thread, a.k.a. <i>StreamWorker</i>:
  * <ul>
- *   <li>Stream initialization triggered by {@link #initStream(URI, int, int, int) initStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
+ *   <li>Stream initialization triggered by {@link #initStream(Uri, int, int, int) initStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
  *   <li>Stream decoding - User gets notified of a new frame via {@link GLMediaEventListener#newFrameAvailable(GLMediaPlayer, com.jogamp.opengl.util.texture.TextureSequence.TextureFrame, long) newFrameAvailable(...)}.</li>
  *   <li>Caught <a href="#streamerror">exceptions on the decoding thread</a> are delivered as {@link StreamException}s.</li>
  * </ul>
@@ -83,7 +82,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  * <p>
  * <table border="1">
  *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link GLMediaEventListener Event}</th></tr>
- *   <tr><td>{@link #initStream(URI, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
+ *   <tr><td>{@link #initStream(Uri, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
  *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}</td>                       <td>{@link State#Paused Paused}, , {@link State#Uninitialized Uninitialized}</td>                                                  <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
  *   <tr><td>{@link #play()}</td>                                      <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
  *   <tr><td>{@link #pause(boolean)}</td>                              <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
@@ -183,6 +182,9 @@ import com.jogamp.opengl.util.TimeFrameI;
  *   <!-- <tr><td> title </td><td colspan=3> url1 </td><td> url2 </td></tr>
  * </table>
  * </p>
+ * <p>
+ * Since 2.3.0 this interface uses {@link Uri} instead of {@link java.net.URI}.
+ * </p>
  */
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
@@ -200,10 +202,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final int STREAM_ID_AUTO = -1;
 
     /**
-     * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera:/0</code>
+     * {@link Uri#scheme Uri scheme} name {@value} for camera input. E.g. <code>camera:/0</code>
      * for the 1st camera device.
      * <p>
-     * The {@link URI#getRawPath() URI path} is being used to identify the camera (<i>ID</i>),
+     * The {@link Uri#path Uri path} is being used to identify the camera (<i>ID</i>),
      * where the root fwd-slash is being cut-off.
      * </p>
      * <p>
@@ -211,7 +213,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * ranging from [0..<i>max-number</i>].
      * </p>
      * <p>
-     * The {@link URI#getRawQuery() URI query} is used to pass options to the camera
+     * The {@link Uri#query Uri query} is used to pass options to the camera
      * using <i>;</i> as the separator. The latter avoids trouble w/ escaping.
      * </p>
      * <pre>
@@ -221,13 +223,13 @@ public interface GLMediaPlayer extends TextureSequence {
      *    camera://somewhere/<id>?size=640x480;rate=15
      * </pre>
      * <pre>
-     *  URI: [scheme:][//authority][path][?query][#fragment]
+     *  Uri: [scheme:][//authority][path][?query][#fragment]
      *  w/ authority: [user-info@]host[:port]
      *  Note: 'path' starts w/ fwd slash
      * </pre>
      * </p>
      */
-    public static final String CameraInputScheme = "camera";
+    public static final Uri.Encoded CameraInputScheme = Uri.Encoded.cast("camera");
     /** Camera property {@value}, size as string, e.g. <code>1280x720</code>, <code>hd720</code>. May not be supported on all platforms. See {@link #CameraInputScheme}. */
     public static final String CameraPropSizeS = "size";
     /** Camera property {@value}. See {@link #CameraInputScheme}. */
@@ -361,8 +363,9 @@ public interface GLMediaPlayer extends TextureSequence {
      *        Ignored if video is muted.
      * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
      * @throws IllegalArgumentException if arguments are invalid
+     * @since 2.3.0
      */
-    public void initStream(URI streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
+    public void initStream(Uri streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
 
     /**
      * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code> if none occured.
@@ -379,7 +382,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Initialized} -> {@link State#Paused} or {@link State#Initialized}
      * </p>
-     * Argument <code>gl</code> is ignored if video is muted, see {@link #initStream(URI, int, int, int)}.
+     * Argument <code>gl</code> is ignored if video is muted, see {@link #initStream(Uri, int, int, int)}.
      *
      * @param gl current GL object. Maybe <code>null</code>, for audio only.
      * @throws IllegalStateException if not invoked in {@link State#Initialized}.
@@ -391,7 +394,7 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * If implementation uses a {@link AudioSink}, it's instance will be returned.
      * <p>
-     * The {@link AudioSink} instance is available after {@link #initStream(URI, int, int, int)},
+     * The {@link AudioSink} instance is available after {@link #initStream(Uri, int, int, int)},
      * if used by implementation.
      * </p>
      */
@@ -536,8 +539,11 @@ public interface GLMediaPlayer extends TextureSequence {
     @Override
     public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException;
 
-    /** Return the stream location, as set by {@link #initStream(URI, int, int, int)}. */
-    public URI getURI();
+    /**
+     * Return the stream location, as set by {@link #initStream(Uri, int, int, int)}.
+     * @since 2.3.0
+     */
+    public Uri getUri();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.

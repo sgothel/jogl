@@ -32,6 +32,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.opengl.GLAnimatorControl;
@@ -54,13 +56,15 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Tests multiple JFrames each with a [GLJPanels, GLCanvas or NewtCanvasAWT]
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPerf001GLJPanelInit02AWT extends UITestCase {
@@ -71,13 +75,23 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         GLProfile.initSingleton();
     }
 
+    static enum CanvasType { NOP_T, GLCanvas_T, GLJPanel_T, NewtCanvasAWT_T };
+
+    static class GLADComp {
+        GLADComp(final GLAutoDrawable glad, final Component comp) {
+            this.glad = glad;
+            this.comp = comp;
+        }
+        final GLAutoDrawable glad;
+        final Component comp;
+    }
+
     public void test(final GLCapabilitiesImmutable caps, final boolean useGears, final boolean skipGLOrientationVerticalFlip, final int width,
-                     final int height, final int frameCount, final boolean initMT, final boolean useGLJPanel,
-                     final boolean useSwingDoubleBuffer, final boolean useGLCanvas, final boolean useAnim, final boolean overlap) {
+                     final int height, final int frameCount, final boolean initMT,
+                     final boolean useSwingDoubleBuffer, final CanvasType canvasType, final boolean useAnim, final boolean overlap) {
         final GLAnimatorControl animator;
         if( useAnim ) {
             animator = new Animator();
-            animator.start();
         } else {
             animator = null;
         }
@@ -91,6 +105,8 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         System.err.println("Frame size: "+width+"x"+height+" -> "+frameCount+" x "+eWidth+"x"+eHeight+", overlap "+overlap);
         System.err.println("SkipGLOrientationVerticalFlip "+skipGLOrientationVerticalFlip+", useGears "+useGears+", initMT "+initMT+", useAnim "+useAnim);
         final JFrame[] frame = new JFrame[frameCount];
+        final List<NewtCanvasAWT> newtCanvasAWTList = new ArrayList<NewtCanvasAWT>();
+
         final long[] t = new long[10];
         if( wait ) {
             UITestCase.waitForKey("Pre-Init");
@@ -103,7 +119,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                     t[0] = Platform.currentTimeMillis();
                     int x = 32, y = 32;
                     for(int i=0; i<frameCount; i++) {
-                        frame[i] = new JFrame("frame_"+i+"/"+frameCount);
+                        frame[i] = new JFrame(i+"/"+frameCount);
                         frame[i].setLocation(x, y);
                         if(!overlap) {
                             x+=eWidth+32;
@@ -117,9 +133,26 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                         panel.setDoubleBuffered(useSwingDoubleBuffer);
                         // panel.setBounds(0, 0, width, height);
                         final Dimension eSize = new Dimension(eWidth, eHeight);
-                        final GLAutoDrawable glad = useGLJPanel ? createGLJPanel(initMT, useSwingDoubleBuffer, caps, useGears, skipGLOrientationVerticalFlip, animator, eSize) : ( useGLCanvas ? createGLCanvas(caps, useGears, animator, eSize) : null );
-                        if( null != glad ) {
-                            glad.addGLEventListener(new GLEventListener() {
+                        final GLADComp gladComp;
+                        switch(canvasType) {
+                            case GLCanvas_T:
+                                gladComp = createGLCanvas(caps, useGears, animator, eSize);
+                                break;
+                            case GLJPanel_T:
+                                gladComp = createGLJPanel(initMT, useSwingDoubleBuffer, caps, useGears, skipGLOrientationVerticalFlip, animator, eSize);
+                                break;
+                            case NewtCanvasAWT_T:
+                                gladComp = createNewtCanvasAWT(caps, useGears, animator, eSize);
+                                newtCanvasAWTList.add((NewtCanvasAWT)gladComp.comp);
+                                break;
+                            case NOP_T:
+                                gladComp = null;
+                                break;
+                            default: throw new InternalError("XXX");
+                        }
+
+                        if( null != gladComp ) {
+                            gladComp.glad.addGLEventListener(new GLEventListener() {
                                 @Override
                                 public void init(final GLAutoDrawable drawable) {
                                     initCount.incrementAndGet();
@@ -131,7 +164,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                                 @Override
                                 public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
                             });
-                            panel.add((Component)glad);
+                            panel.add(gladComp.comp);
                         } else {
                             @SuppressWarnings("serial")
                             final JTextArea c = new JTextArea("area "+i) {
@@ -192,7 +225,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         final double panelCountF = initCount.get();
         System.err.printf("P: %d %s%s:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
                 initCount.get(),
-                useGLJPanel?"GLJPanel":(useGLCanvas?"GLCanvas":"No_GL"), initMT?" (mt)":" (01)",
+                canvasType, initMT?" (mt)":" (01)",
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
                 t[3]-t[0], (t[3]-t[0])/panelCountF);
@@ -201,15 +234,24 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         if( wait ) {
             UITestCase.waitForKey("Post-Init");
         }
+        if( null != animator ) {
+            animator.start();
+        }
         try {
             Thread.sleep(duration);
         } catch (final InterruptedException e1) {
             e1.printStackTrace();
         }
+        if( null != animator ) {
+            animator.stop();
+        }
         t[4] = Platform.currentTimeMillis();
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
+                        while( !newtCanvasAWTList.isEmpty() ) {
+                            newtCanvasAWTList.remove(0).destroy(); // removeNotify does not destroy GLWindow
+                        }
                         for(int i=0; i<frameCount; i++) {
                             frame[i].dispose();
                         }
@@ -226,7 +268,22 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         System.err.println("Total: "+(t[4]-t[0]));
     }
 
-    private GLAutoDrawable createGLCanvas(final GLCapabilitiesImmutable caps, final boolean useGears, final GLAnimatorControl anim, final Dimension size) {
+    private GLADComp createNewtCanvasAWT(final GLCapabilitiesImmutable caps, final boolean useGears, final GLAnimatorControl anim, final Dimension size) {
+        final GLWindow window = GLWindow.create(caps);
+        final NewtCanvasAWT canvas = new NewtCanvasAWT(window);
+        canvas.setSize(size);
+        canvas.setPreferredSize(size);
+        if( useGears ) {
+            final GearsES2 g = new GearsES2(0);
+            g.setVerbose(false);
+            window.addGLEventListener(g);
+        }
+        if( null != anim ) {
+            anim.add(window);
+        }
+        return new GLADComp(window, canvas);
+    }
+    private GLADComp createGLCanvas(final GLCapabilitiesImmutable caps, final boolean useGears, final GLAnimatorControl anim, final Dimension size) {
         final GLCanvas canvas = new GLCanvas(caps);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
@@ -238,9 +295,9 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         if( null != anim ) {
             anim.add(canvas);
         }
-        return canvas;
+        return new GLADComp(canvas, canvas);
     }
-    private GLAutoDrawable createGLJPanel(final boolean initMT, final boolean useSwingDoubleBuffer, final GLCapabilitiesImmutable caps, final boolean useGears, final boolean skipGLOrientationVerticalFlip, final GLAnimatorControl anim, final Dimension size) {
+    private GLADComp createGLJPanel(final boolean initMT, final boolean useSwingDoubleBuffer, final GLCapabilitiesImmutable caps, final boolean useGears, final boolean skipGLOrientationVerticalFlip, final GLAnimatorControl anim, final Dimension size) {
         final GLJPanel canvas = new GLJPanel(caps);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
@@ -260,7 +317,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         if( initMT ) {
             canvas.initializeBackend(true /* offthread */);
         }
-        return canvas;
+        return new GLADComp(canvas, canvas);
     }
 
     static GLCapabilitiesImmutable caps = null;
@@ -272,31 +329,37 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     @Test
     public void test00NopNoGLDefGrid() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             false /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.NOP_T, false /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test01NopGLCanvasDefGrid() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             false /* useGLJPanel */, false /*useSwingDoubleBuffer*/, true /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLCanvas_T, false /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test02NopGLJPanelDefGridSingleAutoFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test03NopGLJPanelDefGridSingleManualFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, true /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test04NopGLJPanelDefGridMTManualFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, true /*skipGLOrientationVerticalFlip*/, width , height, frameCount, true  /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, false /* overlap */);
+    }
+
+    @Test
+    public void test05NopNewtCanvasAWTDefGrid() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
+             false /*useSwingDoubleBuffer*/, CanvasType.NewtCanvasAWT_T, false /*useAnim*/, false /* overlap */);
     }
 
     //
@@ -304,35 +367,34 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     //
 
     @Test
-    public void test10GearsNoGLDefGrid() throws InterruptedException, InvocationTargetException {
-        test(new GLCapabilities(null), true /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             false /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
-    }
-
-    @Test
     public void test11GearsGLCanvasDefGrid() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), true /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             false /* useGLJPanel */, false /*useSwingDoubleBuffer*/, true /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLCanvas_T, true /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test12GearsGLJPanelDefGridSingleAutoFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), true /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, true /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test13GearsGLJPanelDefGridSingleManualFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), true /*useGears*/, true /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, true /*useAnim*/, false /* overlap */);
     }
 
     @Test
     public void test14GearsGLJPanelDefGridMTManualFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), true /*useGears*/, true /*skipGLOrientationVerticalFlip*/, width , height, frameCount, true  /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, true /*useAnim*/, false /* overlap */);
     }
 
+    @Test
+    public void test15GearsNewtCanvasAWTDefGrid() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), true /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
+             false /*useSwingDoubleBuffer*/, CanvasType.NewtCanvasAWT_T, true /*useAnim*/, false /* overlap */);
+    }
 
     //
     // Overlap + NOP
@@ -342,31 +404,37 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     @Test
     public void test20NopNoGLDefOverlap() throws InterruptedException, InvocationTargetException {
         test(null, false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             false /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.NOP_T, false /*useAnim*/, true /* overlap */);
     }
 
     @Test
     public void test21NopGLCanvasDefOverlap() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             false /* useGLJPanel */, false /*useSwingDoubleBuffer*/, true /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLCanvas_T, false /*useAnim*/, true /* overlap */);
     }
 
     @Test
     public void test22NopGLJPanelDefOverlapSingle() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, true /* overlap */);
     }
 
     @Test
     public void test23NopGLJPanelDefOverlapMT() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, true  /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, true /* overlap */);
+    }
+
+    @Test
+    public void test25NopNewtCanvasAWTDefOverlap() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
+             false /*useSwingDoubleBuffer*/, CanvasType.NewtCanvasAWT_T, false /*useAnim*/, true /* overlap */);
     }
 
     // @Test
     public void testXXNopGLJPanelDefOverlapSingle() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, true /* overlap */);
     }
 
     // @Test
@@ -374,7 +442,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(null);
         caps.setBitmap(true);
         test(caps, false /*useGears*/, false /*skipGLOrientationVerticalFlip*/, width , height, frameCount, false /* initMT */,
-             true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false);
+             false /*useSwingDoubleBuffer*/, CanvasType.GLJPanel_T, false /*useAnim*/, false);
     }
 
     static long duration = 0; // ms
@@ -386,7 +454,8 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     public static void main(final String[] args) {
         boolean manual=false;
         boolean waitMain = false;
-        boolean useGLJPanel = true, initMT = false, useGLCanvas = false, useSwingDoubleBuffer=false;
+        CanvasType canvasType = CanvasType.GLJPanel_T;
+        boolean initMT = false, useSwingDoubleBuffer=false;
         boolean useGears = false, skipGLOrientationVerticalFlip=false, useAnim = false;
         boolean overlap = false;
 
@@ -403,16 +472,12 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
             } else if(args[i].equals("-initMT")) {
                 initMT = true;
                 manual = true;
-            } else if(args[i].equals("-glcanvas")) {
-                useGLJPanel = false;
-                useGLCanvas = true;
+            } else if(args[i].equals("-type")) {
+                i++;
+                canvasType = CanvasType.valueOf(args[i]);
                 manual = true;
             } else if(args[i].equals("-swingDoubleBuffer")) {
                 useSwingDoubleBuffer = true;
-            } else if(args[i].equals("-glnone")) {
-                useGLJPanel = false;
-                useGLCanvas = false;
-                manual = true;
             } else if(args[i].equals("-gears")) {
                 useGears = true;
             } else if(args[i].equals("-anim")) {
@@ -438,7 +503,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
             GLProfile.initSingleton();
             final TestPerf001GLJPanelInit02AWT demo = new TestPerf001GLJPanelInit02AWT();
             demo.test(null, useGears, skipGLOrientationVerticalFlip, width, height, frameCount,
-                      initMT, useGLJPanel, useSwingDoubleBuffer, useGLCanvas, useAnim, overlap);
+                      initMT, useSwingDoubleBuffer, canvasType, useAnim, overlap);
         } else {
             org.junit.runner.JUnitCore.main(TestPerf001GLJPanelInit02AWT.class.getName());
         }

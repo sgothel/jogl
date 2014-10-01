@@ -49,7 +49,7 @@ public class FBOMix2DemosES2 implements GLEventListener {
     private final GearsES2 demo0;
     private final RedSquareES2 demo1;
     private final int swapInterval;
-    private int numSamples;
+    private volatile int numSamples;
     private boolean demo0Only;
 
 
@@ -156,13 +156,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
     }
 
     private void initFBOs(final GL gl, final GLAutoDrawable drawable) {
-        // remove all texture attachments, since MSAA uses just color-render-buffer
-        // and non-MSAA uses texture2d-buffer
-        fbo0.detachAllColorbuffer(gl);
-        fbo1.detachAllColorbuffer(gl);
-
-        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
-        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
+        fbo0.init(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
+        fbo1.init(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }
@@ -173,32 +168,32 @@ public class FBOMix2DemosES2 implements GLEventListener {
             fbo0.resetSamplingSink(gl);
             fbo1.attachColorbuffer(gl, 0, true);
             fbo1.resetSamplingSink(gl);
-            fbo0Tex = fbo0.getSamplingSink();
-            fbo1Tex = fbo1.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
+            fbo1Tex = fbo1.getSamplingSink().getTextureAttachment();
         } else {
             fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
             fbo1Tex = fbo1.attachTexture2D(gl, 0, true);
         }
         numSamples=fbo0.getNumSamples();
-        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo0.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         fbo0.unbind(gl);
-        fbo1.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo1.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         fbo1.unbind(gl);
     }
 
     private void resetFBOs(final GL gl, final GLAutoDrawable drawable) {
-        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, true);
-        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, true);
+        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
+        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }
         numSamples = fbo0.getNumSamples();
         if(numSamples>0) {
-            fbo0Tex = fbo0.getSamplingSink();
-            fbo1Tex = fbo1.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
+            fbo1Tex = fbo1.getSamplingSink().getTextureAttachment();
         } else {
-            fbo0Tex = (TextureAttachment) fbo0.getColorbuffer(0);
-            fbo1Tex = (TextureAttachment) fbo1.getColorbuffer(0);
+            fbo0Tex = fbo0.getColorbuffer(0).getTextureAttachment();
+            fbo1Tex = fbo1.getColorbuffer(0).getTextureAttachment();
         }
     }
 

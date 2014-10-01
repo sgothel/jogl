@@ -88,7 +88,7 @@ public interface Font {
         float getScale(final float pixelSize);
         /**
          * @param dest AABBox instance set to this metrics boundary w/ given pixelSize
-         * @param pixelSize
+         * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link Font#getPixelSize(float, float)}
          * @param tmpV3 caller provided temporary 3-component vector
          * @return the given and set AABBox 'dest'
          */
@@ -113,14 +113,25 @@ public interface Font {
         public char getSymbol();
         public short getID();
         public AABBox getBBox();
+        /**
+         *
+         * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link Font#getPixelSize(float, float)}
+         * @return
+         */
         public float getScale(final float pixelSize);
         /**
          * @param dest AABBox instance set to this metrics boundary w/ given pixelSize
-         * @param pixelSize
+         * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link Font#getPixelSize(float, float)}
          * @param tmpV3 caller provided temporary 3-component vector
          * @return the given and set AABBox 'dest'
          */
         public AABBox getBBox(final AABBox dest, final float pixelSize, float[] tmpV3);
+        /**
+         *
+         * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link Font#getPixelSize(float, float)}
+         * @param useFrationalMetrics
+         * @return
+         */
         public float getAdvance(final float pixelSize, boolean useFrationalMetrics);
         public OutlineShape getShape();
         public int hashCode();
@@ -153,13 +164,37 @@ public interface Font {
      */
     public float getPixelSize(final float fontSize /* points per inch */, final float resolution);
 
+    /**
+     *
+     * @param glyphID
+     * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link #getPixelSize(float, float)}
+     * @return
+     */
     public float getAdvanceWidth(final int glyphID, final float pixelSize);
     public Metrics getMetrics();
     public Glyph getGlyph(final char symbol);
     public int getNumGlyphs();
 
+    /**
+     *
+     * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link #getPixelSize(float, float)}
+     * @return
+     */
     public float getLineHeight(final float pixelSize);
+    /**
+     *
+     * @param string
+     * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link #getPixelSize(float, float)}
+     * @return
+     */
     public float getMetricWidth(final CharSequence string, final float pixelSize);
+    /**
+     *
+     * @param string
+     * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link #getPixelSize(float, float)}
+     * @param tmp
+     * @return
+     */
     public float getMetricHeight(final CharSequence string, final float pixelSize, final AABBox tmp);
     /**
      * Return the <i>layout</i> bounding box as computed by each glyph's metrics.
@@ -168,7 +203,7 @@ public interface Font {
      * See {@link #getPointsBounds(AffineTransform, CharSequence, float, AffineTransform, AffineTransform)} for pixel correct results.
      * </p>
      * @param string string text
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link #getPixelSize(float, float)}
      */
     public AABBox getMetricBounds(final CharSequence string, final float pixelSize);
 
@@ -176,7 +211,7 @@ public interface Font {
      * Return the bounding box by taking each glyph's point-based bounding box into account.
      * @param transform optional given transform
      * @param string string text
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param pixelSize Use <code>pointSize * resolution</code> for resolution correct pixel-size, see {@link #getPixelSize(float, float)}
      * @param temp1 temporary AffineTransform storage, mandatory
      * @param temp2 temporary AffineTransform storage, mandatory
      */

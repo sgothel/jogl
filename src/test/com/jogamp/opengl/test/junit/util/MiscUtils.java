@@ -214,21 +214,23 @@ public class MiscUtils {
         }
     }
 
-    public static void dumpSharedGLContext(final GLContext self) {
+    public static void dumpSharedGLContext(final String prefix, final GLContext self) {
       int i = 0, j = 0;
-      System.err.println("Myself: hash 0x"+Integer.toHexString(self.hashCode())+", \t(isShared "+self.isShared()+", created "+self.isCreated()+")");
+      final GLContext master = self.getSharedMaster();
+      final int masterHash = null != master ? master.hashCode() : 0;
+      System.err.println(prefix+": hash 0x"+Integer.toHexString(self.hashCode())+", \t(isShared "+self.isShared()+", created "+self.isCreated()+", master 0x"+Integer.toHexString(masterHash)+")");
       {
           final List<GLContext> set = self.getCreatedShares();
           for (final Iterator<GLContext> iter = set.iterator(); iter.hasNext(); ) {
               final GLContext c = iter.next();
-              System.err.println("Ctx #"+(i++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
+              System.err.println("  Created   Ctx #"+(i++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
           }
       }
       {
           final List<GLContext> set = self.getDestroyedShares();
           for (final Iterator<GLContext> iter = set.iterator(); iter.hasNext(); ) {
               final GLContext c = iter.next();
-              System.err.println("Ctx #"+(j++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
+              System.err.println("  Destroyed Ctx #"+(j++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
           }
       }
       System.err.println("\t Total created "+i+" + destroyed "+j+" = "+(i+j));

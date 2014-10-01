@@ -55,9 +55,8 @@ import org.junit.runners.MethodSorters;
  * Sharing the VBO of 3 GearsES2 instances, each in their own GLWindow.
  * <p>
  * This is achieved by using the 1st GLWindow's GLContext as the <i>master</i>
- * and manually triggering creation of the 2nd and 3rd GLWindow when the 1st GLWindow's
- * GLContext becomes created. The trigger is performed by simply
- * inserting a GLRunnable in the 1st GLWindow, which makes the other visible.
+ * and synchronizing via GLSharedContextSetter to postpone creation
+ * of the 2nd and 3rd GLWindow until the 1st GLWindow's GLContext becomes created.
  * </p>
  * <p>
  * Above method allows random creation of the 1st GLWindow, which triggers
@@ -107,6 +106,8 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
     public void syncedOneAnimator(final boolean destroyCleanOrder) throws InterruptedException {
         final Animator animator = new Animator();
+        animator.start();
+
         final GearsES2 g1 = new GearsES2(0);
         final GLWindow f1 = createGLWindow(0, 0, g1);
         animator.add(f1);
@@ -116,31 +117,31 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         g2.setSharedGears(g1);
         final GLWindow f2 = createGLWindow(f1.getX()+width+insets.getTotalWidth(),
                                            f1.getY()+0, g2);
+        f2.setSharedAutoDrawable(f1);
         animator.add(f2);
+        f2.setVisible(true);
 
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1);
         final GLWindow f3 = createGLWindow(f1.getX()+0,
                                            f1.getY()+height+insets.getTotalHeight(), g3);
+        f3.setSharedAutoDrawable(f1);
         animator.add(f3);
+        f3.setVisible(true);
 
-        // f1's shared GLContext is ready !
-        f1.invoke(false, new GLRunnable() {
-            @Override
-            public boolean run(final GLAutoDrawable drawable) {
-                Assert.assertTrue("Ctx is shared before shared creation", !f1.getContext().isShared());
-                f2.setSharedAutoDrawable(f1);
-                f2.setVisible(true);
-                f2.display(); // kick off GLContext ..
-                f3.setSharedAutoDrawable(f1);
-                f3.setVisible(true);
-                f3.display(); // kick off GLContext ..
-                return true;
-            }
-        });
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
 
-        f1.setVisible(true);
-        f1.display(); // kick off GLContext .. and hence f2 + f3 creation
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+
+        f1.setVisible(true); // kick off f1 GLContext .. and hence allow f2 + f3 creation
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
@@ -157,8 +158,6 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
-        animator.start(); // post start animator, otherwise display will be suppressed
-
         final GLContext ctx1 = f1.getContext();
         final GLContext ctx2 = f2.getContext();
         final GLContext ctx3 = f3.getContext();
@@ -166,12 +165,9 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-C-3.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-C-3.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-C-3.3:");
-            MiscUtils.dumpSharedGLContext(ctx3);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.3", ctx3);
 
             Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
             Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
@@ -179,6 +175,9 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             Assert.assertEquals("Ctx1 has unexpected number of created shares", 2, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 2, ctx2Shares.size());
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 2, ctx3Shares.size());
+            Assert.assertEquals("Ctx1 Master Context is different", ctx1, ctx1.getSharedMaster());
+            Assert.assertEquals("Ctx2 Master Context is different", ctx1, ctx2.getSharedMaster());
+            Assert.assertEquals("Ctx3 Master Context is different", ctx1, ctx3.getSharedMaster());
         }
 
         Assert.assertTrue("Gears1 is shared", !g1.usesSharedGears());
@@ -228,7 +227,6 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         final GLWindow f1 = createGLWindow(0, 0, g1);
         a1.add(f1);
         a1.start();
-        f1.setVisible(true);
 
         final InsetsImmutable insets = f1.getInsets();
 
@@ -237,29 +235,34 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         g2.setSharedGears(g1);
         final GLWindow f2 = createGLWindow(f1.getX()+width+insets.getTotalWidth(),
                                            f1.getY()+0, g2);
+        f2.setSharedAutoDrawable(f1);
         a2.add(f2);
         a2.start();
+        f2.setVisible(true);
 
         final Animator a3 = new Animator();
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1);
         final GLWindow f3 = createGLWindow(f1.getX()+0,
                                            f1.getY()+height+insets.getTotalHeight(), g3);
+        f3.setSharedAutoDrawable(f1);
         a3.add(f3);
         a3.start();
+        f3.setVisible(true);
 
-        // f1's shared GLContext is ready !
-        f1.invoke(false, new GLRunnable() {
-            @Override
-            public boolean run(final GLAutoDrawable drawable) {
-                Assert.assertTrue("Ctx is shared before shared creation", !f1.getContext().isShared());
-                f2.setSharedAutoDrawable(f1);
-                f2.setVisible(true);
-                f3.setSharedAutoDrawable(f1);
-                f3.setVisible(true);
-                return true;
-            }
-        });
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+
+        f1.setVisible(true); // kicks off f1 GLContext .. and hence gears of f2 + f3 completion
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
@@ -282,12 +285,9 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-C-3.1:");
-            MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-C-3.2:");
-            MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-C-3.3:");
-            MiscUtils.dumpSharedGLContext(ctx3);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.3", ctx3);
 
             Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
             Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
@@ -295,6 +295,9 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             Assert.assertEquals("Ctx1 has unexpected number of created shares", 2, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 2, ctx2Shares.size());
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 2, ctx3Shares.size());
+            Assert.assertEquals("Ctx1 Master Context is different", ctx1, ctx1.getSharedMaster());
+            Assert.assertEquals("Ctx2 Master Context is different", ctx1, ctx2.getSharedMaster());
+            Assert.assertEquals("Ctx3 Master Context is different", ctx1, ctx3.getSharedMaster());
         }
 
         Assert.assertTrue("Gears1 is shared", !g1.usesSharedGears());

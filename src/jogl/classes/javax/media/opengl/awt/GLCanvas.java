@@ -82,6 +82,7 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLSharedContextSetter;
@@ -156,10 +157,12 @@ import jogamp.opengl.awt.AWTTilePainter;
  *   <li><pre>sun.awt.noerasebackground=true</pre></li>
  * </ul>
  *
+ * <p>
  * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
  * To share a {@link GLContext} see the following note in the documentation overview:
- * <a href="../../../spec-overview.html#SHARING">context sharing</a>
+ * <a href="../../../../overview-summary.html#SHARING">context sharing</a>
  * as well as {@link GLSharedContextSetter}.
+ * </p>
  */
 
 @SuppressWarnings("serial")
@@ -298,6 +301,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   public final Object getUpstreamWidget() {
     return this;
   }
+
+  @Override
+  public final RecursiveLock getUpstreamLock() { return lock; }
+
+  @Override
+  public final boolean isThreadGLCapable() { return Threading.isOpenGLThread(); }
 
   @Override
   public void setShallUseOffscreenLayer(final boolean v) {
@@ -834,65 +843,85 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable setupPrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if( !validateGLDrawable() ) {
-              if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {
+              if( !validateGLDrawable() ) {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
+                  }
+                  printActive = false;
+                  return; // not yet available ..
               }
-              printActive = false;
-              return; // not yet available ..
-          }
-          if( !isVisible() ) {
-              if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, canvas not visible");
+              if( !isVisible() ) {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, canvas not visible");
+                  }
+                  printActive = false;
+                  return; // not yet available ..
               }
-              printActive = false;
-              return; // not yet available ..
-          }
-          sendReshape = false; // clear reshape flag
-          printAnimator =  helper.getAnimator();
-          if( null != printAnimator ) {
-              printAnimator.remove(GLCanvas.this);
-          }
-          printGLAD = GLCanvas.this; // _not_ default, shall be replaced by offscreen GLAD
-          final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
-          final int printNumSamples = printAWTTiles.getNumSamples(caps);
-          GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
-          final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
-          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
-                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
-          final boolean reqNewGLADOnscrn = caps.isOnscreen();
-          // It is desired to use a new offscreen GLAD, however Bug 830 forbids this for AA onscreen context.
-          // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
-          final boolean reqNewGLAD = !caps.getSampleBuffers() && ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize );
-          if( DEBUG ) {
-              System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
-                                 ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
-                                 ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
-                                 ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
-                                 ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
-          }
-          if( reqNewGLAD ) {
-              caps.setDoubleBuffered(false);
-              caps.setOnscreen(false);
-              if( printNumSamples != caps.getNumSamples() ) {
-                  caps.setSampleBuffers(0 < printNumSamples);
-                  caps.setNumSamples(printNumSamples);
+              sendReshape = false; // clear reshape flag
+              printAnimator =  helper.getAnimator();
+              if( null != printAnimator ) {
+                  printAnimator.remove(GLCanvas.this);
               }
-              final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-              printGLAD = factory.createOffscreenAutoDrawable(null, caps, null,
-                      printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
-              GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
-              printDrawable = printGLAD.getDelegatedDrawable();
-          }
-          printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
-          printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
-          printAWTTiles.renderer.attachAutoDrawable(printGLAD);
-          if( DEBUG ) {
-              System.err.println("AWT print.setup "+printAWTTiles);
-              System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-              System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
-              System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
+              printGLAD = GLCanvas.this; // _not_ default, shall be replaced by offscreen GLAD
+              final GLCapabilitiesImmutable gladCaps = getChosenGLCapabilities();
+              final int printNumSamples = printAWTTiles.getNumSamples(gladCaps);
+              GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
+              final boolean reqNewGLADSamples = printNumSamples != gladCaps.getNumSamples();
+              final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                             printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
+              final boolean reqNewGLADOnscrn = gladCaps.isOnscreen();
+
+              final GLCapabilities newGLADCaps = (GLCapabilities)gladCaps.cloneMutable();
+              newGLADCaps.setDoubleBuffered(false);
+              newGLADCaps.setOnscreen(false);
+              if( printNumSamples != newGLADCaps.getNumSamples() ) {
+                  newGLADCaps.setSampleBuffers(0 < printNumSamples);
+                  newGLADCaps.setNumSamples(printNumSamples);
+              }
+              final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(getRequestedGLCapabilities(), gladCaps, newGLADCaps);
+
+              final boolean reqNewGLAD = ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
+
+              if( DEBUG ) {
+                  System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+", safe "+reqNewGLADSafe+"], "+
+                                     ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
+                                     ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
+                                     ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
+                                     ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
+              }
+              if( reqNewGLAD ) {
+                  final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
+                  GLOffscreenAutoDrawable offGLAD = null;
+                  try {
+                      offGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
+                                  printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
+                                  printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
+                  } catch (final GLException gle) {
+                      if( DEBUG ) {
+                          System.err.println("Caught: "+gle.getMessage());
+                          gle.printStackTrace();
+                      }
+                  }
+                  if( null != offGLAD ) {
+                      printGLAD = offGLAD;
+                      GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
+                      printDrawable = printGLAD.getDelegatedDrawable();
+                  }
+              }
+              printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
+              printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
+              printAWTTiles.renderer.attachAutoDrawable(printGLAD);
+              if( DEBUG ) {
+                  System.err.println("AWT print.setup "+printAWTTiles);
+                  System.err.println("AWT print.setup AA "+printNumSamples+", "+newGLADCaps);
+                  System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+                  System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
+              }
+          } finally {
+              _lock.unlock();
           }
       }
   };
@@ -908,23 +937,29 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable releasePrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if( DEBUG ) {
-              System.err.println("AWT print.release "+printAWTTiles);
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {
+              if( DEBUG ) {
+                  System.err.println("AWT print.release "+printAWTTiles);
+              }
+              printAWTTiles.dispose();
+              printAWTTiles= null;
+              if( printGLAD != GLCanvas.this ) {
+                  GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLCanvas.this);
+                  printGLAD.destroy();
+              }
+              printGLAD = null;
+              if( null != printAnimator ) {
+                  printAnimator.add(GLCanvas.this);
+                  printAnimator = null;
+              }
+              sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
+              printActive = false;
+              display();
+          } finally {
+              _lock.unlock();
           }
-          printAWTTiles.dispose();
-          printAWTTiles= null;
-          if( printGLAD != GLCanvas.this ) {
-              GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLCanvas.this);
-              printGLAD.destroy();
-          }
-          printGLAD = null;
-          if( null != printAnimator ) {
-              printAnimator.add(GLCanvas.this);
-              printAnimator = null;
-          }
-          sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
-          printActive = false;
-          display();
       }
   };
 
@@ -1040,13 +1075,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public boolean invoke(final boolean wait, final GLRunnable glRunnable) {
+  public boolean invoke(final boolean wait, final GLRunnable glRunnable) throws IllegalStateException {
     return helper.invoke(this, wait, glRunnable);
   }
 
   @Override
-  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) throws IllegalStateException {
     return helper.invoke(this, wait, glRunnables);
+  }
+
+  @Override
+  public void flushGLRunnables() {
+      helper.flushGLRunnables();
   }
 
   @Override
@@ -1137,6 +1177,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     return (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities();
   }
 
+  @Override
   public GLCapabilitiesImmutable getRequestedGLCapabilities() {
     if( null == awtConfig ) {
         return capsReqUser;
@@ -1222,32 +1263,46 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 animatorPaused = false;
             }
 
+            GLException exceptionOnDisposeGL = null;
+
             // OLS will be detached by disposeGL's context destruction below
             if( null != context ) {
                 if( context.isCreated() ) {
-                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                    // so we can continue with the destruction.
                     try {
                         helper.disposeGL(GLCanvas.this, context, true);
                         if(DEBUG) {
                             System.err.println(getThreadName()+": destroyOnEDTAction() - post ctx: "+context);
                         }
                     } catch (final GLException gle) {
-                        gle.printStackTrace();
+                        exceptionOnDisposeGL = gle;
                     }
                 }
                 context = null;
             }
+
+            Throwable exceptionOnUnrealize = null;
             if( null != drawable ) {
-                drawable.setRealized(false);
-                if(DEBUG) {
-                    System.err.println(getThreadName()+": destroyOnEDTAction() - post drawable: "+drawable);
+                try {
+                    drawable.setRealized(false);
+                    if(DEBUG) {
+                        System.err.println(getThreadName()+": destroyOnEDTAction() - post drawable: "+drawable);
+                    }
+                } catch( final Throwable re ) {
+                    exceptionOnUnrealize = re;
                 }
                 drawable = null;
             }
 
             if(animatorPaused) {
                 animator.resume();
+            }
+
+            // throw exception in order of occurrence ..
+            if( null != exceptionOnDisposeGL ) {
+                throw exceptionOnDisposeGL;
+            }
+            if( null != exceptionOnUnrealize ) {
+                throw GLException.newGLException(exceptionOnUnrealize);
             }
 
             if(DEBUG) {

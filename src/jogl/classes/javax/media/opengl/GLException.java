@@ -41,7 +41,7 @@ package javax.media.opengl;
 
 /** A generic exception for OpenGL errors used throughout the binding
     as a substitute for {@link RuntimeException}. */
-
+@SuppressWarnings("serial")
 public class GLException extends RuntimeException {
   /** Constructs a GLException object. */
   public GLException() {
@@ -64,5 +64,23 @@ public class GLException extends RuntimeException {
       cause. */
   public GLException(final Throwable cause) {
     super(cause);
+  }
+
+  /**
+   * Constructs a GLException object with the specified root
+   * cause with a decorating message including the current thread name.
+   * @since 2.2
+   */
+  public static GLException newGLException(final Throwable t) {
+      return new GLException("Caught "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName(), t);
+  }
+
+  /**
+   * Dumps a Throwable in a decorating message including the current thread name, and stack trace.
+   * @since 2.2
+   */
+  public static void dumpThrowable(final String additionalDescr, final Throwable t) {
+      System.err.println("Caught "+additionalDescr+" "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
+      t.printStackTrace();
   }
 }

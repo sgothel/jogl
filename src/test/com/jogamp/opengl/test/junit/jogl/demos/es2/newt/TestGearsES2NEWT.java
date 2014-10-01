@@ -52,6 +52,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
+import com.jogamp.opengl.util.Gamma;
 import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
@@ -241,6 +242,9 @@ public class TestGearsES2NEWT extends UITestCase {
 
         glWindow.addKeyListener(new KeyAdapter() {
             int pointerIconIdx = 0;
+            float gamma = 1f;
+            float brightness = 0f;
+            float contrast = 1f;
 
             @Override
             public void keyPressed(final KeyEvent e) {
@@ -263,6 +267,15 @@ public class TestGearsES2NEWT extends UITestCase {
                             }
                             System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
+                    } }.start();
+                } else if( e.getKeySymbol()== KeyEvent.VK_G ) {
+                    new Thread() {
+                        public void run() {
+                            final float newGamma = gamma + ( e.isShiftDown() ? -0.1f : 0.1f );
+                            System.err.println("[set gamma]: "+gamma+" -> "+newGamma);
+                            if( Gamma.setDisplayGamma(glWindow, newGamma, brightness, contrast) ) {
+                                gamma = newGamma;
+                            }
                     } }.start();
                 } else if(e.getKeyChar()=='a') {
                     new Thread() {

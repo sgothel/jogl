@@ -1104,6 +1104,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(null!=lifecycleHook) {
                 lifecycleHook.destroyActionPreLock();
             }
+            RuntimeException lifecycleCaughtInLock = null;
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
@@ -1119,8 +1120,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                   if(childWindows.size()>0) {
                     // avoid ConcurrentModificationException: parent -> child -> parent.removeChild(this)
                     @SuppressWarnings("unchecked")
-                    final
-                    ArrayList<NativeWindow> clonedChildWindows = (ArrayList<NativeWindow>) childWindows.clone();
+                    final ArrayList<NativeWindow> clonedChildWindows = (ArrayList<NativeWindow>) childWindows.clone();
                     while( clonedChildWindows.size() > 0 ) {
                       final NativeWindow nw = clonedChildWindows.remove(0);
                       if(nw instanceof WindowImpl) {
@@ -1134,7 +1134,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if(null!=lifecycleHook) {
                     // send synced destroy notification for proper cleanup, eg GLWindow/OpenGL
-                    lifecycleHook.destroyActionInLock();
+                    try {
+                        lifecycleHook.destroyActionInLock();
+                    } catch (final RuntimeException re) {
+                        lifecycleCaughtInLock = re;
+                    }
                 }
 
                 if( isNativeValid() ) {
@@ -1157,6 +1161,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.destroy() END "+getThreadName()/*+", "+WindowImpl.this*/);
+                    if( null != lifecycleCaughtInLock ) {
+                        System.err.println("Window.destroy() caught: "+lifecycleCaughtInLock.getMessage());
+                        lifecycleCaughtInLock.printStackTrace();
+                    }
+                }
+                if( null != lifecycleCaughtInLock ) {
+                    throw lifecycleCaughtInLock;
                 }
             } finally {
                 // update states before release window lock

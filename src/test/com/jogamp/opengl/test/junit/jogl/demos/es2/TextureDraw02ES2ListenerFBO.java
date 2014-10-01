@@ -138,36 +138,34 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
 
         st.useProgram(gl, false);
 
+        initFBOs(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+
         gl.glEnable(GL.GL_DEPTH_TEST);
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {
-        // remove all texture attachments, since MSAA uses just color-render-buffer
-        // and non-MSAA uses texture2d-buffer
-        fbo0.detachAllColorbuffer(gl);
-
-        fbo0.reset(gl, width, height, numSamples, false);
+        fbo0.init(gl, width, height, numSamples);
         numSamples = fbo0.getNumSamples();
 
         if(numSamples>0) {
             fbo0.attachColorbuffer(gl, 0, true);
             fbo0.resetSamplingSink(gl);
-            fbo0Tex = fbo0.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
         } else {
             fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
         }
         numSamples=fbo0.getNumSamples();
-        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo0.attachRenderbuffer(gl, Type.DEPTH, FBObject.CHOSEN_BITS);
         fbo0.unbind(gl);
     }
 
     private void resetFBOs(final GL gl, final int width, final int height) {
-        fbo0.reset(gl, width, height, numSamples, true);
+        fbo0.reset(gl, width, height, numSamples);
         numSamples = fbo0.getNumSamples();
         if(numSamples>0) {
-            fbo0Tex = fbo0.getSamplingSink();
+            fbo0Tex = fbo0.getSamplingSink().getTextureAttachment();
         } else {
-            fbo0Tex = (TextureAttachment) fbo0.getColorbuffer(0);
+            fbo0Tex = fbo0.getColorbuffer(0).getTextureAttachment();
         }
     }
 
@@ -236,16 +234,11 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
         }
 
-        if( !fbo0.isInitialized() ) {
-            System.err.println("**** Reshape.Init: "+width+"x"+height);
-            initFBOs(gl, width, height);
-        } else {
-            System.err.println("**** Reshape.Reset: "+width+"x"+height);
-            if( keepTextureBound ) {
-                fbo0.unuse(gl);
-            }
-            resetFBOs(gl, width, height);
+        System.err.println("**** Reshape.Reset: "+width+"x"+height);
+        if( keepTextureBound ) {
+            fbo0.unuse(gl);
         }
+        resetFBOs(gl, width, height);
 
         fbo0.bind(gl);
         demo.reshape(drawable, x, y, width, height);

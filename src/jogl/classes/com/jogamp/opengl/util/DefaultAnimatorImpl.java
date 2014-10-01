@@ -34,7 +34,10 @@
 package com.jogamp.opengl.util;
 
 import java.util.ArrayList;
+
 import javax.media.opengl.GLAutoDrawable;
+
+import com.jogamp.opengl.util.AnimatorBase.UncaughtAnimatorException;
 
 /** Abstraction to factor out AWT dependencies from the Animator's
     implementation in a way that still allows the FPSAnimator to pick
@@ -44,18 +47,18 @@ class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
     @Override
     public void display(final ArrayList<GLAutoDrawable> drawables,
                         final boolean ignoreExceptions,
-                        final boolean printExceptions) {
+                        final boolean printExceptions) throws UncaughtAnimatorException {
         for (int i=0; i<drawables.size(); i++) {
             final GLAutoDrawable drawable = drawables.get(i);
             try {
                 drawable.display();
-            } catch (final RuntimeException e) {
+            } catch (final Throwable t) {
                 if (ignoreExceptions) {
                     if (printExceptions) {
-                        e.printStackTrace();
+                        t.printStackTrace();
                     }
                 } else {
-                    throw(e);
+                    throw new UncaughtAnimatorException(drawable, t);
                 }
             }
         }

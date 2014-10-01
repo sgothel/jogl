@@ -99,8 +99,10 @@ public class TestMapBufferRead01NEWT extends UITestCase {
 
     private void testWriteRead01(final ByteBuffer verticiesBB, final boolean useRange) throws InterruptedException {
         final GLProfile glp = GLProfile.getMaxProgrammable(true);
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
-                new GLCapabilities(glp), 800, 600, true);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setOnscreen(false);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(
+                caps, 800, 600, true);
         try {
             final GL gl = winctx.context.getGL();
 

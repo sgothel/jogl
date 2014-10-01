@@ -39,6 +39,12 @@ import com.jogamp.opengl.FBObject;
  * This class distinguishes itself from {@link GLAutoDrawable}
  * with it's {@link #setSurfaceSize(int, int)} functionality.
  * </p>
+ * <p>
+ * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+ * To share a {@link GLContext} see the following note in the documentation overview:
+ * <a href="../../../overview-summary.html#SHARING">context sharing</a>
+ * as well as {@link GLSharedContextSetter}.
+ * </p>
  */
 public interface GLOffscreenAutoDrawable extends GLAutoDrawable, GLSharedContextSetter {
 

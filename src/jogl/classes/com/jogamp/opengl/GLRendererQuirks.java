@@ -191,7 +191,12 @@ public class GLRendererQuirks {
      *       <li>GL_RENDERER: <i>Gallium 0.4 on SVGA3D; build: RELEASE;</i> </li>
      *     </ul></li>
      * </ul>
+     * <p>
+     * Also enabled via {@link #BuggyColorRenderbuffer}.
+     * </p>
+     * <p>
      * Quirk can also be enabled via property: <code>jogl.fbo.force.min</code>.
+     * </p>
      */
     public static final int NoFullFBOSupport = 11;
 
@@ -312,8 +317,32 @@ public class GLRendererQuirks {
      */
     public static final int NoMultiSamplingBuffers  = 17;
 
-    /** Number of quirks known. */
-    public static final int COUNT = 18;
+    /**
+     * With certain drivers no reliable FBO color renderbuffer target
+     * is available, read <i>a crash</i> may occur.
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>GL_VENDOR       Brian Paul</li>
+     *   <li>GL_RENDERER     Mesa X11</li>
+     *   <li>GL_VERSION      2.1 Mesa 7.2</li>
+     * </ul>
+     * TODO: We have to determine the exact version range, i.e. not adding the quirk with fixed driver version!
+     * </p>
+     * <p>
+     * Note: Also enables {@link #NoFullFBOSupport}.
+     * </p>
+     * <p>
+     * Note: GLFBODrawable always uses texture attachments if set.
+     * </p>
+     * <p>
+     * Quirk can also be enabled via property: <code>jogl.fbo.force.nocolorrenderbuffer</code>.
+     * </p>
+     */
+    public static final int BuggyColorRenderbuffer  = 18;
+
+    /** Return the number of known quirks. */
+    public static final int getCount() { return 19; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -321,7 +350,7 @@ public class GLRendererQuirks {
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
-                                                          "NoMultiSamplingBuffers"
+                                                          "NoMultiSamplingBuffers", "BuggyColorRenderbuffer"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
@@ -357,6 +386,17 @@ public class GLRendererQuirks {
         return device1.getUniqueID() == device2.getUniqueID(); // uses .intern()!
     }
 
+    /**
+     * {@link #addQuirk(int) Adding given quirk} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
+     */
+    public static void addStickyDeviceQuirk(final AbstractGraphicsDevice device, final int quirk) throws IllegalArgumentException {
+        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
+        sq.addQuirk(quirk);
+    }
     /**
      * {@link #addQuirks(int[], int, int) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
      * <p>
@@ -419,6 +459,15 @@ public class GLRendererQuirks {
     }
 
     /**
+     * @param quirk valid quirk to be added
+     * @throws IllegalArgumentException if the quirk is out of range
+     */
+    public final void addQuirk(final int quirk) throws IllegalArgumentException {
+        validateQuirk(quirk);
+        _bitmask |= 1 << quirk;
+    }
+
+    /**
      * @param quirks an array of valid quirks to be added
      * @param offset offset in quirks array to start reading
      * @param len number of quirks to read from offset within quirks array
@@ -460,7 +509,7 @@ public class GLRendererQuirks {
         }
         sb.append("[");
         boolean first=true;
-        for(int i=0; i<COUNT; i++) {
+        for(int i=0; i<getCount(); i++) {
             final int testmask = 1 << i;
             if( 0 != ( _bitmask & testmask ) ) {
                 if(!first) { sb.append(", "); }
@@ -482,8 +531,8 @@ public class GLRendererQuirks {
      * @throws IllegalArgumentException if quirk is out of range
      */
     public static void validateQuirk(final int quirk) throws IllegalArgumentException {
-        if( !( 0 <= quirk && quirk < COUNT ) ) {
-            throw new IllegalArgumentException("Quirks must be in range [0.."+COUNT+"[, but quirk: "+quirk);
+        if( !( 0 <= quirk && quirk < getCount() ) ) {
+            throw new IllegalArgumentException("Quirks must be in range [0.."+getCount()+"[, but quirk: "+quirk);
         }
     }
 

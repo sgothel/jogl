@@ -38,6 +38,7 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLSharedContextSetter;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -61,6 +62,12 @@ import jogamp.opengl.GLDrawableImpl;
  * </p>
  * <p>
  * See example {@link com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT TestGLAutoDrawableDelegateNEWT}.
+ * </p>
+ * <p>
+ * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+ * To share a {@link GLContext} see the following note in the documentation overview:
+ * <a href="../../../overview-summary.html#SHARING">context sharing</a>
+ * as well as {@link GLSharedContextSetter}.
  * </p>
  */
 public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAutoDrawable {
@@ -143,7 +150,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
     private final RecursiveLock lock;
 
     @Override
-    protected final RecursiveLock getLock() { return lock; }
+    public final RecursiveLock getUpstreamLock() { return lock; }
 
     @Override
     public final Object getUpstreamWidget() {

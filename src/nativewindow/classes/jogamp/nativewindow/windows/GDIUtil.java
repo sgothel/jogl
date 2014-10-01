@@ -128,6 +128,10 @@ public class GDIUtil implements ToolkitProperties {
         return IsChild0(win);
     }
 
+    public static void SetProcessThreadsAffinityMask(final long affinityMask, final boolean verbose) {
+        SetProcessThreadsAffinityMask0(affinityMask, verbose);
+    }
+
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
 
     /** Creates WNDCLASSEX instance */
@@ -141,6 +145,8 @@ public class GDIUtil implements ToolkitProperties {
     private static native Object GetRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
     private static native boolean IsChild0(long win);
     private static native boolean IsUndecorated0(long win);
+
+    private static native void SetProcessThreadsAffinityMask0(long affinityMask, boolean verbose);
 
     private static native long CreateDummyWindow0(long hInstance, String className, long dispThreadCtx, String windowName, int x, int y, int width, int height);
     private static native boolean DestroyWindow0(long dispThreadCtx, long win);

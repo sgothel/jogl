@@ -427,7 +427,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
         gl.glActiveTexture(GL.GL_TEXTURE0 + gcu_FboTexUnit.intValue());
 
-        fbo.use(gl, fbo.getSamplingSink());
+        fbo.use(gl, fbo.getSamplingSink().getTextureAttachment());
         gca_FboVerticesAttr.enableBuffer(gl, true);
         gca_FboTexCoordsAttr.enableBuffer(gl, true);
         indicesFbo.bindBuffer(gl, true); // keeps VBO binding
@@ -454,19 +454,22 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             fboWidth  = targetFboWidth;
             fboHeight  = targetFboHeight;
             fbo = new FBObject();
-            fbo.reset(gl, fboWidth, fboHeight, sampleCount[0], false);
+            fbo.init(gl, fboWidth, fboHeight, sampleCount[0]);
             sampleCount[0] = fbo.getNumSamples();
             fbo.attachColorbuffer(gl, 0, true);
-            fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            if( !blendingEnabled ) {
+                // no depth-buffer w/ blending
+                fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
+            }
             final FBObject ssink = new FBObject();
             {
-                ssink.reset(gl, fboWidth, fboHeight);
+                ssink.init(gl, fboWidth, fboHeight, 0);
                 // FIXME: shall not use bilinear (GL_LINEAR), due to MSAA ???
                 // ssink.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
                 ssink.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 if( !blendingEnabled ) {
                     // no depth-buffer w/ blending
-                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
                 }
             }
             fbo.setSamplingSink(ssink);
@@ -475,7 +478,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 System.err.printf("XXX.createFBO: blending %b, %dx%d%n%s%n", blendingEnabled, fboWidth, fboHeight, fbo.toString());
             }
         } else if( targetFboWidth != fboWidth || targetFboHeight != fboHeight || fbo.getNumSamples() != sampleCount[0] ) {
-            fbo.reset(gl, targetFboWidth, targetFboHeight, sampleCount[0], true /* resetSamplingSink */);
+            fbo.reset(gl, targetFboWidth, targetFboHeight, sampleCount[0]);
             sampleCount[0] = fbo.getNumSamples();
             if( DEBUG_FBO_1 ) {
                 System.err.printf("XXX.resetFBO: %dx%d -> %dx%d%n%s%n", fboWidth, fboHeight, targetFboWidth, targetFboHeight, fbo );

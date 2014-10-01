@@ -223,7 +223,7 @@ public class GLReadBufferUtil {
             psm.setPackAlignment(gl, alignment);
             if(gl.isGL2ES3()) {
                 final GL2ES3 gl2es3 = gl.getGL2ES3();
-                gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, width);
+                psm.setPackRowLength(gl2es3, width);
                 gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
             }
             readPixelBuffer.clear();

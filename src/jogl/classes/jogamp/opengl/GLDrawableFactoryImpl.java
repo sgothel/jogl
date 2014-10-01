@@ -41,8 +41,14 @@
 package jogamp.opengl;
 
 import java.nio.Buffer;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
@@ -269,7 +275,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                                              final GLCapabilitiesChooser chooser,
                                                              final int width, final int height) {
     final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
-    drawable.setRealized(true);
+    try {
+        drawable.setRealized(true);
+    } catch( final GLException gle) {
+        try {
+            drawable.setRealized(false);
+        } catch( final GLException gle2) { /* ignore */ }
+        throw gle;
+    }
     if(drawable instanceof GLFBODrawableImpl) {
         return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, null, null, null );
     }
@@ -279,7 +292,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   @Override
   public final GLAutoDrawable createDummyAutoDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
       final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, capsRequested, chooser);
-      drawable.setRealized(true);
+      try {
+          drawable.setRealized(true);
+      } catch( final GLException gle) {
+          try {
+              drawable.setRealized(false);
+          } catch( final GLException gle2) { /* ignore */ }
+          throw gle;
+      }
       final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
       return sharedDrawable;
   }
@@ -516,64 +536,98 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
 
-  /**
-   * Sets the gamma, brightness, and contrast of the current main
-   * display. Returns true if the settings were changed, false if
-   * not. If this method returns true, the display settings will
-   * automatically be reset upon JVM exit (assuming the JVM does not
-   * crash); if the user wishes to change the display settings back to
-   * normal ahead of time, use resetDisplayGamma(). Throws
-   * IllegalArgumentException if any of the parameters were
-   * out-of-bounds.
-   *
-   * @param gamma The gamma value, typically > 1.0 (default value is
-   *   1.0)
-   * @param brightness The brightness value between -1.0 and 1.0,
-   *   inclusive (default value is 0)
-   * @param contrast The contrast, greater than 0.0 (default value is 1)
-   * @throws IllegalArgumentException if any of the parameters were
-   *   out-of-bounds
-   */
-  public boolean setDisplayGamma(final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
+  @Override
+  public synchronized final boolean setDisplayGamma(final NativeSurface surface, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
     if ((brightness < -1.0f) || (brightness > 1.0f)) {
       throw new IllegalArgumentException("Brightness must be between -1.0 and 1.0");
     }
     if (contrast < 0) {
       throw new IllegalArgumentException("Contrast must be greater than 0.0");
     }
-    // FIXME: ensure gamma is > 1.0? Are smaller / negative values legal?
-    final int rampLength = getGammaRampLength();
-    if (rampLength == 0) {
-      return false;
+    if( NativeSurface.LOCK_SURFACE_NOT_READY >= surface.lockSurface() ) {
+        return false;
     }
-    final float[] gammaRamp = new float[rampLength];
-    for (int i = 0; i < rampLength; i++) {
-      final float intensity = (float) i / (float) (rampLength - 1);
-      // apply gamma
-      float rampEntry = (float) java.lang.Math.pow(intensity, gamma);
-      // apply brightness
-      rampEntry += brightness;
-      // apply contrast
-      rampEntry = (rampEntry - 0.5f) * contrast + 0.5f;
-      // Clamp entry to [0, 1]
-      if (rampEntry > 1.0f)
-        rampEntry = 1.0f;
-      else if (rampEntry < 0.0f)
-        rampEntry = 0.0f;
-      gammaRamp[i] = rampEntry;
+    try {
+        // FIXME: ensure gamma is > 1.0? Are smaller / negative values legal?
+        final int rampLength = getGammaRampLength(surface);
+        if (rampLength == 0) {
+          return false;
+        }
+        final float[] gammaRamp = new float[rampLength];
+        for (int i = 0; i < rampLength; i++) {
+          final float intensity = (float) i / (float) (rampLength - 1);
+          // apply gamma
+          float rampEntry = (float) java.lang.Math.pow(intensity, gamma);
+          // apply brightness
+          rampEntry += brightness;
+          // apply contrast
+          rampEntry = (rampEntry - 0.5f) * contrast + 0.5f;
+          // Clamp entry to [0, 1]
+          if (rampEntry > 1.0f)
+            rampEntry = 1.0f;
+          else if (rampEntry < 0.0f)
+            rampEntry = 0.0f;
+          gammaRamp[i] = rampEntry;
+        }
+        final AbstractGraphicsScreen screen = surface.getGraphicsConfiguration().getScreen();
+        final DeviceScreenID deviceScreenID = new DeviceScreenID(screen.getDevice().getConnection(), screen.getIndex());
+        if( null == screen2OrigGammaRamp.get(deviceScreenID) ) {
+            screen2OrigGammaRamp.put(deviceScreenID, getGammaRamp(surface)); // cache original gamma ramp once
+            if( DEBUG ) {
+                System.err.println("DisplayGamma: Stored: "+deviceScreenID);
+                dumpGammaStore();
+            }
+        }
+        return setGammaRamp(surface, gammaRamp);
+    } finally {
+        surface.unlockSurface();
     }
-    if( !needsGammaRampReset ) {
-        originalGammaRamp = getGammaRamp();
-        needsGammaRampReset = true;
-    }
-    return setGammaRamp(gammaRamp);
   }
 
   @Override
-  public synchronized void resetDisplayGamma() {
-    if( needsGammaRampReset ) {
-        resetGammaRamp(originalGammaRamp);
-        needsGammaRampReset = false;
+  public synchronized final void resetDisplayGamma(final NativeSurface surface) {
+    if( NativeSurface.LOCK_SURFACE_NOT_READY >= surface.lockSurface() ) {
+        return;
+    }
+    try {
+        final AbstractGraphicsScreen screen = surface.getGraphicsConfiguration().getScreen();
+        final DeviceScreenID deviceScreenID = new DeviceScreenID(screen.getDevice().getConnection(), screen.getIndex());
+        final Buffer originalGammaRamp = screen2OrigGammaRamp.remove(deviceScreenID);
+        if( null != originalGammaRamp ) {
+            resetGammaRamp(surface, originalGammaRamp);
+        }
+    } finally {
+        surface.unlockSurface();
+    }
+  }
+
+  @Override
+  public synchronized final void resetAllDisplayGamma() {
+    resetAllDisplayGammaNoSync();
+  }
+
+  @Override
+  protected final void resetAllDisplayGammaNoSync() {
+    if( DEBUG ) {
+        System.err.println("DisplayGamma: Reset");
+        dumpGammaStore();
+    }
+    final Set<DeviceScreenID> deviceScreenIDs = screen2OrigGammaRamp.keySet();
+    for( final Iterator<DeviceScreenID> i = deviceScreenIDs.iterator(); i.hasNext(); ) {
+        final DeviceScreenID deviceScreenID = i.next();
+        final Buffer originalGammaRamp = screen2OrigGammaRamp.remove(deviceScreenID);
+        if( null != originalGammaRamp ) {
+            resetGammaRamp(deviceScreenID, originalGammaRamp);
+        }
+    }
+  }
+  private void dumpGammaStore() {
+    final Set<DeviceScreenID> deviceScreenIDs = screen2OrigGammaRamp.keySet();
+    int count = 0;
+    for( final Iterator<DeviceScreenID> i = deviceScreenIDs.iterator(); i.hasNext(); count++) {
+        final DeviceScreenID deviceScreenID = i.next();
+        final Buffer originalGammaRamp = screen2OrigGammaRamp.get(deviceScreenID);
+        System.err.printf("%4d/%4d: %s -> %s%n", count, deviceScreenIDs.size(), deviceScreenID, originalGammaRamp);
     }
   }
 
@@ -582,30 +636,64 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
 
   /** Returns the length of the computed gamma ramp for this OS and
-      hardware. Returns 0 if gamma changes are not supported. */
-  protected int getGammaRampLength() {
+      hardware. Returns 0 if gamma changes are not supported.
+ * @param surface TODO*/
+  protected int getGammaRampLength(final NativeSurface surface) {
     return 0;
   }
 
   /** Sets the gamma ramp for the main screen. Returns false if gamma
-      ramp changes were not supported. */
-  protected boolean setGammaRamp(final float[] ramp) {
+      ramp changes were not supported.
+ * @param surface TODO*/
+  protected boolean setGammaRamp(final NativeSurface surface, final float[] ramp) {
     return false;
   }
 
   /** Gets the current gamma ramp. This is basically an opaque value
       used only on some platforms to reset the gamma ramp to its
-      original settings. */
-  protected Buffer getGammaRamp() {
+      original settings.
+ * @param surface TODO*/
+  protected Buffer getGammaRamp(final NativeSurface surface) {
     return null;
   }
 
   /** Resets the gamma ramp, potentially using the specified Buffer as
-      data to restore the original values. */
-  protected void resetGammaRamp(final Buffer originalGammaRamp) {
+      data to restore the original values.
+ * @param surface TODO*/
+  protected void resetGammaRamp(final NativeSurface surface, final Buffer originalGammaRamp) {
+  }
+  protected void resetGammaRamp(final DeviceScreenID deviceScreenID, final Buffer originalGammaRamp) {
   }
 
   // Shutdown hook mechanism for resetting gamma
-  private volatile Buffer originalGammaRamp;
-  private volatile boolean needsGammaRampReset = false;
+  public final class DeviceScreenID {
+      public final String deviceConnection;
+      public final int screenIdx;
+      DeviceScreenID(final String deviceConnection, final int screenIdx) {
+          this.deviceConnection = deviceConnection;
+          this.screenIdx = screenIdx;
+      }
+      @Override
+      public int hashCode() {
+          // 31 * x == (x << 5) - x
+          int hash = 31 + deviceConnection.hashCode();
+          hash = ((hash << 5) - hash) + screenIdx;
+          return hash;
+      }
+      @Override
+      public boolean equals(final Object obj) {
+          if(this == obj)  { return true; }
+          if (obj instanceof DeviceScreenID) {
+              final DeviceScreenID other = (DeviceScreenID)obj;
+              return this.deviceConnection.equals(other.deviceConnection) &&
+                     this.screenIdx == other.screenIdx;
+          }
+          return false;
+      }
+      @Override
+      public String toString() {
+          return "DeviceScreenID[devCon "+deviceConnection+", screenIdx "+screenIdx+", hash 0x"+Integer.toHexString(hashCode())+"]";
+      }
+  }
+  private final Map<DeviceScreenID, Buffer> screen2OrigGammaRamp = new HashMap<DeviceScreenID, Buffer>();
 }

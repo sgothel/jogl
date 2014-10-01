@@ -65,6 +65,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.GLSharedContextSetter;
 
 import jogamp.newt.WindowImpl;
 import jogamp.opengl.GLAutoDrawableBase;
@@ -108,6 +109,12 @@ import com.jogamp.opengl.GLStateKeeper;
  * you can inject {@link GLRunnable} objects
  * via {@link #invoke(boolean, GLRunnable)} to the OpenGL command stream.<br>
  * </p>
+ * <p>
+ * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+ * To share a {@link GLContext} see the following note in the documentation overview:
+ * <a href="../../../../overview-summary.html#SHARING">context sharing</a>
+ * as well as {@link GLSharedContextSetter}.
+ * </p>
  */
 public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Window, NEWTEventConsumer, FPSCounter {
     private final WindowImpl window;
@@ -141,6 +148,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final Object getUpstreamWidget() {
         return window;
+    }
+
+    @Override
+    public final RecursiveLock getUpstreamLock() {
+        return window.getLock();
     }
 
     /**
@@ -594,10 +606,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
 
         @Override
         public synchronized boolean pauseRenderingAction() {
-            boolean animatorPaused = false;
+            final boolean animatorPaused;
             savedAnimator = GLWindow.this.getAnimator();
             if ( null != savedAnimator ) {
                 animatorPaused = savedAnimator.pause();
+            } else {
+                animatorPaused = false;
             }
             return animatorPaused;
         }
@@ -641,11 +655,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //----------------------------------------------------------------------
     // OpenGL-related methods and state
     //
-
-    @Override
-    protected final RecursiveLock getLock() {
-        return window.getLock();
-    }
 
     @Override
     public void display() {

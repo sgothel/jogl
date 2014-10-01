@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -46,12 +47,14 @@ import java.util.Set;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL3;
+import javax.media.opengl.GL4;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionNumber;
@@ -63,33 +66,62 @@ import com.jogamp.common.util.VersionNumber;
  * {@link #create(GL2ES2, int, Class, String, String, String, boolean) here} and
  * {@link #create(GL2ES2, int, int, Class, String, String[], String, String) here}.
  * </p>
+ * <p>
+ * Support for {@link GL4#GL_TESS_CONTROL_SHADER} and {@link GL4#GL_TESS_EVALUATION_SHADER}
+ * was added since 2.2.1.
+ * </p>
  */
 public class ShaderCode {
     public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true);
 
-    /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in source code: <code>vp</code> */
+    /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in source code: <code>{@value}</code> */
     public static final String SUFFIX_VERTEX_SOURCE   =  "vp" ;
 
-    /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in binary: <code>bvp</code> */
+    /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in binary: <code>{@value}</code> */
     public static final String SUFFIX_VERTEX_BINARY   = "bvp" ;
 
-    /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in source code: <code>gp</code> */
+    /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in source code: <code>{@value}</code> */
     public static final String SUFFIX_GEOMETRY_SOURCE =  "gp" ;
 
-    /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in binary: <code>bgp</code> */
+    /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in binary: <code>{@value}</code> */
     public static final String SUFFIX_GEOMETRY_BINARY = "bgp" ;
 
-    /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in source code: <code>fp</code> */
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in source code: <code>{@value}</code>
+     * @since 2.2.1
+     */
+    public static final String SUFFIX_TESS_CONTROL_SOURCE =  "tcp" ;
+
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in binary: <code>{@value}</code>
+     * @since 2.2.1
+     */
+    public static final String SUFFIX_TESS_CONTROL_BINARY = "btcp" ;
+
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_EVALUATION_SHADER} in source code: <code>{@value}</code>
+     * @since 2.2.1
+     */
+    public static final String SUFFIX_TESS_EVALUATION_SOURCE =  "tep" ;
+
+    /**
+     * Unique resource suffix for {@link GL4#GL_TESS_EVALUATION_SHADER} in binary: <code>{@value}</code>
+     * @since 2.2.1
+     */
+    public static final String SUFFIX_TESS_EVALUATION_BINARY = "btep" ;
+
+    /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in source code: <code>{@value}</code> */
     public static final String SUFFIX_FRAGMENT_SOURCE =  "fp" ;
 
-    /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in binary: <code>bfp</code> */
+    /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in binary: <code>{@value}</code> */
     public static final String SUFFIX_FRAGMENT_BINARY = "bfp" ;
 
-    /** Unique relative path for binary shader resources for {@link GLES2#GL_NVIDIA_PLATFORM_BINARY_NV NVIDIA}: <code>nvidia</code> */
+    /** Unique relative path for binary shader resources for {@link GLES2#GL_NVIDIA_PLATFORM_BINARY_NV NVIDIA}: <code>{@value}</code> */
     public static final String SUB_PATH_NVIDIA = "nvidia" ;
 
     /**
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param count number of shaders
      * @param source CharSequence array containing the shader sources, organized as <code>source[count][strings-per-shader]</code>.
      *               May be either an immutable <code>String</code> - or mutable <code>StringBuilder</code> array.
@@ -104,6 +136,8 @@ public class ShaderCode {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
             case GL3.GL_GEOMETRY_SHADER:
+            case GL4.GL_TESS_CONTROL_SHADER:
+            case GL4.GL_TESS_EVALUATION_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -122,7 +156,8 @@ public class ShaderCode {
     }
 
     /**
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param count number of shaders
      * @param binary binary buffer containing the shader binaries,
      */
@@ -131,6 +166,8 @@ public class ShaderCode {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
             case GL3.GL_GEOMETRY_SHADER:
+            case GL4.GL_TESS_CONTROL_SHADER:
+            case GL4.GL_TESS_EVALUATION_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -148,7 +185,8 @@ public class ShaderCode {
      * which location is resolved using the <code>context</code> class, see {@link #readShaderSource(Class, String)}.
      *
      * @param gl current GL object to determine whether a shader compiler is available. If null, no validation is performed.
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source location
      * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code>
@@ -192,7 +230,8 @@ public class ShaderCode {
      * Creates a complete {@link ShaderCode} object while reading the shader binary of <code>binaryFile</code>,
      * which location is resolved using the <code>context</code> class, see {@link #readShaderBinary(Class, String)}.
      *
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source location
      * @param binFormat a valid native binary format as they can be queried by {@link ShaderUtil#getShaderBinaryFormats(GL)}.
@@ -225,14 +264,21 @@ public class ShaderCode {
      *   <li>Source<ul>
      *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_SOURCE}</li>
      *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_SOURCE}</li>
-     *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_SOURCE}</li></ul></li>
+     *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_SOURCE}</li>
+     *     <li>{@link GL4#GL_TESS_CONTROL_SHADER tess-ctrl}: {@link #SUFFIX_TESS_CONTROL_SOURCE}</li>
+     *     <li>{@link GL4#GL_TESS_EVALUATION_SHADER tess-eval}: {@link #SUFFIX_TESS_EVALUATION_SOURCE}</li>
+     *     </ul></li>
      *   <li>Binary<ul>
      *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_BINARY}</li>
      *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_BINARY}</li>
-     *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_BINARY}</li></ul></li>
+     *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_BINARY}</li>
+     *     <li>{@link GL4#GL_TESS_CONTROL_SHADER tess-ctrl}: {@link #SUFFIX_TESS_CONTROL_BINARY}</li>
+     *     <li>{@link GL4#GL_TESS_EVALUATION_SHADER tess-eval}: {@link #SUFFIX_TESS_EVALUATION_BINARY}</li>
+     *     </ul></li>
      * </ul>
      * @param binary true for a binary resource, false for a source resource
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      *
      * @throws GLException if <code>type</code> is not supported
      *
@@ -246,6 +292,10 @@ public class ShaderCode {
                 return binary?SUFFIX_FRAGMENT_BINARY:SUFFIX_FRAGMENT_SOURCE;
             case GL3.GL_GEOMETRY_SHADER:
                 return binary?SUFFIX_GEOMETRY_BINARY:SUFFIX_GEOMETRY_SOURCE;
+            case GL4.GL_TESS_CONTROL_SHADER:
+                return binary?SUFFIX_TESS_CONTROL_BINARY:SUFFIX_TESS_CONTROL_SOURCE;
+            case GL4.GL_TESS_EVALUATION_SHADER:
+                return binary?SUFFIX_TESS_EVALUATION_BINARY:SUFFIX_TESS_EVALUATION_SOURCE;
             default:
                 throw new GLException("illegal shader type: "+type);
         }
@@ -324,7 +374,8 @@ public class ShaderCode {
      *
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code> optional
@@ -430,7 +481,8 @@ public class ShaderCode {
      *
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
      * @param binRoot relative <i>root</i> path for <code>basename</code>
@@ -468,6 +520,10 @@ public class ShaderCode {
                 return "FRAGMENT_SHADER";
             case GL3.GL_GEOMETRY_SHADER:
                 return "GEOMETRY_SHADER";
+            case GL4.GL_TESS_CONTROL_SHADER:
+                return "TESS_CONTROL_SHADER";
+            case GL4.GL_TESS_EVALUATION_SHADER:
+                return "TESS_EVALUATION_SHADER";
         }
         return "UNKNOWN_SHADER";
     }
@@ -778,7 +834,8 @@ public class ShaderCode {
                     URLConnection nextConn = null;
 
                     // Try relative of current shader location
-                    nextConn = IOUtil.openURL(IOUtil.getRelativeOf(conn.getURL(), includeFile), "ShaderCode.relativeOf ");
+                    final Uri relUri = Uri.valueOf( conn.getURL() ).getRelativeOf(new Uri.Encoded( includeFile, Uri.PATH_LEGAL ));
+                    nextConn = IOUtil.openURL(relUri.toURL(), "ShaderCode.relativeOf ");
                     if (nextConn == null) {
                         // Try relative of class and absolute
                         nextConn = IOUtil.getResource(context, includeFile);
@@ -792,6 +849,8 @@ public class ShaderCode {
                     result.append(line + "\n");
                 }
             }
+        } catch (final URISyntaxException e) {
+            throw new IOException(e);
         } finally {
             IOUtil.close(reader, false);
         }
@@ -874,8 +933,12 @@ public class ShaderCode {
 
     /** Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}: {@value #es3_default_precision_vp} */
     public static final String es3_default_precision_vp = es2_default_precision_vp;
-    /** Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es3_default_precision_fp} */
-    public static final String es3_default_precision_fp = es2_default_precision_fp;
+    /**
+     * Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es3_default_precision_fp},
+     * same as for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}, i.e {@link #es3_default_precision_vp},
+     * due to ES 3.x requirements of using same precision for uniforms!
+     */
+    public static final String es3_default_precision_fp = es3_default_precision_vp;
 
     /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader} or {@link GL3#GL_GEOMETRY_SHADER geometry-shader}: {@value #gl3_default_precision_vp_gp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
     public static final String gl3_default_precision_vp_gp = "\nprecision highp float;\nprecision highp int;\n";
@@ -956,6 +1019,8 @@ public class ShaderCode {
             switch ( shaderType ) {
                 case GL2ES2.GL_VERTEX_SHADER:
                 case GL3.GL_GEOMETRY_SHADER:
+                case GL4.GL_TESS_CONTROL_SHADER:
+                case GL4.GL_TESS_EVALUATION_SHADER:
                     defaultPrecision = gl3_default_precision_vp_gp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
                     defaultPrecision = gl3_default_precision_fp; break;

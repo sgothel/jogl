@@ -37,7 +37,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -292,7 +291,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p1 "+this);
         }
 
-        final String streamLocS = IOUtil.decodeURIIfFilePath(getURI());
+        final String streamLocS = IOUtil.getUriFilePathOrASCII(getUri());
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
@@ -317,10 +316,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 case HPUX:
                 case LINUX:
                 case SUNOS:
-                    resStreamLocS = dev_video_linux + cameraPath;
+                    resStreamLocS = dev_video_linux + cameraPath.decode();
                     break;
                 case WINDOWS:
-                    resStreamLocS = cameraPath;
+                    resStreamLocS = cameraPath.decode();
                     break;
                 case MACOS:
                 case OPENKODE:
@@ -345,7 +344,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
         if(DEBUG) {
             System.err.println("initStream: p3 cameraPath "+cameraPath+", isCameraInput "+isCameraInput);
-            System.err.println("initStream: p3 stream "+getURI()+" -> "+streamLocS+" -> "+resStreamLocS);
+            System.err.println("initStream: p3 stream "+getUri()+" -> "+streamLocS+" -> "+resStreamLocS);
             System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
         }
         natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);

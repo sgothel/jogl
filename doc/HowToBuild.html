@@ -56,14 +56,17 @@
                                     (not yet tested)</li>
                             </ul>
                         </li>
-                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.2 or later</li>
+                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.9.0 or later</li>
                         <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br/>
                             <ul>
                                 <li> Use your Unix distribution's version, if available, or</li>
                                 <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a>, or</li>
-                                <li> <a href="http://code.google.com/p/msysgit/">Git on Windows</a>,
-                                    <a href="http://code.google.com/p/msysgit/downloads/list">download</a> version
-                                    <a href="http://code.google.com/p/msysgit/downloads/detail?name=Git-1.7.0.2-preview20100309.exe&amp;can=2&amp;q=">1.7.0</a> or later.</li>
+                                <li> Git on Windows
+                                    <ul>
+                                        <li> <a href="https://cygwin.com">cygwin</a></li>
+                                        <li> <a href="http://code.google.com/p/msysgit/">msysgit</a></li>
+                                    </ul>
+                                </li>
                                 <li> <a href="http://code.google.com/p/git-osx-installer/">git-osx-installer</a> </li>
                             </ul>
                         </li>
@@ -121,6 +124,14 @@ apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32i
 dpkg --add-architecture i386
 apt-get update
 apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-7-jre:i386 openjdk-7-jdk:i386
+
+cd /usr/lib/i386-linux-gnu/
+ln -s libXrender.so.1 libXrender.so
+ln -s libXxf86vm.so.1 libXxf86vm.so
+ln -s libXrandr.so.2 libXrandr.so
+ln -s libXcursor.so.1 libXcursor.so
+cd /lib/i386-linux-gnu/
+ln -s libudev.so.1 libudev.so
                                         </pre></li>
                                     </ul>
                                 </li>

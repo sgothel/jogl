@@ -53,8 +53,11 @@ import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
@@ -641,44 +644,57 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     printAnimator.remove(glad);
                 }
                 printGLAD = glad; // _not_ default, shall be replaced by offscreen GLAD
-                final GLCapabilities caps = (GLCapabilities)glad.getChosenGLCapabilities().cloneMutable();
-                final int printNumSamples = printAWTTiles.getNumSamples(caps);
+                final GLCapabilitiesImmutable gladCaps = glad.getChosenGLCapabilities();
+                final int printNumSamples = printAWTTiles.getNumSamples(gladCaps);
                 GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
-                final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
+                final boolean reqNewGLADSamples = printNumSamples != gladCaps.getNumSamples();
                 final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
                                                printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
-                final boolean reqNewGLADOnscrn = caps.isOnscreen();
+                final boolean reqNewGLADOnscrn = gladCaps.isOnscreen();
 
-                // It is desired to use a new offscreen GLAD, however Bug 830 forbids this for AA onscreen context.
-                // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
-                final boolean reqNewGLAD = !caps.getSampleBuffers() && ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize );
+                final GLCapabilities newGLADCaps = (GLCapabilities)gladCaps.cloneMutable();
+                newGLADCaps.setDoubleBuffered(false);
+                newGLADCaps.setOnscreen(false);
+                if( printNumSamples != newGLADCaps.getNumSamples() ) {
+                    newGLADCaps.setSampleBuffers(0 < printNumSamples);
+                    newGLADCaps.setNumSamples(printNumSamples);
+                }
+                final boolean reqNewGLADSafe = GLDrawableUtil.isSwapGLContextSafe(glad.getRequestedGLCapabilities(), gladCaps, newGLADCaps);
+
+                final boolean reqNewGLAD = ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize ) && reqNewGLADSafe;
+
                 if( DEBUG ) {
-                    System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
+                    System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+", safe "+reqNewGLADSafe+"], "+
                             ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
                             ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
                             ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
                             ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
                 }
                 if( reqNewGLAD ) {
-                    caps.setDoubleBuffered(false);
-                    caps.setOnscreen(false);
-                    if( printNumSamples != caps.getNumSamples() ) {
-                        caps.setSampleBuffers(0 < printNumSamples);
-                        caps.setNumSamples(printNumSamples);
+                    final GLDrawableFactory factory = GLDrawableFactory.getFactory(newGLADCaps.getGLProfile());
+                    GLOffscreenAutoDrawable offGLAD = null;
+                    try {
+                        offGLAD = factory.createOffscreenAutoDrawable(null, newGLADCaps, null,
+                                printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
+                                printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
+                    } catch (final GLException gle) {
+                        if( DEBUG ) {
+                            System.err.println("Caught: "+gle.getMessage());
+                            gle.printStackTrace();
+                        }
                     }
-                    final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-                    printGLAD = factory.createOffscreenAutoDrawable(null, caps, null,
-                            printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                            printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
-                    GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
-                    printDrawable = printGLAD.getDelegatedDrawable();
+                    if( null != offGLAD ) {
+                        printGLAD = offGLAD;
+                        GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
+                        printDrawable = printGLAD.getDelegatedDrawable();
+                    }
                 }
                 printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
                 printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
                 printAWTTiles.renderer.attachAutoDrawable(printGLAD);
                 if( DEBUG ) {
                     System.err.println("AWT print.setup "+printAWTTiles);
-                    System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
+                    System.err.println("AWT print.setup AA "+printNumSamples+", "+newGLADCaps);
                     System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
                     System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
                 }

@@ -32,8 +32,8 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.math.geom.AABBox;
 
-public class TypecastGlyph implements Font.Glyph {
-    public static class Advance
+public final class TypecastGlyph implements Font.Glyph {
+    public static final class Advance
     {
         private final Font      font;
         private final float     advance;
@@ -46,40 +46,42 @@ public class TypecastGlyph implements Font.Glyph {
             size2advanceI.setKeyNotFoundValue(0);
         }
 
-        public void reset() {
+        public final void reset() {
             size2advanceI.clear();
         }
 
-        public float getScale(final float pixelSize)
+        public final Font getFont() { return font; }
+
+        public final float getScale(final float pixelSize)
         {
             return this.font.getMetrics().getScale(pixelSize);
         }
 
-        public void add(final float advance, final float size)
+        public final void add(final float advance, final float size)
         {
             size2advanceI.put(Float.floatToIntBits(size), Float.floatToIntBits(advance));
         }
 
-        public float get(final float size, final boolean useFrationalMetrics)
+        public final float get(final float pixelSize, final boolean useFrationalMetrics)
         {
-            final int sI = Float.floatToIntBits(size);
+            final int sI = Float.floatToIntBits(pixelSize);
             final int aI = size2advanceI.get(sI);
             if( 0 != aI ) {
                 return Float.intBitsToFloat(aI);
             }
             final float a;
             if ( useFrationalMetrics ) {
-                a = this.advance * getScale(size);
+                a = this.advance * getScale(pixelSize);
             } else {
-                // a = Math.ceil(this.advance * getScale(size));
-                a = Math.round(this.advance * getScale(size)); // TODO: check whether ceil should be used instead?
+                // a = Math.ceil(this.advance * getScale(pixelSize));
+                a = Math.round(this.advance * getScale(pixelSize)); // TODO: check whether ceil should be used instead?
             }
             size2advanceI.put(sI, Float.floatToIntBits(a));
             return a;
         }
 
         @Override
-        public String toString()
+        public final String toString()
         {
             return "\nAdvance:"+
                 "\n  advance: "+this.advance+
@@ -87,7 +89,7 @@ public class TypecastGlyph implements Font.Glyph {
         }
     }
 
-    public static class Metrics
+    public static final class Metrics
     {
         private final AABBox    bbox;
         private final Advance advance;
@@ -98,32 +100,34 @@ public class TypecastGlyph implements Font.Glyph {
             this.advance = new Advance(font, advance);
         }
 
-        public void reset() {
+        public final void reset() {
             advance.reset();
         }
 
-        public float getScale(final float pixelSize)
+        public final Font getFont() { return advance.getFont(); }
+
+        public final float getScale(final float pixelSize)
         {
             return this.advance.getScale(pixelSize);
         }
 
-        public AABBox getBBox()
+        public final AABBox getBBox()
         {
             return this.bbox;
         }
 
-        public void addAdvance(final float advance, final float size)
+        public final void addAdvance(final float advance, final float size)
         {
             this.advance.add(advance, size);
         }
 
-        public float getAdvance(final float size, final boolean useFrationalMetrics)
+        public final float getAdvance(final float pixelSize, final boolean useFrationalMetrics)
         {
-            return this.advance.get(size, useFrationalMetrics);
+            return this.advance.get(pixelSize, useFrationalMetrics);
         }
 
         @Override
-        public String toString()
+        public final String toString()
         {
             return "\nMetrics:"+
                 "\n  bbox: "+this.bbox+
@@ -134,31 +138,21 @@ public class TypecastGlyph implements Font.Glyph {
     public static final short INVALID_ID    = (short)((1 << 16) - 1);
     public static final short MAX_ID        = (short)((1 << 16) - 2);
 
-    private final Font font;
     private final char symbol;
     private final OutlineShape shape; // in EM units
     private final short id;
-    private final int advance;
     private final Metrics metrics;
 
     protected TypecastGlyph(final Font font, final char symbol, final short id, final AABBox bbox, final int advance, final OutlineShape shape) {
-        this.font = font;
         this.symbol = symbol;
         this.shape = shape;
         this.id = id;
-        this.advance = advance;
-        this.metrics = new Metrics(this.font, bbox, this.advance);
+        this.metrics = new Metrics(font, bbox, advance);
     }
-
-    /**
-    public void reset(Path2D path) {
-        this.path = path;
-        this.metrics.reset();
-    } */
 
     @Override
     public final Font getFont() {
-        return this.font;
+        return this.metrics.getFont();
     }
 
     @Override
@@ -211,7 +205,7 @@ public class TypecastGlyph implements Font.Glyph {
     @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
-        final int hash = 31 + font.getName(Font.NAME_UNIQUNAME).hashCode();
+        final int hash = 31 + getFont().getName(Font.NAME_UNIQUNAME).hashCode();
         return ((hash << 5) - hash) + id;
     }
 }

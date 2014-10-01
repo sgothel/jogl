@@ -1,8 +1,13 @@
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.7.0_45_x32
-set JAVA_HOME=c:\jdk1.7.0_45_x32
-set ANT_PATH=C:\apache-ant-1.8.2
+set J2RE_HOME=c:\jre1.7.0_67_x32
+set JAVA_HOME=c:\jdk1.7.0_67_x32
+set ANT_PATH=C:\apache-ant-1.9.4
+
+REM set TEMP=C:\Documents and Settings\jogamp\temp
+REM set TMP=C:\Documents and Settings\jogamp\temp
+REM set TEMP=C:\Users\jogamp\temp\no-exec
+REM set TMP=C:\Users\jogamp\temp\no-exec
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
 set BLD_DIR=..\%BLD_SUB%

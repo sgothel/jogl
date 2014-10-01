@@ -30,15 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
@@ -49,18 +44,23 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
-import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Test synchronous GLAutoDrawable display, swap-buffer and read-pixels with AWT GLCanvas
+ * including non-MSAA and MSAA framebuffer.
+ * <p>
+ * See {@link GLReadBuffer00Base} for related bugs and further details.
+ * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00Base {
+public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00BaseAWT {
 
     @BeforeClass
     public static void initClass() {
@@ -77,7 +77,7 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00Base {
         final Dimension d = new Dimension(320, 240);
         final GLCanvas glad = createGLCanvas(caps, d);
         final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
-        final SnapshotGLELAWT snapshotGLEL = doSnapshot ? new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil) : null;
+        final SnapshotGLELAWT snapshotGLEL = doSnapshot ? new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil, false) : null;
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -88,9 +88,34 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00Base {
                     // panel.setDoubleBuffered(useSwingDoubleBuffer);
                     // frame.getContentPane().add(panel);
 
-                    final GearsES2 gears = new GearsES2(1);
-                    gears.setVerbose(false);
-                    glad.addGLEventListener(gears);
+                    glad.addGLEventListener(new GLEventListener() {
+                        @Override
+                        public void init(final GLAutoDrawable drawable) {
+                            final GL gl = drawable.getGL();
+                            System.err.println(VersionUtil.getPlatformInfo());
+                            System.err.println("GLEventListener init on "+Thread.currentThread());
+                            System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
+                            System.err.println("INIT GL IS: " + gl.getClass().getName());
+                            System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+                        }
+                        @Override
+                        public void dispose(final GLAutoDrawable drawable) {}
+                        @Override
+                        public void display(final GLAutoDrawable drawable) {}
+                        @Override
+                        public void reshape(final GLAutoDrawable drawable, final int x,final int y, final int width, final int height) {}
+                    });
+                    {
+                        final GearsES2 gears = new GearsES2(1);
+                        gears.setVerbose(false);
+                        glad.addGLEventListener(gears);
+                    }
+                    {
+                        final MultisampleDemoES2 demo = new MultisampleDemoES2(caps.getSampleBuffers());
+                        demo.setClearBuffers(false);;
+                        glad.addGLEventListener(demo);
+                    }
+
                     glad.addGLEventListener(textRendererGLEL);
                     if( doSnapshot ) {
                         glad.addGLEventListener(snapshotGLEL);
@@ -165,71 +190,6 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00Base {
         canvas.setMinimumSize(size);
         return canvas;
     }
-
-    private class SnapshotGLELAWT implements GLEventListener {
-        final TextRendererGLEL textRendererGLEL;
-        final AWTGLReadBufferUtil glReadBufferUtil;
-        boolean defAutoSwapMode;
-        boolean swapBuffersBeforeRead;
-        int i;
-
-        SnapshotGLELAWT(final TextRendererGLEL textRendererGLEL, final AWTGLReadBufferUtil glReadBufferUtil) {
-            this.textRendererGLEL = textRendererGLEL;
-            this.glReadBufferUtil = glReadBufferUtil;
-            this.defAutoSwapMode = true;
-            this.swapBuffersBeforeRead = false;
-            i = 0;
-        }
-
-        @Override
-        public void init(final GLAutoDrawable drawable) {
-            defAutoSwapMode = drawable.getAutoSwapBufferMode();
-            swapBuffersBeforeRead = GLDrawableUtil.swapBuffersBeforeRead(drawable.getChosenGLCapabilities());
-            drawable.setAutoSwapBufferMode( !swapBuffersBeforeRead );
-        }
-        @Override
-        public void dispose(final GLAutoDrawable drawable) {
-            drawable.setAutoSwapBufferMode( defAutoSwapMode );
-        }
-        @Override
-        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
-        @Override
-        public void display(final GLAutoDrawable drawable) {
-            snapshot(i++, drawable.getGL(), TextureIO.PNG, null);
-        }
-        public void snapshot(final int sn, final GL gl, final String fileSuffix, final String destPath) {
-            final GLDrawable drawable = gl.getContext().getGLReadDrawable();
-            final String postSNDetail = String.format("awt-usr%03d", textRendererGLEL.userCounter);
-            final String filenameAWT = getSnapshotFilename(sn, postSNDetail,
-                                                           drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
-                                                           glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
-            if( swapBuffersBeforeRead ) {
-                drawable.swapBuffers();
-                // Just to test whether we use the right buffer,
-                // i.e. back-buffer shall no more be required ..
-                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-            } else {
-                gl.glFinish(); // just make sure rendering finished ..
-            }
-
-            final boolean awtOrientation = drawable.isGLOriented();
-            System.err.println(Thread.currentThread().getName()+": ** screenshot: awtOrient/v-flip "+awtOrientation+", swapBuffersBeforeRead "+swapBuffersBeforeRead+", "+filenameAWT);
-
-            final BufferedImage image = glReadBufferUtil.readPixelsToBufferedImage(gl, awtOrientation);
-            final File fout = new File(filenameAWT);
-            try {
-                ImageIO.write(image, "png", fout);
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
-            /**
-            final String filenameJGL = getSnapshotFilename(sn, "jgl",
-                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
-                                                           glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
-            glReadBufferUtil.write(new File(filenameJGL));
-            */
-        }
-    };
 
     static GLCapabilitiesImmutable caps = null;
     static boolean doSnapshot = true;

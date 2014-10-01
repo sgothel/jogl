@@ -55,7 +55,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class MultisampleDemoES2 implements GLEventListener {
 
-    private boolean multisample;
+    private boolean multisample, clearBuffers;
     private final ShaderState st;
     private final PMVMatrix pmvMatrix;
     private ShaderProgram sp0;
@@ -64,10 +64,13 @@ public class MultisampleDemoES2 implements GLEventListener {
 
     public MultisampleDemoES2(final boolean multisample) {
         this.multisample = multisample;
+        this.clearBuffers = true;
         st = new ShaderState();
         st.setVerbose(true);
         pmvMatrix = new PMVMatrix();
     }
+
+    public void setClearBuffers(final boolean v) { clearBuffers = v; }
 
     public void init(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
@@ -135,10 +138,12 @@ public class MultisampleDemoES2 implements GLEventListener {
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
         }
-        gl.glClearColor(0, 0, 0, 0);
-        //      gl.glEnable(GL.GL_DEPTH_TEST);
-        //      gl.glDepthFunc(GL.GL_LESS);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        if( clearBuffers ) {
+            gl.glClearColor(0, 0, 0, 0);
+            //      gl.glEnable(GL.GL_DEPTH_TEST);
+            //      gl.glDepthFunc(GL.GL_LESS);
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        }
 
         st.useProgram(gl, true);
 

@@ -34,6 +34,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 
@@ -71,86 +72,120 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void test01_GL2ES2_Demo1_SingleBuffer_Normal() throws InterruptedException {
+    public void test01a_GL2ES2_Demo1_SingleBuffer_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
-        testGLFBODrawableImpl(caps, new GearsES2(0));
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
+    }
+    @Test
+    public void test01b_GL2ES2_Demo1_SingleBuffer_NoTex() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setDoubleBuffered(false);
+        testGLFBODrawableImpl(caps, 0, new GearsES2(0));
+    }
+    @Test
+    public void test01c_GL2ES2_Demo1_SingleBuffer_NoTexNoDepth() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setDoubleBuffered(false);
+        caps.setDepthBits(0);
+        testGLFBODrawableImpl(caps, 0, new GearsES2(0));
     }
 
     @Test
-    public void test02_GL2ES2_Demo1_DoubleBuffer_Normal() throws InterruptedException {
+    public void test02a_GL2ES2_Demo1_DoubleBuffer_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // default
-        testGLFBODrawableImpl(caps, new GearsES2(0));
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
     }
 
     @Test
-    public void test03_GL2ES2_Demo2MSAA4() throws InterruptedException {
+    public void test03a_GL2ES2_Demo2MSAA4_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
-        testGLFBODrawableImpl(caps, new MultisampleDemoES2(true));
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new MultisampleDemoES2(true));
+    }
+    @Test
+    public void test03b_GL2ES2_Demo2MSAA4_NoTex() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(4);
+        testGLFBODrawableImpl(caps, 0, new MultisampleDemoES2(true));
+    }
+    @Test
+    public void test03c_GL2ES2_Demo2MSAA4_NoTexNoDepth() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(4);
+        caps.setDepthBits(0);
+        testGLFBODrawableImpl(caps, 0, new MultisampleDemoES2(true));
     }
 
     @Test
-    public void test04_GL2ES2_FBODemoMSAA4() throws InterruptedException {
+    public void test04_GL2ES2_FBODemoMSAA4_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final FBOMix2DemosES2 demo = new FBOMix2DemosES2(0);
         demo.setDoRotation(false);
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
-        testGLFBODrawableImpl(caps, demo);
+        testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, demo);
     }
 
     @Test
-    public void test05_EGLES2_Demo0Normal() throws InterruptedException {
+    public void test11_EGLES2_Demo0Normal() throws InterruptedException {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
-            testGLFBODrawableImpl(caps, new GearsES2(0));
+            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
         } else {
             System.err.println("EGL ES2 n/a");
         }
     }
 
     @Test
-    public void test06_GL3_Demo0Normal() throws InterruptedException {
-        if( GLProfile.isAvailable(GLProfile.GL3) )  {
-            final GLProfile glp = GLProfile.get(GLProfile.GL3);
-            final GLCapabilities caps = new GLCapabilities(glp);
-            testGLFBODrawableImpl(caps, new GearsES2(0));
-        } else {
-            System.err.println("GL3 n/a");
-        }
-    }
-
-    @Test
-    public void test07_EGLES2_Demo0MSAA4() throws InterruptedException {
+    public void test13_EGLES2_Demo0MSAA4() throws InterruptedException {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
             caps.setSampleBuffers(true);
             caps.setNumSamples(4);
-            testGLFBODrawableImpl(caps, new GearsES2(0));
+            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
         } else {
             System.err.println("EGL ES2 n/a");
         }
     }
 
-    void testGLFBODrawableImpl(final GLCapabilities caps, final GLEventListener demo) throws InterruptedException {
+    @Test
+    public void test21_GL3_Demo0Normal() throws InterruptedException {
+        if( GLProfile.isAvailable(GLProfile.GL3) )  {
+            final GLProfile glp = GLProfile.get(GLProfile.GL3);
+            final GLCapabilities caps = new GLCapabilities(glp);
+            testGLFBODrawableImpl(caps, GLFBODrawable.FBOMODE_USE_TEXTURE, new GearsES2(0));
+        } else {
+            System.err.println("GL3 n/a");
+        }
+    }
+
+    void testGLFBODrawableImpl(final GLCapabilities caps, final int fboMode, final GLEventListener demo) throws InterruptedException {
         caps.setFBO(true);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLOffscreenAutoDrawable.FBO glad = (GLOffscreenAutoDrawable.FBO)
                 factory.createOffscreenAutoDrawable(null, caps, null, widthStep*szStep, heightStep*szStep);
         Assert.assertNotNull(glad);
 
+        System.out.println("Requested:     "+caps);
         System.out.println("Realized GLAD: "+glad);
         System.out.println("Realized GLAD: "+glad.getChosenGLCapabilities());
         Assert.assertTrue("FBO drawable is initialized before ctx creation", !glad.isInitialized());
+        glad.setFBOMode(fboMode);
 
         glad.display(); // initial display incl. init!
         {
@@ -159,6 +194,13 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             Assert.assertTrue(context.isCreated());
         }
         Assert.assertTrue("FBO drawable is not initialized after ctx creation", glad.isInitialized());
+
+        final boolean expDepth = caps.getDepthBits() > 0;
+        final boolean reqDepth = glad.getRequestedGLCapabilities().getDepthBits() > 0;
+        final boolean hasDepth = glad.getChosenGLCapabilities().getDepthBits() > 0;
+        System.out.println("Depth: exp "+expDepth+", req "+reqDepth+", has "+hasDepth);
+        Assert.assertEquals("Depth: expected not passed to requested", expDepth, reqDepth);
+        Assert.assertEquals("Depth: requested not passed to chosen", reqDepth, hasDepth);
 
         //
         // FBO incl. MSAA is fully initialized now
@@ -179,20 +221,27 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         Assert.assertTrue("FBO Back  is not initialized before ctx creation", fboBack.isInitialized());
 
         if( chosenCaps.getDoubleBuffered() ) {
-            Assert.assertTrue("FBO are equal: "+fboFront+" == "+fboBack, !fboFront.equals(fboBack));
+            Assert.assertNotEquals("FBO are equal: "+fboFront+" == "+fboBack, fboFront, fboBack);
             Assert.assertNotSame(fboFront, fboBack);
         } else {
-            Assert.assertTrue("FBO are not equal: "+fboFront+" != "+fboBack, fboFront.equals(fboBack));
+            Assert.assertEquals("FBO are not equal: "+fboFront+" != "+fboBack, fboFront, fboBack);
             Assert.assertSame(fboFront, fboBack);
         }
 
-        final FBObject.TextureAttachment texAttachA, texAttachB;
+        final FBObject.Colorbuffer color0, color1;
 
-        texAttachA = glad.getTextureBuffer(GL.GL_FRONT);
+        color0 = glad.getColorbuffer(GL.GL_FRONT);
         if(0==glad.getNumSamples()) {
-            texAttachB = glad.getTextureBuffer(GL.GL_BACK);
+            color1 = glad.getColorbuffer(GL.GL_BACK);
         } else {
-            texAttachB = null;
+            color1 = null;
+        }
+
+        final boolean expTexture = 0 != ( GLFBODrawable.FBOMODE_USE_TEXTURE & glad.getFBOMode() );
+        System.out.println("Texture: exp "+expTexture+", hasFront "+color0.isTextureAttachment());
+        Assert.assertEquals("Texture: Front", expTexture, color0.isTextureAttachment());
+        if(0==glad.getNumSamples()) {
+            Assert.assertEquals("Texture: Back", expTexture, color1.isTextureAttachment());
         }
 
         final FBObject.Colorbuffer colorA, colorB;
@@ -203,19 +252,33 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         colorB = fboBack.getColorbuffer(0);
         Assert.assertNotNull(colorB);
 
-        depthA = fboFront.getDepthAttachment();
-        Assert.assertNotNull(depthA);
-        depthB = fboBack.getDepthAttachment();
-        Assert.assertNotNull(depthB);
+        Assert.assertEquals("Texture: Front", expTexture, colorA.isTextureAttachment());
+        if(0==glad.getNumSamples()) {
+            Assert.assertEquals("Texture: Back", expTexture, colorB.isTextureAttachment());
+        } else {
+            Assert.assertEquals("Texture: MSAA Back is Texture", false, colorB.isTextureAttachment());
+        }
+
+        if( hasDepth ) {
+            depthA = fboFront.getDepthAttachment();
+            Assert.assertNotNull(depthA);
+            depthB = fboBack.getDepthAttachment();
+            Assert.assertNotNull(depthB);
+        } else {
+            depthA = null;
+            depthB = null;
+        }
 
         glad.display(); // SWAP_ODD
 
         if( chosenCaps.getDoubleBuffered() ) {
             // double buffer or MSAA
-            Assert.assertTrue("Color attachments are equal: "+colorB+" == "+colorA, !colorB.equals(colorA));
+            Assert.assertNotEquals("Color attachments are equal: "+colorB+" == "+colorA, colorA, colorB);
             Assert.assertNotSame(colorB, colorA);
-            Assert.assertTrue("Depth attachments are equal: "+depthB+" == "+depthA, !depthB.equals(depthA));
-            Assert.assertNotSame(depthB, depthA);
+            if( hasDepth ) {
+                Assert.assertNotEquals("Depth attachments are equal: "+depthB+" == "+depthA, depthA, depthB);
+                Assert.assertNotSame(depthB, depthA);
+            }
         } else {
             // single buffer
             Assert.assertEquals(colorA, colorB);
@@ -224,40 +287,40 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             Assert.assertSame(depthA, depthB);
         }
 
-        Assert.assertEquals(texAttachA, colorA);
-        Assert.assertSame(texAttachA, colorA);
+        Assert.assertEquals(color0, colorA);
+        Assert.assertSame(color0, colorA);
         if(0==glad.getNumSamples()) {
-            Assert.assertEquals(texAttachB, colorB);
-            Assert.assertSame(texAttachB, colorB);
+            Assert.assertEquals(color1, colorB);
+            Assert.assertSame(color1, colorB);
         }
 
         if( chosenCaps.getNumSamples() > 0 ) {
             // MSAA
             final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
             final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
-            Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront.equals(_fboFront));
+            Assert.assertEquals("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront, _fboFront);
             Assert.assertSame(fboFront, _fboFront);
-            Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboBack, fboBack.equals(_fboBack));
+            Assert.assertEquals("FBO are not equal: "+fboBack+" != "+_fboBack, fboBack, _fboBack);
             Assert.assertSame(fboBack, _fboBack);
         } else if( chosenCaps.getDoubleBuffered() ) {
             // real double buffer
             final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
             final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
-            Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack.equals(_fboFront));
+            Assert.assertEquals("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack, _fboFront);
             Assert.assertSame(fboBack, _fboFront);
-            Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboBack, fboFront.equals(_fboBack));
+            Assert.assertEquals("FBO are not equal: "+fboFront+" != "+_fboBack, fboFront, _fboBack);
             Assert.assertSame(fboFront, _fboBack);
         } else {
             // single buffer
             final FBObject _fboFront = glad.getFBObject(GL.GL_FRONT);
             final FBObject _fboBack = glad.getFBObject(GL.GL_BACK);
-            Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront.equals(_fboFront));
+            Assert.assertEquals("FBO are not equal: "+fboFront+" != "+_fboFront, fboFront, _fboFront);
             Assert.assertSame(fboFront, _fboFront);
-            Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack.equals(_fboFront));
+            Assert.assertEquals("FBO are not equal: "+fboBack+" != "+_fboFront, fboBack, _fboFront);
             Assert.assertSame(fboBack, _fboFront);
-            Assert.assertTrue("FBO are not equal: "+fboBack+" != "+_fboBack, fboBack.equals(_fboBack));
+            Assert.assertEquals("FBO are not equal: "+fboBack+" != "+_fboBack, fboBack, _fboBack);
             Assert.assertSame(fboBack, _fboBack);
-            Assert.assertTrue("FBO are not equal: "+fboFront+" != "+_fboBack, fboFront.equals(_fboBack));
+            Assert.assertEquals("FBO are not equal: "+fboFront+" != "+_fboBack, fboFront, _fboBack);
             Assert.assertSame(fboFront, _fboBack);
         }
 
@@ -301,12 +364,16 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             FBObject.RenderAttachment _depth = _fboFront.getDepthAttachment();
             System.err.println("Resize1.oldDepth "+depthA);
             System.err.println("Resize1.newDepth "+_depth);
-            Assert.assertNotNull(_depth);
+            if( hasDepth ) {
+                Assert.assertNotNull(_depth);
+            }
 
             Assert.assertEquals(depthA, _depth);
             Assert.assertSame(depthA, _depth);
             _depth = _fboBack.getDepthAttachment();
-            Assert.assertNotNull(_depth);
+            if( hasDepth ) {
+                Assert.assertNotNull(_depth);
+            }
             Assert.assertEquals(depthB, _depth);
             Assert.assertSame(depthB, _depth);
 
@@ -348,12 +415,16 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
             Assert.assertSame(colorB, _color);
 
             FBObject.RenderAttachment _depth = fboBack.getDepthAttachment();
-            Assert.assertNotNull(_depth); // MSAA back w/ depth
+            if( hasDepth ) {
+                Assert.assertNotNull(_depth); // MSAA back w/ depth
+            }
             Assert.assertEquals(depthB, _depth);
             Assert.assertSame(depthB, _depth);
 
             _depth = fboFront.getDepthAttachment();
-            Assert.assertNotNull(_depth);
+            if( hasDepth ) {
+                Assert.assertNotNull(_depth);
+            }
             Assert.assertEquals(depthA, _depth);
             Assert.assertSame(depthA, _depth);
 
@@ -364,7 +435,10 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         }
 
         // 6 + 7 (samples + display)
-        glad.setNumSamples(glad.getGL(), chosenCaps.getNumSamples() > 0 ? 0 : 4); // triggers repaint
+        final int oldSampleCount = chosenCaps.getNumSamples();
+        final int newSampleCount = oldSampleCount > 0 ? 0 : 4;
+        System.out.println("Resize3.sampleCount: "+oldSampleCount+" -> "+newSampleCount);
+        glad.setNumSamples(glad.getGL(), newSampleCount); // triggers repaint
         snapshotGLEventListener.setMakeSnapshot();
         glad.display(); // actual screenshot
 

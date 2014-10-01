@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.io.IOException;
@@ -38,20 +39,15 @@ import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
-import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLDrawableUtil;
-import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import jogamp.nativewindow.awt.AWTMisc;
+
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
@@ -60,26 +56,15 @@ import org.junit.runners.MethodSorters;
  * from GLCanvas to an GLOffscreenAutoDrawable and back.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLContextDrawableSwitch02AWT extends UITestCase {
-    static int width, height;
+public class TestGLContextDrawableSwitch02AWT extends GLContextDrawableSwitchBase0 {
 
-    static GLCapabilities getCaps(final String profile) {
-        if( !GLProfile.isAvailable(profile) )  {
-            System.err.println("Profile "+profile+" n/a");
-            return null;
-        }
-        return new GLCapabilities(GLProfile.get(profile));
-    }
-
-    @BeforeClass
-    public static void initClass() {
-        width  = 256;
-        height = 256;
-    }
-
-    private GLAutoDrawable createGLAutoDrawable(final Frame frame, final GLCapabilities caps, final int width, final int height) throws InterruptedException, InvocationTargetException {
+    @Override
+    public GLAutoDrawable createGLAutoDrawable(final QuitAdapter quitAdapter, final GLCapabilitiesImmutable caps, final int width, final int height) throws InterruptedException, InvocationTargetException {
         final GLAutoDrawable glad;
         if( caps.isOnscreen() ) {
+            final Frame frame = new Frame("Gears AWT Test");
+            Assert.assertNotNull(frame);
+
             final GLCanvas glCanvas = new GLCanvas(caps);
             Assert.assertNotNull(glCanvas);
             final Dimension glc_sz = new Dimension(width, height);
@@ -88,6 +73,8 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
             glCanvas.setSize(glc_sz);
             glad = glCanvas;
 
+            new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
+
             frame.setLayout(new BorderLayout());
             frame.add(glCanvas, BorderLayout.CENTER);
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -95,7 +82,6 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
                     frame.pack();
                     frame.setVisible(true);
                 }});
-
         } else {
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
             glad = factory.createOffscreenAutoDrawable(null, caps, null, width, height);
@@ -104,69 +90,19 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         return glad;
     }
 
-    @Test(timeout=30000)
-    public void testSwitch2AWTGLCanvas2OffscreenGL2ES2() throws InterruptedException, InvocationTargetException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
-        if(null == reqGLCaps) return;
-        testSwitch2AWTGLCanvas2OffscreenImpl(reqGLCaps);
-    }
-
-    private void testSwitch2AWTGLCanvas2OffscreenImpl(final GLCapabilities capsOnscreen) throws InterruptedException, InvocationTargetException {
-        final GLCapabilities capsOffscreen = (GLCapabilities) capsOnscreen.clone();
-        capsOffscreen.setOnscreen(false);
-
-        final Frame frame = new Frame("Gears AWT Test");
-        Assert.assertNotNull(frame);
-
-        final GLAutoDrawable glCanvas = createGLAutoDrawable(frame, capsOnscreen, width, height);
-
-        final QuitAdapter quitAdapter = new QuitAdapter();
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
-
-        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();
-        final GearsES2 gears = new GearsES2(1);
-        glCanvas.addGLEventListener(gears);
-        glCanvas.addGLEventListener(snapshotGLEventListener);
-        snapshotGLEventListener.setMakeSnapshot();
-
-        final Animator animator = new Animator();
-        animator.add(glCanvas);
-        animator.start();
-
-        int s = 0;
-        final long t0 = System.currentTimeMillis();
-        long t1 = t0;
-
-        final GLAutoDrawable glOffscreen = createGLAutoDrawable(null,  capsOffscreen, width, height);
-        while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration ) {
-            if( ( t1 - t0 ) / period > s) {
-                s++;
-                System.err.println(s+" - switch - START "+ ( t1 - t0 ));
-
-                // switch context _and_ the demo synchronously
-                GLDrawableUtil.swapGLContextAndAllGLEventListener(glCanvas, glOffscreen);
-                snapshotGLEventListener.setMakeSnapshot();
-
-                System.err.println(s+" - switch - END "+ ( t1 - t0 ));
-            }
-            Thread.sleep(100);
-            t1 = System.currentTimeMillis();
+    @Override
+    public void destroyGLAutoDrawable(final GLAutoDrawable glad) throws InterruptedException, InvocationTargetException {
+        if( glad.getChosenGLCapabilities().isOnscreen() ) {
+            final Frame frame = AWTMisc.getFrame((Component)glad);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    final Frame _frame = frame;
+                    _frame.dispose();
+                }});
+        } else {
+            glad.destroy();
         }
-
-        animator.stop();
-        // glCanvas.destroy();
-        glOffscreen.destroy();
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                final Frame _frame = frame;
-                _frame.dispose();
-            }});
     }
-
-    // default timing for 2 switches
-    static long duration = 2900; // ms
-    static long period = 1000; // ms
 
     public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
@@ -180,6 +116,8 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
                 try {
                     period = Integer.parseInt(args[i]);
                 } catch (final Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-testUnsafe")) {
+                testEvenUnsafeSwapGLContext = true;
             }
         }
         /**

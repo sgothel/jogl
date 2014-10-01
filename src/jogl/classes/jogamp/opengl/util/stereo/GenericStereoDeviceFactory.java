@@ -38,6 +38,6 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
 
     @Override
     public final StereoDevice createDevice(final int deviceIndex, final StereoDevice.Config config, final boolean verbose) {
-        return new GenericStereoDevice(deviceIndex, config);
+        return new GenericStereoDevice(this, deviceIndex, config);
     }
 }

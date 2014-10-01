@@ -31,7 +31,10 @@ package javax.media.opengl;
 import javax.media.nativewindow.NativeWindowException;
 
 import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.FBObject.Colorbuffer;
+import com.jogamp.opengl.FBObject.ColorAttachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
+import com.jogamp.opengl.GLRendererQuirks;
 
 /**
  * Platform-independent {@link GLDrawable} specialization,
@@ -62,12 +65,12 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
  * </p>
  * <p>
  * It would be possible to implement double buffering simply using
- * {@link TextureAttachment}s with one {@link FBObject framebuffer}.
+ * {@link Colorbuffer}s with one {@link FBObject framebuffer}.
  * This would require mode selection and hence complicate the API. Besides, it would
  * not support differentiation of read and write framebuffer and hence not be spec compliant.
  * </p>
  * <p>
- * Actual swapping of the {@link TextureAttachment texture}s and/or {@link FBObject framebuffer}
+ * Actual swapping of the {@link Colorbuffer}s and/or {@link FBObject framebuffer}
  * is performed either in the {@link jogamp.opengl.GLContextImpl#contextMadeCurrent(boolean) context current hook}
  * or when {@link jogamp.opengl.GLDrawableImpl#swapBuffersImpl(boolean) swapping buffers}, whatever comes first.
  * </p>
@@ -75,10 +78,33 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
 public interface GLFBODrawable extends GLDrawable {
     // public enum DoubleBufferMode { NONE, TEXTURE, FBO }; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
 
+    /** FBO Mode Bit: Use a {@link TextureAttachment} for the {@link #getColorbuffer(int) render colorbuffer}, see {@link #setFBOMode(int)}. */
+    public static final int FBOMODE_USE_TEXTURE = 1 << 0;
+
     /**
      * @return <code>true</code> if initialized, i.e. a {@link GLContext} is bound and made current once, otherwise <code>false</code>.
      */
     public boolean isInitialized();
+
+    /**
+     * Set the FBO mode bits used for FBO creation.
+     * <p>
+     * Default value is: {@link #FBOMODE_USE_TEXTURE}.
+     * </p>
+     * <p>
+     * If {@link GLRendererQuirks#BuggyColorRenderbuffer} is set,
+     * {@link #FBOMODE_USE_TEXTURE} is always added at initialization.
+     * </p>
+     *
+     * @param modeBits custom FBO mode bits like {@link #FBOMODE_USE_TEXTURE}.
+     * @throws IllegalStateException if already initialized, see {@link #isInitialized()}.
+     */
+    void setFBOMode(final int modeBits) throws IllegalStateException;
+
+    /**
+     * @return the used FBO mode bits, mutable via {@link #setFBOMode(int)}
+     */
+    int getFBOMode();
 
     /**
      * Notify this instance about upstream size change
@@ -87,7 +113,7 @@ public interface GLFBODrawable extends GLDrawable {
      *           A prev. current context will be make current after operation.
      * @throws GLException if resize operation failed
      */
-    void resetSize(GL gl) throws GLException;
+    void resetSize(final GL gl) throws GLException;
 
     /**
      * @return the used texture unit
@@ -98,7 +124,7 @@ public interface GLFBODrawable extends GLDrawable {
      *
      * @param unit the texture unit to be used
      */
-    void setTextureUnit(int unit);
+    void setTextureUnit(final int unit);
 
     /**
      * Set the number of sample buffers if using MSAA
@@ -108,7 +134,7 @@ public interface GLFBODrawable extends GLDrawable {
      * @param newSamples new sample size
      * @throws GLException if resetting the FBO failed
      */
-    void setNumSamples(GL gl, int newSamples) throws GLException;
+    void setNumSamples(final GL gl, final int newSamples) throws GLException;
 
     /**
      * @return the number of sample buffers if using MSAA, otherwise 0
@@ -124,9 +150,9 @@ public interface GLFBODrawable extends GLDrawable {
      * Must be called before {@link #isInitialized() initialization}, otherwise an exception is thrown.
      * </p>
      * @return the new number of buffers (FBO) used, maybe different than the requested <code>bufferCount</code> (see above)
-     * @throws GLException if already initialized, see {@link #isInitialized()}.
+     * @throws IllegalStateException if already initialized, see {@link #isInitialized()}.
      */
-    int setNumBuffers(int bufferCount) throws GLException;
+    int setNumBuffers(final int bufferCount) throws IllegalStateException, GLException;
 
     /**
      * @return the number of buffers (FBO) being used. 1 if not using {@link GLCapabilities#getDoubleBuffered() double buffering},
@@ -162,19 +188,25 @@ public interface GLFBODrawable extends GLDrawable {
      * @return the named {@link FBObject}
      * @throws IllegalArgumentException if an illegal buffer name is being used
      */
-    FBObject getFBObject(int bufferName) throws IllegalArgumentException;
+    FBObject getFBObject(final int bufferName) throws IllegalArgumentException;
 
     /**
-     * Returns the named texture buffer.
+     * Returns the named {@link Colorbuffer} instance.
      * <p>
      * If MSAA is being used, only the {@link GL#GL_FRONT} buffer is accessible
      * and an exception is being thrown if {@link GL#GL_BACK} is being requested.
      * </p>
+     * <p>
+     * Depending on the {@link #setFBOMode(int) fbo mode} the resulting {@link Colorbuffer}
+     * is either a {@link TextureAttachment} if {@link #FBOMODE_USE_TEXTURE} is set,
+     * otherwise a {@link ColorAttachment}.
+     * See {@link Colorbuffer#isTextureAttachment()}.
+     * </p>
      * @param bufferName {@link GL#GL_FRONT} and {@link GL#GL_BACK} are valid buffer names
-     * @return the named {@link TextureAttachment}
+     * @return the named {@link Colorbuffer}
      * @throws IllegalArgumentException if using MSAA and {@link GL#GL_BACK} is requested or an illegal buffer name is being used
      */
-    FBObject.TextureAttachment getTextureBuffer(int bufferName) throws IllegalArgumentException;
+    Colorbuffer getColorbuffer(final int bufferName) throws IllegalArgumentException;
 
     /** Resizeable {@link GLFBODrawable} specialization */
     public interface Resizeable extends GLFBODrawable {

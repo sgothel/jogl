@@ -36,8 +36,10 @@ import java.awt.event.ComponentListener;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.nativewindow.ScalableSurface;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
@@ -137,6 +139,19 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         }
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glJPanel.addGLEventListener(snap);
+        glJPanel.addGLEventListener(new GLEventListener() {
+            @Override
+            public void init(final GLAutoDrawable drawable) { }
+            @Override
+            public void dispose(final GLAutoDrawable drawable) { }
+            @Override
+            public void display(final GLAutoDrawable drawable) { }
+            @Override
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+                setTitle(frame, glJPanel, caps);
+            }
+
+        });
         setTitle(frame, glJPanel, caps);
         frame.setLocation(xpos, ypos);
 
@@ -213,6 +228,25 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, glJPanel, caps);
                     Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+                } else if(e.getKeyChar()=='m') {
+                    final GLCapabilitiesImmutable capsPre = glJPanel.getChosenGLCapabilities();
+                    final GLCapabilities capsNew = new GLCapabilities(capsPre.getGLProfile());
+                    capsNew.copyFrom(capsPre);
+                    final boolean msaa;
+                    if( capsPre.getSampleBuffers() ) {
+                        capsNew.setSampleBuffers(false);
+                        msaa = false;
+                    } else {
+                        capsNew.setSampleBuffers(true);
+                        capsNew.setNumSamples(4);
+                        msaa = true;
+                    }
+                    System.err.println("[set MSAA "+msaa+" Caps had]: "+capsPre);
+                    System.err.println("[set MSAA "+msaa+" Caps new]: "+capsNew);
+                    System.err.println("XXX-A1: "+animator.toString());
+                    glJPanel.setRequestedGLCapabilities(capsNew);
+                    System.err.println("XXX-A2: "+animator.toString());
+                    System.err.println("XXX: "+glJPanel.toString());
                 }
             } };
         new AWTKeyAdapter(kl, glJPanel).addTo(glJPanel);

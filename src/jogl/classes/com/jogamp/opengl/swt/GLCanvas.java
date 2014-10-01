@@ -85,6 +85,12 @@ import com.jogamp.opengl.JoglVersion;
  * <p>
  * Implementation allows use of custom {@link GLCapabilities}.
  * </p>
+ * <p>
+ * <a name="contextSharing"><h5>OpenGL Context Sharing</h5></a>
+ * To share a {@link GLContext} see the following note in the documentation overview:
+ * <a href="../../../../overview-summary.html#SHARING">context sharing</a>
+ * as well as {@link GLSharedContextSetter}.
+ * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextSetter {
   private static final boolean DEBUG = Debug.debug("GLCanvas");
@@ -205,10 +211,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                  animatorPaused = false;
              }
 
-             if ( null != context ) {
+             GLException exceptionOnDisposeGL = null;
+             if( null != context ) {
                  if( context.isCreated() ) {
-                     // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                     // so we can continue with the destruction.
                      try {
                          if( !GLCanvas.this.isDisposed() ) {
                              helper.disposeGL(GLCanvas.this, context, true);
@@ -216,28 +221,50 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                              context.destroy();
                          }
                      } catch (final GLException gle) {
-                         gle.printStackTrace();
+                         exceptionOnDisposeGL = gle;
                      }
                  }
                  context = null;
              }
-             if ( null != drawable ) {
-                 drawable.setRealized(false);
+
+             Throwable exceptionOnUnrealize = null;
+             if( null != drawable ) {
+                 try {
+                     drawable.setRealized(false);
+                 } catch( final Throwable re ) {
+                     exceptionOnUnrealize = re;
+                 }
                  drawable = null;
              }
-             if( 0 != x11Window) {
-                 SWTAccessor.destroyX11Window(screen.getDevice(), x11Window);
-                 x11Window = 0;
-             } else if( 0 != gdkWindow) {
-                 SWTAccessor.destroyGDKWindow(gdkWindow);
-                 gdkWindow = 0;
+
+             Throwable exceptionOnDeviceClose = null;
+             try {
+                 if( 0 != x11Window) {
+                     SWTAccessor.destroyX11Window(screen.getDevice(), x11Window);
+                     x11Window = 0;
+                 } else if( 0 != gdkWindow) {
+                     SWTAccessor.destroyGDKWindow(gdkWindow);
+                     gdkWindow = 0;
+                 }
+                 screen.getDevice().close();
+             } catch (final Throwable re) {
+                 exceptionOnDeviceClose = re;
              }
-             screen.getDevice().close();
 
              if (animatorPaused) {
                  animator.resume();
              }
 
+             // throw exception in order of occurrence ..
+             if( null != exceptionOnDisposeGL ) {
+                 throw exceptionOnDisposeGL;
+             }
+             if( null != exceptionOnUnrealize ) {
+                 throw GLException.newGLException(exceptionOnUnrealize);
+             }
+             if( null != exceptionOnDeviceClose ) {
+                 throw GLException.newGLException(exceptionOnDeviceClose);
+             }
          } finally {
              _lock.unlock();
          }
@@ -638,6 +665,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
+   public final RecursiveLock getUpstreamLock() { return lock; }
+
+   @Override
    public int getSurfaceWidth() {
       return clientArea.width;
    }
@@ -755,13 +785,18 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public boolean invoke(final boolean wait, final GLRunnable runnable) {
+   public boolean invoke(final boolean wait, final GLRunnable runnable) throws IllegalStateException {
       return helper.invoke(this, wait, runnable);
    }
 
    @Override
-   public boolean invoke(final boolean wait, final List<GLRunnable> runnables) {
+   public boolean invoke(final boolean wait, final List<GLRunnable> runnables) throws IllegalStateException {
       return helper.invoke(this, wait, runnables);
+   }
+
+   @Override
+   public void flushGLRunnables() {
+       helper.flushGLRunnables();
    }
 
    @Override
@@ -829,14 +864,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getChosenGLCapabilities() : null;
    }
 
-   /**
-    * Accessor for the GLCapabilities that were requested (via the constructor parameter).
-    *
-    * @return Non-null GLCapabilities.
-    */
+   @Override
    public GLCapabilitiesImmutable getRequestedGLCapabilities() {
       final GLDrawable _drawable = drawable;
-      return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities() : null;
+      return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getRequestedGLCapabilities() : null;
    }
 
    @Override
@@ -877,6 +908,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    public void swapBuffers() throws GLException {
       runInGLThread(swapBuffersOnGLAction);
    }
+
+   /**
+    * {@inheritDoc}
+    * <p>
+    * Implementation always supports multithreading, hence method always returns <code>true</code>.
+    * </p>
+    */
+   @Override
+   public final boolean isThreadGLCapable() { return true; }
 
    /**
     * Runs the specified action in an SWT compatible thread, which is:

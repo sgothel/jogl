@@ -1,8 +1,8 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.7.0_45_x64
-set JAVA_HOME=c:\jdk1.7.0_45_x64
-set ANT_PATH=C:\apache-ant-1.8.2
+set J2RE_HOME=c:\jre1.7.0_67_x64
+set JAVA_HOME=c:\jdk1.7.0_67_x64
+set ANT_PATH=C:\apache-ant-1.9.4
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
 set BLD_DIR=..\%BLD_SUB%
@@ -24,6 +24,11 @@ REM set D_ARGS="-Djogamp.debug=all"
 set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogl.debug.windows.cpu_affinity_mode=0" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.GLContext"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.GLContext"
+REM set D_ARGS="-Djogl.disable.opengles"
+REM set D_ARGS="-Djogl.disable.openglcore"
+REM set D_ARGS="-Djogl.disable.openglarbcontext"
 REM set D_ARGS="-Dnativewindow.debug.GDIUtil" "-Dnativewindow.debug.RegisteredClass"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.FBObject"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.DontQuery"

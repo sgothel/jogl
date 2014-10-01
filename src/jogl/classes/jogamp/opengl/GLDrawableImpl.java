@@ -130,10 +130,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   @Override
-  public GLCapabilitiesImmutable getChosenGLCapabilities() {
+  public final GLCapabilitiesImmutable getChosenGLCapabilities() {
     return  (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
   }
 
+  @Override
   public final GLCapabilitiesImmutable getRequestedGLCapabilities() {
     return requestedCapabilities;
   }

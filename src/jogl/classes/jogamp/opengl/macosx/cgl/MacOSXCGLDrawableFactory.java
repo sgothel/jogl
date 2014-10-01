@@ -42,6 +42,7 @@ package jogamp.opengl.macosx.cgl;
 
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -404,24 +405,29 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   /** Returns the length of the computed gamma ramp for this OS and
       hardware. Returns 0 if gamma changes are not supported. */
   @Override
-  protected int getGammaRampLength() {
+  protected int getGammaRampLength(final NativeSurface surface) {
     return GAMMA_RAMP_LENGTH;
   }
 
   @Override
-  protected boolean setGammaRamp(final float[] ramp) {
+  protected boolean setGammaRamp(final NativeSurface surface, final float[] ramp) {
     final FloatBuffer rampNIO = Buffers.newDirectFloatBuffer(ramp);
-
     return CGL.setGammaRamp(ramp.length, rampNIO, rampNIO, rampNIO);
   }
 
   @Override
-  protected Buffer getGammaRamp() {
-    return null;
+  protected Buffer getGammaRamp(final NativeSurface surface) {
+    return ShortBuffer.allocate(0); // return a dummy gamma ramp default for reset
   }
 
   @Override
-  protected void resetGammaRamp(final Buffer originalGammaRamp) {
+  protected void resetGammaRamp(final NativeSurface surface, final Buffer originalGammaRamp) {
     CGL.resetGammaRamp();
   }
+
+  @Override
+  protected final void resetGammaRamp(final DeviceScreenID deviceScreenID, final Buffer originalGammaRamp) {
+      CGL.resetGammaRamp();
+  }
+
 }

@@ -54,7 +54,7 @@ import org.junit.runners.MethodSorters;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawableSwitchBase {
+public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawableSwitchBase1 {
 
     static int loops = 10;
     static long duration2 = 100; // ms

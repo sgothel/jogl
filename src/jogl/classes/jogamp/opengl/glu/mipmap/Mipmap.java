@@ -49,6 +49,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.GLException;
 
@@ -255,8 +256,8 @@ public class Mipmap {
    */
   public static void closestFit( final GL gl, final int target, final int width, final int height, final int internalFormat,
                                 final int format, final int type, final int[] newWidth, final int[] newHeight ) {
-    // Use proxy textures if OpenGL version >= 1.1
-    if( Double.parseDouble( gl.glGetString( GL.GL_VERSION ).trim().substring( 0, 3 ) ) >= 1.1 ) {
+    // Use proxy textures if OpenGL GL2/GL3 version >= 1.1
+    if( gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version110) >= 0 ) {
       int widthPowerOf2 = nearestPower( width );
       int heightPowerOf2 = nearestPower( height );
       final int[] proxyWidth = new int[1];

@@ -2,7 +2,6 @@ package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,6 +16,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -536,7 +536,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 } } );
             buttons.add(mPlayerButton);
             try {
-                final URI streamLoc = new URI("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
+                final Uri streamLoc = Uri.cast("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
                 mPlayer.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
             } catch (final URISyntaxException e1) {
                 e1.printStackTrace();

@@ -51,6 +51,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -330,7 +331,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 isProcCreateContextAttribsARBAvailable = false;
                 isExtARBCreateContextAvailable = false;
             }
-            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable && !GLProfile.disableOpenGLARBContext ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(shareWithHandle, true);
                 createContextARBTried=true;
@@ -343,7 +344,9 @@ public class WindowsWGLContext extends GLContextImpl {
                 }
             } else if (DEBUG) {
                 System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
-                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
+                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+
+                                   ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable+
+                                   ", disableOpenGLARBContext "+GLProfile.disableOpenGLARBContext);
             }
         }
     } else {
@@ -360,16 +363,18 @@ public class WindowsWGLContext extends GLContextImpl {
             }
         }
     } else {
-        if( glCaps.getGLProfile().isGL3() ) {
-          WGL.wglMakeCurrent(0, 0);
-          WGL.wglDeleteContext(temp_ctx);
-          throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
+        if( glCaps.getGLProfile().isGL3() && createContextARBTried ) {
+            // We shall not allow context creation >= GL3 w/ non ARB methods if ARB is used,
+            // otherwise context of similar profile but different creation method may not be share-able.
+            WGL.wglMakeCurrent(0, 0);
+            WGL.wglDeleteContext(temp_ctx);
+            throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
         }
         if(DEBUG) {
-          System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion());
+            System.err.println("WindowsWGLContext.createContext ARB not used, fall back to !ARB context "+getGLVersion());
         }
 
-        // continue with temp context for GL < 3.0
+        // continue with temp context
         contextHandle = temp_ctx;
         if ( !wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
             WGL.wglMakeCurrent(0, 0);

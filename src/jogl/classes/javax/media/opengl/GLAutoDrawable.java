@@ -42,6 +42,10 @@ package javax.media.opengl;
 
 import java.util.List;
 
+import javax.media.nativewindow.NativeSurface;
+
+import com.jogamp.common.util.locks.RecursiveLock;
+
 import jogamp.opengl.Debug;
 
 /** A higher-level abstraction than {@link GLDrawable} which supplies
@@ -116,6 +120,28 @@ import jogamp.opengl.Debug;
     -Djogl.screenchange.action=true  Enable  the {@link GLDrawable} reconfiguration
     </PRE>
     </p>
+    <h5><a name="locking">GLAutoDrawable Locking</a></h5>
+    GLAutoDrawable implementations perform locking in the following order:
+    <ol>
+      <li> {@link #getUpstreamLock()}.{@link RecursiveLock#lock() lock()}</li>
+      <li> {@link #getNativeSurface()}.{@link NativeSurface#lockSurface() lockSurface()} </li>
+    </ol>
+    and releases the locks accordingly:
+    <ol>
+      <li> {@link #getNativeSurface()}.{@link NativeSurface#unlockSurface() unlockSurface()} </li>
+      <li> {@link #getUpstreamLock()}.{@link RecursiveLock#unlock() unlock()}</li>
+    </ol>
+    Above <i>locking order</i> is mandatory to guarantee
+    atomicity of operation and to avoid race-conditions.
+    A custom implementation or user applications requiring exclusive access
+    shall follow the <i>locking order</i>.
+    See:
+    <ul>
+      <li>{@link #getUpstreamLock()}</li>
+      <li>{@link #invoke(boolean, GLRunnable)}</li>
+      <li>{@link #invoke(boolean, List)}</li>
+    </ul>
+    </p>
   */
 public interface GLAutoDrawable extends GLDrawable {
   /** Flag reflecting whether the {@link GLDrawable} reconfiguration will be issued in
@@ -139,19 +165,22 @@ public interface GLAutoDrawable extends GLDrawable {
   /**
    * Associate the new context, <code>newtCtx</code>, to this auto-drawable.
    * <p>
-   * The current context will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
-   * otherwise it will be dis-associated from this auto-drawable
-   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) setGLDrawable(null, true);} first.
-   * </p>
-   * <p>
-   * The new context will be associated with this auto-drawable
-   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * </p>
-   * <p>
-   * If the old or new context was current on this thread, it is being released before switching the association.
-   * The new context will be made current afterwards, if it was current before.
-   * However the user shall take extra care that no other thread
-   * attempts to make this context current.
+   * Remarks:
+   * <ul>
+   *   <li>The currently associated context will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
+   *       otherwise it will be disassociated from this auto-drawable
+   *       via {@link GLContext#setGLDrawable(GLDrawable, boolean) setGLDrawable(null, true);} including {@link GL#glFinish() glFinish()}.</li>
+   *   <li>The new context will be associated with this auto-drawable
+   *       via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.</li>
+   *   <li>If the old context was current on this thread, it is being released after disassociating this auto-drawable.</li>
+   *   <li>If the new context was current on this thread, it is being released before associating this auto-drawable
+   *       and made current afterwards.</li>
+   *   <li>Implementation may issue {@link #makeCurrent()} and {@link #release()} while drawable reassociation.</li>
+   *   <li>The user shall take extra care of thread synchronization,
+   *       i.e. lock the involved {@link GLAutoDrawable auto-drawable's}
+   *       {@link GLAutoDrawable#getUpstreamLock() upstream-locks} and {@link GLAutoDrawable#getNativeSurface() surfaces}
+   *       to avoid a race condition. See <a href="#locking">GLAutoDrawable Locking</a>.</li>
+   * </ul>
    * </p>
    *
    * @param newCtx the new context, maybe <code>null</code> for dis-association.
@@ -200,6 +229,7 @@ public interface GLAutoDrawable extends GLDrawable {
 
   /**
    * Returns true if all added {@link GLEventListener} are initialized, otherwise false.
+   * @since 2.2
    */
   boolean areAllGLEventListenerInitialized();
 
@@ -410,17 +440,28 @@ public interface GLAutoDrawable extends GLDrawable {
    * The internal queue of {@link GLRunnable}'s is being flushed with {@link #destroy()}
    * where all blocked callers are being notified.
    * </p>
+   * <p>
+   * To avoid a deadlock situation which causes an {@link IllegalStateException} one should
+   * avoid issuing {@link #invoke(boolean, GLRunnable) invoke} while this <a href="#locking">GLAutoDrawable is being locked</a>.<br>
+   * Detected deadlock situations throwing an {@link IllegalStateException} are:
+   * <ul>
+   *   <li>{@link #getAnimator() Animator} is running on another thread and waiting and is locked on current thread, but is not {@link #isThreadGLCapable() GL-Thread}</li>
+   *   <li>No {@link #getAnimator() Animator} is running on another thread and is locked on current thread, but is not {@link #isThreadGLCapable() GL-Thread}</li>
+   * </ul>
+   * </p>
    *
    * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
    * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
    * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
+   * @throws IllegalStateException in case of a detected deadlock situation ahead, see above.
    *
    * @see #setAnimator(GLAnimatorControl)
    * @see #display()
    * @see GLRunnable
    * @see #invoke(boolean, List)
+   * @see #flushGLRunnables()
    */
-  public boolean invoke(boolean wait, GLRunnable glRunnable);
+  public boolean invoke(boolean wait, GLRunnable glRunnable) throws IllegalStateException ;
 
   /**
    * Extends {@link #invoke(boolean, GLRunnable)} functionality
@@ -428,9 +469,23 @@ public interface GLAutoDrawable extends GLDrawable {
    * @param wait if <code>true</code> block until execution of the last <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
    * @param glRunnables the {@link GLRunnable}s to execute within {@link #display()}
    * @return <code>true</code> if the {@link GLRunnable}s has been processed or queued, otherwise <code>false</code>.
+   * @throws IllegalStateException in case of a detected deadlock situation ahead, see {@link #invoke(boolean, GLRunnable)}.
    * @see #invoke(boolean, GLRunnable)
+   * @see #flushGLRunnables()
    */
-  public boolean invoke(boolean wait, List<GLRunnable> glRunnables);
+  public boolean invoke(boolean wait, List<GLRunnable> glRunnables) throws IllegalStateException;
+
+  /**
+   * Flushes all {@link #invoke(boolean, GLRunnable) enqueued} {@link GLRunnable} of this {@link GLAutoDrawable}
+   * including notifying waiting executor.
+   * <p>
+   * The executor which might have been blocked until notified
+   * will be unblocked and all tasks removed from the queue.
+   * </p>
+   * @see #invoke(boolean, GLRunnable)
+   * @since 2.2
+   */
+  public void flushGLRunnables();
 
   /** Destroys all resources associated with this GLAutoDrawable,
       inclusive the GLContext.
@@ -555,5 +610,27 @@ public interface GLAutoDrawable extends GLDrawable {
    * </p>
    */
   public Object getUpstreamWidget();
+
+  /**
+   * Returns the recursive lock object of the {@link #getUpstreamWidget() upstream widget}
+   * to synchronize multithreaded access on top of {@link NativeSurface#lockSurface()}.
+   * <p>
+   * See <a href="#locking">GLAutoDrawable Locking</a>.
+   * </p>
+   * @since 2.2
+   */
+  public RecursiveLock getUpstreamLock();
+
+  /**
+   * Indicates whether the current thread is capable of
+   * performing OpenGL-related work.
+   * <p>
+   * Implementation utilizes this knowledge to determine
+   * whether {@link #display()} performs the OpenGL commands on the current thread directly
+   * or spawns them on the dedicated OpenGL thread.
+   * </p>
+   * @since 2.2
+   */
+  public boolean isThreadGLCapable();
 
 }

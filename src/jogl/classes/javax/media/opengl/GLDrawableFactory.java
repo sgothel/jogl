@@ -98,23 +98,6 @@ public abstract class GLDrawableFactory {
 
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
-  /**
-   * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome.
-   * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
-   * <p>
-   * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
-   * <code>jogl.enable.ANGLE</code>.
-   * </p>
-   */
-  protected static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
-
-  /**
-   * In case no OpenGL ES implementation is required
-   * and if the running platform may have a buggy implementation,
-   * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation.
-   */
-  protected static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
-
   private static volatile boolean isInit = false;
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
@@ -179,7 +162,7 @@ public abstract class GLDrawableFactory {
     }
     tmp = null;
 
-    if(!disableOpenGLES) {
+    if(!GLProfile.disableOpenGLES) {
         try {
             tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
         } catch (final Exception jre) {
@@ -222,7 +205,7 @@ public abstract class GLDrawableFactory {
                 System.err.println("GLDrawableFactory.shutdownAll["+(i+1)+"/"+gldfCount+"]:  "+gldf.getClass().getName());
             }
             try {
-                gldf.resetDisplayGamma();
+                gldf.resetAllDisplayGammaNoSync();
                 gldf.shutdownImpl();
             } catch (final Throwable t) {
                 System.err.println("GLDrawableFactory.shutdownImpl: Caught "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
@@ -259,7 +242,70 @@ public abstract class GLDrawableFactory {
 
   protected abstract void shutdownImpl();
 
-  public abstract void resetDisplayGamma();
+  /**
+   * Sets the gamma, brightness, and contrast of the display associated with the given <code>surface</code>.
+   * <p>
+   * This functionality is not available on all platforms and
+   * graphics hardware. Returns true if the settings were successfully
+   * changed, false if not. This method may return false for some
+   * values of the incoming arguments even on hardware which does
+   * support the underlying functionality. </p>
+   * <p>
+   * If this method returns true, the display settings will
+   * automatically be reset to their original values upon JVM exit
+   * (assuming the JVM does not crash); if the user wishes to change
+   * the display settings back to normal ahead of time,
+   * use {@link #resetDisplayGamma(NativeSurface)} or {@link #resetAllDisplayGamma()}.
+   * </p>
+   * <p>
+   * It is recommended to call {@link #resetDisplayGamma(NativeSurface)} or {@link #resetAllDisplayGamma()}
+   * before calling e.g. <code>System.exit()</code> from the application rather than
+   * rely on the shutdown hook functionality due to inevitable race
+   * conditions and unspecified behavior during JVM teardown.
+   * </p>
+   * <p>
+   * This method may be called multiple times during the application's
+   * execution, but calling {@link #resetDisplayGamma(NativeSurface)}
+   * will only reset the settings to the values
+   * before the first call to this method. </p>
+   *
+   * @param surface denominates the display device
+   * @param gamma The gamma value, typically > 1.0 (default values vary, but typically roughly 1.0)
+   * @param brightness The brightness value between -1.0 and 1.0, inclusive (default values vary, but typically 0)
+   * @param contrast The contrast, greater than 0.0 (default values vary, but typically 1)
+   *
+   * @return true if gamma settings were successfully changed, false if not
+   * @throws IllegalArgumentException if any of the parameters were out-of-bounds
+   * @see #resetDisplayGamma(NativeSurface)
+   * @see #resetAllDisplayGamma()
+   */
+  public abstract boolean setDisplayGamma(final NativeSurface surface, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException;
+
+  /**
+   * Resets the gamma, brightness and contrast values of the display associated with the given <code>surface</code>
+   * to its original values before {@link #setDisplayGamma(NativeSurface, float, float, float) setDisplayGamma}
+   * was called the first time.
+   * <p>
+   * While it is not explicitly required that this method be called before
+   * exiting manually, calling it is recommended because of the inevitable
+   * unspecified behavior during JVM teardown.
+   * </p>
+   */
+  public abstract void resetDisplayGamma(final NativeSurface surface);
+
+  /**
+   * Resets the gamma, brightness and contrast values of all modified
+   * displays to their original values before {@link #setDisplayGamma(NativeSurface, float, float, float) setDisplayGamma}
+   * was called the first time.
+   * <p>
+   * While it is not explicitly required that this method be called before
+   * exiting manually, calling it is recommended because of the inevitable
+   * unspecified behavior during JVM teardown.
+   * </p>
+   */
+  public abstract void resetAllDisplayGamma();
+
+  protected abstract void resetAllDisplayGammaNoSync();
 
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},

@@ -40,6 +40,7 @@
 
 package jogamp.opengl;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
@@ -77,7 +78,8 @@ public class GLDrawableHelper {
   private final ArrayList<GLEventListener> listeners = new ArrayList<GLEventListener>();
   private final HashSet<GLEventListener> listenersToBeInit = new HashSet<GLEventListener>();
   private final Object glRunnablesLock = new Object();
-  private volatile ArrayList<GLRunnableTask> glRunnables = new ArrayList<GLRunnableTask>();
+  private ArrayList<GLRunnableTask> glRunnables = new ArrayList<GLRunnableTask>();
+  private volatile int glRunnableCount = 0;
   private boolean autoSwapBufferMode;
   private volatile Thread exclusiveContextThread;
   /** -1 release, 0 nop, 1 claim */
@@ -102,6 +104,7 @@ public class GLDrawableHelper {
     exclusiveContextThread = null;
     exclusiveContextSwitch = 0;
     synchronized(glRunnablesLock) {
+        glRunnableCount = 0;
         glRunnables.clear();
     }
     animatorCtrl = null;
@@ -208,19 +211,23 @@ public class GLDrawableHelper {
   /**
    * Switch {@link GLContext} / {@link GLDrawable} association.
    * <p>
-   * The <code>oldCtx</code> will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
-   * otherwise dis-associate <code>oldCtx</code> from <code>drawable</code>
-   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) oldCtx.setGLDrawable(null, true);}.
-   * </p>
-   * <p>
-   * Re-associate <code>newCtx</code> with <code>drawable</code>
-   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * </p>
-   * <p>
-   * If the old or new context was current on this thread, it is being released before switching the drawable.
-   * </p>
-   * <p>
-   * No locking is being performed on the drawable, caller is required to take care of it.
+   * Remarks:
+   * <ul>
+   *   <li>The <code>oldCtx</code> will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
+   *       otherwise disassociate <code>oldCtx</code> from <code>drawable</code>
+   *       via {@link GLContext#setGLDrawable(GLDrawable, boolean) oldCtx.setGLDrawable(null, true);} including {@link GL#glFinish() glFinish()}.</li>
+   *   <li>Reassociate <code>newCtx</code> with <code>drawable</code>
+   *       via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.</li>
+   *   <li>If the old context was current on this thread, it is being released after disassociating the drawable.</li>
+   *   <li>If the new context was current on this thread, it is being released before associating the drawable
+   *       and made current afterwards.</li>
+   *   <li>Implementation may issue {@link #makeCurrent()} and {@link #release()} while drawable reassociation.</li>
+   *   <li>The user shall take extra care of thread synchronization,
+   *       i.e. lock the involved {@link GLDrawable#getNativeSurface() drawable's} {@link NativeSurface}s
+   *       to avoid a race condition. In case {@link GLAutoDrawable auto-drawable's} are used,
+   *       their {@link GLAutoDrawable#getUpstreamLock() upstream-lock} must be locked beforehand
+   *       see <a href="../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+   * </ul>
    * </p>
    *
    * @param drawable the drawable which context is changed
@@ -277,7 +284,6 @@ public class GLDrawableHelper {
           if( currentContext != context ) {
               context.makeCurrent();
           }
-          context.getGL().glFinish();
           context.setGLDrawable(null, true); // dis-associate
       }
 
@@ -295,7 +301,7 @@ public class GLDrawableHelper {
       }
 
       if(null != context) {
-          context.setGLDrawable(drawable, true); // re-association
+          context.setGLDrawable(drawable, true); // re-association, implicit glFinish() ctx/drawable sync
       }
 
       if( null != currentContext ) {
@@ -506,15 +512,25 @@ public class GLDrawableHelper {
    * </p>
    * @param autoDrawable
    * @return the disposal count
+   * @throws GLException caused by {@link GLEventListener#dispose(GLAutoDrawable)}
    */
-  public final int disposeAllGLEventListener(final GLAutoDrawable autoDrawable, final boolean remove) {
+  public final int disposeAllGLEventListener(final GLAutoDrawable autoDrawable, final boolean remove) throws GLException {
+    Throwable firstCaught = null;
     int disposeCount = 0;
     synchronized(listenersLock) {
         if( remove ) {
             for (int count = listeners.size(); 0 < count && 0 < listeners.size(); count--) {
               final GLEventListener listener = listeners.remove(0);
               if( !listenersToBeInit.remove(listener) ) {
-                  listener.dispose(autoDrawable);
+                  try {
+                      listener.dispose(autoDrawable);
+                  } catch (final Throwable t) {
+                      if( null == firstCaught ) {
+                          firstCaught = t;
+                      } else {
+                          GLException.dumpThrowable("subsequent", t);
+                      }
+                  }
                   disposeCount++;
               }
             }
@@ -522,12 +538,24 @@ public class GLDrawableHelper {
             for (int i = 0; i < listeners.size(); i++) {
               final GLEventListener listener = listeners.get(i);
               if( !listenersToBeInit.contains(listener) ) {
-                  listener.dispose(autoDrawable);
+                  try {
+                      listener.dispose(autoDrawable);
+                  } catch (final Throwable t) {
+                      if( null == firstCaught ) {
+                          firstCaught = t;
+                      } else {
+                          GLException.dumpThrowable("subsequent", t);
+                      }
+                  }
                   listenersToBeInit.add(listener);
                   disposeCount++;
               }
             }
         }
+    }
+    if( null != firstCaught ) {
+        flushGLRunnables();
+        throw GLException.newGLException(firstCaught);
     }
     return disposeCount;
   }
@@ -634,7 +662,7 @@ public class GLDrawableHelper {
               init( listener, drawable, sendReshape, 0==i /* setViewport */);
             }
         } else {
-            // Expose same GL initialization if not using GLEventListener
+            // Expose same GL initialization if not using any GLEventListener
             drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
     }
@@ -643,7 +671,7 @@ public class GLDrawableHelper {
   public final void display(final GLAutoDrawable drawable) {
     displayImpl(drawable);
     // runForAllGLEventListener(drawable, displayAction);
-    if( glRunnables.size()>0 && !execGLRunnables(drawable) ) { // glRunnables volatile OK; execGL.. only executed if size > 0
+    if( glRunnableCount > 0 && !execGLRunnables(drawable) ) { // glRunnableCount volatile OK; execGL.. only executed if size > 0
         displayImpl(drawable);
         // runForAllGLEventListener(drawable, displayAction);
     }
@@ -701,11 +729,10 @@ public class GLDrawableHelper {
         }
     }
     if(setViewport) {
-        final GL gl = drawable.getGL();
-        final int glerr0 = gl.glGetError();
-        if( GL.GL_NO_ERROR != glerr0 ) {
-            System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
-            if(DEBUG) {
+        if( GLContext.DEBUG_GL || DEBUG ) {
+            final int glerr0 = drawable.getGL().glGetError();
+            if( GL.GL_NO_ERROR != glerr0 ) {
+                System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
                 Thread.dumpStack();
             }
         }
@@ -723,43 +750,29 @@ public class GLDrawableHelper {
   }
 
   private final boolean execGLRunnables(final GLAutoDrawable drawable) { // glRunnables.size()>0
-    boolean res = true;
     // swap one-shot list asap
     final ArrayList<GLRunnableTask> _glRunnables;
     synchronized(glRunnablesLock) {
-        if(glRunnables.size()>0) {
+        if( glRunnables.size() > 0 ) {
+            glRunnableCount = 0;
             _glRunnables = glRunnables;
             glRunnables = new ArrayList<GLRunnableTask>();
         } else {
-            _glRunnables = null;
+            return true;
         }
     }
-
-    if(null!=_glRunnables) {
-        for (int i=0; i < _glRunnables.size(); i++) {
-            res = _glRunnables.get(i).run(drawable) && res;
-        }
+    boolean res = true;
+    for (int i=0; i < _glRunnables.size(); i++) {
+        res = _glRunnables.get(i).run(drawable) && res;
     }
     return res;
   }
 
   public final void flushGLRunnables() {
-    if(glRunnables.size()>0) { // volatile OK
-        // swap one-shot list asap
-        final ArrayList<GLRunnableTask> _glRunnables;
-        synchronized(glRunnablesLock) {
-            if(glRunnables.size()>0) {
-                _glRunnables = glRunnables;
-                glRunnables = new ArrayList<GLRunnableTask>();
-            } else {
-                _glRunnables = null;
-            }
-        }
-
-        if(null!=_glRunnables) {
-            for (int i=0; i < _glRunnables.size(); i++) {
-                _glRunnables.get(i).flush();
-            }
+    synchronized(glRunnablesLock) {
+        glRunnableCount = 0;
+        while( glRunnables.size() > 0 ) {
+            glRunnables.remove(0).flush();
         }
     }
   }
@@ -795,6 +808,30 @@ public class GLDrawableHelper {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() : false ;
   }
 
+  public static final boolean isLockedByOtherThread(final GLAutoDrawable d) {
+      final Thread currentThread = Thread.currentThread();
+      final Thread upstreamLockOwner = d.getUpstreamLock().getOwner();
+      if( null != upstreamLockOwner && currentThread != upstreamLockOwner ) {
+          return true;
+      } else {
+          final NativeSurface s = d.getNativeSurface();
+          final Thread surfaceLockOwner = null != s ? s.getSurfaceLockOwner() : null;
+          return null != surfaceLockOwner  && currentThread != surfaceLockOwner;
+      }
+  }
+
+  public static final boolean isLockedByThisThread(final GLAutoDrawable d) {
+      final Thread currentThread = Thread.currentThread();
+      final Thread upstreamLockOwner = d.getUpstreamLock().getOwner();
+      if( currentThread == upstreamLockOwner ) {
+          return true;
+      } else {
+          final NativeSurface s = d.getNativeSurface();
+          final Thread surfaceLockOwner = null != s ? s.getSurfaceLockOwner() : null;
+          return currentThread == surfaceLockOwner;
+      }
+  }
+
   /**
    * <p>
    * If <code>wait</code> is <code>true</code> the call blocks until the <code>glRunnable</code>
@@ -805,13 +842,32 @@ public class GLDrawableHelper {
    * the call is ignored and returns <code>false</code>.<br>
    * This helps avoiding deadlocking the caller.
    * </p>
+   * <p>
+   * <pre>
+   * 0 == deferredHere && 0 == isGLThread -> display() will issue on GL thread, blocking!
+   *
+   *         deferredHere wait isGLThread   lockedByThisThread  Note
+   *  OK     0            x    1            x
+   *  OK     0            x    0            0
+   *  ERROR  0            x    0            1                   Will be deferred on GL thread by display() (blocking),
+   *                                                            but locked by this thread -> ERROR
+   *
+   *         1            0    x            x                   All good, due to no wait, non blocking
+   *
+   *         1            1    1            0
+   *         1            1    0            0
+   *  SWITCH 1            1    1            1                   Run immediately, don't defer since locked by this thread, but isGLThread
+   *  ERROR  1            1    0            1                   Locked by this thread, but _not_ isGLThread -> ERROR
+   * </pre>
+   * </p>
    *
    * @param drawable the {@link GLAutoDrawable} to be used
    * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediatly w/o waiting
    * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
    * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
+   * @throws IllegalStateException in case the drawable is locked by this thread, no animator is running on another thread and <code>wait</code> is <code>true</code>.
    */
-  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final GLRunnable glRunnable) {
+  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final GLRunnable glRunnable) throws IllegalStateException {
     if( null == glRunnable || null == drawable ||
         wait && ( !drawable.isRealized() || null==drawable.getContext() ) ) {
         return false;
@@ -821,18 +877,35 @@ public class GLDrawableHelper {
     final Object rTaskLock = new Object();
     Throwable throwable = null;
     synchronized(rTaskLock) {
-        final boolean deferred;
+        boolean deferredHere;
         synchronized(glRunnablesLock) {
-            deferred = isAnimatorAnimatingOnOtherThread();
-            if(!deferred) {
-                wait = false; // don't wait if exec immediatly
+            final boolean isGLThread = drawable.isThreadGLCapable();
+            deferredHere = isAnimatorAnimatingOnOtherThread();
+            if( deferredHere ) {
+                if( wait && isLockedByThisThread(drawable) ) {
+                    if( isGLThread ) {
+                        // Run immediately, don't defer since locked by this thread, but isGLThread
+                        deferredHere = false;
+                        wait = false;
+                    } else {
+                        // Locked by this thread, but _not_ isGLThread -> ERROR
+                        throw new IllegalStateException("Deferred, wait, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                    }
+                }
+            } else {
+                if( !isGLThread && isLockedByThisThread(drawable) ) {
+                    // Will be deferred on GL thread by display() (blocking), but locked by this thread -> ERROR
+                    throw new IllegalStateException("Not deferred, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                }
+                wait = false; // don't wait if exec immediately
             }
             rTask = new GLRunnableTask(glRunnable,
                                        wait ? rTaskLock : null,
                                        wait  /* catch Exceptions if waiting for result */);
+            glRunnableCount++;
             glRunnables.add(rTask);
         }
-        if( !deferred ) {
+        if( !deferredHere ) {
             drawable.display();
         } else if( wait ) {
             try {
@@ -851,7 +924,16 @@ public class GLDrawableHelper {
     return true;
   }
 
-  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final List<GLRunnable> newGLRunnables) {
+  /**
+   * @see #invoke(GLAutoDrawable, boolean, GLRunnable)
+   *
+   * @param drawable
+   * @param wait
+   * @param newGLRunnables
+   * @return
+   * @throws IllegalStateException
+   */
+  public final boolean invoke(final GLAutoDrawable drawable, boolean wait, final List<GLRunnable> newGLRunnables) throws IllegalStateException {
     if( null == newGLRunnables || newGLRunnables.size() == 0 || null == drawable ||
         wait && ( !drawable.isRealized() || null==drawable.getContext() ) ) {
         return false;
@@ -862,21 +944,39 @@ public class GLDrawableHelper {
     final Object rTaskLock = new Object();
     Throwable throwable = null;
     synchronized(rTaskLock) {
-        final boolean deferred;
+        boolean deferredHere;
         synchronized(glRunnablesLock) {
-            deferred = isAnimatorAnimatingOnOtherThread() || !drawable.isRealized();
-            if(!deferred) {
+            final boolean isGLThread = drawable.isThreadGLCapable();
+            deferredHere = isAnimatorAnimatingOnOtherThread();
+            if( deferredHere ) {
+                if( wait && isLockedByThisThread(drawable) ) {
+                    if( isGLThread ) {
+                        // Run immediately, don't defer since locked by this thread, but isGLThread
+                        deferredHere = false;
+                        wait = false;
+                    } else {
+                        // Locked by this thread, but _not_ isGLThread -> ERROR
+                        throw new IllegalStateException("Deferred, wait, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                    }
+                }
+            } else {
+                if( !isGLThread && isLockedByThisThread(drawable) ) {
+                    // Will be deferred on GL thread by display() (blocking), but locked by this thread -> ERROR
+                    throw new IllegalStateException("Not deferred, isLocked on current and not GL-Thread: thread "+Thread.currentThread());
+                }
                 wait = false; // don't wait if exec immediately
             }
             for(int i=0; i<count-1; i++) {
+                glRunnableCount++;
                 glRunnables.add( new GLRunnableTask(newGLRunnables.get(i), null, false) );
             }
             rTask = new GLRunnableTask(newGLRunnables.get(count-1),
                                        wait ? rTaskLock : null,
                                        wait  /* catch Exceptions if waiting for result */);
+            glRunnableCount++;
             glRunnables.add(rTask);
         }
-        if( !deferred ) {
+        if( !deferredHere ) {
             drawable.display();
         } else if( wait ) {
             try {
@@ -900,6 +1000,7 @@ public class GLDrawableHelper {
         return;
     }
     synchronized(glRunnablesLock) {
+        glRunnableCount++;
         glRunnables.add( new GLRunnableTask(glRunnable, null, false) );
     }
   }
@@ -961,8 +1062,8 @@ public class GLDrawableHelper {
             try {
                 forceNativeRelease(context);
             } catch (final Throwable ex) {
-                ex.printStackTrace();
-                throw new GLException(ex);
+                flushGLRunnables();
+                throw GLException.newGLException(ex);
             }
         }
         exclusiveContextThread = t;
@@ -980,7 +1081,21 @@ public class GLDrawableHelper {
     return exclusiveContextThread;
   }
 
-  private static final ThreadLocal<Runnable> perThreadInitAction = new ThreadLocal<Runnable>();
+  private static final ThreadLocal<WeakReference<Runnable>> perThreadInitAction = new ThreadLocal<WeakReference<Runnable>>();
+  private static final Runnable getLastInitAction() {
+      final WeakReference<Runnable> lastInitActionWR = perThreadInitAction.get();
+      if( null != lastInitActionWR ) {
+          final Runnable lastInitAction = lastInitActionWR.get();
+          if( null == lastInitAction ) {
+              perThreadInitAction.set(null);
+          }
+          return lastInitAction;
+      }
+      return null;
+  }
+  private static final void setLastInitAction(final Runnable initAction) {
+      perThreadInitAction.set(new WeakReference<Runnable>(initAction));
+  }
 
   /** Principal helper method which runs a Runnable with the context
       made current. This could have been made part of GLContext, but a
@@ -1004,8 +1119,7 @@ public class GLDrawableHelper {
                              final Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
-            final Exception e = new GLException(getThreadName()+" Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
-            e.printStackTrace();
+            GLException.dumpThrowable("informal", new GLException("Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext"));
         }
         return;
     }
@@ -1030,9 +1144,11 @@ public class GLDrawableHelper {
    * @param autoDrawable
    * @param context
    * @param destroyContext destroy context in the end while holding the lock
+   * @throws GLException caused by {@link GLEventListener#dispose(GLAutoDrawable)} or context closing
+   *
    */
   public final void disposeGL(final GLAutoDrawable autoDrawable,
-                              final GLContext context, final boolean destroyContext) {
+                              final GLContext context, final boolean destroyContext) throws GLException {
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     GLContext lastContext = GLContext.getCurrent();
@@ -1042,20 +1158,27 @@ public class GLDrawableHelper {
             lastContext = null;
         } else {
             // utilize recursive locking
-            lastInitAction = perThreadInitAction.get();
+            lastInitAction = getLastInitAction();
             lastContext.release();
         }
     }
+
+    GLException disposeCaught = null;
+    Throwable contextCloseCaught = null;
 
     int res;
     try {
       res = context.makeCurrent();
       if (GLContext.CONTEXT_NOT_CURRENT != res) {
         if(GLContext.CONTEXT_CURRENT_NEW == res) {
-            throw new GLException(getThreadName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
+            throw new GLException(GLDrawableHelper.getThreadName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
         }
         if( listeners.size() > 0 && null != autoDrawable ) {
-            disposeAllGLEventListener(autoDrawable, false);
+            try {
+                disposeAllGLEventListener(autoDrawable, false);
+            } catch(final GLException t) {
+                disposeCaught = t;
+            }
         }
       }
     } finally {
@@ -1065,16 +1188,25 @@ public class GLDrawableHelper {
           } else {
               forceNativeRelease(context);
           }
-          flushGLRunnables();
-      } catch (final Exception e) {
-          System.err.println("Caught exception on thread "+getThreadName());
-          e.printStackTrace();
+      } catch (final Throwable t) {
+          contextCloseCaught = t;
       }
+      flushGLRunnables(); // always flush GLRunnables at dispose
+
       if (lastContext != null) {
         final int res2 = lastContext.makeCurrent();
         if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
           lastInitAction.run();
         }
+      }
+      if( null != disposeCaught ) {
+          if( null != contextCloseCaught ) {
+              GLException.dumpThrowable("subsequent", contextCloseCaught);
+          }
+          throw disposeCaught;
+      }
+      if( null != contextCloseCaught ) {
+          throw GLException.newGLException(contextCloseCaught);
       }
     }
   }
@@ -1084,6 +1216,9 @@ public class GLDrawableHelper {
           final Runnable  runnable,
           final Runnable  initAction) {
       final Thread currentThread = Thread.currentThread();
+
+      Throwable glEventListenerCaught = null;
+      Throwable contextReleaseCaught = null;
 
       // Exclusive Cases:
       //   1: lock - unlock  : default
@@ -1116,7 +1251,7 @@ public class GLDrawableHelper {
               lastContext = null;
           } else {
               // utilize recursive locking
-              lastInitAction = perThreadInitAction.get();
+              lastInitAction = getLastInitAction();
               lastContext.release();
           }
       }
@@ -1131,7 +1266,7 @@ public class GLDrawableHelper {
           }
           if (GLContext.CONTEXT_NOT_CURRENT != res) {
               try {
-                  perThreadInitAction.set(initAction);
+                  setLastInitAction(initAction);
                   if (GLContext.CONTEXT_CURRENT_NEW == res) {
                       if (DEBUG) {
                           System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
@@ -1142,6 +1277,8 @@ public class GLDrawableHelper {
                   if ( autoSwapBufferMode ) {
                       drawable.swapBuffers();
                   }
+              } catch (final Throwable t) {
+                  glEventListenerCaught = t;
               } finally {
                   if( _releaseExclusiveThread ) {
                       exclusiveContextThread = null;
@@ -1152,9 +1289,8 @@ public class GLDrawableHelper {
                   if( releaseContext ) {
                       try {
                           context.release();
-                      } catch (final Exception e) {
-                          System.err.println("Caught exception on thread "+getThreadName());
-                          e.printStackTrace();
+                      } catch (final Throwable t) {
+                          contextReleaseCaught = t;
                       }
                   }
               }
@@ -1166,6 +1302,17 @@ public class GLDrawableHelper {
                   lastInitAction.run();
               }
           }
+          if( null != glEventListenerCaught ) {
+              flushGLRunnables();
+              if( null != contextReleaseCaught ) {
+                  GLException.dumpThrowable("subsequent", contextReleaseCaught);
+              }
+              throw GLException.newGLException(glEventListenerCaught);
+          }
+          if( null != contextReleaseCaught ) {
+              flushGLRunnables();
+              throw GLException.newGLException(contextReleaseCaught);
+          }
       }
   }
 
@@ -1174,6 +1321,9 @@ public class GLDrawableHelper {
           final Runnable  runnable,
           final Runnable  initAction) {
       final Thread currentThread = Thread.currentThread();
+
+      Throwable glEventListenerCaught = null;
+      Throwable contextReleaseCaught = null;
 
       // Exclusive Cases:
       //   1: lock - unlock  : default
@@ -1205,7 +1355,7 @@ public class GLDrawableHelper {
               lastContext = null;
           } else {
               // utilize recursive locking
-              lastInitAction = perThreadInitAction.get();
+              lastInitAction = getLastInitAction();
               lastContext.release();
           }
       }
@@ -1229,7 +1379,7 @@ public class GLDrawableHelper {
           }
           if (GLContext.CONTEXT_NOT_CURRENT != res) {
               try {
-                  perThreadInitAction.set(initAction);
+                  setLastInitAction(initAction);
                   if (GLContext.CONTEXT_CURRENT_NEW == res) {
                       if (DEBUG) {
                           System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
@@ -1246,6 +1396,8 @@ public class GLDrawableHelper {
                       tdX = System.currentTimeMillis();
                       tdS = tdX - tdS; // swapBuffers
                   }
+              } catch (final Throwable t) {
+                  glEventListenerCaught = t;
               } finally {
                   if( _releaseExclusiveThread ) {
                       exclusiveContextSwitch = 0;
@@ -1258,9 +1410,8 @@ public class GLDrawableHelper {
                       try {
                           context.release();
                           ctxReleased = true;
-                      } catch (final Exception e) {
-                          System.err.println("Caught exception on thread "+getThreadName());
-                          e.printStackTrace();
+                      } catch (final Throwable t) {
+                          contextReleaseCaught = t;
                       }
                   }
               }
@@ -1273,11 +1424,21 @@ public class GLDrawableHelper {
                   lastInitAction.run();
               }
           }
+          if( null != glEventListenerCaught ) {
+              flushGLRunnables();
+              if( null != contextReleaseCaught ) {
+                  GLException.dumpThrowable("subsequent", contextReleaseCaught);
+              }
+              throw GLException.newGLException(glEventListenerCaught);
+          }
+          if( null != contextReleaseCaught ) {
+              flushGLRunnables();
+              throw GLException.newGLException(contextReleaseCaught);
+          }
       }
       final long td = System.currentTimeMillis() - t0;
       System.err.println("td0 "+td+"ms, fps "+(1.0/(td/1000.0))+", td-makeCurrent: "+tdA+"ms, td-render "+tdR+"ms, td-swap "+tdS+"ms, td-release "+tdX+"ms, ctx claimed: "+ctxClaimed+", ctx release: "+ctxReleased+", ctx destroyed "+ctxDestroyed);
   }
 
   protected static String getThreadName() { return Thread.currentThread().getName(); }
-
 }

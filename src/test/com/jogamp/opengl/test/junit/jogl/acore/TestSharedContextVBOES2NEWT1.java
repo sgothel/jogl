@@ -153,12 +153,14 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(glWindow, true));
 
-        System.err.println("Master Context: ");
-        MiscUtils.dumpSharedGLContext(sharedDrawable.getContext());
-        System.err.println("New    Context: ");
-        MiscUtils.dumpSharedGLContext(glWindow.getContext());
+        final GLContext sharedMasterContext = sharedDrawable.getContext();
+        MiscUtils.dumpSharedGLContext("Master Context", sharedMasterContext);
+        MiscUtils.dumpSharedGLContext("New    Context", glWindow.getContext());
         if( useShared ) {
-            Assert.assertEquals("Master Context not shared as expected", true, sharedDrawable.getContext().isShared());
+            Assert.assertEquals("Master Context not shared as expected", true, sharedMasterContext.isShared());
+            Assert.assertEquals("Master Context is different", sharedMasterContext, glWindow.getContext().getSharedMaster());
+        } else {
+            Assert.assertEquals("Master Context is not null", null, glWindow.getContext().getSharedMaster());
         }
         Assert.assertEquals("New    Context not shared as expected", useShared, glWindow.getContext().isShared());
 
@@ -169,7 +171,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         return glWindow;
     }
 
-    @Test
+    // @Test
     public void test01CommonAnimatorSharedOnscreen() throws InterruptedException {
         initShared(true);
         final Animator animator = new Animator();
@@ -202,7 +204,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         releaseShared();
     }
 
-    @Test
+    // @Test
     public void test02CommonAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
         final Animator animator = new Animator();

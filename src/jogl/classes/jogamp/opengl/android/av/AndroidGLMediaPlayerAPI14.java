@@ -254,7 +254,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final void initStreamImpl(final int vid, final int aid) throws IOException {
-        if( null == getURI() ) {
+        if( null == getUri() ) {
             return;
         }
         if( null == mp && null == cam ) {
@@ -263,7 +263,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } else {
                 int cameraId = 0;
                 try {
-                    cameraId = Integer.parseInt(cameraPath);
+                    cameraId = Integer.parseInt(cameraPath.decode());
                 } catch (final NumberFormatException nfe) {}
                 if( 0 <= cameraId && cameraId < Camera.getNumberOfCameras() ) {
                     cam = Camera.open(cameraId);
@@ -280,7 +280,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } // else FIXME: Select aid !
             // Note: Both FIXMEs seem to be n/a via Android's MediaPlayer -> Switch to API level 16 MediaCodec/MediaExtractor ..
             try {
-                final Uri _uri = Uri.parse(getURI().toString());
+                final Uri _uri = Uri.parse(getUri().toString());
                 mp.setDataSource(StaticContext.getContext(), _uri);
             } catch (final IllegalArgumentException e) {
                 throw new RuntimeException(e);
@@ -293,7 +293,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             try {
                 mp.prepare();
             } catch (final IOException ioe) {
-                throw new IOException("MediaPlayer failed to process stream <"+getURI().toString()+">: "+ioe.getMessage(), ioe);
+                throw new IOException("MediaPlayer failed to process stream <"+getUri().toString()+">: "+ioe.getMessage(), ioe);
             }
             final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1 /* fake */;
             final String icodec = "android";
@@ -381,7 +381,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                         cam.setPreviewTexture(sTexFrame.surfaceTex);
                         cam.startPreview();
                     } catch (final IOException ioe) {
-                        throw new RuntimeException("MediaPlayer failed to process stream <"+getURI().toString()+">: "+ioe.getMessage(), ioe);
+                        throw new RuntimeException("MediaPlayer failed to process stream <"+getUri().toString()+">: "+ioe.getMessage(), ioe);
                     }
                 }
                 if( null != surface ) {

@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -107,6 +108,7 @@ public abstract class GLContext {
 
   protected static final boolean FORCE_NO_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.none", true);
   protected static final boolean FORCE_MIN_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.min", true);
+  protected static final boolean FORCE_NO_COLOR_RENDERBUFFER = Debug.isPropertyDefined("jogl.fbo.force.nocolorrenderbuffer", true);
 
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public static final boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);
@@ -146,6 +148,8 @@ public abstract class GLContext {
   public static final VersionNumber Version430 = new VersionNumber(4, 3, 0);
 
   protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
+
+  private static final String S_EMPTY = "";
 
   //
   // Cached keys, bits [0..15]
@@ -204,7 +208,7 @@ public abstract class GLContext {
   private final HashMap<String, Object> attachedObjects = new HashMap<String, Object>();
 
   // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.
-  protected final RecursiveLock lock = LockFactory.createRecursiveLock();
+  protected final RecursiveLock lock = LockFactory.createRecursiveLock(); // FIXME: Move to GLContextImpl when incr. minor version (incompatible change)
 
   /** The underlying native OpenGL context */
   protected volatile long contextHandle; // volatile: avoid locking for read-only access
@@ -249,6 +253,17 @@ public abstract class GLContext {
       return GLContextShareSet.isShared(this);
   }
 
+  /**
+   * Returns the shared master GLContext of this GLContext if shared, otherwise return <code>null</code>.
+   * <p>
+   * Returns this GLContext, if it is a shared master.
+   * </p>
+   * @since 2.2.1
+   */
+  public final GLContext getSharedMaster() {
+      return GLContextShareSet.getSharedMaster(this);
+  }
+
   /** Returns a new list of created GLContext shared with this GLContext. */
   public final List<GLContext> getCreatedShares() {
       return GLContextShareSet.getCreatedShares(this);
@@ -282,15 +297,24 @@ public abstract class GLContext {
   }
 
   /**
-   * Sets the read/write drawable for framebuffer operations.
+   * Sets the read/write drawable for framebuffer operations, i.e. reassociation of the context's drawable.
    * <p>
    * If the arguments reflect the current state of this context
    * this method is a no-operation and returns the old and current {@link GLDrawable}.
    * </p>
    * <p>
-   * If the context was current on this thread, it is being released before switching the drawable
-   * and made current afterwards. However the user shall take extra care that not other thread
-   * attempts to make this context current. Otherwise a race condition may happen.
+   * Remarks:
+   * <ul>
+   *   <li>{@link GL#glFinish() glFinish()} is issued if context {@link #isCreated()} and a {@link #getGLDrawable() previous drawable} was bound before disassociation.</li>
+   *   <li>If the context was current on this thread, it is being released before drawable reassociation
+   *       and made current afterwards.</li>
+   *   <li>Implementation may issue {@link #makeCurrent()} and {@link #release()} while drawable reassociation.</li>
+   *   <li>The user shall take extra care of thread synchronization,
+   *       i.e. lock the involved {@link GLDrawable#getNativeSurface() drawable's} {@link NativeSurface}s
+   *       to avoid a race condition. In case {@link GLAutoDrawable auto-drawable's} are used,
+   *       their {@link GLAutoDrawable#getUpstreamLock() upstream-lock} must be locked beforehand
+   *       see <a href="GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+   * </ul>
    * </p>
    * @param readWrite The read/write drawable for framebuffer operations, maybe <code>null</code> to remove association.
    * @param setWriteOnly Only change the write-drawable, if <code>setWriteOnly</code> is <code>true</code> and
@@ -315,6 +339,9 @@ public abstract class GLContext {
    * <p>
    * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
    * it equals to the write-drawable (default).
+   * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
    * </p>
    * @see #setGLDrawable(GLDrawable, boolean)
    * @see #setGLReadDrawable(GLDrawable)
@@ -353,6 +380,9 @@ public abstract class GLContext {
    * <p>
    * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
    * it equals to the write-drawable (default).
+   * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
    * </p>
    * @see #isGLReadDrawableAvailable()
    * @see #setGLReadDrawable(GLDrawable)
@@ -792,8 +822,8 @@ public abstract class GLContext {
    * <pre>
    *    #version 110
    *    ..
-   *    #version 150
-   *    #version 330
+   *    #version 150 core
+   *    #version 330 compatibility
    *    ...
    * </pre>
    * And for ES:
@@ -809,11 +839,20 @@ public abstract class GLContext {
    */
   public final String getGLSLVersionString() {
       if( ctxGLSLVersion.isZero() ) {
-          return "";
+          return S_EMPTY;
       }
       final int minor = ctxGLSLVersion.getMinor();
-      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : "";
-      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + esSuffix + "\n" ;
+      final String profileOpt;
+      if( isGLES() ) {
+          profileOpt = ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : S_EMPTY;
+      } else if( isGLCoreProfile() ) {
+          profileOpt = ctxGLSLVersion.compareTo(Version150) >= 0 ? " core" : S_EMPTY;
+      } else if( isGLCompatibilityProfile() ) {
+          profileOpt = ctxGLSLVersion.compareTo(Version150) >= 0 ? " compatibility" : S_EMPTY;
+      } else {
+          throw new InternalError("Neither ES, Core nor Compat: "+this); // see validateProfileBits(..)
+      }
+      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + profileOpt + "\n" ;
   }
 
   protected static final VersionNumber getStaticGLSLVersionNumber(final int glMajorVersion, final int glMinorVersion, final int ctxOptions) {
@@ -966,8 +1005,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL4bc()
    */
   public final boolean isGL4bc() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
+      return 0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
              ctxVersion.getMajor() >= 4;
   }
 
@@ -976,8 +1014,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL4()
    */
   public final boolean isGL4() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
+      return 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.getMajor() >= 4;
   }
 
@@ -985,8 +1022,7 @@ public abstract class GLContext {
    * Indicates whether this GLContext uses a GL4 core profile. <p>Includes [ GL4 ].</p>
    */
   public final boolean isGL4core() {
-      return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
-             0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+      return 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.getMajor() >= 4;
   }
 
@@ -995,8 +1031,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL3bc()
    */
   public final boolean isGL3bc() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
+      return 0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
              ctxVersion.compareTo(Version310) >= 0 ;
   }
 
@@ -1005,8 +1040,7 @@ public abstract class GLContext {
    * @see GLProfile#isGL3()
    */
   public final boolean isGL3() {
-      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
-             0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
+      return 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.compareTo(Version310) >= 0 ;
   }
 
@@ -1014,8 +1048,7 @@ public abstract class GLContext {
    * Indicates whether this GLContext uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
    */
   public final boolean isGL3core() {
-      return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
-             0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+      return 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.compareTo(Version310) >= 0;
   }
 
@@ -1024,8 +1057,7 @@ public abstract class GLContext {
    */
   public final boolean isGLcore() {
       return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ) ||
-             ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
-               0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+             ( 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
                ctxVersion.compareTo(Version310) >= 0
              ) ;
   }
@@ -1041,9 +1073,9 @@ public abstract class GLContext {
   }
 
   /**
-   * Indicates whether this GLContext's native profile does not implement a default <i>vertex array object</i> (VAO),
-   * starting w/ OpenGL 3.1 core and GLES3.
-   * <p>Includes [ GL4, GL3, GLES3 ].</p>
+   * Indicates whether this GLContext's native profile does not implement a <i>default vertex array object</i> (VAO),
+   * starting w/ OpenGL 3.1 core.
+   * <p>Includes [ GL4, GL3 ].</p>
    * <pre>
      Due to GL 3.1 core spec: E.1. DEPRECATED AND REMOVED FEATURES (p 296),
             GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
@@ -1052,8 +1084,17 @@ public abstract class GLContext {
      More clear is GL 4.3 core spec: 10.4 (p 307).
    * </pre>
    * <pre>
-     GLES3 is included, since upcoming ES releases &gt; 3.0 may behave the same:
+     ES 3.x is <i>not</i> included here.
+     Due to it's ES 2.0 backward compatibility it still supports the following features:
+            <i>client side vertex arrays</i>
+            <i>default vertex array object</i>
+
+     Binding a custom VAO with ES 3.0 would cause <i>client side vertex arrays</i> via {@link GL2ES1#glVertexPointer(int, int, int, java.nio.Buffer) glVertexPointer}
+     to produce <code>GL_INVALID_OPERATION</code>.
+
+     However, they are marked <i>deprecated</i>:
             GL ES 3.0 spec F.1. Legacy Features (p 322).
+            GL ES 3.1 spec F.1. Legacy Features (p 454).
    * </pre>
    * <p>
    * If no default VAO is implemented in the native OpenGL profile,
@@ -1062,7 +1103,7 @@ public abstract class GLContext {
    * @see #getDefaultVAO()
    */
   public final boolean hasNoDefaultVAO() {
-      return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
+      return // ES 3.x not included, see above. ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
              ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
                0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
                ctxVersion.compareTo(Version310) >= 0
@@ -1250,6 +1291,9 @@ public abstract class GLContext {
   /**
    * Return the framebuffer name bound to this context,
    * see {@link GL#glBindFramebuffer(int, int)}.
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    */
   public abstract int getBoundFramebuffer(int target);
 
@@ -1260,6 +1304,9 @@ public abstract class GLContext {
    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
    * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    */
   public abstract int getDefaultDrawFramebuffer();
 
@@ -1269,6 +1316,9 @@ public abstract class GLContext {
    * May differ from it's default <code>zero</code>
    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
+   * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
    * </p>
    */
   public abstract int getDefaultReadFramebuffer();
@@ -1294,13 +1344,26 @@ public abstract class GLContext {
    * Note-3: See {@link com.jogamp.opengl.util.GLDrawableUtil#swapBuffersBeforeRead(GLCapabilitiesImmutable) swapBuffersBeforeRead}
    * for read-pixels and swap-buffers implications.
    * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
    */
   public abstract int getDefaultReadBuffer();
 
-  /** Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
+  /**
+   * Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}.
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
+   */
   public abstract int getDefaultPixelDataType();
 
-  /** Get the default pixel data format, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
+  /**
+   * Get the default pixel data format, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}.
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
+   */
   public abstract int getDefaultPixelDataFormat();
 
   /**

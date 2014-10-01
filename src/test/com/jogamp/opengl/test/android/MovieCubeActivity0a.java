@@ -29,7 +29,6 @@ package com.jogamp.opengl.test.android;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -39,12 +38,12 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -75,7 +74,7 @@ public class MovieCubeActivity0a extends NewtBaseActivity {
                System.getProperty("jnlp.media0_url0"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url2") };
-       final URI streamLoc = getURI(streamLocs, 0, false);
+       final Uri streamLoc = getUri(streamLocs, 0, false);
        if(null == streamLoc) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
 
        // also initializes JOGL
@@ -136,15 +135,15 @@ public class MovieCubeActivity0a extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
 
-   static URI getURI(final String path[], final int off, final boolean checkAvail) {
-       URI uri = null;
+   static Uri getUri(final String path[], final int off, final boolean checkAvail) {
+       Uri uri = null;
        for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
                if( checkAvail ) {
                    final URLConnection uc = IOUtil.getResource(path[i], null);
                    if( null != uc ) {
                        try {
-                           uri = uc.getURL().toURI();
+                           uri = Uri.valueOf(uc.getURL());
                        } catch (final URISyntaxException e) {
                            uri = null;
                        }
@@ -154,7 +153,7 @@ public class MovieCubeActivity0a extends NewtBaseActivity {
                    }
                } else {
                    try {
-                       uri = new URI(path[i]);
+                       uri = Uri.cast(path[i]);
                    } catch (final URISyntaxException e) {
                        uri = null;
                    }
