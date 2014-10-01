@@ -65,7 +65,6 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
     InputStream testTextureStream01U32;
     InputStream testTextureStream02RLE32;
     InputStream testTextureStream03RLE32;
-    InputStream testTextureStream01RLE16;
 
     @Before
     public void initTest() throws IOException {
@@ -86,12 +85,6 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream03RLE32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream03RLE32);
-        }
-        {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug982.rle16.256x256.tga");
-            Assert.assertNotNull(testTextureUrlConn);
-            testTextureStream01RLE16 = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStream01RLE16);
         }
     }
 
@@ -126,7 +119,7 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
 
             @Override public void init(final GLAutoDrawable drawable) {}
 
-            @Override public void display(final GLAutoDrawable drawable) {
+            public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
@@ -168,18 +161,12 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
     public void test03RLE32__GL2() throws InterruptedException, IOException {
         testImpl(true, testTextureStream03RLE32);
     }
-    
-    @Test
-    public void test01RLE16__GL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStream01RLE16);
-    }
 
     @After
     public void cleanupTest() {
         testTextureStream01U32 = null;
         testTextureStream02RLE32 = null;
         testTextureStream03RLE32 = null;
-        testTextureStream01RLE16 = null;
     }
 
     public static void main(final String args[]) throws IOException {
