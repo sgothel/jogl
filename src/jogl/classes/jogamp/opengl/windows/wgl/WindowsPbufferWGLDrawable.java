@@ -123,7 +123,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         final WGLExt wglExt = ((WindowsWGLContext)sharedResource.getContext()).getWGLExt();
 
         if (DEBUG) {
-            System.out.println(getThreadName()+": Pbuffer config: " + config);
+            System.err.println(getThreadName()+": Pbuffer config: " + config);
         }
 
         final int winattrPbuffer = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(false /* onscreen */, false /* fbo */, true /* pbuffer */, false /* bitmap */);
@@ -138,8 +138,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
         if (DEBUG) {
-          System.out.println(getThreadName()+": Pbuffer parentHdc = " + toHexString(sharedHdc));
-          System.out.println(getThreadName()+": Pbuffer chosenCaps: " + chosenCaps);
+          System.err.println(getThreadName()+": Pbuffer parentHdc = " + toHexString(sharedHdc));
+          System.err.println(getThreadName()+": Pbuffer chosenCaps: " + chosenCaps);
         }
 
         if( !WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList( sharedResource, chosenCaps,
@@ -162,7 +162,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (DEBUG) {
           System.err.println("" + nformats + " suitable pixel formats found");
           for (int i = 0; i < nformats; i++) {
-            final WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
+            final WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilitiesNoCheck(sharedResource, device, glProfile,
                                           sharedHdc, pformats.get(i), winattrPbuffer);
             System.err.println("pixel format " + pformats.get(i) + " (index " + i + "): " + dbgCaps);
           }
