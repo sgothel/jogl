@@ -521,9 +521,13 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 if( 0 <= chosenIdx ) {
                     if( _skipCapsChooser ) {
                         final WGLGLCapabilities caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, chosenPFDID, winattrmask);
-                        availableCaps.add(caps);
-                        recommendedIndex = 0;
-                        skipCapsChooser = true;
+                        if(null != caps) {
+                            availableCaps.add(caps);
+                            recommendedIndex = 0;
+                            skipCapsChooser = true;
+                        } else {
+                        	skipCapsChooser = false;
+                        }
                     } else {
                         skipCapsChooser = false;
                     }
