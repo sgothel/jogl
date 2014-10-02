@@ -675,10 +675,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         handleReshape = true;
     }
     if( DEBUG ) {
-        System.err.println(getThreadName()+": GLJPanel.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+
-                " [ this "+getWidth()+"x"+getHeight()+", pixelScale "+getPixelScaleStr()+
+        System.err.println(getThreadName()+": GLJPanel.reshape.0 "+this.getName()+" resize ["+(printActive?"printing":"paint")+
+                "] [ this "+getWidth()+"x"+getHeight()+", pixelScale "+getPixelScaleStr()+
                 ", panel "+panelWidth+"x"+panelHeight +
-                "] -> "+(handleReshape?"":"[skipped] ") + width+"x"+height+" * "+getPixelScaleStr()+" -> "+scaledWidth+"x"+scaledHeight);
+                "] -> "+(handleReshape?"":"[skipped] ") + width+"x"+height+" * "+getPixelScaleStr()+
+                " -> "+scaledWidth+"x"+scaledHeight+", reshapeSize "+reshapeWidth+"x"+reshapeHeight);
     }
   }
 
@@ -690,6 +691,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   @Override
   public void setupPrint(final double scaleMatX, final double scaleMatY, final int numSamples, final int tileWidth, final int tileHeight) {
       printActive = true;
+      if( DEBUG ) {
+          System.err.printf(getThreadName()+": GLJPanel.setupPrint: scale %f / %f, samples %d, tileSz %d x %d%n", scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight);
+      }
       final int componentCount = isOpaque() ? 3 : 4;
       final TileRenderer printRenderer = new TileRenderer();
       printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight, DEBUG);
@@ -826,7 +830,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   drawable.getSurfaceWidth() != panelWidth || drawable.getSurfaceHeight() != panelHeight ) {
                   // -> !( awtSize == panelSize == drawableSize )
                   if ( DEBUG ) {
-                      System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resizeWithinPrint panel " +panelWidth+"x"+panelHeight + " @ scale "+getPixelScaleStr()+
+                      System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resize [printing] panel " +panelWidth+"x"+panelHeight + " @ scale "+getPixelScaleStr()+
                               ", draw "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+
                               " -> " + awtWidth+"x"+awtHeight+" * "+getPixelScaleStr()+" -> "+scaledAWTWidth+"x"+scaledAWTHeight);
                   }
@@ -1296,17 +1300,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     synchronized(initSync) {
         if( !isInitialized ) {
             if( handleReshape ) {
-              panelWidth = reshapeWidth;
-              panelHeight = reshapeHeight;
-              handleReshape = false;
               if (DEBUG) {
-                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend.1: " +
+                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend.1: ["+(printActive?"printing":"paint")+"] "+
                           panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr() + " -> " +
                           reshapeWidth+"x"+reshapeHeight+" @ scale "+getPixelScaleStr());
               }
+              panelWidth = reshapeWidth;
+              panelHeight = reshapeHeight;
+              handleReshape = false;
             } else {
               if (DEBUG) {
-                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend.0: " +
+                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend.0: ["+(printActive?"printing":"paint")+"] "+
                           panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr());
               }
             }
