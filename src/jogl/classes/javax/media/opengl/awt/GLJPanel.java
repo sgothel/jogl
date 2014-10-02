@@ -669,7 +669,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private void reshapeImpl(final int width, final int height) {
     final int scaledWidth = width * hasPixelScale[0];
     final int scaledHeight = height * hasPixelScale[1];
-    if( !printActive && ( scaledWidth != panelWidth || scaledHeight != panelHeight ) ) {
+    if( !printActive && ( handleReshape || scaledWidth != panelWidth || scaledHeight != panelHeight ) ) {
         reshapeWidth = scaledWidth;
         reshapeHeight = scaledHeight;
         handleReshape = true;
