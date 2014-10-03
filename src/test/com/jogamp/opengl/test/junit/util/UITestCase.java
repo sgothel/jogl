@@ -46,7 +46,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
@@ -58,7 +58,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.TestClass;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class UITestCase extends SingletonTestCase {
+public abstract class UITestCase extends SingletonJunitCase {
     private static volatile boolean resetXRandRIfX11AfterClass = false;
 
     private static volatile int maxMethodNameLen = 0;

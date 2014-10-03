@@ -41,12 +41,12 @@ import org.semver.Delta;
 
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionNumberString;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.junit.util.VersionSemanticsUtil;
 import com.jogamp.opengl.JoglVersion;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestVersionSemanticsNOUI extends SingletonTestCase {
+public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     static final String jarFile = "jogl-all.jar";
 
     static final DiffCriteria diffCriteria = new org.osjava.jardiff.SimpleDiffCriteria();
