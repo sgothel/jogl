@@ -30,8 +30,6 @@ package com.jogamp.opengl.test.junit.util;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -48,57 +46,22 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 
-import com.jogamp.common.util.locks.SingletonInstance;
+import com.jogamp.junit.util.SingletonTestCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.rules.TestName;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.TestClass;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class UITestCase {
-    @Rule public TestName _unitTestName = new TestName();
-
-    public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
-    public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
-
-    public static final long SINGLE_INSTANCE_LOCK_TO   = 6*60*1000; // wait up to 6 mins
-    public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
-
-    private static volatile SingletonInstance singletonInstance;
-
-    private static volatile boolean testSupported = true;
+public abstract class UITestCase extends SingletonTestCase {
     private static volatile boolean resetXRandRIfX11AfterClass = false;
 
     private static volatile int maxMethodNameLen = 0;
-
-    private static final synchronized void initSingletonInstance() {
-        if( null == singletonInstance )  {
-            // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
-            singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
-            if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
-                throw new RuntimeException("Fatal: Could not lock single instance: "+singletonInstance.getName());
-            }
-        }
-    }
-
-    public static boolean isTestSupported() {
-        return testSupported;
-    }
-
-    public static void setTestSupported(final boolean v) {
-        System.err.println("setTestSupported: "+v);
-        testSupported = v;
-    }
 
     public static void setResetXRandRIfX11AfterClass() {
         resetXRandRIfX11AfterClass = true;
@@ -225,58 +188,18 @@ public abstract class UITestCase {
         return maxMethodNameLen;
     }
 
-    public final String getTestMethodName() {
-        return _unitTestName.getMethodName();
-    }
-
-    public final String getSimpleTestName(final String separator) {
-        return getClass().getSimpleName()+separator+getTestMethodName();
-    }
-
-    public final String getFullTestName(final String separator) {
-        return getClass().getName()+separator+getTestMethodName();
-    }
-
     @BeforeClass
-    public static void oneTimeSetUp() {
+    public static final void oneTimeSetUpUITest() {
         // one-time initialization code
-        initSingletonInstance();
     }
 
     @AfterClass
-    public static void oneTimeTearDown() {
+    public static final void oneTimeTearDownUITest() {
         // one-time cleanup code
         if( resetXRandRIfX11AfterClass ) {
             resetXRandRIfX11();
         }
-        System.gc(); // force cleanup
-        singletonInstance.unlock();
     }
-
-    @Before
-    public void setUp() {
-        System.err.print("++++ UITestCase.setUp: "+getFullTestName(" - "));
-        if(!testSupported) {
-            System.err.println(" - "+unsupportedTestMsg);
-            Assume.assumeTrue(testSupported); // abort
-        }
-        System.err.println();
-    }
-
-    @After
-    public void tearDown() {
-        System.err.println("++++ UITestCase.tearDown: "+getFullTestName(" - "));
-    }
-
-    public static void waitForKey(final String preMessage) {
-        final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-        System.err.println(preMessage+"> Press enter to continue");
-        try {
-            System.err.println(stdin.readLine());
-        } catch (final IOException e) { e.printStackTrace(); }
-    }
-
-    static final String unsupportedTestMsg = "Test not supported on this platform.";
 
     public String getSnapshotFilename(final int sn, String postSNDetail, final GLCapabilitiesImmutable caps, final int width, final int height, final boolean sinkHasAlpha, String fileSuffix, final String destPath) {
         if(null == fileSuffix) {
