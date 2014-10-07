@@ -42,14 +42,14 @@ public class NullToolkitLock implements ToolkitLock {
     @Override
     public final void lock() {
         if(TRACE_LOCK) {
-            System.err.println("NullToolkitLock.lock()");
-            // Thread.dumpStack();
+            System.err.println(Thread.currentThread()+" NullToolkitLock: lock() "+toStringImpl());
+            // ExceptionUtils.dumpStackTrace(System.err, 1, 4);
         }
     }
 
     @Override
     public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("NullToolkitLock.unlock()"); }
+        if(TRACE_LOCK) { System.err.println(Thread.currentThread()+" NullToolkitLock: unlock() "+toStringImpl()); }
     }
 
     @Override
@@ -66,7 +66,10 @@ public class NullToolkitLock implements ToolkitLock {
 
     @Override
     public String toString() {
-        return "NullToolkitLock[]";
+        return "NullToolkitLock["+toStringImpl()+"]";
+    }
+    private String toStringImpl() {
+        return "obj 0x"+Integer.toHexString(hashCode());
     }
 
 }

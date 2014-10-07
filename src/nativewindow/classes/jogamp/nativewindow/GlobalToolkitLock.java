@@ -53,12 +53,12 @@ public class GlobalToolkitLock implements ToolkitLock {
     @Override
     public final void lock() {
         globalLock.lock();
-        if(TRACE_LOCK) { System.err.println("GlobalToolkitLock.lock()"); }
+        if(TRACE_LOCK) { System.err.println(Thread.currentThread()+" GlobalToolkitLock: lock() "+toStringImpl()); }
     }
 
     @Override
     public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("GlobalToolkitLock.unlock()"); }
+        if(TRACE_LOCK) { System.err.println(Thread.currentThread()+" GlobalToolkitLock: unlock() "+toStringImpl()); }
         globalLock.unlock(); // implicit lock validation
     }
 
@@ -74,6 +74,9 @@ public class GlobalToolkitLock implements ToolkitLock {
 
     @Override
     public String toString() {
-        return "GlobalToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+globalLock.isOwner(Thread.currentThread())+", "+globalLock.toString()+"]";
+        return "GlobalToolkitLock["+toStringImpl()+"]";
+    }
+    private String toStringImpl() {
+        return "obj 0x"+Integer.toHexString(hashCode())+", isOwner "+globalLock.isOwner(Thread.currentThread())+", "+globalLock.toString();
     }
 }
