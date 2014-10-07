@@ -54,12 +54,15 @@ public class ResourceToolkitLock implements ToolkitLock {
     @Override
     public final void lock() {
         lock.lock();
-        if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.lock()"); }
+        if(TRACE_LOCK) {
+            System.err.println(Thread.currentThread()+" ResourceToolkitLock: lock() "+toStringImpl());
+            // ExceptionUtils.dumpStackTrace(System.err, 1, 4);
+        }
     }
 
     @Override
     public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.unlock()"); }
+        if(TRACE_LOCK) { System.err.println(Thread.currentThread()+" ResourceToolkitLock: unlock() "+toStringImpl()); }
         lock.unlock(); // implicit lock validation
     }
 
@@ -75,6 +78,9 @@ public class ResourceToolkitLock implements ToolkitLock {
 
     @Override
     public String toString() {
-        return "ResourceToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
+        return "ResourceToolkitLock["+toStringImpl()+"]";
+    }
+    private String toStringImpl() {
+        return "obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString();
     }
 }

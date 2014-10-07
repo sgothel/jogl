@@ -112,12 +112,12 @@ public class SharedResourceToolkitLock implements ToolkitLock {
     @Override
     public final void lock() {
         lock.lock();
-        if(TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.lock()"); }
+        if(TRACE_LOCK) { System.err.println(Thread.currentThread()+" SharedResourceToolkitLock: lock() "+toStringImpl()); }
     }
 
     @Override
     public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.unlock()"); }
+        if(TRACE_LOCK) { System.err.println(Thread.currentThread()+" SharedResourceToolkitLock: unlock() "+toStringImpl()); }
         lock.unlock();
     }
 
@@ -144,6 +144,9 @@ public class SharedResourceToolkitLock implements ToolkitLock {
 
     @Override
     public String toString() {
-        return "SharedResourceToolkitLock[refCount "+refCount+", handle 0x"+Long.toHexString(handle)+", obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
+        return "SharedResourceToolkitLock["+toStringImpl()+"]";
+    }
+    private String toStringImpl() {
+        return "refCount "+refCount+", handle 0x"+Long.toHexString(handle)+", obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString();
     }
 }
