@@ -89,6 +89,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         boolean blockUntilDone(final Thread thread);
     }
 
+    private static int seqInstanceNumber = 0;
+
     protected int modeBits;
     protected AnimatorImpl impl;
     protected String baseName;
@@ -146,15 +148,16 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      */
     protected final synchronized void initImpl(final boolean force) {
         if( force || null == impl ) {
+            final String seqSuffix = String.format("#%02d", seqInstanceNumber++);
             if( useAWTAnimatorImpl( modeBits ) ) {
                 try {
                     impl = (AnimatorImpl) awtAnimatorImplClazz.newInstance();
-                    baseName = getBaseName("AWT");
+                    baseName = getBaseName("AWT")+seqSuffix;
                 } catch (final Exception e) { e.printStackTrace(); }
             }
             if( null == impl ) {
                 impl = new DefaultAnimatorImpl();
-                baseName = getBaseName("");
+                baseName = getBaseName("")+seqSuffix;
             }
             if(DEBUG) {
                 System.err.println("Animator.initImpl: baseName "+baseName+", implClazz "+impl.getClass().getName()+" - "+toString()+" - "+getThreadName());
