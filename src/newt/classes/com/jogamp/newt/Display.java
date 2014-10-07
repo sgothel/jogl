@@ -381,7 +381,7 @@ public abstract class Display {
      * @param type
      * @param name
      * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
-     * @paran shared if true, only shared instances are found, otherwise also exclusive
+     * @param shared if true, only shared instances are found, otherwise also exclusive
      * @return
      */
     public static Display getLastDisplayOf(final String type, final String name, final int fromIndex, final boolean shared) {
