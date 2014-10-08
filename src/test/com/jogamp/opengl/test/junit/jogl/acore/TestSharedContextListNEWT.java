@@ -99,7 +99,7 @@ public class TestSharedContextListNEWT extends UITestCase {
 
         final Gears gears = new Gears(vsync ? 1 : 0);
         if(useShared) {
-            gears.setGears(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
+            gears.setSharedGears(sharedGears);
         }
         glWindow.addGLEventListener(gears);
 

@@ -142,12 +142,6 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         this.gear3Color = gear3Color;
     }
 
-    public void setSharedGearsObjects(final GearsObjectES2 g1, final GearsObjectES2 g2, final GearsObjectES2 g3) {
-        gear1 = g1;
-        gear2 = g2;
-        gear3 = g3;
-    }
-
     public void setSharedGears(final GearsES2 shared) {
         sharedGears = shared;
     }
@@ -244,56 +238,30 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         st.uniform(gl, colorU);
 
         if( null != sharedGears ) {
-                gear1 = new GearsObjectES2(sharedGears.getGear1(), st, pmvMatrix, pmvMatrixUniform, colorU);
-                gear2 = new GearsObjectES2(sharedGears.getGear2(), st, pmvMatrix, pmvMatrixUniform, colorU);
-                gear3 = new GearsObjectES2(sharedGears.getGear3(), st, pmvMatrix, pmvMatrixUniform, colorU);
-                usesSharedGears = true;
-                if(verbose) {
-                    System.err.println("gear1 "+sid()+" created w/ share: "+sharedGears.getGear1()+" -> "+gear1);
-                    System.err.println("gear2 "+sid()+" created w/ share: "+sharedGears.getGear2()+" -> "+gear2);
-                    System.err.println("gear3 "+sid()+" created w/ share: "+sharedGears.getGear3()+" -> "+gear3);
-                }
+            gear1 = new GearsObjectES2(sharedGears.getGear1(), st, pmvMatrix, pmvMatrixUniform, colorU);
+            gear2 = new GearsObjectES2(sharedGears.getGear2(), st, pmvMatrix, pmvMatrixUniform, colorU);
+            gear3 = new GearsObjectES2(sharedGears.getGear3(), st, pmvMatrix, pmvMatrixUniform, colorU);
+            usesSharedGears = true;
+            if(verbose) {
+                System.err.println("gear1 "+sid()+" created w/ share: "+sharedGears.getGear1()+" -> "+gear1);
+                System.err.println("gear2 "+sid()+" created w/ share: "+sharedGears.getGear2()+" -> "+gear2);
+                System.err.println("gear3 "+sid()+" created w/ share: "+sharedGears.getGear3()+" -> "+gear3);
+            }
         } else {
-            if(null == gear1) {
-                gear1 = new GearsObjectES2(gl, useMappedBuffers, st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
-                if(verbose) {
-                    System.err.println("gear1 "+sid()+" created: "+gear1);
-                }
-            } else {
-                final GearsObjectES2 _gear1 = gear1;
-                gear1 = new GearsObjectES2(_gear1, st, pmvMatrix, pmvMatrixUniform, colorU);
-                usesSharedGears = true;
-                if(verbose) {
-                    System.err.println("gear1 "+sid()+" created w/ share: "+_gear1+" -> "+gear1);
-                }
+            gear1 = new GearsObjectES2(gl, useMappedBuffers, st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
+            if(verbose) {
+                System.err.println("gear1 "+sid()+" created: "+gear1);
             }
 
-            if(null == gear2) {
-                gear2 = new GearsObjectES2(gl, useMappedBuffers, st, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
-                if(verbose) {
-                    System.err.println("gear2 "+sid()+" created: "+gear2);
-                }
-            } else {
-                final GearsObjectES2 _gear2 = gear2;
-                gear2 = new GearsObjectES2(_gear2, st, pmvMatrix, pmvMatrixUniform, colorU);
-                usesSharedGears = true;
-                if(verbose) {
-                    System.err.println("gear2 "+sid()+" created w/ share: "+_gear2+" -> "+gear2);
-                }
+            gear2 = new GearsObjectES2(gl, useMappedBuffers, st, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
+            if(verbose) {
+                System.err.println("gear2 "+sid()+" created: "+gear2);
             }
 
-            if(null == gear3) {
-                gear3 = new GearsObjectES2(gl, useMappedBuffers, st, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
-                if(verbose) {
-                    System.err.println("gear3 "+sid()+" created: "+gear2);
-                }
-            } else {
-                final GearsObjectES2 _gear3 = gear3;
-                gear3 = new GearsObjectES2(_gear3, st, pmvMatrix, pmvMatrixUniform, colorU);
-                usesSharedGears = true;
-                if(verbose) {
-                    System.err.println("gear3 "+sid()+" created w/ share: "+_gear3+" -> "+gear3);
-                }
+            gear3 = new GearsObjectES2(gl, useMappedBuffers, st, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
+            if(verbose) {
+                System.err.println("gear3 "+sid()+" created: "+gear2);
+            }
             }
         }
 

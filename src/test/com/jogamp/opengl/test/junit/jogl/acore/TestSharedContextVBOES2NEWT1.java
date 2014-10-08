@@ -142,7 +142,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
 
         final GearsES2 gears = new GearsES2(vsync ? 1 : 0);
         if(useShared) {
-            gears.setSharedGearsObjects(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
+            gears.setSharedGears(sharedGears);
         }
         glWindow.addGLEventListener(gears);
 
@@ -171,7 +171,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         return glWindow;
     }
 
-    // @Test
+    @Test
     public void test01CommonAnimatorSharedOnscreen() throws InterruptedException {
         initShared(true);
         final Animator animator = new Animator();
@@ -204,8 +204,46 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         releaseShared();
     }
 
-    // @Test
-    public void test02CommonAnimatorSharedOffscreen() throws InterruptedException {
+    @Test
+    public void test02EachWithAnimatorSharedOnscreen() throws InterruptedException {
+        initShared(true);
+        final Animator animator1 = new Animator();
+        final Animator animator2 = new Animator();
+        final Animator animator3 = new Animator();
+        final GLWindow f1 = runTestGL(animator1, 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(animator2, f1.getX()+width+insets.getTotalWidth(),
+                                f1.getY()+0, true, false);
+        final GLWindow f3 = runTestGL(animator3, f1.getX()+0,
+                                f1.getY()+height+insets.getTotalHeight(), true, false);
+
+        try {
+            Thread.sleep(duration);
+        } catch(final Exception e) {
+            e.printStackTrace();
+        }
+        animator1.stop();
+        animator2.stop();
+        animator3.stop();
+
+        f1.destroy();
+        f2.destroy();
+        f3.destroy();
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+
+        releaseShared();
+    }
+
+    @Test
+    public void test11CommonAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
         final Animator animator = new Animator();
         final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
@@ -238,7 +276,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     }
 
     @Test
-    public void test03EachWithAnimatorSharedOffscreen() throws InterruptedException {
+    public void test12EachWithAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
         final Animator animator1 = new Animator();
         final Animator animator2 = new Animator();
