@@ -58,12 +58,12 @@ import com.jogamp.opengl.util.Animator;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug669RecursiveGLContext01NEWT extends UITestCase {
 
-  @Test(timeout=5000)
+  @Test(timeout=10000)
   public void test01_Plain() {
       test01Impl(false);
   }
 
-  @Test(timeout=5000)
+  @Test(timeout=10000)
   public void test01_Anim() {
       test01Impl(true);
   }

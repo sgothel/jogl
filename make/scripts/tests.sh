@@ -88,7 +88,7 @@ function jrun() {
     swton=$1
     shift
 
-    D_ARGS="-Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -196,6 +196,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util"
+    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Dnativewindow.debug.ToolkitLock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock -Dnativewindow.debug.ToolkitLock.TraceLock"
@@ -503,11 +504,8 @@ function testawtswt() {
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3b $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT0 $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
-
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
-
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT4 $*
 #testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
@@ -731,7 +729,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*

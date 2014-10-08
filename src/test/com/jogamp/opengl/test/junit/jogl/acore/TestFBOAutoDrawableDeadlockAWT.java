@@ -102,7 +102,7 @@ public class TestFBOAutoDrawableDeadlockAWT extends UITestCase {
     fbod.destroy();
   }
 
-  @Test(timeout = 2000) // 2s timeout
+  @Test(timeout = 10000)
   public void testDeadlock() throws InterruptedException, InvocationTargetException {
     final GLCapabilities caps = new GLCapabilities( glp );
     runTestGL( caps );
