@@ -152,7 +152,7 @@ public class TestLandscapeES2NEWT extends UITestCase {
         runTestGL(caps);
     }
 
-    static long duration = 500; // ms
+    static long duration = 1000; // ms
 
     public static void main(final String args[]) {
         mainRun = true;

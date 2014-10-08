@@ -62,7 +62,7 @@ import org.junit.runners.MethodSorters;
 public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
     static DimensionImmutable wsize = new Dimension(500, 290);
 
-    static long duration = 500; // ms
+    static long duration = 1000; // ms
     static int swapInterval = 1;
     static boolean shallUseOffscreenFBOLayer = false;
     static boolean forceES2 = false;
@@ -78,6 +78,13 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         final Screen screen = NewtFactory.createScreen(dpy, 0);
         final GLWindow glWindow = GLWindow.create(screen, caps);
 
+        // Enforce landscape shader to be linked once,
+        // since on some platforms (Mesa/AMD) it takes a long time!
+        final LandscapeES2 demo = new LandscapeES2(swapInterval);
+        glWindow.addGLEventListener(demo);
+        glWindow.setVisible(true);
+        glWindow.display();
+
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         if ( shallUseOffscreenFBOLayer ) {
             newtCanvasAWT.setShallUseOffscreenLayer(true);
@@ -90,9 +97,6 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         }
         frame.add(newtCanvasAWT);
         frame.setTitle("Gears NewtCanvasAWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize);
-
-        final LandscapeES2 demo = new LandscapeES2(swapInterval);
-        glWindow.addGLEventListener(demo);
 
         final Animator animator = useAnimator ? new Animator() : null;
         if( useAnimator ) {
@@ -152,7 +156,7 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
                frame.dispose();
            }
         });
-        glWindow.destroy();
+        glWindow.destroy(); // removeNotify does not destroy GLWindow
     }
 
     @Test
