@@ -107,12 +107,13 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         animator.start();
 
         final GearsES2 g1 = new GearsES2(0);
+        g1.setSyncObjects(g1); // this is master, since rendered we must use it as sync
         final GLWindow f1 = createGLWindow(0, 0, g1);
         animator.add(f1);
         final InsetsImmutable insets = f1.getInsets();
 
         final GearsES2 g2 = new GearsES2(0);
-        g2.setSharedGears(g1);
+        g2.setSharedGears(g1); // also uses master g1 as sync, if required
         final GLWindow f2 = createGLWindow(f1.getX()+width+insets.getTotalWidth(),
                                            f1.getY()+0, g2);
         f2.setSharedAutoDrawable(f1);
@@ -120,7 +121,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         f2.setVisible(true);
 
         final GearsES2 g3 = new GearsES2(0);
-        g3.setSharedGears(g1);
+        g3.setSharedGears(g1); // also uses master g1 as sync, if required
         final GLWindow f3 = createGLWindow(f1.getX()+0,
                                            f1.getY()+height+insets.getTotalHeight(), g3);
         f3.setSharedAutoDrawable(f1);
@@ -222,6 +223,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     public void asyncEachAnimator(final boolean destroyCleanOrder) throws InterruptedException {
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        g1.setSyncObjects(g1); // this is master, since rendered we must use it as sync
         final GLWindow f1 = createGLWindow(0, 0, g1);
         a1.add(f1);
         a1.start();
@@ -230,7 +232,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
         final Animator a2 = new Animator();
         final GearsES2 g2 = new GearsES2(0);
-        g2.setSharedGears(g1);
+        g2.setSharedGears(g1); // also uses master g1 as sync, if required
         final GLWindow f2 = createGLWindow(f1.getX()+width+insets.getTotalWidth(),
                                            f1.getY()+0, g2);
         f2.setSharedAutoDrawable(f1);
@@ -240,7 +242,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
         final Animator a3 = new Animator();
         final GearsES2 g3 = new GearsES2(0);
-        g3.setSharedGears(g1);
+        g3.setSharedGears(g1); // also uses master g1 as sync, if required
         final GLWindow f3 = createGLWindow(f1.getX()+0,
                                            f1.getY()+height+insets.getTotalHeight(), g3);
         f3.setSharedAutoDrawable(f1);
@@ -336,8 +338,10 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     }
 
     static long duration = 1000; // ms
+    static boolean mainRun = false;
 
     public static void main(final String args[]) {
+        mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

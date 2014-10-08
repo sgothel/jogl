@@ -30,6 +30,7 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
@@ -75,6 +76,7 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
     private float panX = 0.0f, panY = 0.0f, panZ=0.0f;
     private volatile GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private GearsES2 sharedGears = null;
+    private Object syncObjects = null;
     private boolean useMappedBuffers = false;
     private boolean validateBuffers = false;
     private volatile boolean usesSharedGears = false;
@@ -144,6 +146,10 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
 
     public void setSharedGears(final GearsES2 shared) {
         sharedGears = shared;
+    }
+
+    public void setSyncObjects(final Object sync) {
+        syncObjects = sync;
     }
 
     /**
@@ -247,6 +253,13 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
                 System.err.println("gear2 "+sid()+" created w/ share: "+sharedGears.getGear2()+" -> "+gear2);
                 System.err.println("gear3 "+sid()+" created w/ share: "+sharedGears.getGear3()+" -> "+gear3);
             }
+            if( gl.getContext().hasRendererQuirk(GLRendererQuirks.NeedSharedObjectSync) ) {
+                syncObjects = sharedGears;
+                System.err.println("Shared GearsES2: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+            } else if( null == syncObjects ) {
+                syncObjects = new Object();
+                System.err.println("Shared GearsES2: Unsynchronized Objects");
+            }
         } else {
             gear1 = new GearsObjectES2(gl, useMappedBuffers, st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
             if(verbose) {
@@ -262,6 +275,8 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
             if(verbose) {
                 System.err.println("gear3 "+sid()+" created: "+gear2);
             }
+            if( null == syncObjects ) {
+                syncObjects = new Object();
             }
         }
 
@@ -461,6 +476,8 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         colorU = null;
         st.destroy(gl);
         st = null;
+        sharedGears = null;
+        syncObjects = null;
 
         if(verbose) {
             System.err.println(Thread.currentThread()+" GearsES2.dispose "+sid()+" FIN");
@@ -534,9 +551,11 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
         pmvMatrix.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
 
-        gear1.draw(gl, -3.0f, -2.0f,  1f * angle -    0f);
-        gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f);
-        gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f);
+        synchronized ( syncObjects ) {
+            gear1.draw(gl, -3.0f, -2.0f,  1f * angle -    0f);
+            gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f);
+            gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f);
+        }
         pmvMatrix.glPopMatrix();
         st.useProgram(gl, false);
 

@@ -20,6 +20,7 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.TileRendererBase;
 
@@ -33,6 +34,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   private float view_rotx = 20.0f, view_roty = 30.0f;
   private final float view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
+  private Gears sharedGears = null;
+  private Object syncObjects = null;
   private float angle = 0.0f;
   private boolean doRotate = true;
   private final int swapInterval;
@@ -42,6 +45,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   private boolean doRotateBeforePrinting;
   private boolean verbose = true;
   private boolean flipVerticalInGLOrientation = false;
+  private volatile boolean isInit = false;
 
   // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
@@ -182,6 +186,13 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         System.err.println("gear1 list reused: "+gear1);
         System.err.println("gear2 list reused: "+gear2);
         System.err.println("gear3 list reused: "+gear3);
+        if( gl.getContext().hasRendererQuirk(GLRendererQuirks.NeedSharedObjectSync) ) {
+            syncObjects = sharedGears;
+            System.err.println("Shared Gears: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+        } else {
+            syncObjects = new Object();
+            System.err.println("Shared Gears: Unsynchronized Objects");
+        }
     } else {
         gear1 = gl.glGenLists(1);
         gl.glNewList(gear1, GL2.GL_COMPILE);
@@ -203,6 +214,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         gear(gl, 1.3f, 2.0f, 0.5f, 10, 0.7f);
         gl.glEndList();
         System.err.println("gear3 list created: "+gear3);
+
+        syncObjects = new Object();
     }
 
     enableStates(gl, false);
@@ -295,6 +308,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gear1 = 0;
     gear2 = 0;
     gear3 = 0;
+    sharedGears = null;
+    syncObjects = null;
   }
 
   @Override
@@ -355,25 +370,27 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gl.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
 
     // Place the first gear and call its display list
-    gl.glPushMatrix();
-    gl.glTranslatef(-3.0f, -2.0f, 0.0f);
-    gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
-    gl.glCallList(gear1);
-    gl.glPopMatrix();
+    synchronized ( syncObjects ) {
+        gl.glPushMatrix();
+        gl.glTranslatef(-3.0f, -2.0f, 0.0f);
+        gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
+        gl.glCallList(gear1);
+        gl.glPopMatrix();
 
-    // Place the second gear and call its display list
-    gl.glPushMatrix();
-    gl.glTranslatef(3.1f, -2.0f, 0.0f);
-    gl.glRotatef(-2.0f * angle - 9.0f, 0.0f, 0.0f, 1.0f);
-    gl.glCallList(gear2);
-    gl.glPopMatrix();
+        // Place the second gear and call its display list
+        gl.glPushMatrix();
+        gl.glTranslatef(3.1f, -2.0f, 0.0f);
+        gl.glRotatef(-2.0f * angle - 9.0f, 0.0f, 0.0f, 1.0f);
+        gl.glCallList(gear2);
+        gl.glPopMatrix();
 
-    // Place the third gear and call its display list
-    gl.glPushMatrix();
-    gl.glTranslatef(-3.1f, 4.2f, 0.0f);
-    gl.glRotatef(-2.0f * angle - 25.0f, 0.0f, 0.0f, 1.0f);
-    gl.glCallList(gear3);
-    gl.glPopMatrix();
+        // Place the third gear and call its display list
+        gl.glPushMatrix();
+        gl.glTranslatef(-3.1f, 4.2f, 0.0f);
+        gl.glRotatef(-2.0f * angle - 25.0f, 0.0f, 0.0f, 1.0f);
+        gl.glCallList(gear3);
+        gl.glPopMatrix();
+    }
 
     // Remember that every push needs a pop; this one is paired with
     // rotating the entire gear assembly

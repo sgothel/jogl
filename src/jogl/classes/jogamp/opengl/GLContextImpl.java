@@ -1785,6 +1785,13 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks.addQuirk( quirk );
         }
+        {
+            final int quirk = GLRendererQuirks.NeedSharedObjectSync;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+            }
+            quirks.addQuirk( quirk );
+        }
         if( Platform.getOSVersionNumber().compareTo(Platform.OSXVersion.Mavericks) >= 0 && 3==reqMajor && 4==major ) {
             final int quirk = GLRendererQuirks.GL4NeedsGL3Request;
             if(DEBUG) {

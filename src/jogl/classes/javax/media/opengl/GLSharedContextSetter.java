@@ -28,6 +28,8 @@
 
 package javax.media.opengl;
 
+import com.jogamp.opengl.GLRendererQuirks;
+
 /**
  * Adds capabilities to set a shared {@link GLContext} directly or via an {@link GLAutoDrawable}.
  * <p>
@@ -87,6 +89,20 @@ package javax.media.opengl;
         glad.addGLEventListener(..);
         glad.setVisible(true); // GLWindow creation ..
  * </pre>
+ * </p>
+ * <h5><a name="synchronization">GL Object Synchronization</a></h5>
+ * <p>
+ * Usually synchronization of shared GL objects should not be required, if the shared GL objects
+ * are created and immutable before concurrent usage.
+ * </p>
+ * <p>
+ * However, using drivers exposing {@link GLRendererQuirks#NeedSharedObjectSync} always
+ * require the user to synchronize access of shared GL objects.
+ * </p>
+ * <p>
+ * Synchronization can be avoided if accessing the shared GL objects
+ * exclusively via a queue or {@link com.jogamp.common.util.Ringbuffer Ringbuffer}, see GLMediaPlayerImpl as an example.
+ * </p>
  * </p>
  * <h5><a name="driverissues">Known Driver Issues</a></h5>
  * <h7><a name="intelmesa">Intel's Mesa >= 9.1.2 Backend for [Sandybridge/Ivybridge] on GNU/Linux</a></h7>

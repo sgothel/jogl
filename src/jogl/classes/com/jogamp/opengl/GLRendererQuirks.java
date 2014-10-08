@@ -363,8 +363,40 @@ public class GLRendererQuirks {
      */
     public static final int NoPBufferWithAccum = 19;
 
+    /**
+     * Need GL objects (VBO, ..) to be synchronized when utilized
+     * concurrently from multiple threads via a shared GL context,
+     * otherwise driver crashes the VM.
+     * <p>
+     * Usually synchronization should not be required, if the shared GL objects
+     * are created and immutable before concurrent usage.<br>
+     * However, using drivers exposing this issue always require the user to
+     * synchronize access of shared GL objects.
+     * </p>
+     * <p>
+     * Synchronization can be avoided if accessing the shared GL objects
+     * exclusively via a queue or {@link com.jogamp.common.util.Ringbuffer Ringbuffer}, see GLMediaPlayerImpl as an example.
+     * </p>
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>Platform        OSX
+     *     <ul>
+     *       <li>detected on OSX 10.9.5 first</li>
+     *       <li>any driver</li>
+     *       <li>enabled for all OSX versions</li>
+     *     </ul>
+     *   </li>
+     * </ul>
+     * </p>
+     * <p>
+     * See Bug 1088 - https://jogamp.org/bugzilla/show_bug.cgi?id=1088
+     * </p>
+     */
+    public static final int NeedSharedObjectSync = 20;
+
     /** Return the number of known quirks. */
-    public static final int getCount() { return 20; }
+    public static final int getCount() { return 21; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -372,7 +404,8 @@ public class GLRendererQuirks {
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
-                                                          "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum"
+                                                          "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum",
+                                                          "NeedSharedObjectSync"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
