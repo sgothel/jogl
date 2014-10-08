@@ -61,6 +61,12 @@ public class TessellationShader01bGL4 implements GLEventListener  {
 
     @Override
     public void init(final GLAutoDrawable auto) {
+        final GL4 gl = auto.getGL().getGL4();
+        program = createProgram(auto);
+        if( null == program ) {
+            return;
+        }
+
         final double theta = System.currentTimeMillis() / ANIMATION_RATE;
         vertexOffset = FloatBuffer.allocate(4);
         vertexOffset.put(0, (float)(Math.sin(theta) * 0.5f));
@@ -74,8 +80,6 @@ public class TessellationShader01bGL4 implements GLEventListener  {
         backgroundColor.put(2, 0.25f);
         backgroundColor.put(3, 1.0f);
 
-        final GL4 gl = auto.getGL().getGL4();
-        program = createProgram(auto);
         gl.glGenVertexArrays(vertexArray.length, vertexArray, 0);
         gl.glBindVertexArray(vertexArray[0]);
         gl.glPatchParameteri(GL4.GL_PATCH_VERTICES, 3);
@@ -84,6 +88,9 @@ public class TessellationShader01bGL4 implements GLEventListener  {
 
     @Override
     public void display(final GLAutoDrawable auto) {
+        if( null == program ) {
+            return;
+        }
         final GL4 gl = auto.getGL().getGL4();
         final double value = System.currentTimeMillis() / ANIMATION_RATE;
         gl.glClearBufferfv(GL2ES3.GL_COLOR, 0, backgroundColor);
@@ -96,6 +103,9 @@ public class TessellationShader01bGL4 implements GLEventListener  {
 
     @Override
     public void dispose(final GLAutoDrawable auto) {
+        if( null == program ) {
+            return;
+        }
         final GL4 gl = auto.getGL().getGL4();
         gl.glDeleteVertexArrays(vertexArray.length, vertexArray, 0);
         program.destroy(gl);
@@ -132,11 +142,13 @@ public class TessellationShader01bGL4 implements GLEventListener  {
             sp.add(gl, tcs, System.err);
             sp.add(gl, tes, System.err);
             sp.add(gl, fs, System.err);
-            if(!sp.link(gl, System.err)) {
-                throw new GLException("Couldn't link program: "+sp);
-            }
         }
-
-        return sp;
+        if( !sp.link(gl, System.err) ) {
+            System.err.println("[error] Couldn't link program: "+sp);
+            sp.destroy(gl);
+            return null;
+        } else {
+            return sp;
+        }
     }
 }

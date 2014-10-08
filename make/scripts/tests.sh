@@ -130,7 +130,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker -Djogl.debug.GLArrayData -Djogl.debug.TraceGL -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
-    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
+    D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
@@ -432,7 +432,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
 
 #
 # av demos
@@ -729,7 +729,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*

@@ -49,7 +49,7 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
  * @author Raymond L. Rivera, 2014
  * @author Sven Gothel
  */
-public class TessellationShader01aGL4 implements GLEventListener  {
+public class TessellationShader01aGLSL440CoreHardcoded implements GLEventListener  {
     private static final double ANIMATION_RATE = 950.0;
 
     private ShaderProgram program;
@@ -60,6 +60,12 @@ public class TessellationShader01aGL4 implements GLEventListener  {
 
     @Override
     public void init(final GLAutoDrawable auto) {
+        final GL4 gl = auto.getGL().getGL4();
+        program = createProgram(auto);
+        if( null == program ) {
+            return;
+        }
+
         final double theta = System.currentTimeMillis() / ANIMATION_RATE;
         vertexOffset = FloatBuffer.allocate(4);
         vertexOffset.put(0, (float)(Math.sin(theta) * 0.5f));
@@ -73,8 +79,6 @@ public class TessellationShader01aGL4 implements GLEventListener  {
         backgroundColor.put(2, 0.25f);
         backgroundColor.put(3, 1.0f);
 
-        final GL4 gl = auto.getGL().getGL4();
-        program = createProgram(auto);
         gl.glGenVertexArrays(vertexArray.length, vertexArray, 0);
         gl.glBindVertexArray(vertexArray[0]);
         gl.glPatchParameteri(GL4.GL_PATCH_VERTICES, 3);
@@ -83,6 +87,9 @@ public class TessellationShader01aGL4 implements GLEventListener  {
 
     @Override
     public void display(final GLAutoDrawable auto) {
+        if( null == program ) {
+            return;
+        }
         final GL4 gl = auto.getGL().getGL4();
         final double value = System.currentTimeMillis() / ANIMATION_RATE;
         gl.glClearBufferfv(GL2ES3.GL_COLOR, 0, backgroundColor);
@@ -95,6 +102,9 @@ public class TessellationShader01aGL4 implements GLEventListener  {
 
     @Override
     public void dispose(final GLAutoDrawable auto) {
+        if( null == program ) {
+            return;
+        }
         final GL4 gl = auto.getGL().getGL4();
         gl.glDeleteVertexArrays(vertexArray.length, vertexArray, 0);
         program.destroy(gl);
@@ -157,9 +167,27 @@ public class TessellationShader01aGL4 implements GLEventListener  {
             "}                                                          \n";
 
         final ShaderCode vertexShader     = createShader(gl, GL2ES2.GL_VERTEX_SHADER, vertexSource);
+        if( null == vertexShader ) {
+            return null;
+        }
         final ShaderCode tessCtrlShader   = createShader(gl, GL4.GL_TESS_CONTROL_SHADER, tessCtrlSource);
+        if( null == tessCtrlShader ) {
+            vertexShader.destroy(gl);
+            return null;
+        }
         final ShaderCode tessEvalShader   = createShader(gl, GL4.GL_TESS_EVALUATION_SHADER, tessEvalSource);
+        if( null == tessEvalShader ) {
+            vertexShader.destroy(gl);
+            tessCtrlShader.destroy(gl);
+            return null;
+        }
         final ShaderCode fragmentShader   = createShader(gl, GL2ES2.GL_FRAGMENT_SHADER, fragmentSource);
+        if( null == fragmentShader ) {
+            vertexShader.destroy(gl);
+            tessCtrlShader.destroy(gl);
+            tessEvalShader.destroy(gl);
+            return null;
+        }
 
         final ShaderProgram program       = new ShaderProgram();
 
@@ -170,10 +198,13 @@ public class TessellationShader01aGL4 implements GLEventListener  {
         program.add(fragmentShader);
 
         program.link(gl, System.err);
-        if(!program.validateProgram(gl, System.out))
+        if( !program.validateProgram(gl, System.out) ) {
             System.err.println("[error] Program linking failed.");
-
-        return program;
+            program.destroy(gl);
+            return null;
+        } else {
+            return program;
+        }
     }
 
     private ShaderCode createShader(final GL4 gl, final int shaderType, final String source) {
@@ -182,10 +213,13 @@ public class TessellationShader01aGL4 implements GLEventListener  {
         final ShaderCode shader = new ShaderCode(shaderType, sources.length, sources);
 
         final boolean compiled = shader.compile(gl, System.err);
-        if (!compiled)
+        if (!compiled) {
             System.err.println("[error] Shader compilation failed.");
-
-        return shader;
+            shader.destroy(gl);
+            return null;
+        } else {
+            return shader;
+        }
     }
 
 }

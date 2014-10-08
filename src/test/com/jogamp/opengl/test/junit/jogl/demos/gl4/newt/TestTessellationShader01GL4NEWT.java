@@ -39,7 +39,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.gl4.TessellationShader01aGL4;
+import com.jogamp.opengl.test.junit.jogl.demos.gl4.TessellationShader01aGLSL440CoreHardcoded;
 import com.jogamp.opengl.test.junit.jogl.demos.gl4.TessellationShader01bGL4;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -65,7 +65,7 @@ public class TestTessellationShader01GL4NEWT extends UITestCase {
     public void test01_01a() throws InterruptedException {
         final GLCapabilities caps = getCaps(GLProfile.GL4);
         if( null == caps ) { return; }
-        testImpl(caps, new TessellationShader01aGL4());
+        testImpl(caps, new TessellationShader01aGLSL440CoreHardcoded());
     }
 
     @Test
