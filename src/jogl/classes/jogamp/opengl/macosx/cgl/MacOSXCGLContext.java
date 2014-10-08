@@ -639,7 +639,7 @@ public class MacOSXCGLContext extends GLContextImpl
           final IntBuffer viewNotReady = Buffers.newDirectIntBuffer(1);
           // Try to allocate a context with this
           ctx = CGL.createContext(share, nsViewHandle, incompleteView,
-                  pixelFormat, chosenCaps.isBackgroundOpaque(), viewNotReady);
+                                  pixelFormat, chosenCaps.isBackgroundOpaque(), viewNotReady);
           if (0 == ctx) {
               if(DEBUG) {
                   System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady.get(0)));
