@@ -333,7 +333,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSWindow0
     NSWindow* myWindow = [[NSWindow alloc] initWithContentRect: rect
                                            styleMask: NSBorderlessWindowMask
                                            backing: NSBackingStoreBuffered
-                                           defer: YES];
+                                           defer: NO]; // Bug 1087: Set default framebuffer, hence enforce NSView realization
     [myWindow setReleasedWhenClosed: YES]; // default
     [myWindow setPreservesContentDuringLiveResize: YES];
     // Remove animations
@@ -348,6 +348,13 @@ NS_ENDHANDLER
     // invisible ..
     [myWindow setOpaque: NO];
     [myWindow setBackgroundColor: [NSColor clearColor]];
+
+    // Bug 1087: Set default framebuffer, hence enforce NSView realization
+    // However, using the NSWindow ctor w/ 'defer: NO' seems sufficient
+    // and we are invisible - no focus!
+    // NSView* myView = [myWindow contentView];
+    // [myView lockFocus];
+    // [myView unlockFocus];
 
     [pool release];
 

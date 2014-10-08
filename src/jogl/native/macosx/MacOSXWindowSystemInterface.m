@@ -556,8 +556,8 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
             GLint zeroOpacity = 0;
             [ctx setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
         }
+        [ctx setView:view]; // Bug 1087: Set default framebuffer, hence enforce NSView realization
         if( viewReadyAndLocked ) {
-            [ctx setView:view];
             [view unlockFocus];        
         }
     }
