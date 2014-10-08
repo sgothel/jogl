@@ -246,6 +246,7 @@ public class ScreenDriver extends ScreenImpl {
                 @Override
                 public Object run(final long dpy) {
                     viewport.set(0, 0, getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
+                    viewportInWindowUnits.set(viewport);
                     return null;
                 } } );
             if( DEBUG ) {

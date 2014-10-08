@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
+
 import javax.media.nativewindow.NativeWindowFactory;
 
 import org.junit.Assert;
@@ -48,9 +49,11 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.util.Iterator;
 import java.util.List;
+
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
 import javax.media.opengl.GLProfile;
 
@@ -192,6 +195,21 @@ public class TestScreenMode00aNEWT extends UITestCase {
             Assert.assertNotNull(sm_c);
             Assert.assertEquals(sm_o, sm_c);
         }
+        
+        final RectangleImmutable zero = new Rectangle();
+        
+        final Rectangle monitorViewPU = new Rectangle();
+        final Rectangle monitorViewWU = new Rectangle();
+        MonitorDevice.unionOfViewports(monitorViewPU, monitorViewWU, monitors);
+        System.err.println("Test.0: Monitor union viewport: "+monitorViewPU+" [pu] / "+monitorViewWU+" [wu]");        
+        Assert.assertNotEquals(zero, monitorViewPU);
+        Assert.assertNotEquals(zero, monitorViewWU);        
+        
+        final RectangleImmutable screenViewPU = screen.getViewport();
+        final RectangleImmutable screenViewWU = screen.getViewportInWindowUnits();                
+        System.err.println("Test.1: Screen viewport: "+screenViewPU+" [pu] / "+screenViewWU+" [wu]");        
+        Assert.assertNotEquals(zero, screenViewPU);
+        Assert.assertNotEquals(zero, screenViewWU);        
 
         screen.removeReference();
 

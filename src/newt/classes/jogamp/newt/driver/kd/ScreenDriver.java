@@ -108,6 +108,7 @@ public class ScreenDriver extends ScreenImpl {
     @Override
     protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
         viewport.set(0, 0, cachedWidth, cachedHeight);
+        viewportInWindowUnits.set(viewport);
     }
 
     protected void sizeChanged(final int w, final int h) {

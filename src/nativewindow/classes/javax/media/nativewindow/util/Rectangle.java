@@ -76,6 +76,12 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         this.width = width;
         this.height = height;
     }
+    public final void set(final Rectangle s) {
+        this.x = s.x;
+        this.y = s.y;
+        this.width = s.width;
+        this.height = s.height;
+    }
     public final void setX(final int x) { this.x = x; }
     public final void setY(final int y) { this.y = y; }
     public final void setWidth(final int width) { this.width = width; }
