@@ -78,10 +78,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void setVerbose(final boolean v) { verbose = v; }
   public void setFlipVerticalInGLOrientation(final boolean v) { flipVerticalInGLOrientation=v; }
 
-  public void setGears(final int g1, final int g2, final int g3) {
-      gear1 = g1;
-      gear2 = g2;
-      gear3 = g3;
+  public void setSharedGears(final Gears shared) {
+      sharedGears = shared;
   }
 
   /**
@@ -103,17 +101,19 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void init(final GLAutoDrawable drawable) {
     final GL2 gl = drawable.getGL().getGL2();
 
-    init(gl);
-
-    final Object upstreamWidget = drawable.getUpstreamWidget();
-    if (upstreamWidget instanceof Window) {
-        final Window window = (Window) upstreamWidget;
-        window.addMouseListener(gearsMouse);
-        window.addKeyListener(gearsKeys);
-    } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
-        final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-        new AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
-        new AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
+    if( init(gl) ) {
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {
+            final Window window = (Window) upstreamWidget;
+            window.addMouseListener(gearsMouse);
+            window.addKeyListener(gearsKeys);
+        } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
+            final java.awt.Component comp = (java.awt.Component) upstreamWidget;
+            new AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
+            new AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
+        }
+    } else {
+        drawable.setGLEventListenerInitState(this, false);
     }
   }
 
@@ -147,7 +147,11 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     }
   }
 
-  public void init(final GL2 gl) {
+  public boolean init(final GL2 gl) {
+    if(null != sharedGears && !sharedGears.isInit() ) {
+      System.err.println(Thread.currentThread()+" GearsES1.init.0: pending shared Gears .. re-init later XXXXX");
+      return false;
+    }
     final float lightPos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     final float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
     final float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
@@ -171,44 +175,47 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     enableStates(gl, true);
 
     /* make the gears */
-    if(0>=gear1) {
+    if( null != sharedGears ) {
+        gear1 = sharedGears.getGear1();
+        gear2 = sharedGears.getGear2();
+        gear3 = sharedGears.getGear3();
+        System.err.println("gear1 list reused: "+gear1);
+        System.err.println("gear2 list reused: "+gear2);
+        System.err.println("gear3 list reused: "+gear3);
+    } else {
         gear1 = gl.glGenLists(1);
         gl.glNewList(gear1, GL2.GL_COMPILE);
         gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, red, 0);
         gear(gl, 1.0f, 4.0f, 1.0f, 20, 0.7f);
         gl.glEndList();
         System.err.println("gear1 list created: "+gear1);
-    } else {
-        System.err.println("gear1 list reused: "+gear1);
-    }
 
-    if(0>=gear2) {
         gear2 = gl.glGenLists(1);
         gl.glNewList(gear2, GL2.GL_COMPILE);
         gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, green, 0);
         gear(gl, 0.5f, 2.0f, 2.0f, 10, 0.7f);
         gl.glEndList();
         System.err.println("gear2 list created: "+gear2);
-    } else {
-        System.err.println("gear2 list reused: "+gear2);
-    }
 
-    if(0>=gear3) {
         gear3 = gl.glGenLists(1);
         gl.glNewList(gear3, GL2.GL_COMPILE);
         gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, blue, 0);
         gear(gl, 1.3f, 2.0f, 0.5f, 10, 0.7f);
         gl.glEndList();
         System.err.println("gear3 list created: "+gear3);
-    } else {
-        System.err.println("gear3 list reused: "+gear3);
     }
 
     enableStates(gl, false);
+
+    isInit = true;
+    return true;
   }
+
+  public final boolean isInit() { return isInit; }
 
   @Override
   public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
+      if( !isInit ) { return; }
       final GL2 gl = glad.getGL().getGL2();
       if(-1 != swapInterval) {
           gl.setSwapInterval(swapInterval);
@@ -220,6 +227,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void reshapeTile(final TileRendererBase tr,
           final int tileX, final int tileY, final int tileWidth, final int tileHeight,
           final int imageWidth, final int imageHeight) {
+      if( !isInit ) { return; }
       final GL2 gl = tr.getAttachedDrawable().getGL().getGL2();
       gl.setSwapInterval(0);
       reshape(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
@@ -273,6 +281,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
 
   @Override
   public void dispose(final GLAutoDrawable drawable) {
+    if( !isInit ) { return; }
+    isInit = false;
     System.err.println(Thread.currentThread()+" Gears.dispose: tileRendererInUse "+tileRendererInUse);
     try {
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -282,11 +292,15 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
             window.removeKeyListener(gearsKeys);
         }
     } catch (final Exception e) { System.err.println("Caught: "); e.printStackTrace(); }
-    setGears(0, 0, 0);
+    gear1 = 0;
+    gear2 = 0;
+    gear3 = 0;
   }
 
   @Override
   public void display(final GLAutoDrawable drawable) {
+    if( !isInit ) { return; }
+
     // Get the GL corresponding to the drawable we are animating
     final GL2 gl = drawable.getGL().getGL2();
 
@@ -314,6 +328,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   }
 
   public void display(final GL2 gl) {
+    if( !isInit ) { return; }
     enableStates(gl, true);
 
     if( null == tileRendererInUse ) {

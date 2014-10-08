@@ -128,7 +128,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         // 2nd
         //
         final GearsES2 g2 = new GearsES2(0);
-        g2.setSharedGearsObjects(g1.getGear1(), g1.getGear2(), g1.getGear3());
+        g2.setSharedGears(g1);
         final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
                                                 f1.getY()+0, g2, f1);
         final GLContext ctx2 = f2.getContext();
@@ -149,7 +149,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         // 3rd
         //
         final GearsES2 g3 = new GearsES2(0);
-        g3.setSharedGearsObjects(g1.getGear1(), g1.getGear2(), g1.getGear3());
+        g3.setSharedGears(g1);
         final GLWindow f3 = runTestGL(animator, f1.getX()+0,
                                                 f1.getY()+height+insets.getTotalHeight(), g3, f1);
 

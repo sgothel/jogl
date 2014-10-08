@@ -43,6 +43,10 @@ public class GearsObjectES1 extends GearsObject {
         super(gl, useMappedBuffers, gearColor, inner_radius, outer_radius, width, teeth, tooth_depth, validateBuffers);
     }
 
+    public GearsObjectES1(final GearsObject shared) {
+        super(shared);
+    }
+
     @Override
     public GLArrayDataServer createInterleaved(final boolean useMappedBuffers, final int comps, final int dataType, final boolean normalized, final int initialSize, final int vboUsage) {
         if( useMappedBuffers ) {

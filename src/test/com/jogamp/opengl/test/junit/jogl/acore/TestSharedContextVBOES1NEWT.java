@@ -127,7 +127,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
 
         final GearsES1 gears = new GearsES1(vsync ? 1 : 0);
         if(useShared) {
-            gears.setSharedGearsObjects(sharedGears.getGear1(), sharedGears.getGear2(), sharedGears.getGear3());
+            gears.setSharedGears(sharedGears);
         }
         glWindow.addGLEventListener(gears);
 

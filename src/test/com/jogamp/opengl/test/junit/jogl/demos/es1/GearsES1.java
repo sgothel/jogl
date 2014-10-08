@@ -64,6 +64,7 @@ public class GearsES1 implements GLEventListener {
   private final float view_rotz = 0.0f;
   private GearsObject gear1=null, gear2=null, gear3=null;
   private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
+  private GearsES1 sharedGears;
   private volatile boolean usesSharedGears = false;
   private boolean useMappedBuffers = false;
   private boolean validateBuffers = false;
@@ -71,6 +72,7 @@ public class GearsES1 implements GLEventListener {
   private final int swapInterval;
   private final MouseListener gearsMouse = new GearsMouseAdapter();
   private final KeyListener gearsKeys = new GearsKeyAdapter();
+  private volatile boolean isInit = false;
 
 
   private int prevMouseX, prevMouseY;
@@ -96,10 +98,8 @@ public class GearsES1 implements GLEventListener {
     this.gear3Color = gear3Color;
   }
 
-  public void setSharedGearsObjects(final GearsObject g1, final GearsObject g2, final GearsObject g3) {
-      gear1 = g1;
-      gear2 = g2;
-      gear3 = g3;
+  public void setSharedGears(final GearsES1 shared) {
+      sharedGears = shared;
   }
 
   /**
@@ -123,6 +123,11 @@ public class GearsES1 implements GLEventListener {
   public void setValidateBuffers(final boolean v) { validateBuffers = v; }
 
   public void init(final GLAutoDrawable drawable) {
+    if(null != sharedGears && !sharedGears.isInit() ) {
+      System.err.println(Thread.currentThread()+" GearsES1.init.0: pending shared Gears .. re-init later XXXXX");
+      drawable.setGLEventListenerInitState(this, false);
+      return;
+    }
     System.err.println(Thread.currentThread()+" GearsES1.init ...");
 
     // Use debug pipeline
@@ -167,28 +172,23 @@ public class GearsES1 implements GLEventListener {
     gl.glEnable(GL.GL_DEPTH_TEST);
 
     /* make the gears */
-    if(null == gear1) {
+    if( null != sharedGears ) {
+        gear1 = new GearsObjectES1(sharedGears.getGear1());
+        gear2 = new GearsObjectES1(sharedGears.getGear2());
+        gear3 = new GearsObjectES1(sharedGears.getGear3());
+        usesSharedGears = true;
+        System.err.println("gear1 reuse: "+gear1);
+        System.err.println("gear2 reuse: "+gear2);
+        System.err.println("gear3 reuse: "+gear3);
+    } else {
         gear1 = new GearsObjectES1(gl, useMappedBuffers, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, validateBuffers);
         System.err.println("gear1 created: "+gear1);
-    } else {
-        usesSharedGears = true;
-        System.err.println("gear1 reused: "+gear1);
-    }
 
-    if(null == gear2) {
         gear2 = new GearsObjectES1(gl, useMappedBuffers, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, validateBuffers);
         System.err.println("gear2 created: "+gear2);
-    } else {
-        usesSharedGears = true;
-        System.err.println("gear2 reused: "+gear2);
-    }
 
-    if(null == gear3) {
         gear3 = new GearsObjectES1(gl, useMappedBuffers, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, validateBuffers);
         System.err.println("gear3 created: "+gear3);
-    } else {
-        usesSharedGears = true;
-        System.err.println("gear3 reused: "+gear3);
     }
 
     gl.glEnable(GLLightingFunc.GL_NORMALIZE);
@@ -203,10 +203,14 @@ public class GearsES1 implements GLEventListener {
         new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
         new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
     }
+    isInit = true;
     System.err.println(Thread.currentThread()+" GearsES1.init FIN");
   }
 
+  public final boolean isInit() { return isInit; }
+
   public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+    if( !isInit ) { return; }
     System.err.println(Thread.currentThread()+" GearsES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
     final GL2ES1 gl = drawable.getGL().getGL2ES1();
 
@@ -229,6 +233,8 @@ public class GearsES1 implements GLEventListener {
   }
 
   public void dispose(final GLAutoDrawable drawable) {
+    if( !isInit ) { return; }
+    isInit = false;
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
     final Object upstreamWidget = drawable.getUpstreamWidget();
     if (upstreamWidget instanceof Window) {
@@ -247,6 +253,8 @@ public class GearsES1 implements GLEventListener {
   }
 
   public void display(final GLAutoDrawable drawable) {
+    if( !isInit ) { return; }
+
     // Turn the gears' teeth
     angle += 0.5f;
 
