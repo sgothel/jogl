@@ -41,6 +41,7 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.glsl.fixedfunc.FixedFuncUtil;
@@ -65,6 +66,7 @@ public class GearsES1 implements GLEventListener {
   private GearsObject gear1=null, gear2=null, gear3=null;
   private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
   private GearsES1 sharedGears;
+  private Object syncObjects;
   private volatile boolean usesSharedGears = false;
   private boolean useMappedBuffers = false;
   private boolean validateBuffers = false;
@@ -180,6 +182,13 @@ public class GearsES1 implements GLEventListener {
         System.err.println("gear1 reuse: "+gear1);
         System.err.println("gear2 reuse: "+gear2);
         System.err.println("gear3 reuse: "+gear3);
+        if( gl.getContext().hasRendererQuirk(GLRendererQuirks.NeedSharedObjectSync) ) {
+            syncObjects = sharedGears;
+            System.err.println("Shared GearsES1: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+        } else {
+            syncObjects = new Object();
+            System.err.println("Shared GearsES1: Unsynchronized Objects");
+        }
     } else {
         gear1 = new GearsObjectES1(gl, useMappedBuffers, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, validateBuffers);
         System.err.println("gear1 created: "+gear1);
@@ -189,6 +198,8 @@ public class GearsES1 implements GLEventListener {
 
         gear3 = new GearsObjectES1(gl, useMappedBuffers, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, validateBuffers);
         System.err.println("gear3 created: "+gear3);
+
+        syncObjects = new Object();
     }
 
     gl.glEnable(GLLightingFunc.GL_NORMALIZE);
@@ -249,6 +260,8 @@ public class GearsES1 implements GLEventListener {
     gear2 = null;
     gear3.destroy(gl);
     gear3 = null;
+    sharedGears = null;
+    syncObjects = null;
     System.err.println(Thread.currentThread()+" GearsES1.dispose FIN");
   }
 
@@ -294,9 +307,11 @@ public class GearsES1 implements GLEventListener {
     gl.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
     gl.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
 
-    gear1.draw(gl, -3.0f, -2.0f, angle);
-    gear2.draw(gl, 3.1f, -2.0f, -2.0f * angle - 9.0f);
-    gear3.draw(gl, -3.1f, 4.2f, -2.0f * angle - 25.0f);
+    synchronized ( syncObjects ) {
+        gear1.draw(gl, -3.0f, -2.0f, angle);
+        gear2.draw(gl, 3.1f, -2.0f, -2.0f * angle - 9.0f);
+        gear3.draw(gl, -3.1f, 4.2f, -2.0f * angle - 25.0f);
+    }
 
     // Remember that every push needs a pop; this one is paired with
     // rotating the entire gear assembly
