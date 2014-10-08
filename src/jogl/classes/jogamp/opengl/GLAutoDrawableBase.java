@@ -50,6 +50,7 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLSharedContextSetter;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLEventListenerState;
@@ -284,7 +285,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             } catch( final Throwable t ) {
                 // Intentionally catch and ignore exception,
                 // so the destroy mechanism of the native windowing system is not corrupted!
-                GLException.dumpThrowable("ignored", t);
+                ExceptionUtils.dumpThrowable("ignored", t);
             }
         }
     }

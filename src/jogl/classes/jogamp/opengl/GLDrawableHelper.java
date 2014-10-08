@@ -60,6 +60,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLRunnable;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
 
 /** Encapsulates the implementation of most of the GLAutoDrawable's
@@ -528,7 +529,7 @@ public class GLDrawableHelper {
                       if( null == firstCaught ) {
                           firstCaught = t;
                       } else {
-                          GLException.dumpThrowable("subsequent", t);
+                          ExceptionUtils.dumpThrowable("subsequent", t);
                       }
                   }
                   disposeCount++;
@@ -544,7 +545,7 @@ public class GLDrawableHelper {
                       if( null == firstCaught ) {
                           firstCaught = t;
                       } else {
-                          GLException.dumpThrowable("subsequent", t);
+                          ExceptionUtils.dumpThrowable("subsequent", t);
                       }
                   }
                   listenersToBeInit.add(listener);
@@ -1119,7 +1120,7 @@ public class GLDrawableHelper {
                              final Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
-            GLException.dumpThrowable("informal", new GLException("Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext"));
+            ExceptionUtils.dumpThrowable("informal", new GLException("Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext"));
         }
         return;
     }
@@ -1201,7 +1202,7 @@ public class GLDrawableHelper {
       }
       if( null != disposeCaught ) {
           if( null != contextCloseCaught ) {
-              GLException.dumpThrowable("subsequent", contextCloseCaught);
+              ExceptionUtils.dumpThrowable("subsequent", contextCloseCaught);
           }
           throw disposeCaught;
       }
@@ -1305,7 +1306,7 @@ public class GLDrawableHelper {
           if( null != glEventListenerCaught ) {
               flushGLRunnables();
               if( null != contextReleaseCaught ) {
-                  GLException.dumpThrowable("subsequent", contextReleaseCaught);
+                  ExceptionUtils.dumpThrowable("subsequent", contextReleaseCaught);
               }
               throw GLException.newGLException(glEventListenerCaught);
           }
@@ -1427,7 +1428,7 @@ public class GLDrawableHelper {
           if( null != glEventListenerCaught ) {
               flushGLRunnables();
               if( null != contextReleaseCaught ) {
-                  GLException.dumpThrowable("subsequent", contextReleaseCaught);
+                  ExceptionUtils.dumpThrowable("subsequent", contextReleaseCaught);
               }
               throw GLException.newGLException(glEventListenerCaught);
           }

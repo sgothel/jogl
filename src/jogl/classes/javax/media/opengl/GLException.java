@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2014 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -73,14 +74,5 @@ public class GLException extends RuntimeException {
    */
   public static GLException newGLException(final Throwable t) {
       return new GLException("Caught "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName(), t);
-  }
-
-  /**
-   * Dumps a Throwable in a decorating message including the current thread name, and stack trace.
-   * @since 2.2
-   */
-  public static void dumpThrowable(final String additionalDescr, final Throwable t) {
-      System.err.println("Caught "+additionalDescr+" "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
-      t.printStackTrace();
   }
 }
