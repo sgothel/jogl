@@ -443,9 +443,8 @@ public class ShaderCode {
     }
 
     /**
-     * Simplified variation of {@link #create(GL2ES2, int, int, Class, String, String[], String, String)}.
-     * <br>
-     *
+     * Simplified variation of {@link #create(GL2ES2, int, int, Class, String, String[], String, String, boolean)}.
+     * <p>
      * Example:
      * <pre>
      *   Your std JVM layout (plain or within a JAR):
@@ -476,6 +475,7 @@ public class ShaderCode {
      *      sp0.add(gl, fp0, System.err);
      *      st.attachShaderProgram(gl, sp0, true);
      * </pre>
+     * </p>
      *
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
