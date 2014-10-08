@@ -101,7 +101,7 @@ public class GLRendererQuirks {
     public static final int GLNonCompliant = 6;
 
     /**
-     * The OpenGL Context needs a <code>glFlush()</code> before releasing it, otherwise driver may freeze:
+     * The OpenGL context needs a <code>glFlush()</code> before releasing it, otherwise driver may freeze:
      * <ul>
      *   <li>OSX < 10.7.3 - NVidia Driver. Bug 533 and Bug 548 @ https://jogamp.org/bugzilla/.</li>
      * </ul>
@@ -139,7 +139,7 @@ public class GLRendererQuirks {
     public static final int DontCloseX11Display = 8;
 
     /**
-     * Need current GL Context when calling new ARB <i>pixel format query</i> functions,
+     * Need current GL context when calling new ARB <i>pixel format query</i> functions,
      * otherwise driver crashes the VM.
      * <p>
      * Drivers known exposing such bug:
@@ -155,7 +155,7 @@ public class GLRendererQuirks {
     public static final int NeedCurrCtx4ARBPixFmtQueries = 9;
 
     /**
-     * Need current GL Context when calling new ARB <i>CreateContext</i> function,
+     * Need current GL context when calling new ARB <i>CreateContext</i> function,
      * otherwise driver crashes the VM.
      * <p>
      * Drivers known exposing such bug:
@@ -296,9 +296,9 @@ public class GLRendererQuirks {
     public static final int SingletonEGLDisplayOnly = 16;
 
     /**
-     * With certain drivers no reliable MSAA / FSAA
-     * {@link GLCapabilitiesImmutable#getSampleBuffers() multi}
-     * {@link GLCapabilitiesImmutable#getNumSamples() sampling} is available, read <i>a crash</i> may occur.
+     * No reliable MSAA / FSAA {@link GLCapabilitiesImmutable#getSampleBuffers() multi}
+     * {@link GLCapabilitiesImmutable#getNumSamples() sampling} available,
+     * i.e. driver <i>may crash</i>.
      * <p>
      * Appears on:
      * <ul>
@@ -318,8 +318,8 @@ public class GLRendererQuirks {
     public static final int NoMultiSamplingBuffers  = 17;
 
     /**
-     * With certain drivers no reliable FBO color renderbuffer target
-     * is available, read <i>a crash</i> may occur.
+     * Buggy FBO color renderbuffer target,
+     * i.e. driver <i>may crash</i>.
      * <p>
      * Appears on:
      * <ul>
@@ -340,19 +340,25 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int BuggyColorRenderbuffer  = 18;
-    
+
     /**
-     * Some Intel drivers under Windows wrongly claims to support pbuffers 
-     * with accumulation buffers. Then, the creation of a pbuffer fails:
-     * javax.media.opengl.GLException: pbuffer creation error: Couldn't find a suitable pixel format
+     * No pbuffer supporting accumulation buffers available,
+     * even if driver claims otherwise.
+     * <p>
+     * Some drivers wrongly claim to support pbuffers
+     * with accumulation buffers. However, the creation of such pbuffer fails:
+     * <pre>
+     *   javax.media.opengl.GLException: pbuffer creation error: Couldn't find a suitable pixel format
+     * </pre>
+     * </p>
      * <p>
      * Appears on:
      * <ul>
      *   <li>GL_VENDOR       Intel</li>
      *   <li>GL_RENDERER     Intel Bear Lake B</li>
      *   <li>GL_VERSION      1.4.0 - Build 8.14.10.1930</li>
+     *   <li>Platform        Windows</li>
      * </ul>
-     * 
      * </p>
      */
     public static final int NoPBufferWithAccum = 19;
