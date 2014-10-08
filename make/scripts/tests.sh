@@ -130,7 +130,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker -Djogl.debug.GLArrayData -Djogl.debug.TraceGL -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
-    D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
@@ -199,6 +199,7 @@ function jrun() {
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Dnativewindow.debug.ToolkitLock.TraceLock"
+    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Dnewt.debug=all"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock -Dnativewindow.debug.ToolkitLock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Dnativewindow.debug.X11Util"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Dnativewindow.debug.X11Util"
@@ -414,7 +415,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
@@ -432,7 +433,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
 
 #
 # av demos
