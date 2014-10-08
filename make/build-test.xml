@@ -284,7 +284,9 @@
         </junit>
     </target>
 
-    <target name="junit.run.newt.headless" depends="test.compile">
+    <target name="generic.junit.run.newt.headless">
+        <!-- attribute name="generic.junit.run.newt.headless.include.pattern" -->
+
         <!-- Test*NEWT* 
 
              Emulation of junit task,
@@ -295,7 +297,7 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*NEWT*"/>
+                <include name="${generic.junit.run.newt.headless.include.pattern}"/>
                 <exclude name="**/*$$*"/>
                 <exclude name="**/*AWT*"/>
                 <exclude name="**/*SWT*"/>
@@ -349,6 +351,13 @@
             </apply>
           </sequential>
         </for>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
+    </target>  
+
+    <target name="junit.run.newt.headless" depends="test.compile">
+        <!-- Test*NEWT* -->
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/**/Test*NEWT*"/>
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <!-- junit.run.newt is covered by junit.run.newt.headless, disable it for now, but may be checked manually.
@@ -394,7 +403,9 @@
         </junit>
     </target>
 
-    <target name="junit.run.awt" depends="test.compile">
+    <target name="generic.junit.run.awt">
+        <!-- attribute name="generic.junit.run.awt.include.pattern" -->
+
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -420,7 +431,7 @@
 
             <batchtest todir="${results.test}">
               <fileset dir="${classes}">
-                  <include name="${java.dir.junit}/**/Test*AWT*"/>
+                  <include name="${generic.junit.run.awt.include.pattern}"/>
                   <exclude name="**/*$$*"/>
                   <exclude name="**/*SWT*"/>
                   <exclude name="**/newt/**"/>
@@ -429,9 +440,18 @@
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
+        <var name="generic.junit.run.awt.include.pattern" unset="true"/>
     </target>
 
-    <target name="junit.run.newt.awt" depends="test.compile">
+    <target name="junit.run.awt" depends="test.compile">
+        <!-- Test*AWT* -->
+        <property name="generic.junit.run.awt.include.pattern" value="${java.dir.junit}/**/Test*AWT*"/>
+        <antcall target="generic.junit.run.awt" inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="generic.junit.run.newt.awt">
+        <!-- attribute name="generic.junit.run.newt.awt.include.pattern" -->
+
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -459,9 +479,7 @@
 
             <batchtest todir="${results.test}">
               <fileset dir="${classes}">
-                  <include name="${java.dir.junit}/**/newt/**/Test*AWT*"/>
-                  <!--include name="${java.dir.junit}/**/newt/**/TestNewtEventModifiers*AWT*"/-->
-                  <!--include name="${java.dir.junit}/**/acore/glels/Test**"/-->
+                  <include name="${generic.junit.run.newt.awt.include.pattern}"/>
                   <exclude name="**/*SWT*"/>
                   <exclude name="**/*$$*"/>
               </fileset>
@@ -469,120 +487,55 @@
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
+        <var name="generic.junit.run.newt.awt.include.pattern" unset="true"/>
+    </target>
+
+    <target name="junit.run.newt.awt" depends="test.compile">
+        <!-- Test*AWT* -->
+        <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/**/Test*AWT*"/>
+        <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
+
+        <!--
+        <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/**/TestNewtEventModifiers*AWT*"/>
+        <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
+        <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/acore/glels/Test**"/>
+        <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
+          -->
     </target>
 
     <target name="junit.run.sharedctx" depends="test.compile, junit.run.settings">
+        <!-- Test*NEWT* --> 
+        <echo message="+++ "/>
+        <echo message="+++ Testing Shared NEWT"/>
+        <echo message="+++ "/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/**/acore/Test*Shared*NEWT*"/>
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
-            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-            <jvmarg value="${junit.run.arg0}"/>
-            <jvmarg value="${junit.run.arg1}"/>
-            <jvmarg value="${jvmDataModel.arg}"/>
-            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+        <echo message="+++ "/>
+        <echo message="+++ Testing Shared AWT"/>
+        <echo message="+++ "/>
+        <property name="generic.junit.run.awt.include.pattern" value="${java.dir.junit}/**/acore/Test*Shared*AWT*"/>
+        <antcall target="generic.junit.run.awt" inheritRefs="true" inheritAll="true"/>
 
-            <!--
-            <jvmarg value="-Dnewt.debug.EDT"/>
-            <jvmarg value="-Djogl.debug=all"/>
-            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
-            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
-            <jvmarg value="-Djogl.debug.GLSLState"/>
-            <jvmarg value="-Dnativewindow.debug=all"/>
-            <jvmarg value="-Dnewt.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
-            <jvmarg value="-client"/>
-            <jvmarg value="-d32"/>
-            -->
-
-            <formatter usefile="false" type="plain"/>
-            <formatter usefile="true" type="xml"/>
-            <!--classpath refid="junit_jogl_awt.run.classpath"/-->
-            <classpath refid="junit_jogl_swt.run.classpath"/>
-
-            <batchtest todir="${results.test}">
-              <fileset dir="${classes}">
-                  <include name="${java.dir.junit}/**/acore/TestSharedContext**"/>
-                  <exclude name="**/*$$*"/>
-              </fileset>
-              <formatter usefile="false" type="brief"/>
-              <formatter usefile="true" type="xml"/>
-            </batchtest>
-        </junit>
+        <!-- Test*SWTHeadless* -->
+        <echo message="+++ "/>
+        <echo message="+++ Testing Shared SWT"/>
+        <echo message="+++ "/>
+        <property name="generic.junit.run.swt.headless.include.pattern" value="${java.dir.junit}/**/acore/Test*Shared*SWT*"/>
+        <antcall target="generic.junit.run.swt.headless" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="junit.run.newt.event" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
-            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-            <jvmarg value="${junit.run.arg0}"/>
-            <jvmarg value="${junit.run.arg1}"/>
-            <jvmarg value="${jvmDataModel.arg}"/>
-            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
-
-            <!--
-            <jvmarg value="-Dnewt.debug.EDT"/>
-            <jvmarg value="-Djogl.debug=all"/>
-            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
-            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
-            <jvmarg value="-Djogl.debug.GLSLState"/>
-            <jvmarg value="-Dnativewindow.debug=all"/>
-            <jvmarg value="-Dnewt.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
-            <jvmarg value="-client"/>
-            <jvmarg value="-d32"/>
-            -->
-
-            <formatter usefile="false" type="plain"/>
-            <formatter usefile="true" type="xml"/>
-            <!--classpath refid="junit_jogl_awt.run.classpath"/-->
-            <classpath refid="junit_jogl_swt.run.classpath"/>
-
-            <batchtest todir="${results.test}">
-              <fileset dir="${classes}">
-                  <include name="${java.dir.junit}/**/newt/event/Test**"/>
-                  <exclude name="**/*$$*"/>
-              </fileset>
-              <formatter usefile="false" type="brief"/>
-              <formatter usefile="true" type="xml"/>
-            </batchtest>
-        </junit>
+        <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/event/Test**"/>
+        <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="junit.run.newt.monitormode" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
-            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-            <jvmarg value="${junit.run.arg0}"/>
-            <jvmarg value="${junit.run.arg1}"/>
-            <jvmarg value="${jvmDataModel.arg}"/>
-            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
-
-            <!--
-            <jvmarg value="-Dnewt.debug.EDT"/>
-            <jvmarg value="-Djogl.debug=all"/>
-            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
-            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
-            <jvmarg value="-Djogl.debug.GLSLState"/>
-            <jvmarg value="-Dnativewindow.debug=all"/>
-            <jvmarg value="-Dnewt.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
-            <jvmarg value="-client"/>
-            <jvmarg value="-d32"/>
-            -->
-
-            <formatter usefile="false" type="plain"/>
-            <formatter usefile="true" type="xml"/>
-            <!--classpath refid="junit_jogl_awt.run.classpath"/-->
-            <classpath refid="junit_jogl_swt.run.classpath"/>
-
-            <batchtest todir="${results.test}">
-              <fileset dir="${classes}">
-                  <include name="${java.dir.junit}/**/newt/mm/Test**"/>
-                  <exclude name="**/*$$*"/>
-              </fileset>
-              <formatter usefile="false" type="brief"/>
-              <formatter usefile="true" type="xml"/>
-            </batchtest>
-        </junit>
+        <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/mm/Test**"/>
+        <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="junit.run.awt.singletest" depends="test.compile, junit.run.settings">
@@ -657,7 +610,9 @@
         </apply>
     </target>
 
-    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." if="isSWTRuntimeAvailable">
+    <target name="generic.junit.run.swt.headless">
+        <!-- attribute name="generic.junit.run.swt.headless.include.pattern" -->
+
         <!-- Test*SWTHeadless* 
 
              Emulation of junit task.
@@ -667,7 +622,7 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*SWT*"/>
+                <include name="@{generic.junit.run.swt.headless.include.pattern}"/>
                 <exclude name="**/*AWT*"/>
                 <exclude name="**/*$$*"/>
             </fileset>
@@ -719,6 +674,13 @@
             </apply>
           </sequential>
         </for>
+        <var name="generic.junit.run.swt.headless.include.pattern" unset="true"/>
+    </target>  
+
+    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." if="isSWTRuntimeAvailable">
+        <!-- Test*SWTHeadless* -->
+        <property name="generic.junit.run.swt.headless.include.pattern" value="${java.dir.junit}/**/Test*SWT*"/>
+        <antcall target="generic.junit.run.swt.headless" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="junit.run.swt.awt" depends="test.compile" description="Runs all pure SWT AWT tests." if="isSWTRuntimeAvailable">
