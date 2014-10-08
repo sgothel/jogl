@@ -87,17 +87,17 @@ public class TestMultisampleES2NEWT extends UITestCase {
     testMultiSampleAAImpl(false, true, 0);
   }
 
-  @Test(timeout = 3000) // 3s timeout
+  @Test(timeout = 10000)
   public void testOffsreenPBufferMultiSampleAA8() throws InterruptedException {
     testMultiSampleAAImpl(false, true, 8);
   }
 
-  @Test(timeout = 3000) // 3s timeout
+  @Test(timeout = 10000)
   public void testOffscreenFBOMultiSampleAA0() throws InterruptedException {
     testMultiSampleAAImpl(true, false, 0);
   }
 
-  @Test(timeout = 3000) // 3s timeout
+  @Test(timeout = 10000)
   public void testOffsreenFBOMultiSampleAA8() throws InterruptedException {
     testMultiSampleAAImpl(true, false, 8);
   }
