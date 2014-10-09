@@ -41,7 +41,9 @@ import com.jogamp.opengl.math.geom.AABBox;
  * </p>
  * <p>
  * A {@link Ray} maybe used for <i>picking</i>
- * using a {@link AABBox#getRayIntersection(Ray, float[]) bounding box}.
+ * using a {@link AABBox bounding box} via
+ * {@link AABBox#intersectsRay(Ray) fast probe} or
+ * {@link AABBox#getRayIntersection(float[], Ray, float, boolean, float[], float[], float[]) returning the intersection}.
  * </p>
  */
 public class Ray {
