@@ -70,7 +70,7 @@ public class TestScreenMode00cNEWT extends UITestCase {
     static int width, height;
 
     static final int waitTimeShort = 2000;
-    static long duration = waitTimeShort;
+    static long duration = 4000;
 
     static int mm_width = 800;
     static int mm_height = 600;
@@ -211,8 +211,15 @@ public class TestScreenMode00cNEWT extends UITestCase {
         Assert.assertEquals(true,window0.isVisible());
 
         // WARNING: See note in 'UITestCase.resetXRandRIfX11();'
-        UITestCase.resetXRandRIfX11();
-        System.err.println("XRandR Reset :"+monitor.queryCurrentMode());
+        final int xrandrErrorCode;
+        if( 0 == ( xrandrErrorCode = UITestCase.resetXRandRIfX11() ) ) {
+            System.err.println("XRandR Reset :"+monitor.queryCurrentMode());
+        } else {
+            System.err.println("XRandR Reset : Failed w/ errorCode "+xrandrErrorCode+", fall back to manual reset");
+            final boolean smOk = monitor.setCurrentMode(mmOrig);
+            System.err.println("[X] changeOK             : "+smOk);
+        }
+        Thread.sleep(duration);
         validateScreenModeReset0(mmOrig);
 
         destroyWindow(window0);
