@@ -175,6 +175,13 @@ public class MiscUtils {
             this.prefix = prefix;
             this.sync = sync;
         }
+        public StreamDump(final StringBuilder sb, final String prefix, final InputStream is, final Object sync) {
+            this.is = is;
+            this.outString = sb;
+            this.outStream = null;
+            this.prefix = prefix;
+            this.sync = sync;
+        }
         public StreamDump(final StringBuilder sb, final InputStream is, final Object sync) {
             this.is = is;
             this.outString = sb;

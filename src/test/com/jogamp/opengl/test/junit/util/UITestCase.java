@@ -73,71 +73,74 @@ public abstract class UITestCase extends SingletonJunitCase {
      * With NV drivers, one need to add the Modes in proper order to the Screen's Subsection "Display",
      * otherwise they are either in unsorted resolution order or even n/a!
      * </p>
+     * @return error-code with {@code zero} for no error
      */
     @SuppressWarnings("unused")
-    public static void resetXRandRIfX11() {
+    public static int resetXRandRIfX11() {
+        int errorCode = 0;
         if( NativeWindowFactory.isInitialized() && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
             try {
                 final List<String> outputDevices = new ArrayList<String>();
                 // final List<String> outputSizes = new ArrayList<String>();
-                final Object ioSync = new Object();
-                synchronized ( ioSync ) {
-                    final StringBuilder out = new StringBuilder();
-                    final ProcessBuilder pb = new ProcessBuilder("xrandr", "-q");
-                    pb.redirectErrorStream(true);
-                    System.err.println("XRandR Query: "+pb.command());
-                    final Process p = pb.start();
-                    final MiscUtils.StreamDump dump = new MiscUtils.StreamDump( out, p.getInputStream(), ioSync );
-                    dump.start();
-                    while( !dump.eos() ) {
-                        ioSync.wait();
-                    }
-                    p.waitFor(); // should be fine by now ..
-                    final int errorCode = p.exitValue();
-                    if( 0 == errorCode ) {
-                        // Parse connected output devices !
-                        final BufferedReader in = new BufferedReader( new StringReader( out.toString() ) );
-                        String line = null;
-                        while ( ( line = in.readLine() ) != null) {
-                            final String lline = line.toLowerCase();
-                            if( lline.contains("connected") && !lline.contains("disconnected") ) {
-                                final String od = getFirst(line);
-                                if( null != od ) {
-                                    outputDevices.add( od );
-                                    /**
-                                    if ( ( line = in.readLine() ) != null ) {
-                                        outputSizes.add( getFirst(line) );
-                                    } else {
-                                        outputSizes.add( null );
-                                    } */
-                                }
+                final StringBuilder out = new StringBuilder();
+                final String[] cmdlineQuery = new String[] { "xrandr", "-q" };
+                errorCode = processCommand(cmdlineQuery, null, out, "xrandr-query> ");
+                if( 0 != errorCode ) {
+                    System.err.println("XRandR Query Error Code "+errorCode);
+                    System.err.println(out.toString());
+                } else {
+                    // Parse connected output devices !
+                    final BufferedReader in = new BufferedReader( new StringReader( out.toString() ) );
+                    String line = null;
+                    while ( ( line = in.readLine() ) != null) {
+                        final String lline = line.toLowerCase();
+                        if( lline.contains("connected") && !lline.contains("disconnected") ) {
+                            final String od = getFirst(line);
+                            if( null != od ) {
+                                outputDevices.add( od );
+                                /**
+                                if ( ( line = in.readLine() ) != null ) {
+                                    outputSizes.add( getFirst(line) );
+                                } else {
+                                    outputSizes.add( null );
+                                } */
                             }
                         }
-                    } else {
-                        System.err.println("XRandR Query Error Code "+errorCode);
-                        System.err.println(out.toString());
                     }
-                }
-                for(int i=0; i<outputDevices.size(); i++) {
-                    final String outputDevice = outputDevices.get(i);
-                    final String outputSize = null; // outputSizes.get(i);
-                    final String[] cmdline;
-                    if( null != outputSize ) {
-                        cmdline = new String[] { "xrandr", "--output", outputDevice, "--mode", outputSize, "--rotate", "normal" };
-                    } else {
-                        cmdline = new String[] { "xrandr", "--output", outputDevice, "--preferred", "--rotate", "normal" };
+                    for(int i=0; i<outputDevices.size(); i++) {
+                        final String outputDevice = outputDevices.get(i);
+                        final String outputSize = null; // outputSizes.get(i)
+                        final String[] cmdline;
+                        if( null != outputSize ) {
+                            cmdline = new String[] { "xrandr", "--output", outputDevice, "--mode", outputSize, "--rotate", "normal" };
+                        } else {
+                            cmdline = new String[] { "xrandr", "--output", outputDevice, "--preferred", "--rotate", "normal" };
+                        }
+                        System.err.println("XRandR 1.2 Reset: "+Arrays.asList(cmdline));
+                        errorCode = processCommand(cmdline, System.err, null, "xrandr-1.2-reset> ");
+                        if( 0 != errorCode ) {
+                            System.err.println("XRandR 1.2 Reset Error Code "+errorCode);
+                            break;
+                        }
                     }
-                    System.err.println("XRandR Reset: "+Arrays.asList(cmdline));
-                    final int errorCode = processCommand(cmdline, System.err, "xrandr-reset> ");
+                    /**
+                     * RandR 1.1 reset does not work ..
                     if( 0 != errorCode ) {
-                        System.err.println("XRandR Reset Error Code "+errorCode);
-                    }
+                        final String[] cmdline = new String[] { "xrandr", "-s", "0", "-o", "normal" };
+                        System.err.println("XRandR 1.1 Reset: "+Arrays.asList(cmdline));
+                        errorCode = processCommand(cmdline, System.err, null, "xrandr-1.1-reset> ");
+                        if( 0 != errorCode ) {
+                            System.err.println("XRandR 1.1 Reset Error Code "+errorCode);
+                        }
+                    } */
                 }
             } catch (final Exception e) {
                 System.err.println("Caught "+e.getClass().getName()+": "+e.getMessage());
                 e.printStackTrace();
+                errorCode = -1;
             }
         }
+        return errorCode;
     }
     private static String getFirst(final String line) {
         final StringTokenizer tok = new StringTokenizer(line);
@@ -150,7 +153,7 @@ public abstract class UITestCase extends SingletonJunitCase {
         return null;
     }
 
-    public static int processCommand(final String[] cmdline, final OutputStream outstream, final String outPrefix) {
+    public static int processCommand(final String[] cmdline, final OutputStream outstream, final StringBuilder outstring, final String outPrefix) {
         int errorCode = 0;
         final Object ioSync = new Object();
         try {
@@ -158,7 +161,14 @@ public abstract class UITestCase extends SingletonJunitCase {
                 final ProcessBuilder pb = new ProcessBuilder(cmdline);
                 pb.redirectErrorStream(true);
                 final Process p = pb.start();
-                final MiscUtils.StreamDump dump = new MiscUtils.StreamDump( outstream, outPrefix, p.getInputStream(), ioSync);
+                final MiscUtils.StreamDump dump;
+                if( null != outstream ) {
+                    dump = new MiscUtils.StreamDump( outstream, outPrefix, p.getInputStream(), ioSync);
+                } else if( null != outstring ) {
+                    dump = new MiscUtils.StreamDump( outstring, outPrefix, p.getInputStream(), ioSync);
+                } else {
+                    throw new IllegalArgumentException("Output stream and string are null");
+                }
                 dump.start();
                 while( !dump.eos() ) {
                     ioSync.wait();

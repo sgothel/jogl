@@ -76,7 +76,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
     static int width, height;
 
     static long waitTimeShort = 2000;
-    static long duration = 2000;
+    static long duration = 4000;
 
     static int mm_width = 800;
     static int mm_height = 600;
