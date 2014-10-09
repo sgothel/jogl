@@ -157,8 +157,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         try {
             font = FontFactory.get(FontFactory.UBUNTU).getDefault();
         } catch (final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
-            ioe.printStackTrace();
+            throw new RuntimeException(ioe);
         }
         sceneUIController = new SceneUIController(sceneDist, zNear, zFar);
         screenshot = new GLReadBufferUtil(false, false);
@@ -704,8 +703,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         try {
             font = FontFactory.get(fontSet).getDefault();
         } catch (final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
-            ioe.printStackTrace();
+            throw new RuntimeException(ioe);
         }
 
         renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);

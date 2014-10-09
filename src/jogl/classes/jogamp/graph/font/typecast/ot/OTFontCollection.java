@@ -67,7 +67,7 @@ public class OTFontCollection {
 
     /**
      * @param istream The OpenType font input stream
-     * @param streamLen TODO
+     * @param streamLen the length of the OpenType font segment in the stream
      */
     public static OTFontCollection create(final InputStream istream, final int streamLen) throws IOException {
         final OTFontCollection fc = new OTFontCollection();
@@ -141,7 +141,7 @@ public class OTFontCollection {
 
     /**
      * @param is The OpenType font stream
-     * @param streamLen the total length of the stream
+     * @param streamLen the length of the OpenType font segment in the stream
      */
     protected void read(final InputStream is, final int streamLen) throws IOException {
         _pathName = "";
