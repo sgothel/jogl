@@ -398,13 +398,13 @@
         <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${jogamp.version.base} Specification" />
         <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
 
-        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogamp.version.base} Specification" />
+        <property name="javadoc.spec.windowtitle" value="JOGL API -- ${jogamp.version.base} Specification" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
-        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.oculusvr.*" />
+        <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.graph.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.oculusvr.*" />
 
-        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*, jogamp.nativewindow.*, jogamp.opengl.*, jogamp.newt.*" />
+        <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.graph.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*, jogamp.nativewindow.*, jogamp.opengl.*, jogamp.graph.*, jogamp.newt.*" />
 
         <property name="java.excludes.javadoc.packagenames" value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
