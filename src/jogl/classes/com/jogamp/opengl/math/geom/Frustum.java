@@ -33,9 +33,17 @@ import com.jogamp.common.os.Platform;
 
 /**
  * Providing frustum {@link #getPlanes() planes} derived by different inputs
- * ({@link #updateByPMV(float[], int) P*MV}, ..)
- * used to {@link #classifySphere(float[], float) classify objects} and to test
- * whether they are {@link #isOutside(AABBox) outside}.
+ * ({@link #updateByPMV(float[], int) P*MV}, ..) used to classify objects
+ * <ul>
+ *   <li> {@link #classifyPoint(float[]) point} </li>
+ *   <li> {@link #classifySphere(float[], float) sphere} </li>
+ * </ul>
+ * and to test whether they are outside
+ * <ul>
+ *   <li> {@link #isPointOutside(float[]) point} </li>
+ *   <li> {@link #isSphereOutside(float[], float) sphere} </li>
+ *   <li> {@link #isAABBoxOutside(AABBox) bounding-box} </li>
+ * </ul>
  *
  * <p>
  * Extracting the world-frustum planes from the P*Mv:

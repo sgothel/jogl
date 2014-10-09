@@ -37,6 +37,7 @@ import jogamp.graph.curve.opengl.VBORegionSPES2;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.OutlineShape;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
  *  Defined by its vertices and generated triangles. The Region
@@ -46,7 +47,8 @@ import com.jogamp.graph.curve.Region;
  *  Implementations of the GLRegion shall take care of the OGL
  *  binding of the depending on its context, profile.
  *
- * @see Region, RegionFactory, OutlineShape
+ * @see Region
+ * @see OutlineShape
  */
 public abstract class GLRegion extends Region {
 
@@ -118,7 +120,7 @@ public abstract class GLRegion extends Region {
      * it afterwards when used in conjunction with other renderer.
      * </p>
      * <p>
-     * Users shall also consider setting the {@link GL#glClearColor(float, float, float, float) Clear Color}
+     * Users shall also consider setting the {@link GL#glClearColor(float, float, float, float) clear-color}
      * appropriately:
      * <ul>
      *   <li>If {@link GL#GL_BLEND blending} is enabled, <i>RGB</i> shall be set to text color, otherwise
@@ -129,7 +131,7 @@ public abstract class GLRegion extends Region {
      * Note: If {@link GL#GL_BLEND blending} is enabled, the
      * {@link RegionRenderer} might need to be
      * {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
-     * with the appropriate {@link {@link RegionRenderer.GLCallback callbacks}.
+     * with the appropriate {@link RegionRenderer.GLCallback callbacks}.
      * </p>
      * @param matrix current {@link PMVMatrix}.
      * @param renderer the {@link RegionRenderer} to be used

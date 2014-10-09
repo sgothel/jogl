@@ -440,12 +440,16 @@ public class AABBox {
      *  <li>Optimized code by Pierre Terdiman, 2000 (~20-30% faster on my Celeron 500)</li>
      *  <li>Epsilon value added by Klaus Hartmann.</li>
      * </ul>
+     * </p>
+     * <p>
      * Method is based on the requirements:
      * <ul>
      *  <li>the integer representation of 0.0f is 0x00000000</li>
      *  <li>the sign bit of the float is the most significant one</li>
      * </ul>
-     * Report bugs: p.terdiman@codercorner.com
+     * </p>
+     * <p>
+     * Report bugs: p.terdiman@codercorner.com (original author)
      * </p>
      * <pre>
      * [1] http://www.codercorner.com/RayAABB.cpp

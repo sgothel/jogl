@@ -59,6 +59,15 @@ public class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
     protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
 
+    /**
+     * May be passed to
+     * {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) RegionRenderer ctor},
+     * e.g.
+     * <ul>
+     *   <li>{@link RegionRenderer#defaultBlendEnable}</li>
+     *   <li>{@link RegionRenderer#defaultBlendDisable}</li>
+     * </ul>
+     */
     public interface GLCallback {
         /**
          * @param gl a current GL object

@@ -42,15 +42,15 @@ import com.jogamp.opengl.math.geom.AABBox;
  * Implementation assumes linear matrix layout in column-major order
  * matching OpenGL's implementation, illustration:
  * <pre>
-  Row-Major                    Column-Major (OpenGL):
+    Row-Major                  Column-Major (OpenGL):
 
-        | 0  1  2  3  |            | 0  4  8  12 |
-        |             |            |             |
-        | 4  5  6  7  |            | 1  5  9  13 |
-    M = |             |        M = |             |
-        | 8  9  10 11 |            | 2  6  10 14 |
-        |             |            |             |
-        | 12 13 14 15 |            | 3  7  11 15 |
+        |  0   1   2   3 |         |  0   4   8  12 |
+        |                |         |                |
+        |  4   5   6   7 |         |  1   5   9  13 |
+    M = |                |     M = |                |
+        |  8   9  10  11 |         |  2   6  10  14 |
+        |                |         |                |
+        | 12  13  14  15 |         |  3   7  11  15 |
 
            C   R                      C   R
          m[0*4+3] = tx;             m[0+4*3] = tx;
