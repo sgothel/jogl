@@ -35,6 +35,7 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -43,7 +44,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * Abstract Outline shape representation define the method an OutlineShape(s)
  * is bound and rendered.
  *
- * @see com.jogamp.graph.curve.opengl.GLRegion
+ * @see GLRegion
  */
 public abstract class Region {
 
@@ -179,7 +180,7 @@ public abstract class Region {
     protected abstract void pushIndex(int idx);
 
     /**
-     * Return bit-field of render modes, see {@link com.jogamp.graph.curve.opengl.GLRegion#create(int, TextureSequence)}.
+     * Return bit-field of render modes, see {@link GLRegion#create(int, TextureSequence)}.
      */
     public final int getRenderModes() { return renderModes; }
 

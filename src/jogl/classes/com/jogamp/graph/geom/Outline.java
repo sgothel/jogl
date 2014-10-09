@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -45,7 +47,8 @@ import com.jogamp.opengl.math.geom.AABBox;
  *
  *  Note: An outline should be closed to be rendered as a region.
  *
- *  @see OutlineShape, Region
+ *  @see OutlineShape
+ *  @see Region
  */
 public class Outline implements Comparable<Outline> {
 
