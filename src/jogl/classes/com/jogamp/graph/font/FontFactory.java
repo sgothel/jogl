@@ -179,7 +179,12 @@ public class FontFactory {
                 bis.close();
             }
             if( null != tempFile[0] ) {
-                tempFile[0].delete();
+                AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                    @Override
+                    public Object run() {
+                        tempFile[0].delete();
+                        return null;
+                    } } );
             }
         }
     }
