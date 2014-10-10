@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URLConnection;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
@@ -161,7 +162,7 @@ public class TestGearsES2NEWT extends UITestCase {
                 public void display(final GLAutoDrawable drawable) {
                     final GLAnimatorControl  actrl = drawable.getAnimator();
                     if(waitForKey && actrl.getTotalFPSFrames() == 60*3) {
-                        UITestCase.waitForKey("3s mark");
+                        JunitTracer.waitForKey("3s mark");
                         actrl.resetFPSCounter();
                         waitForKey = false;
                     }
@@ -194,46 +195,74 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
-        final PointerIcon[] pointerIcons = { null, null, null };
+        final PointerIcon[] pointerIcons = { null, null, null, null, null };
         {
             final Display disp = glWindow.getScreen().getDisplay();
             disp.createNative();
+            int idx = 0;
             {
                 PointerIcon _pointerIcon = null;
                 final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 8, 8);
-                    System.err.println("Create PointerIcon #01: "+_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
-                pointerIcons[0] = _pointerIcon;
+                pointerIcons[idx] = _pointerIcon;
             }
+            idx++;
             {
                 PointerIcon _pointerIcon = null;
                 final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
-                    System.err.println("Create PointerIcon #02: "+_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
-                pointerIcons[1] = _pointerIcon;
+                pointerIcons[idx] = _pointerIcon;
             }
+            idx++;
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-red-alpha-64x64.png" } );
+                try {
+                    _pointerIcon = disp.createPointerIcon(res, 0, 0);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[idx] = _pointerIcon;
+            }
+            idx++;
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-blue-alpha-64x64.png" } );
+                try {
+                    _pointerIcon = disp.createPointerIcon(res, 0, 0);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[idx] = _pointerIcon;
+            }
+            idx++;
             if( PNGIcon.isAvailable() ) {
                 PointerIcon _pointerIcon = null;
                 final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
                 try {
                     final URLConnection urlConn = res.resolve(0);
                     final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                    System.err.println("Create PointerIcon #03: "+image);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, image.toString());
                     _pointerIcon = disp.createPointerIcon(image, 32, 0);
-                    System.err.println("Create PointerIcon #03: "+_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
-                pointerIcons[2] = _pointerIcon;
+                pointerIcons[idx] = _pointerIcon;
             }
+            idx++;
         }
         if( setPointerIcon ) {
             glWindow.setPointerIcon(pointerIcons[0]);
@@ -697,7 +726,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("mappedBuffers "+useMappedBuffers);
 
         if(waitForKey) {
-            UITestCase.waitForKey("Start");
+            JunitTracer.waitForKey("Start");
         }
         org.junit.runner.JUnitCore.main(TestGearsES2NEWT.class.getName());
     }

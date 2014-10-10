@@ -168,6 +168,14 @@ public abstract class Display {
      * <p>
      * Using this value will avoid conversion within {@link #createPointerIcon(PixelRectangle, int, int)}.
      * </p>
+     * <p>
+     * Known native pixel formats are:
+     * <ul>
+     *   <li>X11: {@link PixelFormat#BGRA8888}</li>
+     *   <li>Windows: {@link PixelFormat#BGRA8888}</li>
+     *   <li>OSX: {@link PixelFormat#RGBA8888}</li>
+     * </ul>
+     * </p>
      */
     public abstract PixelFormat getNativePointerIconPixelFormat();
 
