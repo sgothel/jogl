@@ -41,7 +41,6 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.opengl.GLWindow;
@@ -49,11 +48,12 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestWindowAndPointerIconNEWT extends SingletonJunitCase {
+public class TestWindowAndPointerIconNEWT extends UITestCase {
 
     static long duration = 1000; // ms
 

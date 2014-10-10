@@ -162,7 +162,7 @@ public class TestGearsES2NEWT extends UITestCase {
                 public void display(final GLAutoDrawable drawable) {
                     final GLAnimatorControl  actrl = drawable.getAnimator();
                     if(waitForKey && actrl.getTotalFPSFrames() == 60*3) {
-                        JunitTracer.waitForKey("3s mark");
+                        UITestCase.waitForKey("3s mark");
                         actrl.resetFPSCounter();
                         waitForKey = false;
                     }
@@ -726,7 +726,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("mappedBuffers "+useMappedBuffers);
 
         if(waitForKey) {
-            JunitTracer.waitForKey("Start");
+            UITestCase.waitForKey("Start");
         }
         org.junit.runner.JUnitCore.main(TestGearsES2NEWT.class.getName());
     }
