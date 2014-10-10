@@ -119,7 +119,8 @@ public enum PixelFormat {
      * <ul>
      *   <li>OpenGL: data-format GL_RGBA, data-type GL_UNSIGNED_BYTE</li>
      *   <li>AWT: <i>None</i></li>
-     *   <li>PointerIcon: X11 (XCURSOR)</li>
+     *   <li>PointerIcon: OSX (NSBitmapImageRep)</li>
+     *   <li>Window Icon: OSX (NSBitmapImageRep)</li>
      *   <li>PNGJ: Scanlines</li>
      * </ul>
      * </p>
@@ -175,8 +176,8 @@ public enum PixelFormat {
      * <ul>
      *   <li>OpenGL: data-format GL_BGRA, data-type GL_UNSIGNED_BYTE</li>
      *   <li>AWT: {@link java.awt.image.BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB}</li>
-     *   <li>PointerIcon: Win32, OSX (NSBitmapImageRep), AWT</li>
-     *   <li>Window Icon: X11, Win32, OSX (NSBitmapImageRep)</li>
+     *   <li>PointerIcon: X11 (XCURSOR), Win32, AWT</li>
+     *   <li>Window Icon: X11, Win32</li>
      * </ul>
      * </p>
      */

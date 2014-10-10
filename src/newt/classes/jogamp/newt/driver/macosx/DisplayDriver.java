@@ -70,7 +70,7 @@ public class DisplayDriver extends DisplayImpl {
                     // NOTE: MUST BE DIRECT BUFFER, since NSBitmapImageRep uses buffer directly!
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
                     final URLConnection urlConn = iconRes.resolve(iconRes.resourceCount()-1);
-                    image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, true /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                    image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.RGBA8888, true /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
@@ -95,6 +95,9 @@ public class DisplayDriver extends DisplayImpl {
 
     public DisplayDriver() {
     }
+
+    @Override
+    public PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.RGBA8888; }
 
     @Override
     protected void dispatchMessagesNative() {

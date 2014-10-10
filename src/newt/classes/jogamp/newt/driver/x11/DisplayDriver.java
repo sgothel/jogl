@@ -125,9 +125,6 @@ public class DisplayDriver extends DisplayImpl {
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
 
     @Override
-    public final PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.RGBA8888; }
-
-    @Override
     protected final long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
         return createPointerIcon(getHandle(), pixels, width, height, hotX, hotY);
     }
