@@ -87,6 +87,16 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
         testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.0", "2.2.1", excludesDefault);
     }
 
+    // @Test /* Broken backward compat in 2.2.2 !! */
+    public void testVersionV221V222() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.1", "2.2.2", excludesDefault);
+    }
+
+    @Test
+    public void testVersionV221V223() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.1", "2.2.3", excludesDefault);
+    }
+
     void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
                       final String v1, final String v2, final Set<String> excludes)
                               throws IllegalArgumentException, IOException, URISyntaxException {
@@ -104,26 +114,22 @@ public class TestVersionSemanticsNOUI extends JunitTracer {
 
     @Test
     public void testVersionV220V22X() throws IllegalArgumentException, IOException, URISyntaxException {
-        // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
-
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
-        final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
-
-        final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
-
-        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
-                                         previousJar, preVersionNumber,
-                                         curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludesDefault);
+        testVersionV22nV22X( new VersionNumberString("2.2.0") );
     }
 
     @Test
     public void testVersionV221V22X() throws IllegalArgumentException, IOException, URISyntaxException {
-        // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        testVersionV22nV22X( new VersionNumberString("2.2.1") );
+    }
+
+    @Test
+    public void testVersionV223V22X() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersionV22nV22X( new VersionNumberString("2.2.3") );
+    }
+
+    void testVersionV22nV22X(final VersionNumberString preVersionNumber) throws IllegalArgumentException, IOException, URISyntaxException {
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.2.1");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
 
         final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
