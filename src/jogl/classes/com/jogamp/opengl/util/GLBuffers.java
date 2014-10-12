@@ -372,29 +372,29 @@ public class GLBuffers extends Buffers {
         int skipImages = 0;
 
         if (pack) {
-          alignment = glGetInteger(gl, GL.GL_PACK_ALIGNMENT, tmp);
+          alignment = glGetInteger(gl, GL.GL_PACK_ALIGNMENT, tmp);                   // es2, es3, gl3
           if( gl.isGL2ES3() ) {
-              rowLength = glGetInteger(gl, GL2ES3.GL_PACK_ROW_LENGTH, tmp);
-              skipRows = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_ROWS, tmp);
-              skipPixels = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_PIXELS, tmp);
-              if (depth > 1 && gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version120) >= 0 ) {
-                  imageHeight = glGetInteger(gl, GL2GL3.GL_PACK_IMAGE_HEIGHT, tmp);
-                  skipImages = glGetInteger(gl, GL2GL3.GL_PACK_SKIP_IMAGES, tmp);
+              rowLength = glGetInteger(gl, GL2ES3.GL_PACK_ROW_LENGTH, tmp);          // es3, gl3
+              skipRows = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_ROWS, tmp);            // es3, gl3
+              skipPixels = glGetInteger(gl, GL2ES3.GL_PACK_SKIP_PIXELS, tmp);        // es3, gl3
+              if (depth > 1 && gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version1_2) >= 0 ) {
+                  imageHeight = glGetInteger(gl, GL2GL3.GL_PACK_IMAGE_HEIGHT, tmp);  // gl3, GL_VERSION_1_2
+                  skipImages = glGetInteger(gl, GL2GL3.GL_PACK_SKIP_IMAGES, tmp);    // gl3, GL_VERSION_1_2
               }
           }
         } else {
-          alignment = glGetInteger(gl, GL.GL_UNPACK_ALIGNMENT, tmp);
+          alignment = glGetInteger(gl, GL.GL_UNPACK_ALIGNMENT, tmp);                 // es2, es3, gl3
           if( gl.isGL2ES3() ) {
-              rowLength = glGetInteger(gl, GL2ES2.GL_UNPACK_ROW_LENGTH, tmp);
-              skipRows = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_ROWS, tmp);
-              skipPixels = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_PIXELS, tmp);
+              rowLength = glGetInteger(gl, GL2ES2.GL_UNPACK_ROW_LENGTH, tmp);        // es3, gl3
+              skipRows = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_ROWS, tmp);          // es3, gl3
+              skipPixels = glGetInteger(gl, GL2ES2.GL_UNPACK_SKIP_PIXELS, tmp);      // es3, gl3
               if( depth > 1 &&
                   ( gl.isGL3ES3() ||
-                    ( gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version120) >= 0 )
+                    ( gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version1_2) >= 0 )
                   )
                 ) {
-                  imageHeight = glGetInteger(gl, GL2ES3.GL_UNPACK_IMAGE_HEIGHT, tmp);
-                  skipImages = glGetInteger(gl, GL2ES3.GL_UNPACK_SKIP_IMAGES, tmp);
+                  imageHeight = glGetInteger(gl, GL2ES3.GL_UNPACK_IMAGE_HEIGHT, tmp);// es3, gl3, GL_VERSION_1_2
+                  skipImages = glGetInteger(gl, GL2ES3.GL_UNPACK_SKIP_IMAGES, tmp);  // es3, gl3, GL_VERSION_1_2
               }
           }
         }

@@ -257,7 +257,7 @@ public class Mipmap {
   public static void closestFit( final GL gl, final int target, final int width, final int height, final int internalFormat,
                                 final int format, final int type, final int[] newWidth, final int[] newHeight ) {
     // Use proxy textures if OpenGL GL2/GL3 version >= 1.1
-    if( gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version110) >= 0 ) {
+    if( gl.isGL2GL3() && gl.getContext().getGLVersionNumber().compareTo(GLContext.Version1_1) >= 0 ) {
       int widthPowerOf2 = nearestPower( width );
       int heightPowerOf2 = nearestPower( height );
       final int[] proxyWidth = new int[1];

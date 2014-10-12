@@ -135,6 +135,18 @@ public abstract class GLContext {
   /** Version 1.50, i.e. GLSL 1.50 for GL 3.2. */
   public static final VersionNumber Version150 = new VersionNumber(1, 50, 0);
 
+  /** Version 1.1, i.e. GL 1.1 */
+  public static final VersionNumber Version1_1 = new VersionNumber(1, 1, 0);
+
+  /** Version 1.2, i.e. GL 1.2 */
+  public static final VersionNumber Version1_2 = new VersionNumber(1, 2, 0);
+
+  /** Version 1.4, i.e. GL 1.4 */
+  public static final VersionNumber Version1_4 = new VersionNumber(1, 4, 0);
+
+  /** Version 1.5, i.e. GL 1.5 */
+  public static final VersionNumber Version1_5 = new VersionNumber(1, 5, 0);
+
   /** Version 3.0. As an OpenGL version, it qualifies for desktop {@link #isGL2()} only, or ES 3.0. Or GLSL 3.00 for ES 3.0. */
   public static final VersionNumber Version300 = new VersionNumber(3, 0, 0);
 
