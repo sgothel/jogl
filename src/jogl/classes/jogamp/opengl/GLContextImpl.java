@@ -1854,8 +1854,8 @@ public abstract class GLContextImpl extends GLContext {
 
             if (  vendorVersion.compareTo(VersionNumberString.zeroVersion) == 0 ) {
                 final VersionNumber glVersionNumber = new VersionNumber(glVersion);
-			    if ( glVersionNumber.getSub() <= 8787 && glRenderer.equals("ATI Radeon 3100 Graphics") ) { // "old" driver -> sub-minor = vendor version
-			        final int quirk = GLRendererQuirks.NoARBCreateContext;
+                if ( glVersionNumber.getSub() <= 8787 && glRenderer.equals("ATI Radeon 3100 Graphics") ) { // "old" driver -> sub-minor = vendor version
+                    final int quirk = GLRendererQuirks.NoARBCreateContext;
                     if(DEBUG) {
                         System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+", Renderer "+glRenderer+" and Version "+glVersion+"]");
                     }
