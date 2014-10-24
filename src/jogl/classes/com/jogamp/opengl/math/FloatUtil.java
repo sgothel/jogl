@@ -491,16 +491,18 @@ public final class FloatUtil {
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
+   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0,
+   *         or if left == right, or bottom == top, or zNear == zFar.
    */
   public static float[] makeFrustum(final float[] m, final int m_offset, final boolean initM,
                                     final float left, final float right,
                                     final float bottom, final float top,
-                                    final float zNear, final float zFar) {
-      if(zNear<=0.0f||zFar<0.0f) {
+                                    final float zNear, final float zFar) throws GLException {
+      if( zNear <= 0.0f || zFar < 0.0f ) {
           throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
       }
-      if(left==right || top==bottom) {
-          throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
+      if( left == right || top == bottom || zNear == zFar ) {
+          throw new GLException("GL_INVALID_VALUE: top,bottom and left,right and zNear,zFar must not be equal");
       }
       if( initM ) {
           // m[m_offset+0+4*0] = 1f;
@@ -563,9 +565,10 @@ public final class FloatUtil {
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
+   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
    */
   public static float[] makePerspective(final float[] m, final int m_off, final boolean initM,
-                                        final float fovy_rad, final float aspect, final float zNear, final float zFar) {
+                                        final float fovy_rad, final float aspect, final float zNear, final float zFar) throws GLException {
       final float top    =  tan(fovy_rad/2f) * zNear; // use tangent of half-fov !
       final float bottom =  -1.0f * top;
       final float left   = aspect * bottom;
@@ -588,9 +591,10 @@ public final class FloatUtil {
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
+   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
    */
   public static float[] makePerspective(final float[] m, final int m_offset, final boolean initM,
-                                        final FovHVHalves fovhv, final float zNear, final float zFar) {
+                                        final FovHVHalves fovhv, final float zNear, final float zFar) throws GLException {
       final FovHVHalves fovhvTan = fovhv.toTangents();  // use tangent of half-fov !
       final float top    =         fovhvTan.top    * zNear;
       final float bottom = -1.0f * fovhvTan.bottom * zNear;

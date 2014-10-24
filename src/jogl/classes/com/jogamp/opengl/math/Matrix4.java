@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.math;
 
+import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.opengl.util.PMVMatrix;
@@ -139,11 +140,28 @@ public class Matrix4 {
         multMatrix( FloatUtil.makeOrtho(mat4Tmp1, 0, true, left, right, bottom, top, zNear, zFar) );
     }
 
-    public final void makeFrustum(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
+    /**
+     * @param left
+     * @param right
+     * @param bottom
+     * @param top
+     * @param zNear
+     * @param zFar
+     * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0,
+     *         or if left == right, or bottom == top, or zNear == zFar.
+     */
+    public final void makeFrustum(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) throws GLException {
         multMatrix( FloatUtil.makeFrustum(mat4Tmp1, 0, true, left, right, bottom, top, zNear, zFar) );
     }
 
-    public final void makePerspective(final float fovy_rad, final float aspect, final float zNear, final float zFar) {
+    /**
+     * @param fovy_rad
+     * @param aspect
+     * @param zNear
+     * @param zFar
+     * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
+     */
+    public final void makePerspective(final float fovy_rad, final float aspect, final float zNear, final float zFar) throws GLException {
         multMatrix( FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_rad, aspect, zNear, zFar) );
     }
 

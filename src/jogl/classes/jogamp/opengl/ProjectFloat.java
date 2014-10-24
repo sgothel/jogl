@@ -118,6 +118,7 @@ package jogamp.opengl;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.opengl.math.FloatUtil;
@@ -169,8 +170,9 @@ public class ProjectFloat {
    * @param aspect
    * @param zNear
    * @param zFar
+   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
    */
-  public void gluPerspective(final GLMatrixFunc gl, final float fovy_deg, final float aspect, final float zNear, final float zFar) {
+  public void gluPerspective(final GLMatrixFunc gl, final float fovy_deg, final float aspect, final float zNear, final float zFar) throws GLException {
     gl.glMultMatrixf(FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_deg * FloatUtil.PI / 180.0f, aspect, zNear, zFar), 0);
   }
 
