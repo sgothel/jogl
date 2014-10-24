@@ -36,7 +36,7 @@ public final void finalizeInit() {
       haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
       haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
       haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
-      haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version300) >= 0 ||
+      haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 ||
                                   isExtensionAvailable("GL_ARB_vertex_array_object");
    } else {
       haveARBPixelBufferObject  = false;

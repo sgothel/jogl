@@ -728,7 +728,7 @@ public abstract class GLContextImpl extends GLContext {
                 if( 0 == ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {   // not ES profile
                     final int reqMajor;
                     final int reqProfile;
-                    if( ctxVersion.compareTo(Version300) <= 0 ) {
+                    if( ctxVersion.compareTo(Version3_0) <= 0 ) {
                         reqMajor = 2;
                     } else {
                         reqMajor = ctxVersion.getMajor();
@@ -1396,8 +1396,8 @@ public abstract class GLContextImpl extends GLContext {
    *
    * @param force force the setting, even if is already being set.
    *              This might be useful if you change the OpenGL implementation.
-   * @param major OpenGL major version
-   * @param minor OpenGL minor version
+   * @param major requested OpenGL major version
+   * @param minor requested OpenGL minor version
    * @param ctxProfileBits OpenGL context profile and option bits, see {@link javax.media.opengl.GLContext#CTX_OPTION_ANY}
    * @param strictMatch if <code>true</code> the ctx must
    *                    <ul>
@@ -1501,7 +1501,7 @@ public abstract class GLContextImpl extends GLContext {
         //    - _and_ a valid int version was fetched,
         // otherwise cont. w/ version-string method -> 3.0 > Version || Version > MAX!
         //
-        if ( ( major >= 3 || hasGLVersionByString.compareTo(Version300) >= 0 ) &&
+        if ( ( major >= 3 || hasGLVersionByString.compareTo(Version3_0) >= 0 ) &&
              GLContext.isValidGLVersion(ctxProfileBits, hasGLVersionByInt.getMajor(), hasGLVersionByInt.getMinor()) ) {
             // Strict Match (GLVersionMapping):
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
@@ -1892,7 +1892,7 @@ public abstract class GLContextImpl extends GLContext {
             //
             final int quirk = GLRendererQuirks.DontCloseX11Display;
             if( glRenderer.contains(MesaSP) ) {
-                if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version800) < 0 ) {
+                if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version8_0) < 0 ) {
                     if(DEBUG) {
                         System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
                     }

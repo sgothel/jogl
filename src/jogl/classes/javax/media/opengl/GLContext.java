@@ -123,17 +123,17 @@ public abstract class GLContext {
   public static final int CONTEXT_CURRENT_NEW = 2;
 
   /** Version 1.00, i.e. GLSL 1.00 for ES 2.0. */
-  public static final VersionNumber Version100 = new VersionNumber(1,  0, 0);
+  public static final VersionNumber Version1_0 =  new VersionNumber(1,  0, 0);
   /** Version 1.10, i.e. GLSL 1.10 for GL 2.0. */
-  public static final VersionNumber Version110 = new VersionNumber(1, 10, 0);
+  public static final VersionNumber Version1_10 = new VersionNumber(1, 10, 0);
   /** Version 1.20, i.e. GLSL 1.20 for GL 2.1. */
-  public static final VersionNumber Version120 = new VersionNumber(1, 20, 0);
+  public static final VersionNumber Version1_20 = new VersionNumber(1, 20, 0);
   /** Version 1.30, i.e. GLSL 1.30 for GL 3.0. */
-  public static final VersionNumber Version130 = new VersionNumber(1, 30, 0);
+  public static final VersionNumber Version1_30 = new VersionNumber(1, 30, 0);
   /** Version 1.40, i.e. GLSL 1.40 for GL 3.1. */
-  public static final VersionNumber Version140 = new VersionNumber(1, 40, 0);
+  public static final VersionNumber Version1_40 = new VersionNumber(1, 40, 0);
   /** Version 1.50, i.e. GLSL 1.50 for GL 3.2. */
-  public static final VersionNumber Version150 = new VersionNumber(1, 50, 0);
+  public static final VersionNumber Version1_50 = new VersionNumber(1, 50, 0);
 
   /** Version 1.1, i.e. GL 1.1 */
   public static final VersionNumber Version1_1 = new VersionNumber(1, 1, 0);
@@ -148,18 +148,18 @@ public abstract class GLContext {
   public static final VersionNumber Version1_5 = new VersionNumber(1, 5, 0);
 
   /** Version 3.0. As an OpenGL version, it qualifies for desktop {@link #isGL2()} only, or ES 3.0. Or GLSL 3.00 for ES 3.0. */
-  public static final VersionNumber Version300 = new VersionNumber(3, 0, 0);
+  public static final VersionNumber Version3_0 = new VersionNumber(3, 0, 0);
 
   /** Version 3.1. As an OpenGL version, it qualifies for {@link #isGL3core()}, {@link #isGL3bc()} and {@link #isGL3()} */
-  public static final VersionNumber Version310 = new VersionNumber(3, 1, 0);
+  public static final VersionNumber Version3_1 = new VersionNumber(3, 1, 0);
 
   /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
-  public static final VersionNumber Version320 = new VersionNumber(3, 2, 0);
+  public static final VersionNumber Version3_2 = new VersionNumber(3, 2, 0);
 
   /** Version 4.3. As an OpenGL version, it qualifies for <code>GL_ARB_ES3_compatibility</code> */
-  public static final VersionNumber Version430 = new VersionNumber(4, 3, 0);
+  public static final VersionNumber Version4_3 = new VersionNumber(4, 3, 0);
 
-  protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
+  protected static final VersionNumber Version8_0 = new VersionNumber(8, 0, 0);
 
   private static final String S_EMPTY = "";
 
@@ -856,11 +856,11 @@ public abstract class GLContext {
       final int minor = ctxGLSLVersion.getMinor();
       final String profileOpt;
       if( isGLES() ) {
-          profileOpt = ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : S_EMPTY;
+          profileOpt = ctxGLSLVersion.compareTo(Version3_0) >= 0 ? " es" : S_EMPTY;
       } else if( isGLCoreProfile() ) {
-          profileOpt = ctxGLSLVersion.compareTo(Version150) >= 0 ? " core" : S_EMPTY;
+          profileOpt = ctxGLSLVersion.compareTo(Version1_50) >= 0 ? " core" : S_EMPTY;
       } else if( isGLCompatibilityProfile() ) {
-          profileOpt = ctxGLSLVersion.compareTo(Version150) >= 0 ? " compatibility" : S_EMPTY;
+          profileOpt = ctxGLSLVersion.compareTo(Version1_50) >= 0 ? " compatibility" : S_EMPTY;
       } else {
           throw new InternalError("Neither ES, Core nor Compat: "+this); // see validateProfileBits(..)
       }
@@ -870,22 +870,22 @@ public abstract class GLContext {
   protected static final VersionNumber getStaticGLSLVersionNumber(final int glMajorVersion, final int glMinorVersion, final int ctxOptions) {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
           if( 3 == glMajorVersion ) {
-              return Version300;           // ES 3.0  ->  GLSL 3.00
+              return Version3_0;           // ES 3.0  ->  GLSL 3.00
           } else if( 2 == glMajorVersion ) {
-              return Version100;           // ES 2.0  ->  GLSL 1.00
+              return Version1_0;           // ES 2.0  ->  GLSL 1.00
           }
       } else if( 1 == glMajorVersion ) {
-          return Version110;               // GL 1.x  ->  GLSL 1.10
+          return Version1_10;               // GL 1.x  ->  GLSL 1.10
       } else if( 2 == glMajorVersion ) {
           switch ( glMinorVersion ) {
-              case 0:  return Version110;  // GL 2.0  ->  GLSL 1.10
-              default: return Version120;  // GL 2.1  ->  GLSL 1.20
+              case 0:  return Version1_10;  // GL 2.0  ->  GLSL 1.10
+              default: return Version1_20;  // GL 2.1  ->  GLSL 1.20
           }
       } else if( 3 == glMajorVersion && 2 >= glMinorVersion ) {
           switch ( glMinorVersion ) {
-              case 0:  return Version130;  // GL 3.0  ->  GLSL 1.30
-              case 1:  return Version140;  // GL 3.1  ->  GLSL 1.40
-              default: return Version150;  // GL 3.2  ->  GLSL 1.50
+              case 0:  return Version1_30;  // GL 3.0  ->  GLSL 1.30
+              case 1:  return Version1_40;  // GL 3.1  ->  GLSL 1.40
+              default: return Version1_50;  // GL 3.2  ->  GLSL 1.50
           }
       }
       // The new default: GL >= 3.3, ES >= 3.0
@@ -1044,7 +1044,7 @@ public abstract class GLContext {
    */
   public final boolean isGL3bc() {
       return 0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
-             ctxVersion.compareTo(Version310) >= 0 ;
+             ctxVersion.compareTo(Version3_1) >= 0 ;
   }
 
   /**
@@ -1053,7 +1053,7 @@ public abstract class GLContext {
    */
   public final boolean isGL3() {
       return 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
-             ctxVersion.compareTo(Version310) >= 0 ;
+             ctxVersion.compareTo(Version3_1) >= 0 ;
   }
 
   /**
@@ -1061,7 +1061,7 @@ public abstract class GLContext {
    */
   public final boolean isGL3core() {
       return 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
-             ctxVersion.compareTo(Version310) >= 0;
+             ctxVersion.compareTo(Version3_1) >= 0;
   }
 
   /**
@@ -1070,7 +1070,7 @@ public abstract class GLContext {
   public final boolean isGLcore() {
       return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ) ||
              ( 0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
-               ctxVersion.compareTo(Version310) >= 0
+               ctxVersion.compareTo(Version3_1) >= 0
              ) ;
   }
 
@@ -1118,7 +1118,7 @@ public abstract class GLContext {
       return // ES 3.x not included, see above. ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
              ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
                0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
-               ctxVersion.compareTo(Version310) >= 0
+               ctxVersion.compareTo(Version3_1) >= 0
              ) ;
   }
 

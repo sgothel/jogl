@@ -1049,7 +1049,7 @@ public class ShaderCode {
     public static final boolean requiresGL3DefaultPrecision(final GL2ES2 gl) {
         if( gl.isGL3() ) {
             final VersionNumber glslVersion = gl.getContext().getGLSLVersionNumber();
-            return glslVersion.compareTo(GLContext.Version130) >= 0 && glslVersion.compareTo(GLContext.Version150) < 0 ;
+            return glslVersion.compareTo(GLContext.Version1_30) >= 0 && glslVersion.compareTo(GLContext.Version1_50) < 0 ;
         } else {
             return false;
         }

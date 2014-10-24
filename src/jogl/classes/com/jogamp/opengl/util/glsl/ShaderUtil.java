@@ -221,7 +221,7 @@ public class ShaderUtil {
     /** Returns true if GeometryShader is supported, i.e. whether GLContext is &ge; 3.2 or ARB_geometry_shader4 extension is available. */
     public static boolean isGeometryShaderSupported(final GL _gl) {
       final GLContext ctx = _gl.getContext();
-      return ctx.getGLVersionNumber().compareTo(GLContext.Version320) >= 0 ||
+      return ctx.getGLVersionNumber().compareTo(GLContext.Version3_2) >= 0 ||
              ctx.isExtensionAvailable(GLExtensions.ARB_geometry_shader4);
     }
 
