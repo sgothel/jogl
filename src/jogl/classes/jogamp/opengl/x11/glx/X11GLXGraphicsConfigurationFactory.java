@@ -49,6 +49,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -375,7 +376,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         if ( 0 > chosenIndex ) {
             if (DEBUG) {
                 System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: failed, return null");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return null;
         }
@@ -472,7 +473,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         if ( 0 > chosenIndex ) {
             if (DEBUG) {
                 System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual: failed, return null");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return null;
         }

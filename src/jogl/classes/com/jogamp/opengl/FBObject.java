@@ -44,6 +44,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.FBObject.Attachment.Type;
 
@@ -1071,7 +1072,7 @@ public class FBObject {
         vStatus = GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT; // always incomplete w/o attachments!
         if(DEBUG) {
             System.err.println("FBObject.init() END: "+this);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
     }
 
@@ -1306,7 +1307,7 @@ public class FBObject {
         final int glerr = gl.glGetError();
         if(DEBUG && GL.GL_NO_ERROR != glerr) {
             System.err.println("Pre-existing GL error: "+toHexString(glerr));
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return glerr;
     }
@@ -2306,7 +2307,7 @@ public class FBObject {
     public final boolean resetSamplingSink(final GL gl) throws GLException {
         if(DEBUG) {
             System.err.println("FBObject.resetSamplingSink.0");
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
 
         if( 0 == samples ) {

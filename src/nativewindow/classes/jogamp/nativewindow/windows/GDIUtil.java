@@ -31,6 +31,8 @@ import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 
+import com.jogamp.common.ExceptionUtils;
+
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.ToolkitProperties;
@@ -132,7 +134,7 @@ public class GDIUtil implements ToolkitProperties {
         SetProcessThreadsAffinityMask0(affinityMask, verbose);
     }
 
-    private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
+    private static final void dumpStack() { ExceptionUtils.dumpStack(System.err); } // Callback for JNI
 
     /** Creates WNDCLASSEX instance */
     static native boolean CreateWindowClass0(long hInstance, String clazzName, long wndProc, long iconSmallHandle, long iconBigHandle);

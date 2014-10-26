@@ -67,6 +67,7 @@ import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
@@ -195,7 +196,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 System.err.println("chosenCapsMod: "+chosenCapsMod);
                 System.err.println("OffscreenLayerSurface: **** "+ols);
                 System.err.println("Target: **** "+target);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             if( ! ( target instanceof MutableSurface ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);

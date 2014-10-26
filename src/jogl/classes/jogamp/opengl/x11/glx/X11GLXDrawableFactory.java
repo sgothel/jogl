@@ -72,6 +72,7 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -329,7 +330,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 System.err.println("Screen  : " + sr.screen);
                 System.err.println("Drawable: " + sr.drawable);
                 System.err.println("CTX     : " + sr.context);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
 
             if (null != sr.context) {

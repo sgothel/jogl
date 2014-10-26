@@ -11,6 +11,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -171,7 +172,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if( !initialized && !realize ) {
             if( DEBUG ) {
                 System.err.println("GLFBODrawableImpl.initialize(): WARNING - Already unrealized!");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return; // NOP, no exception for de-init twice or no init!
         }
@@ -233,7 +234,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.initialize("+realize+"): "+this);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
     }
 
@@ -284,7 +285,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         final boolean ctxSwitch = null != curContext && curContext != ourContext;
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.reset(newSamples "+newSamples+"): BEGIN - ctxSwitch "+ctxSwitch+", "+this);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         Throwable tFBO = null;
         Throwable tGL = null;

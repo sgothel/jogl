@@ -40,6 +40,7 @@ import javax.media.opengl.GLUniformData;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.util.GLArrayDataEditable;
@@ -161,7 +162,7 @@ public class ShaderState {
             final int newId = (null!=prog)?prog.id():-1;
             System.err.println("ShaderState: attachShaderProgram: "+curId+" -> "+newId+" (enable: "+enable+")\n\t"+shaderProgram+"\n\t"+prog);
             if(DEBUG) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         if(null!=shaderProgram) {
@@ -405,7 +406,7 @@ public class ShaderState {
             } else if(verbose) {
                 System.err.println("ShaderState: glGetAttribLocation failed, no location for: "+name+", loc: "+location);
                 if(DEBUG) {
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
             }
         }
@@ -448,7 +449,7 @@ public class ShaderState {
             } else if(verbose) {
                 System.err.println("ShaderState: glGetAttribLocation failed, no location for: "+name+", loc: "+location);
                 if(DEBUG) {
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
             }
         }
@@ -483,7 +484,7 @@ public class ShaderState {
                 if(verbose) {
                     System.err.println("ShaderState: glEnableVertexAttribArray failed, no index for: "+name);
                     if(DEBUG) {
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                 }
                 return false;
@@ -558,7 +559,7 @@ public class ShaderState {
                 if(verbose) {
                     System.err.println("ShaderState: glDisableVertexAttribArray failed, no index for: "+name);
                     if(DEBUG) {
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                 }
                 return false;
@@ -875,7 +876,7 @@ public class ShaderState {
             } else if(verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
                 if(DEBUG) {
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
             }
         }
@@ -916,7 +917,7 @@ public class ShaderState {
             } else if(verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
                 if(DEBUG) {
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
             }
         }

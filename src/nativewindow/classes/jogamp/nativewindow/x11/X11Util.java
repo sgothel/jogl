@@ -45,6 +45,7 @@ import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.ToolkitProperties;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -196,7 +197,7 @@ public class X11Util implements ToolkitProperties {
                                            ", pending (open in creation order): "+pendingDisplayList.size()+
                                            ")");
                         if(DEBUG) {
-                            Thread.dumpStack();
+                            ExceptionUtils.dumpStack(System.err);
                         }
                         if( openDisplayList.size() > 0) {
                             X11Util.dumpOpenDisplayConnections();
@@ -615,7 +616,7 @@ public class X11Util implements ToolkitProperties {
     }
 
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
-    private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
+    private static final void dumpStack() { ExceptionUtils.dumpStack(System.err); } // Callback for JNI
 
     private static native boolean initialize0(boolean debug);
     private static native void shutdown0();

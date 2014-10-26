@@ -43,6 +43,7 @@ import javax.media.nativewindow.NativeWindowException;
 
 import jogamp.common.util.locks.LockDebugUtil;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.locks.Lock;
 import com.jogamp.newt.util.EDTUtil;
@@ -144,7 +145,7 @@ public class DefaultEDTUtil implements EDTUtil {
     public final boolean invokeStop(final boolean wait, final Runnable task) {
         if(DEBUG) {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return invokeImpl(wait, task, true /* stop */, false /* provokeError */);
     }
@@ -152,7 +153,7 @@ public class DefaultEDTUtil implements EDTUtil {
     public final boolean invokeAndWaitError(final Runnable task) {
         if(DEBUG) {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeAndWaitError");
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return invokeImpl(true /* wait */, task, false /* stop */, true /* provokeError */);
     }
@@ -177,7 +178,7 @@ public class DefaultEDTUtil implements EDTUtil {
                     // drop task ..
                     System.err.println(Thread.currentThread()+": Warning: Default-EDT about (1) to stop, won't enqueue new task: "+edt);
                     if(DEBUG) {
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                     return false;
                 }
@@ -191,7 +192,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         if( edt.tasks.size()>0 ) {
                             System.err.println(Thread.currentThread()+": Warning: Default-EDT about (2) to stop, task executed. Remaining tasks: "+edt.tasks.size()+" - "+edt);
                             if(DEBUG) {
-                                Thread.dumpStack();
+                                ExceptionUtils.dumpStack(System.err);
                             }
                         }
                     }
@@ -204,7 +205,7 @@ public class DefaultEDTUtil implements EDTUtil {
                                 System.err.println(Thread.currentThread()+": Warning: Default-EDT is not running, dropping task. NEDT "+edt);
                             }
                             if(DEBUG) {
-                                Thread.dumpStack();
+                                ExceptionUtils.dumpStack(System.err);
                             }
                         }
                         return false;

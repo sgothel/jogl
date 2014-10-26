@@ -39,6 +39,8 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.ExceptionUtils;
+
 /**
  * Base implementation of GLAnimatorControl<br>
  * <p>
@@ -625,7 +627,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                     " - " + getThreadName());
             System.err.println(" - "+toString());
             if(nok) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         return res;

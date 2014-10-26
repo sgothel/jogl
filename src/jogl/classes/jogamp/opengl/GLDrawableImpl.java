@@ -51,6 +51,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.ExceptionUtils;
+
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG;
 
@@ -176,7 +178,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         final boolean isProxySurface = surface instanceof ProxySurface;
         if(DEBUG) {
             System.err.println(getThreadName() + ": setRealized: drawable "+getClass().getSimpleName()+", surface "+surface.getClass().getSimpleName()+", isProxySurface "+isProxySurface+": "+realized+" -> "+realizedArg);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         final AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {

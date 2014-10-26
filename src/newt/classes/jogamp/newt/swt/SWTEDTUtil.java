@@ -31,6 +31,7 @@ import javax.media.nativewindow.NativeWindowException;
 
 import jogamp.newt.Debug;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.util.EDTUtil;
 
@@ -170,7 +171,7 @@ public class SWTEDTUtil implements EDTUtil {
                     // drop task ..
                     if(DEBUG) {
                         System.err.println(Thread.currentThread()+": Warning: SWT-EDT about (1) to stop, won't enqueue new task: "+nedt+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop);
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                     return false;
                 }
@@ -195,7 +196,7 @@ public class SWTEDTUtil implements EDTUtil {
                                 System.err.println(Thread.currentThread()+": Warning: SWT-EDT is not running, dropping task. NEDT "+nedt);
                             }
                             if(DEBUG) {
-                                Thread.dumpStack();
+                                ExceptionUtils.dumpStack(System.err);
                             }
                         }
                         return false;
@@ -212,7 +213,7 @@ public class SWTEDTUtil implements EDTUtil {
                         if( swtDisplay.isDisposed() ) {
                             System.err.println(Thread.currentThread()+": Warning: SWT-EDT is about (3) to stop and stopped already, dropping task. "+nedt);
                             if(DEBUG) {
-                                Thread.dumpStack();
+                                ExceptionUtils.dumpStack(System.err);
                             }
                             return false;
                         }

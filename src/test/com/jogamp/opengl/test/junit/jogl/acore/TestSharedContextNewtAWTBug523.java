@@ -72,6 +72,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -476,7 +477,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             final String errStr = "GL-Error: "+prefix + " on obj 0x"+Integer.toHexString(obj.hashCode())+", OpenGL error: 0x" + Integer.toHexString(glError);
             if( errorSet.add(errStr) ) {
                 System.err.println(errStr);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         final int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
@@ -484,7 +485,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             final String errStr = "GL-Error: "+prefix + " on obj 0x"+Integer.toHexString(obj.hashCode())+", glCheckFramebufferStatus: 0x" + Integer.toHexString(status);
             if( errorSet.add(errStr) ) {
                 System.err.println(errStr);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
     }

@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.media.nativewindow.ToolkitLock;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -63,7 +64,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
         if(DEBUG || verbose || handle2Lock.size() > 0 ) {
             System.err.println("SharedResourceToolkitLock: Shutdown (open: "+handle2Lock.size()+")");
             if(DEBUG) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             if( handle2Lock.size() > 0) {
                 dumpOpenDisplayConnections();

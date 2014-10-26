@@ -34,6 +34,7 @@ import java.nio.IntBuffer;
 
 import javax.media.opengl.*;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.PropertyAccess;
@@ -266,7 +267,7 @@ public class GLBufferObjectTracker {
         if( null == objOld ) {
             if (DEBUG) {
                 System.err.printf("%s: %s.notifyBuffersDeleted()[%d/%d]: Buffer %d not tracked%n", warning, msgClazzName, i+1, count, bufferName);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return;
         }
@@ -409,7 +410,7 @@ public class GLBufferObjectTracker {
         if ( 0 == addr ) {
             if( DEBUG ) {
                 System.err.printf("%s.%s: %s MapBuffer null result for target 0x%X -> %d: %s, off %d, len %d, acc 0x%X%n", msgClazzName, msgMapBuffer, warning, target, bufferName, store, offset, length, access);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             // User shall handle the glError !
         } else {
@@ -442,14 +443,14 @@ public class GLBufferObjectTracker {
         if( 0 == bufferName ) {
             if (DEBUG) {
                 System.err.printf("%s: %s.%s: Buffer for target 0x%X not bound%n", warning, msgClazzName, msgUnmapped, target);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             store = null;
         } else {
             store = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
             if( DEBUG && null == store ) {
                 System.err.printf("%s: %s.%s: Buffer %d not tracked%n", warning, msgClazzName, msgUnmapped, bufferName);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         final boolean res = dispatch.unmap(target, glProcAddress);
@@ -459,7 +460,7 @@ public class GLBufferObjectTracker {
         if( DEBUG ) {
             System.err.printf("%s.%s %s target: 0x%X -> %d: %s%n", msgClazzName, msgUnmapped, res ? "OK" : "Failed", target, bufferName, store.toString(false));
             if(!res) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         return res;
@@ -476,7 +477,7 @@ public class GLBufferObjectTracker {
         final GLBufferStorageImpl store = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if (DEBUG && null == store ) {
             System.err.printf("%s: %s.%s: Buffer %d not tracked%n", warning, msgClazzName, msgUnmapped, bufferName);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         final boolean res = dispatch.unmap(bufferName, glProcAddress);
         if( res && null != store ) {
@@ -485,7 +486,7 @@ public class GLBufferObjectTracker {
         if (DEBUG) {
             System.err.printf("%s.%s %s %d: %s%n", msgClazzName, msgUnmapped, res ? "OK" : "Failed", bufferName, store.toString(false));
             if(!res) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         return res;
@@ -505,7 +506,7 @@ public class GLBufferObjectTracker {
     public synchronized final void clear() {
         if (DEBUG) {
           System.err.printf("%s.clear() - Thread %s%n", msgClazzName, Thread.currentThread().getName());
-          // Thread.dumpStack();
+          // ExceptionUtils.dumpStackTrace(System.err);
         }
         bufferName2StorageMap.clear();
     }

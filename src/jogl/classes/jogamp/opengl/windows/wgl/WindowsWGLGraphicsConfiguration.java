@@ -48,6 +48,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.opengl.GLRendererQuirks;
@@ -281,7 +282,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                 System.err.println("GetPixelFormatAttribivARB: Failed - HDC 0x" + Long.toHexString(hdc) +
                                   ", value "+iresults.get(0)+
                                   ", LastError: " + GDI.GetLastError());
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return 0;
         }
@@ -290,7 +291,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             if(DEBUG) {
                 System.err.println("GetPixelFormatAttribivARB: No formats - HDC 0x" + Long.toHexString(hdc) +
                                   ", LastError: " + GDI.GetLastError());
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         return pfdIDCount;
@@ -351,7 +352,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                                                                          iattributes, accelerationMode, null) ) {
             if (DEBUG) {
                 System.err.println("wglChoosePixelFormatARB: GLCapabilities2AttribList failed: " + GDI.GetLastError());
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return null;
         }
@@ -365,7 +366,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                                              pformatsTmp, numFormatsTmp) ) {
             if (DEBUG) {
                 System.err.println("wglChoosePixelFormatARB: wglChoosePixelFormatARB failed: " + GDI.GetLastError());
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return null;
         }

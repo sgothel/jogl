@@ -33,13 +33,13 @@ import java.util.ArrayList;
 
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLDebugListener;
 import javax.media.opengl.GLDebugMessage;
 import javax.media.opengl.GLException;
 
 import jogamp.common.os.PlatformPropsImpl;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.GLExtensions;
@@ -308,7 +308,7 @@ public class GLDebugMessageHandler {
         public void messageSent(final GLDebugMessage event) {
             System.err.println(event);
             if(threadDump) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
     }

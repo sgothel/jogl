@@ -50,6 +50,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
@@ -424,7 +425,7 @@ public class WindowDriver extends WindowImpl {
     // Internals only
     //
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
-    private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
+    private static final void dumpStack() { ExceptionUtils.dumpStack(System.err); } // Callback for JNI
 
     private final <T> T runWithLockedDisplayDevice(final DisplayRunnable<T> action) {
         return ((DisplayDriver) getScreen().getDisplay()).runWithLockedDisplayDevice(action);

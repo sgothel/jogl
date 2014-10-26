@@ -47,6 +47,7 @@ import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.MonitorDevice;
@@ -282,7 +283,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     protected final boolean canCreateNativeImpl() {
         Log.d(MD.TAG, "canCreateNativeImpl.0: surfaceHandle ready "+(0!=surfaceHandle)+" - on thread "+Thread.currentThread().getName());
         if(Window.DEBUG_IMPLEMENTATION) {
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
 
         if( isFullscreen() ) {
@@ -386,7 +387,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                     "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"],"+
                     " - on thread "+Thread.currentThread().getName());
         if(Window.DEBUG_IMPLEMENTATION) {
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
 
         setupInputListener(false);
@@ -557,7 +558,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     public final void surfaceChanged(final SurfaceHolder aHolder, final int aFormat, final int aWidth, final int aHeight) {
         Log.d(MD.TAG, "surfaceChanged: f "+nativeFormat+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle)+" - on thread "+Thread.currentThread().getName());
         if(Window.DEBUG_IMPLEMENTATION) {
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         if(0!=surfaceHandle && androidFormat != aFormat ) {
             // re-create
@@ -611,7 +612,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     public final void surfaceDestroyed(final SurfaceHolder holder) {
         Log.d(MD.TAG, "surfaceDestroyed - on thread "+Thread.currentThread().getName());
         windowDestroyNotify(true); // actually too late .. however ..
-        Thread.dumpStack();
+        ExceptionUtils.dumpStack(System.err);
     }
 
     @Override

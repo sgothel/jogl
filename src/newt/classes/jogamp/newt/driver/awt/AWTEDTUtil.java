@@ -32,6 +32,7 @@ import java.awt.EventQueue;
 
 import javax.media.nativewindow.NativeWindowException;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.util.EDTUtil;
@@ -140,7 +141,7 @@ public class AWTEDTUtil implements EDTUtil {
                     // drop task ..
                     System.err.println(Thread.currentThread()+": Warning: AWT-EDT about (1) to stop, won't enqueue new task: "+nedt);
                     if(DEBUG) {
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                     return false;
                 }
@@ -161,7 +162,7 @@ public class AWTEDTUtil implements EDTUtil {
                                 System.err.println(Thread.currentThread()+": Warning: AWT-EDT is not running, dropping task. NEDT "+nedt);
                             }
                             if(DEBUG) {
-                                Thread.dumpStack();
+                                ExceptionUtils.dumpStack(System.err);
                             }
                         }
                         return false;

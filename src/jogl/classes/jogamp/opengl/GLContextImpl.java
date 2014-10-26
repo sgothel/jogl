@@ -48,6 +48,7 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
@@ -305,7 +306,7 @@ public abstract class GLContextImpl extends GLContext {
         final String sgl1 = (null!=this.gl)?this.gl.getClass().getSimpleName()+", "+this.gl.toString():"<null>";
         final String sgl2 = (null!=gl)?gl.getClass().getSimpleName()+", "+gl.toString():"<null>";
         System.err.println("Info: setGL (OpenGL "+getGLVersion()+"): "+getThreadName()+", "+sgl1+" -> "+sgl2);
-        Thread.dumpStack();
+        ExceptionUtils.dumpStack(System.err);
     }
     this.gl = gl;
     return gl;
@@ -383,7 +384,7 @@ public abstract class GLContextImpl extends GLContext {
               lastCtxReleaseStack = new Throwable(msg);
               if( TRACE_SWITCH ) {
                   System.err.println(msg);
-                  // Thread.dumpStack();
+                  // ExceptionUtils.dumpStackTrace(System.err, 0, 10);
               }
           }
       }
@@ -419,7 +420,7 @@ public abstract class GLContextImpl extends GLContext {
               if ( DEBUG_TRACE_SWITCH ) {
                   if ( lock.getHoldCount() > 2 ) {
                       System.err.println(getThreadName() + ": GLContextImpl.destroy: Lock was hold more than once - makeCurrent/release imbalance: "+getTraceSwitchMsg());
-                      Thread.dumpStack();
+                      ExceptionUtils.dumpStack(System.err);
                   }
               }
               try {
@@ -712,7 +713,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         if ( DEBUG_TRACE_SWITCH ) {
             System.err.println(getThreadName() + ": Create GL context "+(created?"OK":"FAILED")+": For " + getClass().getName()+" - "+getGLVersion()+" - "+getTraceSwitchMsg());
-            // Thread.dumpStack();
+            // ExceptionUtils.dumpStackTrace(System.err, 0, 10);
         }
         if(!created) {
             return CONTEXT_NOT_CURRENT;
@@ -1296,7 +1297,7 @@ public abstract class GLContextImpl extends GLContext {
     if(0 == _glGetString) {
         System.err.println("Error: Entry point to 'glGetString' is NULL.");
         if(DEBUG) {
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return false;
     } else {
@@ -1304,7 +1305,7 @@ public abstract class GLContextImpl extends GLContext {
         if(null == _glVendor) {
             if(DEBUG) {
                 System.err.println("Warning: GL_VENDOR is NULL.");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return false;
         }
@@ -1314,7 +1315,7 @@ public abstract class GLContextImpl extends GLContext {
         if(null == _glRenderer) {
             if(DEBUG) {
                 System.err.println("Warning: GL_RENDERER is NULL.");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return false;
         }
@@ -1326,7 +1327,7 @@ public abstract class GLContextImpl extends GLContext {
             // FIXME
             if(DEBUG) {
                 System.err.println("Warning: GL_VERSION is NULL.");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return false;
         }
@@ -1370,7 +1371,7 @@ public abstract class GLContextImpl extends GLContext {
     if( 0 == _glGetIntegerv ) {
         System.err.println("Error: Entry point to 'glGetIntegerv' is NULL.");
         if(DEBUG) {
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return false;
     } else {

@@ -45,6 +45,8 @@ import java.util.TimerTask;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
 
+import com.jogamp.common.ExceptionUtils;
+
 /**
  * An Animator subclass which attempts to achieve a target
  * frames-per-second rate to avoid using all CPU time. The target FPS
@@ -392,7 +394,7 @@ public class FPSAnimator extends AnimatorBase {
             if( null != task ) {
                 if( DEBUG ) {
                     System.err.println("FPSAnimator.resume() Ops: !pauseIssued, but task != null: "+toString());
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
                 task.cancel();
                 task = null;

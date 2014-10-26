@@ -33,6 +33,7 @@ import java.util.Arrays;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.Ringbuffer;
@@ -262,7 +263,7 @@ public class ALAudioSink implements AudioSink {
         if( ALCConstants.ALC_NO_ERROR != alcErr ) {
             final String err = getThreadName()+": ALCError "+toHexString(alcErr)+" while makeCurrent. "+this;
             System.err.println(err);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
             lock.unlock();
             throw new RuntimeException(err);
         }
@@ -270,7 +271,7 @@ public class ALAudioSink implements AudioSink {
         if( ALCConstants.ALC_NO_ERROR != alErr ) {
             if( DEBUG ) {
                 System.err.println(getThreadName()+": Prev - ALError "+toHexString(alErr)+" @ makeCurrent. "+this);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
     }
@@ -290,8 +291,7 @@ public class ALAudioSink implements AudioSink {
                     alc.alcDestroyContext(context);
                 } catch (final Throwable t) {
                     if( DEBUG ) {
-                        System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
-                        t.printStackTrace();
+                        ExceptionUtils.dumpThrowable("", t);
                     }
                 }
                 context = null;
@@ -652,7 +652,7 @@ public class ALAudioSink implements AudioSink {
         alBufferBytesQueued = 0;
         if(DEBUG_TRACE) {
             System.err.println("<<  _FLUSH_  [al "+val[0]+", err "+toHexString(alErr)+"] <- "+shortString()+" @ "+getThreadName());
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
     }
 

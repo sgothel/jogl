@@ -37,6 +37,7 @@
 
 package com.jogamp.nativewindow.awt;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
@@ -558,7 +559,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             surfaceLock.unlock();
             if(DEBUG) {
                 System.err.println("JAWTWindow: Can't lock surface, component peer n/a. Component displayable "+component.isDisplayable()+", "+component);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         } else {
             determineIfApplet();
@@ -765,7 +766,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
               // avoid deadlock ..
               if(DEBUG) {
                   System.err.println("Warning: JAWT Lock hold, but not the AWT tree lock: "+this);
-                  Thread.dumpStack();
+                  ExceptionUtils.dumpStack(System.err);
               }
               if( null == storage ) {
                   storage = new Point();
@@ -788,7 +789,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if(LOCK_SURFACE_NOT_READY == lockRes) {
           if(DEBUG) {
               System.err.println("Warning: JAWT Lock couldn't be acquired: "+this);
-              Thread.dumpStack();
+              ExceptionUtils.dumpStack(System.err);
           }
           return null;
       }

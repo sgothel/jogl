@@ -33,7 +33,9 @@
 
 package javax.media.nativewindow;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ReflectionUtil;
+
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.DefaultGraphicsConfigurationFactoryImpl;
 
@@ -226,7 +228,7 @@ public abstract class GraphicsConfigurationFactory {
             throw new IllegalArgumentException("Given capabilities class must implement CapabilitiesImmutable");
         }
         if(DEBUG) {
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
             System.err.println("GraphicsConfigurationFactory.getFactory: "+deviceType.getName()+", "+capabilitiesType.getName());
             dumpFactories();
         }

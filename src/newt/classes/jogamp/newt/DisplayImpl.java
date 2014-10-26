@@ -34,6 +34,7 @@
 
 package jogamp.newt;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.ReflectionUtil;
@@ -398,7 +399,7 @@ public abstract class DisplayImpl extends Display {
                 if( DEBUG ) {
                     if ( !res ) {
                         System.err.println("Warning: invokeStop() failed");
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                 }
             }
@@ -416,7 +417,7 @@ public abstract class DisplayImpl extends Display {
                 if( !_edtUtil.isRunning() ) { // // volatile dbl-checked-locking OK
                     if( DEBUG ) {
                         System.err.println("Info: EDT start "+Thread.currentThread().getName()+", "+this);
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                     _edtUtil.start();
                 }
@@ -428,7 +429,7 @@ public abstract class DisplayImpl extends Display {
             }
             if( DEBUG ) {
                 System.err.println("Warning: invoke(wait "+wait+", ..) on EDT failed .. invoke on current thread "+Thread.currentThread().getName());
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         task.run();
@@ -685,7 +686,7 @@ public abstract class DisplayImpl extends Display {
             if(null == event) {
                 // Ooops ?
                 System.err.println("Warning: event of eventTask is NULL");
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
                 return;
             }
             dispatchMessage(event);
@@ -739,7 +740,7 @@ public abstract class DisplayImpl extends Display {
             // oops .. we are already dead
             if(DEBUG) {
                 System.err.println("Warning: EDT already stopped: wait:="+wait+", "+e);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return;
         }

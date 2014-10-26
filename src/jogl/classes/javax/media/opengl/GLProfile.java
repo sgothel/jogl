@@ -41,6 +41,7 @@ import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
@@ -175,7 +176,7 @@ public class GLProfile {
                 justInitialized = true;
                 if(DEBUG) {
                     System.err.println("GLProfile.initSingleton() - thread "+Thread.currentThread().getName());
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
 
                 if(ReflectionUtil.DEBUG_STATS_FORNAME) {
@@ -246,7 +247,7 @@ public class GLProfile {
                 initialized = false;
                 if(DEBUG) {
                     System.err.println("GLProfile.shutdown() - thread "+Thread.currentThread().getName());
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
                 GLDrawableFactory.shutdown();
             }

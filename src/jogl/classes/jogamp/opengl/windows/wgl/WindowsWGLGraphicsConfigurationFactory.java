@@ -50,6 +50,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GLRendererQuirks;
 
@@ -417,7 +418,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 if (null == pformats) {
                     if (DEBUG) {
                         System.err.println("updateGraphicsConfigurationARB: failed, return false");
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
                     return false;
                 }
@@ -431,7 +432,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if( null == availableCaps || 0 == availableCaps.size() ) {
                 if (DEBUG) {
                     System.err.println("updateGraphicsConfigurationARB: wglARBPFIDs2GLCapabilities failed with " + pformats.length + " pfd ids");
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
                 return false;
             }
@@ -453,7 +454,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             if ( 0 > chosenIndex ) {
                 if (DEBUG) {
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
                 return false;
             }
@@ -603,7 +604,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if ( 0 > chosenIndex ) {
                 if (DEBUG) {
                     System.err.println("updateGraphicsConfigurationGDI: failed, return false");
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
                 return false;
             }

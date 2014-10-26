@@ -46,6 +46,7 @@ import javax.media.opengl.GLDrawable;
 
 import org.junit.Assert;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.event.WindowEvent;
 
@@ -229,7 +230,7 @@ public class AWTRobotUtil {
             System.err.println("*** AWTRobotUtil.toFrontAndRequestFocus() UI failure");
             System.err.println("*** window: "+window);
             System.err.println("*** window.hasFocus(): "+window.hasFocus());
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return success;
     }
@@ -442,7 +443,7 @@ public class AWTRobotUtil {
             }
             System.err.println("*** gain: "+gain);
             System.err.println("*** lost: "+lost);
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         Assert.assertTrue("Did not gain focus", hasFocus);
     }

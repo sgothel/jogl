@@ -46,6 +46,7 @@ import java.util.List;
 
 import javax.media.nativewindow.CapabilitiesImmutable;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
 
 import jogamp.opengl.Debug;
@@ -126,7 +127,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int availnum = available.size();
 
     if (DEBUG) {
-      Thread.dumpStack();
+      ExceptionUtils.dumpStack(System.err);
       System.err.println("Desired: " + gldes);
       System.err.println("Available: " + availnum);
       for (int i = 0; i < available.size(); i++) {

@@ -355,7 +355,7 @@ public class GLDrawableHelper {
           }
           if( DEBUG && ( 0>=newWidth || 0>=newHeight) ) {
               System.err.println("WARNING: Odd size detected: "+newWidth+"x"+newHeight+", using safe size 1x1. Drawable "+drawable);
-              Thread.dumpStack();
+              ExceptionUtils.dumpStack(System.err);
           }
           if( 0 >= newWidth )  { newWidth = 1; validateSize=false; }
           if( 0 >= newHeight ) { newHeight = 1; validateSize=false; }
@@ -734,7 +734,7 @@ public class GLDrawableHelper {
             final int glerr0 = drawable.getGL().glGetError();
             if( GL.GL_NO_ERROR != glerr0 ) {
                 System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         drawable.getGL().glViewport(x, y, width, height);

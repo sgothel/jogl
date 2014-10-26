@@ -16,6 +16,7 @@ import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
@@ -1376,7 +1377,7 @@ public class ImmModeSink {
 
         if(DEBUG_BUFFER) {
             System.err.println("ImmModeSink.realloc.X: "+this.toString());
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         return true;
     }

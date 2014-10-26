@@ -63,6 +63,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
 import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.common.util.PropertyAccess;
@@ -1992,7 +1993,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected final void definePosition(final int x, final int y) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("definePosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
-            // Thread.dumpStack();
+            // ExceptionUtils.dumpStackTrace(System.err);
         }
         autoPosition = false;
         this.x = x; this.y = y;
@@ -2008,7 +2009,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("defineSize: win["+this.winWidth+"x"+this.winHeight+" -> "+winWidth+"x"+winHeight+
                                "], pixel["+this.pixWidth+"x"+this.pixHeight+" -> "+pixWidth+"x"+pixHeight+"]");
-            // Thread.dumpStack();
+            // ExceptionUtils.dumpStackTrace(System.err);
         }
         this.winWidth = winWidth; this.winHeight = winHeight;
         this.pixWidth = pixWidth; this.pixHeight = pixHeight;
@@ -2637,7 +2638,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.consumeEvent: REPAINT "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
-                            // Thread.dumpStack();
+                            // ExceptionUtils.dumpStackTrace(System.err);
                         }
                         return discardTO; // discardTO:=true -> consumed
                     }
@@ -2653,7 +2654,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window.consumeEvent: RESIZED "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
-                        // Thread.dumpStack();
+                        // ExceptionUtils.dumpStackTrace(System.err);
                     }
                     return discardTO; // discardTO:=true -> consumed
                 }
@@ -3745,7 +3746,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
                 System.err.println(msg);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return -1;
         } else if( 0 < remaining ){
@@ -3791,7 +3792,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
                 System.err.println(msg);
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             return false;
         } else {
@@ -3851,7 +3852,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 } else {
                     System.err.println("Auto position not reached within timeout, has "+getX()+"/"+getY()+", autoPosition "+autoPosition+", remaining "+remaining);
                 }
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
         }
         return ok;
@@ -3892,7 +3893,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final WindowClosingMode mode = force ? WindowClosingMode.DISPOSE_ON_CLOSE : defMode;
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.windowDestroyNotify(isNativeValid: "+isNativeValid()+", force: "+force+", mode "+defMode+" -> "+mode+") "+getThreadName()+": "+this);
-            // Thread.dumpStack();
+            // ExceptionUtils.dumpStackTrace(System.err);
         }
 
         final boolean destroyed;

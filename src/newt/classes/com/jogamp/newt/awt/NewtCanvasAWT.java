@@ -69,6 +69,7 @@ import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.opengl.awt.AWTTilePainter;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
@@ -469,7 +470,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 determineIfApplet();
                 if(DEBUG) {
                     System.err.println("NewtCanvasAWT.addNotify.0 - isApplet "+isApplet+", addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
                 jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, null != newtChild ? newtChild.getRequestedCapabilities() : null);
                 jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
@@ -493,7 +494,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         } else {
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.removeNotify.0 - isApplet "+isApplet+" @ "+currentThreadName());
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             componentAdded = false; // Bug 910
             awtWindowClosingProtocol.removeClosingListener();
@@ -518,7 +519,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     public final void destroy() {
         if(DEBUG) {
             System.err.println("NewtCanvasAWT.destroy() @ "+currentThreadName());
-            Thread.dumpStack();
+            ExceptionUtils.dumpStack(System.err);
         }
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
             @Override
