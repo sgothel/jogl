@@ -102,7 +102,7 @@ import javax.media.nativewindow.util.SurfaceSize;
  * to destroy and/or reattach resources to/from the window. Because of this, the methods
  * are <i>not safe</i> to be called from EDT related threads. For example, it is not
  * safe for a method in an attached {@link KeyListener} to call {@link #setFullscreen(boolean)}
- * on a {@link Window} directly. It is safe, however, for that thread to spawn a background
+ * on a {@link Window} directly. It is safe, however, for that method to spawn a background
  * worker thread which calls the method directly. The documentation for individual methods 
  * indicates whether or not they are lifecycle-heavy.
  * </p>
