@@ -699,10 +699,7 @@ public class FBObject {
                                                                        final int magFilter, final int minFilter, final int wrapS, final int wrapT) {
         final int dataFormat, dataType;
         final boolean alpha = hasAlpha(internalFormat);
-        if( gl.isGLES3() ) {
-            dataFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
-            dataType = GL.GL_UNSIGNED_BYTE;
-        } else if( gl.isGLES() ) {
+        if( gl.isGLES() ) {
             dataFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
             dataType = GL.GL_UNSIGNED_BYTE;
         } else {

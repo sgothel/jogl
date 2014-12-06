@@ -584,6 +584,9 @@ public interface GLBase {
    /**
     * Return the framebuffer name bound to this context,
     * see {@link GL#glBindFramebuffer(int, int)}.
+    * <p>
+    * Calls {@link GLContext#getBoundFramebuffer(int)}.
+    * </p>
     */
    public int getBoundFramebuffer(int target);
 
@@ -594,6 +597,9 @@ public interface GLBase {
     * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
     * is being used.
     * </p>
+    * <p>
+    * Calls {@link GLContext#getDefaultDrawFramebuffer()}.
+    * </p>
     */
    public int getDefaultDrawFramebuffer();
 
@@ -603,6 +609,9 @@ public interface GLBase {
     * May differ from it's default <code>zero</code>
     * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
     * is being used.
+    * </p>
+    * <p>
+    * Calls {@link GLContext#getDefaultReadFramebuffer()}.
     * </p>
     */
    public int getDefaultReadFramebuffer();
@@ -627,6 +636,9 @@ public interface GLBase {
     * <p>
     * Note-3: See {@link com.jogamp.opengl.util.GLDrawableUtil#swapBuffersBeforeRead(GLCapabilitiesImmutable) swapBuffersBeforeRead}
     * for read-pixels and swap-buffers implications.
+    * </p>
+    * <p>
+    * Calls {@link GLContext#getDefaultReadBuffer()}.
     * </p>
     */
    public int getDefaultReadBuffer();
