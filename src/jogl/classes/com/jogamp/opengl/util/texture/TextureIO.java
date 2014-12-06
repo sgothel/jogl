@@ -1125,12 +1125,12 @@ public class TextureIO {
                                           final String fileSuffix) throws IOException {
             if (PNG.equals(fileSuffix)) {
                 final PNGPixelRect image = PNGPixelRect.read(stream, null, true /* directBuffer */, 0 /* destMinStrideInBytes */, true /* destIsGLOriented */);
-                final GLPixelAttributes glpa = GLPixelAttributes.convert(image.getPixelformat(), glp);
+                final GLPixelAttributes glpa = new GLPixelAttributes(glp, image.getPixelformat(), false /* pack */);
                 if ( 0 == pixelFormat ) {
                     pixelFormat = glpa.format;
                 }  // else FIXME: Actually not supported w/ preset pixelFormat!
                 if ( 0 == internalFormat ) {
-                    final boolean hasAlpha = 4 == glpa.bytesPerPixel;
+                    final boolean hasAlpha = 4 == glpa.pfmt.comp.bytesPerPixel();
                     if(glp.isGL2ES3()) {
                         internalFormat = hasAlpha ? GL.GL_RGBA8 : GL.GL_RGB8;
                     } else {
@@ -1351,8 +1351,8 @@ public class TextureIO {
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
                 final int pixelFormat = pixelAttribs.format;
                 final int pixelType   = pixelAttribs.type;
-                final int bytesPerPixel = pixelAttribs.bytesPerPixel;
-                final PixelFormat pixFmt = pixelAttribs.getPixelFormat();
+                final int bytesPerPixel = pixelAttribs.pfmt.comp.bytesPerPixel();
+                final PixelFormat pixFmt = pixelAttribs.pfmt;
                 if ( ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel) &&
                      ( pixelType == GL.GL_BYTE || pixelType == GL.GL_UNSIGNED_BYTE)) {
                     Buffer buf0 = data.getBuffer();

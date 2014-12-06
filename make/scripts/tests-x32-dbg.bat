@@ -1,4 +1,9 @@
 
+set TEMP=\\jordan\data\Incoming\windows\temp
+set TMP=\\jordan\data\Incoming\windows\temp
+REM set TEMP=C:\Documents and Settings\jogamp\temp
+REM set TMP=C:\Documents and Settings\jogamp\temp
+
 set BLD_SUB=build-win32
 set J2RE_HOME=c:\jre1.7.0_67_x32
 set JAVA_HOME=c:\jdk1.7.0_67_x32
@@ -31,6 +36,8 @@ REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" 
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.GLContext"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.windows.cpu_affinity_mode=0"
 REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
+REM set D_ARGS="-Djogamp.debug.IOUtil"
+set D_ARGS="-Djogl.debug.GLSLCode"
 REM set D_ARGS="-Djogl.debug.ExtensionAvailabilityCache" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.NativeLibrary=true"
 REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLProfile=true"

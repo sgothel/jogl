@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -117,8 +118,9 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
             @Override
             public void init(final GLAutoDrawable drawable) {
                 final GL gl = drawable.getGL();
-                final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
-                final GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
+                final PixelFormat.Composition hostPixelComp = pixelBufferProvider.getHostPixelComp(gl.getGLProfile(), 3);
+                final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3, true);
+                final GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, hostPixelComp, pixelAttribs, true, imageWidth, imageHeight, 1, 0);
                 renderer.setImageBuffer(pixelBuffer);
                 if( drawable.isGLOriented() ) {
                     flipVertically[0] = false;

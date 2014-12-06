@@ -37,6 +37,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import javax.swing.JComponent;
@@ -49,6 +50,8 @@ import javax.media.nativewindow.util.PixelRectangle;
 import javax.media.nativewindow.util.PixelFormat;
 import javax.media.nativewindow.util.PixelFormatUtil;
 import javax.swing.MenuSelectionManager;
+
+import com.jogamp.nativewindow.awt.DirectDataBufferInt;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 
@@ -210,25 +213,13 @@ public class AWTMisc {
     private static synchronized Cursor createCursor(final PixelRectangle pixelrect, final Point hotSpot) {
         final int width = pixelrect.getSize().getWidth();
         final int height = pixelrect.getSize().getHeight();
-        final BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); // PixelFormat.BGRA8888
-        final PixelFormatUtil.PixelSink32 imgSink = new PixelFormatUtil.PixelSink32() {
-            public void store(final int x, final int y, final int pixel) {
-                img.setRGB(x, y, pixel);
-            }
-            @Override
-            public final PixelFormat getPixelformat() {
-                return PixelFormat.BGRA8888;
-            }
-            @Override
-            public int getStride() {
-                return width*4;
-            }
-            @Override
-            public final boolean isGLOriented() {
-                return false;
-            }
-        };
-        PixelFormatUtil.convert32(imgSink, pixelrect);
+        // final BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); // PixelFormat.BGRA8888
+        final DirectDataBufferInt.BufferedImageInt img =
+                DirectDataBufferInt.createBufferedImage(width, height, BufferedImage.TYPE_INT_ARGB,
+                                                        null /* location */, null /* properties */);
+        final ByteBuffer imgBuffer = img.getDataBuffer().getDataBytes();
+        PixelFormatUtil.convert(pixelrect, imgBuffer, PixelFormat.BGRA8888, false /* dst_glOriented */, width*4 /* dst_lineStride */);
+
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
         return toolkit.createCustomCursor(img, hotSpot, pixelrect.toString());
     }

@@ -479,7 +479,7 @@ public class TileRenderer extends TileRendererBase {
             final int srcY = tileBorder;
             final int srcWidth = tileSizeNB.getWidth();
             final int srcHeight = tileSizeNB.getHeight();
-            final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.bytesPerPixel, srcWidth, srcHeight, 1, true);
+            final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.pfmt.comp.bytesPerPixel(), srcWidth, srcHeight, 1, true);
             tileBuffer.clear();
             if( tileBuffer.requiresNewBuffer(gl, srcWidth, srcHeight, readPixelSize) ) {
                 throw new IndexOutOfBoundsException("Required " + readPixelSize + " bytes of buffer, only had " + tileBuffer);
@@ -503,11 +503,11 @@ public class TileRenderer extends TileRendererBase {
             psm.setPackRowLength(gl2es3, rowLength);
 
             /* read the tile into the final image */
-            final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.bytesPerPixel, srcWidth, srcHeight, 1, true);
+            final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.pfmt.comp.bytesPerPixel(), srcWidth, srcHeight, 1, true);
 
             final int skipPixels = currentColumn * tileSizeNB.getWidth();
             final int skipRows = currentRow * tileSizeNB.getHeight();
-            final int ibPos = ( skipPixels + ( skipRows * rowLength ) ) * pixelAttribs.bytesPerPixel;
+            final int ibPos = ( skipPixels + ( skipRows * rowLength ) ) * pixelAttribs.pfmt.comp.bytesPerPixel();
             final int ibLim = ibPos + readPixelSize;
             imageBuffer.clear();
             if( imageBuffer.requiresNewBuffer(gl, srcWidth, srcHeight, readPixelSize) ) {

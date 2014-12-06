@@ -73,9 +73,10 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final PNGPixelRect image = PNGPixelRect.read(istream, destFmt, true /* directBuffer */, 0 /* destMinStrideInBytes */, true /* destIsGLOriented */);
         Assert.assertNotNull(image);
-        final GLPixelAttributes glpa = GLPixelAttributes.convert(image.getPixelformat(), glp);
-        final boolean hasAlpha = 4 == glpa.bytesPerPixel;
-        System.err.println("PNGPixelRect: "+basename+", "+image+", glpa "+glpa);
+        System.err.println("PNGPixelRect: "+basename+", "+image);
+        final GLPixelAttributes glpa = new GLPixelAttributes(glp, image.getPixelformat(), false /* pack */);
+        final boolean hasAlpha = 4 == glpa.pfmt.comp.bytesPerPixel();
+        System.err.println("GLPixelAttributes: "+glpa);
 
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         final GLCapabilities caps = new GLCapabilities(glp);

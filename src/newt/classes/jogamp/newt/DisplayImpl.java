@@ -165,7 +165,7 @@ public abstract class DisplayImpl extends Display {
         final PixelRectangle fpixelrect;
         if( getNativePointerIconPixelFormat() != pixelrect.getPixelformat() || pixelrect.isGLOriented() ) {
             // conversion !
-            fpixelrect = PixelFormatUtil.convert32(pixelrect, getNativePointerIconPixelFormat(),
+            fpixelrect = PixelFormatUtil.convert(pixelrect, getNativePointerIconPixelFormat(),
                                                       0 /* ddestStride */, false /* isGLOriented */, getNativePointerIconForceDirectNIO() );
             if( DEBUG_POINTER_ICON ) {
                 System.err.println("createPointerIconRES.0: Conversion-FMT "+pixelrect+" -> "+fpixelrect);

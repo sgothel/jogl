@@ -27,10 +27,12 @@
  */
 package javax.media.nativewindow.util;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.Bitstream;
 
 /**
  * Pixel Rectangle Utilities.
@@ -39,46 +41,157 @@ import com.jogamp.common.nio.Buffers;
  * </p>
  */
 public class PixelFormatUtil {
-    public static interface PixelSink {
-        /** Return the sink's destination pixelformat. */
-        PixelFormat getPixelformat();
+    private static boolean DEBUG = false;
+
+    public static class ComponentMap {
+        /**
+         * Contains the source index for each destination index,
+         * length is {@link Composition#componenCount()} of destination.
+         */
+        final int[] dst2src;
+        /**
+         * Contains the destination index for each source index,
+         * length is {@link Composition#componenCount()} of source.
+         */
+        final int[] src2dst;
 
         /**
-         * Returns stride in byte-size, i.e. byte count from one line to the next.
-         * <p>
-         * Must be >= {@link #getPixelformat()}.{@link PixelFormat#bytesPerPixel() bytesPerPixel()} * {@link #getSize()}.{@link DimensionImmutable#getWidth() getWidth()}.
-         * </p>
+         * Contains the source index of RGBA components.
          */
-        int getStride();
+        final int[] srcRGBA;
+        final boolean hasSrcRGB;
 
-        /**
-         * Returns <code>true</code> if the sink's memory is laid out in
-         * OpenGL's coordinate system, <i>origin at bottom left</i>.
-         * Otherwise returns <code>false</code>, i.e. <i>origin at top left</i>.
-         */
-        boolean isGLOriented();
+        public ComponentMap(final PixelFormat.Composition src, final PixelFormat.Composition dst) {
+            final int sCompCount = src.componenCount();
+            final int dCompCount = dst.componenCount();
+            final PixelFormat.CType[] sCompOrder = src.componentOrder();
+            final PixelFormat.CType[] dCompOrder = dst.componentOrder();
+
+            dst2src = new int[dCompCount];
+            for(int dIdx=0; dIdx<dCompCount; dIdx++) {
+                dst2src[dIdx] = PixelFormatUtil.find(dCompOrder[dIdx], sCompOrder, true);
+            }
+            src2dst = new int[sCompCount];
+            for(int sIdx=0; sIdx<sCompCount; sIdx++) {
+                src2dst[sIdx] = PixelFormatUtil.find(sCompOrder[sIdx], dCompOrder, true);
+            }
+            srcRGBA = new int[4];
+            srcRGBA[0] = PixelFormatUtil.find(PixelFormat.CType.R, sCompOrder, false);
+            srcRGBA[1] = PixelFormatUtil.find(PixelFormat.CType.G, sCompOrder, false);
+            srcRGBA[2] = PixelFormatUtil.find(PixelFormat.CType.B, sCompOrder, false);
+            srcRGBA[3] = PixelFormatUtil.find(PixelFormat.CType.A, sCompOrder, false);
+            hasSrcRGB = 0 <= srcRGBA[0] && 0 <= srcRGBA[1] && 0 <= srcRGBA[2];
+        }
+    }
+
+    public static final int find(final PixelFormat.CType s,
+                                 final PixelFormat.CType[] pool, final boolean mapRGB2Y) {
+        int i=pool.length-1;
+        while( i >= 0 && pool[i] != s) { i--; }
+
+        if( 0 > i && mapRGB2Y && 1 == pool.length && pool[0] == PixelFormat.CType.Y &&
+            ( PixelFormat.CType.R == s ||
+              PixelFormat.CType.G == s ||
+              PixelFormat.CType.B == s ) )
+        {
+            // Special case, fallback for RGB mapping -> LUMINANCE/Y
+            return 0;
+        } else {
+            return i;
+        }
+    }
+
+    /**
+     * Returns shifted bytes from the given {@code data} at given {@code offset}
+     * of maximal 4 {@code bytesPerPixel}.
+     * @param bytesPerPixel number of bytes per pixel to fetch, a maximum of 4 are allowed
+     * @param data byte buffer covering complete pixel at position {@code offset}
+     * @param offset byte offset of pixel {@code data} start
+     * @return the shifted 32bit integer value of the pixel
+     */
+    public static int getShiftedI32(final int bytesPerPixel, final byte[] data, final int offset) {
+        if( bytesPerPixel <= 4 ) {
+            int shiftedI32 = 0;
+            for(int i=0; i<bytesPerPixel; i++) {
+                shiftedI32 |= ( 0xff & data[offset+i] ) << 8*i;
+            }
+            return shiftedI32;
+        } else {
+            throw new UnsupportedOperationException(bytesPerPixel+" bytesPerPixel too big, i.e. > 4");
+        }
     }
     /**
-     * Pixel sink for up-to 32bit.
+     * Returns shifted bytes from the given {@code data} at given {@code offset}
+     * of maximal 8 {@code bytesPerPixel}.
+     * @param bytesPerPixel number of bytes per pixel to fetch, a maximum of 4 are allowed
+     * @param data byte buffer covering complete pixel at position {@code offset}
+     * @param offset byte offset of pixel {@code data} start
+     * @return the shifted 64bit integer value of the pixel
      */
-    public static interface PixelSink32 extends PixelSink {
-        /**
-         * Will be invoked over all rows top-to down
-         * and all columns left-to-right.
-         * <p>
-         * Shall consider dest pixelformat and only store as much components
-         * as defined, up to 32bit.
-         * </p>
-         * <p>
-         * Implementation may better write single bytes from low-to-high bits,
-         * e.g. {@link ByteOrder#LITTLE_ENDIAN} order.
-         * Otherwise a possible endian conversion must be taken into consideration.
-         * </p>
-         * @param x
-         * @param y
-         * @param pixel
-         */
-        void store(int x, int y, int pixel);
+    public static long getShiftedI64(final int bytesPerPixel, final byte[] data, final int offset) {
+        if( bytesPerPixel <= 8 ) {
+            long shiftedI64 = 0;
+            for(int i=0; i<bytesPerPixel; i++) {
+                shiftedI64 |= ( 0xff & data[offset+i] ) << 8*i;
+            }
+            return shiftedI64;
+        } else {
+            throw new UnsupportedOperationException(bytesPerPixel+" bytesPerPixel too big, i.e. > 8");
+        }
+    }
+    /**
+     * Returns shifted bytes from the given {@code data} at current position
+     * of maximal 4 {@code bytesPerPixel}.
+     * @param bytesPerPixel number of bytes per pixel to fetch, a maximum of 4 are allowed
+     * @param data byte buffer covering complete pixel at position {@code offset}
+     * @param retainDataPos if true, absolute {@link ByteBuffer#get(int)} is used and the {@code data} position stays unchanged.
+     *                      Otherwise relative {@link ByteBuffer#get()} is used and the {@code data} position changes.
+     * @return the shifted 32bit integer value of the pixel
+     */
+    public static int getShiftedI32(final int bytesPerPixel, final ByteBuffer data, final boolean retainDataPos) {
+        if( bytesPerPixel <= 4 ) {
+            int shiftedI32 = 0;
+            if( retainDataPos ) {
+                final int offset = data.position();
+                for(int i=0; i<bytesPerPixel; i++) {
+                    shiftedI32 |= ( 0xff & data.get(offset+i) ) << 8*i;
+                }
+            } else {
+                for(int i=0; i<bytesPerPixel; i++) {
+                    shiftedI32 |= ( 0xff & data.get() ) << 8*i;
+                }
+            }
+            return shiftedI32;
+        } else {
+            throw new UnsupportedOperationException(bytesPerPixel+" bytesPerPixel too big, i.e. > 4");
+        }
+    }
+    /**
+     * Returns shifted bytes from the given {@code data} at current position
+     * of maximal 8 {@code bytesPerPixel}.
+     * @param bytesPerPixel number of bytes per pixel to fetch, a maximum of 4 are allowed
+     * @param data byte buffer covering complete pixel at position {@code offset}
+     * @param retainDataPos if true, absolute {@link ByteBuffer#get(int)} is used and the {@code data} position stays unchanged.
+     *                      Otherwise relative {@link ByteBuffer#get()} is used and the {@code data} position changes.
+     * @return the shifted 64bit integer value of the pixel
+     */
+    public static long getShiftedI64(final int bytesPerPixel, final ByteBuffer data, final boolean retainDataPos) {
+        if( bytesPerPixel <= 8 ) {
+            long shiftedI64 = 0;
+            if( retainDataPos ) {
+                final int offset = data.position();
+                for(int i=0; i<bytesPerPixel; i++) {
+                    shiftedI64 |= ( 0xff & data.get(offset+i) ) << 8*i;
+                }
+            } else {
+                for(int i=0; i<bytesPerPixel; i++) {
+                    shiftedI64 |= ( 0xff & data.get() ) << 8*i;
+                }
+            }
+            return shiftedI64;
+        } else {
+            throw new UnsupportedOperationException(bytesPerPixel+" bytesPerPixel too big, i.e. > 8");
+        }
     }
 
     /**
@@ -87,8 +200,14 @@ public class PixelFormatUtil {
      */
     public static PixelFormat getReversed(final PixelFormat fmt) {
         switch(fmt) {
-            case LUMINANCE:
-                return PixelFormat.LUMINANCE;
+            case RGB565:
+                return PixelFormat.BGR565;
+            case BGR565:
+                return PixelFormat.RGB565;
+            case RGBA5551:
+                return PixelFormat.ABGR1555;
+            case ABGR1555:
+                return PixelFormat.RGBA5551;
             case RGB888:
                 return PixelFormat.BGR888;
             case BGR888:
@@ -102,42 +221,14 @@ public class PixelFormatUtil {
             case BGRA8888:
                 return PixelFormat.ABGR8888;
             default:
-                throw new InternalError("Unhandled format "+fmt);
+                return fmt;
         }
     }
 
-    public static int getValue32(final PixelFormat src_fmt, final ByteBuffer src, int srcOff) {
-        switch(src_fmt) {
+    public static int convertToInt32(final PixelFormat dst_fmt, final byte r, final byte g, final byte b, final byte a) {
+        switch(dst_fmt) {
             case LUMINANCE: {
-                    final byte c1 = src.get(srcOff++);
-                    return ( 0xff      ) << 24 | ( 0xff & c1 ) << 16 | ( 0xff & c1 ) << 8 | ( 0xff & c1 );
-                }
-            case RGB888:
-            case BGR888: {
-                    final byte c1  = src.get(srcOff++);
-                    final byte c2  = src.get(srcOff++);
-                    final byte c3  = src.get(srcOff++);
-                    return ( 0xff      ) << 24 | ( 0xff & c3 ) << 16 | ( 0xff & c2 ) << 8 | ( 0xff & c1 );
-                }
-            case RGBA8888:
-            case ABGR8888:
-            case ARGB8888:
-            case BGRA8888: {
-                    final byte c1  = src.get(srcOff++);
-                    final byte c2  = src.get(srcOff++);
-                    final byte c3  = src.get(srcOff++);
-                    final byte c4  = src.get(srcOff++);
-                    return ( 0xff & c4 ) << 24 | ( 0xff & c3 ) << 16 | ( 0xff & c2 ) << 8 | ( 0xff & c1 );
-                }
-            default:
-                throw new InternalError("Unhandled format "+src_fmt);
-        }
-    }
-
-    public static int convertToInt32(final PixelFormat dest_fmt, final byte r, final byte g, final byte b, final byte a) {
-        switch(dest_fmt) {
-            case LUMINANCE: {
-                final byte l = ( byte) ( ( ( ( 0xff & r ) + ( 0xff & g ) + ( 0xff & b ) ) / 3 ) );
+                final byte l = ( byte) ( ( ( ( 0xff & r ) + ( 0xff & g ) + ( 0xff & b ) ) / 3 ) * a );
                 return ( 0xff     ) << 24 | ( 0xff & l ) << 16 | ( 0xff & l ) << 8 | ( 0xff & l );
             }
             case RGB888:
@@ -153,11 +244,11 @@ public class PixelFormatUtil {
             case BGRA8888:
                 return ( 0xff & a ) << 24 | ( 0xff & r ) << 16 | ( 0xff & g ) << 8 | ( 0xff & b );
             default:
-                throw new InternalError("Unhandled format "+dest_fmt);
+                throw new InternalError("Unhandled format "+dst_fmt);
         }
     }
 
-    public static int convertToInt32(final PixelFormat dest_fmt, final PixelFormat src_fmt, final ByteBuffer src, int srcOff) {
+    public static int convertToInt32(final PixelFormat dst_fmt, final PixelFormat src_fmt, final ByteBuffer src, int srcOff) {
         final byte r, g, b, a;
         switch(src_fmt) {
             case LUMINANCE:
@@ -205,7 +296,7 @@ public class PixelFormatUtil {
             default:
                 throw new InternalError("Unhandled format "+src_fmt);
         }
-        return convertToInt32(dest_fmt, r, g, b, a);
+        return convertToInt32(dst_fmt, r, g, b, a);
     }
 
     public static int convertToInt32(final PixelFormat dest_fmt, final PixelFormat src_fmt, final int src_pixel) {
@@ -259,115 +350,251 @@ public class PixelFormatUtil {
         return convertToInt32(dest_fmt, r, g, b, a);
     }
 
-    public static PixelRectangle convert32(final PixelRectangle src,
-                                           final PixelFormat destFmt, final int ddestStride, final boolean isGLOriented,
-                                           final boolean destIsDirect) {
+    public static PixelRectangle convert(final PixelRectangle src,
+                                         final PixelFormat destFmt, final int ddestStride, final boolean isGLOriented,
+                                         final boolean destIsDirect) {
         final int width = src.getSize().getWidth();
         final int height = src.getSize().getHeight();
-        final int bpp = destFmt.bytesPerPixel();
+        final int bpp = destFmt.comp.bytesPerPixel();
         final int destStride;
         if( 0 != ddestStride ) {
             destStride = ddestStride;
-            if( destStride < bpp * width ) {
-                throw new IllegalArgumentException("Invalid stride "+destStride+", must be greater than bytesPerPixel "+bpp+" * width "+width);
-            }
         } else {
             destStride = bpp * width;
         }
         final int capacity = destStride*height;
-        final ByteBuffer bb = destIsDirect ? Buffers.newDirectByteBuffer(capacity) : ByteBuffer.allocate(capacity).order(src.getPixels().order());
-
-        // System.err.println("XXX: SOURCE "+src);
-        // System.err.println("XXX: DEST fmt "+destFmt+", stride "+destStride+" ("+ddestStride+"), isGL "+isGLOriented+", "+width+"x"+height+", capacity "+capacity+", "+bb);
-
-        final PixelFormatUtil.PixelSink32 imgSink = new PixelFormatUtil.PixelSink32() {
-            public void store(final int x, final int y, final int pixel) {
-                int o = destStride*y+x*bpp;
-                bb.put(o++, (byte) ( pixel        )); // 1
-                if( 3 <= bpp ) {
-                    bb.put(o++, (byte) ( pixel >>>  8 )); // 2
-                    bb.put(o++, (byte) ( pixel >>> 16 )); // 3
-                    if( 4 <= bpp ) {
-                        bb.put(o++, (byte) ( pixel >>> 24 )); // 4
-                    }
-                }
-            }
-            @Override
-            public final PixelFormat getPixelformat() {
-                return destFmt;
-            }
-            @Override
-            public final int getStride() {
-                return destStride;
-            }
-            @Override
-            public final boolean isGLOriented() {
-                return isGLOriented;
-            }
-        };
-        convert32(imgSink, src);
-        return new PixelRectangle.GenericPixelRect(destFmt, src.getSize(), destStride, isGLOriented, bb);
-    }
-
-    public static void convert32(final PixelSink32 destInt32, final PixelRectangle src) {
-        convert32(destInt32,
-                  src.getPixels(), src.getPixelformat(),
-                  src.isGLOriented(),
-                  src.getSize().getWidth(), src.getSize().getHeight(),
-                  src.getStride());
+        final ByteBuffer destBB = destIsDirect ? Buffers.newDirectByteBuffer(capacity) : ByteBuffer.allocate(capacity).order(src.getPixels().order());
+        convert(src, destBB, destFmt, isGLOriented, destStride);
+        return new PixelRectangle.GenericPixelRect(destFmt, src.getSize(), destStride, isGLOriented, destBB);
     }
 
     /**
+     * @param src
+     * @param dst_bb  {@link ByteBuffer} sink
+     * @param dst_fmt destination {@link PixelFormat}
+     * @param dst_glOriented if true, the source memory is laid out in OpenGL's coordinate system, <i>origin at bottom left</i>,
+     *                       otherwise <i>origin at top left</i>.
+     * @param dst_lineStride line stride in byte-size for destination, i.e. byte count from one line to the next.
+     *                       Must be >= {@link PixelFormat.Composition#bytesPerPixel() dst_fmt.comp.bytesPerPixel()} * width
+     *                       or {@code zero} for default stride.
      *
-     * @param dest32 32bit pixel sink
-     * @param src_bb
-     * @param src_fmt
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException if {@code src_lineStride} or {@code dst_lineStride} is invalid
+     */
+    public static void convert(final PixelRectangle src,
+                               final ByteBuffer dst_bb, final PixelFormat dst_fmt, final boolean dst_glOriented, final int dst_lineStride)
+           throws IllegalStateException
+    {
+        convert(src.getSize().getWidth(), src.getSize().getHeight(),
+                src.getPixels(), src.getPixelformat(), src.isGLOriented(), src.getStride(),
+                dst_bb, dst_fmt, dst_glOriented, dst_lineStride);
+    }
+
+
+    /**
+     * @param width width of the to be converted pixel rectangle
+     * @param height height of the to be converted pixel rectangle
+     * @param src_bb  {@link ByteBuffer} source
+     * @param src_fmt source {@link PixelFormat}
      * @param src_glOriented if true, the source memory is laid out in OpenGL's coordinate system, <i>origin at bottom left</i>,
      *                       otherwise <i>origin at top left</i>.
-     * @param width
-     * @param height
-     * @param strideInBytes stride in byte-size, i.e. byte count from one line to the next.
-     *                      If zero, stride is set to <code>width * bytes-per-pixel</code>.
-     *                      If not zero, value must be >= <code>width * bytes-per-pixel</code>.
-     * @param stride_bytes stride in byte-size, i.e. byte count from one line to the next.
-     *                     Must be >= {@link PixelFormat#bytesPerPixel() src_fmt.bytesPerPixel()} * width.
-     * @throws IllegalArgumentException if <code>strideInBytes</code> is invalid
+     * @param src_lineStride line stride in byte-size for source, i.e. byte count from one line to the next.
+     *                       Must be >= {@link PixelFormat.Composition#bytesPerPixel() src_fmt.comp.bytesPerPixel()} * width
+     *                       or {@code zero} for default stride.
+     * @param dst_bb  {@link ByteBuffer} sink
+     * @param dst_fmt destination {@link PixelFormat}
+     * @param dst_glOriented if true, the source memory is laid out in OpenGL's coordinate system, <i>origin at bottom left</i>,
+     *                       otherwise <i>origin at top left</i>.
+     * @param dst_lineStride line stride in byte-size for destination, i.e. byte count from one line to the next.
+     *                       Must be >= {@link PixelFormat.Composition#bytesPerPixel() dst_fmt.comp.bytesPerPixel()} * width
+     *                       or {@code zero} for default stride.
+     *
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException if {@code src_lineStride} or {@code dst_lineStride} is invalid
      */
-    public static void convert32(final PixelSink32 dest32,
-                                 final ByteBuffer src_bb, final PixelFormat src_fmt, final boolean src_glOriented, final int width, final int height, int stride_bytes) {
-        final int src_bpp = src_fmt.bytesPerPixel();
-        if( 0 != stride_bytes ) {
-            if( stride_bytes < src_bpp * width ) {
-                throw new IllegalArgumentException("Invalid stride "+stride_bytes+", must be greater than bytesPerPixel "+src_bpp+" * width "+width);
+    public static void convert(final int width, final int height,
+                               final ByteBuffer src_bb, final PixelFormat src_fmt, final boolean src_glOriented, int src_lineStride,
+                               final ByteBuffer dst_bb, final PixelFormat dst_fmt, final boolean dst_glOriented, int dst_lineStride
+                              ) throws IllegalStateException, IllegalArgumentException {
+        final PixelFormat.Composition src_comp = src_fmt.comp;
+        final PixelFormat.Composition dst_comp = dst_fmt.comp;
+        final int src_bpp = src_comp.bytesPerPixel();
+        final int dst_bpp = dst_comp.bytesPerPixel();
+
+        if( 0 != src_lineStride ) {
+            if( src_lineStride < src_bpp * width ) {
+                throw new IllegalArgumentException(String.format("Invalid %s stride %d, must be greater than bytesPerPixel %d * width %d",
+                        "source", src_lineStride, src_bpp, width));
             }
         } else {
-            stride_bytes = src_bpp * width;
+            src_lineStride = src_bpp * width;
         }
-        final PixelFormat dest_fmt = dest32.getPixelformat();
-        final boolean vert_flip = src_glOriented != dest32.isGLOriented();
-        final boolean fast_copy = src_fmt == dest_fmt && dest_fmt.bytesPerPixel() == 4 ;
-        // System.err.println("XXX: SRC fmt "+src_fmt+", stride "+stride_bytes+", isGL "+src_glOriented+", "+width+"x"+height);
-        // System.err.println("XXX: DST fmt "+dest_fmt+", fast_copy "+fast_copy);
+        if( 0 != dst_lineStride ) {
+            if( dst_lineStride < dst_bpp * width ) {
+                throw new IllegalArgumentException(String.format("Invalid %s stride %d, must be greater than bytesPerPixel %d * width %d",
+                        "destination", dst_lineStride, dst_bpp, width));
+            }
+        } else {
+            dst_lineStride = dst_bpp * width;
+        }
+
+        // final int src_comp_bitStride = src_comp.bitStride();
+        final int dst_comp_bitStride = dst_comp.bitStride();
+        final boolean vert_flip = src_glOriented != dst_glOriented;
+        final boolean fast_copy = src_comp.equals(dst_comp) && 0 == dst_comp_bitStride%8;
+        if( DEBUG ) {
+            System.err.println("XXX: size "+width+"x"+height+", fast_copy "+fast_copy);
+            System.err.println("XXX: SRC fmt "+src_fmt+", "+src_comp+", stride "+src_lineStride+", isGLOrient "+src_glOriented);
+            System.err.println("XXX: DST fmt "+dst_fmt+", "+dst_comp+", stride "+dst_lineStride+", isGLOrient "+dst_glOriented);
+        }
 
         if( fast_copy ) {
             // Fast copy
             for(int y=0; y<height; y++) {
-                int o = vert_flip ? ( height - 1 - y ) * stride_bytes : y * stride_bytes;
+                int src_off = vert_flip ? ( height - 1 - y ) * src_lineStride : y * src_lineStride;
+                int dst_off = dst_lineStride*y;
                 for(int x=0; x<width; x++) {
-                    dest32.store(x, y, getValue32(src_fmt, src_bb, o));
-                    o += src_bpp;
+                    dst_bb.put(dst_off+0, src_bb.get(src_off+0)); // 1
+                    if( 2 <= dst_bpp ) {
+                        dst_bb.put(dst_off+1, src_bb.get(src_off+1)); // 2
+                        if( 3 <= dst_bpp ) {
+                            dst_bb.put(dst_off+2, src_bb.get(src_off+2)); // 3
+                            if( 4 <= dst_bpp ) {
+                                dst_bb.put(dst_off+3, src_bb.get(src_off+3)); // 4
+                            }
+                        }
+                    }
+                    src_off += src_bpp;
+                    dst_off += dst_bpp;
                 }
             }
         } else {
             // Conversion
-            for(int y=0; y<height; y++) {
-                int o = vert_flip ? ( height - 1 - y ) * stride_bytes : y * stride_bytes;
-                for(int x=0; x<width; x++) {
-                    dest32.store( x, y, convertToInt32( dest_fmt, src_fmt, src_bb, o));
-                    o += src_bpp;
+            final ComponentMap cmap = new ComponentMap(src_fmt.comp, dst_fmt.comp);
+
+            final Bitstream.ByteBufferStream srcBBS = new Bitstream.ByteBufferStream(src_bb);
+            final Bitstream<ByteBuffer> srcBitStream = new Bitstream<ByteBuffer>(srcBBS, false /* outputMode */);
+            srcBitStream.setThrowIOExceptionOnEOF(true);
+
+            final Bitstream.ByteBufferStream dstBBS = new Bitstream.ByteBufferStream(dst_bb);
+            final Bitstream<ByteBuffer> dstBitStream = new Bitstream<ByteBuffer>(dstBBS, true /* outputMode */);
+            dstBitStream.setThrowIOExceptionOnEOF(true);
+
+            if( DEBUG ) {
+                System.err.println("XXX: cmap.dst2src "+Arrays.toString(cmap.dst2src));
+                System.err.println("XXX: cmap.src2dst "+Arrays.toString(cmap.src2dst));
+                System.err.println("XXX: cmap.srcRGBA "+Arrays.toString(cmap.srcRGBA));
+                System.err.println("XXX: srcBitStream "+srcBitStream);
+                System.err.println("XXX: dstBitStream "+dstBitStream);
+            }
+            try {
+                for(int y=0; y<height; y++) {
+                    final int src_off = vert_flip ? ( height - 1 - y ) * src_lineStride * 8 : y * src_lineStride * 8;
+                    // final int dst_off = dst_lineStride*8*y;
+                    srcBitStream.position(src_off);
+                    for(int x=0; x<width; x++) {
+                        convert(cmap, dst_comp, dstBitStream, src_comp, srcBitStream);
+                    }
+                    // srcBitStream.skip(( src_lineStride * 8 ) - ( src_comp_bitStride * width ));
+                    dstBitStream.skip(( dst_lineStride * 8 ) - ( dst_comp_bitStride * width ));
+                }
+            } catch(final IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+            if( DEBUG ) {
+                System.err.println("XXX: srcBitStream "+srcBitStream);
+                System.err.println("XXX: dstBitStream "+dstBitStream);
+            }
+        }
+    }
+
+    public static void convert(final ComponentMap cmap,
+                               final PixelFormat.Composition dstComp,
+                               final Bitstream<ByteBuffer> dstBitStream,
+                               final PixelFormat.Composition srcComp,
+                               final Bitstream<ByteBuffer> srcBitStream) throws IllegalStateException, IOException {
+        final int sCompCount = srcComp.componenCount();
+        final int dCompCount = dstComp.componenCount();
+        final int[] sc = new int[sCompCount];
+        final int[] dcDef = new int[dCompCount];
+        final int[] srcCompBitCount = srcComp.componentBitCount();
+        final int[] srcCompBitMask = srcComp.componentBitMask();
+        final int[] dstCompBitCount = dstComp.componentBitCount();
+
+        // Fill w/ source values
+        for(int sIdx=0; sIdx<sCompCount; sIdx++) {
+            sc[sIdx] = srcBitStream.readBits31(srcCompBitCount[sIdx]) & srcCompBitMask[sIdx];
+        }
+        srcBitStream.skip(srcComp.bitStride() - srcComp.bitsPerPixel());
+
+        // Cache missing defaults
+        for(int i=0; i<dCompCount; i++) {
+            dcDef[i] = dstComp.defaultValue(i, false);
+        }
+
+        if( 1 == dCompCount &&
+            PixelFormat.CType.Y == dstComp.componentOrder()[0] &&
+            cmap.hasSrcRGB
+          )
+        {
+            // RGB[A] -> Y conversion
+            final int r = sc[cmap.srcRGBA[0]];
+            final int g = sc[cmap.srcRGBA[1]];
+            final int b = sc[cmap.srcRGBA[2]];
+            final float rF = srcComp.toFloat(r, cmap.srcRGBA[0], false);
+            final float gF = srcComp.toFloat(g, cmap.srcRGBA[1], false);
+            final float bF = srcComp.toFloat(b, cmap.srcRGBA[2], false);
+            final int a;
+            final float aF;
+            /** if( 0 <= cmap.srcRGBA[3] ) { // disable premultiplied-alpha
+                a = sc[cmap.srcRGBA[3]];
+                aF = srcComp.toFloat(a, false, cmap.srcRGBA[3]);
+            } else */ {
+                a = 1;
+                aF = 1f;
+            }
+            final float lF = ( rF + gF + bF ) * aF / 3f;
+            final int v = dstComp.fromFloat(lF, 0, false);
+
+            dstBitStream.writeBits31(dstCompBitCount[0], v);
+            dstBitStream.skip(dstComp.bitStride() - dstComp.bitsPerPixel());
+            if( DEBUG ) {
+                if( srcBitStream.position() <= 8*4 ) {
+                    System.err.printf("convert: rgb[a] -> Y: rgb 0x%02X 0x%02X 0x%02X 0x%02X -> %f %f %f %f"+
+                            " -> %f -> dstC 0 0x%08X (%d bits: %s)%n",
+                            r, g, b, a,
+                            rF, gF, bF, aF,
+                            lF, v, dstCompBitCount[0], Bitstream.toBinString(true, v, dstCompBitCount[0])
+                            );
+                }
+            }
+            return;
+        }
+
+        for(int dIdx=0; dIdx<dCompCount; dIdx++) {
+            int sIdx;
+            if( 0 <= ( sIdx = cmap.dst2src[dIdx] ) ) {
+                final float f = srcComp.toFloat(sc[sIdx], sIdx, false);
+                final int v = dstComp.fromFloat(f, dIdx, false);
+                dstBitStream.writeBits31(dstCompBitCount[dIdx], v);
+                if( DEBUG ) {
+                    if( srcBitStream.position() <= 8*4 ) {
+                        System.err.printf("convert: srcC %d: 0x%08X -> %f -> dstC %d 0x%08X (%d bits: %s)%n",
+                                sIdx, sc[sIdx], f, dIdx, v, dstCompBitCount[dIdx], Bitstream.toBinString(true, v, dstCompBitCount[dIdx]));
+                    }
+                }
+            } else {
+                dstBitStream.writeBits31(dstCompBitCount[dIdx], dcDef[dIdx]);
+                if( DEBUG ) {
+                    if( srcBitStream.position() <= 8*4 ) {
+                        System.err.printf("convert: srcC %d: undef -> dstC %d 0x%08X (%d bits: %s)%n",
+                                sIdx, dIdx, dcDef[dIdx], dstCompBitCount[dIdx], Bitstream.toBinString(true, dcDef[dIdx], dstCompBitCount[dIdx]));
+                    }
                 }
             }
         }
+        dstBitStream.skip(dstComp.bitStride() - dstComp.bitsPerPixel());
+        return;
     }
 }
 

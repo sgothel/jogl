@@ -36,6 +36,7 @@ import java.awt.image.DirectColorModel;
 import java.awt.image.SampleModel;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Hashtable;
 
@@ -54,9 +55,12 @@ public final class DirectDataBufferInt extends DataBuffer {
 
     public static class BufferedImageInt extends BufferedImage {
         final int customImageType;
-        public BufferedImageInt (final int customImageType, final ColorModel cm, final WritableRaster raster, final Hashtable<?,?> properties) {
+        final DirectDataBufferInt dataBuffer;
+        public BufferedImageInt (final int customImageType, final ColorModel cm,
+                                 final DirectDataBufferInt dataBuffer, final WritableRaster raster, final Hashtable<?,?> properties) {
             super(cm, raster, false /* isRasterPremultiplied */, properties);
             this.customImageType = customImageType;
+            this.dataBuffer = dataBuffer;
         }
 
         /**
@@ -67,6 +71,11 @@ public final class DirectDataBufferInt extends DataBuffer {
         public int getCustomType() {
             return customImageType;
         }
+
+        /**
+         * Returns the underlying {@link DirectDataBufferInt} associated with this instance via {@link Raster} {@link #getRaster() instance}.
+         */
+        public DirectDataBufferInt getDataBuffer() { return dataBuffer; }
 
         @Override
         public String toString() {
@@ -163,14 +172,18 @@ public final class DirectDataBufferInt extends DataBuffer {
         //    final WritableRaster raster = new SunWritableRaster(sppsm, dataBuffer, location);
         final WritableRaster raster = new DirectWritableRaster(sppsm, dataBuffer, location);
 
-        return new BufferedImageInt(imageType, colorModel, raster, properties);
+        return new BufferedImageInt(imageType, colorModel, dataBuffer, raster, properties);
     }
 
-    /** Default data bank. */
-    private final IntBuffer data;
+    /** Default NIO data bank storage, {@link ByteBuffer} representation. */
+    private final ByteBuffer dataBytes;
+    /** Default NIO data bank storage, {@link IntBuffer} representation. */
+    private final IntBuffer dataInts;
 
-    /** All data banks */
-    private final IntBuffer bankdata[];
+    /** All NIO data banks, {@link ByteBuffer} representation. */
+    private final ByteBuffer bankdataBytes[];
+    /** All NIO data banks, {@link IntBuffer} representation. */
+    private final IntBuffer bankdataInts[];
 
     /**
      * Constructs an nio integer-based {@link DataBuffer} with a single bank
@@ -180,9 +193,12 @@ public final class DirectDataBufferInt extends DataBuffer {
      */
     public DirectDataBufferInt(final int size) {
         super(TYPE_INT, size);
-        data = Buffers.newDirectIntBuffer(size);
-        bankdata = new IntBuffer[1];
-        bankdata[0] = data;
+        dataBytes = Buffers.newDirectByteBuffer(size * Buffers.SIZEOF_INT);
+        dataInts = dataBytes.asIntBuffer();
+        bankdataBytes = new ByteBuffer[1];
+        bankdataInts = new IntBuffer[1];
+        bankdataBytes[0] = dataBytes;
+        bankdataInts[0] = dataInts;
     }
 
     /**
@@ -194,11 +210,14 @@ public final class DirectDataBufferInt extends DataBuffer {
      */
     public DirectDataBufferInt(final int size, final int numBanks) {
         super(TYPE_INT,size,numBanks);
-        bankdata = new IntBuffer[numBanks];
+        bankdataBytes = new ByteBuffer[numBanks];
+        bankdataInts = new IntBuffer[numBanks];
         for (int i= 0; i < numBanks; i++) {
-            bankdata[i] = Buffers.newDirectIntBuffer(size);
+            bankdataBytes[i] = Buffers.newDirectByteBuffer(size * Buffers.SIZEOF_INT);
+            bankdataInts[i] = bankdataBytes[i].asIntBuffer();
         }
-        data = bankdata[0];
+        dataBytes = bankdataBytes[0];
+        dataInts = bankdataInts[0];
     }
 
     /**
@@ -210,33 +229,57 @@ public final class DirectDataBufferInt extends DataBuffer {
      * hold <code>size</code> elements.
      * </p>
      *
-     * @param dataArray The integer array for the {@link DataBuffer}.
+     * @param dataArray The NIO {@link ByteBuffer} array, holding the integer data for the {@link DataBuffer}.
      * @param size The size of the {@link DataBuffer} bank.
      */
-    public DirectDataBufferInt(final IntBuffer dataArray, final int size) {
+    public DirectDataBufferInt(final ByteBuffer dataArray, final int size) {
         super(TYPE_INT,size);
-        data = dataArray;
-        bankdata = new IntBuffer[1];
-        bankdata[0] = data;
+        dataBytes = Buffers.nativeOrder(dataArray);
+        dataInts = dataBytes.asIntBuffer();
+        bankdataBytes = new ByteBuffer[1];
+        bankdataInts = new IntBuffer[1];
+        bankdataBytes[0] = dataBytes;
+        bankdataInts[0] = dataInts;
     }
 
     /**
-     * Returns the default (first) int data array in {@link DataBuffer}.
+     * Returns the default (first) int data array in {@link DataBuffer} as an {@link IntBuffer} representation.
      *
      * @return The first integer data array.
+     * @see #getDataBytes()
      */
     public IntBuffer getData() {
-        return data;
+        return dataInts;
+    }
+    /**
+     * Returns the default (first) int data array in {@link DataBuffer} as a {@link ByteBuffer} representation.
+     *
+     * @return The first integer data array.
+     * @see #getData()
+     */
+    public ByteBuffer getDataBytes() {
+        return dataBytes;
     }
 
     /**
-     * Returns the data array for the specified bank.
+     * Returns the data array for the specified bank as an {@link IntBuffer} representation.
      *
      * @param bank The bank whose data array you want to get.
      * @return The data array for the specified bank.
+     * @see #getDataBytes(int)
      */
     public IntBuffer getData(final int bank) {
-        return bankdata[bank];
+        return bankdataInts[bank];
+    }
+    /**
+     * Returns the data array for the specified bank as a {@link ByteBuffer} representation.
+     *
+     * @param bank The bank whose data array you want to get.
+     * @return The data array for the specified bank.
+     * @see #getData(int)
+     */
+    public ByteBuffer getDataBytes(final int bank) {
+        return bankdataBytes[bank];
     }
 
     /**
@@ -249,7 +292,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      */
     @Override
     public int getElem(final int i) {
-        return data.get(i+offset);
+        return dataInts.get(i+offset);
     }
 
     /**
@@ -263,7 +306,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      */
     @Override
     public int getElem(final int bank, final int i) {
-        return bankdata[bank].get(i+offsets[bank]);
+        return bankdataInts[bank].get(i+offsets[bank]);
     }
 
     /**
@@ -277,7 +320,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      */
     @Override
     public void setElem(final int i, final int val) {
-        data.put(i+offset, val);
+        dataInts.put(i+offset, val);
     }
 
     /**
@@ -291,7 +334,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      */
     @Override
     public void setElem(final int bank, final int i, final int val) {
-        bankdata[bank].put(i+offsets[bank], val);
+        bankdataInts[bank].put(i+offsets[bank], val);
     }
 }
 

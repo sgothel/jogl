@@ -46,6 +46,7 @@ import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -288,8 +289,9 @@ public class AWTTilePainter {
                 final int tWidth = renderer.getParam(TileRenderer.TR_TILE_WIDTH);
                 final int tHeight = renderer.getParam(TileRenderer.TR_TILE_HEIGHT);
                 final AWTGLPixelBufferProvider printBufferProvider = new AWTGLPixelBufferProvider( true /* allowRowStride */ );
-                final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
-                tBuffer = printBufferProvider.allocate(gl, pixelAttribs, tWidth, tHeight, 1, true, 0);
+                final PixelFormat.Composition hostPixelComp = printBufferProvider.getHostPixelComp(gl.getGLProfile(), componentCount);
+                final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount, true);
+                tBuffer = printBufferProvider.allocate(gl, hostPixelComp, pixelAttribs, true, tWidth, tHeight, 1, 0);
                 renderer.setTileBuffer(tBuffer);
                 if( flipVertical ) {
                     vFlipImage = new BufferedImage(tBuffer.width, tBuffer.height, tBuffer.image.getType());

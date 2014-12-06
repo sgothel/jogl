@@ -36,10 +36,14 @@ import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
+import java.util.Iterator;
 
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.opengl.util.GLPixelBuffer;
 
 /**
@@ -50,7 +54,7 @@ import com.jogamp.opengl.util.GLPixelBuffer;
  * </p>
  * <p>
  * {@link AWTGLPixelBuffer} can be produced via {@link AWTGLPixelBufferProvider}'s
- * {@link AWTGLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocate(..)}.
+ * {@link AWTGLPixelBufferProvider#allocate(GL, PixelFormat.Composition, GLPixelAttributes, boolean, int, int, int, int) allocate(..)}.
  * </p>
  * <p>
  * See {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)} for {@link #allowRowStride} details.
@@ -61,29 +65,48 @@ import com.jogamp.opengl.util.GLPixelBuffer;
  * </p>
  */
 public class AWTGLPixelBuffer extends GLPixelBuffer {
-    public static final GLPixelAttributes awtPixelAttributesIntRGBA4 = new GLPixelAttributes(4, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
-    public static final GLPixelAttributes awtPixelAttributesIntRGB3 = new GLPixelAttributes(3, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
+    /**
+     * Ignoring componentCount, since otherwise no AWT/GL matching types are found.
+     * <p>
+     * Due to using RGBA and BGRA, pack/unpack usage has makes no difference.
+     * </p>
+     */
+    private static final GLPixelAttributes awtPixelAttributesIntBGRA = new GLPixelAttributes(GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
+    private static final GLPixelAttributes awtPixelAttributesIntRGBA = new GLPixelAttributes(GL.GL_RGBA, GL.GL_UNSIGNED_BYTE);
 
     /** The underlying {@link BufferedImage}. */
     public final BufferedImage image;
 
+    private final PixelFormat.Composition hostPixelComp;
+    private final int awtFormat;
+
     /**
-     *
+     * @param hostPixelComp the host {@link PixelFormat.Composition}
      * @param pixelAttributes the desired {@link GLPixelAttributes}
+     * @param pack {@code true} for read mode GPU -> CPU, e.g. {@link GL#glReadPixels(int, int, int, int, int, int, Buffer) glReadPixels}.
+     *             {@code false} for write mode CPU -> GPU, e.g. {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, Buffer) glTexImage2D}.
+     * @param awtFormat the used AWT format, i.e. {@link AWTGLPixelBufferProvider#getAWTFormat(GLProfile, int)}
      * @param width in pixels
      * @param height in pixels
      * @param depth in pixels
-     * @param pack true for read mode GPU -> CPU, otherwise false for write mode CPU -> GPU
      * @param image the AWT image
      * @param buffer the backing array
      * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link #requiresNewBuffer(GL, int, int, int)}.
      *                       If <code>true</code>, user shall decide whether to use a {@link #getAlignedImage(int, int) width-aligned image}.
      */
-    public AWTGLPixelBuffer(final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final BufferedImage image,
-                            final Buffer buffer, final boolean allowRowStride) {
-        super(pixelAttributes, width, height, depth, pack, buffer, allowRowStride);
+    public AWTGLPixelBuffer(final PixelFormat.Composition hostPixelComp,
+                            final GLPixelAttributes pixelAttributes,
+                            final boolean pack,
+                            final int awtFormat, final int width, final int height, final int depth,
+                            final BufferedImage image, final Buffer buffer, final boolean allowRowStride) {
+        super(pixelAttributes, pack, width, height, depth, buffer, allowRowStride);
         this.image = image;
+        this.hostPixelComp = hostPixelComp;
+        this.awtFormat = awtFormat;
     }
+
+    public final PixelFormat.Composition getHostPixelComp() { return hostPixelComp; }
+    public final int getAWTFormat() { return awtFormat; }
 
     @Override
     public void dispose() {
@@ -147,12 +170,57 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         public AWTGLPixelBufferProvider(final boolean allowRowStride) {
             this.allowRowStride = allowRowStride;
         }
+
         @Override
         public boolean getAllowRowStride() { return allowRowStride; }
 
         @Override
-        public GLPixelAttributes getAttributes(final GL gl, final int componentCount) {
-            return 4 == componentCount ? awtPixelAttributesIntRGBA4 : awtPixelAttributesIntRGB3;
+        public GLPixelAttributes getAttributes(final GL gl, final int componentCount, final boolean pack) {
+            return gl.isGLES() ? awtPixelAttributesIntRGBA : awtPixelAttributesIntBGRA;
+        }
+
+        public GLPixelAttributes getAttributes(final GLProfile glp, final int componentCount) {
+            return glp.isGLES() ? awtPixelAttributesIntRGBA : awtPixelAttributesIntBGRA;
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Returns a valid {@link PixelFormat.Composition} instance from {@link #getAWTPixelFormat(GLProfile, int)}.
+         * </p>
+         */
+        @Override
+        public PixelFormat.Composition getHostPixelComp(final GLProfile glp, final int componentCount) {
+            return getAWTPixelFormat(glp, componentCount).comp;
+        }
+
+        /**
+         * Returns one of
+         * <ul>
+         *   <li>GL__, 4c -> 4c: {@link BufferedImage#TYPE_INT_ARGB} <-> {@link GL#GL_BGRA}</li>
+         *   <li>GLES, 4c -> 4c: {@link BufferedImage#TYPE_INT_BGR}  <-> {@link GL#GL_RGBA}</li>
+         *   <li>GL__, 3c -> 4c: {@link BufferedImage#TYPE_INT_RGB}  <-> {@link GL#GL_BGRA}</li>
+         *   <li>GLES, 3c -> 4c: {@link BufferedImage#TYPE_INT_BGR}  <-> {@link GL#GL_RGBA}</li>
+         * </ul>
+         * @param glp
+         * @param componentCount
+         * @return
+         */
+        public int getAWTFormat(final GLProfile glp, final int componentCount) {
+            if( 4 == componentCount ) {
+                // FIXME: 4 component solution BufferedImage.TYPE_INT_ARGB: GLES format missing (i.e. GL_BGRA)
+                return glp.isGLES() ? BufferedImage.TYPE_INT_BGR : BufferedImage.TYPE_INT_ARGB;
+            } else {
+                return glp.isGLES() ? BufferedImage.TYPE_INT_BGR : BufferedImage.TYPE_INT_RGB;
+            }
+        }
+
+        public PixelFormat getAWTPixelFormat(final GLProfile glp, final int componentCount) {
+            if( 4 == componentCount ) {
+                return glp.isGLES() ? PixelFormat.RGBx8888 : PixelFormat.BGRA8888;
+            } else {
+                return glp.isGLES() ? PixelFormat.RGBx8888 : PixelFormat.BGRx8888;
+            }
         }
 
         /**
@@ -162,11 +230,17 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * </p>
          */
         @Override
-        public AWTGLPixelBuffer allocate(final GL gl, final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
-            final BufferedImage image = new BufferedImage(width, height, 4 == pixelAttributes.componentCount ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+        public AWTGLPixelBuffer allocate(final GL gl, final PixelFormat.Composition hostPixComp, final GLPixelAttributes pixelAttributes, final boolean pack,
+                                         final int width, final int height, final int depth, final int minByteSize) {
+            if( null == hostPixComp ) {
+                throw new IllegalArgumentException("Null hostPixComp");
+            }
+            final int awtFormat = getAWTFormat(gl.getGLProfile(), hostPixComp.componenCount());
+            final BufferedImage image = new BufferedImage(width, height, awtFormat);
             final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             final Buffer ibuffer = IntBuffer.wrap( readBackIntBuffer );
-            return new AWTGLPixelBuffer(pixelAttributes, width, height, depth, pack, image, ibuffer, allowRowStride);
+            return new AWTGLPixelBuffer(hostPixComp, pixelAttributes, pack,
+                                        awtFormat, width, height, depth, image, ibuffer, allowRowStride);
         }
     }
 
@@ -174,15 +248,22 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
      * Provider for singleton {@link AWTGLPixelBuffer} instances.
      * <p>
      * Provider instance holds the last {@link AWTGLPixelBuffer} instance
-     * {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated}.
-     * A new {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocation}
+     * {@link #allocate(GL, PixelFormat.Composition, GLPixelAttributes, boolean, int, int, int, int) allocated}.
+     * A new {@link #allocate(GL, PixelFormat.Composition, GLPixelAttributes, boolean, int, int, int, int) allocation}
      * will return same instance, if a new buffer is not {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int) required}.
      * The latter is true if size are compatible, hence <code>allowRowStride</code> should be enabled, if possible.
      * </p>
      */
     public static class SingleAWTGLPixelBufferProvider extends AWTGLPixelBufferProvider implements SingletonGLPixelBufferProvider {
-        private AWTGLPixelBuffer singleRGBA4 = null;
-        private AWTGLPixelBuffer singleRGB3 = null;
+        private final IntObjectHashMap bufferMap = new IntObjectHashMap(8);
+
+        private static int getHashCode(final PixelFormat.Composition hostPixelComp, final GLPixelAttributes pixelAttributes, final boolean pack) {
+            // 31 * x == (x << 5) - x
+            int hash = hostPixelComp.hashCode();
+            hash = ((hash << 5) - hash) + pixelAttributes.hashCode();
+            // hash = ((hash << 5) - hash) + (pack ? 100 : 0); // no difference due to RGBA/BGRA only modes.
+            return hash;
+        }
 
         /**
          * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
@@ -198,52 +279,72 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * </p>
          */
         @Override
-        public AWTGLPixelBuffer allocate(final GL gl, final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
-            if( 4 == pixelAttributes.componentCount ) {
-                if( null == singleRGBA4 || singleRGBA4.requiresNewBuffer(gl, width, height, minByteSize) ) {
-                    singleRGBA4 = allocateImpl(pixelAttributes, width, height, depth, pack, minByteSize);
-                }
-                return singleRGBA4;
-            } else {
-                if( null == singleRGB3 || singleRGB3.requiresNewBuffer(gl, width, height, minByteSize) ) {
-                    singleRGB3 = allocateImpl(pixelAttributes, width, height, depth, pack, minByteSize);
-                }
-                return singleRGB3;
+        public AWTGLPixelBuffer allocate(final GL gl, PixelFormat.Composition hostPixComp, final GLPixelAttributes pixelAttributes,
+                                         final boolean pack, final int width, final int height, final int depth, final int minByteSize) {
+            if( null == hostPixComp ) {
+                hostPixComp = pixelAttributes.pfmt.comp;
             }
+            final int bufferKey = getHashCode(hostPixComp, pixelAttributes, pack);
+            AWTGLPixelBuffer r = (AWTGLPixelBuffer) bufferMap.get(bufferKey);
+            if( null == r || r.requiresNewBuffer(gl, width, height, minByteSize) ) {
+                if( null != r ) {
+                    r.dispose();
+                }
+                r = allocateImpl(hostPixComp, pixelAttributes, pack,
+                                 getAWTFormat(gl.getGLProfile(), hostPixComp.componenCount()), width, height, depth, minByteSize);
+                bufferMap.put(bufferKey, r);
+            }
+            return r;
         }
 
-        private AWTGLPixelBuffer allocateImpl(final GLPixelAttributes pixelAttributes, final int width, final int height, final int depth, final boolean pack, final int minByteSize) {
-            final BufferedImage image = new BufferedImage(width, height, 4 == pixelAttributes.componentCount ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+        private AWTGLPixelBuffer allocateImpl(final PixelFormat.Composition hostPixComp,
+                                              final GLPixelAttributes pixelAttributes,
+                                              final boolean pack,
+                                              final int awtFormat, final int width, final int height, final int depth,
+                                              final int minByteSize) {
+            final BufferedImage image = new BufferedImage(width, height, awtFormat);
             final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             final Buffer ibuffer = IntBuffer.wrap( readBackIntBuffer );
-            return new AWTGLPixelBuffer(pixelAttributes, width, height, depth, pack, image, ibuffer, getAllowRowStride());
-        }
-
-        /** Return the last {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated} {@link AWTGLPixelBuffer} w/ {@link GLPixelAttributes#componentCount}. */
-        @Override
-        public AWTGLPixelBuffer getSingleBuffer(final GLPixelAttributes pixelAttributes) {
-            return 4 == pixelAttributes.componentCount ? singleRGBA4 : singleRGB3;
+            return new AWTGLPixelBuffer(hostPixComp, pixelAttributes, pack,
+                                        awtFormat, width, height, depth, image, ibuffer, getAllowRowStride());
         }
 
         /**
-         * Initializes the single {@link AWTGLPixelBuffer} w/ a given size, if not yet {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated}.
+         * Return the last {@link #allocate(GL, PixelFormat.Composition, GLPixelAttributes, boolean, int, int, int, int) allocated}
+         * {@link AWTGLPixelBuffer}, if compatible w/ the given {@link PixelFormat.Composition} and {@link GLPixelAttributes}.
+         **/
+        @Override
+        public AWTGLPixelBuffer getSingleBuffer(final PixelFormat.Composition hostPixelComp, final GLPixelAttributes pixelAttributes, final boolean pack) {
+            return (AWTGLPixelBuffer) bufferMap.get(getHashCode(hostPixelComp, pixelAttributes, pack));
+        }
+
+        /**
+         * Initializes the single {@link AWTGLPixelBuffer} w/ a given size, if not yet {@link #allocate(GL, PixelFormat.Composition, GLPixelAttributes, boolean, int, int, int, int) allocated}.
          * @return the newly initialized single {@link AWTGLPixelBuffer}, or null if already allocated.
          */
         @Override
-        public AWTGLPixelBuffer initSingleton(final int componentCount, final int width, final int height, final int depth, final boolean pack) {
-            if( 4 == componentCount ) {
-                if( null != singleRGBA4 ) {
-                    return null;
-                }
-                singleRGBA4 = allocateImpl(AWTGLPixelBuffer.awtPixelAttributesIntRGBA4, width, height, depth, pack, 0);
-                return singleRGBA4;
-            } else {
-                if( null != singleRGB3 ) {
-                    return null;
-                }
-                singleRGB3 = allocateImpl(AWTGLPixelBuffer.awtPixelAttributesIntRGB3, width, height, depth, pack, 0);
-                return singleRGB3;
+        public AWTGLPixelBuffer initSingleton(final GLProfile glp, final int componentCount,
+                                              final boolean pack, final int width, final int height, final int depth) {
+            final GLPixelAttributes pixelAttributes = getAttributes(glp, componentCount);
+            final PixelFormat awtPixelFormat = getAWTPixelFormat(glp, componentCount);
+            final int awtFormat = getAWTFormat(glp, componentCount);
+            final int bufferKey = getHashCode(awtPixelFormat.comp, pixelAttributes, pack);
+            AWTGLPixelBuffer r = (AWTGLPixelBuffer) bufferMap.get(bufferKey);
+            if( null != r ) {
+                return null;
             }
+            r = allocateImpl(awtPixelFormat.comp, pixelAttributes, pack, awtFormat, width, height, depth, 0);
+            bufferMap.put(bufferKey, r);
+            return r;
+        }
+
+        @Override
+        public void dispose() {
+            for(final Iterator<IntObjectHashMap.Entry> i=bufferMap.iterator(); i.hasNext(); ) {
+                final AWTGLPixelBuffer b = (AWTGLPixelBuffer)i.next().value;
+                b.dispose();
+            }
+            bufferMap.clear();
         }
     }
 }

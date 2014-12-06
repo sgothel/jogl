@@ -154,7 +154,7 @@ public class PointerIconImpl implements PointerIcon {
     }
     @Override
     public final int getStride() {
-        return size.getWidth() * pixelformat.bytesPerPixel();
+        return size.getWidth() * pixelformat.comp.bytesPerPixel();
     }
     @Override
     public final boolean isGLOriented() {

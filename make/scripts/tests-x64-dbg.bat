@@ -1,4 +1,9 @@
 
+set TEMP=\\jordan\data\Incoming\windows\temp
+set TMP=\\jordan\data\Incoming\windows\temp
+REM set TEMP=C:\Documents and Settings\jogamp\temp
+REM set TMP=C:\Documents and Settings\jogamp\temp
+
 set BLD_SUB=build-win64
 set J2RE_HOME=c:\jre1.7.0_67_x64
 set JAVA_HOME=c:\jdk1.7.0_67_x64

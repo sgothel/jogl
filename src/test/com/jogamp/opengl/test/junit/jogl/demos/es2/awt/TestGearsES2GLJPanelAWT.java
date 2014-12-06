@@ -70,6 +70,7 @@ import com.jogamp.opengl.util.FPSAnimator;
 public class TestGearsES2GLJPanelAWT extends UITestCase {
     static Dimension wsize, rwsize=null;
     static boolean forceES2 = false;
+    static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGLFFP = false;
     static boolean shallUsePBuffer = false;
@@ -117,6 +118,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     protected void runTestGL(final GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
+        System.err.println("Requesting: "+caps);
+
         final JFrame frame = new JFrame("Swing GLJPanel");
         Assert.assertNotNull(frame);
 
@@ -302,12 +305,14 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         final GLProfile glp;
         if(forceGL3) {
             glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
         } else if(forceES2) {
             glp = GLProfile.get(GLProfile.GLES2);
         } else if(forceGLFFP) {
             glp = GLProfile.getMaxFixedFunc(true);
         } else {
-            glp = GLProfile.getGL2ES2();
+            glp = GLProfile.getDefault();
         }
         final GLCapabilities caps = new GLCapabilities( glp );
         if(useMSAA) {
@@ -406,7 +411,24 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     }
 
     @Test
-    public void test30_GL3()
+    public void test30_GLES3()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( manualTest ) {
+            return;
+        }
+
+        if( !GLProfile.isAvailable(GLProfile.GLES3) ) {
+            System.err.println("GLES3 n/a");
+            return;
+        }
+        final GLProfile glp = GLProfile.get(GLProfile.GLES3);
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps);
+    }
+
+    @Test
+    public void test40_GL3()
             throws AWTException, InterruptedException, InvocationTargetException
     {
         if( manualTest ) {
@@ -447,6 +469,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 duration = MiscUtils.atol(args[i], duration);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-es3")) {
+                forceES3 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
             } else if(args[i].equals("-glFFP")) {

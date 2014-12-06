@@ -137,7 +137,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
         } else {
             destFmt = ddestFmt; // user choice
         }
-        final int destStrideInBytes = Math.max(destMinStrideInBytes, destFmt.bytesPerPixel() * width);
+        final int destStrideInBytes = Math.max(destMinStrideInBytes, destFmt.comp.bytesPerPixel() * width);
         final ByteBuffer destPixels = destDirectBuffer ? Buffers.newDirectByteBuffer(destStrideInBytes * height) :
                                                          ByteBuffer.allocate(destStrideInBytes * height);
         {
@@ -153,7 +153,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
             System.err.println("PNGPixelRect: indexed "+indexed+", alpha "+hasAlpha+", grayscale "+imgInfo.greyscale+", channels "+channels+"/"+imgInfo.channels+
                                ", bytesPerPixel "+bytesPerPixel+"/"+imgInfo.bytesPixel+
                                ", grayAlpha "+isGrayAlpha+", pixels "+width+"x"+height+", dpi "+dpiX+"x"+dpiY+", format "+srcFmt);
-            System.err.println("PNGPixelRect: destFormat "+destFmt+" ("+ddestFmt+", bytesPerPixel "+destFmt.bytesPerPixel()+", fast-path "+(destFmt==srcFmt)+"), destDirectBuffer "+destDirectBuffer+", destIsGLOriented (flip) "+destIsGLOriented);
+            System.err.println("PNGPixelRect: destFormat "+destFmt+" ("+ddestFmt+", fast-path "+(destFmt==srcFmt)+"), destDirectBuffer "+destDirectBuffer+", destIsGLOriented (flip) "+destIsGLOriented);
             System.err.println("PNGPixelRect: destStrideInBytes "+destStrideInBytes+" (destMinStrideInBytes "+destMinStrideInBytes+")");
         }
 
@@ -227,7 +227,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
                                                                (byte)scanline[lineOff+1], // G
                                                                (byte)scanline[lineOff+2], // B
                                                                srcHasAlpha ? (byte)scanline[lineOff+3] : (byte)0xff); // A
-        final int dbpp = dest_fmt.bytesPerPixel();
+        final int dbpp = dest_fmt.comp.bytesPerPixel();
         d.put(dOff++, (byte) ( p ));                // 1
         if( 1 < dbpp ) {
             d.put(dOff++, (byte) ( p >>>  8 ));     // 2
@@ -261,7 +261,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
         if(hasAlpha) {
             line.scanline[lineOff + 3] = 0xff & ( p >>> 24 ); // A
         }
-        return srcOff + pixelformat.bytesPerPixel();
+        return srcOff + pixelformat.comp.bytesPerPixel();
     }
 
     private static void setPixelRGBA8(final PixelFormat pixelformat, final ImageLine line, final int lineOff, final int srcPix, final int bytesPerPixel, final boolean hasAlpha) {
@@ -304,7 +304,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
     public void write(final OutputStream outstream, final boolean closeOutstream) throws IOException {
         final int width = size.getWidth();
         final int height = size.getHeight();
-        final int bytesPerPixel = pixelformat.bytesPerPixel();
+        final int bytesPerPixel = pixelformat.comp.bytesPerPixel();
         final ImageInfo imi = new ImageInfo(width, height, 8 /* bitdepth */,
                                             (4 == bytesPerPixel) ? true : false /* alpha */,
                                             (1 == bytesPerPixel) ? true : false /* grayscale */,
@@ -349,7 +349,7 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
                              final OutputStream outstream, final boolean closeOutstream) throws IOException {
         final int width = size.getWidth();
         final int height = size.getHeight();
-        final int bytesPerPixel = pixelformat.bytesPerPixel();
+        final int bytesPerPixel = pixelformat.comp.bytesPerPixel();
         final ImageInfo imi = new ImageInfo(width, height, 8 /* bitdepth */,
                                             (4 == bytesPerPixel) ? true : false /* alpha */,
                                             (1 == bytesPerPixel) ? true : false /* grayscale */,

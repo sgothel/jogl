@@ -99,7 +99,7 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
 
         if( initSingleBuffer ) {
             singleAWTGLPixelBufferProvider = new SingleAWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */);
-            singleAWTGLPixelBufferProvider.initSingleton(4, 600, 600, 1, true);
+            singleAWTGLPixelBufferProvider.initSingleton(null, 4, true, 600, 600, 1);
         } else {
             singleAWTGLPixelBufferProvider = null;
         }

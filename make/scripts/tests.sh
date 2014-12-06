@@ -116,6 +116,7 @@ function jrun() {
 
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
+    #D_ARGS="-Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.disable.openglcore"
     #D_ARGS="-Djogl.disable.openglarbcontext"
@@ -150,6 +151,12 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLProfile -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.ProxySurface -Djogl.debug.GLProfile -Djogl.disable.opengldesktop"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.ProxySurface -Djogl.debug.GLProfile"
+    #D_ARGS="-Djogl.disable.surfacelesscontext -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLJPanel -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLJPanel -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.GLJPanel"
     #D_ARGS="-Djogl.debug.GLContext.NoProfileAliasing"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.X11Util -Dnativewindow.debug.NativeWindow -Dnewt.debug.Display -Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.Animator"
@@ -398,8 +405,8 @@ function testawtswt() {
 # HiDPI
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
@@ -589,7 +596,7 @@ function testawtswt() {
 
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows03NEWTAnimResize $*
@@ -785,13 +792,14 @@ testnoawt com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture02AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTBenchmarkNewtAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTBenchmarkNewtAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGTextureFromFileNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGPixelRect00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGPixelRect01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPixelFormat00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPixelFormatUtil00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPixelFormatUtil01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGPixelRect00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGPixelRect01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTGATextureFromFileNEWT $*

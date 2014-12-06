@@ -113,11 +113,11 @@ public interface PixelRectangle {
                 throws IllegalArgumentException, IndexOutOfBoundsException
         {
             if( 0 != strideInBytes ) {
-                if( strideInBytes < pixelformat.bytesPerPixel() * size.getWidth()) {
-                    throw new IllegalArgumentException("Invalid stride "+strideInBytes+", must be greater than bytesPerPixel "+pixelformat.bytesPerPixel()+" * width "+size.getWidth());
+                if( strideInBytes < pixelformat.comp.bytesPerPixel() * size.getWidth()) {
+                    throw new IllegalArgumentException("Invalid stride "+strideInBytes+", must be greater than bytesPerPixel "+pixelformat.comp.bytesPerPixel()+" * width "+size.getWidth());
                 }
             } else {
-                strideInBytes = pixelformat.bytesPerPixel() * size.getWidth();
+                strideInBytes = pixelformat.comp.bytesPerPixel() * size.getWidth();
             }
             final int reqBytes = strideInBytes * size.getHeight();
             if( pixels.limit() < reqBytes ) {
@@ -148,7 +148,7 @@ public interface PixelRectangle {
                 synchronized (this) {
                     if( !hashCodeComputed ) {
                         // 31 * x == (x << 5) - x
-                        int hash = 31 + pixelformat.hashCode();
+                        int hash = pixelformat.comp.hashCode();
                         hash = ((hash << 5) - hash) + size.hashCode();
                         hash = ((hash << 5) - hash) + strideInBytes;
                         hash = ((hash << 5) - hash) + ( isGLOriented ? 1 : 0);

@@ -112,7 +112,7 @@ public class TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT extends UITestC
         public void dispose(final GLAutoDrawable drawable) {}
         public void display(final GLAutoDrawable drawable) {
             final GLPixelBufferProvider pixelBufferProvider = screenshot.getPixelBufferProvider();
-            final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(drawable.getGL(), readAlpha ? 4 : 3);
+            final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(drawable.getGL(), readAlpha ? 4 : 3, true);
             System.err.println("GLPixelAttributes: "+pixelAttribs);
             snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
         }

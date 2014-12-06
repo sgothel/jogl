@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.Bitstream;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.PNGPixelRect;
@@ -86,15 +87,21 @@ public class TestPixelFormatUtil01NEWT extends UITestCase {
 
         final PNGPixelRect image1 = PNGPixelRect.read(urlConn.getInputStream(), srcFmt, false /* directBuffer */, destMinStrideInBytes, false /* isGLOriented */);
         System.err.println("PNGPixelRect - Orig: "+image1);
+        System.err.printf("Image Data: %s%n", Bitstream.toHexBinString(true, image1.getPixels(), 0, image1.getPixelformat().comp.bytesPerPixel()));
+        TestPixelFormatUtil00NEWT.dumpComponents(image1, 0, 0, 3, 3);
 
         final PixelFormat[] formats = new PixelFormat[] { PixelFormat.RGBA8888, PixelFormat.ABGR8888, PixelFormat.BGRA8888, PixelFormat.ARGB8888 };
         for(int i=0; i<formats.length; i++) {
             final PixelFormat destFmt = formats[i];
             System.err.println("CONVERT["+i+"]: "+srcFmt+" -> "+destFmt);
-            final PixelRectangle imageConv1 = PixelFormatUtil.convert32(image1, destFmt, destMinStrideInBytes, destIsGLOriented, false /* nio */);
+            final PixelRectangle imageConv1 = PixelFormatUtil.convert(image1, destFmt, destMinStrideInBytes, destIsGLOriented, false /* nio */);
             System.err.println("PNGPixelRect - Conv1: "+imageConv1);
-            final PixelRectangle imageConv2 = PixelFormatUtil.convert32(imageConv1, image1.getPixelformat(), image1.getStride(), image1.isGLOriented(), false /* nio */);
+            System.err.printf("Conv1 Data: %s%n", Bitstream.toHexBinString(true, imageConv1.getPixels(), 0, imageConv1.getPixelformat().comp.bytesPerPixel()));
+            TestPixelFormatUtil00NEWT.dumpComponents(imageConv1, 0, 0, 3, 3);
+            final PixelRectangle imageConv2 = PixelFormatUtil.convert(imageConv1, image1.getPixelformat(), image1.getStride(), image1.isGLOriented(), false /* nio */);
             System.err.println("PNGPixelRect - Conv2: "+imageConv2);
+            System.err.printf("Conv2 Data: %s%n", Bitstream.toHexBinString(true, imageConv2.getPixels(), 0, imageConv2.getPixelformat().comp.bytesPerPixel()));
+            TestPixelFormatUtil00NEWT.dumpComponents(imageConv2, 0, 0, 3, 3);
             Assert.assertEquals(image1.getPixels(), imageConv2.getPixels());
         }
     }

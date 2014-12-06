@@ -31,6 +31,7 @@ package com.jogamp.opengl.util;
 import java.io.File;
 import java.io.IOException;
 
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
@@ -51,10 +52,10 @@ import com.jogamp.opengl.util.texture.TextureIO;
  */
 public class GLReadBufferUtil {
     protected final GLPixelBufferProvider pixelBufferProvider;
-    protected final int componentCount, alignment;
     protected final Texture readTexture;
     protected final GLPixelStorageModes psm;
 
+    protected boolean hasAlpha;
     protected GLPixelBuffer readPixelBuffer = null;
     protected TextureData readTextureData = null;
 
@@ -68,10 +69,9 @@ public class GLReadBufferUtil {
 
     public GLReadBufferUtil(final GLPixelBufferProvider pixelBufferProvider, final boolean alpha, final boolean write2Texture) {
         this.pixelBufferProvider = pixelBufferProvider;
-        this.componentCount = alpha ? 4 : 3 ;
-        this.alignment = alpha ? 4 : 1 ;
         this.readTexture = write2Texture ? new Texture(GL.GL_TEXTURE_2D) : null ;
         this.psm = new GLPixelStorageModes();
+        this.hasAlpha = alpha; // preset
     }
 
     /** Returns the {@link GLPixelBufferProvider} used by this instance. */
@@ -81,7 +81,7 @@ public class GLReadBufferUtil {
       return null!=readTextureData && null!=readPixelBuffer && readPixelBuffer.isValid();
     }
 
-    public boolean hasAlpha() { return 4 == componentCount ? true : false ; }
+    public boolean hasAlpha() { return hasAlpha; }
 
     public GLPixelStorageModes getGLPixelStorageModes() { return psm; }
 
@@ -173,13 +173,13 @@ public class GLReadBufferUtil {
         if(GL.GL_NO_ERROR != glerr0) {
             System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
         }
-        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);
-        final int internalFormat;
-        if(gl.isGL2GL3() && 3 == componentCount) {
-            internalFormat = GL.GL_RGB;
-        } else {
-            internalFormat = (4 == componentCount) ? GL.GL_RGBA : GL.GL_RGB;
-        }
+        final int reqCompCount = hasAlpha ? 4 : 3;
+        final PixelFormat.Composition hostPixelComp = pixelBufferProvider.getHostPixelComp(gl.getGLProfile(), reqCompCount);
+        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, reqCompCount, true);
+        final int componentCount = pixelAttribs.pfmt.comp.componenCount();
+        hasAlpha = 0 <= pixelAttribs.pfmt.comp.find(PixelFormat.CType.A);
+        final int alignment = 4 == componentCount ? 4 : 1 ;
+        final int internalFormat = 4 == componentCount ? GL.GL_RGBA : GL.GL_RGB;
 
         final boolean flipVertically;
         if( drawable.isGLOriented() ) {
@@ -189,11 +189,11 @@ public class GLReadBufferUtil {
         }
 
         final int tmp[] = new int[1];
-        final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.bytesPerPixel, width, height, 1, true);
+        final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.pfmt.comp.bytesPerPixel(), width, height, 1, true);
 
         boolean newData = false;
         if( null == readPixelBuffer || readPixelBuffer.requiresNewBuffer(gl, width, height, readPixelSize) ) {
-            readPixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, width, height, 1, true, readPixelSize);
+            readPixelBuffer = pixelBufferProvider.allocate(gl, hostPixelComp, pixelAttribs, true, width, height, 1, readPixelSize);
             Buffers.rangeCheckBytes(readPixelBuffer.buffer, readPixelSize);
             try {
                 readTextureData = new TextureData(

@@ -39,6 +39,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import java.io.File;
 import java.io.IOException;
 
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -121,8 +122,9 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
         final boolean[] flipVertically = { false };
 
-        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
-        final GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
+        final PixelFormat.Composition hostPixelComp = pixelBufferProvider.getHostPixelComp(gl.getGLProfile(), 3);
+        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3, true);
+        final GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, hostPixelComp, pixelAttribs, true, imageWidth, imageHeight, 1, 0);
         renderer.setImageBuffer(pixelBuffer);
         flipVertically[0] = false;
 

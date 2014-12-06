@@ -63,6 +63,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES3;
@@ -265,12 +266,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
   private final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
-  // For handling reshape events lazily: reshapeWidth -> panelWidth -> backend.width
+  /** For handling reshape events lazily: reshapeWidth -> panelWidth -> backend.width in pixel units (scaled) */
   private int reshapeWidth;
+  /** For handling reshape events lazily: reshapeHeight -> panelHeight -> backend.height in pixel units (scaled) */
   private int reshapeHeight;
 
-  // Width of the actual GLJPanel: reshapeWidth -> panelWidth -> backend.width
+  /** Scaled pixel width of the actual GLJPanel: reshapeWidth -> panelWidth -> backend.width */
   private int panelWidth   = 0;
+  /** Scaled pixel height of the actual GLJPanel: reshapeHeight -> panelHeight -> backend.height */
   private int panelHeight  = 0;
 
   // These are always set to (0, 0) except when the Java2D / OpenGL
@@ -1882,27 +1885,36 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             alignment = 4;
         }
 
-        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);
+        final PixelFormat awtPixelFormat = pixelBufferProvider.getAWTPixelFormat(gl.getGLProfile(), componentCount);
+        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount, true);
 
         if( useSingletonBuffer ) { // attempt to fetch the latest AWTGLPixelBuffer
-            pixelBuffer = (AWTGLPixelBuffer) ((SingletonGLPixelBufferProvider)pixelBufferProvider).getSingleBuffer(pixelAttribs);
+            pixelBuffer = (AWTGLPixelBuffer) ((SingletonGLPixelBufferProvider)pixelBufferProvider).getSingleBuffer(awtPixelFormat.comp, pixelAttribs, true);
         }
         if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, panelWidth, panelHeight, 0) ) {
             pixelBuffer.dispose();
             pixelBuffer = null;
             alignedImage = null;
         }
+        final boolean DEBUG_INIT;
         if ( null == pixelBuffer ) {
           if (0 >= panelWidth || 0 >= panelHeight ) {
               return;
           }
-          pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, panelWidth, panelHeight, 1, true, 0);
+          pixelBuffer = pixelBufferProvider.allocate(gl, awtPixelFormat.comp, pixelAttribs, true, panelWidth, panelHeight, 1, 0);
           if(DEBUG) {
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelBufferProvider isSingletonBufferProvider "+useSingletonBuffer+", 0x"+Integer.toHexString(pixelBufferProvider.hashCode())+", "+pixelBufferProvider.getClass().getSimpleName());
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelBuffer 0x"+Integer.toHexString(pixelBuffer.hashCode())+", "+pixelBuffer+", alignment "+alignment);
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster)+", isGL2ES3 "+gl.isGL2ES3());
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" panelSize "+panelWidth+"x"+panelHeight+" @ scale "+getPixelScaleStr());
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelAttribs "+pixelAttribs);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" awtPixelFormat "+awtPixelFormat);
+              DEBUG_INIT = true;
+          } else {
+              DEBUG_INIT = false;
           }
+        } else {
+            DEBUG_INIT = false;
         }
         if( offscreenDrawable.getSurfaceWidth() != panelWidth || offscreenDrawable.getSurfaceHeight() != panelHeight ) {
             throw new InternalError("OffscreenDrawable panelSize mismatch (reshape missed): panelSize "+panelWidth+"x"+panelHeight+" != drawable "+offscreenDrawable.getSurfaceWidth()+"x"+offscreenDrawable.getSurfaceHeight()+", on thread "+getThreadName());
@@ -1937,6 +1949,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             final GL2ES3 gl2es3 = gl.getGL2ES3();
             psm.setPackRowLength(gl2es3, panelWidth);
             gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
+            if( DEBUG_INIT ) {
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.0: fboDrawable "+offscreenDrawable);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.0: isGL2ES3, readBuffer 0x"+Integer.toHexString(gl2es3.getDefaultReadBuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.0: def-readBuffer 0x"+Integer.toHexString(gl2es3.getDefaultReadBuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.0: def-readFBO    0x"+Integer.toHexString(gl2es3.getDefaultReadFramebuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.0: bound-readFBO  0x"+Integer.toHexString(gl2es3.getBoundFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER)));
+            }
         }
 
         if(null != glslTextureRaster) { // implies flippedVertical
@@ -1965,9 +1984,26 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             // gl.glClear(GL.GL_DEPTH_BUFFER_BIT); // fboFlipped runs w/o DEPTH!
 
             glslTextureRaster.display(gl.getGL2ES2());
+            if( DEBUG_INIT ) {
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: fboDrawable "+fboDrawable);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: read from fbo-rb "+fboFlipped.getReadFramebuffer()+", fbo "+fboFlipped);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: isGL2ES3, readBuffer 0x"+Integer.toHexString(gl.getDefaultReadBuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: def-readBuffer 0x"+Integer.toHexString(gl.getDefaultReadBuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: def-readFBO    0x"+Integer.toHexString(gl.getDefaultReadFramebuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: bound-readFBO  0x"+Integer.toHexString(gl.getBoundFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER)));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.1: "+GLJPanel.this.getName()+" pixelAttribs "+pixelAttribs);
+            }
             gl.glReadPixels(0, 0, panelWidth, panelHeight, pixelAttribs.format, pixelAttribs.type, readBackInts);
 
             fboFlipped.unbind(gl);
+            if( DEBUG_INIT ) {
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.2: fboDrawable "+fboDrawable);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.2: read from fbo-rb "+fboFlipped.getReadFramebuffer()+", fbo "+fboFlipped);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.2: isGL2ES3, readBuffer 0x"+Integer.toHexString(gl.getDefaultReadBuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.2: def-readBuffer 0x"+Integer.toHexString(gl.getDefaultReadBuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.2: def-readFBO    0x"+Integer.toHexString(gl.getDefaultReadFramebuffer()));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0.2: bound-readFBO  0x"+Integer.toHexString(gl.getBoundFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER)));
+            }
             if( viewportChange ) {
                 gl.glViewport(usrViewport[0], usrViewport[1], usrViewport[2], usrViewport[3]);
             }
