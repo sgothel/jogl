@@ -470,11 +470,11 @@ public class JPEGDecoder {
     }
 
     private final int readUInt8() throws IOException {
-        return bstream.readUInt8(true /* msbFirst */);
+        return bstream.readUInt8();
     }
 
     private final int readUInt16() throws IOException {
-        return bstream.readUInt16(true /* msbFirst */, true /* bigEndian */);
+        return bstream.readUInt16(true /* bigEndian */);
     }
 
     private final int readNumber() throws IOException {
