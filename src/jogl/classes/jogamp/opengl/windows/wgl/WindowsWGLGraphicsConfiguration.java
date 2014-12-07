@@ -509,7 +509,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             caps.getAccumGreenBits() > 0 ||
             caps.getAccumBlueBits()  > 0 ||
             caps.getAccumAlphaBits() > 0 ) {
-            final GLRendererQuirks sharedQuirks = sharedResource.getRendererQuirks();
+            final GLRendererQuirks sharedQuirks = sharedResource.getRendererQuirks(null);
             if ( !usePBuffer || null==sharedQuirks || !sharedQuirks.exist(GLRendererQuirks.NoPBufferWithAccum) ) {
               iattributes.put(niattribs++, WGLExt.WGL_ACCUM_BITS_ARB);
               iattributes.put(niattribs++, ( caps.getAccumRedBits() +

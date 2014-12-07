@@ -28,8 +28,10 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import jogamp.opengl.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import jogamp.opengl.DesktopGLDynamicLibraryBundleInfo;
 
 public final class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected MacOSXCGLDynamicLibraryBundleInfo() {

@@ -28,8 +28,10 @@
 
 package jogamp.opengl.x11.glx;
 
-import jogamp.opengl.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import jogamp.opengl.DesktopGLDynamicLibraryBundleInfo;
 
 public final class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected X11GLXDynamicLibraryBundleInfo() {

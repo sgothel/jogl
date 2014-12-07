@@ -204,7 +204,7 @@ public class GLGraphicsConfigurationUtil {
         final boolean fboAvailable = GLContext.isFBOAvailable(device, glp);
         final boolean pbufferAvailable = factory.canCreateGLPbuffer(device, glp);
 
-        final GLRendererQuirks glrq = factory.getRendererQuirks(device);
+        final GLRendererQuirks glrq = factory.getRendererQuirks(device, glp);
         final boolean bitmapAvailable;
         final boolean doubleBufferAvailable;
 

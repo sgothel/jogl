@@ -129,16 +129,16 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   protected final boolean createSharedResourceImpl(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
       if(null!=sr) {
-          return sr.isValid();
+          return sr.isAvailable();
       }
       return false;
   }
 
   @Override
-  public final GLRendererQuirks getRendererQuirks(final AbstractGraphicsDevice device) {
+  public final GLRendererQuirks getRendererQuirks(final AbstractGraphicsDevice device, final GLProfile glp) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
       if(null!=sr) {
-          return sr.getRendererQuirks();
+          return sr.getRendererQuirks(glp);
       }
       return null;
   }
@@ -272,9 +272,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   @Override
   public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(final AbstractGraphicsDevice deviceReq,
-                                                             final GLCapabilitiesImmutable capsRequested,
-                                                             final GLCapabilitiesChooser chooser,
-                                                             final int width, final int height) {
+                                                                   final GLCapabilitiesImmutable capsRequested,
+                                                                   final GLCapabilitiesChooser chooser,
+                                                                   final int width, final int height) {
     final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
     try {
         drawable.setRealized(true);
@@ -307,24 +307,32 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   @Override
   public final GLDrawable createOffscreenDrawable(final AbstractGraphicsDevice deviceReq,
-                                            final GLCapabilitiesImmutable capsRequested,
-                                            final GLCapabilitiesChooser chooser,
-                                            final int width, final int height) {
+                                                  final GLCapabilitiesImmutable capsRequested,
+                                                  final GLCapabilitiesChooser chooser,
+                                                  final int width, final int height) {
     if(width<=0 || height<=0) {
         throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
     }
-    final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
-    if(null == device) {
+    final SharedResourceRunner.Resource sr = getOrCreateSharedResource( deviceReq );
+    if( null == sr ) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-
+    final AbstractGraphicsDevice device = sr.getDevice();
     final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, this, device);
 
     if( capsChosen.isFBO() ) {
         // Use minimum GLCapabilities for the dummy surface w/ same profile
-        final ProxySurface dummySurface = createDummySurfaceImpl(device, true, new GLCapabilities(capsChosen.getGLProfile()), capsRequested, null, width, height);
-        final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
-        return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, dummySurface, capsChosen, 0);
+        final GLProfile glp = capsChosen.getGLProfile();
+        final GLCapabilitiesImmutable glCapsMin = new GLCapabilities(glp);
+        final GLRendererQuirks glrq = sr.getRendererQuirks(glp);
+        final ProxySurface surface;
+        if( null != glrq && !glrq.exist(GLRendererQuirks.NoSurfacelessCtx) ) {
+            surface = createSurfacelessImpl(device, true, glCapsMin, capsRequested, null, width, height);
+        } else {
+            surface = createDummySurfaceImpl(device, true, glCapsMin, capsRequested, null, width, height);
+        }
+        final GLDrawableImpl drawable = createOnscreenDrawableImpl(surface);
+        return new GLFBODrawableImpl.ResizeableImpl(this, drawable, surface, capsChosen, 0);
     }
     return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
                                                                  new UpstreamSurfaceHookMutableSize(width, height) ) );

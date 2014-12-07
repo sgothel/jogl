@@ -275,7 +275,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       }
 
       @Override
-      public final boolean isValid() {
+      public final boolean isAvailable() {
           return null != context;
       }
       @Override
@@ -287,7 +287,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       @Override
       final public GLContextImpl getContext() { return context; }
       @Override
-      public GLRendererQuirks getRendererQuirks() {
+      public GLRendererQuirks getRendererQuirks(final GLProfile glp) {
           return null != context ? context.getRendererQuirks() : null;
       }
 
@@ -303,12 +303,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             sharedMap.clear();
         }
         @Override
-        public SharedResourceRunner.Resource mapPut(final String connection, final SharedResourceRunner.Resource resource) {
-            return sharedMap.put(connection, resource);
+        public SharedResourceRunner.Resource mapPut(final AbstractGraphicsDevice device, final SharedResourceRunner.Resource resource) {
+            return sharedMap.put(device.getConnection(), resource);
         }
         @Override
-        public SharedResourceRunner.Resource mapGet(final String connection) {
-            return sharedMap.get(connection);
+        public SharedResourceRunner.Resource mapGet(final AbstractGraphicsDevice device) {
+            return sharedMap.get(device.getConnection());
         }
         @Override
         public Collection<SharedResourceRunner.Resource> mapValues() {
@@ -318,13 +318,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
-        public boolean isDeviceSupported(final String connection) {
+        public boolean isDeviceSupported(final AbstractGraphicsDevice device) {
             return true;
         }
 
         @Override
-        public SharedResourceRunner.Resource createSharedResource(final String connection) {
-            final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
+        public SharedResourceRunner.Resource createSharedResource(final AbstractGraphicsDevice device) {
+            final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(device.getConnection(), device.getUnitID());
             sharedDevice.lock();
             try {
                 final AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
@@ -367,7 +367,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                                           hasARBPixelFormat, hasARBMultisample,
                                           hasARBPBuffer, hasARBReadDrawableAvailable);
             } catch (final Throwable t) {
-                throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+connection, t);
+                throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+device, t);
             } finally {
                 sharedDevice.unlock();
             }

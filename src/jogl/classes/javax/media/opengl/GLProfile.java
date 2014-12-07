@@ -53,6 +53,7 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveThreadGroupLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.nativewindow.NativeWindowVersion;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -80,13 +81,6 @@ public class GLProfile {
     public static final boolean DEBUG;
 
     /**
-     * In case no OpenGL ES profiles are required
-     * and if one platform may have a buggy implementation,
-     * setting the property <code>jogl.disable.opengles</code> disables querying possible existing OpenGL ES profiles.
-     */
-    public static final boolean disableOpenGLES;
-
-    /**
      * In case no native OpenGL core profiles are required
      * and if one platform may have a buggy implementation,
      * setting the property <code>jogl.disable.openglcore</code> disables querying possible existing native OpenGL core profiles.
@@ -101,10 +95,41 @@ public class GLProfile {
      * context creation extension is buggy on one platform,
      * setting the property <code>jogl.disable.openglarbcontext</code> disables utilizing it.
      * <p>
+     * This exclusion also disables {@link #disableOpenGLES OpenGL ES}.
+     * </p>
+     * <p>
      * This exclusion is disabled for {@link Platform.OSType#MACOS}.
      * </p>
      */
     public static final boolean disableOpenGLARBContext;
+
+    /**
+     * In case no OpenGL ES profiles are required
+     * and if one platform may have a buggy implementation,
+     * setting the property <code>jogl.disable.opengles</code> disables querying possible existing OpenGL ES profiles.
+     */
+    public static final boolean disableOpenGLES;
+
+    /**
+     * In case no OpenGL desktop profiles are required
+     * and if one platform may have a buggy implementation,
+     * setting the property <code>jogl.disable.opengldesktop</code> disables querying possible existing OpenGL desktop profiles.
+     */
+    public static final boolean disableOpenGLDesktop;
+
+    /**
+     * Disable surfaceless OpenGL context capability and its probing
+     * by setting the property <code>jogl.disable.surfacelesscontext</code>.
+     * <p>
+     * By default surfaceless OpenGL context capability is probed,
+     * i.e. whether an OpenGL context can be made current without a default framebuffer.
+     * </p>
+     * <p>
+     * If probing fails or if this property is set, the {@link GLRendererQuirks quirk} {@link GLRendererQuirks#NoSurfacelessCtx}
+     * is being set.
+     * </p>
+     */
+    public static final boolean disableSurfacelessContext;
 
     /**
      * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome.
@@ -122,9 +147,11 @@ public class GLProfile {
         final boolean isOSX = Platform.OSType.MACOS == Platform.getOSType();
 
         DEBUG = Debug.debug("GLProfile");
-        disableOpenGLES = PropertyAccess.isPropertyDefined("jogl.disable.opengles", true);
         disableOpenGLCore = PropertyAccess.isPropertyDefined("jogl.disable.openglcore", true) && !isOSX;
         disableOpenGLARBContext = PropertyAccess.isPropertyDefined("jogl.disable.openglarbcontext", true) && !isOSX;
+        disableOpenGLES = disableOpenGLARBContext || PropertyAccess.isPropertyDefined("jogl.disable.opengles", true);
+        disableOpenGLDesktop = PropertyAccess.isPropertyDefined("jogl.disable.opengldesktop", true);
+        disableSurfacelessContext = PropertyAccess.isPropertyDefined("jogl.disable.surfacelesscontext", true);
         enableANGLE = PropertyAccess.isPropertyDefined("jogl.enable.ANGLE", true);
     }
 
@@ -1895,7 +1922,7 @@ public class GLProfile {
         // also test GLES1, GLES2 and GLES3 on desktop, since we have implementations / emulations available.
         if( deviceIsEGLCompatible && ( hasGLES3Impl || hasGLES1Impl ) ) {
             // 1st pretend we have all EGL profiles ..
-            computeProfileMap(device, false /* desktopCtxUndef*/, true /* esCtxUndef */);
+            computeProfileMap(device, true /* desktopCtxUndef*/, true /* esCtxUndef */);
 
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
@@ -1935,7 +1962,7 @@ public class GLProfile {
         }
 
         if(!GLContext.getAvailableGLVersionsSet(device)) {
-            GLContext.setAvailableGLVersionsSet(device);
+            GLContext.setAvailableGLVersionsSet(device, true);
         }
 
         if (DEBUG) {

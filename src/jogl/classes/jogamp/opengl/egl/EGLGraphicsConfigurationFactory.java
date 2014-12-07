@@ -33,36 +33,37 @@
 
 package jogamp.opengl.egl;
 
+import java.io.PrintStream;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.VisualIDHolder.VIDType;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLDrawableFactory;
+
+import jogamp.opengl.GLGraphicsConfigurationFactory;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
+import jogamp.opengl.egl.EGL;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
-
-import jogamp.opengl.GLGraphicsConfigurationFactory;
-import jogamp.opengl.GLGraphicsConfigurationUtil;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.io.PrintStream;
-import java.nio.IntBuffer;
 
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits

@@ -64,6 +64,7 @@ import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.x11.X11DummyUpstreamSurfaceHook;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.x11.X11UpstreamSurfacelessHook;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -184,7 +185,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
       SharedResource(final X11GraphicsDevice dev, final X11GraphicsScreen scrn,
                      final GLDrawableImpl draw, final GLContextImpl ctx,
-                     final VersionNumber glXServerVer, final String glXServerVendor, final boolean glXServerMultisampleAvail) {
+                     final VersionNumber glXServerVer, final String glXServerVendor,
+                     final boolean glXServerMultisampleAvail) {
           device = dev;
           screen = scrn;
           drawable = draw;
@@ -198,7 +200,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           glXMultisampleAvailable = glXServerMultisampleAvail;
       }
       @Override
-      public final boolean isValid() {
+      public final boolean isAvailable() {
           return null != context;
       }
       @Override
@@ -210,7 +212,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       @Override
       final public GLContextImpl getContext() { return context; }
       @Override
-      public GLRendererQuirks getRendererQuirks() {
+      public GLRendererQuirks getRendererQuirks(final GLProfile glp) {
           return null != context ? context.getRendererQuirks() : null;
       }
 
@@ -229,12 +231,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             sharedMap.clear();
         }
         @Override
-        public SharedResourceRunner.Resource mapPut(final String connection, final SharedResourceRunner.Resource resource) {
-            return sharedMap.put(connection, resource);
+        public SharedResourceRunner.Resource mapPut(final AbstractGraphicsDevice device, final SharedResourceRunner.Resource resource) {
+            return sharedMap.put(device.getConnection(), resource);
         }
         @Override
-        public SharedResourceRunner.Resource mapGet(final String connection) {
-            return sharedMap.get(connection);
+        public SharedResourceRunner.Resource mapGet(final AbstractGraphicsDevice device) {
+            return sharedMap.get(device.getConnection());
         }
         @Override
         public Collection<SharedResourceRunner.Resource> mapValues() {
@@ -242,9 +244,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
-        public boolean isDeviceSupported(final String connection) {
+        public boolean isDeviceSupported(final AbstractGraphicsDevice device) {
             final boolean res;
-            final X11GraphicsDevice x11Device = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
+            final X11GraphicsDevice x11Device = new X11GraphicsDevice(X11Util.openDisplay(device.getConnection()), device.getUnitID(), true /* owner */);
             x11Device.lock();
             try {
                 res = GLXUtil.isGLXAvailableOnServer(x11Device);
@@ -259,51 +261,88 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
-        public SharedResourceRunner.Resource createSharedResource(final String connection) {
-            final X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
-            sharedDevice.lock();
+        public SharedResourceRunner.Resource createSharedResource(final AbstractGraphicsDevice adevice) {
+            final X11GraphicsDevice x11Device = new X11GraphicsDevice(X11Util.openDisplay(adevice.getConnection()), adevice.getUnitID(), true /* owner */);
+            GLContextImpl context = null;
+            boolean contextIsCurrent = false;
+            x11Device.lock();
             try {
-                final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, sharedDevice.getDefaultScreen());
+                final X11GraphicsScreen screen = new X11GraphicsScreen(x11Device, x11Device.getDefaultScreen());
 
-                GLXUtil.initGLXClientDataSingleton(sharedDevice);
-                final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
-                final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));
+                GLXUtil.initGLXClientDataSingleton(x11Device);
+                final String glXServerVendorName = GLX.glXQueryServerString(x11Device.getHandle(), 0, GLX.GLX_VENDOR);
+                final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(x11Device.getHandle(), 0, GLX.GLX_EXTENSIONS));
 
-                final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
+                final GLProfile glp = GLProfile.get(x11Device, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
                 if (null == glp) {
-                    throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
+                    throw new GLException("Couldn't get default GLProfile for device: "+x11Device);
                 }
 
                 final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
-                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
-                sharedDrawable.setRealized(true);
-                final X11GLCapabilities chosenCaps =  (X11GLCapabilities) sharedDrawable.getChosenGLCapabilities();
+                final GLDrawableImpl drawable = createOnscreenDrawableImpl(createDummySurfaceImpl(x11Device, false, caps, caps, null, 64, 64));
+                drawable.setRealized(true);
+                final X11GLCapabilities chosenCaps =  (X11GLCapabilities) drawable.getChosenGLCapabilities();
                 final boolean glxForcedOneOne = !chosenCaps.hasFBConfig();
                 final VersionNumber glXServerVersion;
                 if( glxForcedOneOne ) {
                     glXServerVersion = versionOneOne;
                 } else {
-                    glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice);
+                    glXServerVersion = GLXUtil.getGLXServerVersionNumber(x11Device);
                 }
-                final GLContextImpl sharedContext = (GLContextImpl) sharedDrawable.createContext(null);
-                if (null == sharedContext) {
-                    throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
+                context = (GLContextImpl) drawable.createContext(null);
+                if (null == context) {
+                    throw new GLException("Couldn't create shared context for drawable: "+drawable);
                 }
+                contextIsCurrent = GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent();
 
-                boolean madeCurrent = false;
-                sharedContext.makeCurrent();
-                try {
-                    madeCurrent = sharedContext.isCurrent();
-                } finally {
-                    sharedContext.release();
+                final boolean noSurfacelessCtxQuirk = context.hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx);
+                boolean allowsSurfacelessCtx = false;
+
+                if( contextIsCurrent &&
+                    context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 &&
+                    !noSurfacelessCtxQuirk )
+                {
+                    GLDrawableImpl zeroDrawable = null;
+                    try {
+                        final ProxySurface zeroSurface = createSurfacelessImpl(x11Device, true, caps, caps, null, 64, 64);
+                        zeroDrawable = createOnscreenDrawableImpl(zeroSurface);
+                        zeroDrawable.setRealized(true);
+
+                        // Since sharedContext is still current,
+                        // will keep sharedContext current w/ zeroDrawable or throws GLException
+                        context.setGLDrawable(zeroDrawable, false);
+                        allowsSurfacelessCtx = true; // if setGLDrawable is successful, i.e. no GLException
+
+                        // switch back
+                        context.setGLDrawable(drawable, false);
+                    } catch (final Throwable t) {
+                        if( DEBUG ) {
+                            ExceptionUtils.dumpThrowable("", t);
+                        }
+                    } finally {
+                        if( null != zeroDrawable ) {
+                            zeroDrawable.setRealized(false);
+                        }
+                    }
                 }
-                if( sharedContext.hasRendererQuirk( GLRendererQuirks.DontCloseX11Display ) ) {
+                if( context.hasRendererQuirk( GLRendererQuirks.DontCloseX11Display ) ) {
                     X11Util.markAllDisplaysUnclosable();
                 }
+                if( !noSurfacelessCtxQuirk && !allowsSurfacelessCtx ) {
+                    final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+                    if(DEBUG) {
+                        System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+" -> "+x11Device+": cause: probe");
+                    }
+                    final GLRendererQuirks glrq = context.getRendererQuirks();
+                    if( null != glrq ) {
+                        glrq.addQuirk(quirk);
+                    }
+                    GLRendererQuirks.addStickyDeviceQuirk(x11Device, quirk);
+                }
                 if (DEBUG) {
-                    System.err.println("SharedDevice:  " + sharedDevice);
-                    System.err.println("SharedScreen:  " + sharedScreen);
-                    System.err.println("SharedContext: " + sharedContext + ", madeCurrent " + madeCurrent);
+                    System.err.println("SharedDevice:  " + x11Device);
+                    System.err.println("SharedScreen:  " + screen);
+                    System.err.println("SharedContext: " + context + ", madeCurrent " + contextIsCurrent);
                     System.err.println("GLX Server Vendor:      " + glXServerVendorName);
                     System.err.println("GLX Server Version:     " + glXServerVersion + ", forced "+glxForcedOneOne);
                     System.err.println("GLX Server Multisample: " + glXServerMultisampleAvailable);
@@ -311,13 +350,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     System.err.println("GLX Client Version:     " + GLXUtil.getClientVersionNumber());
                     System.err.println("GLX Client Multisample: " + GLXUtil.isClientMultisampleAvailable());
                 }
-                return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext,
+                return new SharedResource(x11Device, screen, drawable, context,
                                           glXServerVersion, glXServerVendorName,
                                           glXServerMultisampleAvailable && GLXUtil.isClientMultisampleAvailable());
             } catch (final Throwable t) {
-                throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources for "+connection, t);
+                throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources for "+adevice, t);
             } finally {
-                sharedDevice.unlock();
+                if ( contextIsCurrent ) {
+                    context.release();
+                }
+                x11Device.unlock();
             }
         }
 

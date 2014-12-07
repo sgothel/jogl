@@ -28,9 +28,11 @@
 
 package jogamp.opengl.egl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import jogamp.opengl.*;
+import jogamp.opengl.GLDynamicLibraryBundleInfo;
+import jogamp.opengl.egl.EGL;
 
 /**
  * Implementation of the DynamicLookupHelper for Desktop ES2 (AMD, ..)

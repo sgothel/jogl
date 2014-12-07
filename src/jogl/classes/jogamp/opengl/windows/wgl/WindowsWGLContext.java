@@ -316,6 +316,8 @@ public class WindowsWGLContext extends GLContextImpl {
             throw new GLException("Error making temp context current: 0x" + toHexString(temp_ctx) + ", werr: "+GDI.GetLastError());
         }
         if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
+            WGL.wglMakeCurrent(0, 0); // release temp context
+            WGL.wglDeleteContext(temp_ctx);
             throw new InternalError("setGLFunctionAvailability !strictMatch failed");
         }
         WGL.wglMakeCurrent(0, 0); // release temp context
@@ -368,7 +370,7 @@ public class WindowsWGLContext extends GLContextImpl {
             // otherwise context of similar profile but different creation method may not be share-able.
             WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(temp_ctx);
-            throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
+            throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
         }
         if(DEBUG) {
             System.err.println("WindowsWGLContext.createContext ARB not used, fall back to !ARB context "+getGLVersion());

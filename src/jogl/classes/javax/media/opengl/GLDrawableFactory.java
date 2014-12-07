@@ -144,7 +144,7 @@ public abstract class GLDrawableFactory {
           }
         }
     }
-    if (null != factoryClassName) {
+    if (null != factoryClassName && !GLProfile.disableOpenGLDesktop) {
       if (DEBUG || GLProfile.DEBUG) {
           System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nwt+": "+factoryClassName);
       }
@@ -387,13 +387,14 @@ public abstract class GLDrawableFactory {
    * </p>
    *
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param glp {@link GLProfile} to identify the device's {@link GLRendererQuirks}, maybe {@code null}
    * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
    * @throws IllegalArgumentException if the quirk is out of range
-   * @see #getRendererQuirks(AbstractGraphicsDevice)
+   * @see #getRendererQuirks(AbstractGraphicsDevice, GLProfile)
    * @see GLRendererQuirks
    */
-  public final boolean hasRendererQuirk(final AbstractGraphicsDevice device, final int quirk) {
-      final GLRendererQuirks glrq = getRendererQuirks(device);
+  public final boolean hasRendererQuirk(final AbstractGraphicsDevice device, final GLProfile glp, final int quirk) {
+      final GLRendererQuirks glrq = getRendererQuirks(device, glp);
       return null != glrq ? glrq.exist(quirk) : false;
   }
 
@@ -407,10 +408,11 @@ public abstract class GLDrawableFactory {
    * the result is always <code>null</code>.
    * </p>
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param glp {@link GLProfile} to identify the device's {@link GLRendererQuirks}, maybe {@code null}
    * @see GLContext#getRendererQuirks()
    * @see GLRendererQuirks
    */
-  public abstract GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device);
+  public abstract GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device, final GLProfile glp);
 
   /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null

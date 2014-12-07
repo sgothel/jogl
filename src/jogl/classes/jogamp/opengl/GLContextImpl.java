@@ -65,6 +65,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
@@ -118,6 +119,12 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
+
+  /**
+   * If GL >= 3.0 (ES or desktop) and not having {@link GLRendererQuirks#NoSurfacelessCtx},
+   * being evaluated if not surface-handle is null and not yet set at makeCurrent(..).
+   */
+  private boolean surfacelessOK = false;
 
   private boolean pixelDataEvaluated;
   private int /* pixelDataInternalFormat, */ pixelDataFormat, pixelDataType;
@@ -195,6 +202,7 @@ public abstract class GLContextImpl extends GLContext {
           boundFBOTarget[1] = 0; // read
       }
 
+      surfacelessOK = false;
       pixelDataEvaluated = false;
 
       super.resetStates(isInit);
@@ -246,8 +254,9 @@ public abstract class GLContextImpl extends GLContext {
       if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
           return drawable; // no change.
       }
-      final GLDrawableImpl old = drawable;
-      if( isCreated() && null != old && old.isRealized() ) {
+      final GLDrawableImpl oldDrawableWrite = drawable;
+      final GLDrawableImpl oldDrawableRead = drawableRead;
+      if( isCreated() && null != oldDrawableWrite && oldDrawableWrite.isRealized() ) {
           if(!lockHeld) {
               makeCurrent();
           }
@@ -267,12 +276,36 @@ public abstract class GLContextImpl extends GLContext {
       drawableRetargeted |= null != drawable && readWrite != drawable;
       drawable = (GLDrawableImpl) readWrite ;
       if( isCreated() && null != drawable && drawable.isRealized() ) {
-          makeCurrent(true); // implicit: associateDrawable(true)
+          int res = CONTEXT_NOT_CURRENT;
+          GLException gle = null;
+          try {
+              res = makeCurrent(true); // implicit: associateDrawable(true)
+          } catch ( final GLException e ) {
+              gle = e;
+          } finally {
+              if( CONTEXT_NOT_CURRENT == res ) {
+                  // Failure, recover and bail out w/ GLException
+                  drawableRead = oldDrawableRead;
+                  drawable     = oldDrawableWrite;
+                  if( drawable.isRealized() ) {
+                      makeCurrent(true); // implicit: associateDrawable(true)
+                  }
+                  if( !lockHeld ) {
+                      release(false);
+                  }
+                  final String msg = "Error: makeCurrent() failed with new drawable "+readWrite;
+                  if( null != gle ) {
+                      throw new GLException(msg, gle);
+                  } else {
+                      throw new GLException(msg);
+                  }
+              }
+          }
           if( !lockHeld ) {
               release(false);
           }
       }
-      return old;
+      return oldDrawableWrite;
   }
 
   @Override
@@ -565,11 +598,23 @@ public abstract class GLContextImpl extends GLContext {
     int res = CONTEXT_NOT_CURRENT;
     try {
         if ( drawable.isRealized() ) {
-            if ( 0 == drawable.getHandle() ) {
-                throw new GLException("drawable has invalid handle: "+drawable);
-            }
             lock.lock();
             try {
+                if ( 0 == drawable.getHandle() && !surfacelessOK ) {
+                    if( DEBUG ) {
+                        System.err.println(getThreadName() +": GLContext.makeCurrent: Surfaceless evaluate");
+                    }
+                    if( hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx) ) {
+                        throw new GLException(String.format("Surfaceless not supported due to quirk %s: %s",
+                                GLRendererQuirks.toString(GLRendererQuirks.NoSurfacelessCtx), toString()));
+                    }
+                    // Allow probing if ProxySurface && OPT_UPSTREAM_SURFACELESS
+                    final NativeSurface surface = drawable.getNativeSurface();
+                    if( !(surface instanceof ProxySurface) ||
+                        !((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS ) ) {
+                        throw new GLException(String.format("non-surfaceless drawable has zero-handle: %s", drawable.toString()));
+                    }
+                }
                 // One context can only be current by one thread,
                 // and one thread can only have one context current!
                 final GLContext current = getCurrent();
@@ -619,6 +664,16 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if (res != CONTEXT_NOT_CURRENT) { // still locked!
+      if( 0 == drawable.getHandle() && !surfacelessOK ) {
+          if( hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx) ) {
+              throw new GLException(String.format("Surfaceless not supported due to quirk %s: %s",
+                      GLRendererQuirks.toString(GLRendererQuirks.NoSurfacelessCtx), toString()));
+          }
+          if( DEBUG ) {
+              System.err.println(getThreadName() +": GLContext.makeCurrent: Surfaceless OK - validate");
+          }
+          surfacelessOK = true;
+      }
       setCurrent(this);
       if(res == CONTEXT_CURRENT_NEW) {
         // check if the drawable's and the GL's GLProfile are equal
@@ -699,12 +754,10 @@ public abstract class GLContextImpl extends GLContext {
             if( created && hasNoDefaultVAO() ) {
                 final int[] tmp = new int[1];
                 final GL rootGL = gl.getRootGL();
-                if( rootGL.isGL2ES3() ) { // FIXME remove if ES2 == ES3 later
-                    final GL2ES3 gl2es3 = rootGL.getGL2ES3();
-                    gl2es3.glGenVertexArrays(1, tmp, 0);
-                    defaultVAO = tmp[0];
-                    gl2es3.glBindVertexArray(defaultVAO);
-                }
+                final GL2ES3 gl2es3 = rootGL.getGL2ES3();
+                gl2es3.glGenVertexArrays(1, tmp, 0);
+                defaultVAO = tmp[0];
+                gl2es3.glBindVertexArray(defaultVAO);
             }
         } finally {
             if ( null != sharedMaster ) {
@@ -760,7 +813,7 @@ public abstract class GLContextImpl extends GLContext {
                             GLContext.mapAvailableGLVersion(device, 3, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                         }
                     }
-                    GLContext.setAvailableGLVersionsSet(device);
+                    GLContext.setAvailableGLVersionsSet(device, true);
 
                     if (DEBUG) {
                       System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " + device+" -> "+reqMajor+"."+reqProfile+ " -> "+getGLVersion());
@@ -880,6 +933,9 @@ public abstract class GLContextImpl extends GLContext {
                GLContext.getAvailableGLVersionsSet(device));
     }
 
+    final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final GLProfile glp = glCaps.getGLProfile();
+
     if ( !GLContext.getAvailableGLVersionsSet(device) ) {
         if(!mapGLVersions(device)) {
             // none of the ARB context creation calls was successful, bail out
@@ -887,12 +943,11 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
 
-    final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final int[] reqMajorCTP = new int[] { 0, 0 };
-    GLContext.getRequestMajorAndCompat(glCaps.getGLProfile(), reqMajorCTP);
+    GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
 
     if(DEBUG) {
-        System.err.println(getThreadName() + ": createContextARB: Requested "+GLContext.getGLVersion(reqMajorCTP[0], 0, reqMajorCTP[0], null));
+        System.err.println(getThreadName() + ": createContextARB: Requested "+glp+" -> "+GLContext.getGLVersion(reqMajorCTP[0], 0, reqMajorCTP[1], null));
     }
     final int _major[] = { 0 };
     final int _minor[] = { 0 };
@@ -1024,7 +1079,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         if(success) {
             // only claim GL versions set [and hence detected] if ARB context creation was successful
-            GLContext.setAvailableGLVersionsSet(device);
+            GLContext.setAvailableGLVersionsSet(device, true);
             if(DEBUG) {
                 final long t1 = System.nanoTime();
                 System.err.println("GLContextImpl.mapGLVersions: "+device+", profileAliasing: "+PROFILE_ALIASING+", total "+(t1-t0)/1e6 +"ms");
@@ -1052,17 +1107,23 @@ public abstract class GLContextImpl extends GLContext {
     int majorMin, minorMin;
     final int major[] = new int[1];
     final int minor[] = new int[1];
-    if( 4 == reqMajor ) {
-        majorMax=4; minorMax=GLContext.getMaxMinor(ctp, majorMax);
-        majorMin=4; minorMin=0;
-    } else if( 3 == reqMajor ) {
-        majorMax=3; minorMax=GLContext.getMaxMinor(ctp, majorMax);
-        majorMin=3; minorMin=1;
-    } else /* if( glp.isGL2() ) */ {
-        // our minimum desktop OpenGL runtime requirements are 1.1,
-        // nevertheless we restrict ARB context creation to 2.0 to spare us futile attempts
-        majorMax=3; minorMax=0;
-        majorMin=2; minorMin=0;
+
+    if( CTX_PROFILE_ES == reqProfile ) {
+        majorMax=reqMajor; minorMax=GLContext.getMaxMinor(ctp, majorMax);
+        majorMin=reqMajor; minorMin=0;
+    } else {
+        if( 4 == reqMajor ) {
+            majorMax=4; minorMax=GLContext.getMaxMinor(ctp, majorMax);
+            majorMin=4; minorMin=0;
+        } else if( 3 == reqMajor ) {
+            majorMax=3; minorMax=GLContext.getMaxMinor(ctp, majorMax);
+            majorMin=3; minorMin=1;
+        } else /* if( glp.isGL2() ) */ {
+            // our minimum desktop OpenGL runtime requirements are 1.1,
+            // nevertheless we restrict ARB context creation to 2.0 to spare us futile attempts
+            majorMax=3; minorMax=0;
+            majorMin=2; minorMin=0;
+        }
     }
     _context = createContextARBVersions(0, true, ctp,
                                         /* max */ majorMax, minorMax,
@@ -1771,6 +1832,22 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
+    if( GLProfile.disableSurfacelessContext ) {
+        final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: disabled");
+        }
+        quirks.addQuirk( quirk );
+        if( withinGLVersionsMapping ) {
+            // Thread safe due to single threaded initialization!
+            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+        } else {
+            // FIXME: Remove when moving EGL/ES to ARB ctx creation
+            synchronized(GLContextImpl.class) {
+                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+            }
+        }
+    }
 
     //
     // OS related quirks
@@ -2299,9 +2376,6 @@ public abstract class GLContextImpl extends GLContext {
       }
       switch(target) {
           case GL.GL_FRAMEBUFFER:
-              boundFBOTarget[0] = framebufferName; // draw
-              boundFBOTarget[1] = framebufferName; // read
-              break;
           case GL2ES3.GL_DRAW_FRAMEBUFFER:
               boundFBOTarget[0] = framebufferName; // draw
               break;

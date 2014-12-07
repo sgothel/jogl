@@ -50,7 +50,12 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLExt;
+import jogamp.opengl.egl.EGLExtImpl;
+import jogamp.opengl.egl.EGLExtProcAddressTable;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
@@ -58,12 +63,18 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class EGLContext extends GLContextImpl {
-    private boolean eglQueryStringInitialized;
-    private boolean eglQueryStringAvailable;
     private EGLExt _eglExt;
     // Table that holds the addresses of the native C-language entry points for
     // EGL extension functions.
     private EGLExtProcAddressTable eglExtProcAddressTable;
+
+    static final int CTX_PROFILE_COMPAT  = GLContext.CTX_PROFILE_COMPAT;
+    static final int CTX_PROFILE_CORE    = GLContext.CTX_PROFILE_CORE;
+    static final int CTX_PROFILE_ES      = GLContext.CTX_PROFILE_ES;
+
+    public static String getGLProfile(final int major, final int minor, final int ctp) throws GLException {
+        return GLContext.getGLProfile(major, minor, ctp);
+    }
 
     EGLContext(final GLDrawableImpl drawable,
                final GLContext shareWith) {
@@ -72,8 +83,6 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected void resetStates(final boolean isInit) {
-        eglQueryStringInitialized = false;
-        eglQueryStringAvailable = false;
         eglExtProcAddressTable = null;
         // no inner state _eglExt = null;
         super.resetStates(isInit);
@@ -140,11 +149,6 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected long createContextARBImpl(final long share, final boolean direct, final int ctp, final int major, final int minor) {
-        return 0; // FIXME
-    }
-
-    @Override
     protected void destroyContextARBImpl(final long _context) {
         if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), _context)) {
             final int eglError = EGL.eglGetError();
@@ -155,14 +159,35 @@ public class EGLContext extends GLContextImpl {
         }
     }
 
-    @Override
-    protected boolean createImpl(final long shareWithHandle) throws GLException {
-        final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
-        final long eglDisplay = config.getScreen().getDevice().getHandle();
-        final GLProfile glProfile = drawable.getGLProfile();
-        final long eglConfig = config.getNativeConfig();
-        // 0 == EGL.EGL_NO_CONTEXT;
+    private static final int ctx_attribs_idx_major = 0;
+    private static final int ctx_attribs_rom[] = {
+        /*  0 */ EGLExt.EGL_CONTEXT_MAJOR_VERSION_KHR,  0,            // alias of EGL.EGL_CONTEXT_CLIENT_VERSION
+        /*  2 */ EGL.EGL_NONE,                          EGL.EGL_NONE, // EGLExt.EGL_CONTEXT_MINOR_VERSION_KHR
+        /*  4 */ EGL.EGL_NONE,                          EGL.EGL_NONE, // EGLExt.EGL_CONTEXT_FLAGS_KHR
+        /*  6 */ EGL.EGL_NONE,                          EGL.EGL_NONE, // EGLExt.EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR
+        /*  8 */ EGL.EGL_NONE,                          EGL.EGL_NONE, // EGLExt.EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR
+        /* 10 */ EGL.EGL_NONE
+    };
 
+    @Override
+    protected long createContextARBImpl(final long share, final boolean direct, final int ctp, final int reqMajor, final int reqMinor) {
+        final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
+        final EGLGraphicsDevice device = (EGLGraphicsDevice) config.getScreen().getDevice();
+        final long eglDisplay = device.getHandle();
+        final long eglConfig = config.getNativeConfig();
+        final EGLDrawableFactory factory = (EGLDrawableFactory) drawable.getFactoryImpl();
+
+        final boolean useKHRCreateContext = !GLProfile.disableOpenGLARBContext && factory.hasDefaultDeviceKHRCreateContext();
+        final boolean ctDesktopGL = 0 == ( GLContext.CTX_PROFILE_ES & ctp );
+        final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
+        final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
+        final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
+
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: Start "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")
+                                               + ", useKHRCreateContext "+useKHRCreateContext
+                                               + ", device "+device);
+        }
         if ( 0 == eglDisplay ) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
         }
@@ -170,72 +195,150 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
 
+        if( !useKHRCreateContext && ctDesktopGL ) {
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: DesktopGL not avail "+getGLVersion(reqMajor, reqMinor, ctp, "@creation"));
+            }
+            return 0; // n/a
+        }
         try {
             // might be unavailable on EGL < 1.2
-            if( !EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API) ) {
-                throw new GLException("Caught: eglBindAPI to ES failed , error "+toHexString(EGL.eglGetError()));
+            if( !EGL.eglBindAPI( ctDesktopGL ? EGL.EGL_OPENGL_API : EGL.EGL_OPENGL_ES_API) ) {
+                throw new GLException("Caught: eglBindAPI to "+(ctDesktopGL ? "ES" : "GL")+" failed , error "+toHexString(EGL.eglGetError())+" - "+getGLVersion(reqMajor, reqMinor, ctp, "@creation"));
             }
         } catch (final GLException glex) {
             if (DEBUG) {
-                glex.printStackTrace();
+                ExceptionUtils.dumpThrowable("", glex);
             }
         }
 
-        // Cannot check extension 'EGL_KHR_create_context' before having one current!
+        final int useMajor;
+        if( reqMajor >= 3 &&
+            GLRendererQuirks.existStickyDeviceQuirk( GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
+            useMajor = 2;
+        } else {
+            useMajor = reqMajor;
+        }
 
-        final IntBuffer contextAttrsNIO;
-        final int contextVersionReq, contextVersionAttr;
-        {
-            if ( glProfile.usesNativeGLES3() ) {
-                contextVersionReq = 3;
-                if( GLRendererQuirks.existStickyDeviceQuirk( GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
-                    contextVersionAttr = 2;
+        final IntBuffer attribs = Buffers.newDirectIntBuffer(ctx_attribs_rom);
+        if( useKHRCreateContext ) {
+            attribs.put(ctx_attribs_idx_major + 1, useMajor);
+
+            int index = ctx_attribs_idx_major + 2;
+
+            /** if( ctDesktopGL && reqMinor >= 0 ) { // FIXME: No minor version probing for ES currently!
+                attribs.put(index + 0, EGLExt.EGL_CONTEXT_MINOR_VERSION_KHR);
+                attribs.put(index + 1, reqMinor);
+                index += 2;
+            } */
+
+            if( ctDesktopGL && ( useMajor > 3 || useMajor == 3 && reqMinor >= 2 ) ) {
+                attribs.put(index + 0, EGLExt.EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR);
+                if( ctBwdCompat ) {
+                    attribs.put(index + 1, EGLExt.EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR);
                 } else {
-                    contextVersionAttr = 3;
+                    attribs.put(index + 1, EGLExt.EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR);
                 }
+                index += 2;
+            }
+            int flags = 0;
+            if( ctDesktopGL && useMajor >= 3 && !ctBwdCompat && ctFwdCompat ) {
+                flags |= EGLExt.EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR;
+            }
+            if( ctDebug ) {
+                flags |= EGLExt.EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR;
+            }
+            // TODO: flags |= EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR
+            if( 0 != flags ) {
+                attribs.put(index + 0, EGLExt.EGL_CONTEXT_FLAGS_KHR);
+                attribs.put(index + 1, flags);
+                index += 2;
+            }
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: attrs.1: major "+useMajor+", flags "+toHexString(flags)+", index "+index);
+            }
+        } else {
+            attribs.put(ctx_attribs_idx_major + 1, useMajor);
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: attrs.2: major "+useMajor);
+            }
+        }
+
+        long ctx=0;
+        try {
+            ctx = EGL.eglCreateContext(eglDisplay, eglConfig, share, attribs);
+        } catch (final RuntimeException re) {
+            if(DEBUG) {
+                System.err.println(getThreadName()+": Info: EGLContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(reqMajor, reqMinor, ctp, "@creation"));
+                ExceptionUtils.dumpThrowable("", re);
+            }
+        }
+
+        if(0!=ctx) {
+            if (!EGL.eglMakeCurrent(eglDisplay, drawable.getHandle(), drawableRead.getHandle(), ctx)) {
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": EGLContext.createContextARBImpl couldn't make current "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")+" - error "+toHexString(EGL.eglGetError()));
+                }
+                // release & destroy
+                EGL.eglMakeCurrent(eglDisplay, EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
+                EGL.eglDestroyContext(eglDisplay, ctx);
+                ctx = 0;
+            } else if (DEBUG) {
+                System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: OK "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")+", share "+share+", direct "+direct);
+            }
+        } else if (DEBUG) {
+            System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: NO "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")+" - error "+toHexString(EGL.eglGetError()));
+        }
+
+        return ctx;
+    }
+
+    @Override
+    protected boolean createImpl(final long shareWithHandle) throws GLException {
+        final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
+        final AbstractGraphicsDevice device = config.getScreen().getDevice();
+        final boolean availableGLVersionsSet = GLContext.getAvailableGLVersionsSet(device);
+
+        if( !GLProfile.disableOpenGLARBContext && availableGLVersionsSet ) {
+            contextHandle = createContextARB(shareWithHandle, true);
+            if( 0 == contextHandle ) {
+                throw new GLException(getThreadName()+": Unable to create temp OpenGL context(0) on eglDevice "+device+
+                                   ", eglConfig "+config+", "+drawable.getGLProfile()+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+            }
+        } else {
+            final GLProfile glProfile = drawable.getGLProfile();
+            final int reqMajor;
+            if ( glProfile.usesNativeGLES3() ) {
+                reqMajor = 3;
             } else if ( glProfile.usesNativeGLES2() ) {
-                contextVersionReq = 2;
-                contextVersionAttr = 2;
+                reqMajor = 2;
             } else if ( glProfile.usesNativeGLES1() ) {
-                contextVersionReq = 1;
-                contextVersionAttr = 1;
+                reqMajor = 1;
             } else {
                 throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
             }
-            // EGLExt.EGL_CONTEXT_MAJOR_VERSION_KHR == EGL.EGL_CONTEXT_CLIENT_VERSION
-            final int[] contextAttrs = new int[] { EGL.EGL_CONTEXT_CLIENT_VERSION, contextVersionAttr, EGL.EGL_NONE };
-            contextAttrsNIO = Buffers.newDirectIntBuffer(contextAttrs);
-        }
-        contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWithHandle, contextAttrsNIO);
-        if (contextHandle == 0) {
-            throw new GLException("Error creating OpenGL context: eglDisplay "+toHexString(eglDisplay)+
-                                  ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+            final int ctp = GLContext.CTX_PROFILE_ES | getContextCreationFlags();
+            contextHandle = createContextARBImpl(shareWithHandle, true, ctp, reqMajor, 0);
+            if( 0 == contextHandle ) {
+                throw new GLException(getThreadName()+": Unable to create temp OpenGL context(1) on eglDevice "+device+
+                                   ", eglConfig "+config+", "+drawable.getGLProfile()+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+            }
+            if( !setGLFunctionAvailability(true, reqMajor, 0, ctp, false /* strictMatch */, false /* withinGLVersionsMapping */) ) {
+                EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
+                EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
+                contextHandle = 0;
+                throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+            }
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": Created OpenGL context 0x" +
+            System.err.println(getThreadName() + ": EGLContext.createImpl: Created OpenGL context 0x" +
                                Long.toHexString(contextHandle) +
                                ",\n\twrite surface 0x" + Long.toHexString(drawable.getHandle()) +
                                ",\n\tread  surface 0x" + Long.toHexString(drawableRead.getHandle())+
                                ",\n\t"+this+
                                ",\n\tsharing with 0x" + Long.toHexString(shareWithHandle));
         }
-        if (!EGL.eglMakeCurrent(eglDisplay, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException("Error making context " +
-                                  toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
-        }
-        if( !setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES,
-                                       true /* strictMatch */, // always req. strict match
-                                       false /* withinGLVersionsMapping */) ) {
-            if(DEBUG) {
-                System.err.println(getThreadName() + ": createImpl: setGLFunctionAvailability FAILED delete "+toHexString(contextHandle));
-            }
-            EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
-            EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
-            contextHandle = 0;
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     }
 
     @Override
@@ -246,8 +349,6 @@ public class EGLContext extends GLContextImpl {
         if (DEBUG) {
           System.err.println(getThreadName() + ": Initializing EGLextension address table: "+key);
         }
-        eglQueryStringInitialized = false;
-        eglQueryStringAvailable = false;
 
         ProcAddressTable table = null;
         synchronized(mappedContextTypeObjectLock) {
@@ -272,17 +373,34 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected final StringBuilder getPlatformExtensionsStringImpl() {
+        final EGLGraphicsDevice device = (EGLGraphicsDevice) drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+        return getPlatformExtensionsStringImpl(device);
+    }
+    final static StringBuilder getPlatformExtensionsStringImpl(final EGLGraphicsDevice device) {
         final StringBuilder sb = new StringBuilder();
-        if (!eglQueryStringInitialized) {
-          eglQueryStringAvailable = getDrawableImpl().getGLDynamicLookupHelper().isFunctionAvailable("eglQueryString");
-          eglQueryStringInitialized = true;
-        }
-        if (eglQueryStringAvailable) {
-            final String ret = EGL.eglQueryString(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_EXTENSIONS);
+        device.lock();
+        try{
+            final long handle = device.getHandle();
             if (DEBUG) {
-              System.err.println("EGL extensions: " + ret);
+                System.err.println("EGL PlatformExtensions: Device "+device);
+                EGLDrawableFactory.dumpEGLInfo("EGL PlatformExtensions: ", handle);
             }
-            sb.append(ret);
+            if( device.getEGLVersion().compareTo(Version1_5) >= 0 ) {
+                final String ret = EGL.eglQueryString(EGL.EGL_NO_DISPLAY, EGL.EGL_EXTENSIONS);
+                if (DEBUG) {
+                    System.err.println("EGL extensions (Client): " + ret);
+                }
+                sb.append(ret).append(" ");
+            }
+            if( 0 != handle ) {
+                final String ret = EGL.eglQueryString(handle, EGL.EGL_EXTENSIONS);
+                if (DEBUG) {
+                    System.err.println("EGL extensions (Server): " + ret);
+                }
+                sb.append(ret).append(" ");
+            }
+        } finally {
+            device.unlock();
         }
         return sb;
     }
@@ -343,8 +461,8 @@ public class EGLContext extends GLContextImpl {
     protected static boolean getAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
         return GLContext.getAvailableGLVersionsSet(device);
     }
-    protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
-        GLContext.setAvailableGLVersionsSet(device);
+    protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device, final boolean set) {
+        GLContext.setAvailableGLVersionsSet(device, set);
     }
 
     protected static String toHexString(final int hex) {

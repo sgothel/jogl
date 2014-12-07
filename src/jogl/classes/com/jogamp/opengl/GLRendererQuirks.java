@@ -395,8 +395,36 @@ public class GLRendererQuirks {
      */
     public static final int NeedSharedObjectSync = 20;
 
+    /**
+     * No support for ES or desktop GL >= 3.0 current context without surface,
+     * i.e. without a default framebuffer as read- and write drawables.
+     * <p>
+     * See <i>OpenGL spec 3.0, chapter 2.1 OpenGL Fundamentals, page 7</i> or<br>
+     * <i>OpenGL ES spec 3.0.2, chapter 2.1 OpenGL Fundamentals, page 6</i>:
+     * <pre>
+     * It is possible to use a GL context without a default framebuffer, in which case
+     * a framebuffer object must be used to perform all rendering. This is useful for
+     * applications neeting to perform offscreen rendering.
+     * </pre>
+     * </p>
+     * <p>
+     * The feature will be attempted at initialization and this quirk will be set if failing.
+     * </p>
+     * <p>
+     * Known drivers failing the specification:
+     * <ul>
+     *   <li>GNU/Linux X11 Nvidia proprietary driver
+     *   <ul>
+     *     <li>GL_VERSION      4.4.0 NVIDIA 340.24</li>
+     *     <li>Platform        GNU/Linux X11</li>
+     *   </ul></li>
+     * </ul>
+     * </p>
+     */
+    public static final int NoSurfacelessCtx = 21;
+
     /** Return the number of known quirks. */
-    public static final int getCount() { return 21; }
+    public static final int getCount() { return 22; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -405,7 +433,7 @@ public class GLRendererQuirks {
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
                                                           "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum",
-                                                          "NeedSharedObjectSync"
+                                                          "NeedSharedObjectSync", "NoSurfacelessCtx"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();

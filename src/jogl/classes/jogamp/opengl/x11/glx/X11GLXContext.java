@@ -221,8 +221,6 @@ public class X11GLXContext extends GLContextImpl {
     final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
     final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
 
-    long ctx=0;
-
     final IntBuffer attribs = Buffers.newDirectIntBuffer(ctx_arb_attribs_rom);
     attribs.put(ctx_arb_attribs_idx_major + 1, major);
     attribs.put(ctx_arb_attribs_idx_minor + 1, minor);
@@ -250,6 +248,7 @@ public class X11GLXContext extends GLContextImpl {
     final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
     final long display = device.getHandle();
+    long ctx=0;
 
     try {
         // critical path, a remote display might not support this command,
@@ -315,7 +314,10 @@ public class X11GLXContext extends GLContextImpl {
           throw new GLException(getThreadName()+": Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
-            throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+            glXMakeContextCurrent(display, 0, 0, 0); // release temp context
+            GLX.glXDestroyContext(display, contextHandle);
+            contextHandle = 0;
+            throw new InternalError("setGLFunctionAvailability !strictMatch failed.1");
         }
         isDirect = GLX.glXIsDirect(display, contextHandle);
         if (DEBUG) {
@@ -346,7 +348,11 @@ public class X11GLXContext extends GLContextImpl {
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), temp_ctx) ) {
             throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
-        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */); // use GL_VERSION
+        if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
+            glXMakeContextCurrent(display, 0, 0, 0); // release temp context
+            GLX.glXDestroyContext(display, temp_ctx);
+            throw new InternalError("setGLFunctionAvailability !strictMatch failed.2");
+        }
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
         if( !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
@@ -388,7 +394,7 @@ public class X11GLXContext extends GLContextImpl {
             // otherwise context of similar profile but different creation method may not be share-able.
             glXMakeContextCurrent(display, 0, 0, 0);
             GLX.glXDestroyContext(display, temp_ctx);
-            throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glp+", current: "+getGLVersion());
+            throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ARB n/a but required, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glp+", current: "+getGLVersion());
         }
 
         if(DEBUG) {
@@ -492,7 +498,7 @@ public class X11GLXContext extends GLContextImpl {
     x11Device.lock();
     try{
         if (DEBUG) {
-          System.err.println("GLX Version client version "+ GLXUtil.getClientVersionNumber()+
+          System.err.println("GLX Version client "+ GLXUtil.getClientVersionNumber()+
                              ", server: "+ GLXUtil.getGLXServerVersionNumber(x11Device));
         }
         if(((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneOne(x11Device)) {

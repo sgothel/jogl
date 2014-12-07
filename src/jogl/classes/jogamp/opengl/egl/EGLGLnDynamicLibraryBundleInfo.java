@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2014 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -31,8 +31,21 @@ package jogamp.opengl.egl;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
-    protected EGLES1DynamicLibraryBundleInfo() {
+import com.jogamp.common.os.Platform;
+
+/**
+ * <p>
+ * Covering Desktop GL
+ * </p>
+ */
+public final class EGLGLnDynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
+    private static final List<String> glueLibNames;
+    static {
+        glueLibNames = new ArrayList<String>();
+        glueLibNames.add("jogl_desktop");
+    }
+
+    protected EGLGLnDynamicLibraryBundleInfo() {
         super();
     }
 
@@ -42,22 +55,22 @@ public final class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
         {
             final List<String> libsGL = new ArrayList<String>();
 
-            // this is the default lib name, according to the spec
-            libsGL.add("libGLESv1_CM.so.2");
+            final Platform.OSType osType = Platform.getOSType();
+            if( Platform.OSType.MACOS == osType ) {
+                libsGL.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");
+                libsGL.add("GL");
+            } else if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+                libsGL.add("OpenGL32");
+            } else {
+                // this is the default lib name, according to the spec
+                libsGL.add("libGL.so.1");
 
-            // try these as well, if spec fails
-            libsGL.add("libGLESv1_CM.so");
-            libsGL.add("GLESv1_CM");
+                // try this one as well, if spec fails
+                libsGL.add("libGL.so");
 
-            // alternative names
-            libsGL.add("GLES_CM");
-            libsGL.add("GLES_CL");
-
-            // for windows distributions using the 'unlike' lib prefix,
-            // where our tool does not add it.
-            libsGL.add("libGLESv1_CM");
-            libsGL.add("libGLES_CM");
-            libsGL.add("libGLES_CL");
+                // last but not least .. the generic one
+                libsGL.add("GL");
+            }
 
             libsList.add(libsGL);
         }
@@ -65,5 +78,6 @@ public final class EGLES1DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
 
         return libsList;
     }
+
 }
 

@@ -105,7 +105,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
     private final void setupFBO(final GL gl, final int idx, final int width, final int height, final int samples,
                                 final boolean useAlpha, final int depthBits, final int stencilBits,
-                                final boolean useTexture, final boolean realUnbind) {
+                                final boolean useTexture, final boolean setupViewportScissors, final boolean realUnbind) {
         final FBObject fbo = new FBObject();
         fbos[idx] = fbo;
 
@@ -156,6 +156,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // Also remedy for Bug 1020, i.e. OSX/Nvidia's FBO needs to be cleared before blitting,
         // otherwise first MSAA frame lacks antialiasing.
         fbo.bind(gl);
+        if( setupViewportScissors ) {
+            // Surfaceless: Set initial viewport/scissors
+            gl.glViewport(0, 0, width, height);
+            gl.glScissor(0, 0, width, height);
+        }
         if( useDepth ) {
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         } else {
@@ -217,7 +222,9 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
             for(int i=0; i<fbosN; i++) {
                 setupFBO(gl, i, width, height, samples, useAlpha,
-                         chosenFBOCaps.getDepthBits(), chosenFBOCaps.getStencilBits(), useTexture, fbosN-1==i);
+                         chosenFBOCaps.getDepthBits(), chosenFBOCaps.getStencilBits(), useTexture,
+                         0==i && 0 == parent.getHandle() /* setupViewportScissors for surfaceless */,
+                         fbosN-1==i /* unbind */);
             }
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
@@ -271,7 +278,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // resetQuirk fallback
         fbos[idx].destroy(gl);
         final boolean useTexture = 0 != ( FBOMODE_USE_TEXTURE & fboModeBits );
-        setupFBO(gl, idx, width, height, samples, useAlpha, depthBits, stencilBits, useTexture, true);
+        setupFBO(gl, idx, width, height, samples, useAlpha, depthBits, stencilBits, useTexture, false, true);
     }
 
     private final void reset(final GL gl, int newSamples) throws GLException {

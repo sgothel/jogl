@@ -175,7 +175,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
           this.hasAppleFloatPixels = hasAppletFloatPixels;
       }
       @Override
-      public final boolean isValid() {
+      public final boolean isAvailable() {
           return valid;
       }
       @Override
@@ -197,7 +197,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
           return null;
       }
       @Override
-      public GLRendererQuirks getRendererQuirks() {
+      public GLRendererQuirks getRendererQuirks(final GLProfile glp) {
           return glRendererQuirks;
       }
   }
@@ -263,8 +263,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             try {
-                sharedContext.makeCurrent(); // could cause exception
-                isValid = sharedContext.isCurrent();
+                isValid = GLContext.CONTEXT_NOT_CURRENT != sharedContext.makeCurrent(); // could cause exception
                 if(isValid) {
                     final GL gl = sharedContext.getGL();
                     hasNPOTTextures = gl.isNPOTTextureAvailable();

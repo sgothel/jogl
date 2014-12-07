@@ -132,7 +132,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         List<GLCapabilitiesImmutable> availableCaps = null;
 
         final GLContext sharedContext;
-        if ( factory.hasRendererQuirk(device, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
+        if ( factory.hasRendererQuirk(device, null, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
             sharedContext = sharedResource.getContext();
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
                 throw new GLException("Could not make Shared Context current: "+device);
@@ -300,7 +300,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
         final WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(device);
         final GLContext sharedContext;
-        if ( factory.hasRendererQuirk(device, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
+        if ( factory.hasRendererQuirk(device, null, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
             sharedContext = sharedResource.getContext();
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
                 throw new GLException("Could not make Shared Context current: "+device);

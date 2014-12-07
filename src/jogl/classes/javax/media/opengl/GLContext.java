@@ -333,10 +333,11 @@ public abstract class GLContext {
    *                     if the {@link #getGLReadDrawable() read-drawable} differs
    *                     from the {@link #getGLDrawable() write-drawable}.
    *                     Otherwise set both drawables, read and write.
-   * @return The previous read/write drawable
+   * @return The previous read/write drawable if operation succeeds
    *
-   * @throws GLException in case <code>null</code> is being passed or
-   *                     this context is made current on another thread.
+   * @throws GLException in case <code>null</code> is being passed,
+   *                     this context is made current on another thread
+   *                     or operation fails.
    *
    * @see #isGLReadDrawableAvailable()
    * @see #setGLReadDrawable(GLDrawable)
@@ -1473,13 +1474,13 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2, 3, 4 } };
+      /* 4.*/ { 0, 1, 2, 3, 4, 5 } };
 
   public static final int ES_VERSIONS[][] = {
       /* 0.*/ { -1 },
       /* 1.*/ { 0, 1 },
       /* 2.*/ { 0 },
-      /* 3.*/ { 0 } };
+      /* 3.*/ { 0, 1 } };
 
   public static final int getMaxMajor(final int ctxProfile) {
       return ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ? ES_VERSIONS.length-1 : GL_VERSIONS.length-1;
@@ -1638,11 +1639,15 @@ public abstract class GLContext {
       }
   }
 
-  protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
+  protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device, final boolean set) {
       synchronized ( deviceVersionsAvailableSet ) {
           final String devKey = device.getUniqueID();
-          if( null != deviceVersionsAvailableSet.put(devKey, devKey) ) {
-              throw new InternalError("Already set: "+devKey);
+          if( set ) {
+              if( null != deviceVersionsAvailableSet.put(devKey, devKey) ) {
+                  throw new InternalError("Already set: "+devKey);
+              }
+          } else {
+              deviceVersionsAvailableSet.remove(devKey);
           }
           if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);

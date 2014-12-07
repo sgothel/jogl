@@ -28,13 +28,15 @@
 
 package jogamp.opengl.egl;
 
-import com.jogamp.common.os.AndroidVersion;
-import com.jogamp.common.os.Platform;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import jogamp.common.os.PlatformPropsImpl;
-import jogamp.opengl.*;
+import jogamp.opengl.GLDynamicLibraryBundleInfo;
+import jogamp.opengl.egl.EGL;
+
+import com.jogamp.common.os.AndroidVersion;
+import com.jogamp.common.os.Platform;
 
 /**
  * Abstract implementation of the DynamicLookupHelper for EGL,
@@ -43,7 +45,7 @@ import jogamp.opengl.*;
  * Currently two implementations exist, one for ES1 and one for ES3 and ES2.
  */
 public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    static final List<String> glueLibNames;
+    private static final List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
         glueLibNames.add("jogl_mobile");
