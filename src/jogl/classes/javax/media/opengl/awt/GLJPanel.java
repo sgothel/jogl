@@ -581,14 +581,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   @Override
   public final void setSurfaceScale(final int[] pixelScale) { // HiDPI support
       SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
-      final Backend b = backend;
-      if ( isInitialized && null != b ) {
-          final int hadPixelScaleX = hasPixelScale[0];
-          final int hadPixelScaleY = hasPixelScale[1];
-          SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
-          if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
+      final int hadPixelScaleX = hasPixelScale[0];
+      final int hadPixelScaleY = hasPixelScale[1];
+      SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
+      if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
+          reshapeImpl(getWidth(), getHeight());
+          final Backend b = backend;
+          if ( isInitialized && null != b ) {
               updateWrappedSurfaceScale(b.getDrawable());
-              reshapeImpl(getWidth(), getHeight());
               display();
           }
       }

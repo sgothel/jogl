@@ -105,7 +105,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
     @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
-        int hash = 31 + getResolution().hashCode();
+        int hash = getResolution().hashCode();
         hash = ((hash << 5) - hash) + getBitsPerPixel();
         return hash;
     }
