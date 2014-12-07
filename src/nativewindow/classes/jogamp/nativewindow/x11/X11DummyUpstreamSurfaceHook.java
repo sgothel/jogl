@@ -44,7 +44,7 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
                 s.setSurfaceHandle(windowHandle);
                 s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
             }
-            s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
+            s.addUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
         } finally {
             device.unlock();
         }

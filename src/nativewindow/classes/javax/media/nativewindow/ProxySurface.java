@@ -65,6 +65,14 @@ public interface ProxySurface extends MutableSurface {
      */
     public static final int OPT_UPSTREAM_WINDOW_INVISIBLE = 1 << 8;
 
+    /**
+     * Implementation specific bitvalue stating the upstream's {@link NativeSurface}'s zero handle is valid.
+     * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
+     * @see #getUpstreamOptionBits()
+     */
+    public static final int OPT_UPSTREAM_SURFACELESS = 1 << 9;
+
     /** Allow redefining the AbstractGraphicsConfiguration */
     public void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg);
 

@@ -66,7 +66,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.common.os.PlatformPropsImpl;
-import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -74,12 +73,15 @@ import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
+import jogamp.opengl.egl.EGL;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 
@@ -723,7 +725,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
         }
-        return new EGLOnscreenDrawable(this, EGLWrappedSurface.get(target));
+        return new EGLDrawable(this, EGLSurface.get(target));
     }
 
     @Override
@@ -737,7 +739,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             throw new GLException("Non pbuffer not yet implemented");
         }
         // PBuffer GLDrawable Creation
-        return new EGLPbufferDrawable(this, EGLWrappedSurface.get(target));
+        return new EGLDrawable(this, EGLSurface.get(target));
     }
 
     @Override
@@ -747,28 +749,35 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return true;
     }
 
-    @Override
-    protected ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                    final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
-                                                    final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
-        final boolean ownDevice;
+    private final EGLGraphicsConfiguration evalConfig(final boolean[] ownDevice, final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                      final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                                      final GLCapabilitiesChooser chooser) {
         final EGLGraphicsDevice device;
         if( createNewDevice || ! (deviceReq instanceof EGLGraphicsDevice) ) {
             final long nativeDisplayID = ( deviceReq instanceof EGLGraphicsDevice) ?
                     ( (EGLGraphicsDevice) deviceReq ).getNativeDisplayID() : deviceReq.getHandle() ;
             device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(nativeDisplayID, deviceReq.getConnection(), deviceReq.getUnitID());
             device.open();
-            ownDevice = true;
+            ownDevice[0] = true;
         } else {
             device = (EGLGraphicsDevice) deviceReq;
-            ownDevice = false;
+            ownDevice[0] = false;
         }
         final DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
         final EGLGraphicsConfiguration config = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED, false);
         if(null == config) {
             throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen);
         }
-        return new WrappedSurface(config, 0, upstreamHook, ownDevice);
+        return config;
+    }
+
+    @Override
+    protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                          final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
+                                                          final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
+        final boolean[] ownDevice = { false };
+        final EGLGraphicsConfiguration config = evalConfig(ownDevice, deviceReq, createNewDevice, capsChosen, capsRequested, chooser);
+        return EGLSurface.createWrapped(config, 0, upstreamHook, ownDevice[0]);
     }
 
     @Override
@@ -776,6 +785,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                                      GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
         chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(chosenCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above
         return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new EGLDummyUpstreamSurfaceHook(width, height));
+    }
+
+    @Override
+    public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+                                                    GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+        chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
+        final boolean[] ownDevice = { false };
+        final EGLGraphicsConfiguration config = evalConfig(ownDevice, deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser);
+        return EGLSurface.createSurfaceless(config, new EGLUpstreamSurfacelessHook(width, height), ownDevice[0]);
     }
 
     /**
@@ -813,13 +831,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
+    protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle,
+                                                  final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser,
+                                                  final UpstreamSurfaceHook upstream) {
         final EGLGraphicsDevice eglDeviceReq = (EGLGraphicsDevice) deviceReq;
         final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(eglDeviceReq.getNativeDisplayID(), deviceReq.getConnection(), deviceReq.getUnitID());
         device.open();
         final DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
         final EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED, false);
-        return new WrappedSurface(cfg, windowHandle, upstream, true);
+        return EGLSurface.createWrapped(cfg, windowHandle, upstream, true);
     }
 
     @Override

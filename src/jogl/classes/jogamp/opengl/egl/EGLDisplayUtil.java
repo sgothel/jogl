@@ -38,7 +38,10 @@ import javax.media.nativewindow.ToolkitLock;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
+import jogamp.opengl.egl.EGL;
 
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
@@ -148,7 +151,7 @@ public class EGLDisplayUtil {
         if(DEBUG || verbose || openEGLDisplays.size() > 0 ) {
             System.err.println("EGLDisplayUtil.EGLDisplays: Shutdown (open: "+openEGLDisplays.size()+")");
             if(DEBUG) {
-                Thread.dumpStack();
+                ExceptionUtils.dumpStack(System.err);
             }
             if( openEGLDisplays.size() > 0) {
                 dumpOpenDisplayConnections();
@@ -198,17 +201,30 @@ public class EGLDisplayUtil {
      *
      * @see EGL#eglInitialize(long, IntBuffer, IntBuffer)
      */
-    private static synchronized boolean eglInitialize(final long eglDisplay, final IntBuffer major, final IntBuffer minor)  {
+    private static synchronized boolean eglInitialize(final long eglDisplay, final int[] major, final int[] minor)  {
         if( EGL.EGL_NO_DISPLAY == eglDisplay) {
             return false;
         }
-        final EGLDisplayRef d = EGLDisplayRef.getOrCreateOpened(eglDisplay, major, minor);
+        final EGLDisplayRef d = EGLDisplayRef.getOrCreateOpened(eglDisplay, _eglMajorVersion, _eglMinorVersion);
+        final int _major = _eglMajorVersion.get(0);
+        final int _minor = _eglMinorVersion.get(0);
+        if( null != major && null != minor ) {
+            if( null != d ) {
+                major[0] = _major;
+                minor[0] = _minor;
+            } else {
+                major[0] = 0;
+                minor[0] = 0;
+            }
+        }
         if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglInitialize("+EGLContext.toHexString(eglDisplay)+" ...): "+d+" = "+(null != d)+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
+            System.err.println("EGLDisplayUtil.eglInitialize("+EGLContext.toHexString(eglDisplay)+" ...): "+d+" = "+(null != d)+", eglVersion "+_major+"."+_minor+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
             // Thread.dumpStack();
         }
         return null != d;
     }
+    private static final IntBuffer _eglMajorVersion = Buffers.newDirectIntBuffer(1);
+    private static final IntBuffer _eglMinorVersion = Buffers.newDirectIntBuffer(1);
 
     /**
      * @param nativeDisplayID
@@ -222,7 +238,7 @@ public class EGLDisplayUtil {
      * @see #eglGetDisplay(long)
      * @see #eglInitialize(long, IntBuffer, IntBuffer)
      */
-    private static synchronized int eglGetDisplayAndInitialize(final long nativeDisplayID, final long[] eglDisplay, final int[] eglErr, final IntBuffer major, final IntBuffer minor) {
+    private static synchronized int eglGetDisplayAndInitialize(final long nativeDisplayID, final long[] eglDisplay, final int[] eglErr, final int[] major, final int[] minor) {
         eglDisplay[0] = EGL.EGL_NO_DISPLAY;
         final long _eglDisplay = eglGetDisplay( nativeDisplayID );
         if ( EGL.EGL_NO_DISPLAY == _eglDisplay ) {
@@ -244,13 +260,15 @@ public class EGLDisplayUtil {
      *
      * @throws GLException if {@link EGL#eglGetDisplay(long)} or {@link EGL#eglInitialize(long, int[], int, int[], int)} fails incl fallback
      * @param nativeDisplayID in/out array of size 1, passing the requested nativeVisualID, may return a different revised nativeVisualID handle
+     * @param major
+     * @param minor
      * @return the initialized EGL display ID
      * @throws GLException if not successful
      */
-    private static synchronized long eglGetDisplayAndInitialize(final long[] nativeDisplayID) {
+    private static synchronized long eglGetDisplayAndInitialize(final long[] nativeDisplayID, final int[] major, final int[] minor) {
         final long[] eglDisplay = new long[1];
         final int[] eglError = new int[1];
-        int eglRes = EGLDisplayUtil.eglGetDisplayAndInitialize(nativeDisplayID[0], eglDisplay, eglError, null, null);
+        int eglRes = EGLDisplayUtil.eglGetDisplayAndInitialize(nativeDisplayID[0], eglDisplay, eglError, major, minor);
         if( EGL.EGL_SUCCESS == eglRes ) {
             return eglDisplay[0];
         }
@@ -258,7 +276,7 @@ public class EGLDisplayUtil {
             if(DEBUG) {
                 System.err.println("EGLDisplayUtil.eglGetAndInitDisplay failed with native "+EGLContext.toHexString(nativeDisplayID[0])+", error "+EGLContext.toHexString(eglRes)+"/"+EGLContext.toHexString(eglError[0])+" - fallback!");
             }
-            eglRes = EGLDisplayUtil.eglGetDisplayAndInitialize(EGL.EGL_DEFAULT_DISPLAY, eglDisplay, eglError, null, null);
+            eglRes = EGLDisplayUtil.eglGetDisplayAndInitialize(EGL.EGL_DEFAULT_DISPLAY, eglDisplay, eglError, major, minor);
             if( EGL.EGL_SUCCESS == eglRes ) {
                 nativeDisplayID[0] = EGL.EGL_DEFAULT_DISPLAY;
                 return eglDisplay[0];
@@ -286,8 +304,8 @@ public class EGLDisplayUtil {
 
     private static final EGLGraphicsDevice.EGLDisplayLifecycleCallback eglLifecycleCallback = new EGLGraphicsDevice.EGLDisplayLifecycleCallback() {
         @Override
-        public long eglGetAndInitDisplay(final long[] nativeDisplayID) {
-            return eglGetDisplayAndInitialize(nativeDisplayID);
+        public long eglGetAndInitDisplay(final long[] nativeDisplayID, final int[] major, final int[] minor) {
+            return eglGetDisplayAndInitialize(nativeDisplayID, major, minor);
         }
         @Override
         public void eglTerminate(final long eglDisplayHandle) {

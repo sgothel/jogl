@@ -28,6 +28,8 @@
 
 package jogamp.nativewindow;
 
+import java.io.PrintStream;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -279,6 +281,13 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
             sink.append("WINDOW_INVISIBLE");
             needsOr = true;
         }
+        if( 0 != ( implBitfield & OPT_UPSTREAM_SURFACELESS ) ) {
+            if(needsOr) {
+                sink.append(" | ");
+            }
+            sink.append("SURFACELESS");
+            needsOr = true;
+        }
         sink.append(" ]");
         return sink;
     }
@@ -296,6 +305,34 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
 
     @Override
     public final void clearUpstreamOptionBits(final int v) { implBitfield &= ~v; }
+
+    public static void dumpHierarchy(final PrintStream out, final ProxySurface s) {
+        out.println("Surface Hierarchy of "+s.getClass().getName());
+        dumpHierarchy(out, s, "");
+        out.println();
+    }
+    private static void dumpHierarchy(final PrintStream out, final NativeSurface s, String indentation) {
+        indentation = indentation + "  ";
+        out.println(indentation+"Surface device "+s.getGraphicsConfiguration().getScreen().getDevice());
+        out.println(indentation+"Surface size "+s.getSurfaceWidth()+"x"+s.getSurfaceHeight()+", handle 0x"+Long.toHexString(s.getSurfaceHandle()));
+        if( s instanceof ProxySurfaceImpl ) {
+            final ProxySurface ps = (ProxySurface)s;
+            out.println(indentation+"Upstream options "+ps.getUpstreamOptionBits(null).toString());
+
+            final UpstreamSurfaceHook psUSH = ps.getUpstreamSurfaceHook();
+            if( null != psUSH ) {
+                out.println(indentation+"Upstream Hook "+psUSH.getClass().getName());
+                final NativeSurface upstreamSurface = psUSH.getUpstreamSurface();
+                indentation = indentation + "  ";
+                if( null != upstreamSurface ) {
+                    out.println(indentation+"Upstream Hook's Surface "+upstreamSurface.getClass().getName());
+                    dumpHierarchy(out, upstreamSurface, indentation);
+                } else {
+                    out.println(indentation+"Upstream Hook's Surface NULL");
+                }
+            }
+        }
+    }
 
     @Override
     public StringBuilder toString(StringBuilder sink) {

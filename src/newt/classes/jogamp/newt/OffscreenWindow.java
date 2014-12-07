@@ -71,7 +71,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
         setGraphicsConfiguration(cfg);
 
         synchronized(OffscreenWindow.class) {
-            setWindowHandle(nextWindowHandle++);
+            setWindowHandle(nextWindowHandle++);  // just a marker
         }
         visibleChanged(false, true);
     }

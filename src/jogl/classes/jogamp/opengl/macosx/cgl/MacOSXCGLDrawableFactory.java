@@ -373,6 +373,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
+  public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+          final GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+      throw new UnsupportedOperationException("TODO");
+  }
+
+  @Override
   protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
     final MacOSXGraphicsDevice device = new MacOSXGraphicsDevice(deviceReq.getUnitID());
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);

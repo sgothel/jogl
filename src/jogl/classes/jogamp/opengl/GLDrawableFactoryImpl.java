@@ -381,8 +381,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                                            GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook);
 
   /**
-   * A dummy surface is not visible on screen and will not be used to render directly to,
-   * it maybe on- or offscreen.
+   * A dummy surface is not visible on screen, it may be on- or offscreen.
    * <p>
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
    * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
@@ -410,8 +409,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   /**
-   * A dummy surface is not visible on screen and will not be used to render directly to,
-   * it maybe on- or offscreen.
+   * A dummy surface is not visible on screen and may be on- or offscreen.
    * <p>
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
    * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
@@ -430,6 +428,27 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    */
   public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
                                                       GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
+
+  /**
+   * A surfaceless {@link ProxySurface} is a non-existing surface and will not be used as a render target.
+   * <p>
+   * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} w/o default framebuffer to query information.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
+   * </p>
+   * @param device a valid platform dependent target device.
+   * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
+   *                        otherwise <code>device</code> instance is used as-is.
+   * @param chosenCaps
+   * @param requestedCaps
+   * @param chooser the custom chooser, may be null for default
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
+   *        The latter is platform specific and small
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
+   *        The latter is platform specific and small
+   * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
+   */
+  public abstract ProxySurface createSurfacelessImpl(AbstractGraphicsDevice device, boolean createNewDevice,
+                                                     GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
 
   //---------------------------------------------------------------------------
   //

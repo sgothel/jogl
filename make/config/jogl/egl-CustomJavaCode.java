@@ -1,6 +1,6 @@
 
     private static EGLProcAddressTable _table = new EGLProcAddressTable(new GLProcAddressResolver());
-    public static void resetProcAddressTable(DynamicLookupHelper lookup) {
+    static void resetProcAddressTable(DynamicLookupHelper lookup) {
         _table.reset(lookup);
     }
 
@@ -12,7 +12,7 @@
     public static final int  EGL_DONT_CARE  = -1;
     public static final int  EGL_UNKNOWN    = -1;
 
-    protected static long eglGetProcAddress(long eglGetProcAddressHandle, java.lang.String procname)
+    static long eglGetProcAddress(long eglGetProcAddressHandle, java.lang.String procname)
     {
         if (eglGetProcAddressHandle == 0) {
             throw new GLException("Passed null pointer for method \"eglGetProcAddress\"");

@@ -34,11 +34,14 @@ package com.jogamp.nativewindow.egl;
 
 import javax.media.nativewindow.*;
 
+import com.jogamp.common.util.VersionNumber;
+
 /** Encapsulates a graphics device on EGL platforms.
  */
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    final long[] nativeDisplayID = new long[1];
-    /* final */ EGLDisplayLifecycleCallback eglLifecycleCallback;
+    private final long[] nativeDisplayID = new long[1];
+    private /* final */ EGLDisplayLifecycleCallback eglLifecycleCallback;
+    private VersionNumber eglVersion = VersionNumber.zeroVersion;
 
     /**
      * Hack to allow inject a EGL termination call.
@@ -52,9 +55,11 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
          * Implementation should issue an <code>EGL.eglGetDisplay(nativeDisplayID)</code>
          * inclusive <code>EGL.eglInitialize(eglDisplayHandle, ..)</code> call.
          * @param nativeDisplayID in/out array of size 1, passing the requested nativeVisualID, may return a different revised nativeVisualID handle
+         * @param major out array for EGL major version
+         * @param minor out array for EGL minor version
          * @return the initialized EGL display ID, or <code>0</code> if not successful
          */
-        public long eglGetAndInitDisplay(long[] nativeDisplayID);
+        public long eglGetAndInitDisplay(final long[] nativeDisplayID, final int[] major, final int[] minor);
 
         /**
          * Implementation should issue an <code>EGL.eglTerminate(eglDisplayHandle)</code> call.
@@ -79,6 +84,9 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         this.eglLifecycleCallback = eglLifecycleCallback;
     }
 
+    /** EGL server version as returned by {@code eglInitialize(..)}. Only valid after {@link #open()}. */
+    public VersionNumber getEGLVersion() { return eglVersion; }
+
     public long getNativeDisplayID() { return nativeDisplayID[0]; }
 
     @Override
@@ -98,11 +106,16 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - EGLGraphicsDevice.open(): "+this);
             }
-            handle = eglLifecycleCallback.eglGetAndInitDisplay(nativeDisplayID);
+            final int[] major = { 0 };
+            final int[] minor = { 0 };
+            handle = eglLifecycleCallback.eglGetAndInitDisplay(nativeDisplayID, major, minor);
             if(0 == handle) {
+                eglVersion = VersionNumber.zeroVersion;
                 throw new NativeWindowException("EGLGraphicsDevice.open() failed: "+this);
+            } else {
+                eglVersion = new VersionNumber(major[0], minor[0], 0);
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -141,6 +154,11 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback;
         eglLifecycleCallback = (EGLDisplayLifecycleCallback) newOwnership;
         return oldOwnership;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"[type "+getType()+", v"+eglVersion+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+"]";
     }
 }
 
