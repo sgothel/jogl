@@ -1,3 +1,5 @@
+private final GL4bcProcAddressTable _pat;
+
 // Tracks glBegin/glEnd calls to determine whether it is legal to
 // query Vertex Buffer Object state
 private boolean inBeginEndPair;
@@ -17,35 +19,21 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 public GL4bcImpl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
-  if(null != context) {
-      this.bufferObjectTracker  = context.getBufferObjectTracker();
-      this.bufferStateTracker = context.getBufferStateTracker();
-      this.glStateTracker     = context.getGLStateTracker();
-  } else {
-      this.bufferObjectTracker  = null;
-      this.bufferStateTracker = null;
-      this.glStateTracker     = null;
-  }
+  this._pat = (GL4bcProcAddressTable)_context.getGLProcAddressTable();
+  this.bufferObjectTracker = context.getBufferObjectTracker();
+  this.bufferStateTracker = context.getBufferStateTracker();
+  this.glStateTracker     = context.getGLStateTracker();
   this.glProfile = glp;
 }
 
 public final void finalizeInit() {
-  if(null != _context) {
-      haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
-      haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
-      haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
-      haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
-      haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
-      haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 ||
-                                  isExtensionAvailable("GL_ARB_vertex_array_object");
-   } else {
-      haveARBPixelBufferObject  = false;
-      haveEXTPixelBufferObject  = false;
-      haveGL15                  = false;
-      haveGL21                  = false;
-      haveARBVertexBufferObject = false;
-      haveARBVertexArrayObject  = false;
-   }
+  haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
+  haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
+  haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
+  haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
+  haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
+  haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 ||
+                              isExtensionAvailable("GL_ARB_vertex_array_object");
 }
 
 private int[] imageSizeTemp = new int[1];
@@ -482,7 +470,7 @@ public final void glTexCoordPointer(GLArrayData array) {
 
 @Override
 public final void glBufferData(int target, long size, Buffer data, int usage)  {
-    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferData;
+    final long glProcAddress = _pat._addressof_glBufferData;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glBufferData"));
     }
@@ -493,7 +481,7 @@ public final void glBufferData(int target, long size, Buffer data, int usage)  {
 /** FIXME Add for OpenGL 4.4
 @Override
 public final void glBufferStorage(int target, long size, Buffer data, int flags)  {
-    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferStorage;
+    final long glProcAddress = _pat._addressof_glBufferStorage;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glBufferStorage"));
     }
@@ -516,7 +504,7 @@ private native void dispatch_glBufferStorage(int target, long size, Object data,
 
 @Override
 public final void glNamedBufferDataEXT(int buffer, long size, Buffer data, int usage)  {
-    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glNamedBufferDataEXT;
+    final long glProcAddress = _pat._addressof_glNamedBufferDataEXT;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glNamedBufferDataEXT"));
     }
@@ -538,7 +526,7 @@ private native void dispatch_glNamedBufferDataEXT(int buffer, long size, Object 
 
 @Override
 public boolean glUnmapBuffer(int target)  {
-    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapBuffer;
+    final long glProcAddress = _pat._addressof_glUnmapBuffer;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glUnmapBuffer"));
     }
@@ -547,7 +535,7 @@ public boolean glUnmapBuffer(int target)  {
 
 @Override
 public boolean glUnmapNamedBufferEXT(int buffer)  {
-    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapNamedBufferEXT;
+    final long glProcAddress = _pat._addressof_glUnmapNamedBufferEXT;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glUnmapNamedBufferEXT"));
     }
@@ -563,7 +551,7 @@ private native boolean dispatch_glUnmapNamedBufferEXT(int buffer, long procAddre
 
 @Override
 public final GLBufferStorage mapBuffer(final int target, final int access) {
-  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  final long glProcAddress = _pat._addressof_glMapBuffer;
   if ( 0 == glProcAddress ) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
@@ -571,7 +559,7 @@ public final GLBufferStorage mapBuffer(final int target, final int access) {
 }
 @Override
 public final GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) {
-  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange;
+  final long glProcAddress = _pat._addressof_glMapBufferRange;
   if ( 0 == glProcAddress ) {
     throw new GLException("Method \"glMapBufferRange\" not available");
   }
@@ -580,7 +568,7 @@ public final GLBufferStorage mapBufferRange(final int target, final long offset,
 
 @Override
 public final GLBufferStorage mapNamedBuffer(final int bufferName, final int access) {
-  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT;
+  final long glProcAddress = _pat._addressof_glMapNamedBufferEXT;
   if ( 0 == glProcAddress ) {
     throw new GLException("Method \"glMapNamedBufferEXT\" not available");
   }
@@ -597,7 +585,7 @@ private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long gl
 
 @Override
 public final GLBufferStorage mapNamedBufferRange(final int bufferName, final long offset, final long length, final int access) {
-  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferRangeEXT;
+  final long glProcAddress = _pat._addressof_glMapNamedBufferRangeEXT;
   if ( 0 == glProcAddress ) {
     throw new GLException("Method \"glMapNamedBufferRangeEXT\" not available");
   }

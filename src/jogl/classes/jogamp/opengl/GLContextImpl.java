@@ -1243,16 +1243,19 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for various context implementations
   //
 
-  private Object createInstance(final GLProfile glp, final boolean glObject, final Object[] cstrArgs) {
+  private final Object createInstance(final GLProfile glp, final boolean glObject, final Object[] cstrArgs) {
       return ReflectionUtil.createInstance(glp.getGLCtor(glObject), cstrArgs);
   }
 
-  private boolean verifyInstance(final GLProfile glp, final String suffix, final Object instance) {
+  private final boolean verifyInstance(final GLProfile glp, final String suffix, final Object instance) {
       return ReflectionUtil.instanceOf(instance, glp.getGLImplBaseClassName()+suffix);
   }
 
-  /** Create the GL for this context. */
-  protected GL createGL(final GLProfile glp) {
+  /**
+   * Create the GL instance for this context,
+   * requires valid {@link #getGLProcAddressTable()} result!
+   */
+  private final GL createGL(final GLProfile glp) {
     final GL gl = (GL) createInstance(glp, true, new Object[] { glp, this } );
 
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -1281,6 +1284,8 @@ public abstract class GLContextImpl extends GLContext {
       }
       if( null != finalizeInit ) {
           ReflectionUtil.callMethod(gl, finalizeInit, new Object[]{ });
+      } else {
+          throw new InternalError("Missing 'void finalizeInit(ProcAddressTable)' in "+gl.getClass().getName());
       }
   }
 
@@ -1480,18 +1485,13 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected final boolean setGLFunctionAvailability(final boolean force, int major, int minor, int ctxProfileBits,
                                                     final boolean strictMatch, final boolean withinGLVersionsMapping) {
-    if(null!=this.gl && null!=glProcAddressTable && !force) {
+    if( null != this.gl && null != glProcAddressTable && !force ) {
         return true; // already done and not forced
     }
 
     if ( 0 < major && !GLContext.isValidGLVersion(ctxProfileBits, major, minor) ) {
         throw new GLException("Invalid GL Version Request "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
-
-    if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
-        setGL( createGL( drawable.getGLProfile() ) );
-    }
-    updateGLXProcAddressTable();
 
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
@@ -1684,54 +1684,67 @@ public abstract class GLContextImpl extends GLContext {
         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.0 validated FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion));
     }
 
+    updateGLXProcAddressTable();
+
     //
     // UpdateGLProcAddressTable functionality
+    // _and_ setup GL instance, which ctor requires valid getGLProcAddressTable() result!
     //
-    ProcAddressTable table = null;
-    synchronized(mappedContextTypeObjectLock) {
-        table = mappedGLProcAddress.get( contextFQN );
-        if(null != table && !verifyInstance(gl.getGLProfile(), "ProcAddressTable", table)) {
-            throw new InternalError("GLContext GL ProcAddressTable mapped key("+contextFQN+" - " + GLContext.getGLVersion(major, minor, ctxProfileBits, null)+
-                  ") -> "+ table.getClass().getName()+" not matching "+gl.getGLProfile().getGLImplBaseClassName());
-        }
-    }
-    if(null != table) {
-        glProcAddressTable = table;
-        if(DEBUG) {
-            System.err.println(getThreadName() + ": GLContext GL ProcAddressTable reusing key("+contextFQN+") -> "+toHexString(table.hashCode()));
-        }
-    } else {
-        glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), false,
-                                                               new Object[] { new GLProcAddressResolver() } );
-        resetProcAddressTable(getGLProcAddressTable());
+    {
+        final GLProfile glp = drawable.getGLProfile();
+
+        ProcAddressTable table = null;
         synchronized(mappedContextTypeObjectLock) {
-            mappedGLProcAddress.put(contextFQN, getGLProcAddressTable());
-            if(DEBUG) {
-                System.err.println(getThreadName() + ": GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+toHexString(getGLProcAddressTable().hashCode()));
+            table = mappedGLProcAddress.get( contextFQN );
+            if(null != table && !verifyInstance(glp, "ProcAddressTable", table)) {
+                throw new InternalError("GLContext GL ProcAddressTable mapped key("+contextFQN+" - " + GLContext.getGLVersion(major, minor, ctxProfileBits, null)+
+                      ") -> "+ table.getClass().getName()+" not matching "+glp.getGLImplBaseClassName());
             }
+        }
+        if(null != table) {
+            glProcAddressTable = table;
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": GLContext GL ProcAddressTable reusing key("+contextFQN+") -> "+toHexString(table.hashCode()));
+            }
+        } else {
+            glProcAddressTable = (ProcAddressTable) createInstance(glp, false,
+                                                                   new Object[] { new GLProcAddressResolver() } );
+            resetProcAddressTable( glProcAddressTable );
+            synchronized(mappedContextTypeObjectLock) {
+                mappedGLProcAddress.put(contextFQN, glProcAddressTable);
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+toHexString(glProcAddressTable.hashCode()));
+                }
+            }
+        }
+
+        if( null == this.gl || !verifyInstance(glp, "Impl", this.gl) ) {
+            setGL( createGL( glp ) );
         }
     }
 
     //
     // Update ExtensionAvailabilityCache
     //
-    ExtensionAvailabilityCache eCache;
-    synchronized(mappedContextTypeObjectLock) {
-        eCache = mappedExtensionAvailabilityCache.get( contextFQN );
-    }
-    if(null !=  eCache) {
-        extensionAvailability = eCache;
-        if(DEBUG) {
-            System.err.println(getThreadName() + ": GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getTotalExtensionCount());
-        }
-    } else {
-        extensionAvailability = new ExtensionAvailabilityCache();
-        setContextVersion(major, minor, ctxProfileBits, vendorVersion, false); // pre-set of GL version, required for extension cache usage
-        extensionAvailability.reset(this);
+    {
+        ExtensionAvailabilityCache eCache;
         synchronized(mappedContextTypeObjectLock) {
-            mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
+            eCache = mappedExtensionAvailabilityCache.get( contextFQN );
+        }
+        if(null !=  eCache) {
+            extensionAvailability = eCache;
             if(DEBUG) {
-                System.err.println(getThreadName() + ": GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(extensionAvailability.hashCode()) + " - entries: "+extensionAvailability.getTotalExtensionCount());
+                System.err.println(getThreadName() + ": GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getTotalExtensionCount());
+            }
+        } else {
+            extensionAvailability = new ExtensionAvailabilityCache();
+            setContextVersion(major, minor, ctxProfileBits, vendorVersion, false); // pre-set of GL version, required for extension cache usage
+            extensionAvailability.reset(this);
+            synchronized(mappedContextTypeObjectLock) {
+                mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(extensionAvailability.hashCode()) + " - entries: "+extensionAvailability.getTotalExtensionCount());
+                }
             }
         }
     }

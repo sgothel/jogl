@@ -1,14 +1,11 @@
+private final GLES1ProcAddressTable _pat;
+
 public GLES1Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
-  if(null != context) {
-      this.bufferObjectTracker  = context.getBufferObjectTracker();
-      this.bufferStateTracker = context.getBufferStateTracker();
-      this.glStateTracker     = context.getGLStateTracker();
-  } else {
-      this.bufferObjectTracker  = null;
-      this.bufferStateTracker = null;
-      this.glStateTracker     = null;
-  }
+  this._pat = (GLES1ProcAddressTable)_context.getGLProcAddressTable();
+  this.bufferObjectTracker = context.getBufferObjectTracker();
+  this.bufferStateTracker = context.getBufferStateTracker();
+  this.glStateTracker     = context.getGLStateTracker();
   this.glProfile = glp;
 }
 
@@ -312,7 +309,7 @@ public final void glTexCoordPointer(GLArrayData array) {
 
 @Override
 public final void glBufferData(int target, long size, Buffer data, int usage)  {
-    final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferData;
+    final long glProcAddress = _pat._addressof_glBufferData;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glBufferData"));
     }
@@ -323,7 +320,7 @@ public final void glBufferData(int target, long size, Buffer data, int usage)  {
 
 @Override
 public boolean glUnmapBuffer(int target)  {
-    final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapBuffer;
+    final long glProcAddress = _pat._addressof_glUnmapBuffer;
     if ( 0 == glProcAddress ) {
       throw new GLException(String.format("Method \"%s\" not available", "glUnmapBuffer"));
     }
@@ -332,7 +329,7 @@ public boolean glUnmapBuffer(int target)  {
 
 @Override
 public final GLBufferStorage mapBuffer(final int target, final int access) {
-  final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  final long glProcAddress = _pat._addressof_glMapBuffer;
   if ( 0 == glProcAddress ) {
     throw new GLException("Method \"glMapBuffer\" not available");
   }
@@ -340,7 +337,7 @@ public final GLBufferStorage mapBuffer(final int target, final int access) {
 }
 @Override
 public final GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) {
-  final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange;
+  final long glProcAddress = _pat._addressof_glMapBufferRange;
   if ( 0 == glProcAddress ) {
     throw new GLException("Method \"glMapBufferRange\" not available");
   }
