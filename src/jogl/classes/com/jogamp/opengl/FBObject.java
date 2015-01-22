@@ -1518,7 +1518,7 @@ public class FBObject {
             final TextureAttachment texA = colbuf.getTextureAttachment();
             if( samples > 0 ) {
                 removeColorAttachment(attachmentPoint, texA);
-                if(initializedColorbuf) {
+                if( initializedColorbuf ) {
                     texA.free(gl);
                 }
                 throw new GLException("Texture2D not supported w/ MSAA. If you have enabled MSAA with exisiting texture attachments, you may want to detach them via detachAllTexturebuffer(gl).");
@@ -1531,9 +1531,9 @@ public class FBObject {
 
             if(!ignoreStatus) {
                 updateStatus(gl);
-                if(!isStatusValid()) {
+                if( !isStatusValid() ) {
                     detachColorbuffer(gl, attachmentPoint, true);
-                    throw new GLException("attachTexture2D "+texA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+                    throw new GLException("attachTexture2D "+texA+" at "+attachmentPoint+" failed: "+getStatusString()+", "+this);
                 }
             }
         } else {
@@ -1546,9 +1546,9 @@ public class FBObject {
 
             if(!ignoreStatus) {
                 updateStatus(gl);
-                if(!isStatusValid()) {
+                if( !isStatusValid() ) {
                     detachColorbuffer(gl, attachmentPoint, true);
-                    throw new GLException("attachColorbuffer "+colA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+                    throw new GLException("attachColorbuffer "+colA+" at "+attachmentPoint+" failed: "+getStatusString()+", "+this);
                 }
             }
         }
@@ -1794,7 +1794,7 @@ public class FBObject {
             updateStatus(gl);
             if( !isStatusValid() ) {
                 detachRenderbuffer(gl, atype, true);
-                throw new GLException("renderbuffer [attachmentType "+atype+", iformat "+toHexString(internalFormat)+"] failed: "+this.getStatusString()+": "+this.toString());
+                throw new GLException("renderbuffer [attachmentType "+atype+", iformat "+toHexString(internalFormat)+"] failed: "+this.getStatusString()+", "+this.toString());
             }
         }
 
@@ -2195,7 +2195,7 @@ public class FBObject {
                 } */
                 updateStatus(gl);
                 if(!isStatusValid()) {
-                    throw new GLException("detachAllImpl failed "+getStatusString()+", "+this);
+                    throw new GLException("detachAllImpl failed: "+getStatusString()+", "+this);
                 }
             }
         } finally {
