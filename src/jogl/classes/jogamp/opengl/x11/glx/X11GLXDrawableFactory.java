@@ -64,7 +64,6 @@ import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.x11.X11DummyUpstreamSurfaceHook;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
-import jogamp.nativewindow.x11.X11UpstreamSurfacelessHook;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -76,6 +75,7 @@ import jogamp.opengl.SharedResourceRunner;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.opengl.GLRendererQuirks;
@@ -570,7 +570,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
                                                   GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new X11UpstreamSurfacelessHook(width, height));
+    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
   }
 
   @Override

@@ -74,6 +74,7 @@ import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
@@ -373,8 +374,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-          final GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
-      throw new UnsupportedOperationException("TODO");
+          GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+    chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
+    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
   }
 
   @Override

@@ -25,18 +25,16 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.egl;
+package com.jogamp.nativewindow;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 
-import jogamp.opengl.egl.EGL;
-
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
-public class EGLUpstreamSurfacelessHook extends UpstreamSurfaceHookMutableSize {
+public class GenericUpstreamSurfacelessHook extends UpstreamSurfaceHookMutableSize {
     /**
      * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()} via {@link UpstreamSurfaceHook#getSurfaceWidth(ProxySurface)},
      *        not the actual dummy surface width.
@@ -45,45 +43,45 @@ public class EGLUpstreamSurfacelessHook extends UpstreamSurfaceHookMutableSize {
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
-    public EGLUpstreamSurfacelessHook(final int width, final int height) {
+    public GenericUpstreamSurfacelessHook(final int width, final int height) {
         super(width, height);
     }
 
     @Override
     public final void create(final ProxySurface s) {
-        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
-        eglDevice.lock();
+        final AbstractGraphicsDevice device = s.getGraphicsConfiguration().getScreen().getDevice();
+        device.lock();
         try {
-            if(0 == eglDevice.getHandle()) {
-                eglDevice.open();
+            if(0 == device.getHandle()) {
+                device.open();
                 s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
             }
-            if( EGL.EGL_NO_SURFACE != s.getSurfaceHandle() ) {
+            if( 0 != s.getSurfaceHandle() ) {
                 throw new InternalError("Upstream surface not null: "+s);
             }
             s.addUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS |
                                      ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE |
                                      ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
         } finally {
-            eglDevice.unlock();
+            device.unlock();
         }
     }
 
     @Override
     public final void destroy(final ProxySurface s) {
         if( s.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
-            final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
+            final AbstractGraphicsDevice device = s.getGraphicsConfiguration().getScreen().getDevice();
             if( !s.containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS ) ) {
                 throw new InternalError("Owns upstream surface, but not a valid zero surface: "+s);
             }
-            if( EGL.EGL_NO_SURFACE != s.getSurfaceHandle() ) {
+            if( 0 != s.getSurfaceHandle() ) {
                 throw new InternalError("Owns upstream valid zero surface, but non zero surface: "+s);
             }
-            eglDevice.lock();
+            device.lock();
             try {
                 s.clearUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS | ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
             } finally {
-                eglDevice.unlock();
+                device.unlock();
             }
         }
     }

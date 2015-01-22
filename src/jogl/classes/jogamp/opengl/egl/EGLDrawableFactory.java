@@ -81,6 +81,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 
@@ -921,7 +922,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
         final boolean[] ownDevice = { false };
         final EGLGraphicsConfiguration config = evalConfig(ownDevice, deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser);
-        return EGLSurface.createSurfaceless(config, new EGLUpstreamSurfacelessHook(width, height), ownDevice[0]);
+        return EGLSurface.createSurfaceless(config, new GenericUpstreamSurfacelessHook(width, height), ownDevice[0]);
     }
 
     /**
