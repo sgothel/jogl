@@ -6,6 +6,7 @@ import javax.media.nativewindow.UpstreamSurfaceHook;
 
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.egl.EGL;
 
 /** Uses a PBuffer offscreen surface */
 public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {

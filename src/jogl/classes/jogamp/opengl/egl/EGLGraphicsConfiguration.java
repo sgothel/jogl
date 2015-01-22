@@ -57,6 +57,8 @@ import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
+import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
 public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
 

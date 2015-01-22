@@ -37,11 +37,12 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
+import com.jogamp.opengl.egl.EGL;
 
 import jogamp.nativewindow.ProxySurfaceImpl;
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.egl.EGL;
 
 /**
  * <pre>
@@ -80,10 +81,10 @@ public class EGLSurface extends WrappedSurface {
         }
     }
 
-    public static EGLSurface createSurfaceless(final EGLGraphicsConfiguration cfg, final EGLUpstreamSurfacelessHook upstream, final boolean ownsDevice) {
+    public static EGLSurface createSurfaceless(final EGLGraphicsConfiguration cfg, final GenericUpstreamSurfacelessHook upstream, final boolean ownsDevice) {
         return new EGLSurface(cfg, upstream, ownsDevice);
     }
-    private EGLSurface(final EGLGraphicsConfiguration cfg, final EGLUpstreamSurfacelessHook upstream, final boolean ownsDevice) {
+    private EGLSurface(final EGLGraphicsConfiguration cfg, final GenericUpstreamSurfacelessHook upstream, final boolean ownsDevice) {
         super(cfg, EGL.EGL_NO_SURFACE, upstream, ownsDevice);
         if(EGLDrawableFactory.DEBUG) {
             System.err.println("EGLSurface.ctor().3: "+this);

@@ -38,12 +38,12 @@ import javax.media.nativewindow.ToolkitLock;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
-import jogamp.opengl.egl.EGL;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.egl.EGL;
 
 /**
  * This implementation provides recursive calls to

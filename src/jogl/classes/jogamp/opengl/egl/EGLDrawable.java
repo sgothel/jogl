@@ -43,9 +43,9 @@ import javax.media.opengl.GLException;
 import jogamp.nativewindow.ProxySurfaceImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
-import jogamp.opengl.egl.EGL;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.egl.EGL;
 
 public class EGLDrawable extends GLDrawableImpl {
     static boolean DEBUG = GLDrawableImpl.DEBUG;

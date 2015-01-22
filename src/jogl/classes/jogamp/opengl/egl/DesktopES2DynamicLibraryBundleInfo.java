@@ -31,8 +31,9 @@ package jogamp.opengl.egl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jogamp.opengl.egl.EGL;
+
 import jogamp.opengl.GLDynamicLibraryBundleInfo;
-import jogamp.opengl.egl.EGL;
 
 /**
  * Implementation of the DynamicLookupHelper for Desktop ES2 (AMD, ..)
@@ -58,7 +59,7 @@ public final class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBu
 
     @Override
     public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
-        return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
+        return EGLContext.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
     @Override

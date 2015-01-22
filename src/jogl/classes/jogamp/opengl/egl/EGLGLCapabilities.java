@@ -34,6 +34,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
 
 public class EGLGLCapabilities extends GLCapabilities {

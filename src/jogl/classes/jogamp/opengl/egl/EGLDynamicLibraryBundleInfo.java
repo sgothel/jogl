@@ -33,10 +33,10 @@ import java.util.List;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.GLDynamicLibraryBundleInfo;
-import jogamp.opengl.egl.EGL;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.egl.EGL;
 
 /**
  * Abstract implementation of the DynamicLookupHelper for EGL,
@@ -81,7 +81,7 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
 
     @Override
     public final long toolGetProcAddress(final long toolGetProcAddressHandle, final String funcName) {
-        return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
+        return EGLContext.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
     @Override

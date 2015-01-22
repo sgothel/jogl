@@ -72,11 +72,11 @@ import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
-import jogamp.opengl.egl.EGL;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
@@ -84,6 +84,7 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
+import com.jogamp.opengl.egl.EGL;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
@@ -171,6 +172,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
+    static class EGLAcc extends EGL {
+      protected static boolean resetProcAddressTable(final DynamicLookupHelper lookup) {
+          return EGL.resetProcAddressTable(lookup);
+      }
+    }
+    static final String eglInitializeFuncName = "eglInitialize";
+
     public EGLDrawableFactory() {
         super();
 
@@ -179,21 +187,58 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 return;
             }
             eglDynamicLookupHelperInit = true;
-        }
 
-        // Check for other underlying stuff ..
-        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
-            hasX11 = true;
-            try {
-                ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
-            } catch (final Exception jre) { /* n/a .. */ }
-        }
+            // Check for other underlying stuff ..
+            if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
+                hasX11 = true;
+                try {
+                    ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
+                } catch (final Exception jre) { /* n/a .. */ }
+            }
 
-        // FIXME: Probably need to move EGL from a static model
-        // to a dynamic one, where there can be 2 instances
-        // for each ES profile with their own ProcAddressTable.
-
-        synchronized(EGLDrawableFactory.class) {
+            /**
+             * FIXME: Probably need to move EGL from a static model
+             * to a dynamic one, where there can be 2 instances
+             * for each ES profile with their own ProcAddressTable.
+             *
+             * Since EGL is designed to be static
+             * we validate the function address of 'eglInitialize'
+             * with all EGL/ES and EGL/GL combinations.
+             * In case this address doesn't match the primary tuple EGL/ES2
+             * the profile is skipped!
+             */
+            boolean eglTableReset = false;
+            long eglInitializeAddress = 0;
+            // Setup: eglES2DynamicLookupHelper[, eglES1DynamicLookupHelper]
+            {
+                GLDynamicLookupHelper tmp=null;
+                try {
+                    tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
+                } catch (final GLException gle) {
+                    if(DEBUG) {
+                        gle.printStackTrace();
+                    }
+                }
+                if( null != tmp && tmp.isLibComplete() && true == ( eglTableReset = EGLAcc.resetProcAddressTable(tmp) ) ) {
+                    eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                    eglES2DynamicLookupHelper = tmp;
+                    final boolean includesES1 = null == eglES1DynamicLookupHelper && includesES1(eglES2DynamicLookupHelper);
+                    if(includesES1) {
+                        eglES1DynamicLookupHelper = tmp;
+                    }
+                    final boolean isANGLEES2 = isANGLE(eglES2DynamicLookupHelper);
+                    isANGLE |= isANGLEES2;
+                    if (DEBUG || GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK (includesES1 "+includesES1+", isANGLE: "+isANGLEES2+", eglInitialize 0x"+Long.toHexString(eglInitializeAddress)+")");
+                        if(includesES1) {
+                            System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK (ES2 lib)");
+                        }
+                    }
+                } else if (DEBUG || GLProfile.DEBUG) {
+                    System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
+                }
+            }
+            // Setup: eglES1DynamicLookupHelper
             if( null == eglES1DynamicLookupHelper ) {
                 GLDynamicLookupHelper tmp=null;
                 try {
@@ -203,46 +248,37 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         gle.printStackTrace();
                     }
                 }
-                if(null!=tmp && tmp.isLibComplete()) {
-                    eglES1DynamicLookupHelper = tmp;
-                    EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
-                    final boolean isANGLEES1 = isANGLE(eglES1DynamicLookupHelper);
-                    isANGLE |= isANGLEES1;
-                    if (DEBUG || GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK, isANGLE: "+isANGLEES1);
+                if( null != tmp && tmp.isLibComplete() ) {
+                    final boolean ok;
+                    final long _eglInitializeAddress;
+                    if( !eglTableReset ) {
+                        if( true == ( eglTableReset = EGLAcc.resetProcAddressTable(tmp) ) ) {
+                            _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                            eglInitializeAddress = _eglInitializeAddress;
+                            ok = true;
+                        } else {
+                            _eglInitializeAddress = 0;
+                            ok = false;
+                        }
+                    } else {
+                        _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                        ok = _eglInitializeAddress == eglInitializeAddress;
+                    }
+                    if( ok ) {
+                        eglES1DynamicLookupHelper = tmp;
+                        final boolean isANGLEES1 = isANGLE(eglES1DynamicLookupHelper);
+                        isANGLE |= isANGLEES1;
+                        if (DEBUG || GLProfile.DEBUG) {
+                            System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK (isANGLE: "+isANGLEES1+", eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
+                        }
+                    } else if (DEBUG || GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE (ES1 proc, eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
                     }
                 } else if (DEBUG || GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE (ES1 lib)");
                 }
             }
-            if( null == eglES2DynamicLookupHelper ) {
-                GLDynamicLookupHelper tmp=null;
-                try {
-                    tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
-                } catch (final GLException gle) {
-                    if(DEBUG) {
-                        gle.printStackTrace();
-                    }
-                }
-                if(null!=tmp && tmp.isLibComplete()) {
-                    eglES2DynamicLookupHelper = tmp;
-                    EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
-                    final boolean includesES1 = null == eglES1DynamicLookupHelper && includesES1(eglES2DynamicLookupHelper);
-                    if(includesES1) {
-                        eglES1DynamicLookupHelper = tmp;
-                    }
-                    final boolean isANGLEES2 = isANGLE(eglES2DynamicLookupHelper);
-                    isANGLE |= isANGLEES2;
-                    if (DEBUG || GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK (includesES1 "+includesES1+", isANGLE: "+isANGLEES2+")");
-                        if(includesES1) {
-                            System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK (ES2 lib)");
-                        }
-                    }
-                } else if (DEBUG || GLProfile.DEBUG) {
-                    System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
-                }
-            }
+            // Setup: eglGLnDynamicLookupHelper
             if( null == eglGLnDynamicLookupHelper ) {
                 GLDynamicLookupHelper tmp=null;
                 try {
@@ -252,14 +288,32 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         gle.printStackTrace();
                     }
                 }
-                if(null!=tmp && tmp.isLibComplete()) {
-                    eglGLnDynamicLookupHelper = tmp;
-                    EGL.resetProcAddressTable(eglGLnDynamicLookupHelper);
-                    if (DEBUG || GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL GLn - OK");
+                if( null != tmp && tmp.isLibComplete() ) {
+                    final boolean ok;
+                    final long _eglInitializeAddress;
+                    if( !eglTableReset ) {
+                        if( true == ( eglTableReset = EGLAcc.resetProcAddressTable(tmp) ) ) {
+                            _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                            eglInitializeAddress = _eglInitializeAddress;
+                            ok = true;
+                        } else {
+                            _eglInitializeAddress = 0;
+                            ok = false;
+                        }
+                    } else {
+                        _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                        ok = _eglInitializeAddress == eglInitializeAddress;
+                    }
+                    if( ok ) {
+                        eglGLnDynamicLookupHelper = tmp;
+                        if (DEBUG || GLProfile.DEBUG) {
+                            System.err.println("Info: EGLDrawableFactory: EGL GLn - OK (eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
+                        }
+                    } else if (DEBUG || GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE (GLn proc, eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
                     }
                 } else if (DEBUG || GLProfile.DEBUG) {
-                    System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE");
+                    System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE (GLn lib)");
                 }
             }
             if( null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper || null != eglGLnDynamicLookupHelper ) {
@@ -286,7 +340,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     sharedResourceRunner.start();
                 }
             }
-        }
+        } // synchronized(EGLDrawableFactory.class)
     }
 
     @Override

@@ -58,12 +58,12 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
-import jogamp.opengl.egl.EGL;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
+import com.jogamp.opengl.egl.EGL;
 
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits

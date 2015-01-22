@@ -33,13 +33,13 @@ import java.nio.IntBuffer;
 import javax.media.opengl.GL;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLContext;
 import jogamp.opengl.egl.EGLDrawable;
-import jogamp.opengl.egl.EGLExt;
 
 public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     final protected TextureType texType;

@@ -41,6 +41,7 @@ import javax.media.opengl.GLException;
 import jogamp.nativewindow.WrappedSurface;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.egl.EGL;
 
 /**
  * <pre>

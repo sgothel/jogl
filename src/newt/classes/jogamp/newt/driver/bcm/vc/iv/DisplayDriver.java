@@ -38,13 +38,13 @@ import javax.media.nativewindow.util.PixelFormat;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.util.PNGPixelRect;
 
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
 import jogamp.newt.PointerIconImpl;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
-import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLDisplayUtil;
 
 public class DisplayDriver extends DisplayImpl {

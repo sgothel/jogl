@@ -37,9 +37,10 @@ package jogamp.newt.driver.kd;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 
+import com.jogamp.opengl.egl.EGL;
+
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
-import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLDisplayUtil;
 
 public class DisplayDriver extends DisplayImpl {

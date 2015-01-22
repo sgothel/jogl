@@ -33,9 +33,8 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.common.os.Platform;
-
-import jogamp.opengl.egl.EGL;
-import jogamp.opengl.egl.EGLExt;
+import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
 /**
  * GLRendererQuirks contains information of known bugs of various GL renderer.

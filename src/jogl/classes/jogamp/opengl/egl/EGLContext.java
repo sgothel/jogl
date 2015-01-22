@@ -50,8 +50,6 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.egl.EGL;
-import jogamp.opengl.egl.EGLExt;
 import jogamp.opengl.egl.EGLExtImpl;
 import jogamp.opengl.egl.EGLExtProcAddressTable;
 
@@ -61,12 +59,14 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
+import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
 public class EGLContext extends GLContextImpl {
-    private EGLExt _eglExt;
     // Table that holds the addresses of the native C-language entry points for
     // EGL extension functions.
     private EGLExtProcAddressTable eglExtProcAddressTable;
+    private EGLExtImpl eglExtImpl;
 
     static final int CTX_PROFILE_COMPAT  = GLContext.CTX_PROFILE_COMPAT;
     static final int CTX_PROFILE_CORE    = GLContext.CTX_PROFILE_CORE;
@@ -84,7 +84,7 @@ public class EGLContext extends GLContextImpl {
     @Override
     protected void resetStates(final boolean isInit) {
         eglExtProcAddressTable = null;
-        // no inner state _eglExt = null;
+        eglExtImpl = null;
         super.resetStates(isInit);
     }
 
@@ -93,19 +93,12 @@ public class EGLContext extends GLContextImpl {
       return getEGLExt();
     }
 
-    public EGLExt getEGLExt() {
-      if (_eglExt == null) {
-        _eglExt = new EGLExtImpl(this);
-      }
-      return _eglExt;
+    public final EGLExt getEGLExt() {
+      return eglExtImpl;
     }
 
     @Override
     public final ProcAddressTable getPlatformExtProcAddressTable() {
-        return eglExtProcAddressTable;
-    }
-
-    public final EGLExtProcAddressTable getEGLExtProcAddressTable() {
         return eglExtProcAddressTable;
     }
 
@@ -359,15 +352,19 @@ public class EGLContext extends GLContextImpl {
             if(DEBUG) {
                 System.err.println(getThreadName() + ": GLContext EGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
             }
+            if( null == eglExtImpl || eglExtImpl.getProcAdressTable() != eglExtProcAddressTable ) {
+                eglExtImpl = new EGLExtImpl(this, eglExtProcAddressTable);
+            }
         } else {
             eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
-            resetProcAddressTable(getEGLExtProcAddressTable());
+            resetProcAddressTable(eglExtProcAddressTable);
             synchronized(mappedContextTypeObjectLock) {
-                mappedGLXProcAddress.put(key, getEGLExtProcAddressTable());
+                mappedGLXProcAddress.put(key, eglExtProcAddressTable);
                 if(DEBUG) {
-                    System.err.println(getThreadName() + ": GLContext EGL ProcAddressTable mapping key("+key+") -> "+toHexString(getEGLExtProcAddressTable().hashCode()));
+                    System.err.println(getThreadName() + ": GLContext EGL ProcAddressTable mapping key("+key+") -> "+toHexString(eglExtProcAddressTable.hashCode()));
                 }
             }
+            eglExtImpl = new EGLExtImpl(this, eglExtProcAddressTable);
         }
     }
 
@@ -412,6 +409,16 @@ public class EGLContext extends GLContextImpl {
         }
         return EGL.eglSwapInterval(drawable.getNativeSurface().getDisplayHandle(), interval);
     }
+
+    static long eglGetProcAddress(final long eglGetProcAddressHandle, final String procname)
+    {
+        if (0 == eglGetProcAddressHandle) {
+            throw new GLException("Passed null pointer for method \"eglGetProcAddress\"");
+        }
+        return dispatch_eglGetProcAddress0(procname, eglGetProcAddressHandle);
+    }
+    /** Entry point to C language function: <code> __EGLFuncPtr eglGetProcAddress(const char *  procname) </code> <br>Part of <code>EGL_VERSION_1_X</code>   */
+    static private native long dispatch_eglGetProcAddress0(String procname, long procAddress);
 
     //
     // Accessible ..

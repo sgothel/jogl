@@ -33,6 +33,8 @@ import jogamp.opengl.egl.*;
 
 import javax.media.nativewindow.*;
 
+import com.jogamp.opengl.egl.EGL;
+
 public class DisplayDriver extends jogamp.newt.DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();

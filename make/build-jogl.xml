@@ -99,7 +99,7 @@
                   value="com/jogamp/opengl/cg com/jogamp/opengl/cg/* jogamp/opengl/cg/*"/>
 
         <property name="java.part.egl"
-                  value="jogamp/opengl/egl/*"/>
+                  value="com/jogamp/opengl/egl/* jogamp/opengl/egl/*"/>
 
         <property name="java.part.glu"
                   value="javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/glu/tessellator/** jogamp/opengl/glu/mipmap/**"/>
@@ -1517,6 +1517,7 @@
         <patternset id="c.src.files.jogl.desktop">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLContext.c"/>
+          <include name="${rootrel.src.c}/EGLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX -->
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
@@ -1543,6 +1544,7 @@
         <patternset id="c.src.files.jogl.mobile">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLContext.c"/>
+          <include name="${rootrel.src.c}/EGLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>

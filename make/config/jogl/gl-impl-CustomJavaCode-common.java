@@ -1,8 +1,10 @@
+    private final GLProfile glProfile;
+    private final GLContextImpl _context;
+
     @Override
     public GLProfile getGLProfile() {
         return this.glProfile;
     }
-    private final GLProfile glProfile;
 
     @Override
     public final int getBoundBuffer(int target) {
@@ -84,8 +86,6 @@
     public final GLContext getContext() {
       return _context;
     }
-
-    private final GLContextImpl _context;
 
     /**
      * @see javax.media.opengl.GLContext#setSwapInterval(int)
