@@ -358,7 +358,7 @@ public class X11GLXContext extends GLContextImpl {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
             final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
             final boolean isExtARBCreateContextAvailable = isExtensionAvailable("GLX_ARB_create_context");
-            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable && !GLProfile.disableOpenGLARBContext ) {
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(shareWithHandle, direct);
                 createContextARBTried=true;
@@ -372,8 +372,7 @@ public class X11GLXContext extends GLContextImpl {
             } else if( DEBUG ) {
                 System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
                                    ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+
-                                   ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable+
-                                   ", disableOpenGLARBContext "+GLProfile.disableOpenGLARBContext);
+                                   ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
         }
     } else {

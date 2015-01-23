@@ -922,7 +922,15 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected final long createContextARB(final long share, final boolean direct)
   {
-    if( GLProfile.disableOpenGLARBContext ) {
+    if( GLProfile.disableOpenGLARBContext ||
+        GLRendererQuirks.existStickyDeviceQuirk(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice(),
+                                                GLRendererQuirks.NoARBCreateContext) ) {
+        if( DEBUG ) {
+            System.err.println(getThreadName() + ": createContextARB: Disabled "+
+                    "- property disableOpenGLARBContext "+ GLProfile.disableOpenGLARBContext +
+                    ", quirk NoARBCreateContext "+GLRendererQuirks.existStickyDeviceQuirk(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice(),
+                                                                                          GLRendererQuirks.NoARBCreateContext));
+        }
         return 0;
     }
     final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
@@ -937,7 +945,7 @@ public abstract class GLContextImpl extends GLContext {
     final GLProfile glp = glCaps.getGLProfile();
 
     if ( !GLContext.getAvailableGLVersionsSet(device) ) {
-        if(!mapGLVersions(device)) {
+        if( !mapGLVersions(device) ) {
             // none of the ARB context creation calls was successful, bail out
             return 0;
         }
@@ -1861,6 +1869,22 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
+    if( GLProfile.disableOpenGLARBContext ) {
+        final int quirk = GLRendererQuirks.NoARBCreateContext;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: disabled");
+        }
+        quirks.addQuirk( quirk );
+        if( withinGLVersionsMapping ) {
+            // Thread safe due to single threaded initialization!
+            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+        } else {
+            // FIXME: Remove when moving EGL/ES to ARB ctx creation
+            synchronized(GLContextImpl.class) {
+                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+            }
+        }
+    }
 
     //
     // OS related quirks
@@ -1951,6 +1975,10 @@ public abstract class GLContextImpl extends GLContext {
                         System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+", Renderer "+glRenderer+" and Version "+glVersion+"]");
                     }
                     quirks.addQuirk( quirk );
+                    if( withinGLVersionsMapping ) {
+                        // Thread safe due to single threaded initialization!
+                        GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+                    }
                 }
             }
         } else if( isDriverIntel && glRenderer.equals("Intel Bear Lake B") ) {

@@ -333,7 +333,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 isProcCreateContextAttribsARBAvailable = false;
                 isExtARBCreateContextAvailable = false;
             }
-            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable && !GLProfile.disableOpenGLARBContext && !getRendererQuirks().exist( GLRendererQuirks.NoARBCreateContext ) ) {
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(shareWithHandle, true);
                 createContextARBTried=true;
@@ -347,8 +347,7 @@ public class WindowsWGLContext extends GLContextImpl {
             } else if (DEBUG) {
                 System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
                                    ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+
-                                   ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable+
-                                   ", disableOpenGLARBContext "+GLProfile.disableOpenGLARBContext);
+                                   ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
         }
     } else {

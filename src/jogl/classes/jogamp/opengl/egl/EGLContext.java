@@ -290,33 +290,34 @@ public class EGLContext extends GLContextImpl {
     protected boolean createImpl(final long shareWithHandle) throws GLException {
         final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
-        final boolean availableGLVersionsSet = GLContext.getAvailableGLVersionsSet(device);
+        final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+        final GLProfile glp = glCaps.getGLProfile();
 
-        if( !GLProfile.disableOpenGLARBContext && availableGLVersionsSet ) {
-            contextHandle = createContextARB(shareWithHandle, true);
-            if( 0 == contextHandle ) {
-                throw new GLException(getThreadName()+": Unable to create temp OpenGL context(0) on eglDevice "+device+
-                                   ", eglConfig "+config+", "+drawable.getGLProfile()+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
-            }
-        } else {
-            final GLProfile glProfile = drawable.getGLProfile();
-            final int reqMajor;
-            if ( glProfile.usesNativeGLES3() ) {
-                reqMajor = 3;
-            } else if ( glProfile.usesNativeGLES2() ) {
-                reqMajor = 2;
-            } else if ( glProfile.usesNativeGLES1() ) {
-                reqMajor = 1;
+        contextHandle = createContextARB(shareWithHandle, true);
+        if (DEBUG) {
+            if( 0 != contextHandle ) {
+                System.err.println(getThreadName() + ": EGLContext.createImpl: OK (ARB) on eglDevice "+device+
+                        ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
             } else {
-                throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
+                System.err.println(getThreadName() + ": EGLContext.createImpl: NOT OK (ARB) - creation failed on eglDevice "+device+
+                        ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
             }
-            final int ctp = GLContext.CTX_PROFILE_ES | getContextCreationFlags();
-            contextHandle = createContextARBImpl(shareWithHandle, true, ctp, reqMajor, 0);
+        }
+        if( 0 == contextHandle ) {
+            if( !glp.isGLES() ) {
+                throw new GLException(getThreadName()+": Unable to create desktop OpenGL context(ARB n/a) on eglDevice "+device+
+                        ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+            }
+            final int[] reqMajorCTP = new int[] { 0, 0 };
+            GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
+            reqMajorCTP[1] |= getContextCreationFlags();
+
+            contextHandle = createContextARBImpl(shareWithHandle, true, reqMajorCTP[1], reqMajorCTP[0], 0);
             if( 0 == contextHandle ) {
-                throw new GLException(getThreadName()+": Unable to create temp OpenGL context(1) on eglDevice "+device+
-                                   ", eglConfig "+config+", "+drawable.getGLProfile()+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+                throw new GLException(getThreadName()+": Unable to create ES OpenGL context on eglDevice "+device+
+                                   ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
             }
-            if( !setGLFunctionAvailability(true, reqMajor, 0, ctp, false /* strictMatch */, false /* withinGLVersionsMapping */) ) {
+            if( !setGLFunctionAvailability(true, reqMajorCTP[0], 0, reqMajorCTP[1], false /* strictMatch */, false /* withinGLVersionsMapping */) ) {
                 EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
                 EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
                 contextHandle = 0;
@@ -331,7 +332,7 @@ public class EGLContext extends GLContextImpl {
                                ",\n\t"+this+
                                ",\n\tsharing with 0x" + Long.toHexString(shareWithHandle));
         }
-        return true;
+        return 0 != contextHandle;
     }
 
     @Override
