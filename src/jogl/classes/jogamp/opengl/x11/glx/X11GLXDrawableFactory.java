@@ -81,6 +81,7 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
+  private static final boolean DEBUG_SHAREDCTX = DEBUG  || GLContext.DEBUG;
 
   public static final VersionNumber versionOneZero = new VersionNumber(1, 0, 0);
   public static final VersionNumber versionOneOne = new VersionNumber(1, 1, 0);
@@ -366,7 +367,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         @Override
         public void releaseSharedResource(final SharedResourceRunner.Resource shared) {
             final SharedResource sr = (SharedResource) shared;
-            if (DEBUG) {
+            if ( DEBUG_SHAREDCTX ) {
                 System.err.println("Shutdown Shared:");
                 System.err.println("Device  : " + sr.device);
                 System.err.println("Screen  : " + sr.screen);

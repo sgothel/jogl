@@ -81,6 +81,8 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
+  private static final boolean DEBUG_SHAREDCTX = DEBUG  || GLContext.DEBUG;
+
   private static DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper = null;
 
   public MacOSXCGLDrawableFactory() {
@@ -281,7 +283,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                 try {
                     sharedContext.destroy();
                 } catch (final GLException gle) {
-                    if (DEBUG) {
+                    if ( DEBUG_SHAREDCTX ) {
                         System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy caught exception:");
                         gle.printStackTrace();
                     }

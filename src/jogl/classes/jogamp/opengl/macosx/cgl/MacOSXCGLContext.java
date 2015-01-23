@@ -402,7 +402,7 @@ public class MacOSXCGLContext extends GLContextImpl
   @Override
   protected void copyImpl(final GLContext source, final int mask) throws GLException {
     if( isNSContext() != ((MacOSXCGLContext)source).isNSContext() ) {
-        throw new GLException("Source/Destination OpenGL Context tyoe mismatch: source "+source+", dest: "+this);
+        throw new GLException("Source/Destination OpenGL Context type mismatch: source "+source+", dest: "+this);
     }
     if(!impl.copyImpl(source.getHandle(), mask)) {
         throw new GLException("Error copying OpenGL Context: source "+source+", dest: "+this);

@@ -443,10 +443,8 @@ public abstract class GLContext {
    *           <li>{@link #CONTEXT_NOT_CURRENT} if the context could not be made current.</li>
    *         </ul>
    *
-   * @throws GLException if synchronization is disabled and the
-   * context is current on another thread, or because the context
-   * could not be created or made current due to non-recoverable,
-   * window system-specific errors.
+   * @throws GLException if the context could not be created
+   *         or made current due to non-recoverable, system-specific errors.
    */
   public abstract int makeCurrent() throws GLException;
 
@@ -542,7 +540,7 @@ public abstract class GLContext {
       switch(res) {
           case CONTEXT_NOT_CURRENT:   return "CONTEXT_NOT_CURRENT";
           case CONTEXT_CURRENT:       return "CONTEXT_CURRENT";
-          case CONTEXT_CURRENT_NEW:   return "CONTEXT_NOT_CURRENT";
+          case CONTEXT_CURRENT_NEW:   return "CONTEXT_CURRENT_NEW";
           default: return "INVALID_VALUE";
       }
   }

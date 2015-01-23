@@ -88,6 +88,7 @@ import com.jogamp.opengl.egl.EGL;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
+    private static final boolean DEBUG_SHAREDCTX = DEBUG  || GLContext.DEBUG;
 
     /* package */ static final boolean QUERY_EGL_ES_NATIVE_TK;
 
@@ -525,7 +526,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             final int[] ctpES3ES2 = new int[] { EGLContext.CTX_PROFILE_ES };
             final int[] ctpGLn = new int[] { EGLContext.CTX_PROFILE_CORE };
 
-            if (DEBUG) {
+            if ( DEBUG_SHAREDCTX ) {
                 System.err.println("EGLDrawableFactory.createShared(): device "+adevice);
             }
 
@@ -584,7 +585,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                                          rendererQuirksES1[0], ctpES1[0],
                                                          rendererQuirksES3ES2[0], ctpES3ES2[0]);
 
-            if (DEBUG) {
+            if ( DEBUG_SHAREDCTX ) {
                 System.err.println("EGLDrawableFactory.createShared: devices: queried nativeTK "+QUERY_EGL_ES_NATIVE_TK+", adevice " + adevice + ", defaultDevice " + defaultDevice);
                 System.err.println("EGLDrawableFactory.createShared: context GLn: " + madeCurrentGLn + ", quirks "+rendererQuirksGLn[0]);
                 System.err.println("EGLDrawableFactory.createShared: context ES1: " + madeCurrentES1 + ", quirks "+rendererQuirksES1[0]);
@@ -607,7 +608,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             final String profileString = EGLContext.getGLProfile(majorVersion[0], minorVersion[0], ctxProfile[0]);
 
             if ( !GLProfile.isAvailable(adevice, profileString) ) {
-                if( DEBUG ) {
+                if ( DEBUG_SHAREDCTX ) {
                     System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" n/a on "+adevice);
                 }
                 return false;
@@ -618,7 +619,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             final boolean mapsADeviceToDefaultDevice = !QUERY_EGL_ES_NATIVE_TK || initDefaultDevice ||
                                                        null == desktopFactory;
                                                        // FIXME || adevice instanceof EGLGraphicsDevice ;
-            if( DEBUG ) {
+            if ( DEBUG_SHAREDCTX ) {
                 System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" ( "+majorVersion[0]+" ), "+
                         "mapsADeviceToDefaultDevice "+mapsADeviceToDefaultDevice+
                         " (QUERY_EGL_ES_NATIVE_TK "+QUERY_EGL_ES_NATIVE_TK+", initDefaultDevice "+initDefaultDevice+", hasDesktopFactory "+(null != desktopFactory)+
@@ -651,19 +652,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                             final int quirk = GLRendererQuirks.SingletonEGLDisplayOnly;
                             GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
                             EGLDisplayUtil.setSingletonEGLDisplayOnly(true);
-                            if(DEBUG) {
+                            if ( DEBUG_SHAREDCTX ) {
                                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Second eglGetDisplay(EGL_DEFAULT_DISPLAY) failed");
                             }
                         }
                     }
                     eglDevice = defaultDevice; // reuse
                     eglFeatures = defaultDeviceEGLFeatures;
-                    if( DEBUG ) {
+                    if ( DEBUG_SHAREDCTX ) {
                         System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig.0: "+eglFeatures);
                     }
 
                     if( !glp.isGLES() && !eglFeatures.hasGLAPI ) {
-                        if(DEBUG) {
+                        if ( DEBUG_SHAREDCTX ) {
                             System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig() OpenGL API not supported (1)");
                         }
                     } else {
@@ -687,7 +688,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 EGLContext.mapStaticGLESVersion(eglDevice, chosenCaps);
                                 success = true;
                             }
-                            if(DEBUG) {
+                            if ( DEBUG_SHAREDCTX ) {
                                 System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig() no pbuffer config available, detected !pbuffer config: "+success);
                                 EGLGraphicsConfigurationFactory.printCaps("!PBufferCaps", capsAnyL, System.err);
                             }
@@ -701,11 +702,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
                         eglDevice.open();
                         eglFeatures = new EGLFeatures(eglDevice);
-                        if( DEBUG ) {
+                        if ( DEBUG_SHAREDCTX ) {
                             System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig.1: "+eglFeatures);
                         }
                         if( !glp.isGLES() && !eglFeatures.hasGLAPI ) {
-                            if(DEBUG) {
+                            if ( DEBUG_SHAREDCTX ) {
                                 System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig() OpenGL API not supported (2)");
                             }
                             // disposed at finalized: eglDevice, upstreamSurface
@@ -793,7 +794,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     drawable.setRealized(false);
                 }
             } catch (final Throwable t) {
-                if(DEBUG) {
+                if ( DEBUG_SHAREDCTX ) {
                     System.err.println("Caught exception on thread "+getThreadName());
                     t.printStackTrace();
                 }
@@ -817,7 +818,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         @Override
         public void releaseSharedResource(final SharedResourceRunner.Resource shared) {
             final SharedResource sr = (SharedResource) shared;
-            if (DEBUG) {
+            if ( DEBUG_SHAREDCTX ) {
                 System.err.println("Shutdown Shared:");
                 System.err.println("Device  : " + sr.device);
                 ExceptionUtils.dumpStack(System.err);

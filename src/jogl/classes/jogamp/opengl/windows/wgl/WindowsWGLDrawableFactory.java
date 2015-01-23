@@ -86,6 +86,8 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
+  private static final boolean DEBUG_SHAREDCTX = DEBUG  || GLContext.DEBUG;
+
   /**
    * Bug 1036: NVidia Windows Driver 'Threaded optimization' workaround.
    * <p>
@@ -377,7 +379,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         @Override
         public void releaseSharedResource(final SharedResourceRunner.Resource shared) {
             final SharedResource sr = (SharedResource) shared;
-            if (DEBUG) {
+            if ( DEBUG_SHAREDCTX ) {
               System.err.println("Shutdown Shared:");
               System.err.println("Device  : " + sr.device);
               System.err.println("Screen  : " + sr.screen);

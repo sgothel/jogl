@@ -277,11 +277,11 @@ public abstract class GLContextImpl extends GLContext {
       drawable = (GLDrawableImpl) readWrite ;
       if( isCreated() && null != drawable && drawable.isRealized() ) {
           int res = CONTEXT_NOT_CURRENT;
-          GLException gle = null;
+          Throwable gle = null;
           try {
               res = makeCurrent(true); // implicit: associateDrawable(true)
-          } catch ( final GLException e ) {
-              gle = e;
+          } catch ( final Throwable t ) {
+              gle = t;
           } finally {
               if( CONTEXT_NOT_CURRENT == res ) {
                   // Failure, recover and bail out w/ GLException
@@ -663,19 +663,19 @@ public abstract class GLContextImpl extends GLContext {
       }
     }
 
-    if (res != CONTEXT_NOT_CURRENT) { // still locked!
+    if ( CONTEXT_NOT_CURRENT != res ) { // still locked!
       if( 0 == drawable.getHandle() && !surfacelessOK ) {
           if( hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx) ) {
               throw new GLException(String.format("Surfaceless not supported due to quirk %s: %s",
                       GLRendererQuirks.toString(GLRendererQuirks.NoSurfacelessCtx), toString()));
           }
           if( DEBUG ) {
-              System.err.println(getThreadName() +": GLContext.makeCurrent: Surfaceless OK - validate");
+              System.err.println(getThreadName() +": GLContext.makeCurrent: Surfaceless OK - validated");
           }
           surfacelessOK = true;
       }
       setCurrent(this);
-      if(res == CONTEXT_CURRENT_NEW) {
+      if( CONTEXT_CURRENT_NEW == res ) {
         // check if the drawable's and the GL's GLProfile are equal
         // throws an GLException if not
         drawable.getGLProfile().verifyEquality(gl.getGLProfile());

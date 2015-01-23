@@ -154,13 +154,15 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
-    D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLProfile -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.ProxySurface -Djogl.debug.GLProfile -Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.ProxySurface -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.disable.surfacelesscontext -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLJPanel -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLJPanel -Djogl.debug.DebugGL"
+    D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLJPanel"
+    #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLJPanel"
     #D_ARGS="-Djogl.debug.GLJPanel"
     #D_ARGS="-Djogl.debug.GLContext.NoProfileAliasing"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.X11Util -Dnativewindow.debug.NativeWindow -Dnewt.debug.Display -Dnewt.debug.Screen -Dnewt.debug.Window"
@@ -397,7 +399,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
@@ -410,7 +412,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 # HiDPI
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
