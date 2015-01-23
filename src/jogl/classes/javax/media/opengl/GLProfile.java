@@ -1745,7 +1745,7 @@ public class GLProfile {
         try {
             desktopFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GL2);
             if(null != desktopFactory) {
-                final DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(0);
+                final DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(GL2);
                 if(null!=glLookupHelper) {
                     hasDesktopGLFactory = glLookupHelper.isLibComplete() && hasGL234Impl;
                 }
@@ -1782,8 +1782,8 @@ public class GLProfile {
                 if(null != eglFactory) {
                     hasEGLFactory = true;
                     // update hasGLES1Impl, hasGLES3Impl based on EGL
-                    hasGLES3Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES3Impl;
-                    hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
+                    hasGLES3Impl = null!=eglFactory.getGLDynamicLookupHelper(GLES2) && hasGLES3Impl;
+                    hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(GLES1) && hasGLES1Impl;
                 }
             } catch (final LinkageError le) {
                 t=le;
@@ -1961,9 +1961,7 @@ public class GLProfile {
             }
         }
 
-        if(!GLContext.getAvailableGLVersionsSet(device)) {
-            GLContext.setAvailableGLVersionsSet(device, true);
-        }
+        GLContext.setAvailableGLVersionsSet(device, true);
 
         if (DEBUG) {
             System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": added profile(s): desktop "+addedDesktopProfile+", egl "+addedEGLProfile);

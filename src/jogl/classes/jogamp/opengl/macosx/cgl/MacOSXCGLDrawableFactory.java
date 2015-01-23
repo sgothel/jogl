@@ -146,7 +146,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper(final int profile) {
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(final String profileName) {
       return macOSXCGLDynamicLookupHelper;
   }
 

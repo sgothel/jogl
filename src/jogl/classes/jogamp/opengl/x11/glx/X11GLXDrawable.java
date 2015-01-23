@@ -44,16 +44,10 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.GLDynamicLookupHelper;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
   protected X11GLXDrawable(final GLDrawableFactory factory, final NativeSurface comp, final boolean realized) {
     super(factory, comp, realized);
-  }
-
-  @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
-    return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 
   @Override

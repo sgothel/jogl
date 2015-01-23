@@ -229,7 +229,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper(final int profile) {
+  public GLDynamicLookupHelper getGLDynamicLookupHelper(final String profileName) {
       return windowsWGLDynamicLookupHelper;
   }
 

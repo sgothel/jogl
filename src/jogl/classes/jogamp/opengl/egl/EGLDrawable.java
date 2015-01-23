@@ -42,7 +42,6 @@ import javax.media.opengl.GLException;
 
 import jogamp.nativewindow.ProxySurfaceImpl;
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.GLDynamicLookupHelper;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.egl.EGL;
@@ -113,19 +112,6 @@ public class EGLDrawable extends GLDrawableImpl {
             if(!EGL.eglSwapBuffers(eglDevice.getHandle(), surface.getSurfaceHandle())) {
                 throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
             }
-        }
-    }
-
-    @Override
-    public GLDynamicLookupHelper getGLDynamicLookupHelper() {
-        if (getGLProfile().usesNativeGLES3()) {
-            return getFactoryImpl().getGLDynamicLookupHelper(3);
-        } else if (getGLProfile().usesNativeGLES2()) {
-            return getFactoryImpl().getGLDynamicLookupHelper(2);
-        } else if (getGLProfile().usesNativeGLES1()) {
-            return getFactoryImpl().getGLDynamicLookupHelper(1);
-        } else {
-            throw new GLException("Unsupported: "+getGLProfile());
         }
     }
 

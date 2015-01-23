@@ -50,7 +50,6 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.GLDynamicLookupHelper;
 
 public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // The Java2D/OpenGL pipeline on OS X uses low-level CGLContextObjs
@@ -146,11 +145,6 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
             }
         }
     }
-  }
-
-  @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
-    return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 
   // Support for "mode switching" as described in MacOSXCGLDrawable

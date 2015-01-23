@@ -160,10 +160,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   /**
    * Returns the GLDynamicLookupHelper
-   * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
+   * @param profileName if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
    *        otherwise the profile is ignored.
+   * @throws GLException if no DynamicLookupHelper is installed
    */
-  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(int profile);
+  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(final String profileName) throws GLException;
 
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities

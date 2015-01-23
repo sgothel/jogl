@@ -1643,9 +1643,7 @@ public abstract class GLContext {
       synchronized ( deviceVersionsAvailableSet ) {
           final String devKey = device.getUniqueID();
           if( set ) {
-              if( null != deviceVersionsAvailableSet.put(devKey, devKey) ) {
-                  throw new InternalError("Already set: "+devKey);
-              }
+              deviceVersionsAvailableSet.put(devKey, devKey);
           } else {
               deviceVersionsAvailableSet.remove(devKey);
           }

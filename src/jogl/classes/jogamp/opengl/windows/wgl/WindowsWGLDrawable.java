@@ -49,7 +49,6 @@ import com.jogamp.common.util.PropertyAccess;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.GLDynamicLookupHelper;
 
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
@@ -104,10 +103,5 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
           }
         }
     }
-  }
-
-  @Override
-  public GLDynamicLookupHelper getGLDynamicLookupHelper() {
-    return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 }

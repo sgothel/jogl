@@ -885,14 +885,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public GLDynamicLookupHelper getGLDynamicLookupHelper(final int esProfile) {
-        if ( 2==esProfile || 3==esProfile ) {
-            return eglES2DynamicLookupHelper;
-        } else if (1==esProfile) {
-            return eglES1DynamicLookupHelper;
+    public GLDynamicLookupHelper getGLDynamicLookupHelper(final String esProfile) {
+        final GLDynamicLookupHelper res;
+        if ( GLProfile.GLES2 == esProfile || GLProfile.GLES3 == esProfile ) {
+            res = eglES2DynamicLookupHelper;
+        } else if ( GLProfile.GLES1 == esProfile ) {
+            res = eglES1DynamicLookupHelper;
         } else {
-            return eglGLnDynamicLookupHelper;
+            res = eglGLnDynamicLookupHelper;
         }
+        if( null == res ) {
+            throw new GLException("No lookup for esProfile "+esProfile);
+        }
+        return res;
     }
 
     @Override

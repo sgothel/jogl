@@ -367,11 +367,6 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     //
 
     @Override
-    public final GLDynamicLookupHelper getGLDynamicLookupHelper() {
-        return parent.getGLDynamicLookupHelper();
-    }
-
-    @Override
     protected final int getDefaultDrawFramebuffer() { return initialized ? fbos[fboIBack].getWriteFramebuffer() : 0; }
 
     @Override
