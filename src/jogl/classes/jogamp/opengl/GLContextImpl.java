@@ -531,6 +531,8 @@ public abstract class GLContextImpl extends GLContext {
   //----------------------------------------------------------------------
   //
 
+  protected final boolean isSurfacelessOK() { return surfacelessOK; }
+
   /**
    * {@inheritDoc}
    * <p>

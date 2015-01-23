@@ -88,6 +88,73 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   /**
+   * Returns {@code true} if context is capable of operating without a surface,
+   * otherwise returns {@code false} and sets the {@link GLRendererQuirks#NoSurfacelessCtx}.
+   * <p>
+   * Method will skip probing in case {@link GLRendererQuirks#NoSurfacelessCtx} has been already set.
+   * </p>
+   * <p>
+   * Caller shall skip probing in case surfaceless support is not possible,
+   * e.g. OpenGL ES without {@code EGL_KHR_surfaceless_context} or EGL &lt; 1.5,
+   * or desktop OpenGL context &lt; 3.0.
+   * </p>
+   *
+   * @param context the context to probe, must be current
+   * @param restoreDrawable If {@code true}, the initial drawable will be restored after probing
+   *                        and the temporary {@code zeroDrawable} will be released.
+   *                        If {@code false}, the temporary {@code zeroDrawable} will be kept (bound) to the context.
+   *                        Restoration may be skipped, if the drawable and context will be destroyed anyways.
+   *
+   * @see GLRendererQuirks#NoSurfacelessCtx
+   */
+  protected final boolean probeSurfacelessCtx(final GLContext context, final boolean restoreDrawable) {
+      final GLDrawable origDrawable = context.getGLDrawable();
+      final AbstractGraphicsDevice device = origDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+
+      final boolean noSurfacelessCtxQuirk = context.hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx);
+      boolean allowsSurfacelessCtx = false;
+
+      if( !noSurfacelessCtxQuirk ) {
+          GLDrawable zeroDrawable = null;
+          try {
+              final GLCapabilitiesImmutable caps = origDrawable.getRequestedGLCapabilities();
+              final ProxySurface zeroSurface = createSurfacelessImpl(device, true, caps, caps, null, 64, 64);
+              zeroDrawable = createOnscreenDrawableImpl(zeroSurface);
+              zeroDrawable.setRealized(true);
+
+              // Since context is still current,
+              // will keep context current w/ zeroDrawable or throws GLException
+              context.setGLDrawable(zeroDrawable, false);
+              allowsSurfacelessCtx = true; // if setGLDrawable is successful, i.e. no GLException
+
+              if( restoreDrawable ) {
+                  context.setGLDrawable(origDrawable, false);
+              }
+          } catch (final Throwable t) {
+              if( DEBUG  || GLContext.DEBUG ) {
+                  ExceptionUtils.dumpThrowable("", t);
+              }
+          } finally {
+              if( null != zeroDrawable && restoreDrawable ) {
+                  zeroDrawable.setRealized(false);
+              }
+          }
+      }
+      if( !noSurfacelessCtxQuirk && !allowsSurfacelessCtx ) {
+          final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+          if(DEBUG || GLContext.DEBUG) {
+              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+" -> "+device+": cause: probe");
+          }
+          final GLRendererQuirks glrq = context.getRendererQuirks();
+          if( null != glrq ) {
+              glrq.addQuirk(quirk);
+          }
+          GLRendererQuirks.addStickyDeviceQuirk(device, quirk);
+      }
+      return allowsSurfacelessCtx;
+  }
+
+  /**
    * Returns the shared resource mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
    * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
    * Creation of the shared resource is tried only once.

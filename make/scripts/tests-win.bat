@@ -12,7 +12,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGe
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.DemoGLJPanelPerf02AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
@@ -194,7 +194,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompil
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %*

@@ -528,15 +528,16 @@ public class MacOSXCGLContext extends GLContextImpl
       public boolean isNSContext() { return true; }
 
 
-      /** Only returns a valid NSView. If !NSView, return null and mark either pbuffer and FBO. */
-      private long getNSViewHandle(final boolean[] isPBuffer, final boolean[] isFBO) {
+      /** Only returns a valid NSView. If !NSView, return null and mark either isPBuffer, isFBO or isSurfaceless. */
+      private long getNSViewHandle(final boolean[] isPBuffer, final boolean[] isFBO, final boolean[] isSurfaceless) {
           final long nsViewHandle;
           if(drawable instanceof GLFBODrawableImpl) {
               nsViewHandle = 0;
               isPBuffer[0] = false;
               isFBO[0] = true;
+              isSurfaceless[0] = false;
               if(DEBUG) {
-                  System.err.println("NS viewHandle.1: GLFBODrawableImpl drawable: isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
+                  System.err.println("NS viewHandle.1: GLFBODrawableImpl drawable: isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", isSurfaceless "+isSurfaceless[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
           } else {
               final long drawableHandle = drawable.getHandle();
@@ -544,6 +545,7 @@ public class MacOSXCGLContext extends GLContextImpl
               final boolean isNSWindow = OSXUtil.isNSWindow(drawableHandle);
               isPBuffer[0] = CGL.isNSOpenGLPixelBuffer(drawableHandle);
               isFBO[0] = false;
+              isSurfaceless[0] = false;
 
               if( isNSView ) {
                   nsViewHandle = drawableHandle;
@@ -551,11 +553,14 @@ public class MacOSXCGLContext extends GLContextImpl
                   nsViewHandle = OSXUtil.GetNSView(drawableHandle);
               } else if( isPBuffer[0] ) {
                   nsViewHandle = 0;
+              } else if( isSurfacelessOK() ) {
+                  isSurfaceless[0] = true;
+                  nsViewHandle = 0;
               } else {
-                  throw new RuntimeException("Drawable's handle neither NSView, NSWindow nor PBuffer: drawableHandle "+toHexString(drawableHandle)+", isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
+                  throw new GLException("Drawable's handle neither NSView, NSWindow nor PBuffer: drawableHandle "+toHexString(drawableHandle)+", isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
               if(DEBUG) {
-                  System.err.println("NS viewHandle.2: drawableHandle "+toHexString(drawableHandle)+" -> nsViewHandle "+toHexString(nsViewHandle)+": isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
+                  System.err.println("NS viewHandle.2: drawableHandle "+toHexString(drawableHandle)+" -> nsViewHandle "+toHexString(nsViewHandle)+": isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", isSurfaceless "+isSurfaceless[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
           }
           needsSetContextPBuffer = isPBuffer[0];
@@ -571,12 +576,15 @@ public class MacOSXCGLContext extends GLContextImpl
           final long nsViewHandle;
           final boolean isPBuffer;
           final boolean isFBO;
+          final boolean isSurfaceless;
           {
               final boolean[] _isPBuffer = { false };
               final boolean[] _isFBO = { false };
-              nsViewHandle = getNSViewHandle(_isPBuffer, _isFBO);
+              final boolean[] _isSurfaceless = { false };
+              nsViewHandle = getNSViewHandle(_isPBuffer, _isFBO, _isSurfaceless);
               isPBuffer = _isPBuffer[0];
               isFBO = _isFBO[0];
+              isSurfaceless = _isSurfaceless[0];
           }
           final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
 
@@ -612,7 +620,7 @@ public class MacOSXCGLContext extends GLContextImpl
               // determine on-/offscreen caps, since pformat is ambiguous
               _fixedCaps.setPBuffer( isPBuffer ); // exclusive
               _fixedCaps.setBitmap( false );      // n/a in our OSX impl.
-              _fixedCaps.setOnscreen( !isFBO && !isPBuffer );
+              _fixedCaps.setOnscreen( !isFBO && !isPBuffer && !isSurfaceless );
               fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(_fixedCaps, chosenCaps.isBackgroundOpaque());
           }
           final int sRefreshRate = OSXUtil.GetScreenRefreshRate(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getIndex());
@@ -625,7 +633,7 @@ public class MacOSXCGLContext extends GLContextImpl
               System.err.println("NS create backingLayerHost: "+backingLayerHost);
               System.err.println("NS create share: "+share);
               System.err.println("NS create drawable type: "+drawable.getClass().getName());
-              System.err.println("NS create drawable handle: isPBuffer "+isPBuffer+", isFBO "+isFBO);
+              System.err.println("NS create drawable handle: isPBuffer "+isPBuffer+", isFBO "+isFBO+", isSurfaceless "+isSurfaceless);
               System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
               System.err.println("NS create chosenCaps: "+chosenCaps);
               System.err.println("NS create fixedCaps: "+fixedCaps);
@@ -873,7 +881,8 @@ public class MacOSXCGLContext extends GLContextImpl
                   lastHeight = drawable.getSurfaceHeight();
                   final boolean[] isPBuffer = { false };
                   final boolean[] isFBO = { false };
-                  CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO));
+                  final boolean[] isSurfaceless = { false };
+                  CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO, isSurfaceless));
               }
           } else { // -> !bound
               if( null != backingLayerHost ) {

@@ -42,6 +42,7 @@ import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
@@ -222,7 +223,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         try {
             final long hdc = ns.getSurfaceHandle();
             if (0 == hdc) {
-                throw new GLException("Error: HDC is null");
+                if( !(ns instanceof ProxySurface) ||
+                    !((ProxySurface)ns).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS ) ) {
+                    throw new GLException(String.format("non-surfaceless drawable has zero-handle (HDC): %s", ns.toString()));
+                }
+                return; // NOP .. will reach ns.unlockSurface()
             }
             final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) ns.getGraphicsConfiguration();
 

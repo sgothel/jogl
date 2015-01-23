@@ -51,7 +51,6 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -152,17 +151,34 @@ public class WindowsWGLContext extends GLContextImpl {
         // should not happen due to 'isGLReadDrawableAvailable()' query in GLContextImpl
         throw new InternalError("Given readDrawable but no driver support");
     }
-    final int werr = ( !ok ) ? GDI.GetLastError() : GDI.ERROR_SUCCESS;
     if(DEBUG && !ok) {
-        final Throwable t = new Throwable ("Info: wglMakeContextCurrent draw "+
+        final Throwable t = new Throwable ("Info: wglMakeContextCurrent NOK: draw "+
                 GLContext.toHexString(hDrawDC) + ", read " + GLContext.toHexString(hReadDC) +
-                ", ctx " + GLContext.toHexString(ctx) + ", werr " + werr);
+                ", ctx " + GLContext.toHexString(ctx) + ", werr " + GDI.GetLastError());
         t.printStackTrace();
     }
-    if(!ok && 0==hDrawDC && 0==hReadDC) {
+    return ok;
+  }
+
+  private final boolean wglReleaseContext(final long ctx) {
+    boolean ok = false;
+    if(wglGLReadDrawableAvailable) {
+        // needs initilized WGL ProcAddress table
+        ok = getWGLExt().wglMakeContextCurrent(0, 0, ctx);
+    } else {
+        ok = WGL.wglMakeCurrent(0, ctx);
+    }
+    if( !ok ) {
+        final int werr = GDI.GetLastError();
+        final boolean ok2 = werr == GDI.ERROR_SUCCESS;
+        if(DEBUG) {
+            final Throwable t = new Throwable ("Info: wglReleaseContext NOK: ctx " + GLContext.toHexString(ctx) +
+                                               ", werr " + werr + " -> ok "+ok2);
+            t.printStackTrace();
+        }
         // Some GPU's falsely fails with a zero error code (success),
         // in case this is a release context request we tolerate this
-        return werr == GDI.ERROR_SUCCESS ;
+        return ok2 ;
     }
     return ok;
   }
@@ -414,7 +430,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
   @Override
   protected void releaseImpl() throws GLException {
-    if (!wglMakeContextCurrent(0, 0, 0)) {
+    if (!wglReleaseContext(0)) {
         throw new GLException("Error freeing OpenGL context, werr: " + GDI.GetLastError());
     }
   }

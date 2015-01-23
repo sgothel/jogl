@@ -245,43 +245,71 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     }
     if(null==sr && !getDeviceTried(connection)) {
         addDeviceTried(connection);
-        final MacOSXGraphicsDevice sharedDevice = new MacOSXGraphicsDevice(adevice.getUnitID());
-        GLRendererQuirks glRendererQuirks = null;
-        boolean isValid = false;
-        boolean hasNPOTTextures = false;
-        boolean hasRECTTextures = false;
-        boolean hasAppleFloatPixels = false;
-        {
-            final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
+        final MacOSXGraphicsDevice device = new MacOSXGraphicsDevice(adevice.getUnitID());
+        GLDrawable drawable = null;
+        GLDrawable zeroDrawable = null;
+        GLContextImpl context = null;
+        boolean contextIsCurrent = false;
+        device.lock();
+        try {
+            final GLProfile glp = GLProfile.get(device, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
             if (null == glp) {
-                throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
+                throw new GLException("Couldn't get default GLProfile for device: "+device);
             }
             final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
-            final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
-            sharedDrawable.setRealized(true);
+            drawable = createOnscreenDrawableImpl(createDummySurfaceImpl(device, false, caps, caps, null, 64, 64));
+            drawable.setRealized(true);
 
-            final MacOSXCGLContext sharedContext = (MacOSXCGLContext) sharedDrawable.createContext(null);
-            if (null == sharedContext) {
-                throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
+            context = (MacOSXCGLContext) drawable.createContext(null);
+            if (null == context) {
+                throw new GLException("Couldn't create shared context for drawable: "+drawable);
             }
+            contextIsCurrent = GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent();
 
-            try {
-                isValid = GLContext.CONTEXT_NOT_CURRENT != sharedContext.makeCurrent(); // could cause exception
-                if(isValid) {
-                    final GL gl = sharedContext.getGL();
-                    hasNPOTTextures = gl.isNPOTTextureAvailable();
-                    hasRECTTextures = gl.isExtensionAvailable(GLExtensions.EXT_texture_rectangle);
-                    hasAppleFloatPixels = gl.isExtensionAvailable(GLExtensions.APPLE_float_pixels);
-                    glRendererQuirks = sharedContext.getRendererQuirks();
+            final boolean allowsSurfacelessCtx;
+            final boolean hasNPOTTextures;
+            final boolean hasRECTTextures;
+            final boolean hasAppleFloatPixels;
+            final GLRendererQuirks glRendererQuirks;
+            if( contextIsCurrent ) {
+                // We allow probing surfaceless for even the compatible 2.1 context,
+                // which we probably have right here - since OSX may support this.
+                // Otherwise, we cannot map the quirk to the device.
+                if( probeSurfacelessCtx(context, false /* restoreDrawable */) ) {
+                    allowsSurfacelessCtx = true;
+                    zeroDrawable = context.getGLDrawable();
+                } else {
+                    allowsSurfacelessCtx = false;
                 }
-            } catch (final GLException gle) {
-                if (DEBUG) {
-                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent caught exception:");
-                    gle.printStackTrace();
-                }
-            } finally {
+                final GL gl = context.getGL();
+                hasNPOTTextures = gl.isNPOTTextureAvailable();
+                hasRECTTextures = gl.isExtensionAvailable(GLExtensions.EXT_texture_rectangle);
+                hasAppleFloatPixels = gl.isExtensionAvailable(GLExtensions.APPLE_float_pixels);
+                glRendererQuirks = context.getRendererQuirks();
+            } else {
+                allowsSurfacelessCtx = false;
+                hasNPOTTextures = false;
+                hasRECTTextures = false;
+                hasAppleFloatPixels = false;
+                glRendererQuirks = null;
+            }
+            sr = new SharedResource(device, contextIsCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels, glRendererQuirks);
+            if ( DEBUG_SHAREDCTX ) {
+                System.err.println("SharedDevice:  " + device);
+                System.err.println("SharedContext: " + context + ", madeCurrent " + contextIsCurrent);
+                System.err.println("  NPOT "+hasNPOTTextures+", RECT "+hasRECTTextures+", FloatPixels "+hasAppleFloatPixels);
+                System.err.println("  allowsSurfacelessCtx "+allowsSurfacelessCtx);
+                System.err.println("  glRendererQuirks "+glRendererQuirks);
+            }
+            synchronized(sharedMap) {
+                sharedMap.put(connection, sr);
+            }
+        } catch (final Throwable t) {
+            throw new GLException("MacOSXCGLDrawableFactory - Could not initialize shared resources for "+adevice, t);
+        } finally {
+            if( null != context ) {
                 try {
-                    sharedContext.destroy();
+                    context.destroy();
                 } catch (final GLException gle) {
                     if ( DEBUG_SHAREDCTX ) {
                         System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy caught exception:");
@@ -289,17 +317,14 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                     }
                 }
             }
-            sharedDrawable.setRealized(false);
-        }
-        sr = new SharedResource(sharedDevice, isValid, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels, glRendererQuirks);
-        synchronized(sharedMap) {
-            sharedMap.put(connection, sr);
-        }
-        removeDeviceTried(connection);
-        if (DEBUG) {
-            System.err.println("MacOSXCGLDrawableFactory.createShared: device:  " + sharedDevice);
-            System.err.println("MacOSXCGLDrawableFactory.createShared: context: madeCurrent " + isValid + ", NPOT "+hasNPOTTextures+
-                               ", RECT "+hasRECTTextures+", FloatPixels "+hasAppleFloatPixels+", "+glRendererQuirks);
+            if( null != zeroDrawable ) {
+                zeroDrawable.setRealized(false);
+            }
+            if( null != drawable ) {
+                drawable.setRealized(false);
+            }
+            device.unlock();
+            removeDeviceTried(connection);
         }
     }
     return sr;

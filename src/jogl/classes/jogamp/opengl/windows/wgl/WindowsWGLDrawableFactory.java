@@ -326,53 +326,70 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
-        public SharedResourceRunner.Resource createSharedResource(final AbstractGraphicsDevice device) {
-            final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(device.getConnection(), device.getUnitID());
-            sharedDevice.lock();
+        public SharedResourceRunner.Resource createSharedResource(final AbstractGraphicsDevice adevice) {
+            final WindowsGraphicsDevice device = new WindowsGraphicsDevice(adevice.getConnection(), adevice.getUnitID());
+            GLContextImpl context = null;
+            boolean contextIsCurrent = false;
+            device.lock();
             try {
-                final AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
-                final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
+                final AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(device, 0);
+                final GLProfile glp = GLProfile.get(device, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
                 if (null == glp) {
-                    throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
+                    throw new GLException("Couldn't get default GLProfile for device: "+device);
                 }
                 final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
-                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
-                sharedDrawable.setRealized(true);
+                final GLDrawableImpl drawable = createOnscreenDrawableImpl(createDummySurfaceImpl(device, false, caps, caps, null, 64, 64));
+                drawable.setRealized(true);
 
-                final GLContextImpl sharedContext  = (GLContextImpl) sharedDrawable.createContext(null);
-                if (null == sharedContext) {
-                    throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
+                context  = (GLContextImpl) drawable.createContext(null);
+                if (null == context) {
+                    throw new GLException("Couldn't create shared context for drawable: "+drawable);
                 }
-                boolean hasARBPixelFormat;
-                boolean hasARBMultisample;
-                boolean hasARBPBuffer;
-                boolean hasARBReadDrawableAvailable;
-                sharedContext.makeCurrent();
-                try {
-                    hasARBPixelFormat = sharedContext.isExtensionAvailable(WGL_ARB_pixel_format);
-                    hasARBMultisample = sharedContext.isExtensionAvailable(WGL_ARB_multisample);
-                    hasARBPBuffer = sharedContext.isExtensionAvailable(GLExtensions.ARB_pbuffer);
-                    hasARBReadDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
-                                            sharedContext.isFunctionAvailable(wglMakeContextCurrent);
-                } finally {
-                    sharedContext.release();
+                contextIsCurrent = GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent();
+
+                final boolean allowsSurfacelessCtx;
+                final boolean hasARBPixelFormat;
+                final boolean hasARBMultisample;
+                final boolean hasARBPBuffer;
+                final boolean hasARBReadDrawableAvailable;
+                if( contextIsCurrent ) {
+                    if( context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 ) {
+                        allowsSurfacelessCtx = probeSurfacelessCtx(context, true /* restoreDrawable */);
+                    } else {
+                        allowsSurfacelessCtx = false;
+                    }
+                    hasARBPixelFormat = context.isExtensionAvailable(WGL_ARB_pixel_format);
+                    hasARBMultisample = context.isExtensionAvailable(WGL_ARB_multisample);
+                    hasARBPBuffer = context.isExtensionAvailable(GLExtensions.ARB_pbuffer);
+                    hasARBReadDrawableAvailable = context.isExtensionAvailable(WGL_ARB_make_current_read) &&
+                                                  context.isFunctionAvailable(wglMakeContextCurrent);
+                } else {
+                    allowsSurfacelessCtx = false;
+                    hasARBPixelFormat = false;
+                    hasARBMultisample = false;
+                    hasARBPBuffer = false;
+                    hasARBReadDrawableAvailable = false;
                 }
-                if (DEBUG) {
-                    System.err.println("SharedDevice:  " + sharedDevice);
+                if ( DEBUG_SHAREDCTX ) {
+                    System.err.println("SharedDevice:  " + device);
                     System.err.println("SharedScreen:  " + absScreen);
-                    System.err.println("SharedContext: " + sharedContext);
+                    System.err.println("SharedContext: " + context + ", madeCurrent " + contextIsCurrent);
+                    System.err.println("  allowsSurfacelessCtx "+allowsSurfacelessCtx);
                     System.err.println("pixelformat:   " + hasARBPixelFormat);
                     System.err.println("multisample:   " + hasARBMultisample);
                     System.err.println("pbuffer:       " + hasARBPBuffer);
                     System.err.println("readDrawable:  " + hasARBReadDrawableAvailable);
                 }
-                return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext,
+                return new SharedResource(device, absScreen, drawable, context,
                                           hasARBPixelFormat, hasARBMultisample,
                                           hasARBPBuffer, hasARBReadDrawableAvailable);
             } catch (final Throwable t) {
-                throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+device, t);
+                throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+adevice, t);
             } finally {
-                sharedDevice.unlock();
+                if ( contextIsCurrent ) {
+                    context.release();
+                }
+                device.unlock();
             }
         }
 
