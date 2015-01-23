@@ -42,6 +42,10 @@ if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
 fi
 
+# We use TempJarCache per default now!
+#export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
+#export DYLD_LIBRARY_PATH=$JOGAMP_DYLD_LIBRARY_PATH
+
 #export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH

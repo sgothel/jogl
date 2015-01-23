@@ -249,6 +249,62 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
     return res;
 }
 
+static CGDirectDisplayID GetCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    NSDictionary * dict = [screen deviceDescription];
+    NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
+    // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
+    return (CGDirectDisplayID) [val integerValue];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetScreenData0
+ * Signature: ()[F
+ */
+JNIEXPORT jdoubleArray JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenData0
+  (JNIEnv *env, jclass unused)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    CGFloat pixelScale;
+    CGDirectDisplayID display;
+    NSRect dBounds;
+    NSScreen *screen;
+    NSArray *screens = [NSScreen screens];
+    int sCount = [screens count];
+    jdouble res[sCount*5];
+    int i,j;
+
+    for(i=0; i<sCount; i++) {
+        j = i*5;
+        screen = (NSScreen *) [screens objectAtIndex: i];
+        pixelScale = 1.0; // default
+NS_DURING
+        // Available >= 10.7
+        pixelScale = [screen backingScaleFactor]; // HiDPI scaling
+NS_HANDLER
+NS_ENDHANDLER
+        display = GetCGDirectDisplayIDByNSScreen(screen);
+        dBounds = CGDisplayBounds (display); // origin top-left
+        res[j+0] = (jdouble)pixelScale;
+        res[j+1] = (jdouble)dBounds.origin.x;
+        res[j+2] = (jdouble)dBounds.origin.y;
+        res[j+3] = (jdouble)dBounds.size.width;
+        res[j+4] = (jdouble)dBounds.size.height;
+    }
+
+    jdoubleArray jniRes = (*env)->NewDoubleArray(env, sCount*5); // x,y,w,h,scale
+    if (jniRes == NULL) {
+        NativewindowCommon_throwNewRuntimeException(env, "Could not allocate double array of size %d", sCount*5);
+    }
+    (*env)->SetDoubleArrayRegion(env, jniRes, 0, sCount*5, res);
+
+    [pool release];
+
+    return jniRes;
+}
+
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    GetPixelScale0

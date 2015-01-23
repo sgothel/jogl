@@ -31,11 +31,16 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ScalableSurface;
+import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -45,6 +50,8 @@ import javax.media.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -53,6 +60,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
@@ -76,6 +84,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static boolean shallUsePBuffer = false;
     static boolean shallUseBitmap = false;
     static boolean useMSAA = false;
+    static int msaaNumSamples = 4;
     static int swapInterval = 0;
     static boolean useAnimator = true;
     static boolean manualTest = false;
@@ -212,7 +221,23 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 if( e.isAutoRepeat() ) {
                     return;
                 }
-                if(e.getKeyChar()=='x') {
+                if(e.getKeyChar()=='p') {
+                    System.err.println();
+                    final java.awt.Point los = glJPanel.getLocationOnScreen();
+                    final RectangleImmutable r = new Rectangle(los.x, los.y, glJPanel.getWidth(), glJPanel.getHeight());
+                    final GraphicsDevice gd = glJPanel.getGraphicsConfiguration().getDevice();
+                    final DisplayMode dm = gd.getDisplayMode();
+                    System.err.printf("GetPixelScale: AWT DisplayMode %d x %d pixel-units%n", dm.getWidth(), dm.getHeight());
+                    System.err.printf("GetPixelScale: NW Screen: %s%n", glJPanel.getNativeSurface().getGraphicsConfiguration().getScreen());
+                    System.err.printf("GetPixelScale: Panel Bounds: %s window-units%n", r.toString());
+                    System.err.printf("GetPixelScale: Panel Resolution: %d x %d pixel-units%n", glJPanel.getSurfaceWidth(), glJPanel.getSurfaceHeight());
+                    if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
+                        final int[] screenIndexOut = { 0 };
+                        final double pixelScale = jogamp.nativewindow.macosx.OSXUtil.GetPixelScale(r, screenIndexOut);
+                        System.err.printf("GetPixelScale: PixelScale %f on screen-idx %d%n", pixelScale, screenIndexOut[0]);
+                    }
+                    System.err.println();
+                } else if(e.getKeyChar()=='x') {
                     final int[] hadSurfacePixelScale = glJPanel.getCurrentSurfaceScale(new int[2]);
                     final int[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
@@ -316,7 +341,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         }
         final GLCapabilities caps = new GLCapabilities( glp );
         if(useMSAA) {
-            caps.setNumSamples(4);
+            caps.setNumSamples(msaaNumSamples);
             caps.setSampleBuffers(true);
         }
         if(shallUsePBuffer) {
@@ -504,7 +529,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-msaa")) {
+                i++;
                 useMSAA = true;
+                msaaNumSamples = MiscUtils.atoi(args[i], msaaNumSamples);
             } else if(args[i].equals("-noanim")) {
                 useAnimator  = false;
             } else if(args[i].equals("-pbuffer")) {
@@ -527,7 +554,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("forceGLFFP "+forceGLFFP);
-        System.err.println("useMSAA "+useMSAA);
+        System.err.println("useMSAA "+useMSAA+", msaaNumSamples "+msaaNumSamples);
         System.err.println("useAnimator "+useAnimator);
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
