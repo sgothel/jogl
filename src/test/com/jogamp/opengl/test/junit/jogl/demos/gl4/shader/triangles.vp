@@ -1,0 +1,17 @@
+// Copyright 2014 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform mat4 mgl_PMatrix;
+uniform mat4 mgl_MVMatrix[NO_OF_INSTANCE];
+attribute vec3  mgl_Vertex; 
+attribute vec4  mgl_Color; 
+varying vec4    frontColor;
+ 
+void main(void) { 
+  frontColor = mgl_Color; 
+  gl_Position = mgl_PMatrix * mgl_MVMatrix[gl_InstanceID] * vec4(mgl_Vertex, 1); 
+} 

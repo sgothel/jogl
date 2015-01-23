@@ -393,6 +393,30 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int NeedSharedObjectSync = 20;
+	
+    /**
+     * No reliable ARB_create_context implementation,
+     * even if driver claims otherwise.
+     * <p>
+     * Some drivers wrongly claim to support ARB_create_context.
+     * However, the creation of such context fails:
+     * <pre>
+     *   javax.media.opengl.GLException: AWT-EventQueue-0: WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 
+     *   requested (OpenGL >= 3.0.1). Requested: GLProfile[GL3bc/GL3bc.hw], current: 2.1 (Compat profile, FBO, hardware) 
+     *   - 2.1.8787
+     * </pre>
+     * </p>
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>GL_VENDOR       ATI Technologies Inc.</li>
+     *   <li>GL_RENDERER     ATI Radeon 3100 Graphics</li>
+     *   <li>GL_VERSION      2.1.8787</li>
+     *   <li>Platform        Windows</li>
+     * </ul>
+     * </p>
+     */
+    public static final int NoARBCreateContext = 21;
 
     /**
      * No support for ES or desktop GL >= 3.0 current context without surface,
@@ -420,10 +444,10 @@ public class GLRendererQuirks {
      * </ul>
      * </p>
      */
-    public static final int NoSurfacelessCtx = 21;
+    public static final int NoSurfacelessCtx = 22;
 
     /** Return the number of known quirks. */
-    public static final int getCount() { return 22; }
+    public static final int getCount() { return 23; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -432,7 +456,7 @@ public class GLRendererQuirks {
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
                                                           "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum",
-                                                          "NeedSharedObjectSync", "NoSurfacelessCtx"
+                                                          "NeedSharedObjectSync", "NoARBCreateContext", "NoSurfacelessCtx"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();

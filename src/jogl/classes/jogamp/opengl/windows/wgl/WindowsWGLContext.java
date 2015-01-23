@@ -333,7 +333,7 @@ public class WindowsWGLContext extends GLContextImpl {
                 isProcCreateContextAttribsARBAvailable = false;
                 isExtARBCreateContextAvailable = false;
             }
-            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable && !GLProfile.disableOpenGLARBContext ) {
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable && !GLProfile.disableOpenGLARBContext && !getRendererQuirks().exist( GLRendererQuirks.NoARBCreateContext ) ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(shareWithHandle, true);
                 createContextARBTried=true;

@@ -263,6 +263,7 @@
 
         <path id="gluegen-gl.classpath">
           <pathelement location="${gluegen.jar}" />
+          <pathelement location="${antlr.jar}" />
           <pathelement location="${gluegen-gl.jar}" />
         </path>
 
