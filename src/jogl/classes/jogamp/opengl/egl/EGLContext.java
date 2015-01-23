@@ -115,16 +115,14 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected void makeCurrentImpl() throws GLException {
-        if (EGL.eglGetCurrentContext() != contextHandle) {
-            final long dpy = drawable.getNativeSurface().getDisplayHandle();
-            if (!EGL.eglMakeCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-                throw new GLException("Error making context " + toHexString(contextHandle) +
-                                      " current on Thread " + getThreadName() +
-                                      " with display " + toHexString(dpy) +
-                                      ", drawableWrite " + toHexString(drawable.getHandle()) +
-                                      ", drawableRead "+ toHexString(drawableRead.getHandle()) +
-                                      " - Error code " + toHexString(EGL.eglGetError()) + ", " + this);
-            }
+        final long dpy = drawable.getNativeSurface().getDisplayHandle();
+        if ( !EGL.eglMakeCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
+            throw new GLException("Error making context " + toHexString(contextHandle) +
+                    " current on Thread " + getThreadName() +
+                    " with display " + toHexString(dpy) +
+                    ", drawableWrite " + toHexString(drawable.getHandle()) +
+                    ", drawableRead "+ toHexString(drawableRead.getHandle()) +
+                    " - Error code " + toHexString(EGL.eglGetError()) + ", " + this);
         }
     }
 

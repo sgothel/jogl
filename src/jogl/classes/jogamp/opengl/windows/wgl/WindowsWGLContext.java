@@ -160,20 +160,19 @@ public class WindowsWGLContext extends GLContextImpl {
     return ok;
   }
 
-  private final boolean wglReleaseContext(final long ctx) {
+  private final boolean wglReleaseContext() {
     boolean ok = false;
     if(wglGLReadDrawableAvailable) {
         // needs initilized WGL ProcAddress table
-        ok = getWGLExt().wglMakeContextCurrent(0, 0, ctx);
+        ok = getWGLExt().wglMakeContextCurrent(0, 0, 0);
     } else {
-        ok = WGL.wglMakeCurrent(0, ctx);
+        ok = WGL.wglMakeCurrent(0, 0);
     }
     if( !ok ) {
         final int werr = GDI.GetLastError();
         final boolean ok2 = werr == GDI.ERROR_SUCCESS;
         if(DEBUG) {
-            final Throwable t = new Throwable ("Info: wglReleaseContext NOK: ctx " + GLContext.toHexString(ctx) +
-                                               ", werr " + werr + " -> ok "+ok2);
+            final Throwable t = new Throwable ("Info: wglReleaseContext NOK: werr " + werr + " -> ok "+ok2);
             t.printStackTrace();
         }
         // Some GPU's falsely fails with a zero error code (success),
@@ -417,20 +416,18 @@ public class WindowsWGLContext extends GLContextImpl {
 
   @Override
   protected void  makeCurrentImpl() throws GLException {
-    if (WGL.wglGetCurrentContext() != contextHandle) {
-      if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
+      if ( !wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
         throw new GLException("Error making context " + toHexString(contextHandle) +
                               " current on Thread " + getThreadName() +
                               ", drawableWrite " + toHexString(drawable.getHandle()) +
                               ", drawableRead "+ toHexString(drawableRead.getHandle()) +
                               ", werr: " + GDI.GetLastError() + ", " + this);
       }
-    }
   }
 
   @Override
   protected void releaseImpl() throws GLException {
-    if (!wglReleaseContext(0)) {
+    if ( !wglReleaseContext() ) {
         throw new GLException("Error freeing OpenGL context, werr: " + GDI.GetLastError());
     }
   }

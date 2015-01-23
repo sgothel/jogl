@@ -310,7 +310,7 @@ public class MacOSXCGLContext extends GLContextImpl
     if (getOpenGLMode() != ((MacOSXCGLDrawable)drawable).getOpenGLMode()) {
       setOpenGLMode(((MacOSXCGLDrawable)drawable).getOpenGLMode());
     } */
-    if (!impl.makeCurrent(contextHandle)) {
+    if ( !impl.makeCurrent(contextHandle) ) {
       throw new GLException("Error making Context current: "+this);
     }
     drawableUpdatedNotify();

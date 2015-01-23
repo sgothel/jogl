@@ -187,11 +187,32 @@ public class X11GLXContext extends GLContextImpl {
     return res;
   }
 
+  private final boolean glXReleaseContext(final long dpy) {
+    boolean res = false;
+
+    try {
+        if ( isGLXVersionGreaterEqualOneThree() ) {
+            // System.err.println(getThreadName() +": X11GLXContext.releaseCurrent: obj " + toHexString(hashCode()) + " / ctx "+toHexString(contextHandle)+": ctx "+toHexString(ctx)+" - switch");
+            res = GLX.glXMakeContextCurrent(dpy, 0, 0, 0);
+        } else {
+            // System.err.println(getThreadName() +": X11GLXContext.releaseCurrent: obj " + toHexString(hashCode()) + " / ctx "+toHexString(contextHandle)+": ctx "+toHexString(ctx)+" - switch");
+            res = GLX.glXMakeCurrent(dpy, 0, 0);
+        }
+    } catch (final RuntimeException re) {
+        if( DEBUG_TRACE_SWITCH ) {
+          System.err.println(getThreadName()+": Warning: X11GLXContext.glXReleaseContext failed: "+re+", with "+
+            "dpy "+toHexString(dpy));
+          re.printStackTrace();
+        }
+    }
+    return res;
+  }
+
   @Override
   protected void destroyContextARBImpl(final long ctx) {
     final long display = drawable.getNativeSurface().getDisplayHandle();
 
-    glXMakeContextCurrent(display, 0, 0, 0);
+    glXReleaseContext(display);
     GLX.glXDestroyContext(display, ctx);
   }
   private static final int ctx_arb_attribs_idx_major = 0;
@@ -269,7 +290,7 @@ public class X11GLXContext extends GLContextImpl {
               System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
             // release & destroy
-            glXMakeContextCurrent(display, 0, 0, 0);
+            glXReleaseContext(display);
             GLX.glXDestroyContext(display, ctx);
             ctx = 0;
         } else if (DEBUG) {
@@ -314,7 +335,7 @@ public class X11GLXContext extends GLContextImpl {
           throw new GLException(getThreadName()+": Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
-            glXMakeContextCurrent(display, 0, 0, 0); // release temp context
+            glXReleaseContext(display); // release temp context
             GLX.glXDestroyContext(display, contextHandle);
             contextHandle = 0;
             throw new InternalError("setGLFunctionAvailability !strictMatch failed.1");
@@ -349,11 +370,11 @@ public class X11GLXContext extends GLContextImpl {
             throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
         if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
-            glXMakeContextCurrent(display, 0, 0, 0); // release temp context
+            glXReleaseContext(display); // release temp context
             GLX.glXDestroyContext(display, temp_ctx);
             throw new InternalError("setGLFunctionAvailability !strictMatch failed.2");
         }
-        glXMakeContextCurrent(display, 0, 0, 0); // release temp context
+        glXReleaseContext(display); // release temp context
         if( !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
             final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
@@ -381,7 +402,7 @@ public class X11GLXContext extends GLContextImpl {
 
     if( 0 != contextHandle ) {
         if( 0 != temp_ctx ) {
-            glXMakeContextCurrent(display, 0, 0, 0);
+            glXReleaseContext(display);
             GLX.glXDestroyContext(display, temp_ctx);
             if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
                 throw new GLException(getThreadName()+": Cannot make previous verified context current");
@@ -391,7 +412,7 @@ public class X11GLXContext extends GLContextImpl {
         if( glp.isGL3() && createContextARBTried ) {
             // We shall not allow context creation >= GL3 w/ non ARB methods if ARB is used,
             // otherwise context of similar profile but different creation method may not be share-able.
-            glXMakeContextCurrent(display, 0, 0, 0);
+            glXReleaseContext(display);
             GLX.glXDestroyContext(display, temp_ctx);
             throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ARB n/a but required, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glp+", current: "+getGLVersion());
         }
@@ -403,7 +424,7 @@ public class X11GLXContext extends GLContextImpl {
         // continue with temp context
         contextHandle = temp_ctx;
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
-            glXMakeContextCurrent(display, 0, 0, 0);
+            glXReleaseContext(display);
             GLX.glXDestroyContext(display, temp_ctx);
             throw new GLException(getThreadName()+": Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
@@ -422,23 +443,20 @@ public class X11GLXContext extends GLContextImpl {
   @Override
   protected void makeCurrentImpl() throws GLException {
     final long dpy = drawable.getNativeSurface().getDisplayHandle();
-
-    if (GLX.glXGetCurrentContext() != contextHandle) {
-        if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException("Error making context " + toHexString(contextHandle) +
-                                  " current on Thread " + getThreadName() +
-                                  " with display " + toHexString(dpy) +
-                                  ", drawableWrite " + toHexString(drawable.getHandle()) +
-                                  ", drawableRead "+ toHexString(drawableRead.getHandle()) +
-                                  " - " + this);
-        }
+    if ( !glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
+        throw new GLException("Error making context " + toHexString(contextHandle) +
+                " current on Thread " + getThreadName() +
+                " with display " + toHexString(dpy) +
+                ", drawableWrite " + toHexString(drawable.getHandle()) +
+                ", drawableRead "+ toHexString(drawableRead.getHandle()) +
+                " - " + this);
     }
   }
 
   @Override
   protected void releaseImpl() throws GLException {
     final long display = drawable.getNativeSurface().getDisplayHandle();
-    if (!glXMakeContextCurrent(display, 0, 0, 0)) {
+    if ( !glXReleaseContext(display) ) {
         throw new GLException(getThreadName()+": Error freeing OpenGL context");
     }
   }
