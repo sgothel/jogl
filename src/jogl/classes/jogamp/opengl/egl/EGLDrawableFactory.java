@@ -134,15 +134,17 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             final boolean hasEGL_1_4 = version.compareTo(GLContext.Version1_4) >= 0;
             final boolean hasEGL_1_5 = version.compareTo(GLContext.Version1_5) >= 0;
             {
-                final String eglClientAPIStr = EGL.eglQueryString(eglDisplay, EGL.EGL_CLIENT_APIS);
-                final String[] eglClientAPIs = eglClientAPIStr.split("\\s");
                 boolean _hasGLAPI = false;
-                for(int i=eglClientAPIs.length-1; i>=0; i--) {
-                    _hasGLAPI = eglClientAPIs[i].equals("OpenGL");
+                final String eglClientAPIStr = EGL.eglQueryString(eglDisplay, EGL.EGL_CLIENT_APIS);
+                if( hasEGL_1_4 ) {
+                    final String[] eglClientAPIs = eglClientAPIStr.split("\\s");
+                    for(int i=eglClientAPIs.length-1; i>=0; i--) {
+                        _hasGLAPI = eglClientAPIs[i].equals("OpenGL");
+                    }
                 }
                 hasGLAPI = _hasGLAPI;
                 if(DEBUG) {
-                    System.err.println("  Client APIs: "+eglClientAPIStr+"; has OpenGL "+hasGLAPI);
+                    System.err.println("  Client APIs: "+eglClientAPIStr+"; has EGL 1.4 "+hasEGL_1_4+" -> has OpenGL "+hasGLAPI);
                 }
             }
             {
@@ -153,6 +155,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     hasKHRSurfaceless = true;
                 } else {
                     if( hasEGL_1_4 ) {
+                        // requires EGL 1.4
                         hasKHRCreateContext = extensions.contains("EGL_KHR_create_context");
                     } else {
                         hasKHRCreateContext = false;
@@ -532,7 +535,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             boolean madeCurrentGLn = false;
 
             if( null != eglGLnDynamicLookupHelper ) {
-                // OpenGL 3.1 core -> GL3
+                // OpenGL 3.1 core -> GL3, will utilize normal desktop profile mapping
                 final int[] major = { 3 };
                 final int[] minor = { 1 }; // FIXME: No minor version probing for ES currently!
                 madeCurrentGLn = mapAvailableEGLESConfig(adevice, major, minor,
@@ -540,6 +543,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             } else {
                 madeCurrentGLn = false;
             }
+            EGLContext.setAvailableGLVersionsSet(adevice, true);
+
             if( null != eglES1DynamicLookupHelper ) {
                 final int[] major = { 1 };
                 final int[] minor = { 0 };
@@ -569,11 +574,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
             }
 
-            if( !EGLContext.getAvailableGLVersionsSet(adevice) ) {
-                // Even though we override the non EGL native mapping intentionally,
-                // avoid exception due to double 'set' - careful exception of the rule.
-                EGLContext.setAvailableGLVersionsSet(adevice, true);
-            }
             if( hasX11 ) {
                 handleDontCloseX11DisplayQuirk(rendererQuirksES1[0]);
                 handleDontCloseX11DisplayQuirk(rendererQuirksES3ES2[0]);
@@ -727,9 +727,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 // context.isCurrent() !
                                 final String glVersionString = context.getGL().glGetString(GL.GL_VERSION);
                                 if(null != glVersionString) {
-                                    context.mapCurrentAvailableGLVersion(eglDevice);
+                                    context.mapCurrentAvailableGLESVersion(eglDevice);
                                     if(eglDevice != adevice) {
-                                        context.mapCurrentAvailableGLVersion(adevice);
+                                        context.mapCurrentAvailableGLESVersion(adevice);
                                     }
 
                                     if( eglFeatures.hasKHRSurfaceless &&
@@ -833,6 +833,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public final boolean hasDefaultDeviceKHRCreateContext() {
         return defaultDeviceEGLFeatures.hasKHRCreateContext;
+    }
+    public final boolean hasOpenGLAPISupport() {
+        return defaultDeviceEGLFeatures.hasGLAPI;
     }
 
     @Override

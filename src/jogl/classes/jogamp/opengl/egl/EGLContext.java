@@ -170,7 +170,9 @@ public class EGLContext extends GLContextImpl {
         final long eglConfig = config.getNativeConfig();
         final EGLDrawableFactory factory = (EGLDrawableFactory) drawable.getFactoryImpl();
 
-        final boolean useKHRCreateContext = !GLProfile.disableOpenGLARBContext && factory.hasDefaultDeviceKHRCreateContext();
+        final boolean hasOpenGLAPISupport = factory.hasOpenGLAPISupport();
+        final boolean useKHRCreateContext = factory.hasDefaultDeviceKHRCreateContext();
+        final boolean allowOpenGLAPI = hasOpenGLAPISupport && useKHRCreateContext;
         final boolean ctDesktopGL = 0 == ( GLContext.CTX_PROFILE_ES & ctp );
         final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
         final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
@@ -178,7 +180,9 @@ public class EGLContext extends GLContextImpl {
 
         if(DEBUG) {
             System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: Start "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")
+                                               + ", hasOpenGLAPISupport "+hasOpenGLAPISupport
                                                + ", useKHRCreateContext "+useKHRCreateContext
+                                               + ", allowOpenGLAPI "+allowOpenGLAPI
                                                + ", device "+device);
         }
         if ( 0 == eglDisplay ) {
@@ -188,14 +192,31 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
 
-        if( !useKHRCreateContext && ctDesktopGL ) {
+        /**
+         * It has been experienced w/ Mesa 10.3.2 (EGL 1.4/Gallium)
+         * that even though initial OpenGL context can be created w/o 'EGL_KHR_create_context',
+         * switching the API via 'eglBindAPI(EGL_OpenGL_API)' the latter 'eglCreateContext(..)' fails w/ EGL_BAD_ACCESS.
+         * Hence we require both: OpenGL API support _and_  'EGL_KHR_create_context'.
+         *
+         * FIXME: Evaluate this issue in more detail!
+         *
+         * FIXME: Utilization of eglBindAPI(..) must be re-evaluated in case we mix ES w/ OpenGL, see EGL 1.4 spec.
+         *        This is due to new semantics, i.e. API is bound on a per thread base,
+         *        hence it must be switched before makeCurrent w/ different APIs, see:
+         *           eglWaitClient();
+         */
+        if( ctDesktopGL && !allowOpenGLAPI ) {
+        // if( ctDesktopGL && !hasOpenGLAPISupport ) {
             if(DEBUG) {
                 System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: DesktopGL not avail "+getGLVersion(reqMajor, reqMinor, ctp, "@creation"));
             }
             return 0; // n/a
         }
+
         try {
-            // might be unavailable on EGL < 1.2
+            if( allowOpenGLAPI && device.getEGLVersion().compareTo(Version1_2) >= 0 ) {
+                EGL.eglWaitClient(); // EGL >= 1.2
+            }
             if( !EGL.eglBindAPI( ctDesktopGL ? EGL.EGL_OPENGL_API : EGL.EGL_OPENGL_ES_API) ) {
                 throw new GLException("Caught: eglBindAPI to "+(ctDesktopGL ? "ES" : "GL")+" failed , error "+toHexString(EGL.eglGetError())+" - "+getGLVersion(reqMajor, reqMinor, ctp, "@creation"));
             }
@@ -425,8 +446,8 @@ public class EGLContext extends GLContextImpl {
     // Accessible ..
     //
 
-    /* pp */ void mapCurrentAvailableGLVersion(final AbstractGraphicsDevice device) {
-        mapStaticGLVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+    /* pp */ void mapCurrentAvailableGLESVersion(final AbstractGraphicsDevice device) {
+        mapStaticGLESVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
     }
     /* pp */ int getContextOptions() { return ctxOptions; }
     /* pp */ static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final GLCapabilitiesImmutable caps) {
@@ -443,19 +464,19 @@ public class EGLContext extends GLContextImpl {
         if( !caps.getHardwareAccelerated() ) {
             reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
         }
-        mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
+        mapStaticGLESVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
     }
-    /* pp */ static void mapStaticGLVersion(final AbstractGraphicsDevice device, final int major, final int minor, final int ctp) {
+    /* pp */ static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final int major, final int minor, final int ctp) {
         if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
             // ES1, ES2, ES3, ..
-            mapStaticGLVersion(device, major /* reqMajor */, major, minor, ctp);
+            mapStaticGLESVersion(device, major /* reqMajor */, major, minor, ctp);
             if( 3 == major ) {
                 // map ES2 -> ES3
-                mapStaticGLVersion(device, 2 /* reqMajor */, major, minor, ctp);
+                mapStaticGLESVersion(device, 2 /* reqMajor */, major, minor, ctp);
             }
         }
     }
-    private static void mapStaticGLVersion(final AbstractGraphicsDevice device, final int reqMajor, final int major, final int minor, final int ctp) {
+    private static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final int reqMajor, final int major, final int minor, final int ctp) {
         GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
         if(! ( device instanceof EGLGraphicsDevice ) ) {
             final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);

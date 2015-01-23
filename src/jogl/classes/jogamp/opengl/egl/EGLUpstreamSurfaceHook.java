@@ -51,7 +51,7 @@ import com.jogamp.opengl.egl.EGL;
  * </pre>
  */
 public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
-    protected static final boolean DEBUG = EGLDrawableFactory.DEBUG;
+    private static final boolean DEBUG = EGLDrawableFactory.DEBUG;
     private final NativeSurface upstreamSurface;
     private final UpstreamSurfaceHook.MutableSize upstreamSurfaceHookMutableSize;
 
@@ -231,8 +231,8 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
 
     @Override
     public final void destroy(final ProxySurface surface) {
-        if(EGLDrawableFactory.DEBUG) {
-            System.err.println("EGLUpstreamSurfaceHook.destroy("+surface.getClass().getSimpleName()+"): "+this);
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": EGLUpstreamSurfaceHook.destroy("+surface.getClass().getSimpleName()+"): "+this);
         }
         surface.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
         if(upstreamSurface instanceof ProxySurface) {
