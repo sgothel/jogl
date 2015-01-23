@@ -95,7 +95,7 @@ import javax.media.nativewindow.util.SurfaceSize;
  *   System.setProperty("newt.window.icons", "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png");
  * </pre>
  * </p>
- * 
+ *
  * <a name="lifecycleHeavy"><h5>Use of Lifecycle Heavy functions</h5></a>
  * <p>
  * Some of the methods specified here are lifecycle-heavy. That is, they are able
@@ -103,7 +103,7 @@ import javax.media.nativewindow.util.SurfaceSize;
  * are <i>not safe</i> to be called from EDT related threads. For example, it is not
  * safe for a method in an attached {@link KeyListener} to call {@link #setFullscreen(boolean)}
  * on a {@link Window} directly. It is safe, however, for that method to spawn a background
- * worker thread which calls the method directly. The documentation for individual methods 
+ * worker thread which calls the method directly. The documentation for individual methods
  * indicates whether or not they are lifecycle-heavy.
  * </p>
  */
@@ -185,7 +185,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>
      * The Window can be recreate via {@link #setVisible(boolean) setVisible(true)}.
      * </p>
-     * <p>This method is <a href="lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      * @see #destroy()
      * @see #setVisible(boolean)
      */
@@ -205,7 +205,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
     /**
      * Calls {@link #setVisible(boolean, boolean) setVisible(true, visible)},
      * i.e. blocks until the window becomes visible.
-     * <p>This method is <a href="lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      * @see #setVisible(boolean, boolean)
      */
     void setVisible(boolean visible);
@@ -239,7 +239,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * i.e. {@link javax.media.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
      * <code>setVisible(wait, true)</code> shall be repeated when the parent becomes valid.
      * </p>
-     * <p>This method is <a href="lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      */
     void setVisible(boolean wait, boolean visible);
 
@@ -484,7 +484,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * this window is removed from it's list of children.<br>
      * In case the new parent is not null and a Window,
      * this window is added to it's list of children.<br></P>
-     * <p>This method is <a href="lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      *
      * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
      * @param x new top-level position in window units, use -1 for default position.
@@ -500,7 +500,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>
      * Fullscreen mode is established on the {@link #getMainMonitor() main monitor}.
      * </p>
-     * <p>This method is <a href="lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      * @param fullscreen enable or disable fullscreen mode
      * @return success
      * @see #setFullscreen(List)
@@ -514,7 +514,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>
      * Disable fullscreen via {@link #setFullscreen(boolean)}.
      * </p>
-     * <p>This method is <a href="lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      * @param monitors if <code>null</code> fullscreen will be spanned across all {@link MonitorDevice}s,
      *                 otherwise across the given list of {@link MonitorDevice}.
      * @return success
