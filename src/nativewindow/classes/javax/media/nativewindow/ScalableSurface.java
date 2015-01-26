@@ -30,16 +30,17 @@ package javax.media.nativewindow;
 
 /**
  * Adding mutable surface pixel scale property to implementing class, usually to a {@link NativeSurface} implementation,
- * see {@link #setSurfaceScale(int[])}.
+ * see {@link #setSurfaceScale(float[])}.
  */
 public interface ScalableSurface {
   /** Setting surface-pixel-scale of {@value}, results in same pixel- and window-units. */
-  public static final int IDENTITY_PIXELSCALE = 1;
+  public static final float IDENTITY_PIXELSCALE = 1f;
   /** Setting surface-pixel-scale of {@value}, results in maximum platform dependent pixel-scale, i.e. pixel-units >> window-units where available. */
-  public static final int AUTOMAX_PIXELSCALE = 0;
+  public static final float AUTOMAX_PIXELSCALE = 0f;
 
   /**
-   * Request a pixel scale in x- and y-direction for the associated {@link NativeSurface}.
+   * Request a pixel scale in x- and y-direction for the associated {@link NativeSurface},
+   * where {@code size_in_pixel_units = pixel_scale * size_in_window_units}.
    * <p>
    * Default pixel scale request for both directions is {@link #AUTOMAX_PIXELSCALE}.
    * </p>
@@ -50,48 +51,57 @@ public interface ScalableSurface {
    * <p>
    * The <i>requested</i> pixel scale will be validated against platform limits before native scale-setup,
    * i.e. clipped to {@link #IDENTITY_PIXELSCALE} if not supported or clipped to the platform maximum.
-   * It can be queried via {@link #getRequestedSurfaceScale(int[])}.
+   * It can be queried via {@link #getRequestedSurfaceScale(float[])}.
    * </p>
    * <p>
    * The actual <i>realized</i> pixel scale values of the {@link NativeSurface}
-   * can be queried via {@link #getCurrentSurfaceScale(int[])} or
+   * can be queried via {@link #getCurrentSurfaceScale(float[])} or
    * computed via <code>surface.{@link NativeSurface#convertToPixelUnits(int[]) convertToPixelUnits}(new int[] { 1, 1 })</code>
    * </p>
- * @param pixelScale <i>requested</i> surface pixel scale int[2] values for x- and y-direction.
+   * @param pixelScale <i>requested</i> surface pixel scale float[2] values for x- and y-direction.
+   * @return {@code true} if the {@link #getCurrentSurfaceScale(float[]) current pixel scale} has changed, otherwise {@code false}.
+   * @see #getRequestedSurfaceScale(float[])
    */
-  public void setSurfaceScale(final int[] pixelScale);
+  public boolean setSurfaceScale(final float[] pixelScale);
 
   /**
-   * Returns the requested pixel scale of the associated {@link NativeSurface}.
+   * Returns the {@link #setSurfaceScale(float[]) requested} pixel scale of the associated {@link NativeSurface}.
    *
-   * @param result int[2] storage for the result
-   * @return the passed storage containing the requested pixelScale for chaining
+   * @param result float[2] storage for the result
+   * @return the passed storage containing the current pixelScale for chaining
+   * @see #setSurfaceScale(float[])
    */
-  int[] getRequestedSurfaceScale(final int[] result);
+  public float[] getRequestedSurfaceScale(final float[] result);
 
   /**
    * Returns the current pixel scale of the associated {@link NativeSurface}.
    *
-   * @param result int[2] storage for the result
+   * @param result float[2] storage for the result
    * @return the passed storage containing the current pixelScale for chaining
    */
-  public int[] getCurrentSurfaceScale(final int[] result);
+  public float[] getCurrentSurfaceScale(final float[] result);
 
   /**
-   * Returns the native pixel scale of the associated {@link NativeSurface}
-   * reflecting it's currently bound <i>monitor surface resolution in pixels</i>.
+   * Returns the minimum pixel scale of the associated {@link NativeSurface}.
+   * @param result float[2] storage for the result
+   * @return the passed storage containing the minimum pixelScale for chaining
+   */
+  public float[] getMinimumSurfaceScale(final float[] result);
+
+  /**
+   * Returns the maximum pixel scale of the associated {@link NativeSurface}.
    * <p>
-   * The native pixel scale maybe used to determine the proper <i>dpi</i>
-   * value of this {@link NativeSurface}:
+   * The maximum pixel scale maybe used to determine the proper <i>dpi</i>
+   * value of the monitor displaying this {@link NativeSurface}.
    * <pre>
    *    surfacePpMM = monitorPpMM * currentSurfaceScale / nativeSurfaceScale,
    *    with PpMM == pixel per millimeter
    * </pre>
    * </p>
    *
-   * @param result int[2] storage for the result
-   * @return the passed storage containing the native pixelScale for chaining
+   * @param result float[2] storage for the result
+   * @return the passed storage containing the maximum pixelScale for chaining
    */
-  public int[] getNativeSurfaceScale(final int[] result);
+  public float[] getMaximumSurfaceScale(final float[] result);
 }
 

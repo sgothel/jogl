@@ -784,11 +784,21 @@ static jmethodID windowRepaintID = NULL;
     [super viewDidChangeBackingProperties];
 
     // HiDPI scaling
-    BOOL useHiDPI = [self wantsBestResolutionOpenGLSurface];
-    CGFloat pixelScaleNative = [[self window] backingScaleFactor];
-    CGFloat pixelScaleUse = useHiDPI ? pixelScaleNative : 1.0;
-    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, native %f -> use %f\n", useHiDPI, (float)pixelScaleNative, (float)pixelScaleUse);
-    [[self layer] setContentsScale: pixelScaleUse];
+    BOOL useHiDPI = false;
+    CGFloat maxPixelScale = 1.0;
+    CGFloat winPixelScale = 1.0;
+    NSWindow* window = [self window];
+    NSScreen* screen = [window screen];
+NS_DURING
+    maxPixelScale = [screen backingScaleFactor];
+    useHiDPI = [self wantsBestResolutionOpenGLSurface];
+    if( useHiDPI ) {
+        winPixelScale = [window backingScaleFactor];
+    }
+NS_HANDLER
+NS_ENDHANDLER
+    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, max %f, window %f\n", useHiDPI, (float)maxPixelScale, (float)winPixelScale);
+    [[self layer] setContentsScale: winPixelScale];
 
     if (javaWindowObject == NULL) {
         DBG_PRINT("viewDidChangeBackingProperties: null javaWindowObject\n");
@@ -801,7 +811,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScaleUse, (jfloat)pixelScaleNative); // defer 
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)winPixelScale, (jfloat)maxPixelScale); // defer 
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);

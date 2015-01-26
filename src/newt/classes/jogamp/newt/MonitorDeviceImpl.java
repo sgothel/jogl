@@ -28,6 +28,7 @@
 
 package jogamp.newt;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
 
@@ -38,8 +39,21 @@ import com.jogamp.newt.Screen;
 
 public class MonitorDeviceImpl extends MonitorDevice {
 
-    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId, final DimensionImmutable sizeMM, final Rectangle viewportPU, final Rectangle viewportWU, final MonitorMode currentMode, final ArrayHashSet<MonitorMode> supportedModes) {
-        super(screen, nativeId, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
+    /**
+     * @param screen associated {@link Screen}
+     * @param nativeId unique monitor device ID
+     * @param sizeMM size in millimeters
+     * @param currentMode
+     * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
+     * @param viewportPU viewport in pixel-units
+     * @param viewportWU viewport in window-units
+     * @param supportedModes all supported {@link MonitorMode}s
+     */
+    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId, final DimensionImmutable sizeMM,
+                             final MonitorMode currentMode,
+                             final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU,
+                             final ArrayHashSet<MonitorMode> supportedModes) {
+        super(screen, nativeId, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
     }
 
     @Override

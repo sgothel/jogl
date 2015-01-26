@@ -33,11 +33,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
@@ -50,8 +47,6 @@ import javax.media.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import jogamp.common.os.PlatformPropsImpl;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -60,8 +55,13 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.common.os.Platform;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
@@ -90,7 +90,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static boolean manualTest = false;
     static boolean skipGLOrientationVerticalFlip = false;
     static int xpos = 10, ypos = 10;
-    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     @BeforeClass
     public static void initClass() {
@@ -139,7 +139,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
         glJPanel.setSurfaceScale(reqSurfacePixelScale);
-        final int[] valReqSurfacePixelScale = glJPanel.getRequestedSurfaceScale(new int[2]);
+        final float[] valReqSurfacePixelScale = glJPanel.getRequestedSurfaceScale(new float[2]);
         if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
             final Gears gears = new Gears(swapInterval);
             gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
@@ -162,28 +162,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
                 setTitle(frame, glJPanel, caps);
             }
-
         });
         setTitle(frame, glJPanel, caps);
         frame.setLocation(xpos, ypos);
-
-        frame.addComponentListener(new ComponentListener() {
-            @Override
-            public void componentResized(final ComponentEvent e) {
-                setTitle(frame, glJPanel, caps);
-            }
-
-            @Override
-            public void componentMoved(final ComponentEvent e) {
-                setTitle(frame, glJPanel, caps);
-            }
-
-            @Override
-            public void componentShown(final ComponentEvent e) { }
-
-            @Override
-            public void componentHidden(final ComponentEvent e) { }
-        });
 
         final FPSAnimator animator = useAnimator ? new FPSAnimator(glJPanel, 60) : null;
 
@@ -197,13 +178,11 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
 
-        final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-        final int[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new int[2]);
+        final float[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         setTitle(frame, glJPanel, caps);
-        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
 
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, System.err);
@@ -231,31 +210,44 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                     System.err.printf("GetPixelScale: NW Screen: %s%n", glJPanel.getNativeSurface().getGraphicsConfiguration().getScreen());
                     System.err.printf("GetPixelScale: Panel Bounds: %s window-units%n", r.toString());
                     System.err.printf("GetPixelScale: Panel Resolution: %d x %d pixel-units%n", glJPanel.getSurfaceWidth(), glJPanel.getSurfaceHeight());
-                    if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
-                        final int[] screenIndexOut = { 0 };
-                        final double pixelScale = jogamp.nativewindow.macosx.OSXUtil.GetPixelScale(r, screenIndexOut);
-                        System.err.printf("GetPixelScale: PixelScale %f on screen-idx %d%n", pixelScale, screenIndexOut[0]);
+                    {
+                        final Display dpy = NewtFactory.createDisplay(null);
+                        final Screen screen = NewtFactory.createScreen(dpy, 0);
+                        screen.addReference();
+                        final MonitorModeListener sml = new MonitorModeListener() {
+                            @Override
+                            public void monitorModeChangeNotify(final MonitorEvent me) {
+                            }
+                            @Override
+                            public void monitorModeChanged(final MonitorEvent me, final boolean success) {
+                            }
+                        };
+                        screen.addMonitorModeListener(sml);
+                        try {
+                            final MonitorDevice md = screen.getMainMonitor(r);
+                            System.err.printf("GetPixelScale: %s%n", md.toString());
+                        } finally {
+                            screen.removeReference();
+                        }
                     }
                     System.err.println();
                 } else if(e.getKeyChar()=='x') {
-                    final int[] hadSurfacePixelScale = glJPanel.getCurrentSurfaceScale(new int[2]);
-                    final int[] reqSurfacePixelScale;
+                    final float[] hadSurfacePixelScale = glJPanel.getCurrentSurfaceScale(new float[2]);
+                    final float[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
-                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                        reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
                     } else {
-                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                        reqSurfacePixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
                     glJPanel.setSurfaceScale(reqSurfacePixelScale);
-                    final int[] valReqSurfacePixelScale = glJPanel.getRequestedSurfaceScale(new int[2]);
-                    final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-                    final int[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new int[2]);
+                    final float[] valReqSurfacePixelScale = glJPanel.getRequestedSurfaceScale(new float[2]);
+                    final float[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new float[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                                        valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, glJPanel, caps);
-                    Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
                 } else if(e.getKeyChar()=='m') {
                     final GLCapabilitiesImmutable capsPre = glJPanel.getChosenGLCapabilities();
                     final GLCapabilities capsNew = new GLCapabilities(capsPre.getGLProfile());
@@ -520,7 +512,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 rh = MiscUtils.atoi(args[i], rh);
             } else if(args[i].equals("-pixelScale")) {
                 i++;
-                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
                 reqSurfacePixelScale[0] = pS;
                 reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-userVFlip")) {

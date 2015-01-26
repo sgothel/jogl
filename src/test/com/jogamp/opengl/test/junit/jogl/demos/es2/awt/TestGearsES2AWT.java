@@ -55,8 +55,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.TextArea;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -80,7 +78,7 @@ public class TestGearsES2AWT extends UITestCase {
     static int xpos = 10, ypos = 10;
     static FrameLayout frameLayout = FrameLayout.None;
     static ResizeBy resizeBy = ResizeBy.Component;
-    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
@@ -171,7 +169,7 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertNotNull(glCanvas);
         setSize(resizeBy, frame, false, glCanvas, new Dimension(width, height));
         glCanvas.setSurfaceScale(reqSurfacePixelScale);
-        final int[] valReqSurfacePixelScale = glCanvas.getRequestedSurfaceScale(new int[2]);
+        final float[] valReqSurfacePixelScale = glCanvas.getRequestedSurfaceScale(new float[2]);
         frame.setLocation(xpos, ypos);
 
         switch( frameLayout) {
@@ -215,29 +213,23 @@ public class TestGearsES2AWT extends UITestCase {
         }
         setTitle(frame, glCanvas, caps);
 
-        frame.addComponentListener(new ComponentListener() {
-            @Override
-            public void componentResized(final ComponentEvent e) {
-                setTitle(frame, glCanvas, caps);
-            }
-
-            @Override
-            public void componentMoved(final ComponentEvent e) {
-                setTitle(frame, glCanvas, caps);
-            }
-
-            @Override
-            public void componentShown(final ComponentEvent e) { }
-
-            @Override
-            public void componentHidden(final ComponentEvent e) { }
-        });
-
         final GearsES2 demo = new GearsES2(swapInterval);
         glCanvas.addGLEventListener(demo);
 
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glCanvas.addGLEventListener(snap);
+        glCanvas.addGLEventListener(new GLEventListener() {
+            @Override
+            public void init(final GLAutoDrawable drawable) { }
+            @Override
+            public void dispose(final GLAutoDrawable drawable) { }
+            @Override
+            public void display(final GLAutoDrawable drawable) { }
+            @Override
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+                setTitle(frame, glCanvas, caps);
+            }
+        });
 
         final Animator animator = useAnimator ? new Animator(glCanvas) : null;
         if( useAnimator && exclusiveContext ) {
@@ -254,24 +246,22 @@ public class TestGearsES2AWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='x') {
-                    final int[] hadSurfacePixelScale = glCanvas.getCurrentSurfaceScale(new int[2]);
-                    final int[] reqSurfacePixelScale;
+                    final float[] hadSurfacePixelScale = glCanvas.getCurrentSurfaceScale(new float[2]);
+                    final float[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
-                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                        reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
                     } else {
-                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                        reqSurfacePixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
                     glCanvas.setSurfaceScale(reqSurfacePixelScale);
-                    final int[] valReqSurfacePixelScale = glCanvas.getRequestedSurfaceScale(new int[2]);
-                    final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-                    final int[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new int[2]);
+                    final float[] valReqSurfacePixelScale = glCanvas.getRequestedSurfaceScale(new float[2]);
+                    final float[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new float[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                                        valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, glCanvas, caps);
-                    Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
                 }
             } };
         new AWTKeyAdapter(kl, glCanvas).addTo(glCanvas);
@@ -288,13 +278,11 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
 
-        final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-        final int[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new int[2]);
+        final float[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         setTitle(frame, glCanvas, caps);
-        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
 
         if( useAnimator ) {
             animator.start();
@@ -446,7 +434,7 @@ public class TestGearsES2AWT extends UITestCase {
                 rh = MiscUtils.atoi(args[i], rh);
             } else if(args[i].equals("-pixelScale")) {
                 i++;
-                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
                 reqSurfacePixelScale[0] = pS;
                 reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-layout")) {

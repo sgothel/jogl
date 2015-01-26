@@ -94,7 +94,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         props[i++] = 0; // rotated viewport y window-units
         props[i++] = fixedWidth; // FIXME rotated viewport width window-units
         props[i++] = fixedHeight; // FIXME rotated viewport height window-units
-        MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);
+        MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, cache.monitorModes, props, 0, null);
     }
 
     @Override

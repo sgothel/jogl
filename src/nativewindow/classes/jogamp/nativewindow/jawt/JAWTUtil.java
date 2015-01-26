@@ -56,6 +56,7 @@ import javax.media.nativewindow.ToolkitLock;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
+import jogamp.nativewindow.macosx.OSXUtil;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
@@ -93,6 +94,7 @@ public class JAWTUtil {
   private static final ToolkitLock jawtToolkitLock;
 
   private static final Method getScaleFactorMethod;
+  private static final Method getCGDisplayIDMethodOnOSX;
 
   private static class PrivilegedDataBlob1 {
     PrivilegedDataBlob1() {
@@ -101,6 +103,7 @@ public class JAWTUtil {
     Method sunToolkitAWTLockMethod;
     Method sunToolkitAWTUnlockMethod;
     Method getScaleFactorMethod;
+    Method getCGDisplayIDMethodOnOSX;
     boolean ok;
   }
 
@@ -321,6 +324,7 @@ public class JAWTUtil {
         hasSunToolkitAWTLock = false;
         // hasSunToolkitAWTLock = false;
         getScaleFactorMethod = null;
+        getCGDisplayIDMethodOnOSX = null;
     } else {
         // Non-headless case
         JAWTJNILibLoader.initSingleton(); // load libjawt.so
@@ -357,8 +361,13 @@ public class JAWTUtil {
                 }
                 try {
                     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-                    d.getScaleFactorMethod = gd.getClass().getDeclaredMethod("getScaleFactor");
+                    final Class<?> gdClass = gd.getClass();
+                    d.getScaleFactorMethod = gdClass.getDeclaredMethod("getScaleFactor");
                     d.getScaleFactorMethod.setAccessible(true);
+                    if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
+                        d.getCGDisplayIDMethodOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
+                        d.getCGDisplayIDMethodOnOSX.setAccessible(true);
+                    }
                 } catch (final Throwable t) {}
                 return d;
             }
@@ -366,6 +375,7 @@ public class JAWTUtil {
         sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
         sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
         getScaleFactorMethod = pdb1.getScaleFactorMethod;
+        getCGDisplayIDMethodOnOSX = pdb1.getCGDisplayIDMethodOnOSX;
 
         boolean _hasSunToolkitAWTLock = false;
         if ( pdb1.ok ) {
@@ -545,20 +555,46 @@ public class JAWTUtil {
    * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
    * </p>
    * @param device the {@link GraphicsDevice} instance used to query the pixel scale
-   * @return the pixel scale factor
+   * @param minScale current and output min scale values
+   * @param maxScale current and output max scale values
+   * @return {@code true} if the given min and max scale values have changed, otherwise {@code false}.
    */
-  public static final int getPixelScale(final GraphicsDevice device) {
+  public static final boolean getPixelScale(final GraphicsDevice device, final float[] minScale, final float[] maxScale) {
+      // Shall we allow ]0..1[ minimum scale?
+      boolean changed = minScale[0] != 1f || minScale[1] != 1f;
+      minScale[0] = 1f;
+      minScale[1] = 1f;
+      float sx = 1f;
+      float sy = 1f;
       if( !SKIP_AWT_HIDPI ) {
-          if( null != getScaleFactorMethod ) {
+          if( null != getCGDisplayIDMethodOnOSX ) {
+              // OSX specific, preserving double type
               try {
-                  final Object res = getScaleFactorMethod.invoke(device);
+                  final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
                   if (res instanceof Integer) {
-                      return ((Integer)res).intValue();
+                      final int displayID = ((Integer)res).intValue();
+                      sx = (float) OSXUtil.GetPixelScaleByDisplayID(displayID);
+                      sy = sx;
                   }
               } catch (final Throwable t) {}
           }
+          if( null != getScaleFactorMethod ) {
+              // Generic (?)
+              try {
+                  final Object res = getScaleFactorMethod.invoke(device);
+                  if (res instanceof Integer) {
+                      sx = ((Integer)res).floatValue();
+                  } else if ( res instanceof Double) {
+                      sx = ((Double)res).floatValue();
+                  }
+                  sy = sx;
+              } catch (final Throwable t) {}
+          }
       }
-      return 1;
+      changed = maxScale[0] != sx || maxScale[1] != sy;
+      maxScale[0] = sx;
+      maxScale[1] = sy;
+      return changed;
   }
 
   /**
@@ -574,20 +610,23 @@ public class JAWTUtil {
    * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
    * </p>
    * @param gc the {@link GraphicsConfiguration} instance used to query the pixel scale
-   * @return the pixel scale factor
+   * @param minScale current and output min scale values
+   * @param maxScale current and output max scale values
+   * @return {@code true} if the given min and max scale values have changed, otherwise {@code false}.
    */
-  public static final int getPixelScale(final GraphicsConfiguration gc) {
+  public static final boolean getPixelScale(final GraphicsConfiguration gc, final float[] minScale, final float[] maxScale) {
       final GraphicsDevice device = null != gc ? gc.getDevice() : null;
-      final int ps;
+      boolean changed;
       if( null == device ) {
-          ps = 0;
+          changed = minScale[0] != 1f || minScale[1] != 1f || maxScale[0] != 1f || maxScale[1] != 1f;
+          minScale[0] = 1f;
+          minScale[1] = 1f;
+          maxScale[0] = 1f;
+          maxScale[1] = 1f;
       } else {
-          ps = JAWTUtil.getPixelScale(device);
+          changed = JAWTUtil.getPixelScale(device, minScale, maxScale);
       }
-      if( DEBUG ) {
-          System.err.println("JAWTUtil.updatePixelScale: Fetched "+ps);
-      }
-      return ps;
+      return changed;
   }
 }
 

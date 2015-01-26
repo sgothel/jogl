@@ -112,12 +112,12 @@ public class TestScreenMode00aNEWT extends UITestCase {
         final Rectangle viewport = new Rectangle(0, 0, 1920, 1080);
         final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
         supportedModes.add(modeOut);
-        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, sizeMM, viewport, viewport, modeOut, supportedModes);
+        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, sizeMM, modeOut, null, viewport, viewport, supportedModes);
         System.err.println("01 out : "+monOut);
         cache.monitorDevices.add(monOut);
         {
             final int[] props = MonitorModeProps.streamOutMonitorDevice(monOut);
-            final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(null, cache, null, props, 0);
+            final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(cache, null, null, props, 0, null);
             System.err.println("01 in : "+monIn);
 
             Assert.assertEquals(monOut.getCurrentMode(), monOut.getOriginalMode());

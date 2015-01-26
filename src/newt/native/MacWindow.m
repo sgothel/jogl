@@ -420,7 +420,7 @@ NS_ENDHANDLER
 
 
 CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
-    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    // Mind: typedef uint32_t CGDirectDisplayID;
     NSDictionary * dict = [screen deviceDescription];
     NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
     // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size

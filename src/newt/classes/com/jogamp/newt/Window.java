@@ -273,7 +273,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * according to the {@link #getMainMonitor() main monitor}'s <i>current</i> {@link MonitorMode mode}'s
      * {@link SurfaceSize#getResolution() surface resolution}.
      * <p>
-     * Method takes the {@link #getCurrentSurfaceScale(int[]) current surface-scale} and {@link #getNativeSurfaceScale(int[]) native surface-scale}
+     * Method takes the {@link #getCurrentSurfaceScale(float[]) current surface-scale} and {@link #getMaximumSurfaceScale(float[]) native surface-scale}
      * into account, i.e.:
      * <pre>
      *    surfacePpMM = monitorPpMM * currentSurfaceScale / nativeSurfaceScale,

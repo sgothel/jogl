@@ -262,9 +262,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private boolean handleReshape = false;
   private boolean sendReshape = true;
 
-  private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  private final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+  private final float[] minPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final float[] maxPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final float[] reqPixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
   /** For handling reshape events lazily: reshapeWidth -> panelWidth -> backend.width in pixel units (scaled) */
   private int reshapeWidth;
@@ -450,20 +451,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void display() {
-    if( isShowing || ( printActive && isVisible() ) ) {
-        if (EventQueue.isDispatchThread()) {
-          // Want display() to be synchronous, so call paintImmediately()
-          paintImmediately(0, 0, getWidth(), getHeight());
-        } else {
-          // Multithreaded redrawing of Swing components is not allowed,
-          // so do everything on the event dispatch thread
-          try {
-            EventQueue.invokeAndWait(paintImmediatelyAction);
-          } catch (final Exception e) {
-            throw new GLException(e);
+      if( isShowing || ( printActive && isVisible() ) ) {
+          if (EventQueue.isDispatchThread()) {
+              // Want display() to be synchronous, so call paintImmediately()
+              paintImmediatelyAction.run();
+          } else {
+              // Multithreaded redrawing of Swing components is not allowed,
+              // so do everything on the event dispatch thread
+              try {
+                  EventQueue.invokeAndWait(paintImmediatelyAction);
+              } catch (final Exception e) {
+                  throw new GLException(e);
+              }
           }
-        }
-    }
+      }
   }
 
   protected void dispose(final Runnable post) {
@@ -556,6 +557,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         // re-creating it -- tricky to do properly while the context is
         // current
         if( !printActive ) {
+            updatePixelScale(backend);
             if ( handleReshape ) {
                 handleReshape = false;
                 sendReshape = handleReshape();
@@ -579,36 +581,76 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public final void setSurfaceScale(final int[] pixelScale) { // HiDPI support
-      SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
-      final int hadPixelScaleX = hasPixelScale[0];
-      final int hadPixelScaleY = hasPixelScale[1];
-      SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
-      if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
-          reshapeImpl(getWidth(), getHeight());
-          final Backend b = backend;
-          if ( isInitialized && null != b ) {
-              updateWrappedSurfaceScale(b.getDrawable());
-              display();
+  public final boolean setSurfaceScale(final float[] pixelScale) { // HiDPI support
+      System.arraycopy(pixelScale, 0, reqPixelScale, 0, 2);
+      final Backend b = backend;
+      if ( isInitialized && null != b && isShowing ) {
+          if( isShowing || ( printActive && isVisible() ) ) {
+              if (EventQueue.isDispatchThread()) {
+                  setSurfaceScaleAction.run();
+              } else {
+                  try {
+                      EventQueue.invokeAndWait(setSurfaceScaleAction);
+                  } catch (final Exception e) {
+                      throw new GLException(e);
+                  }
+              }
           }
+          return true;
+      } else {
+          return false;
+      }
+  }
+  private final Runnable setSurfaceScaleAction = new Runnable() {
+    @Override
+    public void run() {
+        final Backend b = backend;
+        if( null != b && setSurfaceScaleImpl(b) ) {
+            if( !helper.isAnimatorAnimatingOnOtherThread() ) {
+                paintImmediatelyAction.run(); // display
+            }
+        }
+    }
+  };
+
+  private final boolean setSurfaceScaleImpl(final Backend b) {
+      if( SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG ? getClass().getSimpleName() : null) ) {
+          reshapeImpl(getWidth(), getHeight());
+          updateWrappedSurfaceScale(b.getDrawable());
+          return true;
+      }
+      return false;
+  }
+
+  private final boolean updatePixelScale(final Backend b) {
+      if( JAWTUtil.getPixelScale(getGraphicsConfiguration(), minPixelScale, maxPixelScale) ) {
+          return setSurfaceScaleImpl(b);
+      } else {
+          return false;
       }
   }
 
   @Override
-  public final int[] getRequestedSurfaceScale(final int[] result) {
+  public final float[] getRequestedSurfaceScale(final float[] result) {
       System.arraycopy(reqPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getCurrentSurfaceScale(final int[] result) {
+  public final float[] getCurrentSurfaceScale(final float[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public int[] getNativeSurfaceScale(final int[] result) {
-      System.arraycopy(nativePixelScale, 0, result, 0, 2);
+  public float[] getMinimumSurfaceScale(final float[] result) {
+      System.arraycopy(minPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public float[] getMaximumSurfaceScale(final float[] result) {
+      System.arraycopy(maxPixelScale, 0, result, 0, 2);
       return result;
   }
 
@@ -624,12 +666,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     awtWindowClosingProtocol.addClosingListener();
 
     // HiDPI support
-    {
-        final int ps = JAWTUtil.getPixelScale(getGraphicsConfiguration());
-        nativePixelScale[0] = ps;
-        nativePixelScale[1] = ps;
-    }
-    SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
+    JAWTUtil.getPixelScale(getGraphicsConfiguration(), minPixelScale, maxPixelScale);
+    SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG ? getClass().getSimpleName() : null);
 
     if (DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.addNotify()");
@@ -649,8 +687,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     dispose(null);
     hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
     hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-    nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-    nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    minPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    minPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    maxPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    maxPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
     super.removeNotify();
   }
@@ -670,8 +710,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   private void reshapeImpl(final int width, final int height) {
-    final int scaledWidth = width * hasPixelScale[0];
-    final int scaledHeight = height * hasPixelScale[1];
+    final int scaledWidth = SurfaceScaleUtils.scale(width, hasPixelScale[0]);
+    final int scaledHeight = SurfaceScaleUtils.scale(height, hasPixelScale[1]);
     if( !printActive && ( handleReshape || scaledWidth != panelWidth || scaledHeight != panelHeight ) ) {
         reshapeWidth = scaledWidth;
         reshapeHeight = scaledHeight;
@@ -826,8 +866,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
               final int awtWidth = GLJPanel.this.getWidth();
               final int awtHeight= GLJPanel.this.getHeight();
-              final int scaledAWTWidth = awtWidth * hasPixelScale[0];
-              final int scaledAWTHeight= awtHeight * hasPixelScale[1];
+              final int scaledAWTWidth = SurfaceScaleUtils.scale(awtWidth, hasPixelScale[0]);
+              final int scaledAWTHeight= SurfaceScaleUtils.scale(awtHeight, hasPixelScale[1]);
               final GLDrawable drawable = GLJPanel.this.getDelegatedDrawable();
               if( scaledAWTWidth != panelWidth || scaledAWTHeight != panelHeight ||
                   drawable.getSurfaceWidth() != panelWidth || drawable.getSurfaceHeight() != panelHeight ) {
@@ -1342,7 +1382,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  private final String getPixelScaleStr() { return hasPixelScale[0]+"x"+hasPixelScale[1]; }
+  private final String getPixelScaleStr() { return "["+hasPixelScale[0]+", "+hasPixelScale[1]+"]"; }
 
   @Override
   public WindowClosingMode getDefaultCloseOperation() {
@@ -2058,7 +2098,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.doPaintComponent.drawImage: - frameCount "+frameCount);
         }
         // Draw resulting image in one shot
-        g.drawImage(alignedImage, 0, 0, alignedImage.getWidth()/hasPixelScale[0], alignedImage.getHeight()/hasPixelScale[1], null); // Null ImageObserver since image data is ready.
+        g.drawImage(alignedImage, 0, 0,
+                    SurfaceScaleUtils.scaleInv(alignedImage.getWidth(), hasPixelScale[0]),
+                    SurfaceScaleUtils.scaleInv(alignedImage.getHeight(), hasPixelScale[1]), null); // Null ImageObserver since image data is ready.
       }
       frameCount++;
     }

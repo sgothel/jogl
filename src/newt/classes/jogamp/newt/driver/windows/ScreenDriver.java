@@ -106,7 +106,7 @@ public class ScreenDriver extends ScreenImpl {
                 if ( null != currentMode ) { // enabled
                     final int[] monitorProps = getMonitorDevice0(adapterName, crtIdx);
                     // merge monitor-props + supported modes
-                    MonitorModeProps.streamInMonitorDevice(null, cache, this, supportedModes, currentMode, monitorProps, 0);
+                    MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, supportedModes, monitorProps, 0, null);
 
                     // next monitor, 1st mode
                     supportedModes= new ArrayHashSet<MonitorMode>();
@@ -118,7 +118,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final Rectangle viewportPU, final Rectangle viewportWU) {
+    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU) {
         final String adapterName = getAdapterName(monitor.getId());
         if( null != adapterName ) {
             final String activeMonitorName = getActiveMonitorName(adapterName, 0);

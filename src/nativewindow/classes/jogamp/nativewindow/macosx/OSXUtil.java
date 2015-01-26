@@ -31,8 +31,6 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;
@@ -109,64 +107,14 @@ public class OSXUtil implements ToolkitProperties {
       return (Insets) GetInsets0(windowOrView);
     }
 
-    /**
-     * Returns the pixel-scale of the NSScreen, with the highest
-     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of the given rectangle in window units.
-     * <p>
-     * If no coverage is detected the pixel-scale of the first NSScreen is returned.
-     * </p>
-     * @param r arbitrary rectangle in window units
-     * @param screenIndexOut storage returning the native screen index containing the given rectangle
-     */
-    public static double GetPixelScale(final RectangleImmutable r, final int[] screenIndexOut) {
-        if( DEBUG ) {
-            System.err.printf("GetPixelScale covering %s%n", r.toString());
-        }
-        final int screenCount;
-        final RectangleImmutable[] screenBounds;
-        final double[] pixelScales;
-        {
-            final double[] sd = GetScreenData0();
-            if( 0 != sd.length % 5 ) {
-                throw new InternalError("GetScreenData0 didn't return multiple of 5 but "+sd.length);
-            }
-            screenCount = sd.length / 5;
-            screenBounds = new RectangleImmutable[screenCount];
-            pixelScales = new double[screenCount] ;
-            for(int i=0; i<screenCount; i++) {
-                final int j = i*5;
-                pixelScales[i] = sd[j+0];
-                screenBounds[i] = new Rectangle((int)sd[j+1], (int)sd[j+2], (int)sd[j+3], (int)sd[j+4]);
-                if( DEBUG ) {
-                    System.err.printf("GetPixelScale.Screen[%d]: scale %f, bounds[%f / %f  %f x %f]%n",
-                            i, pixelScales[i], sd[j+1], sd[j+2], sd[j+3], sd[j+4]);
-                }
-            }
-        }
-        double pixelScale = pixelScales[0];
-        screenIndexOut[0] = 0;
-        float maxCoverage = Float.MIN_VALUE;
-        for(int i=screenCount-1; i>=0; i--) {
-            final RectangleImmutable sb = screenBounds[i];
-            final float coverage = sb.coverage(r);
-            if( coverage > maxCoverage ) {
-                maxCoverage = coverage;
-                screenIndexOut[0] = i;
-                pixelScale = pixelScales[i];
-            }
-        }
-        if( DEBUG ) {
-            System.err.printf("GetPixelScale Result: screen %d, scale %f%n%n", screenIndexOut[0], pixelScale);
-        }
-        return pixelScale;
-    }
-
-    public static double GetPixelScale(final int screenIndex) {
+    public static double GetPixelScaleByScreenIdx(final int screenIndex) {
       return GetPixelScale0(screenIndex);
     }
-
+    public static double GetPixelScaleByDisplayID(final int displayID) {
+      return GetPixelScale1(displayID);
+    }
     public static double GetPixelScale(final long windowOrView) {
-      return GetPixelScale1(windowOrView);
+      return GetPixelScale2(windowOrView);
     }
 
     public static long CreateNSWindow(final int x, final int y, final int width, final int height) {
@@ -447,9 +395,9 @@ public class OSXUtil implements ToolkitProperties {
     private static native boolean isNSWindow0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native Object GetInsets0(long windowOrView);
-    private static native double[] GetScreenData0();
     private static native double GetPixelScale0(int screenIndex);
-    private static native double GetPixelScale1(long windowOrView);
+    private static native double GetPixelScale1(int displayID);
+    private static native double GetPixelScale2(long windowOrView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
     private static native long GetNSView0(long nsWindow);

@@ -152,7 +152,7 @@ public class ScreenDriver extends ScreenImpl {
                             if( null != monitorProps &&
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps[0] && // Enabled ? I.e. contains active modes ?
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps.length ) {
-                                MonitorModeProps.streamInMonitorDevice(null, cache, this, monitorProps, 0);
+                                MonitorModeProps.streamInMonitorDevice(cache, this, null, monitorProps, 0, null);
                             }
                         }
                     }
@@ -166,7 +166,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final Rectangle viewportPU, final Rectangle viewportWU) {
+    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU) {
         final AbstractGraphicsDevice device = getDisplay().getGraphicsDevice();
         device.lock();
         try {

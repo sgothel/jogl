@@ -30,6 +30,7 @@ package com.jogamp.newt;
 
 import java.util.List;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
@@ -51,6 +52,7 @@ import com.jogamp.common.util.ArrayHashSet;
  *   <ul>
  *     <li>{@link MonitorMode} current mode</li>
  *     <li>{@link RectangleImmutable} viewport (rotated)</li>
+ *     <li>pixel-scale (rotated)</li>
  *   </ul></li>
  * </ul>
  * <p>
@@ -65,16 +67,31 @@ public abstract class MonitorDevice {
     protected final ArrayHashSet<MonitorMode> supportedModes; // FIXME: May need to support mutable mode, i.e. adding modes on the fly!
     protected MonitorMode currentMode;
     protected boolean modeChanged;
-    protected Rectangle viewportPU; // in pixel units
-    protected Rectangle viewportWU; // in window units
+    protected final float[] pixelScale;
+    protected final Rectangle viewportPU; // in pixel units
+    protected final Rectangle viewportWU; // in window units
 
-    protected MonitorDevice(final Screen screen, final int nativeId, final DimensionImmutable sizeMM, final Rectangle viewportPU, final Rectangle viewportWU, final MonitorMode currentMode, final ArrayHashSet<MonitorMode> supportedModes) {
+    /**
+     * @param screen associated {@link Screen}
+     * @param nativeId unique monitor device ID
+     * @param sizeMM size in millimeters
+     * @param currentMode
+     * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
+     * @param viewportPU viewport in pixel-units
+     * @param viewportWU viewport in window-units
+     * @param supportedModes all supported {@link MonitorMode}s
+     */
+    protected MonitorDevice(final Screen screen, final int nativeId, final DimensionImmutable sizeMM,
+                            final MonitorMode currentMode,
+                            final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU,
+                            final ArrayHashSet<MonitorMode> supportedModes) {
         this.screen = screen;
         this.nativeId = nativeId;
         this.sizeMM = sizeMM;
         this.originalMode = currentMode;
         this.supportedModes = supportedModes;
         this.currentMode = currentMode;
+        this.pixelScale = null != pixelScale ? pixelScale : new float[] { 1.0f, 1.0f };
         this.viewportPU = viewportPU;
         this.viewportWU = viewportWU;
         this.modeChanged = false;
@@ -180,23 +197,37 @@ public abstract class MonitorDevice {
     }
 
     /**
-     * Returns the {@link RectangleImmutable rectangular} portion
+     * Returns the current {@link RectangleImmutable rectangular} portion
      * of the <b>rotated</b> virtual {@link Screen} size in pixel units
      * represented by this monitor, i.e. top-left origin and size.
-     * @see Screen
+     * @see #getPixelScale()
+     * @see Screen#getViewport()
      */
     public final RectangleImmutable getViewport() {
         return viewportPU;
     }
 
     /**
-     * Returns the {@link RectangleImmutable rectangular} portion
+     * Returns the current {@link RectangleImmutable rectangular} portion
      * of the <b>rotated</b> virtual {@link Screen} size in window units
      * represented by this monitor, i.e. top-left origin and size.
-     * @see Screen
+     * @see #getPixelScale()
+     * @see Screen#getViewportInWindowUnits()
      */
     public final RectangleImmutable getViewportInWindowUnits() {
         return viewportWU;
+    }
+
+    /**
+     * Returns the current <b>rotated</b> pixel-scale
+     * of this monitor, i.e. horizontal and vertical.
+     * @see #getViewportInWindowUnits()
+     * @see #getViewport()
+     * @see ScalableSurface#getMaximumSurfaceScale(float[])
+     */
+    public float[] getPixelScale(final float[] result) {
+        System.arraycopy(pixelScale, 0, result, 0, 2);
+        return result;
     }
 
     /**
@@ -292,7 +323,8 @@ public abstract class MonitorDevice {
 
     @Override
     public String toString() {
-        return "Monitor[Id "+Display.toHexString(nativeId)+", "+sizeMM+" mm, viewport "+viewportPU+ " [pixels], "+viewportWU+" [window], orig "+originalMode+", curr "+currentMode+
+        return "Monitor[Id "+Display.toHexString(nativeId)+", "+sizeMM+" mm, pixelScale ["+pixelScale[0]+", "+pixelScale[1]+
+               "], viewport "+viewportPU+ " [pixels], "+viewportWU+" [window], orig "+originalMode+", curr "+currentMode+
                ", modeChanged "+modeChanged+", modeCount "+supportedModes.size()+"]";
     }
 }

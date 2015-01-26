@@ -42,7 +42,7 @@ import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
  * @see ProxySurface
  */
 public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface {
-  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
   private long surfaceHandle;
 
   /**
@@ -104,27 +104,23 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[]) given pixelScale} directly.
+   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(float[]) given pixelScale} directly.
    * </p>
    */
   @Override
   public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
-      pixelUnitsAndResult[0] /= hasPixelScale[0];
-      pixelUnitsAndResult[1] /= hasPixelScale[1];
-      return pixelUnitsAndResult;
+      return SurfaceScaleUtils.scaleInv(pixelUnitsAndResult, pixelUnitsAndResult, hasPixelScale);
   }
 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[]) given pixelScale} directly.
+   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(float[]) given pixelScale} directly.
    * </p>
    */
   @Override
   public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
-      windowUnitsAndResult[0] *= hasPixelScale[0];
-      windowUnitsAndResult[1] *= hasPixelScale[1];
-      return windowUnitsAndResult;
+      return SurfaceScaleUtils.scale(windowUnitsAndResult, windowUnitsAndResult, hasPixelScale);
   }
 
   /**
@@ -147,25 +143,32 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
    * </p>
    */
   @Override
-  public final void setSurfaceScale(final int[] pixelScale) {
-      hasPixelScale[0] = pixelScale[0];
-      hasPixelScale[1] = pixelScale[1];
+  public final boolean setSurfaceScale(final float[] pixelScale) {
+      final boolean changed = hasPixelScale[0] != pixelScale[0] || hasPixelScale[1] != pixelScale[1];
+      System.arraycopy(pixelScale, 0, hasPixelScale, 0, 2);
+      return changed;
   }
 
   @Override
-  public final int[] getRequestedSurfaceScale(final int[] result) {
+  public final float[] getRequestedSurfaceScale(final float[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getCurrentSurfaceScale(final int[] result) {
+  public final float[] getCurrentSurfaceScale(final float[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getNativeSurfaceScale(final int[] result) {
+  public float[] getMinimumSurfaceScale(final float[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public final float[] getMaximumSurfaceScale(final float[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }

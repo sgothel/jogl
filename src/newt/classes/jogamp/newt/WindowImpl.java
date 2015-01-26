@@ -154,9 +154,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile boolean hasFocus = false;
     private volatile int pixWidth = 128, pixHeight = 128; // client-area size w/o insets in pixel units, default: may be overwritten by user
     private volatile int winWidth = 128, winHeight = 128; // client-area size w/o insets in window units, default: may be overwritten by user
-    protected final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-    protected final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-    protected final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    protected final float[] minPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final float[] maxPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final float[] reqPixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     private volatile int x = 64, y = 64; // client-area pos w/o insets in window units
     private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
@@ -1087,8 +1088,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     @Override
     public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
-        // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
-        setSize(pixelWidth / getPixelScaleX(), pixelHeight / getPixelScaleY());
+        setSize( SurfaceScaleUtils.scaleInv(pixelWidth, getPixelScaleX()),
+                 SurfaceScaleUtils.scaleInv(pixelHeight, getPixelScaleY()) );
     }
     @Override
     public final void setTopLevelSize(final int width, final int height) {
@@ -1181,8 +1182,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 parentWindowHandle = 0;
                 hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
                 hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-                nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-                nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+                minPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+                minPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+                maxPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+                maxPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
                 _lock.unlock();
             }
@@ -1926,16 +1929,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
-        pixelUnitsAndResult[0] /= getPixelScaleX();
-        pixelUnitsAndResult[1] /= getPixelScaleY();
-        return pixelUnitsAndResult;
+        return SurfaceScaleUtils.scaleInv(pixelUnitsAndResult, pixelUnitsAndResult, hasPixelScale);
     }
 
     @Override
     public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
-        windowUnitsAndResult[0] *= getPixelScaleX();
-        windowUnitsAndResult[1] *= getPixelScaleY();
-        return windowUnitsAndResult;
+        return SurfaceScaleUtils.scale(windowUnitsAndResult, windowUnitsAndResult, hasPixelScale);
     }
 
     protected final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
@@ -1947,43 +1946,50 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
-    protected final int getPixelScaleX() {
+    protected final float getPixelScaleX() {
         return hasPixelScale[0];
     }
 
     /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
-    protected final int getPixelScaleY() {
+    protected final float getPixelScaleY() {
         return hasPixelScale[1];
     }
 
     @Override
-    public void setSurfaceScale(final int[] pixelScale) {
-        SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getSimpleName() : null);
+    public boolean setSurfaceScale(final float[] pixelScale) {
+        System.arraycopy(pixelScale, 0, reqPixelScale, 0, 2);
+        return false;
     }
 
     @Override
-    public final int[] getRequestedSurfaceScale(final int[] result) {
+    public final float[] getRequestedSurfaceScale(final float[] result) {
         System.arraycopy(reqPixelScale, 0, result, 0, 2);
         return result;
     }
 
     @Override
-    public final int[] getCurrentSurfaceScale(final int[] result) {
+    public final float[] getCurrentSurfaceScale(final float[] result) {
         System.arraycopy(hasPixelScale, 0, result, 0, 2);
         return result;
     }
 
     @Override
-    public final int[] getNativeSurfaceScale(final int[] result) {
-        System.arraycopy(nativePixelScale, 0, result, 0, 2);
+    public final float[] getMinimumSurfaceScale(final float[] result) {
+        System.arraycopy(minPixelScale, 0, result, 0, 2);
+        return result;
+    }
+
+    @Override
+    public final float[] getMaximumSurfaceScale(final float[] result) {
+        System.arraycopy(maxPixelScale, 0, result, 0, 2);
         return result;
     }
 
     @Override
     public final float[] getPixelsPerMM(final float[] ppmmStore) {
         getMainMonitor().getPixelsPerMM(ppmmStore);
-        ppmmStore[0] *= (float)hasPixelScale[0] / (float)nativePixelScale[0];
-        ppmmStore[1] *= (float)hasPixelScale[1] / (float)nativePixelScale[1];
+        ppmmStore[0] *= hasPixelScale[0] / maxPixelScale[0];
+        ppmmStore[1] *= hasPixelScale[1] / maxPixelScale[1];
         return ppmmStore;
     }
 
@@ -2004,8 +2010,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * and {@link #pixWidth} and {@link #pixHeight} in pixel units according to {@link #convertToPixelUnits(int[])}.
      */
     protected final void defineSize(final int winWidth, final int winHeight) {
-        final int pixWidth = winWidth * getPixelScaleX();   // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
-        final int pixHeight = winHeight * getPixelScaleY();
+        final int pixWidth = SurfaceScaleUtils.scale(winWidth, getPixelScaleX());   // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        final int pixHeight = SurfaceScaleUtils.scale(winHeight, getPixelScaleY());
+
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("defineSize: win["+this.winWidth+"x"+this.winHeight+" -> "+winWidth+"x"+winHeight+
                                "], pixel["+this.pixWidth+"x"+this.pixHeight+" -> "+pixWidth+"x"+pixHeight+"]");
@@ -2631,13 +2638,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // special repaint treatment
             case WindowEvent.EVENT_WINDOW_REPAINT:
                 // queue repaint event in case window is locked, ie in operation
-                if( null != windowLock.getOwner() ) {
+                if( windowLock.isLockedByOtherThread() ) {
                     // make sure only one repaint event is queued
                     if(!repaintQueued) {
                         repaintQueued=true;
                         final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                         if(DEBUG_IMPLEMENTATION) {
-                            System.err.println("Window.consumeEvent: REPAINT "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
+                            System.err.println("Window.consumeEvent: REPAINT [me "+Thread.currentThread().getName()+", owner "+windowLock.getOwner()+"] - queued "+e+", discard-to "+discardTO);
                             // ExceptionUtils.dumpStackTrace(System.err);
                         }
                         return discardTO; // discardTO:=true -> consumed
@@ -2650,10 +2657,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // common treatment
             case WindowEvent.EVENT_WINDOW_RESIZED:
                 // queue event in case window is locked, ie in operation
-                if( null != windowLock.getOwner() ) {
+                if( windowLock.isLockedByOtherThread() ) {
                     final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window.consumeEvent: RESIZED "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
+                        System.err.println("Window.consumeEvent: RESIZED [me "+Thread.currentThread().getName()+", owner "+windowLock.getOwner()+"] - queued "+e+", discard-to "+discardTO);
                         // ExceptionUtils.dumpStackTrace(System.err);
                     }
                     return discardTO; // discardTO:=true -> consumed
@@ -3753,6 +3760,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             return remaining;
         } else {
             return 0;
+        }
+    }
+
+    /**
+     * Notify to update the pixel-scale values.
+     * @param minPixelScale
+     * @param maxPixelScale
+     * @param reset if {@code true} {@link #setSurfaceScale(float[]) reset pixel-scale} w/ {@link #getRequestedSurfaceScale(float[]) requested values}
+     *        value to reflect the new minimum and maximum values.
+     */
+    public final void pixelScaleChangeNotify(final float[] minPixelScale, final float[] maxPixelScale, final boolean reset) {
+        System.arraycopy(minPixelScale, 0, this.minPixelScale, 0, 2);
+        System.arraycopy(maxPixelScale, 0, this.maxPixelScale, 0, 2);
+        if( reset ) {
+            setSurfaceScale(reqPixelScale);
         }
     }
 

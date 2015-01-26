@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.media.nativewindow.util.Dimension;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -672,7 +671,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             dpiH = surfacePixelsPerMM[1]*25.4f;
             System.err.println("Monitor detected: "+mm);
             System.err.println("Monitor dpi: "+monitorDpiH);
-            System.err.println("Surface scale: native "+new Dimension(upWin.getNativeSurfaceScale(new int[2]))+", current "+new Dimension(upWin.getCurrentSurfaceScale(new int[2])));
+            System.err.println("Surface scale: native "+Arrays.toString(upWin.getMaximumSurfaceScale(new float[2]))+", current "+Arrays.toString(upWin.getCurrentSurfaceScale(new float[2])));
             System.err.println("Surface dpi: "+dpiH);
         } else {
             System.err.println("Using default DPI of "+dpiH);

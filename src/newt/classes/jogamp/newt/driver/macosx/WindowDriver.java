@@ -67,20 +67,26 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     public WindowDriver() {
     }
 
-    private boolean updatePixelScale(final boolean sendEvent, final boolean defer, final float newPixelScaleRaw, final float nativePixelScaleRaw) {
-        final int[] newPixelScale = new int[2];
+    private boolean updatePixelScale(final boolean sendEvent, final boolean defer, final boolean deferOffThread,
+                                     final float newPixelScaleRaw, final float maxPixelScaleRaw) {
+        final float[] newPixelScale = new float[2];
         {
-            final int _newPixelScale = FloatUtil.isZero(newPixelScaleRaw, FloatUtil.EPSILON) ? ScalableSurface.IDENTITY_PIXELSCALE : (int) newPixelScaleRaw;
+            final float _newPixelScale = FloatUtil.isZero(newPixelScaleRaw, FloatUtil.EPSILON) ? ScalableSurface.IDENTITY_PIXELSCALE : newPixelScaleRaw;
             newPixelScale[0]= _newPixelScale;
             newPixelScale[1]= _newPixelScale;
-            final int _nativePixelScale = FloatUtil.isZero(nativePixelScaleRaw, FloatUtil.EPSILON) ? ScalableSurface.IDENTITY_PIXELSCALE : (int) nativePixelScaleRaw;
-            nativePixelScale[0]= _nativePixelScale;
-            nativePixelScale[1]= _nativePixelScale;
+            final float _maxPixelScale = FloatUtil.isZero(maxPixelScaleRaw, FloatUtil.EPSILON) ? ScalableSurface.IDENTITY_PIXELSCALE : maxPixelScaleRaw;
+            maxPixelScale[0]= _maxPixelScale;
+            maxPixelScale[1]= _maxPixelScale;
         }
+        // We keep minPixelScale at [1f, 1f]!
 
-        if( SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, newPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
+        if( SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, newPixelScale, minPixelScale, maxPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
             if( sendEvent ) {
-                super.sizeChanged(defer, getWidth(), getHeight(), true);
+                if( deferOffThread ) {
+                    superSizeChangedOffThread(defer, getWidth(), getHeight(), true);
+                } else {
+                    super.sizeChanged(defer, getWidth(), getHeight(), true);
+                }
             } else {
                 defineSize(getWidth(), getHeight());
             }
@@ -91,34 +97,34 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     private boolean updatePixelScaleByScreenIdx(final boolean sendEvent) {
-        final float nativePixelScaleRaw = (float) OSXUtil.GetPixelScale(getScreen().getIndex());
+        final float maxPixelScaleRaw = (float) OSXUtil.GetPixelScaleByScreenIdx(getScreen().getIndex());
         if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.updatePixelScale.1: "+hasPixelScale[0]+", "+nativePixelScaleRaw+" (native)");
+            System.err.println("WindowDriver.updatePixelScale.1: "+hasPixelScale[0]+", "+maxPixelScaleRaw+" (max)");
         }
-        return updatePixelScale(sendEvent, true /* defer */, nativePixelScaleRaw, nativePixelScaleRaw);
+        return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, maxPixelScaleRaw, maxPixelScaleRaw);
     }
 
     private boolean updatePixelScaleByWindowHandle(final boolean sendEvent) {
         final long handle = getWindowHandle();
         if( 0 != handle ) {
-            final float nativePixelScaleRaw = (float)OSXUtil.GetPixelScale(handle);
+            final float maxPixelScaleRaw = (float)OSXUtil.GetPixelScale(handle);
             if( DEBUG_IMPLEMENTATION ) {
-                System.err.println("WindowDriver.updatePixelScale.2: "+hasPixelScale[0]+", "+nativePixelScaleRaw+" (native)");
+                System.err.println("WindowDriver.updatePixelScale.2: "+hasPixelScale[0]+", "+maxPixelScaleRaw+" (max)");
             }
-            return updatePixelScale(sendEvent, true /* defer */, nativePixelScaleRaw, nativePixelScaleRaw);
+            return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, maxPixelScaleRaw, maxPixelScaleRaw);
         } else {
             return false;
         }
     }
 
     /** Called from native code */
-    protected void updatePixelScale(final boolean defer, final float newPixelScaleRaw, final float nativePixelScaleRaw) {
+    protected void updatePixelScale(final boolean defer, final float newPixelScaleRaw, final float maxPixelScaleRaw) {
         final long handle = getWindowHandle();
         if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.updatePixelScale.3: "+hasPixelScale[0]+" (has) -> "+newPixelScaleRaw+" (raw), "+nativePixelScaleRaw+" (native), drop "+(0==handle));
+            System.err.println("WindowDriver.updatePixelScale.3: "+hasPixelScale[0]+" (has) -> "+newPixelScaleRaw+" (new), "+maxPixelScaleRaw+" (max), drop "+(0==handle));
         }
         if( 0 != handle ) {
-            updatePixelScale(true /* sendEvent*/, defer, newPixelScaleRaw, nativePixelScaleRaw);
+            updatePixelScale(true /* sendEvent*/, defer, true /*offthread */, newPixelScaleRaw, maxPixelScaleRaw);
         }
     }
 
@@ -139,44 +145,47 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    public final void setSurfaceScale(final int[] pixelScale) {
-        SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null);
+    public final boolean setSurfaceScale(final float[] pixelScale) {
+        super.setSurfaceScale(pixelScale);
 
-        final int[] resPixelScale;
+        boolean changed = false;
         if( isNativeValid() ) {
             if( isOffscreenInstance ) {
                 final NativeWindow pWin = getParent();
                 if( pWin instanceof ScalableSurface ) {
                     final ScalableSurface sSurf = (ScalableSurface)pWin;
                     sSurf.setSurfaceScale(reqPixelScale);
-                    final int[] pPixelScale = sSurf.getCurrentSurfaceScale(new int[2]);
-                    sSurf.getNativeSurfaceScale(nativePixelScale);
-                    updatePixelScale(true /* sendEvent */, true /* defer */, pPixelScale[0], nativePixelScale[0]); // HiDPI: uniformPixelScale
+                    sSurf.getMaximumSurfaceScale(maxPixelScale);
+                    sSurf.getMinimumSurfaceScale(minPixelScale);
+                    final float[] pPixelScale = sSurf.getCurrentSurfaceScale(new float[2]);
+                    changed = updatePixelScale(true /* sendEvent */, true /* defer */, true /*offthread */, pPixelScale[0], maxPixelScale[0]); // HiDPI: uniformPixelScale
                 } else {
                     // just notify updated pixelScale if offscreen
-                    SurfaceScaleUtils.replaceAutoMaxWithPlatformMax(reqPixelScale);
-                    updatePixelScale(true /* sendEvent */, true /* defer */, reqPixelScale[0], nativePixelScale[0]); // HiDPI: uniformPixelScale
+                    changed = updatePixelScale(true /* sendEvent */, true /* defer */, true /*offthread */, reqPixelScale[0], maxPixelScale[0]); // HiDPI: uniformPixelScale
                 }
             } else {
-                // set pixelScale in native code, will issue an update PixelScale
-                OSXUtil.RunOnMainThread(true, false, new Runnable() {
-                    @Override
-                    public void run() {
-                        setPixelScale0(getWindowHandle(), surfaceHandle, reqPixelScale[0]); // HiDPI: uniformPixelScale
-                    }
-                } );
+                // set pixelScale in native code, will issue an update updatePixelScale(..)
+                // hence we pre-query whether pixel-scale will change, without affecting current state 'hasPixelScale'!
+                final float[] _hasPixelScale = new float[2];
+                System.arraycopy(hasPixelScale, 0, _hasPixelScale, 0, 2);
+                if( SurfaceScaleUtils.setNewPixelScale(_hasPixelScale, _hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
+                    OSXUtil.RunOnMainThread(true, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            setPixelScale0(getWindowHandle(), surfaceHandle, _hasPixelScale[0]); // HiDPI: uniformPixelScale
+                        }
+                    } );
+                    changed = true;
+                }
             }
-            resPixelScale = hasPixelScale;
-        } else {
-            hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-            hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-            resPixelScale = reqPixelScale;
         }
         if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.setPixelScale: "+pixelScale[0]+"x"+pixelScale[1]+" (req) -> "+
-                                reqPixelScale[0]+"x"+reqPixelScale[1]+" (validated) -> "+
-                                resPixelScale[0]+"x"+resPixelScale[1]+" (result) - realized "+isNativeValid());
+            System.err.println("WindowDriver.setPixelScale: min["+minPixelScale[0]+", "+minPixelScale[1]+"], max["+
+                                maxPixelScale[0]+", "+maxPixelScale[1]+"], req["+
+                                reqPixelScale[0]+", "+reqPixelScale[1]+"] -> result["+
+                                hasPixelScale[0]+", "+hasPixelScale[1]+"] - changed "+changed+", realized "+isNativeValid());
         }
+        return changed;
     }
 
     @Override
@@ -360,13 +369,23 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     System.err.println("MacWindow: sizeChanged() parent["+useParent+" "+x+"/"+y+"] "+getX()+"/"+getY()+" "+newWidth+"x"+newHeight+" ->  "+p0S+" screen-client-pos");
                 }
                 OSXUtil.RunOnMainThread(false, false, new Runnable() {
-                        @Override
-                        public void run() {
-                            setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
-                        } } );
+                    @Override
+                    public void run() {
+                        setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
+                    } } );
             }
         }
-        super.sizeChanged(defer, newWidth, newHeight, force);
+        superSizeChangedOffThread(defer, newWidth, newHeight, force);
+    }
+    private void superSizeChangedOffThread(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
+        if( defer ) {
+            new Thread() {
+                public void run() {
+                    WindowDriver.super.sizeChanged(false /* defer */, newWidth, newHeight, force);
+                } }.start();
+        } else {
+            WindowDriver.super.sizeChanged(false /* defer */, newWidth, newHeight, force);
+        }
     }
 
     @Override
@@ -556,14 +575,18 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     @Override
     protected void warpPointerImpl(final int x, final int y) {
         if( !isOffscreenInstance ) {
-            warpPointer0(getWindowHandle(), x / getPixelScaleX(), y / getPixelScaleY());
+            warpPointer0(getWindowHandle(),
+                         SurfaceScaleUtils.scaleInv(x, getPixelScaleX()),
+                         SurfaceScaleUtils.scaleInv(y, getPixelScaleY()));
         } // else may need offscreen solution ? FIXME
     }
 
     @Override
     protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
                                       final int x, final int y, final short button, final float[] rotationXYZ, final float rotationScale) {
-        super.doMouseEvent(enqueue, wait, eventType, modifiers, x * getPixelScaleX(), y * getPixelScaleY(), button, rotationXYZ, rotationScale);
+        super.doMouseEvent(enqueue, wait, eventType, modifiers,
+                           SurfaceScaleUtils.scale(x, getPixelScaleX()),
+                           SurfaceScaleUtils.scale(y, getPixelScaleY()), button, rotationXYZ, rotationScale);
     }
 
     @Override

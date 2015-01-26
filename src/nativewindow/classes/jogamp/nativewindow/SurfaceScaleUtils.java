@@ -27,7 +27,6 @@
  */
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ScalableSurface;
 
 /**
@@ -35,138 +34,162 @@ import javax.media.nativewindow.ScalableSurface;
  */
 public class SurfaceScaleUtils {
 
-    private static final int[] PlatformMaxPixelScale;
-    private static final boolean PlatformUniformPixelScale;
-    private static final boolean PlatformPixelScaleSupported;
+    private static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
 
-    static {
-      if( NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(true) ) {
-          PlatformMaxPixelScale = new int[] { jogamp.nativewindow.macosx.OSXUtil.MAX_PIXELSCALE, jogamp.nativewindow.macosx.OSXUtil.MAX_PIXELSCALE };
-          PlatformUniformPixelScale = true;
-          PlatformPixelScaleSupported = true;
-      } else {
-          PlatformMaxPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-          PlatformUniformPixelScale = false;
-          PlatformPixelScaleSupported = false;
-      }
+    private static boolean isZero(final float a) {
+        return Math.abs(a) < EPSILON;
     }
 
     /**
-     * Compute a new valid pixelScale to be used by {@link NativeSurface} implementations,
-     * based on the given request and surface's pixelScale
+     * Returns integer rounded product, i.e. {@code (int) ( a * pixelScale + 0.5f )}
      *
-     * @param result int[2] storage for result, maybe same as <code>prePixelScale</code> for in-place
-     * @param prePixelScale previous pixelScale
-     * @param reqPixelScale requested pixelScale, validated via {@link #validateReqPixelScale(int[], int, String)}.
-     * @param newPixelScaleRaw new raw surface pixelScale
-     * @param DEBUG_PREFIX if set, dumps debug info on stderr using this prefix
-     * @return true if pixelScale has changed, otherwise false
+     * @param a the int value
+     * @param pixelScale the float scale factor
+     * @return the integer rounded product
      */
-    public static boolean computePixelScale(final int[] result, final int[] prePixelScale, final int[] reqPixelScale, final int[] newPixelScaleRaw, final String DEBUG_PREFIX) {
-        final int newPixelScaleSafeX = 0 < newPixelScaleRaw[0] ? newPixelScaleRaw[0] : ScalableSurface.IDENTITY_PIXELSCALE;
-        final int newPixelScaleSafeY = 0 < newPixelScaleRaw[1] ? newPixelScaleRaw[1] : ScalableSurface.IDENTITY_PIXELSCALE;
-        final boolean useHiDPI = ScalableSurface.IDENTITY_PIXELSCALE != reqPixelScale[0] || ScalableSurface.IDENTITY_PIXELSCALE != reqPixelScale[1];
-        final int prePixelScaleX = prePixelScale[0];
-        final int prePixelScaleY = prePixelScale[1];
-
-        if( useHiDPI ) {
-            result[0] = newPixelScaleSafeX;
-            result[1] = newPixelScaleSafeY;
-        } else {
-            result[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-            result[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-        }
-
-        final boolean changed = result[0] != prePixelScaleX || result[1] != prePixelScaleY;
-        if( null != DEBUG_PREFIX ) {
-            System.err.println(DEBUG_PREFIX+".computePixelScale: useHiDPI "+useHiDPI+", ["+prePixelScaleX+"x"+prePixelScaleY+" (pre), "+
-                    reqPixelScale[0]+"x"+reqPixelScale[1]+" (req)] -> "+
-                    newPixelScaleRaw[0]+"x"+newPixelScaleRaw[1]+" (raw) -> "+
-                    newPixelScaleSafeX+"x"+newPixelScaleSafeY+" (safe) -> "+
-                    result[0]+"x"+result[1]+" (use), changed "+changed);
-        }
-        return changed;
+    public static int scale(final int a, final float pixelScale) {
+        return (int) ( a * pixelScale + 0.5f );
     }
 
     /**
-     * Validate the given requested pixelScale value pair, i.e. clip it to the
-     * limits of {@link ScalableSurface#AUTOMAX_PIXELSCALE} and {@link #getPlatformMaxPixelScale(int[])}
-     * <p>
-     * To be used by {@link ScalableSurface#setSurfaceScale(int[])} implementations.
-     * </p>
+     * Returns integer rounded product, i.e. {@code (int) ( a / pixelScale + 0.5f )}
      *
-     * @param result int[2] storage for result
-     * @param reqPixelScale requested pixelScale
-     * @param DEBUG_PREFIX if set, dumps debug info on stderr using this prefix
+     * @param a the int value
+     * @param pixelScale the float scale factor
+     * @return the integer rounded product
      */
-    public static void validateReqPixelScale(final int[] result, final int[] reqPixelScale, final String DEBUG_PREFIX) {
-        final int minPS = Math.min(reqPixelScale[0], reqPixelScale[1]);
-        if( ScalableSurface.AUTOMAX_PIXELSCALE >= minPS ) {
-            result[0] = ScalableSurface.AUTOMAX_PIXELSCALE;
-            result[1] = ScalableSurface.AUTOMAX_PIXELSCALE;
-        } else if( PlatformUniformPixelScale ) {
-            final int maxPS = Math.max(reqPixelScale[0], reqPixelScale[1]);
-            if( maxPS >= PlatformMaxPixelScale[0] ) {
-                result[0] = PlatformMaxPixelScale[0];
-                result[1] = PlatformMaxPixelScale[1];
-            } else {
-                result[0] = maxPS;
-                result[1] = maxPS;
-            }
-        } else {
-            if( reqPixelScale[0] >= PlatformMaxPixelScale[0] ) {
-                result[0] = PlatformMaxPixelScale[0];
-            } else {
-                result[0] = reqPixelScale[0];
-            }
-            if( reqPixelScale[1] >= PlatformMaxPixelScale[1] ) {
-                result[1] = PlatformMaxPixelScale[1];
-            } else {
-                result[1] = reqPixelScale[1];
-            }
-        }
-        if( null != DEBUG_PREFIX ) {
-            System.err.println(DEBUG_PREFIX+".validateReqPixelScale: ["+reqPixelScale[0]+"x"+reqPixelScale[1]+" (req), "+
-                    PlatformMaxPixelScale[0]+"x"+PlatformMaxPixelScale[1]+" (max)] -> "+
-                    result[0]+"x"+result[1]+" (valid)");
-        }
+    public static int scaleInv(final int a, final float pixelScale) {
+        return (int) ( a / pixelScale + 0.5f );
     }
 
     /**
-     * Replaces {@link ScalableSurface#AUTOMAX_PIXELSCALE} with {@link #getPlatformMaxPixelScale(int[])},
-     * for each component.
+     * Returns integer rounded product, i.e. {@code (int) ( a * pixelScale + 0.5f )}
      *
-     * @param pixelScale int[2] value array to be tested and replaced
+     * @param result the int[2] result, may be {@code a} for in-place operation
+     * @param a the int[2] values
+     * @param pixelScale the float[2] scale factors
+     * @return the result for chaining
      */
-    public static void replaceAutoMaxWithPlatformMax(final int[] pixelScale) {
-        if( ScalableSurface.AUTOMAX_PIXELSCALE == pixelScale[0] ) {
-            pixelScale[0] = PlatformMaxPixelScale[0];
-        }
-        if( ScalableSurface.AUTOMAX_PIXELSCALE == pixelScale[1] ) {
-            pixelScale[1] = PlatformMaxPixelScale[1];
-        }
+    public static int[] scale(final int[] result, final int[] a, final float[] pixelScale) {
+        result[0] = (int) ( a[0] * pixelScale[0] + 0.5f );
+        result[1] = (int) ( a[1] * pixelScale[1] + 0.5f );
+        return result;
     }
-
     /**
-     * Returns the maximum platform pixelScale
+     * Returns integer rounded product, i.e. {@code (int) ( a / pixelScale + 0.5f )}
+     *
+     * @param result the int[2] result, may be {@code a} for in-place operation
+     * @param a the int[2] values
+     * @param pixelScale the float[2] scale factors
+     * @return the result for chaining
      */
-    public static int[] getPlatformMaxPixelScale(final int[] result) {
-        System.arraycopy(PlatformMaxPixelScale, 0, result, 0, 2);
+    public static int[] scaleInv(final int[] result, final int[] a, final float[] pixelScale) {
+        result[0] = (int) ( a[0] / pixelScale[0] + 0.5f );
+        result[1] = (int) ( a[1] / pixelScale[1] + 0.5f );
         return result;
     }
 
     /**
-     * Returns true if platform pixelScale is uniform, i.e. same scale factor for x- and y-direction, otherwise false.
+     * Method constrains the given pixel-scale within ]0..{@code maxPixelScale}], as described below.
+     * <p>
+     * Method returns {@link ScalableSurface#IDENTITY_PIXELSCALE IDENTITY_PIXELSCALE} if:
+     * <ul>
+     *   <li>{@code pixelScale} ~= {@link ScalableSurface#IDENTITY_PIXELSCALE IDENTITY_PIXELSCALE}</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Method returns {@code maxPixelScale} if
+     * <ul>
+     *   <li>{@code pixelScale} ~= {@link ScalableSurface#AUTOMAX_PIXELSCALE AUTOMAX_PIXELSCALE}</li>
+     *   <li>{@code pixelScale} &gt; {@code maxPixelScale}</li>
+     *   <li>{@code pixelScale} ~= {@code maxPixelScale}</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Method returns {@code minPixelScale} if
+     * <ul>
+     *   <li>{@code pixelScale} &lt; {@code minPixelScale}</li>
+     *   <li>{@code pixelScale} ~= {@code minPixelScale}</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Otherwise method returns the given {@code pixelScale}.
+     * </p>
+     * <p>
+     * <i>~=</i> denominates a delta &le; {@link FloatUtil#EPSILON}.
+     * </p>
+     * @param pixelScale pixel-scale to be constrained
+     * @param minPixelScale minimum pixel-scale
+     * @param maxPixelScale maximum pixel-scale
+     * @return the constrained pixel-scale
      */
-    public static boolean isPlatformPixelScaleUniform() {
-        return PlatformUniformPixelScale;
+    public static float clampPixelScale(final float pixelScale, final float minPixelScale, final float maxPixelScale) {
+        if( isZero(pixelScale-ScalableSurface.IDENTITY_PIXELSCALE) ) {
+            return ScalableSurface.IDENTITY_PIXELSCALE;
+        } else if( isZero(pixelScale-ScalableSurface.AUTOMAX_PIXELSCALE) ||
+                   pixelScale > maxPixelScale ||
+                   isZero(pixelScale-maxPixelScale)
+                 )
+        {
+            return maxPixelScale;
+        } else if( pixelScale < minPixelScale || isZero(pixelScale-minPixelScale) )
+        {
+            return minPixelScale;
+        } else {
+            return pixelScale;
+        }
     }
 
     /**
-     * Returns whether the platform supports pixelScale
+     * Method {@link #clampPixelScale(float, float, float) constrains} the given float[2] pixel-scale
+     * within ]0..{@code maxPixelScale}], as described in {@link #clampPixelScale(float, float, float)}.
+     *
+     * @param result float[2] storage for result, maybe same as <code>s</code> for in-place
+     * @param pixelScale float[2] pixelScale to be constrained
+     * @param minPixelScale float[2] minimum pixel-scale
+     * @param maxPixelScale float[2] maximum pixel-scale
+     * @return the constrained result for chaining
      */
-    public static boolean isPlatformPixelScaleSupported() {
-        return PlatformPixelScaleSupported;
+    public static float[] clampPixelScale(final float[] result, final float[] pixelScale,
+                                          final float[] minPixelScale, final float[] maxPixelScale) {
+        result[0] = clampPixelScale(pixelScale[0], minPixelScale[0], maxPixelScale[0]);
+        result[1] = clampPixelScale(pixelScale[1], minPixelScale[1], maxPixelScale[1]);
+        return result;
     }
 
+    /**
+     * Method writes the given float[2] requested pixel-scale {@code reqPixelScale}
+     * into {@code result} within its constraints ]0..{@code maxPixelScale}], as described in {@link #clampPixelScale(float, float, float)}.
+     * <p>
+     * Method only differs from {@link #clampPixelScale(float[], float[], float[], float[])}
+     * by returning the whether the value has changed, i.e. different from the given {@code prePixelScale}.
+     * </p>
+     *
+     * @param result int[2] storage for result, maybe same as <code>prePixelScale</code> for in-place
+     * @param prePixelScale float[2] previous pixel-scale
+     * @param reqPixelScale float[2] requested pixel-scale, validated via {@link #validateReqPixelScale(float[], float[], String)}.
+     * @param minPixelScale float[2] minimum pixel-scale
+     * @param maxPixelScale float[2] maximum pixel-scale
+     * @param DEBUG_PREFIX if set, dumps debug info on stderr using this prefix
+     * @param newPixelScaleRaw new raw surface pixel-scale
+     * @return {@code true} if pixel-scale has changed, otherwise {@code false}.
+     */
+    public static boolean setNewPixelScale(final float[] result,
+                                           final float[] prePixelScale, final float[] reqPixelScale,
+                                           final float[] minPixelScale, final float[] maxPixelScale,
+                                           final String DEBUG_PREFIX) {
+        final float resultX = clampPixelScale(reqPixelScale[0], minPixelScale[0], maxPixelScale[0]);
+        final float resultY = clampPixelScale(reqPixelScale[1], minPixelScale[1], maxPixelScale[1]);
+        final boolean changed = resultX != prePixelScale[0] || resultY != prePixelScale[1];
+        if( null != DEBUG_PREFIX ) {
+            System.err.println(DEBUG_PREFIX+".setNewPixelScale: pre["+prePixelScale[0]+", "+prePixelScale[1]+"], req["+
+                    reqPixelScale[0]+", "+reqPixelScale[1]+"], min["+
+                    minPixelScale[0]+", "+minPixelScale[1]+"], max["+
+                    maxPixelScale[0]+", "+maxPixelScale[1]+"] -> result["+
+                    resultX+", "+resultY+"], changed "+changed);
+        }
+        result[0] = resultX;
+        result[1] = resultY;
+        return changed;
+    }
 }

@@ -69,8 +69,8 @@ public class AWTCanvas extends Canvas {
   private final UpstreamScalable upstreamScale;
 
   public static interface UpstreamScalable {
-      int[] getReqPixelScale();
-      void setHasPixelScale(final int[] pixelScale);
+      float[] getReqPixelScale();
+      void setHasPixelScale(final float[] pixelScale);
   }
 
   private boolean displayConfigChanged=false;
@@ -148,7 +148,7 @@ public class AWTCanvas extends Canvas {
         // trigger initialization cycle
         jawtWindow.setSurfaceScale(upstreamScale.getReqPixelScale() );
         jawtWindow.lockSurface();
-        upstreamScale.setHasPixelScale(jawtWindow.getCurrentSurfaceScale(new int[2]));
+        upstreamScale.setHasPixelScale(jawtWindow.getCurrentSurfaceScale(new float[2]));
         jawtWindow.unlockSurface();
     }
 

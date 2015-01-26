@@ -20,7 +20,7 @@ public class GPUUISceneNewtDemo {
     static boolean GraphMSAAMode = false;
     static float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
 
-    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     public static void main(final String[] args) {
         int width = 800, height = 400;
@@ -66,7 +66,7 @@ public class GPUUISceneNewtDemo {
                     y = MiscUtils.atoi(args[i], y);
                 } else if(args[i].equals("-pixelScale")) {
                     i++;
-                    final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                    final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
                     reqSurfacePixelScale[0] = pS;
                     reqSurfacePixelScale[1] = pS;
                 } else if(args[i].equals("-es2")) {
@@ -126,7 +126,7 @@ public class GPUUISceneNewtDemo {
         window.setSize(width, height);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
-        final int[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new int[2]);
+        final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
         final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
                                                                      new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
@@ -145,7 +145,7 @@ public class GPUUISceneNewtDemo {
         });
 
         window.setVisible(true);
-        final int[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new int[2]);
+        final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");

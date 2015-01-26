@@ -364,8 +364,8 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
      *   <li>{@link MonitorModeProps#MIN_MONITOR_DEVICE_PROPERTIES}</li>
      * </ul>, i.e.
      * <ul>
-     *   <li>{@link MonitorModeProps#streamInMonitorDevice(int[], jogamp.newt.MonitorModeProps.Cache, ScreenImpl, int[], int)}</li>
-     *   <li>{@link MonitorModeProps#streamInMonitorDevice(int[], jogamp.newt.MonitorModeProps.Cache, ScreenImpl, ArrayHashSet, int[], int)}</li>
+     *   <li>{@link MonitorModeProps#streamInMonitorDevice(jogamp.newt.MonitorModeProps.Cache, ScreenImpl, double[], int[], int, int[])}</li>
+     *   <li>{@link MonitorModeProps#streamInMonitorDevice(int[], jogamp.newt.MonitorModeProps.Cache, ArrayHashSet, int[], int, ScreenImpl)}</li>
      *   <li>{@link MonitorModeProps#streamInMonitorMode(int[], jogamp.newt.MonitorModeProps.Cache, int[], int)}</li>
      * </ul>
      * @param cache memory pool caching the result
@@ -373,6 +373,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     protected abstract void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache);
 
     protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor,
+                                                            final float[] pixelScale,
                                                             final Rectangle viewportPU, final Rectangle viewportWU) {
         return false;
     }
@@ -428,9 +429,14 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         final List<MonitorDevice> monitors = getMonitorDevices();
         for(int i=monitors.size()-1; i>=0; i--) {
             final MonitorDeviceImpl monitor = (MonitorDeviceImpl) monitors.get(i);
-            final boolean viewportUpdated = updateNativeMonitorDeviceViewportImpl(monitor, monitor.getMutuableViewportPU(), monitor.getMutuableViewportWU());
+            final float[] pixelScale = monitor.getPixelScale(new float[2]);
+            final boolean viewportUpdated = updateNativeMonitorDeviceViewportImpl(monitor, pixelScale,
+                                                                                  monitor.getMutuableViewportPU(),
+                                                                                  monitor.getMutuableViewportWU());
             if( DEBUG ) {
-                System.err.println("Screen.updateMonitorViewport["+i+"] @  "+Thread.currentThread().getName()+": updated: "+viewportUpdated+", PU "+monitor.getViewport()+", WU "+monitor.getViewportInWindowUnits());
+                System.err.println("Screen.updateMonitorViewport["+i+"] @  "+Thread.currentThread().getName()+": updated: "+viewportUpdated+
+                                   ", PU "+monitor.getViewport()+", WU "+monitor.getViewportInWindowUnits()+
+                                   ", pixelScale ["+pixelScale[0]+", "+pixelScale[1]+"]");
             }
         }
     }
@@ -510,7 +516,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         if( MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES != i ) {
             throw new InternalError("XX");
         }
-        return MonitorModeProps.streamInMonitorDevice(null, cache, this, props, 0);
+        return MonitorModeProps.streamInMonitorDevice(cache, this, null, props, 0, null);
     }
 
     /**

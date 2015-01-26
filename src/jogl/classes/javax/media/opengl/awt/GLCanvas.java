@@ -178,9 +178,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private volatile GLContextImpl context; // volatile: avoid locking for read-only access
   private volatile boolean sendReshape = false; // volatile: maybe written by EDT w/o locking
-  private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+  private final float[] minPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final float[] maxPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  final float[] reqPixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
   // copy of the cstr args, mainly for recreation
   private final GLCapabilitiesImmutable capsReqUser;
@@ -642,38 +643,73 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public final void setSurfaceScale(final int[] pixelScale) {
-      SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
-      if( isRealized() ) {
-          final ScalableSurface ns = jawtWindow;
-          if( null != ns ) {
-              ns.setSurfaceScale(reqPixelScale);
-              final int hadPixelScaleX = hasPixelScale[0];
-              final int hadPixelScaleY = hasPixelScale[1];
-              ns.getCurrentSurfaceScale(hasPixelScale);
-              if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
-                  reshapeImpl(getWidth(), getHeight());
-                  display();
-              }
-          }
+  public final boolean setSurfaceScale(final float[] pixelScale) {
+      System.arraycopy(pixelScale, 0, reqPixelScale, 0, 2);
+      if( isRealized() && isShowing ) {
+          Threading.invoke(true, setSurfaceScaleOnEDTAction, getTreeLock());
+          return true;
+      } else {
+          return false;
+      }
+  }
+  private final Runnable setSurfaceScaleOnEDTAction = new Runnable() {
+    @Override
+    public void run() {
+        final RecursiveLock _lock = lock;
+        _lock.lock();
+        try {
+            if( null != drawable && drawable.isRealized() ) {
+                if( setSurfaceScaleImpl(jawtWindow) ) {
+                    reshapeImpl(getWidth(), getHeight());
+                    if( !helper.isAnimatorAnimatingOnOtherThread() ) {
+                        helper.invokeGL(drawable, context, displayAction, initAction); // display
+                    }
+                }
+            }
+        } finally {
+            _lock.unlock();
+        }
+    }  };
+  private final boolean setSurfaceScaleImpl(final ScalableSurface ns) {
+      if( ns.setSurfaceScale(reqPixelScale) ) {
+          ns.getCurrentSurfaceScale(hasPixelScale);
+          return true;
+      } else {
+          return false;
+      }
+  }
+
+  private final boolean updatePixelScale() {
+      if( jawtWindow.hasPixelScaleChanged() ) {
+          jawtWindow.getMaximumSurfaceScale(maxPixelScale);
+          jawtWindow.getMinimumSurfaceScale(minPixelScale);
+          return setSurfaceScaleImpl(jawtWindow);
+      } else {
+          return false;
       }
   }
 
   @Override
-  public final int[] getRequestedSurfaceScale(final int[] result) {
+  public final float[] getRequestedSurfaceScale(final float[] result) {
       System.arraycopy(reqPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getCurrentSurfaceScale(final int[] result) {
+  public final float[] getCurrentSurfaceScale(final float[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public int[] getNativeSurfaceScale(final int[] result) {
-      System.arraycopy(nativePixelScale, 0, result, 0, 2);
+  public float[] getMinimumSurfaceScale(final float[] result) {
+      System.arraycopy(minPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
+  @Override
+  public float[] getMaximumSurfaceScale(final float[] result) {
+      System.arraycopy(maxPixelScale, 0, result, 0, 2);
       return result;
   }
 
@@ -681,13 +717,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     if ( !Beans.isDesignTime() ) {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-        jawtWindow.setSurfaceScale(reqPixelScale);
         jawtWindow.lockSurface();
         try {
+            jawtWindow.setSurfaceScale(reqPixelScale);
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
             createContextImpl(drawable);
             jawtWindow.getCurrentSurfaceScale(hasPixelScale);
-            jawtWindow.getNativeSurfaceScale(nativePixelScale);
+            jawtWindow.getMinimumSurfaceScale(minPixelScale);
+            jawtWindow.getMaximumSurfaceScale(maxPixelScale);
         } finally {
             jawtWindow.unlockSurface();
         }
@@ -785,10 +822,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         reshapeImpl(width, height);
     }
   }
-
   private void reshapeImpl(final int width, final int height) {
-    final int scaledWidth = width * hasPixelScale[0];
-    final int scaledHeight = height * hasPixelScale[1];
+    final int scaledWidth = SurfaceScaleUtils.scale(width, hasPixelScale[0]);
+    final int scaledHeight = SurfaceScaleUtils.scale(height, hasPixelScale[1]);
 
     if(DEBUG) {
         final NativeSurface ns = getNativeSurface();
@@ -1187,12 +1223,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public int getSurfaceWidth() {
-      return getWidth() * hasPixelScale[0];
+      return SurfaceScaleUtils.scale(getWidth(), hasPixelScale[0]);
   }
 
   @Override
   public int getSurfaceHeight() {
-      return getHeight() * hasPixelScale[1];
+      return SurfaceScaleUtils.scale(getHeight(), hasPixelScale[1]);
   }
 
   @Override
@@ -1239,7 +1275,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   // Internals only below this point
   //
 
-  private final String getPixelScaleStr() { return hasPixelScale[0]+"x"+hasPixelScale[1]; }
+  private final String getPixelScaleStr() { return "["+hasPixelScale[0]+", "+hasPixelScale[1]+"]"; }
 
   private final Runnable destroyOnEDTAction = new Runnable() {
     @Override
@@ -1339,8 +1375,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
         hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-        nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-        nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+        minPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        minPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+        maxPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        maxPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
         if(null != awtConfig) {
             final AbstractGraphicsConfiguration aconfig = awtConfig.getNativeGraphicsConfiguration();
@@ -1391,6 +1429,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         _lock.lock();
         try {
             if( null != drawable && drawable.isRealized() ) {
+                if( GLCanvas.this.updatePixelScale() ) {
+                    GLCanvas.this.reshapeImpl(getWidth(), getHeight());
+                }
                 helper.invokeGL(drawable, context, displayAction, initAction);
             }
         } finally {

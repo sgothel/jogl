@@ -77,7 +77,7 @@ public class ScreenDriver extends ScreenImpl {
     private class CrtProps {
         CrtProps() {
             count = getMonitorCount0();
-            pixelScaleArray = new int[count];
+            pixelScaleArray = new float[count];
             propsOrigArray = new int[count][];
             propsFixedArray = new int[count][];
 
@@ -85,8 +85,8 @@ public class ScreenDriver extends ScreenImpl {
             // Gather whole topology of monitors (NSScreens)
             //
             for(int crtIdx=0; crtIdx<count; crtIdx++) {
-                final float pixelScaleRaw = (float) OSXUtil.GetPixelScale(crtIdx);
-                pixelScaleArray[crtIdx] = FloatUtil.isZero(pixelScaleRaw, FloatUtil.EPSILON) ? 1 : (int)pixelScaleRaw;
+                final float pixelScaleRaw = (float)OSXUtil.GetPixelScaleByScreenIdx(crtIdx);
+                pixelScaleArray[crtIdx] = FloatUtil.isZero(pixelScaleRaw, FloatUtil.EPSILON) ? 1.0f : pixelScaleRaw;
                 propsOrigArray[crtIdx] = getMonitorProps0(crtIdx);
                 if ( null == propsOrigArray[crtIdx] ) {
                     throw new InternalError("Could not gather device props "+crtIdx+"/"+count);
@@ -105,7 +105,7 @@ public class ScreenDriver extends ScreenImpl {
                 final int[] thisMonitorProps = propsFixedArray[crtIdx];
                 final int x = thisMonitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+0];
                 final int y = thisMonitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+1];
-                final int thisPixelScale = pixelScaleArray[crtIdx];
+                final float thisPixelScale = pixelScaleArray[crtIdx];
                 thisMonitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+2] *= thisPixelScale; // fix width
                 thisMonitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+3] *= thisPixelScale; // fix height
                 if( 0 != x ) {
@@ -129,7 +129,7 @@ public class ScreenDriver extends ScreenImpl {
             }
         }
         final int count;
-        final int[] pixelScaleArray;
+        final float[] pixelScaleArray;
         final int[][] propsOrigArray;
         final int[][] propsFixedArray;
     }
@@ -167,12 +167,15 @@ public class ScreenDriver extends ScreenImpl {
                 throw new InternalError("Could not gather current mode of device "+crtIdx+"/"+crtProps.count+", but gathered "+modeIdx+" modes");
             }
             // merge monitor-props + supported modes
-            MonitorModeProps.streamInMonitorDevice(null, cache, this, supportedModes, currentMode, crtProps.propsFixedArray[crtIdx], 0);
+            final float pixelScale = crtProps.pixelScaleArray[crtIdx];
+            MonitorModeProps.streamInMonitorDevice(cache, this, currentMode,
+                                                   new float[] { pixelScale, pixelScale },
+                                                   supportedModes, crtProps.propsFixedArray[crtIdx], 0, null);
         }
     }
 
     @Override
-    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final Rectangle viewportPU, final Rectangle viewportWU) {
+    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU) {
         final CrtProps crtProps = new CrtProps();
         final int crtIdx = monitor.getId();
         if( 0 > crtIdx || crtIdx >= crtProps.count ) {
@@ -182,6 +185,9 @@ public class ScreenDriver extends ScreenImpl {
         int offset = MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT;
         viewportPU.set(fixedMonitorProps[offset++], fixedMonitorProps[offset++], fixedMonitorProps[offset++], fixedMonitorProps[offset++]);
         viewportWU.set(fixedMonitorProps[offset++], fixedMonitorProps[offset++], fixedMonitorProps[offset++], fixedMonitorProps[offset++]);
+        final float _pixelScale = crtProps.pixelScaleArray[crtIdx];
+        pixelScale[0] = _pixelScale;
+        pixelScale[1] = _pixelScale;
         return true;
     }
 

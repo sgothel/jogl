@@ -145,6 +145,22 @@ public class Point implements Cloneable, PointImmutable {
     }
 
     /**
+     * Scale this instance's x- and y-components,
+     * i.e. multiply them by the given scale factors.
+     * <p>
+     * The product is rounded back to integer.
+     * </p>
+     * @param sx scale factor for x
+     * @param sy scale factor for y
+     * @return this instance for scaling
+     */
+    public final Point scale(final float sx, final float sy) {
+        x = (int)(x * sx + 0.5f);
+        y = (int)(y * sy + 0.5f);
+        return this;
+    }
+
+    /**
      * Inverse scale this instance's x- and y-components,
      * i.e. divide them by the given scale factors.
      * @param sx inverse scale factor for x
@@ -154,6 +170,21 @@ public class Point implements Cloneable, PointImmutable {
     public final Point scaleInv(final int sx, final int sy) {
         x /= sx ;
         y /= sy ;
+        return this;
+    }
+    /**
+     * Inverse scale this instance's x- and y-components,
+     * i.e. divide them by the given scale factors.
+     * <p>
+     * The product is rounded back to integer.
+     * </p>
+     * @param sx inverse scale factor for x
+     * @param sy inverse scale factor for y
+     * @return this instance for scaling
+     */
+    public final Point scaleInv(final float sx, final float sy) {
+        x = (int)(x / sx + 0.5f);
+        y = (int)(y / sy + 0.5f);
         return this;
     }
 }

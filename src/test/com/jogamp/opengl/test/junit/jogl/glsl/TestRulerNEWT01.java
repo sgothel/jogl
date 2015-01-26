@@ -63,7 +63,7 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRulerNEWT01 extends UITestCase {
     static long durationPerTest = 500; // ms
-    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
     static boolean manualTest = false;
 
     private void setTitle(final Window win) {
@@ -77,7 +77,7 @@ public class TestRulerNEWT01 extends UITestCase {
         final GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getGL2ES2()));
         Assert.assertNotNull(glWindow);
         glWindow.setSurfaceScale(reqSurfacePixelScale);
-        final int[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new int[2]);
+        final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
         glWindow.setSize(640, 480);
 
         glWindow.addGLEventListener(new GLEventListener() {
@@ -183,19 +183,19 @@ public class TestRulerNEWT01 extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='x') {
-                    final int[] hadSurfacePixelScale = glWindow.getCurrentSurfaceScale(new int[2]);
-                    final int[] reqSurfacePixelScale;
+                    final float[] hadSurfacePixelScale = glWindow.getCurrentSurfaceScale(new float[2]);
+                    final float[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
-                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                        reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
                     } else {
-                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                        reqSurfacePixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
                     snap.setMakeSnapshot();
                     glWindow.setSurfaceScale(reqSurfacePixelScale);
-                    final int[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new int[2]);
-                    final int[] hasSurfacePixelScale = glWindow.getCurrentSurfaceScale(new int[2]);
-                    final int[] nativeSurfacePixelScale = glWindow.getNativeSurfaceScale(new int[2]);
+                    final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
+                    final float[] hasSurfacePixelScale = glWindow.getCurrentSurfaceScale(new float[2]);
+                    final float[] nativeSurfacePixelScale = glWindow.getMaximumSurfaceScale(new float[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                                        valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
@@ -208,7 +208,7 @@ public class TestRulerNEWT01 extends UITestCase {
 
         glWindow.setVisible(true);
 
-        final int[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new int[2]);
+        final float[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
@@ -243,7 +243,7 @@ public class TestRulerNEWT01 extends UITestCase {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);
             } else if(args[i].equals("-pixelScale")) {
                 i++;
-                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
                 reqSurfacePixelScale[0] = pS;
                 reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-manual")) {

@@ -474,6 +474,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 }
                 jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, null != newtChild ? newtChild.getRequestedCapabilities() : null);
                 jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
+                // enforce initial lock on AWT-EDT, allowing acquisition of pixel-scale
+                jawtWindow.lockSurface();
+                try {
+                    // attachNewtChild sets surface scale!
+                } finally {
+                    jawtWindow.unlockSurface();
+                }
                 awtWindowClosingProtocol.addClosingListener();
                 componentAdded = true; // Bug 910
                 if(DEBUG) {
@@ -485,6 +492,25 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 }
             }
         }
+    }
+    private final boolean updatePixelScale() {
+        if( jawtWindow.updatePixelScale(true) ) {
+            final Window cWin = newtChild;
+            final Window dWin = cWin.getDelegatedWindow();
+            if( dWin instanceof WindowImpl ) {
+                final float[] maxPixelScale = jawtWindow.getMaximumSurfaceScale(new float[2]);
+                final float[] minPixelScale = jawtWindow.getMinimumSurfaceScale(new float[2]);
+                ((WindowImpl)dWin).pixelScaleChangeNotify(minPixelScale, maxPixelScale, true);
+                // ((WindowImpl)dWin).sizeChangedNotify(true /* defer */, getWidth(), getHeight(), true /* force */);
+            } else {
+                final float[] reqPixelScale = jawtWindow.getRequestedSurfaceScale(new float[2]);
+                if( jawtWindow.setSurfaceScale(reqPixelScale) ) {
+                    // jawtWindow.getRequestedSurfaceScale(reqPixelScale);
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -588,7 +614,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     System.err.println("NewtCanvasAWT.reshape: "+x+"/"+y+" "+width+"x"+height);
                 }
                 if( validateComponent(true) ) {
-                    // newtChild.setSize(width, height);
+                    if( !printActive && updatePixelScale() ) {
+                        // NOP
+                    } else {
+                        // newtChild.setSize(width, height);
+                    }
                 }
             }
         }
@@ -877,18 +907,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       final int w = getWidth();
       final int h = getHeight();
-      final boolean isNValid = newtChild.isNativeValid();
       if(DEBUG) {
-          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h+", isNValid "+isNValid);
+          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h+", isNValid "+newtChild.isNativeValid());
       }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
-      final int[] reqSurfaceScale = new int[2];
-      if( isNValid ) {
-          newtChild.getCurrentSurfaceScale(reqSurfaceScale);
-      } else {
-          newtChild.getRequestedSurfaceScale(reqSurfaceScale);
-      }
+      final float[] reqSurfaceScale = newtChild.getRequestedSurfaceScale(new float[2]);
       jawtWindow.setSurfaceScale(reqSurfaceScale);
       newtChild.reparentWindow(jawtWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
       newtChild.addSurfaceUpdatedListener(jawtWindow);

@@ -198,6 +198,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * @param pixelUnitsAndResult int[2] storage holding the pixel units for the x- and y-coord to convert
    *                             and the resulting values.
    * @return result int[2] storage pixelUnitsAndResult for chaining holding the converted values
+   * @see ScalableSurface
    */
   public int[] convertToWindowUnits(final int[] pixelUnitsAndResult);
 
@@ -206,6 +207,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * @param windowUnitsAndResult int[2] storage holding the window units for the x- and y-coord to convert
    *                             and the resulting values.
    * @return result int[2] storage windowUnitsAndResult for chaining holding the converted values
+   * @see ScalableSurface
    */
   public int[] convertToPixelUnits(final int[] windowUnitsAndResult);
 

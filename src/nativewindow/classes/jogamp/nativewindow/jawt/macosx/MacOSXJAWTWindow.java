@@ -48,7 +48,6 @@ import java.security.PrivilegedAction;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.util.Point;
@@ -116,13 +115,10 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  public void setSurfaceScale(final int[] pixelScale) {
+  public boolean setSurfaceScale(final float[] pixelScale) {
       super.setSurfaceScale(pixelScale);
-      if( 0 != getWindowHandle() ) { // locked at least once !
-          final int hadPixelScaleX = getPixelScaleX();
-          updatePixelScale();
-
-          if( hadPixelScaleX != getPixelScaleX() && 0 != getAttachedSurfaceLayer() ) {
+      if( 0 != getWindowHandle() && setReqPixelScale() ) { // locked at least once _and_ updated pixel-scale
+          if( 0 != getAttachedSurfaceLayer() ) {
               OSXUtil.RunOnMainThread(false, false, new Runnable() {
                   @Override
                   public void run() {
@@ -133,6 +129,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                   }
               });
           }
+          return true;
+      } else {
+          return false;
       }
   }
 

@@ -100,12 +100,12 @@ public class WindowDriver extends WindowImpl {
 
     private final AWTCanvas.UpstreamScalable upstreamScalable = new AWTCanvas.UpstreamScalable() {
         @Override
-        public int[] getReqPixelScale() {
+        public float[] getReqPixelScale() {
             return WindowDriver.this.reqPixelScale;
         }
 
         @Override
-        public void setHasPixelScale(final int[] pixelScale) {
+        public void setHasPixelScale(final float[] pixelScale) {
             System.arraycopy(pixelScale, 0, WindowDriver.this.hasPixelScale, 0, 2);
         }
     };

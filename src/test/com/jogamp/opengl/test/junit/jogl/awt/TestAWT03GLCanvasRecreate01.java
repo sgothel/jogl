@@ -40,6 +40,8 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Label;
 
+import jogamp.nativewindow.SurfaceScaleUtils;
+
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -178,8 +180,8 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
     }
 
     private void assertSize(final Dimension expSize) {
-        final int[] scale = { 1, 1 };
-        glComp.getNativeSurfaceScale(scale);
+        final float[] scale = { 1f, 1f };
+        glComp.getMaximumSurfaceScale(scale);
 
         final Dimension hasSize = glComp.getSize(null);
 
@@ -188,8 +190,8 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
         Assert.assertTrue("AWT Size.height mismatch: expected "+expSize+", has "+hasSize,
                 Math.abs(expSize.height-hasSize.height) <= sizeEps);
 
-        final int expSurfWidth = expSize.width * scale[0];
-        final int expSurfHeight = expSize.height * scale[0];
+        final int expSurfWidth = SurfaceScaleUtils.scale(expSize.width, scale[0]);
+        final int expSurfHeight = SurfaceScaleUtils.scale(expSize.height, scale[0]);
         final int hasSurfWidth = glComp.getSurfaceWidth();
         final int hasSurfHeight = glComp.getSurfaceHeight();
 
