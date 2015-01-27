@@ -29,9 +29,11 @@ package jogamp.graph.font;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -170,20 +172,26 @@ public class UbuntuFontLoader implements FontSet {
         }
     }
     private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
-        final Exception[] privErr = { null };
-        final InputStream stream = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
-            @Override
-            public InputStream run() {
-                try {
-                    final Uri uri = TempJarCache.getResourceUri(fname);
-                    return null != uri ? uri.toURL().openConnection().getInputStream() : null;
-                } catch (final Exception e) {
-                    privErr[0] = e;
-                    return null;
-                }
-            } } );
-        if( null != privErr[0] ) {
-            throw new IOException(privErr[0]);
+        final InputStream stream;
+        if( useTempJARCache ) {
+            final Exception[] privErr = { null };
+            stream = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+                @Override
+                public InputStream run() {
+                    try {
+                        final Uri uri = TempJarCache.getResourceUri(fname);
+                        return null != uri ? uri.toURL().openConnection().getInputStream() : null;
+                    } catch (final Exception e) {
+                        privErr[0] = e;
+                        return null;
+                    }
+                } } );
+            if( null != privErr[0] ) {
+                throw new IOException(privErr[0]);
+            }
+        } else {
+            final URLConnection urlConn = IOUtil.getResource(UbuntuFontLoader.class, fname);
+            stream = null != urlConn ? urlConn.getInputStream() : null;
         }
         if(null != stream) {
             final Font f= FontFactory.get ( stream, true ) ;
