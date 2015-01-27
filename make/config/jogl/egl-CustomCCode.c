@@ -7,6 +7,7 @@
  *   Java package: com.jogamp.opengl.egl.EGL
  *    Java method: void eglGetConfigAttributes(long dpy, long config, IntBuffer attributes, IntBuffer values)
  */
+JNIEXPORT void JNICALL
 Java_com_jogamp_opengl_egl_EGL_dispatch_1eglGetConfigAttributes(JNIEnv *env, jclass _unused, jlong dpy, jlong config, jint attributeCount, jobject attributes, jint attributes_byte_offset, jobject values, jint values_byte_offset, jlong procAddress) {
   typedef EGLBoolean (EGLAPIENTRY*_local_PFNEGLGETCONFIGATTRIBPROC)(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *  value);
   _local_PFNEGLGETCONFIGATTRIBPROC ptr_eglGetConfigAttrib = (_local_PFNEGLGETCONFIGATTRIBPROC) (intptr_t) procAddress;
