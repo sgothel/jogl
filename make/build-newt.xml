@@ -271,6 +271,12 @@
         <compilerarg value="/usr/include" />
       </compiler>
 
+      <compiler id="compiler.cfg.linux.aarch64.newt.x11" extends="compiler.cfg.linux.aarch64">
+        <!-- Need to force /usr/include headers on to include path (after all others), due to crosscompiler usage -->
+        <compilerarg value="-idirafter" />
+        <compilerarg value="/usr/include" />
+      </compiler>
+
       <!-- linker configuration -->
 
       <linker id="linker.cfg.freebsd.newt.x11" extends="linker.cfg.freebsd">
@@ -326,6 +332,12 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
+      </linker>
+
+      <linker id="linker.cfg.linux.aarch64.newt.x11" extends="linker.cfg.linux.aarch64">
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
@@ -431,6 +443,16 @@
       <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
     </target>
 
+    <target name="c.configure.linux.aarch64" if="isLinuxARM64">
+      <echo message="Linux.aarch64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.aarch64.newt.x11" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.aarch64.newt.x11"
+                                                            else="linker.cfg.linux.aarch64">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
     <target name="c.configure.linux.hppa" if="isLinuxHppa">
       <echo message="Linux.hppa" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
@@ -497,7 +519,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
+    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.aarch64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
