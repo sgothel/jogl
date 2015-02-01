@@ -88,6 +88,7 @@ public interface AWTPrintLifecycle {
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples
      * @param tileWidth custom tile width for {@link com.jogamp.opengl.util.TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param tileHeight custom tile height for {@link com.jogamp.opengl.util.TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * FIXME: Add border size !
      */
     void setupPrint(double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight);
 

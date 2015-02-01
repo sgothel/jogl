@@ -227,6 +227,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     public final boolean isDetermined() { return isDetermined; }
 
     public final PIXELFORMATDESCRIPTOR getPixelFormat()   { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).getPFD() : null; }
+    /** FIXME: NPE ..*/
     public final int getPixelFormatID() { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).getPFDID() : 0; }
     public final boolean isChoosenByARB() { return isDetermined ? ((WGLGLCapabilities)capabilitiesChosen).isSetByARB() : false; }
 
