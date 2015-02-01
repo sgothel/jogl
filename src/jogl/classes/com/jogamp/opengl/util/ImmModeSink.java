@@ -451,7 +451,7 @@ public class ImmModeSink {
         this.nElems=0;
         this.tElems=0;
 
-        this.pageSize = Platform.getMachineDescription().pageSizeInBytes();
+        this.pageSize = Platform.getMachineDataInfo().pageSizeInBytes();
 
         reallocateBuffer(initialElementCount);
         rewind();
