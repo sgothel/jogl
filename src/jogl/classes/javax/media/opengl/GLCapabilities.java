@@ -38,10 +38,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
 
 /** Specifies a set of OpenGL capabilities.<br>
     At creation time of a {@link GLDrawable} using {@link GLDrawableFactory},

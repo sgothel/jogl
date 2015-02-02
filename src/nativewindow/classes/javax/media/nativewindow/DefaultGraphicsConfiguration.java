@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import jogamp.nativewindow.Debug;
 
@@ -98,7 +98,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      * The use case for setting the Capabilities at a later time is
      * a change or re-validation of capabilities.
      * </p>
-     * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+     * @see com.jogamp.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
     protected void setChosenCapabilities(final CapabilitiesImmutable capsChosen) {
         this.capabilitiesChosen = capsChosen;

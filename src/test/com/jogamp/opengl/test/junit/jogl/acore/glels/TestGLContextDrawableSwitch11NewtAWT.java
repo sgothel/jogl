@@ -30,8 +30,8 @@ package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.io.IOException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 
 import com.jogamp.opengl.GLEventListenerState;

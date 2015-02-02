@@ -394,12 +394,12 @@
 
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
 
-        <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
+        <property name="javadoc.nw.overview" value="../src/nativewindow/classes/com/jogamp/nativewindow/package.html" />
         <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${jogamp.version.base} Specification" />
-        <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
+        <property name="javadoc.nw.spec.packagenames" value="com.jogamp.nativewindow.*" />
 
         <property name="javadoc.spec.windowtitle" value="JOGL API -- ${jogamp.version.base} Specification" />
-        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
+        <property name="javadoc.spec.packagenames" value="com.jogamp.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />
         <property name="javadoc.packagenames" value="${javadoc.nw.spec.packagenames}, ${javadoc.spec.packagenames}, com.jogamp.opengl.*, com.jogamp.graph.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.oculusvr.*" />

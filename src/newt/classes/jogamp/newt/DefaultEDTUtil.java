@@ -39,7 +39,7 @@ package jogamp.newt;
 
 import java.util.ArrayList;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import jogamp.common.util.locks.LockDebugUtil;
 

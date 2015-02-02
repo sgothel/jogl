@@ -49,17 +49,17 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.Mix2TexturesES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceUpdatedListener;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.SurfaceUpdatedListener;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.AfterClass;
@@ -69,7 +69,7 @@ import org.junit.runners.MethodSorters;
 
 /**
  * Toolkit agnostic {@link GLOffscreenAutoDrawable.FBO} tests using the
- * {@link GLDrawableFactory#createOffscreenAutoDrawable(javax.media.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, int, int, GLContext) factory model}.
+ * {@link GLDrawableFactory#createOffscreenAutoDrawable(com.jogamp.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, com.jogamp.opengl.GLCapabilitiesChooser, int, int, GLContext) factory model}.
  * <p>
  * The created {@link GLOffscreenAutoDrawable.FBO} is being used to run the {@link GLEventListener}.
  * </p>

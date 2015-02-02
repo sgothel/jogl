@@ -30,10 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 

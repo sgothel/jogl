@@ -30,13 +30,13 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.common.os.PlatformPropsImpl;
 

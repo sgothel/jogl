@@ -39,9 +39,9 @@ package com.jogamp.opengl.util.texture;
 
 import java.nio.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import jogamp.opengl.*;
 
@@ -346,8 +346,8 @@ public class Texture {
      * Returns the OpenGL "target" of this texture.
      *
      * @return the OpenGL target of this texture
-     * @see javax.media.opengl.GL#GL_TEXTURE_2D
-     * @see javax.media.opengl.GL2#GL_TEXTURE_RECTANGLE_ARB
+     * @see com.jogamp.opengl.GL#GL_TEXTURE_2D
+     * @see com.jogamp.opengl.GL2#GL_TEXTURE_RECTANGLE_ARB
      */
     public int getTarget() {
         return target;

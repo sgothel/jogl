@@ -27,7 +27,7 @@
  */
 package com.jogamp.newt.event;
 
-import javax.media.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeSurface;
 
 import com.jogamp.newt.event.MouseEvent.PointerClass;
 

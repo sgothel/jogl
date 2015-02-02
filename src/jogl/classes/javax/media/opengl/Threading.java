@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import jogamp.opengl.ThreadingImpl;
 
@@ -147,7 +147,7 @@ public class Threading {
         return ThreadingImpl.getMode();
     }
 
-    /** If an implementation of the javax.media.opengl APIs offers a
+    /** If an implementation of the com.jogamp.opengl APIs offers a
         multithreading option but the default behavior is single-threading,
         this API provides a mechanism for end users to disable single-threading
         in this implementation.  Users are strongly discouraged from
@@ -189,7 +189,7 @@ public class Threading {
     }
 
     /** Executes the passed Runnable on the single thread used for all
-        OpenGL work in this javax.media.opengl API implementation. It is
+        OpenGL work in this com.jogamp.opengl API implementation. It is
         not specified exactly which thread is used for this
         purpose. This method should only be called if the single-thread
         model is in use and if the current thread is not the OpenGL

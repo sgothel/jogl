@@ -30,7 +30,7 @@ package jogamp.newt.awt.event;
 
 import java.awt.KeyboardFocusManager;
 
-import javax.media.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindow;
 
 import jogamp.newt.driver.DriverUpdatePosition;
 

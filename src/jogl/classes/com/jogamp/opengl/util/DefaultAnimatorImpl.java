@@ -35,7 +35,7 @@ package com.jogamp.opengl.util;
 
 import java.util.ArrayList;
 
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLAutoDrawable;
 
 import com.jogamp.opengl.util.AnimatorBase.UncaughtAnimatorException;
 

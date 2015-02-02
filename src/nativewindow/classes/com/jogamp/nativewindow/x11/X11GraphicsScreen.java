@@ -33,16 +33,16 @@
 
 package com.jogamp.nativewindow.x11;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import jogamp.nativewindow.x11.X11Lib;
 
 /** Encapsulates a screen index on X11
     platforms. Objects of this type are passed to {@link
-    javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration
+    com.jogamp.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration
     GraphicsConfigurationFactory.chooseGraphicsConfiguration()} on X11
     platforms when toolkits other than the AWT are being used.  */
 

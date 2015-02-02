@@ -31,8 +31,8 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;

@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.util.jpeg.JPEGDecoder;

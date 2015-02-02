@@ -32,7 +32,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;

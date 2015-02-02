@@ -42,9 +42,9 @@ import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

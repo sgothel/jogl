@@ -38,13 +38,13 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import java.util.List;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;

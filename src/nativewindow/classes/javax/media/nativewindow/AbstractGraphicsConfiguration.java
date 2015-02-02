@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /** A marker interface describing a graphics configuration, visual, or
     pixel format in a toolkit-independent manner. */

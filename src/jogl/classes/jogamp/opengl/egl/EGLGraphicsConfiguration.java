@@ -38,17 +38,17 @@ package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 

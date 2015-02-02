@@ -30,14 +30,14 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
@@ -62,7 +62,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * Tests using a NEWT {@link Window} for on- and offscreen cases.
  * <p>
  * Each test creates a {@link GLDrawable} using the
- * {@link GLDrawableFactory#createGLDrawable(javax.media.nativewindow.NativeSurface) factory model}.
+ * {@link GLDrawableFactory#createGLDrawable(com.jogamp.nativewindow.NativeSurface) factory model}.
  * The {@link GLContext} is derived {@link GLDrawable#createContext(GLContext) from the drawable}.
  * </p>
  * <p>

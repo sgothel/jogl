@@ -40,13 +40,13 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;

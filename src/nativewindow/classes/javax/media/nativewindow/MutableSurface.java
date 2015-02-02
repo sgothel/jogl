@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /**
  * Provides a {@link NativeSurface} with a mutable <code>surfaceHandle</code>

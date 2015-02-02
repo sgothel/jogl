@@ -31,11 +31,11 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.PointImmutable;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 

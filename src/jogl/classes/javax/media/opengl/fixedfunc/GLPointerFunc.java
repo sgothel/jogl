@@ -27,9 +27,9 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl.fixedfunc;
+package com.jogamp.opengl.fixedfunc;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public interface GLPointerFunc {
   public static final int GL_VERTEX_ARRAY = 0x8074;

@@ -34,19 +34,19 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLArrayData;
-import javax.media.opengl.GLES2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLRunnable2;
-import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLLightingFunc;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
-import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLRunnable2;
+import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFuncUtil;
 
 import jogamp.opengl.Debug;
 

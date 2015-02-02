@@ -28,15 +28,15 @@
 
 package jogamp.newt.driver.bcm.vc.iv;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;

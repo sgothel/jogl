@@ -40,8 +40,8 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLDrawableFactory;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLDrawableFactory;
 
 import jogamp.opengl.GLDrawableImpl;
 

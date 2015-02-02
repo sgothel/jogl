@@ -8,11 +8,11 @@ import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import jogamp.opengl.Debug;
 

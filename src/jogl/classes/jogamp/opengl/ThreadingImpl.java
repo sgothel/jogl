@@ -38,16 +38,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.Threading.Mode;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.Threading.Mode;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 
-/** Implementation of the {@link javax.media.opengl.Threading} class. */
+/** Implementation of the {@link com.jogamp.opengl.Threading} class. */
 
 public class ThreadingImpl {
     protected static final boolean DEBUG = Debug.debug("Threading");
@@ -127,7 +127,7 @@ public class ThreadingImpl {
     public static boolean isX11() { return _isX11; }
     public static Mode getMode() { return mode; }
 
-    /** If an implementation of the javax.media.opengl APIs offers a
+    /** If an implementation of the com.jogamp.opengl APIs offers a
         multithreading option but the default behavior is single-threading,
         this API provides a mechanism for end users to disable single-threading
         in this implementation.  Users are strongly discouraged from
@@ -144,7 +144,7 @@ public class ThreadingImpl {
         if( Mode.MT != mode ) {
             singleThreaded = false;
             if (Debug.verbose()) {
-                System.err.println("Application forced disabling of single-threading of javax.media.opengl implementation");
+                System.err.println("Application forced disabling of single-threading of com.jogamp.opengl implementation");
             }
         }
     }
@@ -188,7 +188,7 @@ public class ThreadingImpl {
     }
 
     /** Executes the passed Runnable on the single thread used for all
-        OpenGL work in this javax.media.opengl API implementation. It is
+        OpenGL work in this com.jogamp.opengl API implementation. It is
         not specified exactly which thread is used for this
         purpose. This method should only be called if the single-thread
         model is in use and if the current thread is not the OpenGL

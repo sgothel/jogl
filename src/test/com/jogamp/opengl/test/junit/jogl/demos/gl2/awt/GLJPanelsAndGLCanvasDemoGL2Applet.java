@@ -33,8 +33,8 @@ import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.media.opengl.awt.GLCanvas;
-import javax.media.opengl.awt.GLJPanel;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLJPanel;
 import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JPanel;

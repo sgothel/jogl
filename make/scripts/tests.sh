@@ -389,7 +389,7 @@ function testawtswt() {
 # Version
 #
 #testawt jogamp.newt.awt.opengl.VersionApplet $*
-#testawt javax.media.opengl.awt.GLCanvas $*
+#testawt com.jogamp.opengl.awt.GLCanvas $*
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*

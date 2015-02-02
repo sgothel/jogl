@@ -40,11 +40,11 @@
 
 package jogamp.nativewindow.jawt.windows;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.awt.JAWTWindow;
 

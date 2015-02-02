@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 
@@ -119,7 +119,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * </p>
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
-     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, com.jogamp.nativewindow.ToolkitLock)
      */
     @Override
     public final void lock() {
@@ -138,7 +138,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * </p>
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
-     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, com.jogamp.nativewindow.ToolkitLock)
      */
     @Override
     public final void unlock() {
@@ -237,7 +237,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @return the used ToolkitLock
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
-     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, com.jogamp.nativewindow.ToolkitLock)
      */
     public final ToolkitLock getToolkitLock() {
          return toolkitLock;

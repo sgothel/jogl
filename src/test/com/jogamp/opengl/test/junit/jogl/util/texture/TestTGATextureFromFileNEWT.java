@@ -32,10 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.After;
 import org.junit.Assert;

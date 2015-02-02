@@ -28,12 +28,12 @@
 
 package jogamp.opengl;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.FBObject;

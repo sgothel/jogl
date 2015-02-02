@@ -38,11 +38,11 @@ import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.Robot;
 
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
 
 import org.junit.Assert;
 
@@ -136,9 +136,9 @@ public class AWTRobotUtil {
     private static int[] getCenterLocationNEWT(final com.jogamp.newt.Window win, final boolean onTitleBarIfWindow)
         throws InterruptedException, InvocationTargetException {
 
-        final javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
+        final com.jogamp.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
         if( onTitleBarIfWindow ) {
-            final javax.media.nativewindow.util.InsetsImmutable insets = win.getInsets();
+            final com.jogamp.nativewindow.util.InsetsImmutable insets = win.getInsets();
             p0.translate(win.getWidth()/2, insets.getTopHeight()/2);
         } else {
             p0.translate(win.getWidth()/2, win.getHeight()/2);
@@ -173,7 +173,7 @@ public class AWTRobotUtil {
     }
     private static int[] getClientLocationNEWT(final com.jogamp.newt.Window win, final int x, final int y)
         throws InterruptedException, InvocationTargetException {
-        final javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
+        final com.jogamp.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
         return new int[] { p0.getX(), p0.getY() };
     }
     private static int[] getClientLocationAWT(final java.awt.Component comp, final int x, final int y)

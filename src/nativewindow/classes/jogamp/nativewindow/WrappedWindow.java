@@ -1,14 +1,14 @@
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 

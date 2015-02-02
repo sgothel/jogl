@@ -34,11 +34,11 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PixelFormatUtil;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PixelFormatUtil;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.util.pngj.ImageInfo;

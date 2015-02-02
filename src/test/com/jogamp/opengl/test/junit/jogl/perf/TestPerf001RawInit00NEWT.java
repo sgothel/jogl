@@ -29,15 +29,15 @@ package com.jogamp.opengl.test.junit.jogl.perf;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;

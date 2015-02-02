@@ -30,11 +30,11 @@ package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.Threading;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.Threading;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;

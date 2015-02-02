@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 /** A generic exception for OpenGL errors used throughout the binding
     as a substitute for {@link RuntimeException}. */

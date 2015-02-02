@@ -30,11 +30,11 @@ package com.jogamp.newt;
 
 import java.util.List;
 
-import javax.media.nativewindow.ScalableSurface;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.nativewindow.util.SurfaceSize;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.SurfaceSize;
 
 import com.jogamp.common.util.ArrayHashSet;
 

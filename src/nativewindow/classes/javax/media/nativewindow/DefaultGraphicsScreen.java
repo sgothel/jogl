@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen {
     private final AbstractGraphicsDevice device;

@@ -28,22 +28,22 @@
 
 package com.jogamp.newt.swt;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.SurfaceUpdatedListener;
-import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.nativewindow.util.Point;
-import javax.media.opengl.GLCapabilities;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.SurfaceUpdatedListener;
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.opengl.GLCapabilities;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.windows.GDIUtil;

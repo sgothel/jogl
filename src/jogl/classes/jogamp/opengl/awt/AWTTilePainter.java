@@ -45,12 +45,12 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLEventListener;
 
 import jogamp.opengl.Debug;
 

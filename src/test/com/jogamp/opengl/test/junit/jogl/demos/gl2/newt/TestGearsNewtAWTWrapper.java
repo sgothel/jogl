@@ -28,8 +28,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.newt;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import com.jogamp.nativewindow.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 

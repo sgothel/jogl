@@ -26,11 +26,11 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 /**
  * An animator control interface,
- * which implementation may drive a {@link javax.media.opengl.GLAutoDrawable} animation.
+ * which implementation may drive a {@link com.jogamp.opengl.GLAutoDrawable} animation.
  */
 public interface GLAnimatorControl extends FPSCounter {
     /**

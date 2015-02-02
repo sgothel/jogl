@@ -36,17 +36,17 @@ package jogamp.nativewindow.x11.awt;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
-import javax.media.nativewindow.VisualIDHolder.VIDType;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;

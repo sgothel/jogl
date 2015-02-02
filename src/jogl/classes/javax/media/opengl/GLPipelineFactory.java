@@ -34,7 +34,7 @@
  * facility.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.lang.reflect.*;
 import java.util.StringTokenizer;
@@ -57,13 +57,13 @@ public class GLPipelineFactory {
      * Sample code which installs a Debug and Trace pipeline
      * automatic w/ user defined interface, here: GL2ES2:
      * <pre>
-     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, gl, null) );
-     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, gl, new Object[] { System.err } ) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", GL2ES2.class, gl, null) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", GL2ES2.class, gl, new Object[] { System.err } ) );
      * </pre>
      * or automatic w/ automatic defined class:
      * <pre>
-     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Debug",         null, gl, null) );
-     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Trace",         null, gl, new Object[] { System.err } ) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug",         null, gl, null) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace",         null, gl, new Object[] { System.err } ) );
      * </pre>
      * </p>
      *

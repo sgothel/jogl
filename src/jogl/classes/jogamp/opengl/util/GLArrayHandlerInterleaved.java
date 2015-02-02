@@ -31,7 +31,7 @@ package jogamp.opengl.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
 

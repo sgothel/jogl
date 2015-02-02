@@ -33,15 +33,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLES2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 

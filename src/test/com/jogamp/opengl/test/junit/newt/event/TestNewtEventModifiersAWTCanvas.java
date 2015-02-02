@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.newt.event;
 
-import javax.media.opengl.awt.GLCanvas ;
+import com.jogamp.opengl.awt.GLCanvas ;
 
 import javax.swing.JFrame ;
 import javax.swing.SwingUtilities ;

@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPipelineFactory;
-import javax.media.opengl.GLRunnable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
+import com.jogamp.opengl.GLRunnable;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.graph.curve.Region;
@@ -693,10 +693,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         cDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(debug) {
-            gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2ES2();
+            gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, gl, null) ).getGL2ES2();
         }
         if(trace) {
-            gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
+            gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
 
         try {

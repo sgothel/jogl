@@ -28,15 +28,15 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLFBODrawable;
-import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLFBODrawable;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,7 +52,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
  * Toolkit agnostic {@link GLOffscreenAutoDrawable.FBO} tests using the
- * {@link GLDrawableFactory#createOffscreenAutoDrawable(javax.media.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, int, int, GLContext) factory model}.
+ * {@link GLDrawableFactory#createOffscreenAutoDrawable(com.jogamp.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, com.jogamp.opengl.GLCapabilitiesChooser, int, int, GLContext) factory model}.
  * <p>
  * The created {@link GLOffscreenAutoDrawable.FBO} is being used to run the {@link GLEventListener}.
  * </p>

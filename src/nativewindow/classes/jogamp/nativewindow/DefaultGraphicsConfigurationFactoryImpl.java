@@ -33,7 +33,7 @@
 
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 public class DefaultGraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
     @Override

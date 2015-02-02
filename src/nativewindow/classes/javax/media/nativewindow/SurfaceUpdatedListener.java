@@ -32,10 +32,10 @@
  *
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /**
- * Clients may add their SurfaceUpdateListener implementation to a {@link javax.media.nativewindow.NativeSurface}
+ * Clients may add their SurfaceUpdateListener implementation to a {@link com.jogamp.nativewindow.NativeSurface}
  * allowing to get notified after the surface has been updated, eg. after a swap buffer operation.
  */
 public interface SurfaceUpdatedListener {

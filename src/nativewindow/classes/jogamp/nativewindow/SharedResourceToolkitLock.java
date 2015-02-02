@@ -31,7 +31,7 @@ package jogamp.nativewindow;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.ToolkitLock;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.LongObjectHashMap;
@@ -39,7 +39,7 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
- * Implementing a shared resource based recursive {@link javax.media.nativewindow.ToolkitLock}.
+ * Implementing a shared resource based recursive {@link com.jogamp.nativewindow.ToolkitLock}.
  * <p>
  * A resource handle maybe used within many objects
  * and can be synchronized across threads via an unique instance of SharedResourceToolkitLock.

@@ -67,7 +67,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="javax/media/nativewindow/* javax/media/nativewindow/util/* com/jogamp/nativewindow/* com/jogamp/nativewindow/egl/* com/jogamp/nativewindow/swt/** jogamp/nativewindow/*"/>
+                  value="com/jogamp/nativewindow/* com/jogamp/nativewindow/util/* com/jogamp/nativewindow/egl/* com/jogamp/nativewindow/swt/** jogamp/nativewindow/*"/>
 
         <property name="java.part.awt"
                   value="com/jogamp/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
@@ -150,8 +150,8 @@
         <property name="javadoc.spec" value="${project.root}/javadoc_nativewindow_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_nativewindow_dev" />
         <property name="javadoc.windowtitle" value="Native Windowing Interface (NativeWindow) API -- ${jogamp.version.base} Specification" />
-        <property name="javadoc.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
-        <property name="javadoc.spec.packagenames" value="javax.media.nativewindow.*" />
+        <property name="javadoc.overview" value="../src/nativewindow/classes/com/jogamp/nativewindow/package.html" />
+        <property name="javadoc.spec.packagenames" value="com.jogamp.nativewindow.*" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames}" />
 

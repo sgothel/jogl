@@ -35,7 +35,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.JoglVersion;

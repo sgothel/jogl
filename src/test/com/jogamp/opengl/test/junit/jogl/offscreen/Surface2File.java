@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.offscreen;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 public class Surface2File implements SurfaceUpdatedListener {
 

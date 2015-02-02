@@ -32,9 +32,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.io.IOException;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;

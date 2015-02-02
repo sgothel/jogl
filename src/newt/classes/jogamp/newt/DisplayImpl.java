@@ -53,14 +53,14 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.util.PixelFormatUtil;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.util.PixelFormatUtil;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;

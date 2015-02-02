@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.awt;
+package com.jogamp.opengl.awt;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 

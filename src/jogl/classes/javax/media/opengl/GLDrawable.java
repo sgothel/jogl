@@ -38,11 +38,11 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeSurfaceHolder;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeSurfaceHolder;
 
 
 /** An abstraction for an OpenGL rendering target. A GLDrawable's
@@ -229,7 +229,7 @@ public interface GLDrawable extends NativeSurfaceHolder {
    * <i>and</i> while it's {@link NativeSurface surface} is being {@link NativeSurface#lockSurface() locked}.
    * <p>
    * It is usually identical to the underlying windowing toolkit {@link NativeSurface surface}'s
-   * {@link javax.media.nativewindow.NativeSurface#getSurfaceHandle() handle}
+   * {@link com.jogamp.nativewindow.NativeSurface#getSurfaceHandle() handle}
    * or an intermediate layer to suite GL, e.g. an EGL surface.
    * </p>
    * <p>

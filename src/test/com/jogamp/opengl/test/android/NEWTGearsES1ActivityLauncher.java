@@ -7,7 +7,7 @@ import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
 public class NEWTGearsES1ActivityLauncher extends LauncherUtil.BaseActivityLauncher {
     static String demo = "com.jogamp.opengl.test.android.NEWTGearsES1Activity";
-    static String[] sys_pkgs = new String[] { "com.jogamp.common", "javax.media.opengl" };
+    static String[] sys_pkgs = new String[] { "com.jogamp.common", "com.jogamp.opengl" };
     static String[] usr_pkgs = new String[] { "com.jogamp.opengl.test" };
 
     @Override

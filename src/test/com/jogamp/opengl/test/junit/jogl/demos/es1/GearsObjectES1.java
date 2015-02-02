@@ -22,12 +22,12 @@ package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GLBufferStorage;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLLightingFunc;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GLBufferStorage;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.GLArrayDataServer;

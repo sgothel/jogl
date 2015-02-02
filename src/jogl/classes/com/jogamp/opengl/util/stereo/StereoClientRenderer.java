@@ -27,12 +27,12 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
 
 import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableHelper.GLEventListenerAction;

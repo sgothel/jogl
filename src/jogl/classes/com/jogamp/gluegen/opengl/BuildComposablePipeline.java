@@ -424,7 +424,7 @@ public class BuildComposablePipeline {
 
             final ArrayList<String> imports = new ArrayList<String>();
             imports.add("java.io.*");
-            imports.add("javax.media.opengl.*");
+            imports.add("com.jogamp.opengl.*");
             imports.add("com.jogamp.gluegen.runtime.*");
             imports.add(Buffer.class.getPackage().getName()+".*");
             for (final Class<?> clasS : clazzList) {
@@ -682,7 +682,7 @@ public class BuildComposablePipeline {
                        !type.endsWith("core") &&
                        !type.endsWith("Compatible") )
             {
-                final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+                final Class<?> clazz = BuildComposablePipeline.getClass("com.jogamp.opengl." + type);
                 if (clazz.isAssignableFrom(baseInterfaceClass)) {
                     output.println("    return true;");
                 } else {
@@ -705,7 +705,7 @@ public class BuildComposablePipeline {
             } else if( type.equals("GLProfile") ) {
                 output.println("    return " + getDownstreamObjectName() + ".getGLProfile();");
             } else {
-                final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+                final Class<?> clazz = BuildComposablePipeline.getClass("com.jogamp.opengl." + type);
                 if (clazz.isAssignableFrom(baseInterfaceClass)) {
                     output.println("    if( is" + type + "() ) { return this; }");
                     output.println("    throw new GLException(\"Not a " + type + " implementation\");");

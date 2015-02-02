@@ -39,26 +39,26 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.OffscreenLayerSurface;
-import javax.media.nativewindow.ScalableSurface;
-import javax.media.nativewindow.SurfaceUpdatedListener;
-import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.PointImmutable;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.OffscreenLayerSurface;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.SurfaceUpdatedListener;
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
@@ -724,7 +724,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * </p>
      * <p>
      * May return <code>null</code>, in which case the caller shall traverse through the NativeWindow tree
-     * as demonstrated in {@link #getLocationOnScreen(javax.media.nativewindow.util.Point)}.
+     * as demonstrated in {@link #getLocationOnScreen(com.jogamp.nativewindow.util.Point)}.
      * </p>
      *
      * @return if not null, the screen location of the given coordinates

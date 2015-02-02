@@ -41,7 +41,7 @@ package com.jogamp.opengl.util.texture.awt;
 
 import java.awt.image.*;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.texture.*;
 
 public class AWTTextureIO extends TextureIO {

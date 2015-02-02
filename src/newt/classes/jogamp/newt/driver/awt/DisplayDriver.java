@@ -34,7 +34,7 @@
 
 package jogamp.newt.driver.awt;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;

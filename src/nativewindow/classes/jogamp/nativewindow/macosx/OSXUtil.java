@@ -27,10 +27,10 @@
  */
 package jogamp.nativewindow.macosx;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;

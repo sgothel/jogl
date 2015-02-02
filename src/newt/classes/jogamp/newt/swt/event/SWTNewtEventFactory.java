@@ -28,8 +28,8 @@
 
 package jogamp.newt.swt.event;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeSurfaceHolder;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeSurfaceHolder;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;

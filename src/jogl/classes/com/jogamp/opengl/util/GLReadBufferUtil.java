@@ -31,12 +31,12 @@ package com.jogamp.opengl.util;
 import java.io.File;
 import java.io.IOException;
 
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.Texture;

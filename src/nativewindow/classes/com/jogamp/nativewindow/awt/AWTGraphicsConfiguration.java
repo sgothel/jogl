@@ -40,13 +40,13 @@
 
 package com.jogamp.nativewindow.awt;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.image.ColorModel;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
 import jogamp.nativewindow.Debug;
 

@@ -35,7 +35,7 @@
  * facility.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -56,9 +56,9 @@ import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import java.lang.reflect.Constructor;
 import java.security.AccessController;
@@ -261,7 +261,7 @@ public class GLProfile {
     /**
      * Manual shutdown method, may be called after your last JOGL use
      * within the running JVM.<br>
-     * It releases all temporary created resources, ie issues {@link javax.media.opengl.GLDrawableFactory#shutdown()}.<br>
+     * It releases all temporary created resources, ie issues {@link com.jogamp.opengl.GLDrawableFactory#shutdown()}.<br>
      * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked.<br>
      * <p>
      * This method shall not need to be called for other reasons than issuing a proper shutdown of resources at a defined time.
@@ -1075,7 +1075,7 @@ public class GLProfile {
         return usesNativeGLES2(profileImpl) || usesNativeGLES1(profileImpl);
     }
 
-    /** @return {@link javax.media.nativewindow.NativeWindowFactory#isAWTAvailable()} and
+    /** @return {@link com.jogamp.nativewindow.NativeWindowFactory#isAWTAvailable()} and
         JOGL's AWT part */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
 
@@ -1093,17 +1093,17 @@ public class GLProfile {
             return "GL_FLOAT";
         case GL.GL_FIXED:
             return "GL_FIXED";
-        case javax.media.opengl.GL2ES2.GL_INT:
+        case com.jogamp.opengl.GL2ES2.GL_INT:
             return "GL_INT";
         case GL.GL_UNSIGNED_INT:
             return "GL_UNSIGNED_INT";
-        case javax.media.opengl.GL2GL3.GL_DOUBLE:
+        case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
             return "GL_DOUBLE";
-        case javax.media.opengl.GL2.GL_2_BYTES:
+        case com.jogamp.opengl.GL2.GL_2_BYTES:
             return "GL_2_BYTES";
-        case javax.media.opengl.GL2.GL_3_BYTES:
+        case com.jogamp.opengl.GL2.GL_3_BYTES:
             return "GL_3_BYTES";
-        case javax.media.opengl.GL2.GL_4_BYTES:
+        case com.jogamp.opengl.GL2.GL_4_BYTES:
             return "GL_4_BYTES";
         }
         return null;
@@ -1333,18 +1333,18 @@ public class GLProfile {
             case GL.GL_FLOAT:
             case GL.GL_FIXED:
                 return true;
-            case javax.media.opengl.GL2ES2.GL_INT:
+            case com.jogamp.opengl.GL2ES2.GL_INT:
             case GL.GL_UNSIGNED_INT:
                 if( isGL2ES2() ) {
                     return true;
                 }
-            case javax.media.opengl.GL2GL3.GL_DOUBLE:
+            case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
                 if( isGL3() ) {
                     return true;
                 }
-            case javax.media.opengl.GL2.GL_2_BYTES:
-            case javax.media.opengl.GL2.GL_3_BYTES:
-            case javax.media.opengl.GL2.GL_4_BYTES:
+            case com.jogamp.opengl.GL2.GL_2_BYTES:
+            case com.jogamp.opengl.GL2.GL_3_BYTES:
+            case com.jogamp.opengl.GL2.GL_4_BYTES:
                 if( isGL2() ) {
                     return true;
                 }
@@ -1479,9 +1479,9 @@ public class GLProfile {
                     case GL.GL_UNSIGNED_SHORT:
                     case GL.GL_SHORT:
                     case GL.GL_FLOAT:
-                    case javax.media.opengl.GL2ES2.GL_INT:
+                    case com.jogamp.opengl.GL2ES2.GL_INT:
                     case GL.GL_UNSIGNED_INT:
-                    case javax.media.opengl.GL2GL3.GL_DOUBLE:
+                    case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
                         break;
                     default:
                         if(throwException) {
@@ -1508,8 +1508,8 @@ public class GLProfile {
                         switch(type) {
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
-                            case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
+                            case com.jogamp.opengl.GL2ES2.GL_INT:
+                            case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1535,8 +1535,8 @@ public class GLProfile {
                             case GL.GL_BYTE:
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
-                            case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
+                            case com.jogamp.opengl.GL2ES2.GL_INT:
+                            case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1562,9 +1562,9 @@ public class GLProfile {
                             case GL.GL_UNSIGNED_SHORT:
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
-                            case javax.media.opengl.GL2ES2.GL_INT:
+                            case com.jogamp.opengl.GL2ES2.GL_INT:
                             case GL.GL_UNSIGNED_INT:
-                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
+                            case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1588,8 +1588,8 @@ public class GLProfile {
                         switch(type) {
                             case GL.GL_SHORT:
                             case GL.GL_FLOAT:
-                            case javax.media.opengl.GL2ES2.GL_INT:
-                            case javax.media.opengl.GL2GL3.GL_DOUBLE:
+                            case com.jogamp.opengl.GL2ES2.GL_INT:
+                            case com.jogamp.opengl.GL2GL3.GL_DOUBLE:
                                 break;
                             default:
                                 if(throwException) {
@@ -1727,7 +1727,7 @@ public class GLProfile {
         final ClassLoader classloader = GLProfile.class.getClassLoader();
 
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
-                         ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", classloader) ; // JOGL
+                         ReflectionUtil.isClassAvailable("com.jogamp.opengl.awt.GLCanvas", classloader) ; // JOGL
 
         initGLCtorImpl();
 

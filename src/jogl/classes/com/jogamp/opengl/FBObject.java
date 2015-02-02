@@ -30,17 +30,17 @@ package com.jogamp.opengl;
 
 import java.util.Arrays;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GL3;
-import javax.media.opengl.GLBase;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GLBase;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 

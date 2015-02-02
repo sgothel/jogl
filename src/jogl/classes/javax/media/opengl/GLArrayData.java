@@ -26,11 +26,11 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.nio.Buffer;
 
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 /**
  *

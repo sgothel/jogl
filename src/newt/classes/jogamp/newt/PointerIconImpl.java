@@ -29,10 +29,10 @@ package jogamp.newt;
 
 import java.nio.ByteBuffer;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PointImmutable;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;

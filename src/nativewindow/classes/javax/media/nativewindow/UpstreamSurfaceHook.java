@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /**
  * Interface allowing upstream caller to pass lifecycle actions and size info

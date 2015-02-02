@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceKeyAdapter;
@@ -37,7 +37,7 @@ import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.opengl.util.FPSAnimator;
 
-import javax.media.opengl.awt.GLJPanel;
+import com.jogamp.opengl.awt.GLJPanel;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.MiscUtils;

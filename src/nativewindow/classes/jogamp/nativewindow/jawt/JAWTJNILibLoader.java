@@ -39,7 +39,7 @@
 
 package jogamp.nativewindow.jawt;
 
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.NWJNILibLoader;
 

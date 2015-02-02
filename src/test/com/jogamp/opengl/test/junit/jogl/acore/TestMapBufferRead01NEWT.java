@@ -35,12 +35,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLBufferStorage;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLBufferStorage;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -35,9 +35,9 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.awt.GLCanvas;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

@@ -75,7 +75,7 @@ public class StereoUtil {
      * <p>
      * This method merely exist as an example implementation to compute the matrices,
      * which shall be adopted by the
-     * {@link CustomGLEventListener#reshape(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
+     * {@link CustomGLEventListener#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
      * </p>
      * @param eyeNum eye denominator
      * @param zNear frustum near value

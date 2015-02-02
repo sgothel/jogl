@@ -28,8 +28,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.awt;
 
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLJPanel;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 

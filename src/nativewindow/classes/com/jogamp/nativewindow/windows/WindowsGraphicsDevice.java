@@ -32,7 +32,7 @@
 
 package com.jogamp.nativewindow.windows;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 /**
  * Encapsulates a graphics device on Windows platforms.<br>

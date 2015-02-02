@@ -1,14 +1,14 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.fixedfunc.GLLightingFunc;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
@@ -330,9 +330,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
     if (GLProfile.isAWTAvailable() &&
-        (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
-        !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
-        ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
+        (drawable instanceof com.jogamp.opengl.awt.GLJPanel) &&
+        !((com.jogamp.opengl.awt.GLJPanel) drawable).isOpaque() &&
+        ((com.jogamp.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
       gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
     } else {
       gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);

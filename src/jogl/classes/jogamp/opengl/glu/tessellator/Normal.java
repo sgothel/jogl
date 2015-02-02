@@ -52,8 +52,8 @@
 */
 package jogamp.opengl.glu.tessellator;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
 
 class Normal {
     private Normal() {

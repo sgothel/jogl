@@ -37,11 +37,11 @@ import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Control;
 
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;

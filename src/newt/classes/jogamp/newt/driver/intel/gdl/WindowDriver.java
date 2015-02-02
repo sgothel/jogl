@@ -34,9 +34,9 @@
 
 package jogamp.newt.driver.intel.gdl;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.*;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.Point;
 
 public class WindowDriver extends jogamp.newt.WindowImpl {
     static {

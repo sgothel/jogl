@@ -31,8 +31,8 @@ package com.jogamp.opengl.test.junit.jogl.acore.anim;
 import java.awt.Frame;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.awt.GLJPanel;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.awt.GLJPanel;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;

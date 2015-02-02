@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.opengl.GL;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.GL;
 
 import com.jogamp.opengl.math.FovHVHalves;
 
@@ -45,8 +45,8 @@ import com.jogamp.opengl.math.FovHVHalves;
  *     <li>device.{@link #updateEyePose(int)}</li>
  *     <li>if device.{@link #ppAvailable()}: Set the render target, e.g. FBO</li>
  *     <li>Set the viewport using {@link Eye#getViewport()}</li>
- *     <li>{@link StereoGLEventListener#reshapeForEye(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream.reshapeEye(..)}</li>
- *     <li>{@link StereoGLEventListener#display(javax.media.opengl.GLAutoDrawable, int) upstream.display(..)}.</li>
+ *     <li>{@link StereoGLEventListener#reshapeForEye(com.jogamp.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream.reshapeEye(..)}</li>
+ *     <li>{@link StereoGLEventListener#display(com.jogamp.opengl.GLAutoDrawable, int) upstream.display(..)}.</li>
  *   </ul></li>
  *   <li>Reset the viewport</li>
  *   <li>If device.{@link #ppAvailable()}:<ul>

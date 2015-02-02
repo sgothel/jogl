@@ -31,7 +31,7 @@ package jogamp.opengl.util.glsl;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 import jogamp.opengl.util.GLArrayHandlerFlat;
 import jogamp.opengl.util.GLVBOArrayHandler;

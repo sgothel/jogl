@@ -29,7 +29,7 @@
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -50,8 +50,8 @@ import com.jogamp.opengl.util.Animator;
 
 import java.util.Iterator;
 import java.util.List;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 /**
  * Queries the current MonitorMode 50 times,

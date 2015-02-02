@@ -37,13 +37,13 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 public class PointsDemoES2 extends PointsDemo {
     ShaderState st;

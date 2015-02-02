@@ -36,11 +36,11 @@
  */
 package com.jogamp.opengl.util;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 

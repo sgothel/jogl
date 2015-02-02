@@ -37,9 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.awt;
+package com.jogamp.opengl.awt;
 
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLAutoDrawable;
 
 public interface AWTGLAutoDrawable extends GLAutoDrawable, ComponentEvents {
   /** Requests a new width and height for this AWTGLAutoDrawable. */

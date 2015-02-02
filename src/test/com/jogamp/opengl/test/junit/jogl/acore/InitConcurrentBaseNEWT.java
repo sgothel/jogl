@@ -28,10 +28,10 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

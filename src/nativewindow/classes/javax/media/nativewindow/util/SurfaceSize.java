@@ -27,12 +27,12 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package com.jogamp.nativewindow.util;
 
 /**
  * Immutable SurfaceSize Class, consisting of it's read only components:<br>
  * <ul>
- *  <li>{@link javax.media.nativewindow.util.DimensionImmutable size in pixels}</li>
+ *  <li>{@link com.jogamp.nativewindow.util.DimensionImmutable size in pixels}</li>
  *  <li><code>bits per pixel</code></li>
  * </ul>
  */

@@ -98,7 +98,7 @@ static const char * const ClazzNameBuffers = "com/jogamp/common/nio/Buffers";
 static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
 static const char * const ClazzNameBuffersStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";
 static const char * const ClazzNameByteBuffer = "java/nio/ByteBuffer";
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
+static const char * const ClazzNamePoint = "com/jogamp/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass X11UtilClazz = NULL;
@@ -669,7 +669,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_SetWindowPosSize
 /*
  * Class:     jogamp_nativewindow_x11_X11Lib
  * Method:    GetRelativeLocation
- * Signature: (JIJJII)Ljavax/media/nativewindow/util/Point;
+ * Signature: (JIJJII)Lcom/jogamp/nativewindow/util/Point;
  */
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_x11_X11Lib_GetRelativeLocation0
   (JNIEnv *env, jclass unused, jlong jdisplay, jint screen_index, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)

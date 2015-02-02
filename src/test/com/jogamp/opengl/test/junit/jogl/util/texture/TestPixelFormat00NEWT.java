@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.util.texture;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
-import javax.media.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelFormat;
 
 import org.junit.Assert;
 import org.junit.Test;

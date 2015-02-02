@@ -34,8 +34,8 @@
 
 package jogamp.newt.driver.bcm.egl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import jogamp.newt.NEWTJNILibLoader;
 

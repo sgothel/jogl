@@ -38,13 +38,13 @@ import com.jogamp.opengl.util.AnimatorBase;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.util.InsetsImmutable;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

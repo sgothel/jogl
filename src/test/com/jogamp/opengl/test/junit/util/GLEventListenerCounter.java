@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.test.junit.util;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
 
 public class GLEventListenerCounter implements GLEventListener {
     public int initCount = 0;

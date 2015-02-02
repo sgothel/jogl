@@ -4,7 +4,7 @@ package com.jogamp.opengl.test.junit.jogl.awt;
 import java.awt.Desktop;
 import java.io.File;
 
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Test;
 import org.junit.FixMethodOrder;

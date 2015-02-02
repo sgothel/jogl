@@ -35,9 +35,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLPointerFuncUtil;
 
 import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLFixedArrayHandler;
@@ -67,7 +67,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @param normalized Whether the data shall be normalized
    * @param initialElementCount
    *
-   * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
+   * @see com.jogamp.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataClient createFixed(final int index, final int comps, final int dataType, final boolean normalized, final int initialElementCount)
     throws GLException
@@ -97,7 +97,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @param stride
    * @param buffer the user define data
    *
-   * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
+   * @see com.jogamp.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataClient createFixed(final int index, final int comps, final int dataType, final boolean normalized, final int stride,
                                               final Buffer buffer)

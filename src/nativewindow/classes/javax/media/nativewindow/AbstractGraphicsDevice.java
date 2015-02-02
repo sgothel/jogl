@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import jogamp.nativewindow.Debug;
 
@@ -109,13 +109,13 @@ public interface AbstractGraphicsDevice extends Cloneable {
     public long getHandle();
 
     /**
-     * Optionally locking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock#lock()}.
+     * Optionally locking the device, utilizing eg {@link com.jogamp.nativewindow.ToolkitLock#lock()}.
      * The lock implementation must be recursive.
      */
     public void lock();
 
     /**
-     * Optionally unlocking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock#unlock()}.
+     * Optionally unlocking the device, utilizing eg {@link com.jogamp.nativewindow.ToolkitLock#unlock()}.
      * The lock implementation must be recursive.
      *
      * @throws RuntimeException in case the lock is not acquired by this thread.

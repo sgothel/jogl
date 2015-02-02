@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package com.jogamp.nativewindow.util;
 
 /**
  * Mutable insets representing rectangular window decoration insets on all four edges

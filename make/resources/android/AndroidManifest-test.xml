@@ -8,7 +8,7 @@
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <uses-library android:name="com.jogamp.common" android:required="true" />
-    <uses-library android:name="javax.media.opengl" android:required="true" />
+    <uses-library android:name="com.jogamp.opengl" android:required="true" />
     <uses-library android:name="jogamp.android.launcher" android:required="true" />
 
     <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>

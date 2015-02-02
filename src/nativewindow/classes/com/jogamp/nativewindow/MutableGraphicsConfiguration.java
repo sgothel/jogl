@@ -27,9 +27,9 @@
  */
 package com.jogamp.nativewindow;
 
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.DefaultGraphicsConfiguration;
 
 public class MutableGraphicsConfiguration extends DefaultGraphicsConfiguration {
     public MutableGraphicsConfiguration(final AbstractGraphicsScreen screen,

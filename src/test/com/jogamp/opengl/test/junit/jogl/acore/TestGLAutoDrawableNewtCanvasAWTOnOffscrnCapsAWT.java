@@ -33,16 +33,16 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.io.IOException;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.opengl.GLGraphicsConfigurationUtil;

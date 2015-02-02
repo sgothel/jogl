@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl.awt;
+package com.jogamp.opengl.awt;
 
 import java.beans.Beans;
 import java.lang.reflect.Method;
@@ -61,32 +61,32 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.OffscreenLayerOption;
-import javax.media.nativewindow.ScalableSurface;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
-import javax.media.opengl.GLSharedContextSetter;
-import javax.media.opengl.Threading;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.OffscreenLayerOption;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
+import com.jogamp.opengl.GLSharedContextSetter;
+import com.jogamp.opengl.Threading;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
@@ -225,7 +225,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       See details about <a href="#contextSharing">OpenGL context sharing</a>.
       </p>
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
-   * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+   * @see GLCanvas#GLCanvas(com.jogamp.opengl.GLCapabilitiesImmutable, com.jogamp.opengl.GLCapabilitiesChooser, com.jogamp.opengl.GLContext, java.awt.GraphicsDevice)
    */
   public GLCanvas(final GLCapabilitiesImmutable capsReqUser) throws GLException {
     this(capsReqUser, null, null);
@@ -1358,7 +1358,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
    * The drawable and context handle are null'ed as well, assuming {@link #destroy()} has been called already.
    * </p>
    *
-   * @see #chooseGraphicsConfiguration(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, java.awt.GraphicsDevice)
+   * @see #chooseGraphicsConfiguration(com.jogamp.opengl.GLCapabilitiesImmutable, com.jogamp.opengl.GLCapabilitiesImmutable, com.jogamp.opengl.GLCapabilitiesChooser, java.awt.GraphicsDevice)
    */
   private final Runnable disposeJAWTWindowAndAWTDeviceOnEDT = new Runnable() {
     @Override

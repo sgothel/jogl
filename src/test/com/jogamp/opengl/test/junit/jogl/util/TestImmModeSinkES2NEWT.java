@@ -30,10 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.util;
 
 import java.io.IOException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Test;
 import org.junit.FixMethodOrder;

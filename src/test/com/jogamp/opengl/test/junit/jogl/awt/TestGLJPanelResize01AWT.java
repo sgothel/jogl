@@ -30,10 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.awt;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLJPanel;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;

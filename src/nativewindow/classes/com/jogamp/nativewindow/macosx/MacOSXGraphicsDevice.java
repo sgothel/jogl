@@ -32,7 +32,7 @@
 
 package com.jogamp.nativewindow.macosx;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 /** Encapsulates a graphics device on MacOSX platforms.
  */

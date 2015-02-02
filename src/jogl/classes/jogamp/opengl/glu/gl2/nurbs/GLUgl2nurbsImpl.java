@@ -37,8 +37,8 @@ import jogamp.opengl.glu.nurbs.*;
 
 import java.lang.reflect.Method;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.glu.GLUnurbs;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLUnurbs;
 
 /**
  * Base object for working with NURBS curves and surfaces

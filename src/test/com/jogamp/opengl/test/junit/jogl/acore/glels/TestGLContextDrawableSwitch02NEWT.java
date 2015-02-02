@@ -33,9 +33,9 @@ import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.newt.opengl.GLWindow;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawableFactory;
 
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 

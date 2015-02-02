@@ -42,7 +42,7 @@ package com.jogamp.nativewindow.awt;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 
 

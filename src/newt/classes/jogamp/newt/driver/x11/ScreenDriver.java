@@ -36,9 +36,9 @@ package jogamp.newt.driver.x11;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.Debug;

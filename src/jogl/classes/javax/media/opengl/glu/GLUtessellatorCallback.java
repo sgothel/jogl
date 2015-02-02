@@ -50,7 +50,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package javax.media.opengl.glu;
+package com.jogamp.opengl.glu;
 
 /**
  * <b>GLUtessellatorCallback</b> interface provides methods that the user will
@@ -63,7 +63,7 @@ package javax.media.opengl.glu;
 public interface GLUtessellatorCallback {
   /**
    * The <b>begin</b> callback method is invoked like
-   * {@link javax.media.opengl.GL#glBegin glBegin} to indicate the start of a
+   * {@link com.jogamp.opengl.GL#glBegin glBegin} to indicate the start of a
    * (triangle) primitive. The method takes a single argument of type int. If
    * the <b>GLU_TESS_BOUNDARY_ONLY</b> property is set to <b>GL_FALSE</b>, then
    * the argument is set to either <b>GL_TRIANGLE_FAN</b>,
@@ -104,7 +104,7 @@ public interface GLUtessellatorCallback {
 
   /**
    * The <b>edgeFlag</b> callback method is similar to
-   * {@link javax.media.opengl.GL#glEdgeFlag glEdgeFlag}. The method takes
+   * {@link com.jogamp.opengl.GL#glEdgeFlag glEdgeFlag}. The method takes
    * a single boolean boundaryEdge that indicates which edges lie on the
    * polygon boundary. If the boundaryEdge is <b>GL_TRUE</b>, then each vertex
    * that follows begins an edge that lies on the polygon boundary, that is,
@@ -149,7 +149,7 @@ public interface GLUtessellatorCallback {
   /**
    * The <b>vertex</b> callback method is invoked between the {@link
    * #begin begin} and {@link #end end} callback methods.  It is
-   * similar to {@link javax.media.opengl.GL#glVertex3f glVertex3f},
+   * similar to {@link com.jogamp.opengl.GL#glVertex3f glVertex3f},
    * and it defines the vertices of the triangles created by the
    * tessellation process.  The method takes a reference as its only
    * argument. This reference is identical to the opaque reference
@@ -186,7 +186,7 @@ public interface GLUtessellatorCallback {
 
   /**
    * The end callback serves the same purpose as
-   * {@link javax.media.opengl.GL#glEnd glEnd}. It indicates the end of a
+   * {@link com.jogamp.opengl.GL#glEnd glEnd}. It indicates the end of a
    * primitive and it takes no arguments.
    *
    * @see GLU#gluTessCallback           gluTessCallback

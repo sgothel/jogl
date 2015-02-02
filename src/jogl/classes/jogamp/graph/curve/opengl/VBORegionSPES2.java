@@ -29,9 +29,9 @@ package jogamp.graph.curve.opengl;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLUniformData;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLUniformData;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;

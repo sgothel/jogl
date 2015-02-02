@@ -41,7 +41,7 @@ package com.jogamp.opengl.util.texture.spi;
 
 import java.io.*;
 import java.net.*;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.texture.*;
 

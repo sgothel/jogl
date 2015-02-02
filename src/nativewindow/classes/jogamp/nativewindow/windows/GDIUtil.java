@@ -27,9 +27,9 @@
  */
 package jogamp.nativewindow.windows;
 
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.ExceptionUtils;
 

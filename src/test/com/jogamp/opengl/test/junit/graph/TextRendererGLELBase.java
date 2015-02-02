@@ -29,10 +29,10 @@ package com.jogamp.opengl.test.junit.graph;
 
 import java.io.IOException;
 
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;

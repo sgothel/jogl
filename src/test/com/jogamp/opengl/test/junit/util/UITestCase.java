@@ -39,12 +39,12 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLEventListener;
 
 import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;

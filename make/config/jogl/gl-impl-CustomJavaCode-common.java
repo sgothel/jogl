@@ -88,7 +88,7 @@
     }
 
     /**
-     * @see javax.media.opengl.GLContext#setSwapInterval(int)
+     * @see com.jogamp.opengl.GLContext#setSwapInterval(int)
      */
     @Override
     public final void setSwapInterval(int interval) {
@@ -96,7 +96,7 @@
     }
 
     /**
-     * @see javax.media.opengl.GLContext#getSwapInterval()
+     * @see com.jogamp.opengl.GLContext#getSwapInterval()
      */
     @Override
     public final int getSwapInterval() {

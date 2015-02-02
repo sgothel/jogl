@@ -44,11 +44,11 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.WindowConstants;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.PixelFormatUtil;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelFormatUtil;
 import javax.swing.MenuSelectionManager;
 
 import com.jogamp.nativewindow.awt.DirectDataBufferInt;

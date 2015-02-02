@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import com.jogamp.common.type.WriteCloneable;
 
@@ -34,7 +34,7 @@ import com.jogamp.common.type.WriteCloneable;
  * Specifies an immutable set of capabilities that a window's rendering context
  * must support, such as color depth per channel.
  *
- * @see javax.media.nativewindow.Capabilities
+ * @see com.jogamp.nativewindow.Capabilities
  */
 public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, Comparable<CapabilitiesImmutable> {
 

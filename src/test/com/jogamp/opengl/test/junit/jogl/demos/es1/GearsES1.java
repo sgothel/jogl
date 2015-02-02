@@ -23,16 +23,16 @@ package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
 import java.nio.FloatBuffer;
 
-import javax.media.nativewindow.NativeWindow;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPipelineFactory;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.fixedfunc.GLLightingFunc;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -139,12 +139,12 @@ public class GearsES1 implements GLEventListener {
 
     if(debugFFPEmu) {
         // Debug ..
-        _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, _gl, null) );
+        _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", GL2ES2.class, _gl, null) );
         debug = false;
     }
     if(traceFFPEmu) {
         // Trace ..
-        _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
+        _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
         trace = false;
     }
     GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
@@ -152,13 +152,13 @@ public class GearsES1 implements GLEventListener {
     if(debug) {
         try {
             // Debug ..
-            gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
+            gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", GL2ES1.class, gl, null) );
         } catch (final Exception e) {e.printStackTrace();}
     }
     if(trace) {
         try {
             // Trace ..
-            gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
+            gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
         } catch (final Exception e) {e.printStackTrace();}
     }
 
@@ -290,9 +290,9 @@ public class GearsES1 implements GLEventListener {
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
     if (GLProfile.isAWTAvailable() &&
-        (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
-        !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
-        ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
+        (drawable instanceof com.jogamp.opengl.awt.GLJPanel) &&
+        !((com.jogamp.opengl.awt.GLJPanel) drawable).isOpaque() &&
+        ((com.jogamp.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
       gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
     } else {
       gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);

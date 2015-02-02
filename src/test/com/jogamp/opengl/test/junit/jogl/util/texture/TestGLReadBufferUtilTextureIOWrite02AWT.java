@@ -31,12 +31,12 @@ package com.jogamp.opengl.test.junit.jogl.util.texture;
 import java.awt.Dimension;
 import java.awt.Frame;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.Threading;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.Threading;
+import com.jogamp.opengl.awt.GLCanvas;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 

@@ -47,10 +47,10 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.GLLightingFunc;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
-import javax.media.opengl.glu.gl2.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.glu.gl2.*;
 
 import com.jogamp.opengl.util.texture.*;
 import com.jogamp.opengl.util.texture.awt.*;

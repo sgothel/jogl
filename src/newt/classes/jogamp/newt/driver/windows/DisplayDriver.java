@@ -43,9 +43,9 @@ import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.PixelFormat;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;

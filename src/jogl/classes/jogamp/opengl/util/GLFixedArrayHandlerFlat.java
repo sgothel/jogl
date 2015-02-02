@@ -28,9 +28,9 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 

@@ -29,7 +29,7 @@ package com.jogamp.opengl.math;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 

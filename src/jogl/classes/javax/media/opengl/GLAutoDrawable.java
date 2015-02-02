@@ -38,11 +38,11 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.util.List;
 
-import javax.media.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeSurface;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -63,7 +63,7 @@ import jogamp.opengl.Debug;
     <h5><a name="initialization">GLAutoDrawable Initialization</a></h5>
     <p>
     The implementation shall initialize itself as soon as possible,
-    which is only possible <i>after</i> the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible and and is realized.<br>
+    which is only possible <i>after</i> the attached {@link com.jogamp.nativewindow.NativeSurface NativeSurface} becomes visible and and is realized.<br>
     The following initialization sequence should be implemented:
     <ul>
         <li> Create the  {@link GLDrawable} with the requested {@link GLCapabilities}</li>
@@ -81,11 +81,11 @@ import jogamp.opengl.Debug;
     <p>
     Another implementation detail is the {@link GLDrawable} reconfiguration. One use case is where a window is being
     dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation
-    shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br/>
+    shall be able to detect such cases in conjunction with the associated {@link com.jogamp.nativewindow.NativeSurface NativeSurface}.<br/>
     For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
-    is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s
-    and NEWT's <code>AWTCanvas</code> {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()}
-    specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow}
+    is capable to determine a display device change. This is demonstrated within {@link com.jogamp.opengl.awt.GLCanvas}'s
+    and NEWT's <code>AWTCanvas</code> {@link com.jogamp.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()}
+    specialization. Another demonstration is NEWT's {@link com.jogamp.nativewindow.NativeWindow NativeWindow}
     implementation on the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br/>
     All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has
     to be chosen again. The following protocol shall be satisfied.
@@ -342,12 +342,12 @@ public interface GLAutoDrawable extends GLDrawable {
   public GLEventListener removeGLEventListener(GLEventListener listener);
 
   /**
-   * Registers the usage of an animator, an {@link javax.media.opengl.GLAnimatorControl} implementation.
+   * Registers the usage of an animator, an {@link com.jogamp.opengl.GLAnimatorControl} implementation.
    * The animator will be queried whether it's animating, ie periodically issuing {@link #display()} calls or not.
    * <p>
    * This method shall be called by an animator implementation only,<br>
-   * e.g. {@link com.jogamp.opengl.util.Animator#add(javax.media.opengl.GLAutoDrawable)}, passing it's control implementation,<br>
-   * and {@link com.jogamp.opengl.util.Animator#remove(javax.media.opengl.GLAutoDrawable)}, passing <code>null</code>.
+   * e.g. {@link com.jogamp.opengl.util.Animator#add(com.jogamp.opengl.GLAutoDrawable)}, passing it's control implementation,<br>
+   * and {@link com.jogamp.opengl.util.Animator#remove(com.jogamp.opengl.GLAutoDrawable)}, passing <code>null</code>.
    * </p>
    * <p>
    * Impacts {@link #display()} and {@link #invoke(boolean, GLRunnable)} semantics.</p><br>
@@ -359,15 +359,15 @@ public interface GLAutoDrawable extends GLDrawable {
    * @throws GLException if an animator is already registered.
    * @see #display()
    * @see #invoke(boolean, GLRunnable)
-   * @see javax.media.opengl.GLAnimatorControl
+   * @see com.jogamp.opengl.GLAnimatorControl
    */
   public abstract void setAnimator(GLAnimatorControl animatorControl) throws GLException;
 
   /**
-   * @return the registered {@link javax.media.opengl.GLAnimatorControl} implementation, using this <code>GLAutoDrawable</code>.
+   * @return the registered {@link com.jogamp.opengl.GLAnimatorControl} implementation, using this <code>GLAutoDrawable</code>.
    *
-   * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
-   * @see javax.media.opengl.GLAnimatorControl
+   * @see #setAnimator(com.jogamp.opengl.GLAnimatorControl)
+   * @see com.jogamp.opengl.GLAnimatorControl
    */
   public GLAnimatorControl getAnimator();
 
@@ -504,15 +504,15 @@ public interface GLAutoDrawable extends GLDrawable {
    * <ul>
    *     <li> Calling {@link GLEventListener#display display(..)} for all
    *          registered {@link GLEventListener}s. </li>
-   *     <li> Executes all one-shot {@link javax.media.opengl.GLRunnable GLRunnable},
+   *     <li> Executes all one-shot {@link com.jogamp.opengl.GLRunnable GLRunnable},
    *          enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
    * </ul></p>
    * <p>
-   * May be called periodically by a running {@link javax.media.opengl.GLAnimatorControl} implementation,<br>
-   * which must register itself with {@link #setAnimator(javax.media.opengl.GLAnimatorControl)}.</p>
+   * May be called periodically by a running {@link com.jogamp.opengl.GLAnimatorControl} implementation,<br>
+   * which must register itself with {@link #setAnimator(com.jogamp.opengl.GLAnimatorControl)}.</p>
    * <p>
    * Called automatically by the window system toolkit upon receiving a repaint() request, <br>
-   * except an {@link javax.media.opengl.GLAnimatorControl} implementation {@link javax.media.opengl.GLAnimatorControl#isAnimating()}.</p>
+   * except an {@link com.jogamp.opengl.GLAnimatorControl} implementation {@link com.jogamp.opengl.GLAnimatorControl#isAnimating()}.</p>
    * <p>
    * This routine may also be called manually for better control over the
    * rendering process. It is legal to call another GLAutoDrawable's
@@ -525,7 +525,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * actual {@link GLEventListener#display display(..)} calls,
    * in case this has not been done yet.</p>
    *
-   * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
+   * @see #setAnimator(com.jogamp.opengl.GLAnimatorControl)
    */
   public void display();
 
@@ -598,8 +598,8 @@ public interface GLAutoDrawable extends GLDrawable {
    *     <tr><td>Toolkit</td>  <td>GLAutoDrawable Implementation</td>            <td>~</td>      <td>Return Type of getUpstreamWidget()</td</tr>
    *     <tr><td>NEWT</td>     <td>{@link com.jogamp.newt.opengl.GLWindow}</td>  <td>has a</td>  <td>{@link com.jogamp.newt.Window}</td</tr>
    *     <tr><td>SWT</td>      <td>{@link com.jogamp.opengl.swt.GLCanvas}</td>   <td>is a</td>   <td>{@link org.eclipse.swt.widgets.Canvas}</td</tr>
-   *     <tr><td>AWT</td>      <td>{@link javax.media.opengl.awt.GLCanvas}</td>  <td>is a</td>   <td>{@link java.awt.Canvas}</td</tr>
-   *     <tr><td>AWT</td>      <td>{@link javax.media.opengl.awt.GLJPanel}</td>  <td>is a</td>   <td>{@link javax.swing.JPanel}</td</tr>
+   *     <tr><td>AWT</td>      <td>{@link com.jogamp.opengl.awt.GLCanvas}</td>  <td>is a</td>   <td>{@link java.awt.Canvas}</td</tr>
+   *     <tr><td>AWT</td>      <td>{@link com.jogamp.opengl.awt.GLJPanel}</td>  <td>is a</td>   <td>{@link javax.swing.JPanel}</td</tr>
    * </table>
    * However, the result may be other object types than the listed above
    * due to new supported toolkits.

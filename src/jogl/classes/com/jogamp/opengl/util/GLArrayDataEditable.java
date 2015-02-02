@@ -1,7 +1,7 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import java.nio.*;
 

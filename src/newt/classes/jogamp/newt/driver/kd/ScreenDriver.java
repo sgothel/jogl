@@ -34,8 +34,8 @@
 
 package jogamp.newt.driver.kd;
 
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.util.Rectangle;
 
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;

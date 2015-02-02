@@ -39,8 +39,8 @@ import java.awt.Container;
 import java.awt.Robot;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
 import javax.swing.JFrame;
 
 import java.util.ArrayList;

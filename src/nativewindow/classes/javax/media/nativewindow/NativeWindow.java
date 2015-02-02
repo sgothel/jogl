@@ -38,10 +38,10 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.Point;
 
 /**
  * Extend the {@link NativeSurface} interface with windowing

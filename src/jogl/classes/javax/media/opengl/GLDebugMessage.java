@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import com.jogamp.common.os.Platform;
 

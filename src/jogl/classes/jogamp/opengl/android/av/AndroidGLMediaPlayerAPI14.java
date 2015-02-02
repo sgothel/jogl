@@ -30,9 +30,9 @@ package jogamp.opengl.android.av;
 import java.io.IOException;
 import java.util.List;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLES2;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;

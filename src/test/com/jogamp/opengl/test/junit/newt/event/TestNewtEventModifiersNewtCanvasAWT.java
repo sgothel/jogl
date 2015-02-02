@@ -30,8 +30,8 @@ package com.jogamp.opengl.test.junit.newt.event ;
 
 import java.awt.BorderLayout ;
 
-import javax.media.opengl.GLCapabilities ;
-import javax.media.opengl.GLProfile ;
+import com.jogamp.opengl.GLCapabilities ;
+import com.jogamp.opengl.GLProfile ;
 
 import javax.swing.JFrame ;
 import javax.swing.SwingUtilities ;

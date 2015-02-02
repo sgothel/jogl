@@ -39,10 +39,10 @@
 
 package com.jogamp.opengl.util.gl2;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.GLLightingFunc;
-import javax.media.opengl.glu.*;
-import javax.media.opengl.glu.gl2.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.glu.gl2.*;
 
 /** Subset of the routines provided by the GLUT interface. Note the
     signatures of many of the methods are necessarily different than

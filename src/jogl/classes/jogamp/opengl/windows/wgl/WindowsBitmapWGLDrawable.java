@@ -40,14 +40,14 @@
 
 package jogamp.opengl.windows.wgl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.MutableSurface;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.MutableSurface;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.BITMAPINFO;
 import jogamp.nativewindow.windows.BITMAPINFOHEADER;

@@ -38,7 +38,7 @@ import java.awt.Button;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;

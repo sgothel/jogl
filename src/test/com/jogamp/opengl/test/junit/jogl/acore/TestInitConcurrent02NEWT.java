@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Test;
 import org.junit.FixMethodOrder;

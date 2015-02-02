@@ -34,10 +34,10 @@ import jogamp.opengl.FPSCounterImpl;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
 

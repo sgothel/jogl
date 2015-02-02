@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import java.util.Comparator;
 

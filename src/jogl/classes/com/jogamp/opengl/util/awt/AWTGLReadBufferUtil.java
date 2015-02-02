@@ -29,9 +29,9 @@ package com.jogamp.opengl.util.awt;
 
 import java.awt.image.BufferedImage;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.GLReadBufferUtil;
 

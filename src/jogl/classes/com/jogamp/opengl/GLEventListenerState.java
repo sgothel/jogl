@@ -30,18 +30,18 @@ package com.jogamp.opengl;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.DefaultGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLRunnable;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.DefaultGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLRunnable;
 
 import jogamp.opengl.Debug;
 
@@ -173,7 +173,7 @@ public class GLEventListenerState {
      * <p>
      * Locking is performed on the {@link GLAutoDrawable auto-drawable's}
      * {@link GLAutoDrawable#getUpstreamLock() upstream-lock} and {@link GLAutoDrawable#getNativeSurface() surface}.
-     * See <a href="../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+     * See <a href="../../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
      * </p>
      *
      * @param src {@link GLAutoDrawable} source to move components from
@@ -203,7 +203,7 @@ public class GLEventListenerState {
      * Locking is performed on the {@link GLAutoDrawable auto-drawable's}
      * {@link GLAutoDrawable#getUpstreamLock() upstream-lock} and {@link GLAutoDrawable#getNativeSurface() surface},
      * which is <i>not released</i> if <code>keepLocked</code> is <code>true</code>.
-     * See <a href="../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+     * See <a href="../../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
      * </p>
      * <p>
      * <code>keepLocked</code> may be utilized if swapping a context between drawables
@@ -321,7 +321,7 @@ public class GLEventListenerState {
      * <p>
      * Locking is performed on the {@link GLAutoDrawable auto-drawable's}
      * {@link GLAutoDrawable#getUpstreamLock() upstream-lock} and {@link GLAutoDrawable#getNativeSurface() surface}.
-     * See <a href="../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+     * See <a href="../../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
      * </p>
      * <p>
      * Note: After this operation, the GLEventListenerState reference should be released.
@@ -351,7 +351,7 @@ public class GLEventListenerState {
      * <p>
      * Locking is performed on the {@link GLAutoDrawable auto-drawable's}
      * {@link GLAutoDrawable#getUpstreamLock() upstream-lock} and {@link GLAutoDrawable#getNativeSurface() surface}.
-     * See <a href="../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+     * See <a href="../../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
      * </p>
      * <p>
      * If the {@link GLAutoDrawable} <code>dest</code> has been kept locked by {@link #moveFrom(GLAutoDrawable, boolean)},

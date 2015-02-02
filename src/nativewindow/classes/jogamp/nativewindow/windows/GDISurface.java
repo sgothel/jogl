@@ -28,11 +28,11 @@
 
 package jogamp.nativewindow.windows;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 import jogamp.nativewindow.ProxySurfaceImpl;
 import jogamp.nativewindow.windows.GDI;

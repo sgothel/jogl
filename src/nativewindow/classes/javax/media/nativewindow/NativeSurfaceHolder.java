@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /**
  * Accessor interface for implementing classes with ownership of a {@link NativeSurface}

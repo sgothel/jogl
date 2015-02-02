@@ -31,8 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLException;
 
 import jogamp.graph.geom.plane.AffineTransform;
 

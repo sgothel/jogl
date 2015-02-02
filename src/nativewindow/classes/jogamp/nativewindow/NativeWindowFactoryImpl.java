@@ -34,10 +34,10 @@ package jogamp.nativewindow;
 
 import java.lang.reflect.Constructor;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.ReflectionUtil.AWTNames;
@@ -68,7 +68,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
 
         throw new IllegalArgumentException("Target window object type " +
                                            winObj.getClass().getName() + " is unsupported; expected " +
-                                           "javax.media.nativewindow.NativeWindow or "+AWTNames.ComponentClass);
+                                           "com.jogamp.nativewindow.NativeWindow or "+AWTNames.ComponentClass);
     }
 
     private Constructor<?> nativeWindowConstructor = null;

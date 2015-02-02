@@ -9,14 +9,14 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 
 /**
  * Tests the closing the device of GLWindow and off-screen GLAutoDrawable using FBO and PBuffer in JOGL

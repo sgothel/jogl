@@ -30,11 +30,11 @@ package jogamp.opengl.x11.glx;
 
 import jogamp.nativewindow.x11.XVisualInfo;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 public class X11GLCapabilities extends GLCapabilities {
   final private XVisualInfo xVisualInfo; // maybe null if !onscreen

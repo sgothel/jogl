@@ -40,7 +40,7 @@
 
 package jogamp.opengl;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.PropertyAccess;

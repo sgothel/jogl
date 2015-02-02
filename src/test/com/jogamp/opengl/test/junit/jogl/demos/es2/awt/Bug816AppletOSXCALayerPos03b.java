@@ -27,10 +27,10 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
 import javax.swing.JApplet;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;

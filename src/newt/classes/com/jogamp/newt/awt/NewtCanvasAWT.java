@@ -47,17 +47,17 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Set;
 
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.OffscreenLayerOption;
-import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.OffscreenLayerOption;
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;

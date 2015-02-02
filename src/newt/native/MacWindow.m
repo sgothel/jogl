@@ -48,7 +48,7 @@
     #include "timespec.h"
 #endif
 
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
+static const char * const ClazzNamePoint = "com/jogamp/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass pointClz = NULL;
@@ -1401,7 +1401,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
 /*
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    getLocationOnScreen0
- * Signature: (JII)Ljavax/media/nativewindow/util/Point;
+ * Signature: (JII)Lcom/jogamp/nativewindow/util/Point;
  */
 JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocationOnScreen0
   (JNIEnv *env, jclass unused, jlong win, jint src_x, jint src_y)

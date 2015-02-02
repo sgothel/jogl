@@ -29,8 +29,8 @@
 package com.jogamp.opengl;
 
 import java.util.List;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
 
 /**
  * Ignores windowSystemRecommendedChoice parameter,

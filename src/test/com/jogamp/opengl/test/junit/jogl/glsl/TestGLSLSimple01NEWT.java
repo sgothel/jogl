@@ -33,9 +33,9 @@ import com.jogamp.opengl.test.junit.util.GLSLSimpleProgram;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,7 +48,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.shader.RedSquareShader;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 
 import java.io.IOException;
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES2;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLSLSimple01NEWT extends UITestCase {

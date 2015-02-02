@@ -36,9 +36,9 @@
 
 package jogamp.opengl.egl;
 
-import javax.media.nativewindow.ProxySurface;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
 
 import jogamp.nativewindow.ProxySurfaceImpl;
 import jogamp.opengl.GLDrawableImpl;

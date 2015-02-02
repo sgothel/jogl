@@ -115,9 +115,9 @@
 
 package jogamp.opengl.glu;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.GLUquadric;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.glu.GLUquadric;
 
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.ImmModeSink;

@@ -42,7 +42,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;

@@ -35,11 +35,11 @@
 
 package jogamp.opengl.egl;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import jogamp.opengl.*;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
 

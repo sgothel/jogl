@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 import java.awt.Frame;
 import java.net.URLConnection;
 
-import javax.media.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.InsetsImmutable;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Display;
@@ -62,8 +62,8 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
             return;
         }
         if( e.getKeySymbol() == KeyEvent.VK_L ) {
-            final javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
-            final javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
+            final com.jogamp.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
+            final com.jogamp.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
             System.err.println("NewtCanvasAWT position: "+p0+", "+p1);
         } else if( e.getKeySymbol() == KeyEvent.VK_D ) {
             glWindow.setUndecorated(!glWindow.isUndecorated());

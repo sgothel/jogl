@@ -44,11 +44,11 @@ import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.PNGIcon;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.VisualIDHolder.VIDType;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.*;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;

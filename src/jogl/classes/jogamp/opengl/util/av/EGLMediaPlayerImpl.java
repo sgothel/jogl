@@ -30,7 +30,7 @@ package jogamp.opengl.util.av;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.egl.EGL;

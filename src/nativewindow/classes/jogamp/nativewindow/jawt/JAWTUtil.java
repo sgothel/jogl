@@ -49,9 +49,9 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Map;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.Debug;

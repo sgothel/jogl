@@ -50,7 +50,7 @@
 ** Java Port: Pepijn Van Eeckhoudt, July 2003
 ** Java Port: Nathan Parker Burg, August 2003
 */
-package javax.media.opengl.glu;
+package com.jogamp.opengl.glu;
 
 /**
  * The <b>GLUtessellator</b> object is used to hold the data, such as the

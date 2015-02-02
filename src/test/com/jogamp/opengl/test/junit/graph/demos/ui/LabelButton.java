@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;

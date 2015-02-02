@@ -44,10 +44,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.GLDrawableImpl;
 

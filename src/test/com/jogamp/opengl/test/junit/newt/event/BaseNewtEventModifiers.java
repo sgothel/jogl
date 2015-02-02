@@ -32,7 +32,7 @@ import java.io.PrintStream ;
 import java.util.ArrayList ;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.media.opengl.GLProfile ;
+import com.jogamp.opengl.GLProfile ;
 
 import org.junit.Assert ;
 import org.junit.BeforeClass ;

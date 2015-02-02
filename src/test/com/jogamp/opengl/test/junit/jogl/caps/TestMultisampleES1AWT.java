@@ -44,12 +44,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es1.MultisampleDemoES1;
 import com.jogamp.opengl.test.junit.util.MiscUtils;

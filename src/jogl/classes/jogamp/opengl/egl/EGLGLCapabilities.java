@@ -28,10 +28,10 @@
 
 package jogamp.opengl.egl;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.egl.EGL;

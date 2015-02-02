@@ -27,7 +27,7 @@
  */
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.ScalableSurface;
 
 /**
  * Basic {@link ScalableSurface} utility to validate and compute pixel-scale values.

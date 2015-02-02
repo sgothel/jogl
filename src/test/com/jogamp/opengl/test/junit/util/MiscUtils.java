@@ -39,7 +39,7 @@ import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.media.opengl.GLContext;
+import com.jogamp.opengl.GLContext;
 
 import com.jogamp.common.os.Platform;
 

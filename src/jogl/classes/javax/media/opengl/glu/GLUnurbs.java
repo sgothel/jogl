@@ -1,4 +1,4 @@
-package javax.media.opengl.glu;
+package com.jogamp.opengl.glu;
 
 /**
  * Wrapper for a GLU NURBS object.

@@ -30,9 +30,9 @@ package com.jogamp.newt;
 
 import java.util.Comparator;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.nativewindow.util.SurfaceSize;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.SurfaceSize;
 
 import com.jogamp.newt.util.MonitorModeUtil;
 

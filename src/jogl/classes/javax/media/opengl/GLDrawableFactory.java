@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,21 +48,21 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 import jogamp.opengl.Debug;
 
 /** <p> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s.
     </p>
-    <p> The {@link javax.media.opengl.GLCapabilities} objects passed
+    <p> The {@link com.jogamp.opengl.GLCapabilities} objects passed
     in to the various factory methods are used as a hint for the
     properties of the returned drawable. The default capabilities
     selection algorithm (equivalent to passing in a null {@link
@@ -82,8 +82,8 @@ import jogamp.opengl.Debug;
     raising a {@link GLException}. The semantics of the rejection
     process are (unfortunately) left unspecified for now. The current
     implementation will cause a {@link GLException} to be raised
-    during the first repaint of the {@link javax.media.opengl.awt.GLCanvas} or {@link
-    javax.media.opengl.awt.GLJPanel} if the capabilities can not be met.<br>
+    during the first repaint of the {@link com.jogamp.opengl.awt.GLCanvas} or {@link
+    com.jogamp.opengl.awt.GLJPanel} if the capabilities can not be met.<br>
     {@link GLOffscreenAutoDrawable} are created lazily,
     see {@link #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int) createOffscreenAutoDrawable(..)}.
     </p>
@@ -468,7 +468,7 @@ public abstract class GLDrawableFactory {
    * due to implementation constraints, ie using the shared resource.
    *
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   * @return A list of {@link javax.media.opengl.GLCapabilitiesImmutable}'s, maybe empty if none is available.
+   * @return A list of {@link com.jogamp.opengl.GLCapabilitiesImmutable}'s, maybe empty if none is available.
    */
   public final List<GLCapabilitiesImmutable> getAvailableCapabilities(AbstractGraphicsDevice device) {
       device = validateDevice(device);
@@ -511,9 +511,9 @@ public abstract class GLDrawableFactory {
    *
    * @see #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile)
    * @see GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile)
-   * @see javax.media.opengl.GLCapabilities#isOnscreen()
-   * @see javax.media.opengl.GLCapabilities#isFBO()
-   * @see javax.media.opengl.GLCapabilities#isPBuffer()
+   * @see com.jogamp.opengl.GLCapabilities#isOnscreen()
+   * @see com.jogamp.opengl.GLCapabilities#isFBO()
+   * @see com.jogamp.opengl.GLCapabilities#isPBuffer()
    * @see GraphicsConfigurationFactory#chooseGraphicsConfiguration(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)
    */
   public abstract GLDrawable createGLDrawable(NativeSurface target)
@@ -589,7 +589,7 @@ public abstract class GLDrawableFactory {
    * @param deviceReq which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
    * @param capsRequested the desired {@link GLCapabilitiesImmutable}, incl. it's {@link GLProfile}.
-   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType)}
+   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(com.jogamp.nativewindow.VisualIDHolder.VIDType)}
    *                      across shared drawables will yield best compatibility.
    * @param chooser the custom chooser, may be null for default
    * @return the created and realized <i>dummy</i> {@link GLAutoDrawable} instance
@@ -650,7 +650,7 @@ public abstract class GLDrawableFactory {
    * @param deviceReq which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
    * @param capsRequested the desired {@link GLCapabilitiesImmutable}, incl. it's {@link GLProfile}.
-   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType) visual ID}
+   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(com.jogamp.nativewindow.VisualIDHolder.VIDType) visual ID}
    *                      or {@link GLCapabilitiesImmutable caps}
    *                      across shared drawables will yield best compatibility.
    * @param chooser the custom chooser, may be null for default
@@ -728,7 +728,7 @@ public abstract class GLDrawableFactory {
    * context in an external (third-party) OpenGL-based library. This
    * GLContext object may be used to draw into this preexisting
    * context using its {@link GL} and {@link
-   * javax.media.opengl.glu.GLU} objects. New contexts created through
+   * com.jogamp.opengl.glu.GLU} objects. New contexts created through
    * {@link GLDrawable}s may share textures and display lists with
    * this external context. </P>
    *

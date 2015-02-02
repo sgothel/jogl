@@ -30,7 +30,7 @@ package jogamp.newt.driver.awt;
 
 import java.awt.EventQueue;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;

@@ -30,8 +30,8 @@ package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -56,10 +56,10 @@ import com.jogamp.opengl.util.Animator;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 /**
  * Fullscreen on separate monitors, incl. spanning across multiple monitors.

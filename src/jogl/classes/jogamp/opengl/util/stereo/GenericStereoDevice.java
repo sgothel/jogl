@@ -29,12 +29,12 @@ package jogamp.opengl.util.stereo;
 
 import java.util.Arrays;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.PointImmutable;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.math.FloatUtil;

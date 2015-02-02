@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 
@@ -45,8 +45,8 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRemoteGLWindows01NEWT extends UITestCase {

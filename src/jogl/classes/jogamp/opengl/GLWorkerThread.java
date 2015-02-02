@@ -43,14 +43,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.GLContext;
+import com.jogamp.opengl.GLContext;
 
 /** Singleton thread upon which all OpenGL work is performed by
     default. Unfortunately many vendors' OpenGL drivers are not really
     thread-safe and stability is much improved by performing OpenGL
     work on at most one thread. This is the default behavior of the
     GLAutoDrawable implementations according to the {@link
-    javax.media.opengl.Threading Threading} class. The GLWorkerThread
+    com.jogamp.opengl.Threading Threading} class. The GLWorkerThread
     replaces the original AWT event queue thread-based mechanism for
     two reasons: first, more than one AWT event queue thread may be
     spawned, for example if a dialog is being shown; second, it avoids

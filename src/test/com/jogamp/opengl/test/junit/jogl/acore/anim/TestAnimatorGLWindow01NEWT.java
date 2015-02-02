@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore.anim;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilities;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;

@@ -1,6 +1,6 @@
 package com.jogamp.opengl.util.glsl.sdk;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import java.io.*;
 

@@ -28,11 +28,11 @@
 
 package com.jogamp.opengl.test.junit.jogl.awt;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;

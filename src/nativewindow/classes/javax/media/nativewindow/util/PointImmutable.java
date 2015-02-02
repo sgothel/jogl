@@ -27,7 +27,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package com.jogamp.nativewindow.util;
 
 import com.jogamp.common.type.WriteCloneable;
 

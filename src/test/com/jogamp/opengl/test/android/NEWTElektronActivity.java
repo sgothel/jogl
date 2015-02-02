@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.test.android;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 

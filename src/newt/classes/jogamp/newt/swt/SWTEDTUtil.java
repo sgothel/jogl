@@ -27,7 +27,7 @@
  */
 package jogamp.newt.swt;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import jogamp.newt.Debug;
 

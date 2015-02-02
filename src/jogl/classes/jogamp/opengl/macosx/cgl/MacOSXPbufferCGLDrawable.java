@@ -42,13 +42,13 @@ package jogamp.opengl.macosx.cgl;
 
 import java.lang.ref.WeakReference;
 
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.MutableSurface;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.DefaultGraphicsConfiguration;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.MutableSurface;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.opengl.util.GLBuffers;

@@ -34,8 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.SurfaceSize;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.SurfaceSize;
 
 /**
  * Convenient {@link com.jogamp.newt.MonitorMode} utility methods,

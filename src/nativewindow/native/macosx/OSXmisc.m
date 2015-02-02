@@ -65,12 +65,12 @@ static jmethodID runnableRunID = NULL;
 
 static const char * const ClazzAnyCstrName = "<init>";
 
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
+static const char * const ClazzNamePoint = "com/jogamp/nativewindow/util/Point";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
 
-static const char * const ClazzNameInsets = "javax/media/nativewindow/util/Insets";
+static const char * const ClazzNameInsets = "com/jogamp/nativewindow/util/Insets";
 static const char * const ClazzNameInsetsCstrSignature = "(IIII)V";
 static jclass insetsClz = NULL;
 static jmethodID insetsCstr = NULL;
@@ -160,7 +160,7 @@ static NSScreen * OSXUtil_getNSScreenByCGDirectDisplayID(CGDirectDisplayID displ
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreen0
- * Signature: (JII)Ljavax/media/nativewindow/util/Point;
+ * Signature: (JII)Lcom/jogamp/nativewindow/util/Point;
  */
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnScreen0
   (JNIEnv *env, jclass unused, jlong winOrView, jint src_x, jint src_y)
@@ -221,7 +221,7 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getInsets0
- * Signature: (J)Ljavax/media/nativewindow/util/Insets;
+ * Signature: (J)Lcom/jogamp/nativewindow/util/Insets;
  */
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
   (JNIEnv *env, jclass unused, jlong winOrView)

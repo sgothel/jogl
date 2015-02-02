@@ -1,15 +1,15 @@
 package jogamp.opengl;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLFBODrawable;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLFBODrawable;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;

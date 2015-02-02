@@ -27,7 +27,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 /**
  * <P>The base interface from which all GL profiles derive, providing

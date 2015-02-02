@@ -29,8 +29,8 @@
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -54,7 +54,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 import java.util.List;
-import javax.media.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.Dimension;
 
 /**
  * Tests MonitorMode change w/ changed rotation and fullscreen.

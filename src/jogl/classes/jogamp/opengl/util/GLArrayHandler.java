@@ -28,7 +28,7 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 /**
  * Handles consistency of buffer data and array state.<br/>

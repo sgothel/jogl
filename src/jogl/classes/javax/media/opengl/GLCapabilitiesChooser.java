@@ -38,14 +38,14 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.util.List;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.CapabilitiesChooser;
 
-import javax.media.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 /** Provides a mechanism by which applications can customize the
     window type selection for a given {@link GLCapabilities}.

@@ -61,24 +61,24 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDebugListener;
-import javax.media.opengl.GLDebugMessage;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLPipelineFactory;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDebugListener;
+import com.jogamp.opengl.GLDebugMessage;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLPipelineFactory;
+import com.jogamp.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
   /**
@@ -685,13 +685,13 @@ public abstract class GLContextImpl extends GLContext {
         glDebugHandler.init( isGL2GL3() && isGLDebugEnabled() );
 
         if(DEBUG_GL) {
-            setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) );
+            setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, gl, null) );
             if(glDebugHandler.isEnabled()) {
                 glDebugHandler.addListener(new GLDebugMessageHandler.StdErrGLDebugListener(true));
             }
         }
         if(TRACE_GL) {
-            setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
+            setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
 
         forceDrawableAssociation = true;
@@ -1475,7 +1475,7 @@ public abstract class GLContextImpl extends GLContext {
    *              This might be useful if you change the OpenGL implementation.
    * @param major requested OpenGL major version
    * @param minor requested OpenGL minor version
-   * @param ctxProfileBits OpenGL context profile and option bits, see {@link javax.media.opengl.GLContext#CTX_OPTION_ANY}
+   * @param ctxProfileBits OpenGL context profile and option bits, see {@link com.jogamp.opengl.GLContext#CTX_OPTION_ANY}
    * @param strictMatch if <code>true</code> the ctx must
    *                    <ul>
    *                      <li>be greater or equal than the requested <code>major.minor</code> version, and</li>
@@ -1489,9 +1489,9 @@ public abstract class GLContextImpl extends GLContext {
    *                 If <code>strictMatch</code> is <code>false</code> method shall always return <code>true</code> or throw an exception.
    *                 If <code>false</code> is returned, no data has been cached or mapped, i.e. ProcAddressTable, Extensions, Version, etc.
    * @see #setContextVersion
-   * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
-   * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
-   * @see javax.media.opengl.GLContext#CTX_IMPL_ES2_COMPAT
+   * @see com.jogamp.opengl.GLContext#CTX_OPTION_ANY
+   * @see com.jogamp.opengl.GLContext#CTX_PROFILE_COMPAT
+   * @see com.jogamp.opengl.GLContext#CTX_IMPL_ES2_COMPAT
    */
   protected final boolean setGLFunctionAvailability(final boolean force, int major, int minor, int ctxProfileBits,
                                                     final boolean strictMatch, final boolean withinGLVersionsMapping) {

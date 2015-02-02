@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.opengl.Debug;
 

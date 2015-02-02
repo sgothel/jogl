@@ -30,11 +30,11 @@ package com.jogamp.graph.curve.opengl;
 import java.io.IOException;
 import java.util.Iterator;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLES2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;

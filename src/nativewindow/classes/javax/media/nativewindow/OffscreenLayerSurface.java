@@ -25,10 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PointImmutable;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 

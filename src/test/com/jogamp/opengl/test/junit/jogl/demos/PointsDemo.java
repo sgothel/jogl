@@ -27,7 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos;
 
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLEventListener;
 
 public abstract class PointsDemo implements GLEventListener {
     int swapInterval = 0;

@@ -33,7 +33,7 @@
 
 package com.jogamp.nativewindow.x11;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
 
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
@@ -41,7 +41,7 @@ import jogamp.nativewindow.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
     X11 platforms. Objects of this type are returned from {@link
-    javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration
+    com.jogamp.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration
     GraphicsConfigurationFactory.chooseGraphicsConfiguration()} on X11
     platforms when toolkits other than the AWT are being used.  */
 

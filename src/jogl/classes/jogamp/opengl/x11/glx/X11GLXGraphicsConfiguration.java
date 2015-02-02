@@ -37,17 +37,17 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.XRenderDirectFormat;

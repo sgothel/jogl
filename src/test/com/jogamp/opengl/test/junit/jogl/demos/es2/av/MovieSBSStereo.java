@@ -31,14 +31,14 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 import java.net.URISyntaxException;
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLES2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;

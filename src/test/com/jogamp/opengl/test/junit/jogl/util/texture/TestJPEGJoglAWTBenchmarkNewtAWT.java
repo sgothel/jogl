@@ -33,8 +33,8 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import javax.imageio.ImageIO;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.TextureData;

@@ -40,9 +40,9 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
 
 public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 

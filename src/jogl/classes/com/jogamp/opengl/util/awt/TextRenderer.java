@@ -64,10 +64,10 @@ import java.nio.*;
 import java.text.*;
 import java.util.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
-import javax.media.opengl.glu.*;
-import javax.media.opengl.awt.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.awt.*;
 
 import jogamp.opengl.Debug;
 
@@ -81,15 +81,15 @@ import jogamp.opengl.Debug;
 
     Using the {@link TextRenderer TextRenderer} is simple. Add a
     "<code>TextRenderer renderer;</code>" field to your {@link
-    javax.media.opengl.GLEventListener GLEventListener}. In your {@link
-    javax.media.opengl.GLEventListener#init init} method, add:
+    com.jogamp.opengl.GLEventListener GLEventListener}. In your {@link
+    com.jogamp.opengl.GLEventListener#init init} method, add:
 
     <PRE>
     renderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
     </PRE>
 
-    <P> In the {@link javax.media.opengl.GLEventListener#display display} method of your
-    {@link javax.media.opengl.GLEventListener GLEventListener}, add:
+    <P> In the {@link com.jogamp.opengl.GLEventListener#display display} method of your
+    {@link com.jogamp.opengl.GLEventListener GLEventListener}, add:
     <PRE>
     renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
     // optionally set the color
@@ -381,7 +381,7 @@ public class TextRenderer {
 
         @param width the width of the current on-screen OpenGL drawable
         @param height the height of the current on-screen OpenGL drawable
-        @throws javax.media.opengl.GLException If an OpenGL context is not current when this method is called
+        @throws com.jogamp.opengl.GLException If an OpenGL context is not current when this method is called
     */
     public void beginRendering(final int width, final int height) throws GLException {
         beginRendering(width, height, true);

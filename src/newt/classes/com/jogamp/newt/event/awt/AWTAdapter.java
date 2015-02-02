@@ -28,7 +28,7 @@
 
 package com.jogamp.newt.event.awt;
 
-import javax.media.nativewindow.NativeSurfaceHolder;
+import com.jogamp.nativewindow.NativeSurfaceHolder;
 
 import jogamp.newt.Debug;
 
@@ -39,10 +39,10 @@ import jogamp.newt.Debug;
  * it is converted to a NEWT event and the given NEWT listener is being called.<br></p>
  * <p>
  * This adapter fullfills three use cases. First as a plain utility to write code AWT agnostic,
- * ie write an {@link javax.media.opengl.GLEvenListener} and some appropriate NEWT {@link com.jogamp.newt.event.NEWTEventListener}.<br></p>
+ * ie write an {@link com.jogamp.opengl.GLEvenListener} and some appropriate NEWT {@link com.jogamp.newt.event.NEWTEventListener}.<br></p>
  * <p>
- * Attach the {@link javax.media.opengl.GLEvenListener} to a NEWT {@link javax.media.opengl.GLAutoDrawable}, e.g. {@link com.jogamp.newt.opengl.GLWindow},<br>
- * or to an AWT {@link javax.media.opengl.GLAutoDrawable}, e.g. {@link javax.media.opengl.awt.GLCanvas}.<br>
+ * Attach the {@link com.jogamp.opengl.GLEvenListener} to a NEWT {@link com.jogamp.opengl.GLAutoDrawable}, e.g. {@link com.jogamp.newt.opengl.GLWindow},<br>
+ * or to an AWT {@link com.jogamp.opengl.GLAutoDrawable}, e.g. {@link com.jogamp.opengl.awt.GLCanvas}.<br>
  * <br>
  * Attach the NEWT {@link com.jogamp.newt.event.NEWTEventListener} to a NEWT component, e.g. {@link com.jogamp.newt.Window},<br>
  * or to an AWT component, e.g. {@link java.awt.Component}.<br></p>
@@ -50,7 +50,7 @@ import jogamp.newt.Debug;
  * Common:<br>
  * <pre>
     // your demo/render code
-    javax.media.opengl.GLEvenListener demo1 = new javax.media.opengl.GLEvenListener() { ... } ;
+    com.jogamp.opengl.GLEvenListener demo1 = new com.jogamp.opengl.GLEvenListener() { ... } ;
 
     // your AWT agnostic NEWT mouse listener code
     com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;

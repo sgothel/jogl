@@ -39,13 +39,13 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
 import org.junit.Test;

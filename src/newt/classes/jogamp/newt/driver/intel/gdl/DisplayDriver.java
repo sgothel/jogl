@@ -35,7 +35,7 @@
 package jogamp.newt.driver.intel.gdl;
 
 import jogamp.newt.*;
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 public class DisplayDriver extends jogamp.newt.DisplayImpl {
     static int initCounter = 0;

@@ -28,12 +28,12 @@
 
 package jogamp.opengl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.GLRendererQuirks;
 

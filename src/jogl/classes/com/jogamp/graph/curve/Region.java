@@ -87,7 +87,7 @@ public abstract class Region {
      * <p>
      * If set, a color channel attribute per vertex is added to the stream,
      * otherwise only the
-     * {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(javax.media.opengl.GL2ES2, float, float, float, float) static color}
+     * {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float) static color}
      * is being used.
      * </p>
      */

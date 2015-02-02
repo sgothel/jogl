@@ -38,11 +38,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.PropertyAccess;

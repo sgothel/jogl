@@ -28,8 +28,8 @@
 
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.SVertex;

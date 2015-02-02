@@ -37,10 +37,10 @@ import jogamp.nativewindow.awt.AWTMisc;
 
 /**
  * Interface describing print lifecycle to support AWT printing,
- * e.g. on AWT {@link javax.media.opengl.GLAutoDrawable GLAutoDrawable}s.
+ * e.g. on AWT {@link com.jogamp.opengl.GLAutoDrawable GLAutoDrawable}s.
  * <a name="impl"><h5>Implementations</h5></a>
  * <p>
- * Implementing {@link javax.media.opengl.GLAutoDrawable GLAutoDrawable} classes based on AWT
+ * Implementing {@link com.jogamp.opengl.GLAutoDrawable GLAutoDrawable} classes based on AWT
  * supporting {@link Component#print(Graphics)} shall implement this interface.
  * </p>
  * <a name="usage"><h5>Usage</h5></a>

@@ -92,8 +92,8 @@
                   value="com/jogamp/opengl/util/* jogamp/opengl/util/* com/jogamp/opengl/util/glsl/* jogamp/opengl/util/glsl/* jogamp/opengl/shader/**"/>
 
         <property name="java.part.core" 
-                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* com/jogamp/opengl/* com/jogamp/opengl/math/** jogamp/opengl/* ${java.part.core.util}"/>
-        <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl* com/jogamp/opengl/util/PNG*"/>
+                  value="${java.part.gluegen-gl-rt} com/jogamp/opengl/* com/jogamp/opengl/fixedfunc/* com/jogamp/opengl/math/** jogamp/opengl/* ${java.part.core.util}"/>
+        <property name="java.part.core.exclude" value="com/jogamp/opengl/Debug* com/jogamp/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl* com/jogamp/opengl/util/PNG*"/>
 
         <property name="java.part.nv-cg"
                   value="com/jogamp/opengl/cg com/jogamp/opengl/cg/* jogamp/opengl/cg/*"/>
@@ -102,10 +102,10 @@
                   value="com/jogamp/opengl/egl/* jogamp/opengl/egl/*"/>
 
         <property name="java.part.glu"
-                  value="javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/glu/tessellator/** jogamp/opengl/glu/mipmap/**"/>
+                  value="com/jogamp/opengl/glu/* com/jogamp/opengl/glu/gl2es1/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/glu/tessellator/** jogamp/opengl/glu/mipmap/**"/>
 
         <property name="java.part.glu.gldesktop"
-                  value="jogamp/opengl/glu/gl2/** jogamp/opengl/glu/nurbs/** jogamp/opengl/glu/registry/** javax/media/opengl/glu/gl2/**"/>
+                  value="jogamp/opengl/glu/gl2/** jogamp/opengl/glu/nurbs/** jogamp/opengl/glu/registry/** com/jogamp/opengl/glu/gl2/**"/>
 
         <property name="java.part.openmax"
                   value="jogamp/opengl/omx/**"/>
@@ -132,22 +132,22 @@
                   value="jogamp/opengl/**/gl2/** jogamp/opengl/**/gl3/** jogamp/opengl/**/gl4/**"/>
 
         <property name="java.part.gldesktop.dbg"
-                  value="javax/media/opengl/TraceGL2.* javax/media/opengl/DebugGL2.* javax/media/opengl/TraceGL3.* javax/media/opengl/DebugGL3.* javax/media/opengl/TraceGL3bc.* javax/media/opengl/DebugGL3bc.* javax/media/opengl/TraceGL4.* javax/media/opengl/DebugGL4.* javax/media/opengl/TraceGL4bc.* javax/media/opengl/DebugGL4bc.*"/>
+                  value="com/jogamp/opengl/TraceGL2.* com/jogamp/opengl/DebugGL2.* com/jogamp/opengl/TraceGL3.* com/jogamp/opengl/DebugGL3.* com/jogamp/opengl/TraceGL3bc.* com/jogamp/opengl/DebugGL3bc.* com/jogamp/opengl/TraceGL4.* com/jogamp/opengl/DebugGL4.* com/jogamp/opengl/TraceGL4bc.* com/jogamp/opengl/DebugGL4bc.*"/>
 
         <property name="java.part.es1"
-                  value="javax/media/opengl/**/es1/** com/jogamp/opengl/**/es1/** jogamp/opengl/**/es1/**"/>
+                  value="com/jogamp/opengl/**/es1/** jogamp/opengl/**/es1/**"/>
 
         <property name="java.part.es1.dbg"
-                  value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.*"/>
+                  value="com/jogamp/opengl/TraceGLES1.* com/jogamp/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2es3"
                   value="jogamp/opengl/**/es3/**"/>
 
         <property name="java.part.es2es3.dbg"
-                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.* javax/media/opengl/TraceGLES3.* javax/media/opengl/DebugGLES3.*"/>
+                  value="com/jogamp/opengl/TraceGLES2.* com/jogamp/opengl/DebugGLES2.* com/jogamp/opengl/TraceGLES3.* com/jogamp/opengl/DebugGLES3.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/** jogamp/opengl/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
+                  value="com/jogamp/opengl/awt/** jogamp/opengl/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
         
         <property name="java.part.swt"
                   value="com/jogamp/opengl/**/swt/**"/>
@@ -307,7 +307,7 @@
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
         <property name="javadoc.windowtitle" value="JOGL API Specification -- Version ${jogamp.version.base}" />
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
-        <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
+        <property name="javadoc.spec.packagenames" value="com.jogamp.opengl.*" />
 
         <property name="javadoc.packagenames" value="${javadoc.spec.packagenames},com.jogamp.opengl.util.*" />
 
@@ -378,31 +378,31 @@
 
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.skip.es1"
-                  targetfile="${src.generated.java}/javax/media/opengl/GLES1.java">
+                  targetfile="${src.generated.java}/com/jogamp/opengl/GLES1.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.es2"
-                  targetfile="${src.generated.java}/javax/media/opengl/GLES2.java">
+                  targetfile="${src.generated.java}/com/jogamp/opengl/GLES2.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.es3"
-                  targetfile="${src.generated.java}/javax/media/opengl/GLES3.java">
+                  targetfile="${src.generated.java}/com/jogamp/opengl/GLES3.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.gl2"
-                  targetfile="${src.generated.java}/javax/media/opengl/GL2.java">
+                  targetfile="${src.generated.java}/com/jogamp/opengl/GL2.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
         <uptodate property="java.generate.skip.glu"
-                  targetfile="${src.generated.java}/javax/media/opengl/glu/GLU.java">
+                  targetfile="${src.generated.java}/com/jogamp/opengl/glu/GLU.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
@@ -917,15 +917,15 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GLES1.class" />
-            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GLES1.class" />
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGLES1.java,TraceGLES1.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.es1"
-                  srcfile="${classes}/javax/media/opengl/GLES1.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGLES1.java" />
+                  srcfile="${classes}/com/jogamp/opengl/GLES1.class"
+                  targetfile="${src.generated.java}/com/jogamp/opengl/DebugGLES1.java" />
 
     </target>        
 
@@ -933,15 +933,15 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GLES2.class" />
-            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GLES2.class" />
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGLES2.java,TraceGLES2.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.es2"
-                  srcfile="${classes}/javax/media/opengl/GLES2.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGLES2.java" />
+                  srcfile="${classes}/com/jogamp/opengl/GLES2.class"
+                  targetfile="${src.generated.java}/com/jogamp/opengl/DebugGLES2.java" />
 
     </target>        
 
@@ -949,15 +949,15 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GLES3.class" />
-            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GLES3.class" />
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGLES3.java,TraceGLES3.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.es3"
-                  srcfile="${classes}/javax/media/opengl/GLES3.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGLES3.java" />
+                  srcfile="${classes}/com/jogamp/opengl/GLES3.class"
+                  targetfile="${src.generated.java}/com/jogamp/opengl/DebugGLES3.java" />
 
     </target>        
 
@@ -965,67 +965,67 @@
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2.class" />
-            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GL2.class" />
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGL2.java,TraceGL2.java" />
         </dependset>
 
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.gl2"
-                  srcfile="${classes}/javax/media/opengl/GL2.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL2.java" />
+                  srcfile="${classes}/com/jogamp/opengl/GL2.class"
+                  targetfile="${src.generated.java}/com/jogamp/opengl/DebugGL2.java" />
     </target>        
 
     <target name="java.generate.composable.pipeline.check.gl3">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL3.class" />
-            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GL3.class" />
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGL3.java,TraceGL3.java,DebugGL3bc.java,TraceGL3bc.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.gl3"
-                  srcfile="${classes}/javax/media/opengl/GL3.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL3.java" />
+                  srcfile="${classes}/com/jogamp/opengl/GL3.class"
+                  targetfile="${src.generated.java}/com/jogamp/opengl/DebugGL3.java" />
     </target>        
 
     <target name="java.generate.composable.pipeline.check.gl4bc">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL4bc.class" />
-            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GL4bc.class" />
+            <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGL4bc.java,TraceGL4bc.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.gl4bc"
-                  srcfile="${classes}/javax/media/opengl/GL4bc.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL4bc.java" />
+                  srcfile="${classes}/com/jogamp/opengl/GL4bc.class"
+                  targetfile="${src.generated.java}/com/jogamp/opengl/DebugGL4bc.java" />
     </target>        
 
     <target name="java.generate.composable.pipeline.es1" depends="java.generate.composable.pipeline.check.es1" unless="java.generate.composable.pipeline.skip.es1">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GLES1" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
+            <arg value="com.jogamp.opengl.GLES1" />
+            <arg value="${src.generated.java}/com/jogamp/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
 
     <target name="java.generate.composable.pipeline.es3" depends="java.generate.composable.pipeline.check.es3" unless="java.generate.composable.pipeline.skip.es3">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GLES3" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
+            <arg value="com.jogamp.opengl.GLES3" />
+            <arg value="${src.generated.java}/com/jogamp/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
 
     <target name="java.generate.composable.pipeline.gl4bc" depends="java.generate.composable.pipeline.check.gl4bc" unless="java.generate.composable.pipeline.skip.gl4bc">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL4bc" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
+            <arg value="com.jogamp.opengl.GL4bc" />
+            <arg value="${src.generated.java}/com/jogamp/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
@@ -1038,24 +1038,24 @@
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
             <srcfilelist dir="${classes}/jogamp/opengl/util/glsl/fixedfunc" files="FixedFuncHook.class" />
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES1.class" />
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL2ES2.class" />
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GL2ES1.class" />
+            <srcfilelist dir="${classes}/com/jogamp/opengl" files="GL2ES2.class" />
             <targetfileset dir="${src.generated.java}/jogamp/opengl/util/glsl/fixedfunc"
                            includes="FixedFuncImpl.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.custom.skip.glfixfunc"
-                  srcfile="${classes}/javax/media/opengl/GL2ES1.class"
+                  srcfile="${classes}/com/jogamp/opengl/GL2ES1.class"
                   targetfile="${src.generated.java}/jogamp/opengl/util/glsl/fixedfunc/FixedFuncImpl.java" />
     </target>        
     <target name="java.generate.composable.pipeline.custom.glfixfunc" depends="java.generate.composable.pipeline.custom.check.glfixfunc" unless="java.generate.composable.pipeline.custom.skip.glfixfunc">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2ES1" />
+            <arg value="com.jogamp.opengl.GL2ES1" />
             <arg value="${src.generated.java}/jogamp/opengl/util/glsl/fixedfunc" />
             <arg value="jogamp.opengl.util.glsl.fixedfunc.FixedFuncImpl" />
             <arg value="jogamp.opengl.util.glsl.fixedfunc.FixedFuncHook" />
-            <arg value="javax.media.opengl.GL2ES2" />
+            <arg value="com.jogamp.opengl.GL2ES2" />
             <arg value="prolog_xor_downstream" />
             <arg value="gl_identity_by_assignable_class" />
             <classpath refid="pipeline.classpath" />
@@ -1072,7 +1072,7 @@
     <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
-               includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GLES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GLES2.java javax/media/opengl/GL2ES3.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GL3ES3.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java javax/media/opengl/GL4ES3.java javax/media/opengl/GLES3.java javax/media/opengl/GL4.java javax/media/opengl/GL4bc.java"
+               includes="com/jogamp/opengl/fixedfunc/** com/jogamp/opengl/GLDrawableFactory.java com/jogamp/opengl/GLDrawable.java com/jogamp/opengl/GLContext.java com/jogamp/opengl/GL.java com/jogamp/opengl/GL2ES1.java com/jogamp/opengl/GLES1.java com/jogamp/opengl/GL2ES2.java com/jogamp/opengl/GLES2.java com/jogamp/opengl/GL2ES3.java com/jogamp/opengl/GL2GL3.java com/jogamp/opengl/GL2.java com/jogamp/opengl/GL3ES3.java com/jogamp/opengl/GL3.java com/jogamp/opengl/GL3bc.java com/jogamp/opengl/GL4ES3.java com/jogamp/opengl/GLES3.java com/jogamp/opengl/GL4.java com/jogamp/opengl/GL4bc.java"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"

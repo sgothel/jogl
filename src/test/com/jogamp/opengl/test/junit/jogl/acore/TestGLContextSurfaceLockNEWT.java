@@ -31,11 +31,11 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Test;
 import org.junit.FixMethodOrder;

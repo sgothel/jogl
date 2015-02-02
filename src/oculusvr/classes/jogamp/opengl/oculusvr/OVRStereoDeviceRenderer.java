@@ -30,13 +30,13 @@ package jogamp.opengl.oculusvr;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLArrayData;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLUniformData;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLUniformData;
 
 import jogamp.common.os.PlatformPropsImpl;
 

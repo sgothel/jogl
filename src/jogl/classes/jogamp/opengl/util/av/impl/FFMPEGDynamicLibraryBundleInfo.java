@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;

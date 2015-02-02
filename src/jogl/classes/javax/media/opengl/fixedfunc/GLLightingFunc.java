@@ -27,7 +27,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl.fixedfunc;
+package com.jogamp.opengl.fixedfunc;
 
 public interface GLLightingFunc {
   public static final int GL_LIGHT0 = 0x4000;

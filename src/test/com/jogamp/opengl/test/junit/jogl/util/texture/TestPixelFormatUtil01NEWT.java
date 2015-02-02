@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URLConnection;
 
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.PixelFormatUtil;
-import javax.media.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelFormatUtil;
+import com.jogamp.nativewindow.util.PixelRectangle;
 
 import org.junit.Assert;
 import org.junit.Test;

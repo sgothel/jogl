@@ -44,7 +44,7 @@
 
 package jogamp.opengl.glu.mipmap;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 import java.nio.*;
 
 /**

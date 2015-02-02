@@ -27,7 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES2;
 
 import jogamp.graph.geom.plane.AffineTransform;
 

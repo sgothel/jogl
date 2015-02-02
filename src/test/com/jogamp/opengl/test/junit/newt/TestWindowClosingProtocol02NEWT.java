@@ -35,10 +35,10 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 import org.junit.Assert;
 
-import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.newt.opengl.GLWindow;
 

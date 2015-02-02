@@ -31,8 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLCapabilities;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLCapabilities;
 
 import org.junit.AfterClass;
 import org.junit.Assert;

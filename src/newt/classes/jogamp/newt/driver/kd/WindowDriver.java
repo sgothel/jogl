@@ -34,14 +34,14 @@
 
 package jogamp.newt.driver.kd;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.nativewindow.VisualIDHolder.VIDType;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.Point;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 import jogamp.newt.WindowImpl;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;

@@ -2,8 +2,8 @@
 
 dirscript=`dirname $0`
 
-dirold=../build-old/jogl/gensrc/classes/javax/media/opengl/
-dirnew=../build/jogl/gensrc/classes/javax/media/opengl/
+dirold=../build-old/jogl/gensrc/classes/com/jogamp/opengl/
+dirnew=../build/jogl/gensrc/classes/com/jogamp/opengl/
 dircmp=cmp-old2new
 
 rm -rf $dircmp

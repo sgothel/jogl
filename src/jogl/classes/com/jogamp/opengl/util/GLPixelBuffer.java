@@ -30,14 +30,14 @@ package com.jogamp.opengl.util;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData;

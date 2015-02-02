@@ -44,13 +44,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL3;
-import javax.media.opengl.GL4;
-import javax.media.opengl.GLES2;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GL4;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 

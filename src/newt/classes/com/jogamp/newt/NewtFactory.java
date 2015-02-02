@@ -38,12 +38,12 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
@@ -260,7 +260,7 @@ public class NewtFactory {
      * you have to add an appropriate {@link com.jogamp.newt.event.WindowListener} for this use case.<br>
      * The parents visibility is passed to the new Window<br></p>
      * <p>
-     * In case <code>parentWindowObject</code> is a different {@link javax.media.nativewindow.NativeWindow} implementation,<br>
+     * In case <code>parentWindowObject</code> is a different {@link com.jogamp.nativewindow.NativeWindow} implementation,<br>
      * you have to handle all events appropriate.<br></p>
      * <p>
      * <p>

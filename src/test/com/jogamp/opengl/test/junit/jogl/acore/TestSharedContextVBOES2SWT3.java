@@ -30,9 +30,9 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.util.List;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.util.Animator;

@@ -33,12 +33,12 @@ import com.jogamp.opengl.test.junit.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.Screen;
@@ -58,7 +58,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLEventListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;

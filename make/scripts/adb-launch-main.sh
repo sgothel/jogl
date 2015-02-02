@@ -51,7 +51,7 @@ LOGFILE=`basename $0 .sh`.log
 #adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/jogamp-android-launcher.apk
 #adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/gluegen-rt-android-armeabi.apk
 
-#adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall javax.media.opengl
+#adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall com.jogamp.opengl
 #adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/jar/jogl-all-android-armeabi.apk
 
 #adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall com.jogamp.opengl.test

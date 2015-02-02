@@ -47,7 +47,7 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 

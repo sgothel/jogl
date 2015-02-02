@@ -84,8 +84,8 @@ static {
     Class _gl2es1Class=null;
     try {
         final ClassLoader cl = GLU.class.getClassLoader();
-        _gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2", false, cl);
-        _gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1", false, cl);
+        _gl2Class = Class.forName("com.jogamp.opengl.glu.gl2.GLUgl2", false, cl);
+        _gl2es1Class = Class.forName("com.jogamp.opengl.glu.gl2es1.GLUgl2es1", false, cl);
     } catch (Throwable t) {}
     gl2Class = _gl2Class;
     gl2es1Class = _gl2es1Class;
@@ -389,7 +389,7 @@ public static final void gluTessNormal(GLUtessellator tessellator, double x, dou
  *
  * <b>GLU_TESS_BEGIN</b>
  * <UL>
- *   The begin callback is invoked like {@link javax.media.opengl.GL#glBegin
+ *   The begin callback is invoked like {@link com.jogamp.opengl.GL#glBegin
  *   glBegin} to indicate the start of a (triangle) primitive. The method
  *   takes a single argument of type int. If the
  *   <b>GLU_TESS_BOUNDARY_ONLY</b> property is set to <b>GL_FALSE</b>, then
@@ -418,7 +418,7 @@ public static final void gluTessNormal(GLUtessellator tessellator, double x, dou
  * <b>GLU_TESS_EDGE_FLAG</b>
  * <UL>
  *   The edge flag callback is similar to
- *   {@link javax.media.opengl.GL#glEdgeFlag glEdgeFlag}. The method takes
+ *   {@link com.jogamp.opengl.GL#glEdgeFlag glEdgeFlag}. The method takes
  *   a single boolean boundaryEdge that indicates which edges lie on the
  *   polygon boundary. If the boundaryEdge is <b>GL_TRUE</b>, then each vertex
  *   that follows begins an edge that lies on the polygon boundary, that is,
@@ -453,7 +453,7 @@ public static final void gluTessNormal(GLUtessellator tessellator, double x, dou
  * <b>GLU_TESS_VERTEX</b>
  * <UL>
  *   The vertex callback is invoked between the begin and end callbacks. It is
- *   similar to {@link javax.media.opengl.GL#glVertex3f glVertex3f}, and it
+ *   similar to {@link com.jogamp.opengl.GL#glVertex3f glVertex3f}, and it
  *   defines the vertices of the triangles created by the tessellation
  *   process. The method takes a reference as its only argument. This
  *   reference is identical to the opaque reference provided by the user when
@@ -480,7 +480,7 @@ public static final void gluTessNormal(GLUtessellator tessellator, double x, dou
  * <b>GLU_TESS_END</b>
  * <UL>
  *   The end callback serves the same purpose as
- *   {@link javax.media.opengl.GL#glEnd glEnd}. It indicates the end of a
+ *   {@link com.jogamp.opengl.GL#glEnd glEnd}. It indicates the end of a
  *   primitive and it takes no arguments. The method prototype for this
  *   callback is:
  * </UL>
@@ -638,9 +638,9 @@ public static final void gluTessNormal(GLUtessellator tessellator, double x, dou
  * @param aCallback
  *        Specifies the callback object to be called.
  *
- * @see javax.media.opengl.GL#glBegin              glBegin
- * @see javax.media.opengl.GL#glEdgeFlag           glEdgeFlag
- * @see javax.media.opengl.GL#glVertex3f           glVertex3f
+ * @see com.jogamp.opengl.GL#glBegin              glBegin
+ * @see com.jogamp.opengl.GL#glEdgeFlag           glEdgeFlag
+ * @see com.jogamp.opengl.GL#glVertex3f           glVertex3f
  * @see #gluNewTess          gluNewTess
  * @see #gluErrorString      gluErrorString
  * @see #gluTessVertex       gluTessVertex

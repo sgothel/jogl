@@ -40,14 +40,14 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.GLContextShareSet;

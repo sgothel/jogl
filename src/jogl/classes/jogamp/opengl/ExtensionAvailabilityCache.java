@@ -43,10 +43,10 @@ package jogamp.opengl;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLContext;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLContext;
 
 import com.jogamp.common.util.VersionNumber;
 

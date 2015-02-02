@@ -32,10 +32,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URLConnection;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,7 +55,7 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 /**
  * Test reading and displaying a JPG image.

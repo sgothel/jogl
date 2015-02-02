@@ -45,21 +45,21 @@ import jogamp.opengl.GLGraphicsConfigurationFactory;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory;
 import jogamp.opengl.windows.wgl.WindowsWGLGraphicsConfiguration;
-import javax.media.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLDrawableFactory;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {

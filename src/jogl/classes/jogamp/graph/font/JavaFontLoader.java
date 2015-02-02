@@ -35,7 +35,7 @@ import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;

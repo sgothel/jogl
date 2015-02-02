@@ -32,11 +32,11 @@ import java.io.IOException;
 
 import com.jogamp.newt.opengl.GLWindow;
 
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;

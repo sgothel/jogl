@@ -28,9 +28,9 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAutoDrawable;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;

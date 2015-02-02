@@ -39,8 +39,8 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.ElektronenMultiplizierer;
 
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

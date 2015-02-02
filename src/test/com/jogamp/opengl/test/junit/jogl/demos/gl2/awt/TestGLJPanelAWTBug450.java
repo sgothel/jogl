@@ -27,14 +27,14 @@
  */
  package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-import javax.media.opengl.awt.GLJPanel;
-import javax.media.opengl.glu.gl2.GLUgl2;
+import com.jogamp.opengl.awt.GLJPanel;
+import com.jogamp.opengl.glu.gl2.GLUgl2;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;

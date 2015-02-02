@@ -32,7 +32,7 @@
 
 package com.jogamp.nativewindow.egl;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 import com.jogamp.common.util.VersionNumber;
 

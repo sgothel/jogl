@@ -32,7 +32,7 @@ import java.net.MalformedURLException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
-import javax.media.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelFormat;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;

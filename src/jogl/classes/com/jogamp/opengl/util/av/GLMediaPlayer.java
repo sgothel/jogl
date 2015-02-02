@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.util.av;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 

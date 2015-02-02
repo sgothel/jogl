@@ -32,11 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLArrayData;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLUniformData;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLUniformData;
 
 import jogamp.opengl.Debug;
 
@@ -341,7 +341,7 @@ public class ShaderState {
      * @throws GLException if no program is attached
      * @throws GLException if the program is already linked
      *
-     * @see javax.media.opengl.GL2ES2#glBindAttribLocation(int, int, String)
+     * @see com.jogamp.opengl.GL2ES2#glBindAttribLocation(int, int, String)
      * @see #getAttribLocation(GL2ES2, String)
      * @see #getCachedAttribLocation(String)
      */
@@ -362,7 +362,7 @@ public class ShaderState {
      * @throws GLException if no program is attached
      * @throws GLException if the program is already linked
      *
-     * @see javax.media.opengl.GL2ES2#glBindAttribLocation(int, int, String)
+     * @see com.jogamp.opengl.GL2ES2#glBindAttribLocation(int, int, String)
      * @see #getAttribLocation(GL2ES2, String)
      * @see #getCachedAttribLocation(String)
      * @see #getAttribute(String)
@@ -861,7 +861,7 @@ public class ShaderState {
      * @throws GLException is the program is not linked
      *
      * @see #glGetUniformLocation
-     * @see javax.media.opengl.GL2ES2#glGetUniformLocation
+     * @see com.jogamp.opengl.GL2ES2#glGetUniformLocation
      * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */
@@ -899,7 +899,7 @@ public class ShaderState {
      * @throws GLException is the program is not linked
      *
      * @see #glGetUniformLocation
-     * @see javax.media.opengl.GL2ES2#glGetUniformLocation
+     * @see com.jogamp.opengl.GL2ES2#glGetUniformLocation
      * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */
@@ -936,8 +936,8 @@ public class ShaderState {
      * @return false, if the location could not be determined, otherwise true
      *
      * @see #glGetUniformLocation
-     * @see javax.media.opengl.GL2ES2#glGetUniformLocation
-     * @see javax.media.opengl.GL2ES2#glUniform
+     * @see com.jogamp.opengl.GL2ES2#glGetUniformLocation
+     * @see com.jogamp.opengl.GL2ES2#glUniform
      * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */

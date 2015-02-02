@@ -29,7 +29,7 @@
 package com.jogamp.opengl;
 
 import com.jogamp.common.GlueGenVersion;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
@@ -37,7 +37,7 @@ import com.jogamp.common.util.JogampVersion;
 
 import java.util.List;
 import java.util.jar.Manifest;
-import javax.media.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
 
 public class JoglVersion extends JogampVersion {
 
@@ -51,7 +51,7 @@ public class JoglVersion extends JogampVersion {
         if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(JoglVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
-                    final String packageName = "javax.media.opengl";
+                    final String packageName = "com.jogamp.opengl";
                     final Manifest mf = VersionUtil.getManifest(JoglVersion.class.getClassLoader(), packageName);
                     jogampCommonVersionInfo = new JoglVersion(packageName, mf);
                 }

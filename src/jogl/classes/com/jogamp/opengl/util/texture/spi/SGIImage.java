@@ -40,7 +40,7 @@
 package com.jogamp.opengl.util.texture.spi;
 
 import java.io.*;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.util.IOUtil;
 

@@ -38,9 +38,9 @@ import java.nio.Buffer;
 import java.nio.IntBuffer;
 import java.util.Iterator;
 
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IntObjectHashMap;

@@ -35,7 +35,7 @@ package jogamp.opengl.x11.glx;
 
 import java.nio.IntBuffer;
 
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 

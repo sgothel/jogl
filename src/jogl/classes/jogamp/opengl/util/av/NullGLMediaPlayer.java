@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
 

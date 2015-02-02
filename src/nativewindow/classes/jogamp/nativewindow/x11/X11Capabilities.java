@@ -28,9 +28,9 @@
 
 package jogamp.nativewindow.x11;
 
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.VisualIDHolder;
 
 public class X11Capabilities extends Capabilities {
   final private XVisualInfo xVisualInfo; // maybe null if !onscreen

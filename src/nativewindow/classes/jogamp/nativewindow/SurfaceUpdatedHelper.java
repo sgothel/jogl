@@ -30,8 +30,8 @@ package jogamp.nativewindow;
 
 import java.util.ArrayList;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceUpdatedListener;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.SurfaceUpdatedListener;
 
 public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
     private final Object surfaceUpdatedListenersLock = new Object();

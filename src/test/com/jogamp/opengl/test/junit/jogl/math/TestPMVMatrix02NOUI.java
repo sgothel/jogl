@@ -35,7 +35,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.util.PMVMatrix;
 
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import java.nio.FloatBuffer;
 
 import static org.junit.Assert.assertArrayEquals;

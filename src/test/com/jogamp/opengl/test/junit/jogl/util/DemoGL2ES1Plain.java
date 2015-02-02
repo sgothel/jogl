@@ -30,15 +30,15 @@ package com.jogamp.opengl.test.junit.jogl.util;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
-import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.gl2es1.GLUgl2es1;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.glu.gl2es1.GLUgl2es1;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataWrapper;

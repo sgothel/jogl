@@ -31,14 +31,14 @@ import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.opengl.FPSCounter;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPipelineFactory;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.opengl.FPSCounter;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
 
 import jogamp.newt.Debug;
 
@@ -281,14 +281,14 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
 
         if(glDebug) {
             try {
-                _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
+                _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, _gl, null) );
             } catch (final Exception e) {e.printStackTrace();}
         }
 
         if(glTrace) {
             try {
                 // Trace ..
-                _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, _gl, new Object[] { System.err } ) );
+                _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, _gl, new Object[] { System.err } ) );
             } catch (final Exception e) {e.printStackTrace();}
         }
 

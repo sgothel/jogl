@@ -30,10 +30,10 @@ package jogamp.newt.driver.android;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.opengl.FPSCounter;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.opengl.FPSCounter;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
 
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.GLEventListenerState;

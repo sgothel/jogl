@@ -7,7 +7,7 @@ if [ -z "$BUILDDIR" ] ; then
     exit 1
 fi
 
-idir=$BUILDDIR/jogl/gensrc/classes/javax/media/opengl
+idir=$BUILDDIR/jogl/gensrc/classes/com/jogamp/opengl
 
 SOURCE="$idir/GL.java $idir/GL2ES2.java $idir/GL2GL3.java $idir/GL2.java $idir/GL3.java"
 

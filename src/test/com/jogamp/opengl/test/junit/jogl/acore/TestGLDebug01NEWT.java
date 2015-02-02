@@ -30,15 +30,15 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDebugListener;
-import javax.media.opengl.GLDebugMessage;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDebugListener;
+import com.jogamp.opengl.GLDebugMessage;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
 
 import org.junit.Assert;
 import org.junit.Test;

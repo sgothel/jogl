@@ -27,7 +27,7 @@
  */
 package jogamp.newt.driver.x11;
 
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;

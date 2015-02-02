@@ -36,10 +36,10 @@ import java.awt.Frame;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 

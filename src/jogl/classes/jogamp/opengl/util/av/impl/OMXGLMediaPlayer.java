@@ -30,8 +30,8 @@ package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.util.texture.TextureSequence;

@@ -35,8 +35,8 @@ import com.jogamp.opengl.test.junit.jogl.demos.PointsDemo;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.PointsDemoES1;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.PointsDemoES2;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

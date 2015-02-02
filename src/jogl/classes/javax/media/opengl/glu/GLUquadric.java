@@ -1,6 +1,6 @@
-package javax.media.opengl.glu;
+package com.jogamp.opengl.glu;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 import com.jogamp.opengl.util.ImmModeSink;
 
 /**

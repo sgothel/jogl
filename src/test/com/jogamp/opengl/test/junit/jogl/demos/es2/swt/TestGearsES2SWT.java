@@ -39,13 +39,13 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.PointImmutable;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLProfile;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;

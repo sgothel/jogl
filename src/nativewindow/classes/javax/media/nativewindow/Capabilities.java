@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /** Specifies a set of capabilities that a window's rendering context
     must support, such as color depth per channel. It currently

@@ -29,11 +29,11 @@
 package jogamp.opengl;
 
 import java.util.List;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
 
 public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
 

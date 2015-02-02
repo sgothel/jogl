@@ -13,7 +13,7 @@ Print code:
   AWTPrintLifecycle:
     <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/nativewindow/classes/com/jogamp/nativewindow/awt/AWTPrintLifecycle.java;hb=HEAD>
   GLCanvas:
-    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/GLCanvas.java;hb=HEAD#l731>
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/com/jogamp/opengl/awt/GLCanvas.java;hb=HEAD#l731>
   ...
   AWTTilePainter (common code): 
     <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/jogamp/opengl/awt/AWTTilePainter.java;hb=HEAD>

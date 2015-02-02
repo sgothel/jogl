@@ -33,12 +33,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.jogamp.newt.opengl.GLWindow;
 
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;

@@ -30,8 +30,8 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 import java.applet.Applet;
 import java.awt.GridLayout;
 
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.util.Animator;

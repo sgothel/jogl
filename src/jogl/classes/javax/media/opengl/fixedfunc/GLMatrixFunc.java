@@ -27,11 +27,11 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl.fixedfunc;
+package com.jogamp.opengl.fixedfunc;
 
 import java.nio.*;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 /**
  * Subset of OpenGL fixed function pipeline's matrix operations.

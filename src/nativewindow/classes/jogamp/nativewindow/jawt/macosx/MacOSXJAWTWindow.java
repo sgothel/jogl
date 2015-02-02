@@ -45,12 +45,12 @@ import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.Capabilities;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.MutableSurface;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.Capabilities;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.MutableSurface;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.awt.JAWTWindow;

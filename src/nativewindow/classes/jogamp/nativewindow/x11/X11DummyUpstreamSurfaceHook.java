@@ -1,9 +1,9 @@
 package jogamp.nativewindow.x11;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 import jogamp.nativewindow.x11.X11Lib;
 

@@ -36,10 +36,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 /**
  * A screen may span multiple {@link MonitorDevice}s representing their combined virtual size.
@@ -82,7 +82,7 @@ public abstract class Screen {
 
     /**
      * Manual trigger the native creation, if not done yet..<br>
-     * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsScreen}, via
+     * This is useful to be able to request the {@link com.jogamp.nativewindow.AbstractGraphicsScreen}, via
      * {@link #getGraphicsScreen()}.<br>
      * Otherwise the abstract device won't be available before the dependent component (Window) is realized.
      * <p>

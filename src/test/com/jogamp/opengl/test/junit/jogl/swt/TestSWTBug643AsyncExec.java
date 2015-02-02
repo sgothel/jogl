@@ -44,9 +44,9 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities ;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities ;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.swt.SWTEDTUtil;
 import jogamp.newt.swt.event.SWTNewtEventFactory;

@@ -42,8 +42,8 @@ package com.jogamp.opengl.util;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.ExceptionUtils;
 

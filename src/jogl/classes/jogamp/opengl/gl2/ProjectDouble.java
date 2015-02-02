@@ -117,7 +117,7 @@ package jogamp.opengl.gl2;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 import com.jogamp.common.nio.Buffers;
 

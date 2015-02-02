@@ -27,18 +27,18 @@
  */
 package com.jogamp.opengl.util;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLBase;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLRunnable;
-import javax.media.opengl.Threading;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLBase;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLRunnable;
+import com.jogamp.opengl.Threading;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLEventListenerState;
@@ -215,7 +215,7 @@ public class GLDrawableUtil {
      * During operation, both {@link GLAutoDrawable auto-drawable's}
      * {@link GLAutoDrawable#getUpstreamLock() upstream-locks} and {@link GLAutoDrawable#getNativeSurface() surfaces} are locked,
      * hence atomicity of operation is guaranteed,
-     * see <a href="../../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.
+     * see <a href="../../../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.
      * </p>
      * <p>
      * Because of above mentioned locking, if this method is not performed
@@ -256,7 +256,7 @@ public class GLDrawableUtil {
      * During operation, both {@link GLAutoDrawable auto-drawable's}
      * {@link GLAutoDrawable#getUpstreamLock() upstream-locks} and {@link GLAutoDrawable#getNativeSurface() surfaces} are locked,
      * hence atomicity of operation is guaranteed,
-     * see <a href="../../../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.
+     * see <a href="../../../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.
      * </p>
      * <p>
      * Because of above mentioned locking, if this method is not performed
@@ -333,7 +333,7 @@ public class GLDrawableUtil {
      * in which case {@link GLDrawable#swapBuffers() swap-buffers} shall happen <b>after</b> calling reading pixels, the default.
      * </p>
      * <p>
-     * However, <i>multisampling</i> offscreen {@link javax.media.opengl.GLFBODrawable}s
+     * However, <i>multisampling</i> offscreen {@link com.jogamp.opengl.GLFBODrawable}s
      * utilize {@link GLDrawable#swapBuffers() swap-buffers} to <i>downsample</i>
      * the multisamples into the readable sampling sink.
      * In this case, we require {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> reading pixels.

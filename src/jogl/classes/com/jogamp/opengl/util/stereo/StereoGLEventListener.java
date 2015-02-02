@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
 
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.CustomGLEventListener;

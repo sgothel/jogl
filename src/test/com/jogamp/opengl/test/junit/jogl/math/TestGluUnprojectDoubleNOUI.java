@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.math;
 
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.glu.GLU;
 
 import org.junit.Assert;
 import org.junit.Test;

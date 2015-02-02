@@ -28,7 +28,7 @@
 
 package jogamp.newt.driver.android;
 
-import javax.media.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
 
 import jogamp.newt.MonitorModeProps;
 import jogamp.newt.MonitorModeProps.Cache;

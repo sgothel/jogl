@@ -34,8 +34,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
 
-import javax.media.opengl.GLCapabilities ;
-import javax.media.opengl.GLProfile ;
+import com.jogamp.opengl.GLCapabilities ;
+import com.jogamp.opengl.GLProfile ;
 
 import org.junit.AfterClass ;
 import org.junit.Assert;

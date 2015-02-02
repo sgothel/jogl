@@ -1,6 +1,6 @@
 REM scripts\java-win.bat jogamp.newt.awt.opengl.VersionApplet
 REM scripts\java-win.bat com.jogamp.newt.opengl.GLWindow
-REM scripts\java-win.bat javax.media.opengl.awt.GLCanvas
+REM scripts\java-win.bat com.jogamp.awt.GLCanvas
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
 REM scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
 

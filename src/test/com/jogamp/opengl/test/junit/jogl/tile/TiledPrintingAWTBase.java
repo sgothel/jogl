@@ -40,7 +40,7 @@ import java.awt.print.PrinterJob;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLAutoDrawable;
 import javax.print.StreamPrintService;
 import javax.print.StreamPrintServiceFactory;
 import javax.print.attribute.HashPrintRequestAttributeSet;

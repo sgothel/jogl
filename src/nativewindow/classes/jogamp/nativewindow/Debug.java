@@ -51,7 +51,7 @@ public class Debug extends PropertyAccess {
     verbose = isPropertyDefined("nativewindow.verbose", true);
     debugAll = isPropertyDefined("nativewindow.debug", true);
     if (verbose) {
-       final Package p = Package.getPackage("javax.media.nativewindow");
+       final Package p = Package.getPackage("com.jogamp.nativewindow");
        System.err.println("NativeWindow specification version " + p.getSpecificationVersion());
        System.err.println("NativeWindow implementation version " + p.getImplementationVersion());
        System.err.println("NativeWindow implementation vendor " + p.getImplementationVendor());

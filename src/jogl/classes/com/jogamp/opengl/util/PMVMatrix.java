@@ -37,9 +37,9 @@ package com.jogamp.opengl.util;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.common.os.PlatformPropsImpl;
 

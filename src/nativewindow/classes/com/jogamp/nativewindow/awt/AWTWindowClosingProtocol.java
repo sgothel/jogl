@@ -34,7 +34,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import javax.media.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.WindowClosingProtocol;
 
 import jogamp.nativewindow.awt.AWTMisc;
 

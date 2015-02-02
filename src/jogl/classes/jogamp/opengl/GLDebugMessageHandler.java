@@ -31,11 +31,11 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLDebugListener;
-import javax.media.opengl.GLDebugMessage;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLDebugListener;
+import com.jogamp.opengl.GLDebugMessage;
+import com.jogamp.opengl.GLException;
 
 import jogamp.common.os.PlatformPropsImpl;
 
@@ -56,7 +56,7 @@ import com.jogamp.opengl.GLExtensions;
  * return as fast as possible.</p>
  *
  * <p>In case no <i>GL_ARB_debug_output</i> is available, but <i>GL_AMD_debug_output</i>,
- * the messages are translated to <i>ARB</i> {@link GLDebugMessage}, using {@link GLDebugMessage#translateAMDEvent(javax.media.opengl.GLContext, long, int, int, int, String)}.</p>
+ * the messages are translated to <i>ARB</i> {@link GLDebugMessage}, using {@link GLDebugMessage#translateAMDEvent(com.jogamp.opengl.GLContext, long, int, int, int, String)}.</p>
  */
 public class GLDebugMessageHandler {
     private static final boolean DEBUG = Debug.debug("GLDebugMessageHandler");
@@ -212,12 +212,12 @@ public class GLDebugMessageHandler {
     }
 
     /**
-     * @see javax.media.opengl.GLContext#isGLDebugSynchronous()
+     * @see com.jogamp.opengl.GLContext#isGLDebugSynchronous()
      */
     public final boolean isSynchronous() { return synchronous; }
 
     /**
-     * @see javax.media.opengl.GLContext#setGLDebugSynchronous(boolean)
+     * @see com.jogamp.opengl.GLContext#setGLDebugSynchronous(boolean)
      */
     public final void setSynchronous(final boolean synchronous) {
         this.synchronous = synchronous;
@@ -239,7 +239,7 @@ public class GLDebugMessageHandler {
     }
 
     /**
-     * @see javax.media.opengl.GLContext#enableGLDebugMessage(boolean)
+     * @see com.jogamp.opengl.GLContext#enableGLDebugMessage(boolean)
      */
     public final void enable(final boolean enable) throws GLException {
         ctx.validateCurrent();

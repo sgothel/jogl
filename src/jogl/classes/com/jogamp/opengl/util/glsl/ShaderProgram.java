@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.util.glsl;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.os.Platform;
 

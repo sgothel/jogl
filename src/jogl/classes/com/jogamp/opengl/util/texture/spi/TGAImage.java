@@ -42,7 +42,7 @@ package com.jogamp.opengl.util.texture.spi;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.util.IOUtil;
 

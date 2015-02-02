@@ -7,12 +7,12 @@ import java.io.PrintStream;
 import java.nio.FloatBuffer;
 import java.util.Random;
 
-import javax.media.opengl.DebugGL4;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL4;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.TraceGL4;
+import com.jogamp.opengl.DebugGL4;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL4;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.TraceGL4;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.math.Matrix4;

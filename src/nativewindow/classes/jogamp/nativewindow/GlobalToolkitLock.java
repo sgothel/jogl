@@ -28,13 +28,13 @@
 
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.ToolkitLock;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
- * Implementing a global recursive {@link javax.media.nativewindow.ToolkitLock}.
+ * Implementing a global recursive {@link com.jogamp.nativewindow.ToolkitLock}.
  * <p>
  * This is the last resort for unstable driver where multiple X11 display connections
  * to the same connection name are not treated thread safe within the GL/X11 driver.

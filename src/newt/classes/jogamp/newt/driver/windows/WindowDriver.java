@@ -41,13 +41,13 @@ import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.nativewindow.util.Insets;
-import javax.media.nativewindow.util.InsetsImmutable;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.InsetsImmutable;
+import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;

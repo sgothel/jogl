@@ -26,9 +26,9 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Colorbuffer;

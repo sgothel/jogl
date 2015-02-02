@@ -22,22 +22,22 @@
   However, any other native windowing system may be added to the implementation,
   using a generic string identifier and an optional specialisation of:
   <ul>
-    <li>{@link javax.media.nativewindow.AbstractGraphicsDevice AbstractGraphicsDevice},
-        <p>Shall return the new string identifier with {@link javax.media.nativewindow.AbstractGraphicsDevice#getType() getType()}</p></li>
-    <li>{@link javax.media.nativewindow.AbstractGraphicsScreen AbstractGraphicsScreen}</li>
-    <li>{@link javax.media.nativewindow.AbstractGraphicsConfiguration AbstractGraphicsConfiguration}</li>
+    <li>{@link com.jogamp.nativewindow.AbstractGraphicsDevice AbstractGraphicsDevice},
+        <p>Shall return the new string identifier with {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getType() getType()}</p></li>
+    <li>{@link com.jogamp.nativewindow.AbstractGraphicsScreen AbstractGraphicsScreen}</li>
+    <li>{@link com.jogamp.nativewindow.AbstractGraphicsConfiguration AbstractGraphicsConfiguration}</li>
   </ul>
   <p>The implementor has to provide the following:</p>
   <ul>
-    <li> The specialisation of the abstract class {@link javax.media.nativewindow.NativeWindowFactory NativeWindowFactory}
-         <p>shall be registered with {@link javax.media.nativewindow.NativeWindowFactory#registerFactory NativeWindowFactory.registerFactory(..)}.</p></li>
+    <li> The specialisation of the abstract class {@link com.jogamp.nativewindow.NativeWindowFactory NativeWindowFactory}
+         <p>shall be registered with {@link com.jogamp.nativewindow.NativeWindowFactory#registerFactory NativeWindowFactory.registerFactory(..)}.</p></li>
 
-    <li> The specialisation of the abstract class {@link javax.media.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}
-         <p>shall be registered with {@link javax.media.nativewindow.GraphicsConfigurationFactory#registerFactory GraphicsConfigurationFactory.registerFactory(..)}.</p></li>
+    <li> The specialisation of the abstract class {@link com.jogamp.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}
+         <p>shall be registered with {@link com.jogamp.nativewindow.GraphicsConfigurationFactory#registerFactory GraphicsConfigurationFactory.registerFactory(..)}.</p></li>
   </ul>
   <p>This protocol <i>does not</i> describe how to <i>create</i> native windows, but how to <i>bind</i> a native surface to an implementation of 
-  and window to an implementation of {@link javax.media.nativewindow.NativeSurface NativeSurface}.</p>
-  <p>{@link javax.media.nativewindow.NativeWindow NativeWindow} specializes the NativeSurface.</p>
+  and window to an implementation of {@link com.jogamp.nativewindow.NativeSurface NativeSurface}.</p>
+  <p>{@link com.jogamp.nativewindow.NativeWindow NativeWindow} specializes the NativeSurface.</p>
   <p>However, an implementation of this protocol (e.g. {@link com.jogamp.newt}) may support the creation.</p>
    
 <h3>Dependencies</h3>
@@ -62,30 +62,30 @@
 <h3>Package Structure</h3>
   The packages defined by this specification include:
 <ul>
-    <li>The <b>javax.media.nativewindow</b> package
+    <li>The <b>com.jogamp.nativewindow</b> package
     <p>This package contains Java bindings for a native windowing system.</p>
     <p>Subsequent packages contain marker type classes, containing native characteristics of the windowing system.</p>
     <ul>
-        <li>The <b>javax.media.nativewindow.awt</b> package
+        <li>The <b>com.jogamp.nativewindow.awt</b> package
         <p>This sub package contains classes to cover the native characteristics of the AWT windowing system.</p></li>
 
-        <li>The <b>javax.media.nativewindow.x11</b> package
+        <li>The <b>com.jogamp.nativewindow.x11</b> package
         <p>This sub package contains classes to cover the native characteristics of the X11 windowing system.</p></li>
 
-        <li>The <b>javax.media.nativewindow.windows</b> package
+        <li>The <b>com.jogamp.nativewindow.windows</b> package
         <p>This sub package contains classes to cover the native characteristics of the Windows windowing system.</p></li>
 
-        <li>The <b>javax.media.nativewindow.macosx</b> package
+        <li>The <b>com.jogamp.nativewindow.macosx</b> package
         <p>This sub package contains classes to cover the native characteristics of the MacOSX windowing system.</p></li>
 
-        <li>The <b>javax.media.nativewindow.egl</b> package
+        <li>The <b>com.jogamp.nativewindow.egl</b> package
         <p>This sub package contains classes to cover the native characteristics of the EGL/OpenKODE windowing system.</p></li>
   </ul></li>
 </ul>
 
 <h3>Factory Model</h3>
 <p>Running on a platform with a supported windowing system, the factory model shall be used
-to instantiate a native window, see {@link javax.media.nativewindow.NativeWindowFactory NativeWindowFactory}.</p>
+to instantiate a native window, see {@link com.jogamp.nativewindow.NativeWindowFactory NativeWindowFactory}.</p>
 
 <h3>Revision History</h3>
    

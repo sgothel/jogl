@@ -40,10 +40,10 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Insets;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Point;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.Point;
 
 import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.newt.WindowImpl;
@@ -192,7 +192,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void updateInsetsImpl(final javax.media.nativewindow.util.Insets insets) {
+    protected void updateInsetsImpl(final com.jogamp.nativewindow.util.Insets insets) {
         final Insets contInsets = awtContainer.getInsets();
         insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
     }

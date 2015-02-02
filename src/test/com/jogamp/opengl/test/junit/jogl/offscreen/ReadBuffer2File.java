@@ -29,7 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.offscreen;
 
 import java.io.IOException;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import java.io.File;
 

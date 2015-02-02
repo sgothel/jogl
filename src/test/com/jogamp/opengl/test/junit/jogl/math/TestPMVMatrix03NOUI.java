@@ -2,7 +2,7 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import java.util.Arrays;
 
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.opengl.ProjectFloat;
 

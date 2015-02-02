@@ -39,9 +39,9 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -61,7 +61,7 @@ public class Gamma {
   private Gamma() {}
 
   /**
-   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(javax.media.nativewindow.NativeSurface, float, float, float)}.
+   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(com.jogamp.nativewindow.NativeSurface, float, float, float)}.
    * <p>
    * Use {@link #setDisplayGamma(GLAutoDrawable, float, float, float)} in case of using an {#link GLAutoDrawable}.
    * </p>
@@ -71,7 +71,7 @@ public class Gamma {
   }
 
   /**
-   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(javax.media.nativewindow.NativeSurface, float, float, float)}
+   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(com.jogamp.nativewindow.NativeSurface, float, float, float)}
    * locking {@link GLAutoDrawable#getUpstreamLock()} to ensure proper atomic operation.
    */
   public static boolean setDisplayGamma(final GLAutoDrawable drawable, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
@@ -85,7 +85,7 @@ public class Gamma {
   }
 
   /**
-   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(javax.media.nativewindow.NativeSurface)}.
+   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(com.jogamp.nativewindow.NativeSurface)}.
    * <p>
    * Use {@link #resetDisplayGamma(GLAutoDrawable)} in case of using an {#link GLAutoDrawable}.
    * </p>
@@ -95,7 +95,7 @@ public class Gamma {
   }
 
   /**
-   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(javax.media.nativewindow.NativeSurface)}
+   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(com.jogamp.nativewindow.NativeSurface)}
    * locking {@link GLAutoDrawable#getUpstreamLock()} to ensure proper atomic operation.
    */
   public static void resetDisplayGamma(final GLAutoDrawable drawable) {

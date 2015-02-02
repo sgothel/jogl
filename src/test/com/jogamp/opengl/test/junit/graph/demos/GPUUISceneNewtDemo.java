@@ -1,8 +1,8 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.nativewindow.ScalableSurface;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.newt.event.WindowAdapter;

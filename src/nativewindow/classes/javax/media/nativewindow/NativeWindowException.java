@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /** A generic exception for OpenGL errors used throughout the binding
     as a substitute for {@link RuntimeException}. */

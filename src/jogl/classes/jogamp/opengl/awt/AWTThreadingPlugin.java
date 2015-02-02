@@ -42,7 +42,7 @@ package jogamp.opengl.awt;
 
 import java.awt.EventQueue;
 
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 

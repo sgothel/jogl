@@ -28,8 +28,8 @@
 
 package jogamp.newt.awt.event;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeSurfaceHolder;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeSurfaceHolder;
 
 import com.jogamp.newt.event.MouseEvent;
 

@@ -10,7 +10,7 @@ Implementation-Branch: @SCM_BRANCH@
 Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community
 Implementation-URL: http://jogamp.org/
-Extension-Name: javax.media.opengl
+Extension-Name: com.jogamp.opengl
 Implementation-Vendor-Id: com.jogamp
 Trusted-Library: true
 Permissions: all-permissions

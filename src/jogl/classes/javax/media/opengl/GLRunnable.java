@@ -26,12 +26,12 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 /**
  * <p>
  * Declares a one-shot OpenGL command usable for injection
- * via {@link GLAutoDrawable#invoke(boolean, javax.media.opengl.GLRunnable)}.<br>
+ * via {@link GLAutoDrawable#invoke(boolean, com.jogamp.opengl.GLRunnable)}.<br>
  * {@link GLAutoDrawable} executes the GLRunnables within it's {@link GLAutoDrawable#display() display()}
  * method after all registered {@link GLEventListener}s
  * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}

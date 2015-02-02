@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -47,9 +47,9 @@ public class GPUTextNewtDemo {
      *
      * If DEBUG is enabled:
      *
-     * Caused by: javax.media.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500),
-     * at javax.media.opengl.DebugGL4bc.checkGLGetError(DebugGL4bc.java:33961)
-     * at javax.media.opengl.DebugGL4bc.glFramebufferRenderbuffer(DebugGL4bc.java:33077)
+     * Caused by: com.jogamp.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500),
+     * at com.jogamp.opengl.DebugGL4bc.checkGLGetError(DebugGL4bc.java:33961)
+     * at com.jogamp.opengl.DebugGL4bc.glFramebufferRenderbuffer(DebugGL4bc.java:33077)
      * at jogamp.graph.curve.opengl.VBORegion2PGL3.initFBOTexture(VBORegion2PGL3.java:295)
      */
     static final boolean DEBUG = false;

@@ -41,8 +41,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.EventObject;
 import java.util.List;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
 import javax.swing.JFrame;
 
 import java.io.IOException;

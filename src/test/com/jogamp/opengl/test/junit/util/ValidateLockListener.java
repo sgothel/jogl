@@ -29,9 +29,9 @@
 package com.jogamp.opengl.test.junit.util;
 
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
 
 
 public class ValidateLockListener implements GLEventListener {

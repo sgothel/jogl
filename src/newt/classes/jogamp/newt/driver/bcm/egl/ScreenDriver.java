@@ -34,8 +34,8 @@
 
 package jogamp.newt.driver.bcm.egl;
 
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.util.Rectangle;
 
 import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;

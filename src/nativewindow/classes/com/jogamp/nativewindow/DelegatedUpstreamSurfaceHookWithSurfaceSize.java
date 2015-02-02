@@ -1,8 +1,8 @@
 package com.jogamp.nativewindow;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurfaceHook {
     final UpstreamSurfaceHook upstream;

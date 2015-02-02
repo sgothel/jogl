@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow.util;
+package com.jogamp.nativewindow.util;
 
 import java.util.List;
 

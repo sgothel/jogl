@@ -45,20 +45,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLFBODrawable;
-import javax.media.opengl.GLRunnable;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLFBODrawable;
+import com.jogamp.opengl.GLRunnable;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
@@ -227,7 +227,7 @@ public class GLDrawableHelper {
    *       i.e. lock the involved {@link GLDrawable#getNativeSurface() drawable's} {@link NativeSurface}s
    *       to avoid a race condition. In case {@link GLAutoDrawable auto-drawable's} are used,
    *       their {@link GLAutoDrawable#getUpstreamLock() upstream-lock} must be locked beforehand
-   *       see <a href="../../javax/media/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
+   *       see <a href="../../com/jogamp/opengl/GLAutoDrawable.html#locking">GLAutoDrawable Locking</a>.</li>
    * </ul>
    * </p>
    *

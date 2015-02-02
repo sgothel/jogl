@@ -31,11 +31,11 @@ package jogamp.opengl.egl;
 import java.nio.IntBuffer;
 import java.util.Iterator;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
+import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 

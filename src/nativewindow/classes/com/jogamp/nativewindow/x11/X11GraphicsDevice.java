@@ -36,10 +36,10 @@ package com.jogamp.nativewindow.x11;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
-import javax.media.nativewindow.DefaultGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.DefaultGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
 
 /** Encapsulates a graphics device on X11 platforms.
  */
@@ -49,7 +49,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     final boolean isXineramaEnabled;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
-     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.<br>
+     *  {@link com.jogamp.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.<br>
      *  Note that this is not an open connection, ie no native display handle exist.
      *  This constructor exist to setup a default device connection.
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int)
@@ -61,7 +61,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
-     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     *  {@link com.jogamp.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long)
      */
     public X11GraphicsDevice(final long display, final int unitID, final boolean owner) {
@@ -70,7 +70,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
 
     /**
      * @param display the Display connection
-     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
+     * @param locker custom {@link com.jogamp.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
     public X11GraphicsDevice(final long display, final int unitID, final ToolkitLock locker, final boolean owner) {
@@ -88,7 +88,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * The constructor opens the native connection and takes ownership.
      * </p>
      * @param displayConnection the semantic display connection name
-     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
+     * @param locker custom {@link com.jogamp.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
     public X11GraphicsDevice(final String displayConnection, final int unitID, final ToolkitLock locker) {

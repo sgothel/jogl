@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.media.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.Debug;
@@ -385,7 +385,7 @@ public abstract class NativeWindowFactory {
 
             // register our default factory -> NativeWindow
             final NativeWindowFactory factory = new NativeWindowFactoryImpl();
-            nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
+            nativeWindowClass = com.jogamp.nativewindow.NativeWindow.class;
             registerFactory(nativeWindowClass, factory);
             defaultFactory = factory;
 
@@ -560,10 +560,10 @@ public abstract class NativeWindowFactory {
     /** Converts the given window object and it's
         {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration} into a
         {@link NativeWindow NativeWindow} which can be operated upon by a custom
-        toolkit, e.g. {@link javax.media.opengl.GLDrawableFactory javax.media.opengl.GLDrawableFactory}.<br>
+        toolkit, e.g. {@link com.jogamp.opengl.GLDrawableFactory com.jogamp.opengl.GLDrawableFactory}.<br>
         The object may be a component for a particular window toolkit, such as an AWT
         Canvas.  It may also be a NativeWindow object itself.<br>
-        You shall utilize {@link javax.media.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}
+        You shall utilize {@link com.jogamp.nativewindow.GraphicsConfigurationFactory GraphicsConfigurationFactory}
         to construct a proper {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration}.<br>
         The particular implementation of the
         NativeWindowFactory is responsible for handling objects from a
@@ -574,7 +574,7 @@ public abstract class NativeWindowFactory {
         could not be handled by any of the registered
         NativeWindowFactory instances
 
-        @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+        @see com.jogamp.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
     */
     public static NativeWindow getNativeWindow(final Object winObj, final AbstractGraphicsConfiguration config) throws IllegalArgumentException, NativeWindowException {
         if (winObj == null) {

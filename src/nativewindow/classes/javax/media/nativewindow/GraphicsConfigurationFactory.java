@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ReflectionUtil;
@@ -398,8 +398,8 @@ public abstract class GraphicsConfigurationFactory {
      * @throws NativeWindowException if any window system-specific errors caused
      *         the selection of the graphics configuration to fail.
      *
-     * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
-     * @see javax.media.nativewindow.DefaultGraphicsConfiguration#setChosenCapabilities(Capabilities caps)
+     * @see com.jogamp.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+     * @see com.jogamp.nativewindow.DefaultGraphicsConfiguration#setChosenCapabilities(Capabilities caps)
      */
     public final AbstractGraphicsConfiguration
         chooseGraphicsConfiguration(final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,

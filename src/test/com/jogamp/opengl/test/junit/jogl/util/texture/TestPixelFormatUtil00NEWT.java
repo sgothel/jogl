@@ -32,11 +32,11 @@ import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.PixelFormatUtil;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PixelFormat.CType;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PixelFormatUtil;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PixelFormat.CType;
 
 import org.junit.Assert;
 import org.junit.Test;

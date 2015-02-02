@@ -30,7 +30,7 @@ package jogamp.opengl;
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 
-import javax.media.opengl.FPSCounter;
+import com.jogamp.opengl.FPSCounter;
 
 /**
  * Default implementation of FPSCounter to be used for FPSCounter implementing renderer.

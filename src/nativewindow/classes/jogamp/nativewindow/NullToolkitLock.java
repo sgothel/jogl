@@ -28,11 +28,11 @@
 
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
 
 /**
- * Implementing a singleton global NOP {@link javax.media.nativewindow.ToolkitLock}
+ * Implementing a singleton global NOP {@link com.jogamp.nativewindow.ToolkitLock}
  * without any locking. Since there is no locking it all, it is intrinsically recursive.
  */
 public class NullToolkitLock implements ToolkitLock {

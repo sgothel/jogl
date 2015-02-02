@@ -1,8 +1,8 @@
 package jogamp.opengl.egl;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;

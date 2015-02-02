@@ -50,7 +50,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;

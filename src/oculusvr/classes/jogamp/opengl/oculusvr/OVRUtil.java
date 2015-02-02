@@ -27,11 +27,11 @@
  */
 package jogamp.opengl.oculusvr;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.util.PointImmutable;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.ovrEyeRenderDesc;

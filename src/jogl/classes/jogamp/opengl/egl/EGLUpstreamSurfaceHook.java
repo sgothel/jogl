@@ -27,16 +27,16 @@
  */
 package jogamp.opengl.egl;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
-import javax.media.nativewindow.VisualIDHolder.VIDType;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLException;
 
 import jogamp.nativewindow.WrappedSurface;
 

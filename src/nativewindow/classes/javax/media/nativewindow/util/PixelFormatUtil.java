@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package javax.media.nativewindow.util;
+package com.jogamp.nativewindow.util;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

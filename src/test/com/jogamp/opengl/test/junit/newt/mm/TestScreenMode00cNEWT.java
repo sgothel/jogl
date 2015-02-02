@@ -30,8 +30,8 @@ package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -55,10 +55,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.util.List;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
 
 /**
  * Tests X11 XRandR MonitorMode reset via {@link UITestCase#resetXRandRIfX11()}.

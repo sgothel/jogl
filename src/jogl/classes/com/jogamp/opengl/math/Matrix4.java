@@ -28,8 +28,8 @@
 
 package com.jogamp.opengl.math;
 
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.opengl.util.PMVMatrix;
 

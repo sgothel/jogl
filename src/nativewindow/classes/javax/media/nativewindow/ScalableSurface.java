@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /**
  * Adding mutable surface pixel scale property to implementing class, usually to a {@link NativeSurface} implementation,

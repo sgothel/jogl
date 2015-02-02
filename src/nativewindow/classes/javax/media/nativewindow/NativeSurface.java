@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.nativewindow;
+package com.jogamp.nativewindow;
 
 /**
  * Provides low-level information required for
@@ -218,7 +218,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * this method shall return the native {@link AbstractGraphicsConfiguration} via {@link AbstractGraphicsConfiguration#getNativeGraphicsConfiguration()}.
    * </p>
    * @see AbstractGraphicsConfiguration#getNativeGraphicsConfiguration()
-   * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+   * @see com.jogamp.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
    */
   public AbstractGraphicsConfiguration getGraphicsConfiguration();
 

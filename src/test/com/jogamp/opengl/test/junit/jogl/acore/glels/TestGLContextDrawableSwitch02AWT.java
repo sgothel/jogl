@@ -38,10 +38,10 @@ import java.lang.reflect.InvocationTargetException;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.awt.GLCanvas;
 
 import jogamp.nativewindow.awt.AWTMisc;
 

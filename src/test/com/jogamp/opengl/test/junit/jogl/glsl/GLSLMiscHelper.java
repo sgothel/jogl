@@ -30,10 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.glsl;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLBufferStorage;
-import javax.media.opengl.GLDrawable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLBufferStorage;
+import com.jogamp.opengl.GLDrawable;
 
 import org.junit.Assert;
 

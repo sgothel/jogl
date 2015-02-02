@@ -32,7 +32,7 @@ import jogamp.nativewindow.Debug;
 
 import java.util.ArrayList;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
 public class RegisteredClassFactory {
     private static final boolean DEBUG = Debug.debug("RegisteredClass");

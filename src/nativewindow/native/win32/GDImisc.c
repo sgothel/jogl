@@ -26,7 +26,7 @@
     #define DBG_PRINT_FLUSH(args...)
 #endif
 
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
+static const char * const ClazzNamePoint = "com/jogamp/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 
@@ -528,7 +528,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_windows_GDIUtil_getDummyWndProc
 /*
  * Class:     jogamp_nativewindow_windows_GDIUtil
  * Method:    GetRelativeLocation0
- * Signature: (JJII)Ljavax/media/nativewindow/util/Point;
+ * Signature: (JJII)Lcom/jogamp/nativewindow/util/Point;
  */
 JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_windows_GDIUtil_GetRelativeLocation0
   (JNIEnv *env, jclass unused, jlong jsrc_win, jlong jdest_win, jint src_x, jint src_y)

@@ -34,7 +34,7 @@
 
 package com.jogamp.newt.event;
 
-import javax.media.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.WindowClosingProtocol;
 
 /** NEWT {@link WindowEvent} listener. */
 public interface WindowListener extends NEWTEventListener {

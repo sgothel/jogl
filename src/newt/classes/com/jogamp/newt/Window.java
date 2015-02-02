@@ -42,14 +42,14 @@ import com.jogamp.newt.event.MouseListener;
 import jogamp.newt.Debug;
 import jogamp.newt.WindowImpl;
 
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.ScalableSurface;
-import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.nativewindow.util.SurfaceSize;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.SurfaceSize;
 
 /**
  * Specifying NEWT's Window functionality:
@@ -234,9 +234,9 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * }
      * </pre></p>
      * <p>
-     * In case this window is a child window and has a {@link javax.media.nativewindow.NativeWindow} parent,<br>
+     * In case this window is a child window and has a {@link com.jogamp.nativewindow.NativeWindow} parent,<br>
      * <code>setVisible(wait, true)</code> has no effect as long the parent's is not valid yet,
-     * i.e. {@link javax.media.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
+     * i.e. {@link com.jogamp.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
      * <code>setVisible(wait, true)</code> shall be repeated when the parent becomes valid.
      * </p>
      * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>

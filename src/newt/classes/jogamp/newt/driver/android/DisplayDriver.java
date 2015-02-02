@@ -31,7 +31,7 @@ package jogamp.newt.driver.android;
 import jogamp.newt.*;
 import jogamp.opengl.egl.*;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 import com.jogamp.opengl.egl.EGL;
 

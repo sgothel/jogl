@@ -40,7 +40,7 @@
 
 package jogamp.opengl;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public interface ToolkitThreadingPlugin {
   /** Indicates whether the current thread is the designated toolkit thread,
@@ -48,13 +48,13 @@ public interface ToolkitThreadingPlugin {
   public boolean isToolkitThread() throws GLException;
 
   /** Indicates whether the current thread is the thread on
-      which this implementation of the javax.media.opengl APIs
+      which this implementation of the com.jogamp.opengl APIs
       performs all of its OpenGL-related work. This method should only
       be called if the single-thread model is in effect. */
   public boolean isOpenGLThread() throws GLException;
 
   /** Executes the passed Runnable on the single thread used for all
-      OpenGL work in this javax.media.opengl API implementation. It is
+      OpenGL work in this com.jogamp.opengl API implementation. It is
       not specified exactly which thread is used for this
       purpose. This method should only be called if the single-thread
       model is in use and if the current thread is not the OpenGL

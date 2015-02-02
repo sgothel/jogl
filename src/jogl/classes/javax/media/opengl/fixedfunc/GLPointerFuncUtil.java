@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl.fixedfunc;
+package com.jogamp.opengl.fixedfunc;
 
 public class GLPointerFuncUtil {
     public static final String mgl_Vertex = "mgl_Vertex";

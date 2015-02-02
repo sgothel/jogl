@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
 
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -50,12 +50,12 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.nativewindow.util.SurfaceSize;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.SurfaceSize;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.MonitorDeviceImpl;
 import jogamp.newt.MonitorModeProps;

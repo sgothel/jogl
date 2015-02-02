@@ -34,12 +34,12 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLArrayData;
-import javax.media.opengl.GLBufferStorage;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.GLBufferStorage;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLPointerFuncUtil;
 
 import com.jogamp.common.nio.Buffers;
 
@@ -79,7 +79,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * @param buffer the user define data
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    *
-   * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
+   * @see com.jogamp.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createFixed(final int index, final int compsPerElement, final int dataType, final boolean normalized, final int stride,
                                               final Buffer buffer, final int vboUsage)
@@ -111,7 +111,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * @param initialElementCount
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    *
-   * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
+   * @see com.jogamp.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
   public static GLArrayDataServer createFixed(final int index, final int compsPerElement, final int dataType, final boolean normalized, final int initialElementCount,
                                               final int vboUsage)

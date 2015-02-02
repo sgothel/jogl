@@ -34,11 +34,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.PixelRectangle;
-import javax.media.nativewindow.util.PixelFormat;
-import javax.media.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.PixelRectangle;
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.newt.Debug;
 
@@ -235,7 +235,7 @@ public abstract class Display {
 
     /**
      * Manual trigger the native creation, if it is not done yet.<br>
-     * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsDevice}, via
+     * This is useful to be able to request the {@link com.jogamp.nativewindow.AbstractGraphicsDevice}, via
      * {@link #getGraphicsDevice()}.<br>
      * Otherwise the abstract device won't be available before the dependent components (Screen and Window) are realized.
      * <p>
@@ -324,7 +324,7 @@ public abstract class Display {
     public abstract String getName();
 
     /**
-     * @return the native display type, ie {@link javax.media.nativewindow.NativeWindowFactory#getNativeWindowType(boolean)}
+     * @return the native display type, ie {@link com.jogamp.nativewindow.NativeWindowFactory#getNativeWindowType(boolean)}
      */
     public abstract String getType();
 

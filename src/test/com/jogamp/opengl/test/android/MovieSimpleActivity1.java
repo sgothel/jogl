@@ -32,11 +32,11 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
 
-import javax.media.nativewindow.util.Rectangle;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 

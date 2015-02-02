@@ -30,12 +30,12 @@ package com.jogamp.opengl.test.junit.jogl.offscreen;
 
 import java.nio.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.fixedfunc.*;
 
 import com.jogamp.opengl.util.*;
 
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.GLArrayDataClient;

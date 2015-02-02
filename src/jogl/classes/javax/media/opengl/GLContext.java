@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.nio.IntBuffer;
 import java.util.HashMap;
@@ -47,8 +47,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -677,7 +677,7 @@ public abstract class GLContext {
    *
    * @param glFunctionName the name of the OpenGL function (e.g., use
    * "glPolygonOffsetEXT" or "glPolygonOffset" to check if the {@link
-   * javax.media.opengl.GL#glPolygonOffset(float,float)} is available).
+   * com.jogamp.opengl.GL#glPolygonOffset(float,float)} is available).
    */
   public abstract boolean isFunctionAvailable(String glFunctionName);
 
@@ -709,7 +709,7 @@ public abstract class GLContext {
       space-separated list of available extensions.
       Can only be called while this context is current.
       This is equivalent to
-      {@link javax.media.opengl.GL#glGetString(int) glGetString}({@link javax.media.opengl.GL#GL_EXTENSIONS GL_EXTENSIONS})
+      {@link com.jogamp.opengl.GL#glGetString(int) glGetString}({@link com.jogamp.opengl.GL#GL_EXTENSIONS GL_EXTENSIONS})
    */
   public abstract String getGLExtensionsString();
 
@@ -1615,12 +1615,12 @@ public abstract class GLContext {
   //
 
   /**
-   * @see #getDeviceVersionAvailableKey(javax.media.nativewindow.AbstractGraphicsDevice, int, int)
+   * @see #getDeviceVersionAvailableKey(com.jogamp.nativewindow.AbstractGraphicsDevice, int, int)
    */
   protected static final IdentityHashMap<String, Integer> deviceVersionAvailable = new IdentityHashMap<String, Integer>();
 
   /**
-   * @see #getUniqueDeviceString(javax.media.nativewindow.AbstractGraphicsDevice)
+   * @see #getUniqueDeviceString(com.jogamp.nativewindow.AbstractGraphicsDevice)
    */
   private static final IdentityHashMap<String, String> deviceVersionsAvailableSet = new IdentityHashMap<String, String>();
 
@@ -1664,7 +1664,7 @@ public abstract class GLContext {
   /**
    * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable(int,int)} not intended to be used by
    * implementations. However, if {@link jogamp.opengl.GLContextImpl#createContextARB(long, boolean)} is not being used within
-   * {@link javax.media.opengl.GLDrawableFactory#getOrCreateSharedContext(javax.media.nativewindow.AbstractGraphicsDevice)},
+   * {@link com.jogamp.opengl.GLDrawableFactory#getOrCreateSharedContext(com.jogamp.nativewindow.AbstractGraphicsDevice)},
    * GLProfile has to map the available versions.
    *
    * @param reqMajor Key Value either 1, 2, 3 or 4

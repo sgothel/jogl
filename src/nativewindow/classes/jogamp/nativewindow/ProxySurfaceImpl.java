@@ -30,13 +30,13 @@ package jogamp.nativewindow;
 
 import java.io.PrintStream;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.SurfaceUpdatedListener;
-import javax.media.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.SurfaceUpdatedListener;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;

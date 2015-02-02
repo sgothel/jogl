@@ -1,6 +1,6 @@
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 /**
  * Marker interface.

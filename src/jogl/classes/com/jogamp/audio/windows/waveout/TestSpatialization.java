@@ -33,8 +33,8 @@
 package com.jogamp.audio.windows.waveout;
 
 import java.io.*;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLDrawableFactory;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLDrawableFactory;
 
 public class TestSpatialization {
     public static void main(String[] args) {

@@ -34,8 +34,8 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import javax.media.nativewindow.util.RectangleImmutable;
-import javax.media.opengl.*;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.*;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;

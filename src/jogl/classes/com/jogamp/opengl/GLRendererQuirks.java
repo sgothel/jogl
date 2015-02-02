@@ -29,8 +29,8 @@ package com.jogamp.opengl;
 
 import java.util.IdentityHashMap;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.egl.EGL;
@@ -347,7 +347,7 @@ public class GLRendererQuirks {
      * Some drivers wrongly claim to support pbuffers
      * with accumulation buffers. However, the creation of such pbuffer fails:
      * <pre>
-     *   javax.media.opengl.GLException: pbuffer creation error: Couldn't find a suitable pixel format
+     *   com.jogamp.opengl.GLException: pbuffer creation error: Couldn't find a suitable pixel format
      * </pre>
      * </p>
      * <p>
@@ -401,7 +401,7 @@ public class GLRendererQuirks {
      * Some drivers wrongly claim to support ARB_create_context.
      * However, the creation of such context fails:
      * <pre>
-     *   javax.media.opengl.GLException: AWT-EventQueue-0: WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 
+     *   com.jogamp.opengl.GLException: AWT-EventQueue-0: WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 
      *   requested (OpenGL >= 3.0.1). Requested: GLProfile[GL3bc/GL3bc.hw], current: 2.1 (Compat profile, FBO, hardware) 
      *   - 2.1.8787
      * </pre>

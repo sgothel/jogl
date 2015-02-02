@@ -28,7 +28,7 @@
 
 package com.jogamp.newt.event;
 
-import javax.media.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.Rectangle;
 
 @SuppressWarnings("serial")
 public class WindowUpdateEvent extends WindowEvent {

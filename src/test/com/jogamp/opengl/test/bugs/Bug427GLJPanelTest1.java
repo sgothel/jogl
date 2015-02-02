@@ -4,9 +4,9 @@ import javax.swing.*;
 
 import java.awt.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.awt.*;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 public class Bug427GLJPanelTest1 extends JFrame implements GLEventListener {
 

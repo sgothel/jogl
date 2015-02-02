@@ -41,9 +41,9 @@ package com.jogamp.opengl.test.junit.jogl.caps;
 
 import java.util.List;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 class MultisampleChooser01 extends DefaultGLCapabilitiesChooser {
 

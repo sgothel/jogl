@@ -50,7 +50,7 @@ import javax.swing.WindowConstants;
 
 import java.util.ArrayList;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.opengl.*;

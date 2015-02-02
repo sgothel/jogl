@@ -40,8 +40,8 @@ package jogamp.opengl.awt;
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.Method;
 
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLException;
 
 public class AWTUtil {
   // See whether we're running in headless mode

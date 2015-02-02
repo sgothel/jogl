@@ -30,7 +30,7 @@
        - we can not overwrite it.
       -->
     <target name="java.class.path.validate">
-      <available property="jogl.jar.on.class.path" classname="javax.media.opengl.GL" />
+      <available property="jogl.jar.on.class.path" classname="com.jogamp.opengl.GL" />
       <fail if="jogl.jar.on.class.path">
         
     ******************************************************************

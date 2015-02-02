@@ -28,9 +28,9 @@
 
 package jogamp.newt;
 
-import javax.media.nativewindow.ScalableSurface;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Rectangle;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.newt.MonitorDevice;

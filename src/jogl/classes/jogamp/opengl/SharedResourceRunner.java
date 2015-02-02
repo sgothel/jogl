@@ -31,9 +31,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.opengl.GLRendererQuirks;

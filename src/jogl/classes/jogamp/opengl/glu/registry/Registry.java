@@ -44,7 +44,7 @@
 
 package jogamp.opengl.glu.registry;
 
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.glu.GLU;
 
 /**
  *

@@ -42,7 +42,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;

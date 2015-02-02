@@ -45,7 +45,7 @@ import java.io.*;
 import java.nio.*;
 import javax.imageio.*;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.awt.*;

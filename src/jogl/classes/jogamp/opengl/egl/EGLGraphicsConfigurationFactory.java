@@ -39,22 +39,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.VisualIDHolder;
-import javax.media.nativewindow.VisualIDHolder.VIDType;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
@@ -90,7 +90,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 fallbackGraphicsConfigurationFactory = GraphicsConfigurationFactory.getFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class);
             }
         } /* else if(NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false)) {
-            nativeGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, eglFactory);
+            nativeGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, eglFactory);
         } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {
         } */
 
@@ -103,7 +103,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if(NativeWindowFactory.TYPE_X11 == nwType) {
             GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, GLCapabilitiesImmutable.class, nativeGraphicsConfigurationFactory);
         } /* else if(NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false)) {
-            GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, nativeGraphicsConfigurationFactory);
+            GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, nativeGraphicsConfigurationFactory);
         } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {
         } */
         nativeGraphicsConfigurationFactory = null;

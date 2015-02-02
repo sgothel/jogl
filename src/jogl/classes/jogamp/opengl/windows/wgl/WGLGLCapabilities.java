@@ -33,11 +33,11 @@ import java.nio.IntBuffer;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 public class WGLGLCapabilities extends GLCapabilities {
   final private PIXELFORMATDESCRIPTOR pfd;

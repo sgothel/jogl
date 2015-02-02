@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.awt;
 
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;

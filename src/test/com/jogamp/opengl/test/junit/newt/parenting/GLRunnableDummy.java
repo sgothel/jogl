@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 public class GLRunnableDummy implements GLRunnable {
     float r=0.0f;

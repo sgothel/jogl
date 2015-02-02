@@ -4,9 +4,9 @@ import com.jogamp.common.nio.Buffers;
 
 import java.nio.*;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.TileRendererBase;
@@ -86,12 +86,12 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
 
         if(debugFFPEmu) {
             // Debug ..
-            _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, _gl, null) );
+            _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", GL2ES2.class, _gl, null) );
             debug = false;
         }
         if(traceFFPEmu) {
             // Trace ..
-            _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
+            _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
             trace = false;
         }
         GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
@@ -99,13 +99,13 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
         if(debug) {
             try {
                 // Debug ..
-                gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
+                gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", GL2ES1.class, gl, null) );
             } catch (final Exception e) {e.printStackTrace();}
         }
         if(trace) {
             try {
                 // Trace ..
-                gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
+                gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
             } catch (final Exception e) {e.printStackTrace();}
         }
 

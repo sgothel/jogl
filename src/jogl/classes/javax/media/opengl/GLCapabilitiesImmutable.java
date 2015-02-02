@@ -26,15 +26,15 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
-import javax.media.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
 
 /**
  * Specifies an immutable set of OpenGL capabilities.<br>
  *
- * @see javax.media.opengl.GLCapabilities
- * @see javax.media.nativewindow.CapabilitiesImmutable
+ * @see com.jogamp.opengl.GLCapabilities
+ * @see com.jogamp.nativewindow.CapabilitiesImmutable
  */
 public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     /**

@@ -1,5 +1,5 @@
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import java.nio.*;
 

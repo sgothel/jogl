@@ -40,8 +40,8 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLException;
 
 /** <P> An Animator can be attached to one or more {@link
     GLAutoDrawable}s to drive their display() methods in a loop. </P>

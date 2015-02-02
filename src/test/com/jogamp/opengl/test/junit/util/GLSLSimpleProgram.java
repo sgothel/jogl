@@ -31,8 +31,8 @@ package com.jogamp.opengl.test.junit.util;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 import org.junit.Assert;
 
 public class GLSLSimpleProgram {

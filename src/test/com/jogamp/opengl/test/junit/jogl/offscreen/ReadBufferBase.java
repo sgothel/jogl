@@ -28,7 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.offscreen;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
@@ -52,7 +52,7 @@ public class ReadBufferBase implements GLEventListener {
 
         if(glDebug) {
             try {
-                _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
+                _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, _gl, null) );
             } catch (final Exception e) {
                 throw new RuntimeException("can not set debug pipeline", e);
             }
@@ -60,7 +60,7 @@ public class ReadBufferBase implements GLEventListener {
 
         if(glTrace) {
             try {
-                _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, _gl, new Object[] { System.err } ) );
+                _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, _gl, new Object[] { System.err } ) );
             } catch (final Exception e) {
                 throw new RuntimeException("can not set trace pipeline", e);
             }

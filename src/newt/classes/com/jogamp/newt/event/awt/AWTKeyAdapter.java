@@ -28,7 +28,7 @@
 
 package com.jogamp.newt.event.awt;
 
-import javax.media.nativewindow.NativeSurfaceHolder;
+import com.jogamp.nativewindow.NativeSurfaceHolder;
 
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 

@@ -46,8 +46,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
 
 
 /** Provides a deterministic mechanism by which OpenGL contexts can share textures

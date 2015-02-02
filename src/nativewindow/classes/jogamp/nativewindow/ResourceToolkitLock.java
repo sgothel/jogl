@@ -28,13 +28,13 @@
 
 package jogamp.nativewindow;
 
-import javax.media.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.ToolkitLock;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
- * Implementing a resource based recursive {@link javax.media.nativewindow.ToolkitLock}.
+ * Implementing a resource based recursive {@link com.jogamp.nativewindow.ToolkitLock}.
  * <p>
  * A resource handle maybe used within a unique object
  * and can be synchronized across threads via an instance of ResourceToolkitLock.

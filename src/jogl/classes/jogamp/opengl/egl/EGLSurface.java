@@ -29,12 +29,12 @@ package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;

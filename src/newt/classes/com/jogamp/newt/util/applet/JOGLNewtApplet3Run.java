@@ -34,15 +34,15 @@ import com.jogamp.plugin.applet.Applet3Context;
 import com.jogamp.plugin.ui.NativeWindowDownstream;
 import com.jogamp.plugin.ui.NativeWindowUpstream;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
-import javax.media.nativewindow.util.PointImmutable;
-import javax.media.opengl.FPSCounter;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.opengl.FPSCounter;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.newt.NewtFactory;

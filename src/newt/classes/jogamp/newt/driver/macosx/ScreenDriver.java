@@ -34,8 +34,8 @@
 
 package jogamp.newt.driver.macosx;
 
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.util.Rectangle;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.MonitorModeProps;

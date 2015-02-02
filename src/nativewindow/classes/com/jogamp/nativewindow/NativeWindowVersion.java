@@ -46,8 +46,8 @@ public class NativeWindowVersion extends JogampVersion {
         if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(NativeWindowVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
-                    final String packageName1 = "javax.media.nativewindow"; // atomic packaging - and identity
-                    final String packageName2 = "javax.media.opengl"; // all packaging
+                    final String packageName1 = "com.jogamp.nativewindow"; // atomic packaging - and identity
+                    final String packageName2 = "com.jogamp.opengl"; // all packaging
                     final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 } );
                     jogampCommonVersionInfo = new NativeWindowVersion(packageName1, mf);
                 }

@@ -38,10 +38,10 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.util.Point;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;

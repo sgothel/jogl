@@ -46,26 +46,26 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.OffscreenLayerSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.MutableSurface;
-import javax.media.nativewindow.UpstreamSurfaceHook;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLFBODrawable;
-import javax.media.opengl.GLOffscreenAutoDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.OffscreenLayerSurface;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.MutableSurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLFBODrawable;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -159,7 +159,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
    * Creation of the shared resource is tried only once.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
   protected final SharedResourceRunner.Resource getOrCreateSharedResource(AbstractGraphicsDevice device) {
       try {
@@ -182,7 +182,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * either a pre-existing or newly created, or <code>null</code> if creation failed or <b>not supported</b>.<br>
    * Creation of the shared context is tried only once.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
   public final GLContext getOrCreateSharedContext(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
@@ -215,7 +215,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * either a preexisting or newly created, or <code>null</code> if creation failed or not supported.<br>
    * Creation of the shared context is tried only once.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param device which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    */
   protected final AbstractGraphicsDevice getOrCreateSharedDevice(final AbstractGraphicsDevice device) {
       final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
@@ -465,7 +465,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * <p>
    * Creates a new independent device instance using <code>deviceReq</code> details.
    * </p>
-   * @param deviceReq which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param deviceReq which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
    * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.

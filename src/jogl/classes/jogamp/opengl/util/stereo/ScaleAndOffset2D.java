@@ -27,8 +27,8 @@
  */
 package jogamp.opengl.util.stereo;
 
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.RectangleImmutable;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.math.VectorUtil;

@@ -40,9 +40,9 @@
 
 package jogamp.opengl.windows.wgl;
 
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.PropertyAccess;
 

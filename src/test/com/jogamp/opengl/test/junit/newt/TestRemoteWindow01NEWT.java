@@ -36,7 +36,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 import com.jogamp.newt.*;
 import java.io.IOException;

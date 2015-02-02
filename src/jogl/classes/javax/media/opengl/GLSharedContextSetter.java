@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import com.jogamp.opengl.GLRendererQuirks;
 
@@ -45,7 +45,7 @@ import com.jogamp.opengl.GLRendererQuirks;
  * i.e. the <i>slave</i> {@link GLAutoDrawable} will not be realized before their associated <i>master</i>.
  * </p>
  * <p>
- * Using the nearest or same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType) visual ID}
+ * Using the nearest or same {@link GLCapabilitiesImmutable#getVisualID(com.jogamp.nativewindow.VisualIDHolder.VIDType) visual ID}
  * or {@link GLCapabilitiesImmutable caps} across the shared {@link GLDrawable}s will yield best compatibility.
  * </p>
  * <h5><a name="lifecycle">Lifecycle Considerations</a></h5>
@@ -70,7 +70,7 @@ import com.jogamp.opengl.GLRendererQuirks;
  * <i>or</i> the <i>slaves</i> validate whether the resources are still valid.
  * </p>
  * <p>
- * To simplify above lifecycle issues, one may use a {@link GLDrawableFactory#createDummyDrawable(javax.media.nativewindow.AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser) dummy}
+ * To simplify above lifecycle issues, one may use a {@link GLDrawableFactory#createDummyDrawable(com.jogamp.nativewindow.AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser) dummy}
  * {@link GLDrawable} and it's {@link GLContext} as the <i>master</i> of all shared <i>slave</i> {@link GLContext}.
  * Since this <i>dummy instance</i> does not depend on any native windowing system, it can be controlled easily w/o being <i>in sight</i>.<br>
  * Below code creates a {@link GLAutoDrawable} based on a <i>dummy GLDrawable</i>:

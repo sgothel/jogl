@@ -31,8 +31,8 @@ import java.applet.Applet;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.awt.GLCanvas;
 import javax.swing.BoxLayout;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;

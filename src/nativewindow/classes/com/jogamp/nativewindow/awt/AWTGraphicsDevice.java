@@ -40,10 +40,10 @@
 
 package com.jogamp.nativewindow.awt;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import javax.media.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
 
 /** A wrapper for an AWT GraphicsDevice allowing it to be
     handled in a toolkit-independent manner. */

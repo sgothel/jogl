@@ -28,8 +28,8 @@
 
 package jogamp.opengl;
 
-import javax.media.opengl.GLRunnable;
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLRunnable;
+import com.jogamp.opengl.GLAutoDrawable;
 
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
