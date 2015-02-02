@@ -447,7 +447,7 @@
         <property name="jogl-all-noawt.jar"             value="${jar}/jogl-all-noawt.jar" />
         <property name="jogl-all-mobile.jar"            value="${jar}/jogl-all-mobile.jar" />
         <property name="jogl-all-android.jar"           value="${jar}/jogl-all-android.jar" />
-        <property name="jogl-all-android.apk"           value="${jar}/jogl-all-android-${android.abi}.apk" />
+        <property name="jogl-all-android.apk"           value="${jar}/jogl-all-${os.and.arch}.apk" />
 
         <!-- JavaSE combinations . JOAL (optional) -->
         <property name="joal.jar"                       value="${build.joal}/jar/joal.jar" />
