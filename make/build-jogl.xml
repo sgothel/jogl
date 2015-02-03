@@ -1923,6 +1923,7 @@
                  bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -1939,6 +1940,7 @@
                  bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -1955,6 +1957,7 @@
          bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 

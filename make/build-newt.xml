@@ -890,6 +890,7 @@
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
          <classpath refid="jogl_doc.classpath"/>
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -906,6 +907,7 @@
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
          <classpath refid="jogl_doc.classpath"/>
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -922,6 +924,7 @@
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
          <classpath refid="jogl_doc.classpath"/>
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 

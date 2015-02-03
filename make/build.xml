@@ -430,6 +430,7 @@
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+            <arg value="${javadoc.xarg1}"/>
         </javadoc>
         <copy todir="${javadoc.jogl.public.path}/resources" overwrite="true">
             <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
@@ -457,6 +458,7 @@
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <link offline="false" href="../javadoc_nativewindow_spec" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+            <arg value="${javadoc.xarg1}"/>
         </javadoc>
         <copy todir="${javadoc.jogl.spec.path}/resources" overwrite="true">
             <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
@@ -483,6 +485,7 @@
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+            <arg value="${javadoc.xarg1}"/>
         </javadoc>
         <copy todir="${javadoc.jogl.dev.path}/resources" overwrite="true">
             <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
@@ -509,6 +512,7 @@
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
+            <arg value="${javadoc.xarg1}"/>
         </javadoc>
         <copy todir="${javadoc.nw.spec.path}/resources" overwrite="true">
             <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />

@@ -888,6 +888,7 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -903,6 +904,7 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
                                                                                                                                    
@@ -918,6 +920,7 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
