@@ -300,6 +300,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if( contextIsCurrent && context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 ) {
                     allowsSurfacelessCtx = probeSurfacelessCtx(context, true /* restoreDrawable */);
                 } else {
+                    setNoSurfacelessCtxQuirk(context);
                     allowsSurfacelessCtx = false;
                 }
 

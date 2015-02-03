@@ -356,6 +356,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     if( context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 ) {
                         allowsSurfacelessCtx = probeSurfacelessCtx(context, true /* restoreDrawable */);
                     } else {
+                        setNoSurfacelessCtxQuirk(context);
                         allowsSurfacelessCtx = false;
                     }
                     hasARBPixelFormat = context.isExtensionAvailable(WGL_ARB_pixel_format);

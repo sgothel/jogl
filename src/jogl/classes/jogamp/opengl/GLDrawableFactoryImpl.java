@@ -96,7 +96,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * <p>
    * Caller shall skip probing in case surfaceless support is not possible,
    * e.g. OpenGL ES without {@code EGL_KHR_surfaceless_context} or EGL &lt; 1.5,
-   * or desktop OpenGL context &lt; 3.0.
+   * or desktop OpenGL context &lt; 3.0 and instead call {@link #setNoSurfacelessCtxQuirk(GLContext)}!
    * </p>
    *
    * @param context the context to probe, must be current
@@ -141,17 +141,36 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
           }
       }
       if( !noSurfacelessCtxQuirk && !allowsSurfacelessCtx ) {
-          final int quirk = GLRendererQuirks.NoSurfacelessCtx;
-          if(DEBUG || GLContext.DEBUG) {
-              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+" -> "+device+": cause: probe");
-          }
-          final GLRendererQuirks glrq = context.getRendererQuirks();
-          if( null != glrq ) {
-              glrq.addQuirk(quirk);
-          }
-          GLRendererQuirks.addStickyDeviceQuirk(device, quirk);
+          setNoSurfacelessCtxQuirkImpl(device, context);
       }
       return allowsSurfacelessCtx;
+  }
+
+  /**
+   * Method will set the {@link GLRendererQuirks#NoSurfacelessCtx}
+   * if it has not been set already.
+   *
+   * @param context the context to probe, must be current
+   * @see GLRendererQuirks#NoSurfacelessCtx
+   */
+  protected final void setNoSurfacelessCtxQuirk(final GLContext context) {
+      final boolean noSurfacelessCtxQuirk = context.hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx);
+      if( !noSurfacelessCtxQuirk ) {
+          final GLDrawable origDrawable = context.getGLDrawable();
+          final AbstractGraphicsDevice device = origDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+          setNoSurfacelessCtxQuirkImpl(device, context);
+      }
+  }
+  private final void setNoSurfacelessCtxQuirkImpl(final AbstractGraphicsDevice device, final GLContext context) {
+      final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+      if(DEBUG || GLContext.DEBUG) {
+          System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+" -> "+device+": cause: probe");
+      }
+      final GLRendererQuirks glrq = context.getRendererQuirks();
+      if( null != glrq ) {
+          glrq.addQuirk(quirk);
+      }
+      GLRendererQuirks.addStickyDeviceQuirk(device, quirk);
   }
 
   /**

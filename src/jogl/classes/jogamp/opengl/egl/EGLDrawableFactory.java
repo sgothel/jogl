@@ -745,6 +745,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                     if( probeSurfacelessCtx(context, false /* restoreDrawable */) ) {
                                         zeroDrawable = context.getGLDrawable();
                                     }
+                                } else {
+                                    setNoSurfacelessCtxQuirk(context);
                                 }
                                 rendererQuirks[0] = context.getRendererQuirks();
                                 ctxProfile[0] = context.getContextOptions();
@@ -814,7 +816,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.device) {
-                // may cause JVM SIGSEGV:
+                // Issues eglTerminate(), which may cause SIGSEGV w/ NVIDIA 343.36 w/ TestGLProfile01NEWT
+                // May cause JVM SIGSEGV:
                 sr.device.close();
                 sr.device = null;
             }
