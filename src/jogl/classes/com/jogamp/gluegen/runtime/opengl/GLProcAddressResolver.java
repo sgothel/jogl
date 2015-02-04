@@ -35,16 +35,14 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 
 /**
- * @author Sven Gothel
- * @author Michael Bien
+ * @author Michael Bien, et.al.
  */
 public class GLProcAddressResolver implements FunctionAddressResolver {
 
     public static final boolean DEBUG = false;
 
     @Override
-    public long resolve(final String name, final DynamicLookupHelper lookup) {
-
+    public long resolve(final String name, final DynamicLookupHelper lookup) throws SecurityException {
         long newProcAddress = 0;
         final int permutations = GLNameResolver.getFuncNamePermutationNumber(name);
 

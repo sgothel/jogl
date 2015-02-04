@@ -100,6 +100,9 @@ public abstract class GLContextImpl extends GLContext {
   private String glRenderer;
   private String glRendererLowerCase;
   private String glVersion;
+  private boolean glGetPtrInit = false;
+  private long glGetStringPtr = 0;
+  private long glGetIntegervPtr = 0;
 
   // Tracks lifecycle of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
@@ -196,6 +199,9 @@ public abstract class GLContextImpl extends GLContext {
       glRenderer = glVendor;
       glRendererLowerCase = glRenderer;
       glVersion = glVendor;
+      glGetPtrInit = false;
+      glGetStringPtr = 0;
+      glGetIntegervPtr = 0;
 
       if ( !isInit && null != boundFBOTarget ) { // <init>: boundFBOTarget is not written yet
           boundFBOTarget[0] = 0; // draw
@@ -1367,17 +1373,32 @@ public abstract class GLContextImpl extends GLContext {
     } );
   }
 
+  private final PrivilegedAction<Object> privInitGLGetPtrAction = new PrivilegedAction<Object>() {
+      @Override
+      public Object run() {
+          final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
+          glDynLookupHelper.claimAllLinkPermission();
+          try {
+              glGetStringPtr = glDynLookupHelper.dynamicLookupFunction("glGetString");
+              glGetIntegervPtr = glDynLookupHelper.dynamicLookupFunction("glGetIntegerv");
+          } finally {
+              glDynLookupHelper.releaseAllLinkPermission();
+          }
+          return null;
+      } };
   private final boolean initGLRendererAndGLVersionStrings()  {
-    final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
-    final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");
-    if(0 == _glGetString) {
-        System.err.println("Error: Entry point to 'glGetString' is NULL.");
+    if( !glGetPtrInit ) {
+        AccessController.doPrivileged(privInitGLGetPtrAction);
+        glGetPtrInit = true;
+    }
+    if( 0 == glGetStringPtr || 0 == glGetIntegervPtr ) {
+        System.err.println("Error: Could not lookup: glGetString "+toHexString(glGetStringPtr)+", glGetIntegerv "+toHexString(glGetIntegervPtr));
         if(DEBUG) {
             ExceptionUtils.dumpStack(System.err);
         }
         return false;
     } else {
-        final String _glVendor = glGetStringInt(GL.GL_VENDOR, _glGetString);
+        final String _glVendor = glGetStringInt(GL.GL_VENDOR, glGetStringPtr);
         if(null == _glVendor) {
             if(DEBUG) {
                 System.err.println("Warning: GL_VENDOR is NULL.");
@@ -1387,7 +1408,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         glVendor = _glVendor;
 
-        final String _glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
+        final String _glRenderer = glGetStringInt(GL.GL_RENDERER, glGetStringPtr);
         if(null == _glRenderer) {
             if(DEBUG) {
                 System.err.println("Warning: GL_RENDERER is NULL.");
@@ -1398,7 +1419,7 @@ public abstract class GLContextImpl extends GLContext {
         glRenderer = _glRenderer;
         glRendererLowerCase = glRenderer.toLowerCase();
 
-        final String _glVersion = glGetStringInt(GL.GL_VERSION, _glGetString);
+        final String _glVersion = glGetStringInt(GL.GL_VERSION, glGetStringPtr);
         if(null == _glVersion) {
             // FIXME
             if(DEBUG) {
@@ -1412,6 +1433,26 @@ public abstract class GLContextImpl extends GLContext {
         return true;
     }
   }
+
+  /**
+   * Returns false if <code>glGetIntegerv</code> is inaccessible, otherwise queries major.minor
+   * version for given arrays.
+   * <p>
+   * If the GL query fails, major will be zero.
+   * </p>
+   */
+  private final void getGLIntVersion(final int[] glIntMajor, final int[] glIntMinor)  {
+    glIntMajor[0] = 0; // clear
+    glIntMinor[0] = 0; // clear
+    if( 0 == glGetIntegervPtr ) {
+        // should not be reached, since initGLRendererAndGLVersionStrings(..)'s failure should abort caller!
+        throw new InternalError("Not initialized: glGetString "+toHexString(glGetStringPtr)+", glGetIntegerv "+toHexString(glGetIntegervPtr));
+    } else {
+        glGetIntegervInt(GL2ES3.GL_MAJOR_VERSION, glIntMajor, 0, glGetIntegervPtr);
+        glGetIntegervInt(GL2ES3.GL_MINOR_VERSION, glIntMinor, 0, glGetIntegervPtr);
+    }
+  }
+
 
   /**
    * Returns null if version string is invalid, otherwise a valid instance.
@@ -1431,30 +1472,6 @@ public abstract class GLContextImpl extends GLContext {
           }
       }
       return null;
-  }
-
-  /**
-   * Returns false if <code>glGetIntegerv</code> is inaccessible, otherwise queries major.minor
-   * version for given arrays.
-   * <p>
-   * If the GL query fails, major will be zero.
-   * </p>
-   */
-  private final boolean getGLIntVersion(final int[] glIntMajor, final int[] glIntMinor)  {
-    glIntMajor[0] = 0; // clear
-    final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
-    final long _glGetIntegerv = glDynLookupHelper.dynamicLookupFunction("glGetIntegerv");
-    if( 0 == _glGetIntegerv ) {
-        System.err.println("Error: Entry point to 'glGetIntegerv' is NULL.");
-        if(DEBUG) {
-            ExceptionUtils.dumpStack(System.err);
-        }
-        return false;
-    } else {
-        glGetIntegervInt(GL2ES3.GL_MAJOR_VERSION, glIntMajor, 0, _glGetIntegerv);
-        glGetIntegervInt(GL2ES3.GL_MINOR_VERSION, glIntMinor, 0, _glGetIntegerv);
-        return true;
-    }
   }
 
   protected final int getCtxOptions() {
@@ -1548,20 +1565,7 @@ public abstract class GLContextImpl extends GLContext {
         final VersionNumber hasGLVersionByInt;
         {
             final int[] glIntMajor = new int[] { 0 }, glIntMinor = new int[] { 0 };
-            final boolean getGLIntVersionOK = getGLIntVersion(glIntMajor, glIntMinor);
-            if( !getGLIntVersionOK ) {
-                final String errMsg = "Fetching GL Integer Version failed. "+adevice+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null);
-                if( strictMatch ) {
-                    // query mode .. simply fail
-                    if(DEBUG) {
-                        System.err.println("Warning: setGLFunctionAvailability: "+errMsg);
-                    }
-                    return false;
-                } else {
-                    // unusable GL context - non query mode - hard fail!
-                    throw new GLException(errMsg);
-                }
-            }
+            getGLIntVersion(glIntMajor, glIntMinor);
             hasGLVersionByInt = new VersionNumber(glIntMajor[0], glIntMinor[0], 0);
         }
         if (DEBUG) {
@@ -2235,7 +2239,7 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final boolean isFunctionAvailable(final String glFunctionName) {
     // Check GL 1st (cached)
-    if(null!=glProcAddressTable) { // null if this context wasn't not created
+    if( null != glProcAddressTable ) { // null if this context wasn't not created
         try {
             if( glProcAddressTable.isFunctionAvailable( glFunctionName ) ) {
                 return true;
@@ -2256,15 +2260,24 @@ public abstract class GLContextImpl extends GLContext {
     // dynamic function lookup at last incl name aliasing (not cached)
     final DynamicLookupHelper dynLookup = getDrawableImpl().getGLDynamicLookupHelper();
     final String tmpBase = GLNameResolver.normalizeVEN(GLNameResolver.normalizeARB(glFunctionName, true), true);
-    boolean res = false;
-    final int  variants = GLNameResolver.getFuncNamePermutationNumber(tmpBase);
-    for(int i = 0; !res && i < variants; i++) {
-        final String tmp = GLNameResolver.getFuncNamePermutation(tmpBase, i);
-        try {
-            res = dynLookup.isFunctionAvailable(tmp);
-        } catch (final Exception e) { }
-    }
-    return res;
+    return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+        @Override
+        public Boolean run() {
+            boolean res = false;
+            dynLookup.claimAllLinkPermission();
+            try {
+                final int  variants = GLNameResolver.getFuncNamePermutationNumber(tmpBase);
+                for(int i = 0; !res && i < variants; i++) {
+                    final String tmp = GLNameResolver.getFuncNamePermutation(tmpBase, i);
+                    try {
+                        res = dynLookup.isFunctionAvailable(tmp);
+                    } catch (final Exception e) { }
+                }
+            } finally {
+                dynLookup.releaseAllLinkPermission();
+            }
+            return Boolean.valueOf(res);
+        } } ).booleanValue();
   }
 
   @Override

@@ -163,12 +163,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_convert",
     };
 
+    /** util, format, codec, device, avresample, swresample */
+    private static final boolean[] libLoaded = new boolean[6];
     private static final long[] symbolAddr = new long[symbolCount];
     private static final boolean ready;
     private static final boolean libsUFCLoaded;
-    private static final boolean avresampleLoaded;  // optional
-    private static final boolean swresampleLoaded;  // optional
-    private static final boolean avdeviceLoaded; // optional
     static final VersionNumber avCodecVersion;
     static final VersionNumber avFormatVersion;
     static final VersionNumber avUtilVersion;
@@ -187,19 +186,14 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile
         GLProfile.initSingleton();
         boolean _ready = false;
-        /** util, format, codec, device, avresample, swresample */
-        final boolean[] _loaded= new boolean[6];
         /** util, format, codec, avresample, swresample */
         final VersionNumber[] _versions = new VersionNumber[5];
         try {
-            _ready = initSymbols(_loaded, _versions);
+            _ready = initSymbols(_versions);
         } catch (final Throwable t) {
             t.printStackTrace();
         }
-        libsUFCLoaded = _loaded[LIB_IDX_UTI] && _loaded[LIB_IDX_FMT] && _loaded[LIB_IDX_COD];
-        avdeviceLoaded = _loaded[LIB_IDX_DEV];
-        avresampleLoaded = _loaded[LIB_IDX_AVR];
-        swresampleLoaded = _loaded[LIB_IDX_SWR];
+        libsUFCLoaded = libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_COD];
         avUtilVersion = _versions[0];
         avFormatVersion = _versions[1];
         avCodecVersion = _versions[2];
@@ -239,50 +233,51 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
 
     static boolean libsLoaded() { return libsUFCLoaded; }
-    static boolean avDeviceLoaded() { return avdeviceLoaded; }
-    static boolean avResampleLoaded() { return avresampleLoaded; }
-    static boolean swResampleLoaded() { return swresampleLoaded; }
+    static boolean avDeviceLoaded() { return libLoaded[LIB_IDX_DEV]; }
+    static boolean avResampleLoaded() { return libLoaded[LIB_IDX_AVR]; }
+    static boolean swResampleLoaded() { return libLoaded[LIB_IDX_SWR]; }
     static FFMPEGNatives getNatives() { return natives; }
     static boolean initSingleton() { return ready; }
+
+    private static final PrivilegedAction<DynamicLibraryBundle> privInitSymbolsAction = new PrivilegedAction<DynamicLibraryBundle>() {
+        @Override
+        public DynamicLibraryBundle run() {
+            final DynamicLibraryBundle dl = new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
+            for(int i=0; i<6; i++) {
+                libLoaded[i] = dl.isToolLibLoaded(i);
+            }
+            if( !libLoaded[LIB_IDX_UTI] || !libLoaded[LIB_IDX_FMT] || !libLoaded[LIB_IDX_COD] ) {
+                throw new RuntimeException("FFMPEG Tool library incomplete: [ avutil "+libLoaded[LIB_IDX_UTI]+", avformat "+libLoaded[LIB_IDX_FMT]+", avcodec "+libLoaded[LIB_IDX_COD]+"]");
+            }
+            dl.claimAllLinkPermission();
+            try {
+                for(int i = 0; i<symbolCount; i++) {
+                    symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
+                }
+            } finally {
+                dl.releaseAllLinkPermission();
+            }
+            return dl;
+        } };
 
     /**
      * @param loaded 6: util, format, codec, device, avresample, swresample
      * @param versions 5: util, format, codec, avresample, swresample
      * @return
      */
-    private static final boolean initSymbols(final boolean[] loaded, final VersionNumber[] versions) {
+    private static final boolean initSymbols(final VersionNumber[] versions) {
         for(int i=0; i<6; i++) {
-            loaded[i] = false;
-        }
-        final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
-                                          @Override
-                                          public DynamicLibraryBundle run() {
-                                              return new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
-                                          } } );
-        dl.toString();
-        for(int i=0; i<6; i++) {
-            loaded[i] = dl.isToolLibLoaded(i);
-        }
-        if( !loaded[LIB_IDX_UTI] || !loaded[LIB_IDX_FMT] || !loaded[LIB_IDX_COD] ) {
-            throw new RuntimeException("FFMPEG Tool library incomplete: [ avutil "+loaded[LIB_IDX_UTI]+", avformat "+loaded[LIB_IDX_FMT]+", avcodec "+loaded[LIB_IDX_COD]+"]");
+            libLoaded[i] = false;
         }
         if(symbolNames.length != symbolCount) {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }
 
+        AccessController.doPrivileged(privInitSymbolsAction);
+
         // optional symbol name set
         final Set<String> optionalSymbolNameSet = new HashSet<String>();
         optionalSymbolNameSet.addAll(Arrays.asList(optionalSymbolNames));
-
-        // lookup
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                for(int i = 0; i<symbolCount; i++) {
-                    symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
-                }
-                return null;
-            } } );
 
         // validate results
         boolean res = true;
