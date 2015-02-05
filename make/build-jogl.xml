@@ -1528,6 +1528,7 @@
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc53_lavf53_lavu51.*"/>
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc54_lavf54_lavu52_lavr01.*"/>
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu53_lavr01.*"/>
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc56_lavf56_lavu54_lavr02.*"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
@@ -1668,7 +1669,7 @@
 
     <target name="c.build.jogl.prepare">
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler, jogamp.opengl.GLContextImpl" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives,jogamp.opengl.util.av.impl.FFMPEGv08Natives,jogamp.opengl.util.av.impl.FFMPEGv09Natives,jogamp.opengl.util.av.impl.FFMPEGv10Natives" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives,jogamp.opengl.util.av.impl.FFMPEGv08Natives,jogamp.opengl.util.av.impl.FFMPEGv09Natives,jogamp.opengl.util.av.impl.FFMPEGv10Natives,jogamp.opengl.util.av.impl.FFMPEGv11Natives" />
       <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
@@ -1686,6 +1687,11 @@
 
       <c.build.ffmpeg version.lav="lavc55_lavf55_lavu53_lavr01"
                output.lib.name="jogl_ffmpegv10"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
+
+      <c.build.ffmpeg version.lav="lavc56_lavf56_lavu54_lavr02"
+               output.lib.name="jogl_ffmpegv11"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>

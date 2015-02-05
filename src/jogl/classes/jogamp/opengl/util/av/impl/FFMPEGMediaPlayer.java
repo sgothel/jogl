@@ -106,14 +106,24 @@ import jogamp.opengl.util.av.VideoPixelFormat;
  * <p>
  * Currently we are binary compatible w/:
  * <table border="1">
- * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr</th>    <th>FFMPEG* class</th></tr>
+ * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr/lswr</th>    <th>FFMPEG* class</th></tr>
  * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>     <td></td>        <td>FFMPEGv08</td></tr>
  * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>     <td>01/00</td>   <td>FFMPEGv09</td></tr>
- * <tr><td>10 / 2</td>        <td>55</td>  <td>55</td>  <td>53/52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
+ * <tr><td>10 / 2.[0-3]</td>  <td>55</td>  <td>55</td>  <td>53/52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
+ * <tr><td>11 / 2.[4-x]</td>  <td>56</td>  <td>56</td>  <td>54</td>     <td>02/01</td>   <td>FFMPEGv11</td></tr>
  * </table>
  * </p>
  * <p>
- * See http://upstream-tracker.org/versions/libav.html
+ * See FFmpeg:
+ * <ul>
+ *  <li>http://ffmpeg.org/documentation.html</li>
+ *  <li>http://git.videolan.org/?p=ffmpeg.git;a=blob;f=doc/APIchanges;hb=HEAD</li>
+ * </ul>
+ * See libav:
+ * <ul>
+ *  <li>https://libav.org/documentation.html</li>
+ *  <li>http://upstream-tracker.org/versions/libav.html</li>
+ * </ul>
  * </p>
  * <p>
  * Check tag 'FIXME: Add more planar formats !'

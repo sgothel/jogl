@@ -115,7 +115,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 /* 54 */ "avformat_find_stream_info", // 53.3.0    (opt)
 
          // libavdevice
-/* 55 */ "avdevice_register_all",     // ???
+/* 55 */ "avdevice_register_all",     // supported in all version <= 56
 
          // libavresample
          "avresample_alloc_context",  //  1.0.1
@@ -283,6 +283,9 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             } else if( avCodecMajor == 55 && avFormatMajor == 55 && ( avUtilMajor == 52 || avUtilMajor == 53 ) ) {
                 // lavc55.lavf55.lavu52.lavr01 (ffmpeg) or lavc55.lavf55.lavu53.lavr01 (libav)
                 natives = new FFMPEGv10Natives();
+            } else if( avCodecMajor == 56 && avFormatMajor == 56 && avUtilMajor == 54 ) {
+                // lavc56.lavf56.lavu54.lavr02
+                natives = new FFMPEGv11Natives();
             } else {
                 System.err.println("LIB_AV No Version/Native-Impl Match");
                 natives = null;
@@ -333,13 +336,17 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         final List<String> avutil = new ArrayList<String>();
         avutil.add("avutil");        // default
 
-        avutil.add("libavutil.so.53");     // dummy future proof
-        avutil.add("libavutil.so.52");     // ffmpeg 1.2 + 2 / libav 9 + 10
+        avutil.add("libavutil.so.55");     // dummy future proof
+        avutil.add("libavutil.so.54");     // ffmpeg 2.[4-x] / libav 11
+        avutil.add("libavutil.so.53");     // ffmpeg 2.[0-3] / libav 10
+        avutil.add("libavutil.so.52");     // ffmpeg 1.2 + 2.[0-3] / libav 9
         avutil.add("libavutil.so.51");     // 0.8
         avutil.add("libavutil.so.50");     // 0.7
 
-        avutil.add("avutil-53");     // dummy future proof
-        avutil.add("avutil-52");     // ffmpeg 1.2 + 2 / libav 9 + 10
+        avutil.add("avutil-55");     // dummy future proof
+        avutil.add("avutil-54");     // ffmpeg 2.[4-x] / libav 11
+        avutil.add("avutil-53");     // ffmpeg 2.[0-3] / libav 10
+        avutil.add("avutil-52");     // ffmpeg 1.2 + 2.[0-3] / libav 9
         avutil.add("avutil-51");     // 0.8
         avutil.add("avutil-50");     // 0.7
         libsList.add(avutil);
@@ -347,14 +354,16 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         final List<String> avformat = new ArrayList<String>();
         avformat.add("avformat");    // default
 
-        avformat.add("libavformat.so.56"); // dummy future proof
-        avformat.add("libavformat.so.55"); // ffmpeg 2 / libav 10
+        avformat.add("libavformat.so.57"); // dummy future proof
+        avformat.add("libavformat.so.56"); // ffmpeg 2.[4-x] / libav 11
+        avformat.add("libavformat.so.55"); // ffmpeg 2.[0-3] / libav 10
         avformat.add("libavformat.so.54"); // ffmpeg 1.2 / libav 9
         avformat.add("libavformat.so.53"); // 0.8
         avformat.add("libavformat.so.52"); // 0.7
 
-        avformat.add("avformat-56"); // dummy future proof
-        avformat.add("avformat-55"); // ffmpeg 2 / libav 10
+        avformat.add("avformat-57"); // dummy future proof
+        avformat.add("avformat-56"); // ffmpeg 2.[4-x] / libav 11
+        avformat.add("avformat-55"); // ffmpeg 2.[0-3] / libav 10
         avformat.add("avformat-54"); // ffmpeg 1.2 / libav 9
         avformat.add("avformat-53"); // 0.8
         avformat.add("avformat-52"); // 0.7
@@ -363,14 +372,16 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         final List<String> avcodec = new ArrayList<String>();
         avcodec.add("avcodec");      // default
 
-        avcodec.add("libavcodec.so.56");   // dummy future proof
-        avcodec.add("libavcodec.so.55");   // ffmpeg 2/ libav 10
+        avcodec.add("libavcodec.so.57");   // dummy future proof
+        avcodec.add("libavcodec.so.56");   // ffmpeg 2.[4-x] / libav 11
+        avcodec.add("libavcodec.so.55");   // ffmpeg 2.[0-3] / libav 10
         avcodec.add("libavcodec.so.54");   // ffmpeg 1.2 / libav 9
         avcodec.add("libavcodec.so.53");   // 0.8
         avcodec.add("libavcodec.so.52");   // 0.7
 
-        avcodec.add("avcodec-56");   // dummy future proof
-        avcodec.add("avcodec-55");   // ffmpeg 2/ libav 10
+        avcodec.add("avcodec-57");   // dummy future proof
+        avcodec.add("avcodec-56");   // ffmpeg 2.[4-x] / libav 11
+        avcodec.add("avcodec-55");   // ffmpeg 2.[0-3] / libav 10
         avcodec.add("avcodec-54");   // ffmpeg 1.2 / libav 9
         avcodec.add("avcodec-53");   // 0.8
         avcodec.add("avcodec-52");   // 0.7
@@ -379,13 +390,15 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         final List<String> avdevice = new ArrayList<String>();
         avdevice.add("avdevice");        // default
 
-        avdevice.add("libavdevice.so.56");     // dummy future proof
-        avdevice.add("libavdevice.so.55");     // ffmpeg 2
+        avdevice.add("libavdevice.so.57");     // dummy future proof
+        avdevice.add("libavdevice.so.56");     // ffmpeg 2.[4-x]
+        avdevice.add("libavdevice.so.55");     // ffmpeg 2.[0-3] / libav 11
         avdevice.add("libavdevice.so.54");     // ffmpeg 1.2 / libav 10
         avdevice.add("libavdevice.so.53");     // 0.8 && libav 9
 
-        avdevice.add("avdevice-56");     // dummy future proof
-        avdevice.add("avdevice-55");     // ffmpeg 2
+        avdevice.add("avdevice-57");     // dummy future proof
+        avdevice.add("avdevice-56");     // ffmpeg 2.[4-x]
+        avdevice.add("avdevice-55");     // ffmpeg 2.[0-3] / libav 11
         avdevice.add("avdevice-54");     // ffmpeg 1.2 / libav 10
         avdevice.add("avdevice-53");     // 0.8 && libav 9
         libsList.add(avdevice);
@@ -393,21 +406,25 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         final List<String> avresample = new ArrayList<String>();
         avresample.add("avresample");        // default
 
-        avresample.add("libavresample.so.2");     // dummy future proof
+        avresample.add("libavresample.so.3");     // dummy future proof
+        avresample.add("libavresample.so.2");     // libav 11
         avresample.add("libavresample.so.1");     // libav 9 + 10
 
-        avresample.add("avresample-2");     // dummy future proof
+        avresample.add("avresample-3");     // dummy future proof
+        avresample.add("avresample-2");     // libav 11
         avresample.add("avresample-1");     // libav 9 + 10
         libsList.add(avresample);
 
         final List<String> swresample = new ArrayList<String>();
         swresample.add("swresample");        // default
 
-        swresample.add("libswresample.so.1");     // dummy future proof
-        swresample.add("libswresample.so.0");     // ffmpeg 1.2 + 2.x
+        swresample.add("libswresample.so.2");     // dummy future proof
+        swresample.add("libswresample.so.1");     // ffmpeg 2.[4-x]
+        swresample.add("libswresample.so.0");     // ffmpeg 1.2 + 2.[0-3]
 
-        swresample.add("swresample-1");     // dummy future proof
-        swresample.add("swresample-0");     // ffmpeg 1.2 + 2.x
+        swresample.add("swresample-2");     // dummy future proof
+        swresample.add("swresample-1");     // ffmpeg 2.[4-x]
+        swresample.add("swresample-0");     // ffmpeg 1.2 + 2.[0-3]
         libsList.add(swresample);
 
         return libsList;

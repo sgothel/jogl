@@ -10,7 +10,10 @@ SDIR=`dirname $0`
 
 #export LD_LIBRARY_PATH=$HOME/libav-10.1/lib:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=$HOME/ffmpeg-2.2.2/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$HOME/ffmpeg-2.2.3/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$HOME/ffmpeg-2.2.3/lib:$LD_LIBRARY_PATH
+
+#export LD_LIBRARY_PATH=$HOME/libav-11.2/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$HOME/ffmpeg-2.5/lib:$LD_LIBRARY_PATH
 
 #J2RE_HOME=/opt-linux-x86_64/jre1.7.0_45
 #JAVA_HOME=/opt-linux-x86_64/jdk1.7.0_45
