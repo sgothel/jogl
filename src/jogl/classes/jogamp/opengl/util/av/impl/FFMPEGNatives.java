@@ -43,7 +43,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
     abstract int getAvResampleMajorVersionCC0();
     abstract int getSwResampleMajorVersionCC0();
 
-    abstract long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
+    abstract long createInstance0(FFMPEGMediaPlayer upstream, boolean enableAvResample, boolean enableSwResample, boolean verbose);
     abstract void destroyInstance0(long moviePtr);
 
     /**

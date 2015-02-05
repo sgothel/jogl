@@ -535,7 +535,8 @@ JNIEXPORT jint JNICALL FF_FUNC(getSwResampleMajorVersionCC0)
 }
 
 JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
-  (JNIEnv *env, jobject instance, jobject ffmpegMediaPlayer, jboolean verbose)
+  (JNIEnv *env, jobject instance, jobject ffmpegMediaPlayer,
+   jboolean enableAvResample, jboolean enableSwResample, jboolean verbose)
 {
     FFMPEGToolBasicAV_t * pAV = calloc(1, sizeof(FFMPEGToolBasicAV_t));
     if(NULL==pAV) {
@@ -545,12 +546,12 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
     pAV->avcodecVersion = sp_avcodec_version();
     pAV->avformatVersion = sp_avformat_version(); 
     pAV->avutilVersion = sp_avutil_version();
-    if(HAS_FUNC(sp_avresample_version)) {
+    if(HAS_FUNC(sp_avresample_version) && enableAvResample) {
         pAV->avresampleVersion = sp_avresample_version();
     } else {
         pAV->avresampleVersion = 0;
     }
-    if(HAS_FUNC(sp_swresample_version)) {
+    if(HAS_FUNC(sp_swresample_version) && enableSwResample) {
         pAV->swresampleVersion = sp_swresample_version();
     } else {
         pAV->swresampleVersion = 0;

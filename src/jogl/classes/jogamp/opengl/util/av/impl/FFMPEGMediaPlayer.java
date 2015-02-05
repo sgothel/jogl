@@ -163,6 +163,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static final int avResampleMajorVersionCC;
     private static final int swResampleMajorVersionCC;
     private static final boolean available;
+    private static final boolean enableAvResample;
+    private static final boolean enableSwResample;
 
     static {
         final boolean libAVGood = FFMPEGDynamicLibraryBundleInfo.initSingleton();
@@ -205,9 +207,13 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                                avFormatMajorVersionCC == avFormatMajor &&
                                ( avUtilMajorVersionCC == avUtilMajor ||
                                  55 == avCodecMajorVersionCC && 53 == avUtilMajorVersionCC && 52 == avUtilMajor /* ffmpeg 2.x */
-                               ) &&
-                               ( !avResampleLoaded || avResampleMajorVersionCC < 0 || avResampleMajorVersionCC  == avResampleVersion.getMajor() ) &&
-                               ( !swResampleLoaded || swResampleMajorVersionCC < 0 || swResampleMajorVersionCC  == swResampleVersion.getMajor() ) ;
+                               );
+            enableAvResample = avResampleLoaded && avResampleMajorVersionCC  == avResampleVersion.getMajor();
+            enableSwResample = swResampleLoaded && swResampleMajorVersionCC  == swResampleVersion.getMajor();
+            if( DEBUG ) {
+                System.err.println("LIB_AV Resample: enabled "+enableAvResample);
+                System.err.println("LIB_SW Resample: enabled "+enableSwResample);
+            }
             if( !libAVVersionGood ) {
                 System.err.println("LIB_AV Not Matching Compile-Time / Runtime Major-Version");
             }
@@ -219,6 +225,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             avResampleMajorVersionCC = 0;
             swResampleMajorVersionCC = 0;
             libAVVersionGood = false;
+            enableAvResample = false;
+            enableSwResample = false;
         }
         available = libAVGood && libAVVersionGood && null != natives;
     }
@@ -256,7 +264,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(!available) {
             throw new RuntimeException("FFMPEGMediaPlayer not available");
         }
-        moviePtr = natives.createInstance0(this, DEBUG_NATIVE);
+        moviePtr = natives.createInstance0(this, enableAvResample, enableSwResample, DEBUG_NATIVE);
         if(0==moviePtr) {
             throw new GLException("Couldn't create FFMPEGInstance");
         }

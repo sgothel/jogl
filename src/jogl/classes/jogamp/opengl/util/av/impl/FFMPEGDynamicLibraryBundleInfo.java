@@ -154,7 +154,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avresample_free",
          "avresample_convert",
 
-         // libavresample
+         // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
          "swresample_version",        //  0
          "swr_alloc",
@@ -181,63 +181,6 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static final int LIB_IDX_DEV = 3;
     private static final int LIB_IDX_AVR = 4;
     private static final int LIB_IDX_SWR = 5;
-
-    static {
-        // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile
-        GLProfile.initSingleton();
-        boolean _ready = false;
-        /** util, format, codec, avresample, swresample */
-        final VersionNumber[] _versions = new VersionNumber[5];
-        try {
-            _ready = initSymbols(_versions);
-        } catch (final Throwable t) {
-            t.printStackTrace();
-        }
-        libsUFCLoaded = libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_COD];
-        avUtilVersion = _versions[0];
-        avFormatVersion = _versions[1];
-        avCodecVersion = _versions[2];
-        avResampleVersion = _versions[3];
-        swResampleVersion = _versions[4];
-        if(!libsUFCLoaded) {
-            System.err.println("LIB_AV Not Available: lavu, lavc, lavu");
-            natives = null;
-            ready = false;
-        } else if(!_ready) {
-            System.err.println("LIB_AV Not Matching");
-            natives = null;
-            ready = false;
-        } else {
-            final int avCodecMajor = avCodecVersion.getMajor();
-            final int avFormatMajor = avFormatVersion.getMajor();
-            final int avUtilMajor = avUtilVersion.getMajor();
-            if(        avCodecMajor == 53 && avFormatMajor == 53 && avUtilMajor == 51 ) {
-                // lavc53.lavf53.lavu51
-                natives = new FFMPEGv08Natives();
-            } else if( avCodecMajor == 54 && avFormatMajor == 54 && avUtilMajor == 52 ) {
-                // lavc54.lavf54.lavu52.lavr01
-                natives = new FFMPEGv09Natives();
-            } else if( avCodecMajor == 55 && avFormatMajor == 55 && ( avUtilMajor == 52 || avUtilMajor == 53 ) ) {
-                // lavc55.lavf55.lavu52.lavr01 (ffmpeg) or lavc55.lavf55.lavu53.lavr01 (libav)
-                natives = new FFMPEGv10Natives();
-            } else {
-                System.err.println("LIB_AV No Version/Native-Impl Match");
-                natives = null;
-            }
-            if( null != natives && FFMPEGStaticNatives.initIDs0() ) {
-                ready = natives.initSymbols0(symbolAddr, symbolCount);
-            } else {
-                ready = false;
-            }
-        }
-    }
-
-    static boolean libsLoaded() { return libsUFCLoaded; }
-    static boolean avDeviceLoaded() { return libLoaded[LIB_IDX_DEV]; }
-    static boolean avResampleLoaded() { return libLoaded[LIB_IDX_AVR]; }
-    static boolean swResampleLoaded() { return libLoaded[LIB_IDX_SWR]; }
-    static FFMPEGNatives getNatives() { return natives; }
-    static boolean initSingleton() { return ready; }
 
     private static final PrivilegedAction<DynamicLibraryBundle> privInitSymbolsAction = new PrivilegedAction<DynamicLibraryBundle>() {
         @Override
@@ -301,6 +244,63 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
         return res;
     }
+
+    static {
+        // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile
+        GLProfile.initSingleton();
+        boolean _ready = false;
+        /** util, format, codec, avresample, swresample */
+        final VersionNumber[] _versions = new VersionNumber[5];
+        try {
+            _ready = initSymbols(_versions);
+        } catch (final Throwable t) {
+            t.printStackTrace();
+        }
+        libsUFCLoaded = libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_COD];
+        avUtilVersion = _versions[0];
+        avFormatVersion = _versions[1];
+        avCodecVersion = _versions[2];
+        avResampleVersion = _versions[3];
+        swResampleVersion = _versions[4];
+        if(!libsUFCLoaded) {
+            System.err.println("LIB_AV Not Available: lavu, lavc, lavu");
+            natives = null;
+            ready = false;
+        } else if(!_ready) {
+            System.err.println("LIB_AV Not Matching");
+            natives = null;
+            ready = false;
+        } else {
+            final int avCodecMajor = avCodecVersion.getMajor();
+            final int avFormatMajor = avFormatVersion.getMajor();
+            final int avUtilMajor = avUtilVersion.getMajor();
+            if(        avCodecMajor == 53 && avFormatMajor == 53 && avUtilMajor == 51 ) {
+                // lavc53.lavf53.lavu51
+                natives = new FFMPEGv08Natives();
+            } else if( avCodecMajor == 54 && avFormatMajor == 54 && avUtilMajor == 52 ) {
+                // lavc54.lavf54.lavu52.lavr01
+                natives = new FFMPEGv09Natives();
+            } else if( avCodecMajor == 55 && avFormatMajor == 55 && ( avUtilMajor == 52 || avUtilMajor == 53 ) ) {
+                // lavc55.lavf55.lavu52.lavr01 (ffmpeg) or lavc55.lavf55.lavu53.lavr01 (libav)
+                natives = new FFMPEGv10Natives();
+            } else {
+                System.err.println("LIB_AV No Version/Native-Impl Match");
+                natives = null;
+            }
+            if( null != natives && FFMPEGStaticNatives.initIDs0() ) {
+                ready = natives.initSymbols0(symbolAddr, symbolCount);
+            } else {
+                ready = false;
+            }
+        }
+    }
+
+    static boolean libsLoaded() { return libsUFCLoaded; }
+    static boolean avDeviceLoaded() { return libLoaded[LIB_IDX_DEV]; }
+    static boolean avResampleLoaded() { return libLoaded[LIB_IDX_AVR]; }
+    static boolean swResampleLoaded() { return libLoaded[LIB_IDX_SWR]; }
+    static FFMPEGNatives getNatives() { return natives; }
+    static boolean initSingleton() { return ready; }
 
     protected FFMPEGDynamicLibraryBundleInfo() {
     }

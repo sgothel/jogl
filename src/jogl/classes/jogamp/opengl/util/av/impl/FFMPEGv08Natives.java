@@ -47,7 +47,7 @@ class FFMPEGv08Natives extends FFMPEGNatives {
     native int getSwResampleMajorVersionCC0();
 
     @Override
-    native long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
+    native long createInstance0(FFMPEGMediaPlayer upstream, boolean enableAvResample, boolean enableSwResample, boolean verbose);
 
     @Override
     native void destroyInstance0(long moviePtr);
