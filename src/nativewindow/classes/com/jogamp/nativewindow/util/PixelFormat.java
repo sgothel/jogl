@@ -425,7 +425,7 @@ public enum PixelFormat {
         boolean isInterleaved();
 
         /** Number of components per pixel, e.g. 3 for {@link PixelFormat#RGBx8888 RGBx8888}. */
-        int componenCount();
+        int componentCount();
         /** Number of bits per pixel, e.g. 24 bits for {@link PixelFormat#RGBx8888 RGBx8888}. */
         int bitsPerPixel();
         /**
@@ -602,7 +602,7 @@ public enum PixelFormat {
         @Override
         public final boolean isInterleaved() { return true; }
         @Override
-        public final int componenCount() { return compMask.length; }
+        public final int componentCount() { return compMask.length; }
         @Override
         public final int bitsPerPixel() { return bitsPerPixel; }
         @Override

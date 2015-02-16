@@ -237,7 +237,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
      * Note: Fixes bit-rounding errors, i.e. RGBA5551: A 0.6f -> 0x01 -> 1f ... -> RGBA8888: A 0xff
      */
     static final float sourceNorm(final PixelFormat.Composition srcComp, final int sIdx, final float f) {
-        if( sIdx >= 0 && sIdx < srcComp.componenCount() ) {
+        if( sIdx >= 0 && sIdx < srcComp.componentCount() ) {
             return srcComp.toFloat(srcComp.fromFloat(f, sIdx, false), sIdx, false);
         } else {
             return 0f;
@@ -245,7 +245,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
     }
     static final byte rescaleComp(final PixelFormat.Composition srcComp, final int sIdx,
                                   final PixelFormat.Composition dstComp, final int dIdx, final float f) {
-        if( dIdx >= 0 && dIdx < dstComp.componenCount() ) {
+        if( dIdx >= 0 && dIdx < dstComp.componentCount() ) {
             return (byte)dstComp.fromFloat(sourceNorm(srcComp, sIdx, f), dIdx, false);
         } else {
             return (byte)0;
@@ -543,7 +543,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
                 if( PixelFormat.LUMINANCE != srcFmt && PixelFormat.LUMINANCE == destFmt ) {
                     // Cannot convert: RGB* -> LUM -> RGB*
                     System.err.println("CONVERT["+i+"]["+j+"]: Conv2: Dropped due to RGB* -> LUM");
-                } else if( srcFmt.comp.componenCount() > destFmt.comp.componenCount() ) {
+                } else if( srcFmt.comp.componentCount() > destFmt.comp.componentCount() ) {
                     // Cannot convert back if: src.componentCount > dest.componentCount
                     System.err.println("CONVERT["+i+"]["+j+"]: Conv2: Dropped due to src.componentCount > dest.componentCount");
                 } else {
@@ -632,7 +632,7 @@ public class TestPixelFormatUtil00NEWT extends UITestCase {
         final PixelFormat.Composition imgComp = image.getPixelformat().comp;
         final ByteBuffer bb = image.getPixels();
         final int bytesPerPixel = imgComp.bytesPerPixel();
-        final int compCount = imgComp.componenCount();
+        final int compCount = imgComp.componentCount();
         final int[] compBitCount = imgComp.componentBitCount();
 
         final int srcPixOffset = y * image.getStride()+x*bytesPerPixel;

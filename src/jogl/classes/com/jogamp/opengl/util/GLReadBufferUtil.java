@@ -176,7 +176,7 @@ public class GLReadBufferUtil {
         final int reqCompCount = hasAlpha ? 4 : 3;
         final PixelFormat.Composition hostPixelComp = pixelBufferProvider.getHostPixelComp(gl.getGLProfile(), reqCompCount);
         final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, reqCompCount, true);
-        final int componentCount = pixelAttribs.pfmt.comp.componenCount();
+        final int componentCount = pixelAttribs.pfmt.comp.componentCount();
         hasAlpha = 0 <= pixelAttribs.pfmt.comp.find(PixelFormat.CType.A);
         final int alignment = 4 == componentCount ? 4 : 1 ;
         final int internalFormat = 4 == componentCount ? GL.GL_RGBA : GL.GL_RGB;

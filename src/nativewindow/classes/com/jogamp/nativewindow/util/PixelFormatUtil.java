@@ -46,12 +46,12 @@ public class PixelFormatUtil {
     public static class ComponentMap {
         /**
          * Contains the source index for each destination index,
-         * length is {@link Composition#componenCount()} of destination.
+         * length is {@link Composition#componentCount()} of destination.
          */
         final int[] dst2src;
         /**
          * Contains the destination index for each source index,
-         * length is {@link Composition#componenCount()} of source.
+         * length is {@link Composition#componentCount()} of source.
          */
         final int[] src2dst;
 
@@ -62,8 +62,8 @@ public class PixelFormatUtil {
         final boolean hasSrcRGB;
 
         public ComponentMap(final PixelFormat.Composition src, final PixelFormat.Composition dst) {
-            final int sCompCount = src.componenCount();
-            final int dCompCount = dst.componenCount();
+            final int sCompCount = src.componentCount();
+            final int dCompCount = dst.componentCount();
             final PixelFormat.CType[] sCompOrder = src.componentOrder();
             final PixelFormat.CType[] dCompOrder = dst.componentOrder();
 
@@ -513,8 +513,8 @@ public class PixelFormatUtil {
                                final Bitstream<ByteBuffer> dstBitStream,
                                final PixelFormat.Composition srcComp,
                                final Bitstream<ByteBuffer> srcBitStream) throws IllegalStateException, IOException {
-        final int sCompCount = srcComp.componenCount();
-        final int dCompCount = dstComp.componenCount();
+        final int sCompCount = srcComp.componentCount();
+        final int dCompCount = dstComp.componentCount();
         final int[] sc = new int[sCompCount];
         final int[] dcDef = new int[dCompCount];
         final int[] srcCompBitCount = srcComp.componentBitCount();

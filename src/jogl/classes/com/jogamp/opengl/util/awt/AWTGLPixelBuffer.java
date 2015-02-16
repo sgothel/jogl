@@ -235,7 +235,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
             if( null == hostPixComp ) {
                 throw new IllegalArgumentException("Null hostPixComp");
             }
-            final int awtFormat = getAWTFormat(gl.getGLProfile(), hostPixComp.componenCount());
+            final int awtFormat = getAWTFormat(gl.getGLProfile(), hostPixComp.componentCount());
             final BufferedImage image = new BufferedImage(width, height, awtFormat);
             final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             final Buffer ibuffer = IntBuffer.wrap( readBackIntBuffer );
@@ -291,7 +291,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
                     r.dispose();
                 }
                 r = allocateImpl(hostPixComp, pixelAttributes, pack,
-                                 getAWTFormat(gl.getGLProfile(), hostPixComp.componenCount()), width, height, depth, minByteSize);
+                                 getAWTFormat(gl.getGLProfile(), hostPixComp.componentCount()), width, height, depth, minByteSize);
                 bufferMap.put(bufferKey, r);
             }
             return r;
