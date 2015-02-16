@@ -29,7 +29,6 @@
 package com.jogamp.opengl;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.opengl.*;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;

@@ -173,6 +173,9 @@ public class TestScreenMode00aNEWT extends UITestCase {
         for(final Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
             final MonitorDevice monitor = iMonitor.next();
             System.err.println(j+": "+monitor);
+            final float[] pixelPerMM = monitor.getPixelsPerMM(new float[2]);
+            System.err.println(j+" pp/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
+            System.err.println(j+" pp/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
             final List<MonitorMode> modes = monitor.getSupportedModes();
             Assert.assertTrue(modes.size()>0);
             int i=0;
@@ -195,21 +198,21 @@ public class TestScreenMode00aNEWT extends UITestCase {
             Assert.assertNotNull(sm_c);
             Assert.assertEquals(sm_o, sm_c);
         }
-        
+
         final RectangleImmutable zero = new Rectangle();
-        
+
         final Rectangle monitorViewPU = new Rectangle();
         final Rectangle monitorViewWU = new Rectangle();
         MonitorDevice.unionOfViewports(monitorViewPU, monitorViewWU, monitors);
-        System.err.println("Test.0: Monitor union viewport: "+monitorViewPU+" [pu] / "+monitorViewWU+" [wu]");        
+        System.err.println("Test.0: Monitor union viewport: "+monitorViewPU+" [pu] / "+monitorViewWU+" [wu]");
         Assert.assertNotEquals(zero, monitorViewPU);
-        Assert.assertNotEquals(zero, monitorViewWU);        
-        
+        Assert.assertNotEquals(zero, monitorViewWU);
+
         final RectangleImmutable screenViewPU = screen.getViewport();
-        final RectangleImmutable screenViewWU = screen.getViewportInWindowUnits();                
-        System.err.println("Test.1: Screen viewport: "+screenViewPU+" [pu] / "+screenViewWU+" [wu]");        
+        final RectangleImmutable screenViewWU = screen.getViewportInWindowUnits();
+        System.err.println("Test.1: Screen viewport: "+screenViewPU+" [pu] / "+screenViewWU+" [wu]");
         Assert.assertNotEquals(zero, screenViewPU);
-        Assert.assertNotEquals(zero, screenViewWU);        
+        Assert.assertNotEquals(zero, screenViewWU);
 
         screen.removeReference();
 
