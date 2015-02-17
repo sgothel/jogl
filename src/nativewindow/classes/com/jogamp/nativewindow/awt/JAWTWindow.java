@@ -805,27 +805,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * </p>
    */
   @Override
-  public Point getLocationOnScreen(Point storage) {
+  public Point getLocationOnScreen(final Point storage) {
       Point los = getLocationOnScreenNative(storage);
       if(null == los) {
-          if(!Thread.holdsLock(component.getTreeLock())) {
-              // avoid deadlock ..
-              if(DEBUG) {
-                  System.err.println("Warning: JAWT Lock hold, but not the AWT tree lock: "+this);
-                  ExceptionUtils.dumpStack(System.err);
-              }
-              if( null == storage ) {
-                  storage = new Point();
-              }
-              getLocationOnScreenNonBlocking(storage, component);
-              return storage;
-          }
-          final java.awt.Point awtLOS = component.getLocationOnScreen();
-          if(null!=storage) {
-              los = storage.translate(awtLOS.x, awtLOS.y);
-          } else {
-              los = new Point(awtLOS.x, awtLOS.y);
-          }
+          los = AWTMisc.getLocationOnScreenSafe(storage, component, DEBUG);
       }
       return los;
   }
@@ -853,35 +836,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
   }
   protected abstract Point getLocationOnScreenNativeImpl(int x, int y);
-
-  protected static Component getLocationOnScreenNonBlocking(final Point storage, Component comp) {
-      final java.awt.Insets insets = new java.awt.Insets(0, 0, 0, 0); // DEBUG
-      Component last = null;
-      while(null != comp) {
-          final int dx = comp.getX();
-          final int dy = comp.getY();
-          if( DEBUG ) {
-              final java.awt.Insets ins = AWTMisc.getInsets(comp, false);
-              if( null != ins ) {
-                  insets.bottom += ins.bottom;
-                  insets.top += ins.top;
-                  insets.left += ins.left;
-                  insets.right += ins.right;
-              }
-              System.err.print("LOS: "+storage+" + "+comp.getClass().getName()+"["+dx+"/"+dy+", vis "+comp.isVisible()+", ins "+ins+" -> "+insets+"] -> ");
-          }
-          storage.translate(dx, dy);
-          if( DEBUG ) {
-              System.err.println(storage);
-          }
-          last = comp;
-          if( comp instanceof Window ) { // top-level heavy-weight ?
-              break;
-          }
-          comp = comp.getParent();
-      }
-      return last;
-  }
 
   @Override
   public boolean hasFocus() {

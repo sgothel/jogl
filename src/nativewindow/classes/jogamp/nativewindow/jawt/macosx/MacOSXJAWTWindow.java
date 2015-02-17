@@ -145,7 +145,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                   // CALayer position will be determined in native code.
                   // See detailed description in {@link JAWTUtil#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
                   final Point p0 = new Point();
-                  final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
+                  final Component outterComp = AWTMisc.getLocationOnScreenNonBlocking(p0, component, DEBUG);
                   final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
                   final Point p1 = (Point)p0.cloneMutable();
                   p1.translate(-outterComp.getX(), -outterComp.getY());
@@ -178,7 +178,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       // CALayer position will be determined in native code.
       // See detailed description in {@link JAWTUtil#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
       final Point p0 = new Point();
-      final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
+      final Component outterComp = AWTMisc.getLocationOnScreenNonBlocking(p0, component, DEBUG);
       final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
       final Point p1 = (Point)p0.cloneMutable();
       p1.translate(-outterComp.getX(), -outterComp.getY());
@@ -405,7 +405,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       if( null == storage ) {
           storage = new Point();
       }
-      getLocationOnScreenNonBlocking(storage, component);
+      AWTMisc.getLocationOnScreenNonBlocking(storage, component, DEBUG);
       return storage;
   }
   @Override

@@ -44,11 +44,13 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.WindowConstants;
+
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.WindowClosingProtocol;
 import com.jogamp.nativewindow.util.PixelRectangle;
 import com.jogamp.nativewindow.util.PixelFormat;
 import com.jogamp.nativewindow.util.PixelFormatUtil;
+
 import javax.swing.MenuSelectionManager;
 
 import com.jogamp.nativewindow.awt.DirectDataBufferInt;
@@ -113,6 +115,59 @@ public class AWTMisc {
             return ((JComponent)c).getInsets();
         }
         return null;
+    }
+
+    public static com.jogamp.nativewindow.util.Point getLocationOnScreenSafe(com.jogamp.nativewindow.util.Point storage,
+                                                                             final Component component,
+                                                                             final boolean verbose)
+    {
+        if(!Thread.holdsLock(component.getTreeLock())) {
+            // avoid deadlock ..
+            if( null == storage ) {
+                storage = new com.jogamp.nativewindow.util.Point();
+            }
+            getLocationOnScreenNonBlocking(storage, component, verbose);
+            return storage;
+        }
+        final java.awt.Point awtLOS = component.getLocationOnScreen();
+        com.jogamp.nativewindow.util.Point los;
+        if(null!=storage) {
+            los = storage.translate(awtLOS.x, awtLOS.y);
+        } else {
+            los = new com.jogamp.nativewindow.util.Point(awtLOS.x, awtLOS.y);
+        }
+        return los;
+    }
+    public static Component getLocationOnScreenNonBlocking(final com.jogamp.nativewindow.util.Point storage,
+                                                           Component comp,
+                                                           final boolean verbose)
+    {
+        final java.awt.Insets insets = new java.awt.Insets(0, 0, 0, 0); // DEBUG
+        Component last = null;
+        while(null != comp) {
+            final int dx = comp.getX();
+            final int dy = comp.getY();
+            if( verbose ) {
+                final java.awt.Insets ins = getInsets(comp, false);
+                if( null != ins ) {
+                    insets.bottom += ins.bottom;
+                    insets.top += ins.top;
+                    insets.left += ins.left;
+                    insets.right += ins.right;
+                }
+                System.err.print("LOS: "+storage+" + "+comp.getClass().getName()+"["+dx+"/"+dy+", vis "+comp.isVisible()+", ins "+ins+" -> "+insets+"] -> ");
+            }
+            storage.translate(dx, dy);
+            if( verbose ) {
+                System.err.println(storage);
+            }
+            last = comp;
+            if( comp instanceof Window ) { // top-level heavy-weight ?
+                break;
+            }
+            comp = comp.getParent();
+        }
+        return last;
     }
 
     public static interface ComponentAction {
