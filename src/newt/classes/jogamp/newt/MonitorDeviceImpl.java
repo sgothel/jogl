@@ -28,10 +28,11 @@
 
 package jogamp.newt;
 
+import java.util.ArrayList;
+
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
-
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
@@ -42,6 +43,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
     /**
      * @param screen associated {@link Screen}
      * @param nativeId unique monitor device ID
+     * @param isClone TODO
      * @param sizeMM size in millimeters
      * @param currentMode
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
@@ -49,11 +51,11 @@ public class MonitorDeviceImpl extends MonitorDevice {
      * @param viewportWU viewport in window-units
      * @param supportedModes all supported {@link MonitorMode}s
      */
-    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId, final DimensionImmutable sizeMM,
-                             final MonitorMode currentMode,
-                             final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU,
-                             final ArrayHashSet<MonitorMode> supportedModes) {
-        super(screen, nativeId, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
+    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId, final boolean isClone,
+                             final DimensionImmutable sizeMM,
+                             final MonitorMode currentMode, final float[] pixelScale, final Rectangle viewportPU,
+                             final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
+        super(screen, nativeId, isClone, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
     }
 
     @Override
@@ -157,4 +159,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
         return supportedModes;
     }
 
+    /* pp */ final void setIsClone(final boolean isClone) {
+        this.isClone = isClone;
+    }
 }

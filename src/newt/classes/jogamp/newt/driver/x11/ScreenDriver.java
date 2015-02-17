@@ -147,6 +147,7 @@ public class ScreenDriver extends ScreenImpl {
                         } while( null != props);
                     }
                     if( cache.monitorModes.size() > 0 ) {
+                        final ArrayHashSet<MonitorDevice> monitorDevices = new ArrayHashSet<MonitorDevice>();
                         for(int i = 0; i < crtCount; i++) {
                             final int[] monitorProps = rAndR.getMonitorDeviceProps(device.getHandle(), this, cache, i);
                             if( null != monitorProps &&

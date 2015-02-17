@@ -67,9 +67,16 @@ static void dumpOutputs(const char *prefix, Display *dpy, XRRScreenResources *re
     for(i=0; i<noutput; i++) {
         RROutput output = outputs[i];
         XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
-        fprintf(stderr, "  Output[%d]: id %#lx, crtx 0x%X, name %s (%d), %lux%lu, ncrtc %d, .., nmode %d (preferred %d)\n", 
-            i, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
-            xrrOutputInfo->ncrtc, xrrOutputInfo->nmode, xrrOutputInfo->npreferred);
+        fprintf(stderr, "  Output[%d]: id %#lx, crtx 0x%X, name %s (%d), %lux%lu, ncrtc %d, nclone %d, nmode %d (preferred %d)\n", 
+            i, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, 
+            xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
+            xrrOutputInfo->ncrtc, xrrOutputInfo->nclone, xrrOutputInfo->nmode, xrrOutputInfo->npreferred);
+        for(j=0; j<xrrOutputInfo->ncrtc; j++) {
+            fprintf(stderr, "    Output[%d].Crtc[%d].id %#lx\n", i, j, xrrOutputInfo->crtcs[j]);
+        }
+        for(j=0; j<xrrOutputInfo->nclone; j++) {
+            fprintf(stderr, "    Output[%d].Clones[%d].id %#lx\n", i, j, xrrOutputInfo->clones[j]);
+        }
         for(j=0; j<xrrOutputInfo->nmode; j++) {
             fprintf(stderr, "    Output[%d].Mode[%d].id %#lx\n", i, j, xrrOutputInfo->modes[j]);
         }
@@ -424,6 +431,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
 
     prop[propIndex++] = propCount;
     prop[propIndex++] = crt_idx;
+    prop[propIndex++] = 0; // is_clone, does not work: 0 < xrrOutputInfo->nclone ? 1 : 0;
     prop[propIndex++] = xrrOutputInfo->mm_width;
     prop[propIndex++] = xrrOutputInfo->mm_height;
     prop[propIndex++] = xrrCrtcInfo->x;      // rotated viewport pixel units

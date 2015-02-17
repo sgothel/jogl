@@ -31,13 +31,17 @@ package jogamp.newt;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
+import com.jogamp.newt.Screen;
 
+import java.util.ArrayList;
 import java.util.List;
+
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.SurfaceSize;
+import com.jogamp.opengl.math.FloatUtil;
 
 import jogamp.newt.MonitorDeviceImpl;
 import jogamp.newt.ScreenImpl;
@@ -128,6 +132,7 @@ public class MonitorModeProps {
      * <ul>
      *   <li>count</li>
      *   <li>id</li>
+     *   <li>IsClone</li>
      *   <li>ScreenSizeMM[width, height] (2 elements)</li>
      *   <li>Rotated Viewport pixel-units (4 elements)</li>
      *   <li>Rotated Viewport window-units  (4 elements)</li>
@@ -142,7 +147,7 @@ public class MonitorModeProps {
      * WARNING: must be synchronized with ScreenMode.h, native implementation
      * </p>
      */
-    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 15;
+    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 16;
 
     public static final int IDX_MONITOR_DEVICE_VIEWPORT =   1 // count
                                                           + 1 // native mode
@@ -285,6 +290,7 @@ public class MonitorModeProps {
         offset++;
         final List<MonitorMode> allMonitorModes = cache.monitorModes.getData();
         final int id = monitorProperties[offset++];
+        final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
@@ -304,7 +310,7 @@ public class MonitorModeProps {
                 }
             }
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
         }
@@ -365,10 +371,11 @@ public class MonitorModeProps {
         }
         offset++;
         final int id = monitorProperties[offset++];
+        final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
         }
@@ -393,6 +400,7 @@ public class MonitorModeProps {
         int idx=0;
         data[idx++] = data.length;
         data[idx++] = monitorDevice.getId();
+        data[idx++] = monitorDevice.isClone() ? 1 : 0;
         data[idx++] = monitorDevice.getSizeMM().getWidth();
         data[idx++] = monitorDevice.getSizeMM().getHeight();
         data[idx++] = monitorDevice.getViewport().getX();
@@ -415,7 +423,36 @@ public class MonitorModeProps {
         return data;
     }
 
-    public final void swapRotatePair(final int rotation, final int[] pairs, int offset, final int numPairs) {
+    /** Identify monitor devices in <i>cloned</i> mode, i.e. consecutive devices being 100% covered by preceding devices. */
+    /* pp */ static void identifyClonedMonitorDevices(final MonitorModeProps.Cache cache) {
+        final ArrayList<MonitorDevice> monitors = cache.monitorDevices.toArrayList();
+        final int monitorCount = monitors.size();
+        for(int i=0; i<monitorCount; i++) {
+            final MonitorDevice a = monitors.get(i);
+            if( !a.isClone() ) {
+                for(int j=i+1; j<monitorCount; j++) {
+                    final MonitorDevice b = monitors.get(j);
+                    if( !b.isClone() ) {
+                        final float coverage = b.getViewport().coverage( a.getViewport() );
+                        if( FloatUtil.isZero( 1f - coverage, FloatUtil.EPSILON ) ) {
+                            ((MonitorDeviceImpl)b).setIsClone(true);
+                            if( Screen.DEBUG ) {
+                                System.err.printf("MonitorCloneTest[%d of %d]: %f -> _is_ covered%n", j, i, coverage);
+                                System.err.printf("  Monitor[%d] %s%n", j, b.toString());
+                                System.err.printf("  Monitor[%d] %s%n", i, a.toString());
+                            }
+                        } else if( Screen.DEBUG ) {
+                            System.err.printf("MonitorDevice-CloneTest[%d of %d]: %f -> not covered%n", j, i, coverage);
+                            System.err.printf("  Monitor[%d] %s%n", j, b.toString());
+                            System.err.printf("  Monitor[%d] %s%n", i, a.toString());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static final void swapRotatePair(final int rotation, final int[] pairs, int offset, final int numPairs) {
         if( MonitorMode.ROTATE_0 == rotation || MonitorMode.ROTATE_180 == rotation ) {
             // nop
             return;

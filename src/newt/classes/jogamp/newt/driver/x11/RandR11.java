@@ -186,6 +186,7 @@ class RandR11 implements RandR {
         int i = 0;
         props[i++] = props.length;
         props[i++] = crt_idx;
+        props[i++] = 0; // is-clone
         props[i++] = widthMM;
         props[i++] = heightMM;
         props[i++] = 0; // rotated viewport x pixel-units

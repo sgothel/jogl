@@ -112,7 +112,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
         final Rectangle viewport = new Rectangle(0, 0, 1920, 1080);
         final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
         supportedModes.add(modeOut);
-        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, sizeMM, modeOut, null, viewport, viewport, supportedModes);
+        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, false, sizeMM, modeOut, null, viewport, viewport, supportedModes);
         System.err.println("01 out : "+monOut);
         cache.monitorDevices.add(monOut);
         {
@@ -169,13 +169,12 @@ public class TestScreenMode00aNEWT extends UITestCase {
 
         final List<MonitorDevice> monitors = screen.getMonitorDevices();
         Assert.assertTrue(monitors.size()>0);
+
+        // Dump all Monitor's and its modes
         int j=0;
         for(final Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
             final MonitorDevice monitor = iMonitor.next();
             System.err.println(j+": "+monitor);
-            final float[] pixelPerMM = monitor.getPixelsPerMM(new float[2]);
-            System.err.println(j+" pp/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
-            System.err.println(j+" pp/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
             final List<MonitorMode> modes = monitor.getSupportedModes();
             Assert.assertTrue(modes.size()>0);
             int i=0;
@@ -189,7 +188,16 @@ public class TestScreenMode00aNEWT extends UITestCase {
                 mmPre = mm;
             }
             Assert.assertTrue(allMonitorModes.containsAll(modes));
+        }
 
+        // Dump all Monitor's and its DPI and current/original mode
+        j=0;
+        for(final Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
+            final MonitorDevice monitor = iMonitor.next();
+            System.err.println(j+": "+monitor);
+            final float[] pixelPerMM = monitor.getPixelsPerMM(new float[2]);
+            System.err.println(j+" pixel/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
+            System.err.println(j+" pixel/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
             final MonitorMode sm_o = monitor.getOriginalMode();
             Assert.assertNotNull(sm_o);
             final MonitorMode sm_c = monitor.queryCurrentMode();

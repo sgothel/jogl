@@ -210,7 +210,8 @@ public abstract class Screen {
 
     /**
      * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewportInWindowUnits() viewport}
-     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of the given rectangle in window units.
+     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of the given rectangle in window units,
+     * which is not a {@link MonitorDevice#isClone() clone}.
      * <p>
      * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
@@ -220,12 +221,15 @@ public abstract class Screen {
         MonitorDevice res = null;
         float maxCoverage = Float.MIN_VALUE;
         final List<MonitorDevice> monitors = getMonitorDevices();
-        for(int i=monitors.size()-1; i>=0; i--) {
+        final int monitorCount = monitors.size();
+        for(int i=0; i<monitorCount; i++) {
             final MonitorDevice monitor = monitors.get(i);
-            final float coverage = monitor.getViewportInWindowUnits().coverage(r);
-            if( coverage > maxCoverage ) {
-                maxCoverage = coverage;
-                res = monitor;
+            if( !monitor.isClone() ) {
+                final float coverage = monitor.getViewportInWindowUnits().coverage(r);
+                if( coverage > maxCoverage ) {
+                    maxCoverage = coverage;
+                    res = monitor;
+                }
             }
         }
         if( maxCoverage > 0.0f && null != res ) {

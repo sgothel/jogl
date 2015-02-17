@@ -40,7 +40,7 @@
 
 #define NUM_MONITOR_MODE_PROPERTIES_ALL  8  /* count + the above */
 
-#define MIN_MONITOR_DEVICE_PROPERTIES 15   /* count + id, ScreenSizeMM[width, height], rotated Viewport pixel-units, rotated Viewport pixel-units, currentMonitorModeId, rotation, supportedModeId+ */
+#define MIN_MONITOR_DEVICE_PROPERTIES 16   /* count + id + is_clone, ScreenSizeMM[width, height], rotated Viewport pixel-units, rotated Viewport pixel-units, currentMonitorModeId, rotation, supportedModeId+ */
                                            /* Viewport := [x, y, width, height] (4 elements) */
 
 #define FLAG_INTERLACE      ( 1 << 0 )

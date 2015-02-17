@@ -1007,8 +1007,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 final MonitorDevice monitor = glWindow.getMainMonitor();
                 System.err.println("Main Monitor: "+monitor);
                 final float[] pixelPerMM = monitor.getPixelsPerMM(new float[2]);
-                System.err.println("    pp/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
-                System.err.println("    pp/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
+                System.err.println("    pixel/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
+                System.err.println("    pixel/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
                 final GL gl = drawable.getGL();
                 System.err.println(JoglVersion.getGLInfo(gl, null));
                 System.err.println("Requested: "+drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());

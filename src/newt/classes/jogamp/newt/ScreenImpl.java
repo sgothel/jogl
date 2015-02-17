@@ -500,6 +500,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         int i = 0;
         props[i++] = MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES;
         props[i++] = monitorId;
+        props[i++] = 0; // is-clone
         props[i++] = default_sm_widthmm;
         props[i++] = default_sm_heightmm;
         props[i++] = 0; // rotated viewport x pixel-units
@@ -608,6 +609,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     private final int collectNativeMonitorModes(final MonitorModeProps.Cache cache) {
         if(!DEBUG_TEST_SCREENMODE_DISABLED) {
             collectNativeMonitorModesAndDevicesImpl(cache);
+            MonitorModeProps.identifyClonedMonitorDevices(cache);
         }
         // filter out insufficient modes
         for(int i=cache.monitorModes.size()-1; i>=0; i--) {

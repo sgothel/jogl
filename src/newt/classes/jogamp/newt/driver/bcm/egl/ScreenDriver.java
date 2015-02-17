@@ -84,6 +84,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         i = 0;
         props[i++] = props.length;
         props[i++] = 0; // crt_idx
+        props[i++] = 0; // is-clone
         props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
         props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
         props[i++] = 0; // rotated viewport x pixel-units
