@@ -70,8 +70,11 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
     adapt their components to the {@link NativeWindow} interface,
     which provides a platform-independent mechanism of accessing the
     information required to perform operations like
-    hardware-accelerated rendering using the OpenGL API. */
-
+    hardware-accelerated rendering using the OpenGL API.
+ * <p>
+ * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
+ * </p>
+ */
 public abstract class NativeWindowFactory {
     protected static final boolean DEBUG;
 
@@ -421,6 +424,9 @@ public abstract class NativeWindowFactory {
     }
 
     /** Don't know if we shall add this factory here ..
+     * <p>
+     * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
+     * </p>
     public static AbstractGraphicsDevice createGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
         if(TYPE_EGL == type) {
             return new
@@ -632,6 +638,9 @@ public abstract class NativeWindowFactory {
      * If the visualID is {@link VisualIDHolder#VID_UNDEFINED} and the platform requires it
      * at creation time (see above), it is not valid for further processing.
      * </p>
+     * <p>
+     * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
+     * </p>
      */
     public static boolean isNativeVisualIDValidForProcessing(final int visualID) {
         return NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(false) ||
@@ -645,7 +654,18 @@ public abstract class NativeWindowFactory {
      * </p>
      */
     public static AbstractGraphicsDevice createDevice(final String displayConnection, final boolean own) {
-        final String nwt = NativeWindowFactory.getNativeWindowType(true);
+        return createDevice(NativeWindowFactory.getNativeWindowType(true), displayConnection, own);
+    }
+    /**
+     * Creates a native device type, following the given {@link #getNativeWindowType(boolean) native-window-type}.
+     * <p>
+     * The device will be opened if <code>own</code> is true, otherwise no native handle will ever be acquired.
+     * </p>
+     * <p>
+     * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
+     * </p>
+     */
+    public static AbstractGraphicsDevice createDevice(final String nwt, final String displayConnection, final boolean own) {
         if( NativeWindowFactory.TYPE_X11 == nwt ) {
             if( own ) {
                 return new X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, null /* ToolkitLock */);
@@ -656,16 +676,13 @@ public abstract class NativeWindowFactory {
             return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
-        /**
-         * FIXME: Needs service provider interface (SPI) for TK dependent implementation
-        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
-        } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
-        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+            throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
         } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
-        */
+            throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
+        } else {
+            return new DefaultGraphicsDevice(nwt, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
         }
-        throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
     }
 
     /**
@@ -691,6 +708,9 @@ public abstract class NativeWindowFactory {
     /**
      * @param nw
      * @return top-left client-area position in window units
+     * <p>
+     * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
+     * </p>
      */
     public static PointImmutable getLocationOnScreen(final NativeWindow nw) {
         final String nwt = NativeWindowFactory.getNativeWindowType(true);
