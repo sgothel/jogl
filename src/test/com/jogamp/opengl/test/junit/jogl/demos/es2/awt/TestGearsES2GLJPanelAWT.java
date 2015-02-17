@@ -31,8 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.DisplayMode;
-import java.awt.GraphicsDevice;
 import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.nativewindow.ScalableSurface;
@@ -44,8 +42,11 @@ import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLJPanel;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+
+import jogamp.newt.awt.NewtFactoryAWT;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -55,13 +56,9 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
-import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.MonitorEvent;
-import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
@@ -178,6 +175,10 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
 
+        final Screen screen = NewtFactoryAWT.createScreen(glJPanel, true);
+        screen.addReference(); // initial native creation - keep alive!
+        System.err.println("GetPixelScale: AWT -> Screen: "+screen);
+
         final float[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
@@ -200,36 +201,30 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 if( e.isAutoRepeat() ) {
                     return;
                 }
-                if(e.getKeyChar()=='p') {
+                if( e.getKeySymbol() == KeyEvent.VK_P ) {
                     System.err.println();
-                    final java.awt.Point los = glJPanel.getLocationOnScreen();
-                    final RectangleImmutable r = new Rectangle(los.x, los.y, glJPanel.getWidth(), glJPanel.getHeight());
-                    final GraphicsDevice gd = glJPanel.getGraphicsConfiguration().getDevice();
-                    final DisplayMode dm = gd.getDisplayMode();
-                    System.err.printf("GetPixelScale: AWT DisplayMode %d x %d pixel-units%n", dm.getWidth(), dm.getHeight());
-                    System.err.printf("GetPixelScale: NW Screen: %s%n", glJPanel.getNativeSurface().getGraphicsConfiguration().getScreen());
-                    System.err.printf("GetPixelScale: Panel Bounds: %s window-units%n", r.toString());
-                    System.err.printf("GetPixelScale: Panel Resolution: %d x %d pixel-units%n", glJPanel.getSurfaceWidth(), glJPanel.getSurfaceHeight());
                     {
-                        final Display dpy = NewtFactory.createDisplay(null);
-                        final Screen screen = NewtFactory.createScreen(dpy, 0);
-                        screen.addReference();
-                        final MonitorModeListener sml = new MonitorModeListener() {
-                            @Override
-                            public void monitorModeChangeNotify(final MonitorEvent me) {
-                            }
-                            @Override
-                            public void monitorModeChanged(final MonitorEvent me, final boolean success) {
-                            }
-                        };
-                        screen.addMonitorModeListener(sml);
-                        try {
-                            final MonitorDevice md = screen.getMainMonitor(r);
-                            System.err.printf("GetPixelScale: %s%n", md.toString());
-                        } finally {
-                            screen.removeReference();
-                        }
+                        // Just for manual validation!
+                        final java.awt.Point los = glJPanel.getLocationOnScreen();
+                        final RectangleImmutable r = new Rectangle(los.x, los.y, glJPanel.getWidth(), glJPanel.getHeight());
+                        System.err.printf("GetPixelScale: Panel Bounds: %s window-units%n", r.toString());
+                        System.err.printf("GetPixelScale: Panel Resolution: %d x %d pixel-units%n", glJPanel.getSurfaceWidth(), glJPanel.getSurfaceHeight());
                     }
+                    final MonitorDevice monitor = NewtFactoryAWT.getMonitorDevice(screen, glJPanel);
+                    System.err.printf("GetPixelScale: %s%n", monitor.toString());
+                    final float[] pixelPerMM;
+                    final boolean cached;
+                    if( e.isShiftDown() ) {
+                        // SHIFT: query current mode!
+                        pixelPerMM = monitor.getPixelsPerMM(monitor.queryCurrentMode(), new float[2]);
+                        cached = false;
+                    } else {
+                        // Default: Use cached mode!
+                        pixelPerMM = monitor.getPixelsPerMM(new float[2]);
+                        cached = true;
+                    }
+                    System.err.println("  pixel/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"], cached-mode "+cached);
+                    System.err.println("  pixel/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"], cached-mode "+cached);
                     System.err.println();
                 } else if(e.getKeyChar()=='x') {
                     final float[] hadSurfacePixelScale = glJPanel.getCurrentSurfaceScale(new float[2]);
@@ -313,6 +308,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                     glJPanel.destroy();
                     frame.dispose();
                 } } );
+        screen.removeReference(); // final native destroy
     }
 
     @Test

@@ -156,6 +156,18 @@ static NSScreen * OSXUtil_getNSScreenByCGDirectDisplayID(CGDirectDisplayID displ
     }
     return (NSScreen *) [screens objectAtIndex: 0];
 }
+static int OSXUtil_getNSScreenIdxByCGDirectDisplayID(CGDirectDisplayID displayID) {
+    NSArray *screens = [NSScreen screens];
+    int i;
+    for(i=[screens count]-1; i>=0; i--) {
+        NSScreen * screen = (NSScreen *) [screens objectAtIndex: i];
+        CGDirectDisplayID dID = OSXUtil_getCGDirectDisplayIDByNSScreen(screen);
+        if( dID == displayID ) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
@@ -259,6 +271,22 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
     [pool release];
 
     return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetNSScreenIdx0
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSScreenIdx0
+  (JNIEnv *env, jclass unused, jint displayID)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    int idx = OSXUtil_getNSScreenIdxByCGDirectDisplayID((CGDirectDisplayID)displayID);
+    [pool release];
+
+    return idx;
 }
 
 /*

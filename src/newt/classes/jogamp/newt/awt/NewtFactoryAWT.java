@@ -28,17 +28,30 @@
 
 package jogamp.newt.awt;
 
+import java.awt.GraphicsDevice;
+
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
+import jogamp.nativewindow.awt.AWTMisc;
+import jogamp.nativewindow.jawt.JAWTUtil;
+import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.Debug;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.nativewindow.awt.JAWTWindow;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 
 public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
@@ -83,5 +96,102 @@ public class NewtFactoryAWT extends NewtFactory {
       config.getScreen().getDevice().close();
   }
 
+  /**
+   * @param awtComp
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   */
+  private static void checkComponentValid(final java.awt.Component awtComp) throws IllegalArgumentException {
+      if( !awtComp.isDisplayable() ) {
+          throw new IllegalArgumentException("Given AWT-Component is not displayable: "+awtComp);
+      }
+      if( null == awtComp.getGraphicsConfiguration() ) {
+          throw new IllegalArgumentException("Given AWT-Component has no GraphicsConfiguration set: "+awtComp);
+      }
+  }
+
+  /**
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @param reuse attempt to reuse an existing {@link Display} with same <code>name</code> if set true, otherwise create a new instance.
+   * @return {@link Display} instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #getAbstractGraphicsScreen(java.awt.Component)
+   */
+  public static Display createDisplay(final java.awt.Component awtComp, final boolean reuse) throws IllegalArgumentException {
+      checkComponentValid(awtComp);
+      final GraphicsDevice device = awtComp.getGraphicsConfiguration().getDevice();
+
+      final String displayConnection;
+      final String nwt = NativeWindowFactory.getNativeWindowType(true);
+      if( NativeWindowFactory.TYPE_X11 == nwt ) {
+          final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+          if( 0 == displayHandleAWT ) {
+              displayConnection = null; // default
+          } else {
+              /**
+               * Using the AWT display handle works fine with NVidia.
+               * However we experienced different results w/ AMD drivers,
+               * some work, but some behave erratic.
+               * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
+               */
+              displayConnection = X11Lib.XDisplayString(displayHandleAWT);
+          }
+      } else {
+          displayConnection = null; // default
+      }
+      return NewtFactory.createDisplay(displayConnection, reuse);
+  }
+
+  /**
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @param reuse attempt to reuse an existing {@link Display} with same <code>name</code> if set true, otherwise create a new instance.
+   * @return {@link Screen} instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #createDevice(java.awt.Component)
+   */
+  public static Screen createScreen(final java.awt.Component awtComp, final boolean reuse) throws IllegalArgumentException {
+      final Display display = createDisplay(awtComp, reuse);
+      return NewtFactory.createScreen(display, AWTGraphicsScreen.findScreenIndex(awtComp.getGraphicsConfiguration().getDevice()));
+  }
+
+  /**
+   * Retrieves the {@link MonitorDevice} for the given displayable {@code awtComp}.
+   * <p>
+   * In case this method shall be called multiple times, it is advised to keep the given {@link Screen} instance
+   * natively created during operation. This should be done via the initial {@link Screen#addReference()}.
+   * After operation, user shall destroy the instance accordingly via the final {@link Screen#removeReference()}.
+   * </p>
+   * @param screen the {@link Screen} instance matching {@code awtComp}, i.e. via {@link #createScreen(java.awt.Component, boolean)}.
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @return {@link MonitorDevice} instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #createScreen(java.awt.Component, boolean)
+   */
+  public static MonitorDevice getMonitorDevice(final Screen screen, final java.awt.Component awtComp) throws IllegalArgumentException {
+      checkComponentValid(awtComp);
+      final String nwt = NativeWindowFactory.getNativeWindowType(true);
+      MonitorDevice res = null;
+      screen.addReference();
+      try {
+          if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
+              res = screen.getMonitor( JAWTUtil.getMonitorIndex( awtComp.getGraphicsConfiguration().getDevice() ) );
+          }
+          if( null == res ) {
+              // Fallback, use AWT component coverage
+              final Point los = AWTMisc.getLocationOnScreenSafe(null, awtComp, false);
+              final RectangleImmutable r = new Rectangle(los.getX(), los.getY(), awtComp.getWidth(), awtComp.getHeight());
+              res = screen.getMainMonitor(r);
+          }
+      } finally {
+          screen.removeReference();
+      }
+      return res;
+  }
 }
 

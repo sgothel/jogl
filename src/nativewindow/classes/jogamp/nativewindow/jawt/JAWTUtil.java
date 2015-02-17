@@ -49,14 +49,19 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
+import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
 import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
@@ -545,6 +550,21 @@ public class JAWTUtil {
     return jawtToolkitLock;
   }
 
+  public static final int getMonitorIndex(final GraphicsDevice device) {
+      int idx = -1;
+      if( null != getCGDisplayIDMethodOnOSX ) {
+          // OSX specific
+          try {
+              final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
+              if (res instanceof Integer) {
+                  final int displayID = ((Integer)res).intValue();
+                  idx = OSXUtil.GetNSScreenIdx(displayID);
+              }
+          } catch (final Throwable t) {}
+      }
+      return idx;
+  }
+
   /**
    * Returns the pixel scale factor of the given {@link GraphicsDevice}, if supported.
    * <p>
@@ -628,5 +648,73 @@ public class JAWTUtil {
       }
       return changed;
   }
+
+  private static String getThreadName() {
+      return Thread.currentThread().getName();
+  }
+  private static String toHexString(final long val) {
+      return "0x" + Long.toHexString(val);
+  }
+
+  /**
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @return AbstractGraphicsDevice instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #getAbstractGraphicsScreen(java.awt.Component)
+   */
+  public static AbstractGraphicsDevice createDevice(final java.awt.Component awtComp) throws IllegalArgumentException {
+      if( !awtComp.isDisplayable() ) {
+          throw new IllegalArgumentException("Given AWT-Component is not displayable: "+awtComp);
+      }
+      final GraphicsDevice device;
+      final GraphicsConfiguration gc = awtComp.getGraphicsConfiguration();
+      if(null!=gc) {
+          device = gc.getDevice();
+      } else {
+          throw new IllegalArgumentException("Given AWT-Component has no GraphicsConfiguration set: "+awtComp);
+      }
+
+      final String displayConnection;
+      final String nwt = NativeWindowFactory.getNativeWindowType(true);
+      if( NativeWindowFactory.TYPE_X11 == nwt ) {
+          final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+          if( 0 == displayHandleAWT ) {
+              displayConnection = null; // default
+              if(DEBUG) {
+                  System.err.println(getThreadName()+" - JAWTUtil.createDevice: Null AWT dpy, default X11 display");
+              }
+          } else {
+              /**
+               * Using the AWT display handle works fine with NVidia.
+               * However we experienced different results w/ AMD drivers,
+               * some work, but some behave erratic.
+               * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
+               */
+              displayConnection = X11Lib.XDisplayString(displayHandleAWT);
+              if(DEBUG) {
+                  System.err.println(getThreadName()+" - JAWTUtil.createDevice: AWT dpy "+displayConnection+" / "+toHexString(displayHandleAWT));
+              }
+          }
+      } else {
+          displayConnection = null; // default
+      }
+      return NativeWindowFactory.createDevice(displayConnection, true /* own */);
+  }
+
+  /**
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @return AbstractGraphicsScreen instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #createDevice(java.awt.Component)
+   */
+  public static AbstractGraphicsScreen getAbstractGraphicsScreen(final java.awt.Component awtComp) throws IllegalArgumentException {
+      final AbstractGraphicsDevice adevice = createDevice(awtComp);
+      return NativeWindowFactory.createScreen(adevice, AWTGraphicsScreen.findScreenIndex(awtComp.getGraphicsConfiguration().getDevice()));
+  }
+
 }
 

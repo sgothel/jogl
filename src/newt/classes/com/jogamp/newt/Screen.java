@@ -238,6 +238,18 @@ public abstract class Screen {
         return monitors.get(0);
     }
 
+    public final MonitorDevice getMonitor(final int monitorId) {
+        final List<MonitorDevice> monitors = getMonitorDevices();
+        final int monitorCount = monitors.size();
+        for(int i=0; i<monitorCount; i++) {
+            final MonitorDevice monitor = monitors.get(i);
+            if( monitor.getId() == monitorId ) {
+                return monitor;
+            }
+        }
+        return null;
+    }
+
     /**
      * Calculates the union of all monitor's {@link MonitorDevice#getViewport() viewport} in pixel- and window units.
      * <p>
