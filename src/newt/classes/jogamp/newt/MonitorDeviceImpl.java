@@ -28,8 +28,6 @@
 
 package jogamp.newt;
 
-import java.util.ArrayList;
-
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
@@ -59,8 +57,11 @@ public class MonitorDeviceImpl extends MonitorDevice {
     }
 
     @Override
-    public final MonitorMode queryCurrentMode() {
+    public final MonitorMode queryCurrentMode() throws IllegalStateException {
         final ScreenImpl screenImpl = (ScreenImpl)screen;
+        if( !screenImpl.isNativeValid() ) {
+            throw new IllegalStateException("Screen is not created natively: "+screenImpl);
+        }
         final ScreenMonitorState sms = screenImpl.getScreenMonitorStatus(true);
         sms.lock();
         try {
@@ -89,11 +90,14 @@ public class MonitorDeviceImpl extends MonitorDevice {
     }
 
     @Override
-    public final boolean setCurrentMode(final MonitorMode mode) {
+    public final boolean setCurrentMode(final MonitorMode mode) throws IllegalStateException {
+        final ScreenImpl screenImpl = (ScreenImpl)screen;
+        if( !screenImpl.isNativeValid() ) {
+            throw new IllegalStateException("Screen is not created natively: "+screenImpl);
+        }
         if(Screen.DEBUG) {
             System.err.println("Screen.setCurrentMode.0: "+this+" -> "+mode);
         }
-        final ScreenImpl screenImpl = (ScreenImpl)screen;
         final ScreenMonitorState sms = screenImpl.getScreenMonitorStatus(true);
         sms.lock();
         try {

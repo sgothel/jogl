@@ -35,7 +35,6 @@ import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.nativewindow.util.SurfaceSize;
-
 import com.jogamp.common.util.ArrayHashSet;
 
 /**
@@ -317,16 +316,18 @@ public abstract class MonitorDevice {
      * <p>
      * The returned {@link MonitorMode} is element of the lists {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
      * </p>
+     * @throws IllegalStateException if the {@link #getScreen() associated screen} is not {@link Screen#isNativeValid() valid natively}.
      * @see #getCurrentMode()
      */
-    public abstract MonitorMode queryCurrentMode();
+    public abstract MonitorMode queryCurrentMode() throws IllegalStateException;
 
     /**
      * Set the current {@link com.jogamp.newt.MonitorMode}.
      * @param mode to be made current, must be element of the list {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
      * @return true if successful, otherwise false
+     * @throws IllegalStateException if the {@link #getScreen() associated screen} is not {@link Screen#isNativeValid() valid natively}.
      */
-    public abstract boolean setCurrentMode(MonitorMode mode);
+    public abstract boolean setCurrentMode(MonitorMode mode) throws IllegalStateException;
 
     @Override
     public String toString() {
