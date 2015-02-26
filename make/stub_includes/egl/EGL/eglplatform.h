@@ -2,7 +2,7 @@
 #define __eglplatform_h_
 
 /*
-** Copyright (c) 2007-2009 The Khronos Group Inc.
+** Copyright (c) 2007-2013 The Khronos Group Inc.
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a
 ** copy of this software and/or associated documentation files (the
@@ -25,7 +25,7 @@
 */
 
 /* Platform-specific types and definitions for egl.h
- * $Revision: 12306 $ on $Date: 2010-08-25 09:51:28 -0700 (Wed, 25 Aug 2010) $
+ * $Revision: 23432 $ on $Date: 2013-10-09 00:57:24 -0700 (Wed, 09 Oct 2013) $
  *
  * Adopters may modify khrplatform.h and this file to suit their platform.
  * You are encouraged to submit all modifications to the Khronos group so that
@@ -83,7 +83,17 @@ typedef int   EGLNativeDisplayType;
 typedef void *EGLNativeWindowType;
 typedef void *EGLNativePixmapType;
 
-#elif defined(__X11__)
+#elif defined(__ANDROID__) || defined(ANDROID)
+
+#include <android/native_window.h>
+
+struct egl_native_pixmap_t;
+
+typedef struct ANativeWindow*           EGLNativeWindowType;
+typedef struct egl_native_pixmap_t*     EGLNativePixmapType;
+typedef void*                           EGLNativeDisplayType;
+
+#elif defined(__unix__)
 
 /* X11 (tentative)  */
 #include <X11/Xlib.h>
@@ -94,13 +104,7 @@ typedef Pixmap   EGLNativePixmapType;
 typedef Window   EGLNativeWindowType;
 
 #else
-
-#warning "Info: Using generic void pointer for EGLNativeDisplayType, EGLNativeWindowType and EGLNativePixmapType"
-
-typedef struct __EGLNativeDisplayType* EGLNativeDisplayType;
-typedef struct __EGLNativeWindowType* EGLNativeWindowType;
-typedef struct __EGLNativePixmapType* EGLNativePixmapType;
-
+#error "Platform not recognized"
 #endif
 
 /* EGL 1.2 types, renamed for consistency in EGL 1.3 */
