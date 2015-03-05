@@ -36,22 +36,9 @@ extern "C" {
 ** Khronos $Revision: 29735 $ on $Date: 2015-02-02 19:00:01 -0800 (Mon, 02 Feb 2015) $
 */
 
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
-#endif
-#include <windows.h>
-#endif
-
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
-#endif
-#ifndef GLAPI
-#define GLAPI extern
-#endif
+/* Function declaration macros - to move into gl-platform.h */
+#include "gl-platform.h"
+#include "gl-types.h"
 
 #define GL_GLEXT_VERSION 20150202
 
