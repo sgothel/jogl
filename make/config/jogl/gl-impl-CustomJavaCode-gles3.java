@@ -13,6 +13,13 @@ public GLES3Impl(GLProfile glp, GLContextImpl context) {
 public final void finalizeInit() {
 }
 
+
+private int[] imageSizeTemp = new int[1];
+
+private final int imageSizeInBytes(int format, int type, int width, int height, int depth, boolean pack) {
+    return GLBuffers.sizeof(this, imageSizeTemp, format, type, width, height, depth, pack) ;                                    
+}
+
 @Override
 public final boolean isGL4bc() {
     return false;
@@ -107,6 +114,10 @@ public final boolean isGLES3Compatible() {
     return _isES3;
 }
 
+@Override
+public final boolean isGLES31Compatible() {
+    return _context.isGLES31Compatible();
+}
 
 @Override
 public final boolean isGL2GL3() {
@@ -290,6 +301,25 @@ private final boolean checkElementVBOBound(boolean throwException) {
                            true, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
+}
+
+private final boolean checkIndirectVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
+  return checkBufferObject(true,
+                           _isES3, // allowVAO
+                           false, // bound
+                           GL4ES3.GL_DRAW_INDIRECT_BUFFER,
+                           "indirect vertex_buffer_object", throwException);
+}
+
+private final boolean checkIndirectVBOBound(boolean throwException) { 
+  return checkBufferObject(true,
+                           _isES3, // allowVAO
+                           true, // bound
+                           GL4ES3.GL_DRAW_INDIRECT_BUFFER,
+                           "indirect vertex_buffer_object", throwException);
 }
 
 private final boolean checkUnpackPBOUnbound(boolean throwException) { 

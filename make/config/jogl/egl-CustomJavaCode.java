@@ -16,7 +16,7 @@
     /** 
      * In case of an error on a particualr attribute, the attribute in the attributes-buffer is set to 0.
      * <p>
-     * Entry point to C language function: <code> EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *  value); </code> <br>Part of <code>EGL_VERSION_1_X</code>
+     * Entry point to C language function: <code> EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *  value); </code> <br>Part of <code>EGL_VERSION_1_0</code>
      * </p>
      */
     public static void eglGetConfigAttributes(long dpy, long config, IntBuffer attributes, IntBuffer values) {

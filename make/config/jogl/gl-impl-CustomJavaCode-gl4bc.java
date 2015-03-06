@@ -118,6 +118,11 @@ public final boolean isGLES3Compatible() {
 }
 
 @Override
+public final boolean isGLES31Compatible() {
+    return _context.isGLES31Compatible();
+}
+
+@Override
 public final boolean isGL2GL3() {
     return _context.isGL2GL3();
 }
@@ -254,15 +259,6 @@ public final GLES3 getGLES3() throws GLException {
 public final boolean isNPOTTextureAvailable() {
   return _context.isNPOTTextureAvailable();
 }
-@Override
-public final java.nio.ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
-  return _context.glAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
-}
-
-@Override
-public final void glFreeMemoryNV(java.nio.ByteBuffer pointer) {
-  _context.glFreeMemoryNV(pointer);
-}
 
 //
 // Helpers for ensuring the correct amount of texture data
@@ -369,7 +365,7 @@ private final boolean checkIndirectVBOUnbound(boolean throwException) {
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            false, // bound
-                           GL4.GL_DRAW_INDIRECT_BUFFER,
+                           GL4ES3.GL_DRAW_INDIRECT_BUFFER,
                            "indirect vertex_buffer_object", throwException);
 }
 
@@ -377,7 +373,7 @@ private final boolean checkIndirectVBOBound(boolean throwException) {
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            true, // bound
-                           GL4.GL_DRAW_INDIRECT_BUFFER,
+                           GL4ES3.GL_DRAW_INDIRECT_BUFFER,
                            "indirect vertex_buffer_object", throwException);
 }
 

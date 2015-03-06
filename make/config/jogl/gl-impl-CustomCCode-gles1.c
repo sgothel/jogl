@@ -41,9 +41,10 @@ typedef GLvoid* (GL_APIENTRY* PFNGLMAPBUFFERPROC) (GLenum target, GLenum access)
  */
 JNIEXPORT jlong JNICALL 
 Java_jogamp_opengl_es1_GLES1Impl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
-  PFNGLMAPBUFFERPROC ptr_glMapBuffer;
+  typedef void *(GL_APIENTRY*_local_PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
+  _local_PFNGLMAPBUFFERPROC ptr_glMapBuffer;
   void * _res;
-  ptr_glMapBuffer = (PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
+  ptr_glMapBuffer = (_local_PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
   assert(ptr_glMapBuffer != NULL);
   _res = (* ptr_glMapBuffer) ((GLenum) target, (GLenum) access);
   return (jlong) (intptr_t) _res;

@@ -12,6 +12,12 @@ public GLES1Impl(GLProfile glp, GLContextImpl context) {
 public final void finalizeInit() {
 }
 
+private int[] imageSizeTemp = new int[1];
+
+private final int imageSizeInBytes(int format, int type, int width, int height, int depth, boolean pack) {
+    return GLBuffers.sizeof(this, imageSizeTemp, format, type, width, height, depth, pack) ;                                    
+}
+
 @Override
 public final boolean isGL4bc() {
     return false;
@@ -104,6 +110,11 @@ public final boolean isGLES2Compatible() {
 
 @Override
 public final boolean isGLES3Compatible() {
+    return false;
+}
+
+@Override
+public final boolean isGLES31Compatible() {
     return false;
 }
 

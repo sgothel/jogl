@@ -76,9 +76,10 @@ Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glUnmapNamedBufferEXT(JNIEnv *env, jo
  */
 JNIEXPORT jlong JNICALL 
 Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapBuffer(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
-  PFNGLMAPBUFFERPROC ptr_glMapBuffer;
+  typedef void *(APIENTRY*_local_PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
+  _local_PFNGLMAPBUFFERPROC ptr_glMapBuffer;
   void * _res;
-  ptr_glMapBuffer = (PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
+  ptr_glMapBuffer = (_local_PFNGLMAPBUFFERPROC) (intptr_t) glProcAddress;
   assert(ptr_glMapBuffer != NULL);
   _res = (* ptr_glMapBuffer) ((GLenum) target, (GLenum) access);
   return (jlong) (intptr_t) _res;
@@ -107,9 +108,10 @@ Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapBufferRange(JNIEnv *env, jobject
  */
 JNIEXPORT jlong JNICALL 
 Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferEXT(JNIEnv *env, jobject _unused, jint target, jint access, jlong glProcAddress) {
-  PFNGLMAPNAMEDBUFFEREXTPROC ptr_glMapNamedBufferEXT;
+  typedef void *(APIENTRY*_local_PFNGLMAPNAMEDBUFFEREXTPROC) (GLuint buffer, GLenum access);
+  _local_PFNGLMAPNAMEDBUFFEREXTPROC ptr_glMapNamedBufferEXT;
   void * _res;
-  ptr_glMapNamedBufferEXT = (PFNGLMAPNAMEDBUFFEREXTPROC) (intptr_t) glProcAddress;
+  ptr_glMapNamedBufferEXT = (_local_PFNGLMAPNAMEDBUFFEREXTPROC) (intptr_t) glProcAddress;
   assert(ptr_glMapNamedBufferEXT != NULL);
   _res = (* ptr_glMapNamedBufferEXT) ((GLuint) target, (GLenum) access);
   return (jlong) (intptr_t) _res;
@@ -122,9 +124,10 @@ Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferEXT(JNIEnv *env, jobj
  */
 JNIEXPORT jlong JNICALL
 Java_jogamp_opengl_gl4_GL4bcImpl_dispatch_1glMapNamedBufferRangeEXT(JNIEnv *env, jobject _unused, jint buffer, jlong offset, jlong length, jint access, jlong procAddress) {
-  PFNGLMAPNAMEDBUFFERRANGEEXTPROC ptr_glMapNamedBufferRangeEXT;
+  typedef void *(APIENTRY*_local_PFNGLMAPNAMEDBUFFERRANGEEXTPROC) (GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+  _local_PFNGLMAPNAMEDBUFFERRANGEEXTPROC ptr_glMapNamedBufferRangeEXT;
   void *  _res;
-  ptr_glMapNamedBufferRangeEXT = (PFNGLMAPNAMEDBUFFERRANGEEXTPROC) (intptr_t) procAddress;
+  ptr_glMapNamedBufferRangeEXT = (_local_PFNGLMAPNAMEDBUFFERRANGEEXTPROC) (intptr_t) procAddress;
   assert(ptr_glMapNamedBufferRangeEXT != NULL);
   _res = (* ptr_glMapNamedBufferRangeEXT) ((GLuint) buffer, (GLintptr) offset, (GLsizeiptr) length, (GLbitfield) access);
   return (jlong) (intptr_t) _res;

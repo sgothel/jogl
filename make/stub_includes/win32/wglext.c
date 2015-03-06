@@ -10,4 +10,5 @@
 #define WGL_WGLEXT_PROTOTYPES
 #define SKIP_WGL_HANDLE_DEFINITIONS
 #include <windows.h>
+#include <wingdi_types.h>
 #include <GL/wglext.h>

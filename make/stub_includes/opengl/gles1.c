@@ -5,5 +5,6 @@
 // "glext.h" are parsed.
 #define GL_GLEXT_PROTOTYPES
 
+#include <GLES/glext-supplement.h>
 #include <GLES/gl.h>
 #include <GLES/glext.h>

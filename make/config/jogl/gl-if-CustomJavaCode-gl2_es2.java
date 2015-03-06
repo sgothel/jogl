@@ -1,5 +1,5 @@
-  /** Part of <code>GL_ARB_separate_shader_objects</code>, <code>GL_EXT_separate_shader_objects</code> */
-  public static final int GL_ALL_SHADER_BITS = 0xFFFFFFFF ;
+  /** Part of <code>GL_ES_VERSION_2_0</code>, <code>GL_VERSION_1_1</code>, <code>GL_VERSION_1_0</code> */
+  public static final int GL_STENCIL_INDEX = 0x1901;
 
   /** Start: GL_ARB_ES2_compatibility functions, which are part of ES2 core as well */
 
@@ -52,8 +52,5 @@
   public void glVertexAttribPointer(GLArrayData array);
 
   public void glUniform(GLUniformData data);
-
-  /** Part of <code>GL_VERSION_1_0</code>, <code>GL_ES_VERSION_2_0</code>, <code>GL_ANGLE_depth_texture</code> */
-  public static final int GL_DEPTH_COMPONENT = 0x1902;
 
   /** End: GL_ARB_ES2_compatibility functions, which are part of ES2 core as well */
