@@ -35,7 +35,6 @@
 
 /* Function declaration macros - to move into gl-platform.h */
 #include "gl-platform.h"
-#include "gl-types.h"
 
 #ifdef __cplusplus
 extern "C" {

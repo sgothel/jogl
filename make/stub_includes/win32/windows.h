@@ -1,6 +1,9 @@
 /* Windows #defines and typedefs required for processing of extracts
    from WINGDI.H and jawt_md.h */
 
+#ifndef _WINDOWS_
+#define _WINDOWS_
+
 #define FAR
 #define WINBASEAPI
 #define WINGDIAPI
@@ -50,3 +53,4 @@ typedef HANDLE              HVIDEOOUTPUTDEVICENV;
 typedef HANDLE              HVIDEOINPUTDEVICENV;
 typedef HANDLE              HPVIDEODEV;
 
+#endif /* _WINDOWS_ */

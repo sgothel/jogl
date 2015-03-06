@@ -9,10 +9,10 @@
  * Editions / Removals and a split (wingdi.h -> wingdi.h + wingdi_types.h + winwgl.h) were made by the JogAmp Community, 2010, 2012
  */
 
-#include "wingdi_types.h"
-
 #ifndef GDI_VERSION_1_X
 #define GDI_VERSION_1_X
+
+#include "wingdi_types.h"
 
 // Windows routines
 WINBASEAPI DWORD WINAPI GetLastError(VOID);

@@ -1,6 +1,10 @@
 #ifndef __glcorearbext_h_
 #define __glcorearbext_h_ 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
 ** Copyright (c) 2010 JogAmp Developer Team
 ** 
@@ -26,7 +30,7 @@
 
 /**
  * This header files contains additional extensions not covered by the 
- * 'official' khronos glcorearbext.h
+ * 'official' khronos glcorearb.h
  */
 
 /*
@@ -345,6 +349,10 @@ GLAPI void APIENTRY glMultiDrawElementsIndirectAMD (GLenum mode, GLenum type, co
 GLAPI void APIENTRY glStencilOpValueAMD (GLenum face, GLuint value);
 #endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __glcorearbext_h_ */
