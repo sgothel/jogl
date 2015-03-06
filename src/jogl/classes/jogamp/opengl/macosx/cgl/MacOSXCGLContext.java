@@ -40,7 +40,6 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
 
@@ -419,18 +418,6 @@ public class MacOSXCGLContext extends GLContextImpl
   @Override
   protected boolean setSwapIntervalImpl(final int interval) {
     return impl.setSwapInterval(interval);
-  }
-
-  @Override
-  public final ByteBuffer glAllocateMemoryNV(final int size, final float readFrequency, final float writeFrequency, final float priority) {
-    // FIXME: apparently the Apple extension doesn't require a custom memory allocator
-    throw new GLException("Not yet implemented");
-  }
-
-  @Override
-  public final void glFreeMemoryNV(final ByteBuffer pointer) {
-    // FIXME: apparently the Apple extension doesn't require a custom memory allocator
-    throw new GLException("Not yet implemented");
   }
 
   @Override

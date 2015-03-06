@@ -36,7 +36,6 @@
 
 package jogamp.opengl.egl;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
 
@@ -506,15 +505,5 @@ public class EGLContext extends GLContextImpl {
     @Override
     protected void copyImpl(final GLContext source, final int mask) throws GLException {
         throw new GLException("Not yet implemented");
-    }
-
-    @Override
-    public final ByteBuffer glAllocateMemoryNV(final int size, final float readFrequency, final float writeFrequency, final float priority) {
-        throw new GLException("Should not call this");
-    }
-
-    @Override
-    public final void glFreeMemoryNV(final ByteBuffer pointer) {
-        throw new GLException("Should not call this");
     }
 }

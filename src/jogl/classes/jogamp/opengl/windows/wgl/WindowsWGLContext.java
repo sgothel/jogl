@@ -40,7 +40,6 @@
 
 package jogamp.opengl.windows.wgl;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +62,6 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
 public class WindowsWGLContext extends GLContextImpl {
-  static final Map<String, String> functionNameMap;
   static final Map<String, String> extensionNameMap;
   private boolean wglGetExtensionsStringEXTInitialized;
   private boolean wglGetExtensionsStringEXTAvailable;
@@ -77,10 +75,6 @@ public class WindowsWGLContext extends GLContextImpl {
   private int hasSwapGroupNV = 0;
 
   static {
-    functionNameMap = new HashMap<String, String>();
-    functionNameMap.put("glAllocateMemoryNV", "wglAllocateMemoryNV");
-    functionNameMap.put("glFreeMemoryNV", "wglFreeMemoryNV");
-
     extensionNameMap = new HashMap<String, String>();
     extensionNameMap.put(GLExtensions.ARB_pbuffer, WindowsWGLDrawableFactory.WGL_ARB_pbuffer);
     extensionNameMap.put(GLExtensions.ARB_pixel_format, WindowsWGLDrawableFactory.WGL_ARB_pixel_format);
@@ -192,7 +186,7 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   @Override
-  protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
+  protected Map<String, String> getFunctionNameMap() { return null; }
 
   @Override
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
@@ -572,15 +566,4 @@ public class WindowsWGLContext extends GLContextImpl {
       }
       return res;
   }
-
-  @Override
-  public final ByteBuffer glAllocateMemoryNV(final int size, final float readFrequency, final float writeFrequency, final float priority) {
-    return getWGLExt().wglAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
-  }
-
-  @Override
-  public final void glFreeMemoryNV(final ByteBuffer pointer) {
-    getWGLExt().wglFreeMemoryNV(pointer);
-  }
-
 }

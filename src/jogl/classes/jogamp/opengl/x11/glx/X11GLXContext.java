@@ -40,7 +40,6 @@
 
 package jogamp.opengl.x11.glx;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +67,6 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
 
 public class X11GLXContext extends GLContextImpl {
-  private static final Map<String, String> functionNameMap;
   private static final Map<String, String> extensionNameMap;
   private GLXExt _glXExt;
   // Table that holds the addresses of the native C-language entry points for
@@ -86,10 +84,6 @@ public class X11GLXContext extends GLContextImpl {
   protected volatile boolean isGLXVersionGreaterEqualOneThree;
 
   static {
-    functionNameMap = new HashMap<String, String>();
-    functionNameMap.put("glAllocateMemoryNV", "glXAllocateMemoryNV");
-    functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
-
     extensionNameMap = new HashMap<String, String>();
     extensionNameMap.put(GLExtensions.ARB_pbuffer,      X11GLXDrawableFactory.GLX_SGIX_pbuffer);
     extensionNameMap.put(GLExtensions.ARB_pixel_format, X11GLXDrawableFactory.GLX_SGIX_pbuffer); // good enough
@@ -134,7 +128,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
+  protected Map<String, String> getFunctionNameMap() { return null; }
 
   @Override
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
@@ -644,16 +638,6 @@ public class X11GLXContext extends GLContextImpl {
         } catch (final Throwable t) { hasSwapGroupNV=-1; }
       }
       return res;
-  }
-
-  @Override
-  public final ByteBuffer glAllocateMemoryNV(final int size, final float readFrequency, final float writeFrequency, final float priority) {
-    return getGLXExt().glXAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
-  }
-
-  @Override
-  public final void glFreeMemoryNV(final ByteBuffer pointer) {
-    getGLXExt().glXFreeMemoryNV(pointer);
   }
 
   @Override

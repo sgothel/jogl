@@ -61,19 +61,11 @@ package com.jogamp.opengl;
  *
  * <UL>
  *
- * <LI> The memory allocators for the NVidia vertex_array_range (VAR)
- * extension, in particular <code>wglAllocateMemoryNV</code> /
- * <code>glXAllocateMemoryNV</code> and associated routines. {@link
- * #glAllocateMemoryNV} has been provided for window system-independent
- * access to VAR. {@link #isFunctionAvailable} will translate an argument
- * of "glAllocateMemoryNV" or "glFreeMemoryNV" into the appropriate
- * window system-specific name. </P>
- *
  * <LI> WGL_ARB_pbuffer, WGL_ARB_pixel_format, and other
  * platform-specific pbuffer functionality; the availability of
  * pbuffers can be queried on Windows, X11 and Mac OS X platforms by
  * querying {@link #isExtensionAvailable} with an argument of
- * "GL_ARB_pbuffer" or "GL_ARB_pixel_format".
+ * "GL_ARB_pbuffer" or "GL_ARB_pixel_format".</LI>
  *
  * </UL> <P>
  *

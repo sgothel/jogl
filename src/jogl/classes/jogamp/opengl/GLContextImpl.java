@@ -1315,27 +1315,8 @@ public abstract class GLContextImpl extends GLContext {
    */
   public abstract ProcAddressTable getPlatformExtProcAddressTable();
 
-  /**
-   * Part of <code>GL_NV_vertex_array_range</code>.
-   * <p>
-   * Provides platform-independent access to the <code>wglAllocateMemoryNV</code> /
-   * <code>glXAllocateMemoryNV</code>.
-   * </p>
-   */
-  public abstract ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority);
-
-  /**
-   * Part of <code>GL_NV_vertex_array_range</code>.
-   * <p>
-   * Provides platform-independent access to the <code>wglFreeMemoryNV</code> /
-   * <code>glXFreeMemoryNV</code>.
-   * </p>
-   */
-  public abstract void glFreeMemoryNV(ByteBuffer pointer);
-
   /** Maps the given "platform-independent" function name to a real function
-      name. Currently this is only used to map "glAllocateMemoryNV" and
-      associated routines to wglAllocateMemoryNV / glXAllocateMemoryNV. */
+      name. Currently not used. */
   protected final String mapToRealGLFunctionName(final String glFunctionName) {
     final Map<String, String> map = getFunctionNameMap();
     final String lookup = ( null != map ) ? map.get(glFunctionName) : null;
