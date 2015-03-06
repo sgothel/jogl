@@ -489,7 +489,7 @@ static Bool WaitForUnmapNotify( Display *dpy, XEvent *event, XPointer arg ) {
 }
 
 static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint width, jint height) {
-    if(width>0 && height>0 || x>=0 && y>=0) { // resize/position if requested
+    if( ( width>0 && height>0 ) || ( x>=0 && y>=0 ) ) { // resize/position if requested
         XWindowChanges xwc;
         int flags = CWX | CWY;
 

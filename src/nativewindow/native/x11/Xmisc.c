@@ -52,12 +52,12 @@
 #include <dlfcn.h>
 #undef __USE_GNU
 
+#include "Xmisc.h"
+
 /* Current versions of Solaris don't expose the XF86 extensions,
    although with the recent transition to Xorg this will probably
    happen in an upcoming release */
-#if !defined(__sun_obsolete) && !defined(_HPUX)
-#include <X11/extensions/xf86vmode.h>
-#else
+#if defined(__sun_obsolete) || defined(_HPUX)
 /* Need to provide stubs for these */
 Bool XF86VidModeGetGammaRampSize(
     Display *display,

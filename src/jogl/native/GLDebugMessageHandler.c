@@ -21,11 +21,11 @@
 static jmethodID glDebugMessageARB = NULL; // int source, int type, int id, int severity, String msg
 static jmethodID glDebugMessageAMD = NULL; // int id, int category, int severity, String msg
 
-typedef void (APIENTRY* _local_PFNGLDEBUGMESSAGECALLBACKARBPROC) (GLDEBUGPROCARB callback, const GLvoid *userParam);
-typedef void (APIENTRY* _local_GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
+typedef void (APIENTRY* _local_GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+typedef void (APIENTRY* _local_PFNGLDEBUGMESSAGECALLBACKARBPROC) (_local_GLDEBUGPROCARB callback, const void *userParam);
 
-typedef void (APIENTRY* _local_PFNGLDEBUGMESSAGECALLBACKAMDPROC) (GLDEBUGPROCAMD callback, const GLvoid *userParam);
-typedef void (APIENTRY* _local_GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
+typedef void (APIENTRY* _local_GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,void *userParam);
+typedef void (APIENTRY* _local_PFNGLDEBUGMESSAGECALLBACKAMDPROC) (_local_GLDEBUGPROCAMD callback, void *userParam);
 
 /*
  * Class:     jogamp_opengl_GLDebugMessageHandler

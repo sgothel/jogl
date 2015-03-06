@@ -357,7 +357,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
    VC_RECT_T src_rect;
 
    if( 0 == display ) {
-       return;
+       return 0;
    }
    dst_rect.x = x;
    dst_rect.y = y;

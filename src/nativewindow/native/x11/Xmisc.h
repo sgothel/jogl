@@ -39,4 +39,30 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#if !defined(__sun_obsolete) && !defined(_HPUX)
+#include <X11/extensions/xf86vmode.h>
+#else
+Bool XF86VidModeGetGammaRampSize(
+    Display*                    /* dpy */,
+    int                         /* screen */,
+    int*                        /* size */
+);
+Bool XF86VidModeGetGammaRamp(
+    Display*                    /* dpy */,
+    int                         /* screen */,
+    int                         /* size */,
+    unsigned short*             /* red array */,
+    unsigned short*             /* green array */,
+    unsigned short*             /* blue array */
+);
+Bool XF86VidModeSetGammaRamp(
+    Display*                    /* dpy */,
+    int                         /* screen */,
+    int				/* size */,
+    unsigned short*             /* red array */,
+    unsigned short*             /* green array */,
+    unsigned short*             /* blue array */
+);
+#endif /* defined(__sun_obsolete) || defined(_HPUX) */
+
 #endif /* Xmisc_h */

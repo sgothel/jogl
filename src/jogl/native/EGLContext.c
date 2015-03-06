@@ -16,10 +16,11 @@
  */
 JNIEXPORT jlong JNICALL 
 Java_jogamp_opengl_egl_EGLContext_dispatch_1eglGetProcAddress0__Ljava_lang_String_2J(JNIEnv *env, jclass _unused, jstring procname, jlong procAddress) {
-  typedef __EGLFuncPtr (EGLAPIENTRY*_local_PFNEGLGETPROCADDRESSPROC)(const char *  procname);
+  typedef void (* EGLAPIENTRY _local_EGLFuncPtr)(void);
+  typedef _local_EGLFuncPtr (EGLAPIENTRY*_local_PFNEGLGETPROCADDRESSPROC)(const char *  procname);
   _local_PFNEGLGETPROCADDRESSPROC ptr_eglGetProcAddress;
   const char* _strchars_procname = NULL;
-  __EGLFuncPtr _res;
+  _local_EGLFuncPtr _res;
   if ( NULL != procname ) {
     _strchars_procname = (*env)->GetStringUTFChars(env, procname, (jboolean*)NULL);
   if ( NULL == _strchars_procname ) {

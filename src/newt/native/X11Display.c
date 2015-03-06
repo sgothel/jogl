@@ -30,7 +30,7 @@
 
 #include <X11/Xcursor/Xcursor.h>
 
-// #include <X11/XKBlib.h> // XKB disabled for now
+#include <X11/XKBlib.h>
 
 jclass X11NewtWindowClazz = NULL;
 jmethodID insetsChangedID = NULL;

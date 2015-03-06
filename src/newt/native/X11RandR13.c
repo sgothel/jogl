@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-#include "X11Common.h"
+#include "X11Screen.h"
 
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
@@ -67,7 +67,7 @@ static void dumpOutputs(const char *prefix, Display *dpy, XRRScreenResources *re
     for(i=0; i<noutput; i++) {
         RROutput output = outputs[i];
         XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
-        fprintf(stderr, "  Output[%d]: id %#lx, crtx 0x%X, name %s (%d), %lux%lu, ncrtc %d, nclone %d, nmode %d (preferred %d)\n", 
+        fprintf(stderr, "  Output[%d]: id %#lx, crtx 0x%lX, name %s (%d), %lux%lu, ncrtc %d, nclone %d, nmode %d (preferred %d)\n", 
             i, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, 
             xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
             xrrOutputInfo->ncrtc, xrrOutputInfo->nclone, xrrOutputInfo->nmode, xrrOutputInfo->npreferred);
