@@ -41,7 +41,6 @@
 package jogamp.opengl;
 
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -1319,9 +1318,11 @@ public abstract class GLContextImpl extends GLContext {
       name. Currently not used. */
   protected final String mapToRealGLFunctionName(final String glFunctionName) {
     final Map<String, String> map = getFunctionNameMap();
-    final String lookup = ( null != map ) ? map.get(glFunctionName) : null;
-    if (lookup != null) {
-      return lookup;
+    if( null != map ) {
+        final String lookup = map.get(glFunctionName);
+        if (lookup != null) {
+          return lookup;
+        }
     }
     return glFunctionName;
   }
@@ -1334,9 +1335,11 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected final String mapToRealGLExtensionName(final String glExtensionName) {
     final Map<String, String> map = getExtensionNameMap();
-    final String lookup = ( null != map ) ? map.get(glExtensionName) : null;
-    if (lookup != null) {
-      return lookup;
+    if( null != map ) {
+        final String lookup = map.get(glExtensionName);
+        if (lookup != null) {
+          return lookup;
+        }
     }
     return glExtensionName;
   }
@@ -1654,7 +1657,7 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if( major < 2 ) { // there is no ES2/3-compat for a profile w/ major < 2
-        ctxProfileBits &= ~ ( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_ES3_COMPAT ) ;
+        ctxProfileBits &= ~ ( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES31_COMPAT ) ;
     }
 
     if(!isCurrentContextHardwareRasterizer()) {
@@ -1748,10 +1751,19 @@ public abstract class GLContextImpl extends GLContext {
         if( major >= 3 ) {
             ctxProfileBits |= CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
             ctxProfileBits |= CTX_IMPL_FBO;
+            if( minor >= 1 ) {
+                ctxProfileBits |= CTX_IMPL_ES31_COMPAT;
+            }
         } else if( major >= 2 ) {
             ctxProfileBits |= CTX_IMPL_ES2_COMPAT;
             ctxProfileBits |= CTX_IMPL_FBO;
         }
+    } else if( ( major > 4 || major == 4 && minor >= 5 ) ||
+               ( ( major > 3 || major == 3 && minor >= 1 ) && isExtensionAvailable( GLExtensions.ARB_ES3_1_compatibility ) ) ) {
+        // See GLContext.isGLES31CompatibleAvailable(..)/isGLES31Compatible()
+        //   Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_1_compatibility and GLES &ge; 3.1 ]
+        ctxProfileBits |= CTX_IMPL_ES31_COMPAT | CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
+        ctxProfileBits |= CTX_IMPL_FBO;
     } else if( ( major > 4 || major == 4 && minor >= 3 ) ||
                ( ( major > 3 || major == 3 && minor >= 1 ) && isExtensionAvailable( GLExtensions.ARB_ES3_compatibility ) ) ) {
         // See GLContext.isGLES3CompatibleAvailable(..)/isGLES3Compatible()
@@ -2424,10 +2436,10 @@ public abstract class GLContextImpl extends GLContext {
       }
       switch(target) {
           case GL.GL_FRAMEBUFFER:
-          case GL2ES3.GL_DRAW_FRAMEBUFFER:
+          case GL.GL_DRAW_FRAMEBUFFER:
               boundFBOTarget[0] = framebufferName; // draw
               break;
-          case GL2ES3.GL_READ_FRAMEBUFFER:
+          case GL.GL_READ_FRAMEBUFFER:
               boundFBOTarget[1] = framebufferName; // read
               break;
           default: // ignore untracked target
@@ -2437,9 +2449,9 @@ public abstract class GLContextImpl extends GLContext {
   public final int getBoundFramebuffer(final int target) {
       switch(target) {
           case GL.GL_FRAMEBUFFER:
-          case GL2ES3.GL_DRAW_FRAMEBUFFER:
+          case GL.GL_DRAW_FRAMEBUFFER:
               return boundFBOTarget[0]; // draw
-          case GL2ES3.GL_READ_FRAMEBUFFER:
+          case GL.GL_READ_FRAMEBUFFER:
               return boundFBOTarget[1]; // read
           default:
               throw new InternalError("Invalid FBO target name: "+toHexString(target));

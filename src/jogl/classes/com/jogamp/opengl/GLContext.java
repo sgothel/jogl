@@ -193,10 +193,13 @@ public abstract class GLContext {
   //
 
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. See {@link #isGLES2Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES2_COMPAT = 1 << 10;
+  protected static final int CTX_IMPL_ES2_COMPAT  = 1 << 10;
 
   /** <code>GL_ARB_ES3_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES3Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES3_COMPAT = 1 << 11;
+  protected static final int CTX_IMPL_ES3_COMPAT  = 1 << 11;
+
+  /** <code>GL_ARB_ES3_1_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES31Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
+  protected static final int CTX_IMPL_ES31_COMPAT = 1 << 12;
 
   /**
    * Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
@@ -204,7 +207,7 @@ public abstract class GLContext {
    * @see #hasBasicFBOSupport()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FBO        = 1 << 12;
+  protected static final int CTX_IMPL_FBO         = 1 << 13;
 
   /**
    * Context supports <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points,
@@ -213,7 +216,7 @@ public abstract class GLContext {
    * @see #hasFP32CompatAPI()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 13;
+  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 14;
 
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
@@ -911,6 +914,17 @@ public abstract class GLContext {
   }
 
   /**
+   * Return true if this context is an ES3 context &ge; 3.1 or implements
+   * the extension <code>GL_ARB_ES3_1_compatibility</code>, otherwise false.
+   * <p>
+   * Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_1_compatibility and GLES3 &ge; 3.1 ]
+   * </p>
+   */
+  public final boolean isGLES31Compatible() {
+      return 0 != ( ctxOptions & CTX_IMPL_ES31_COMPAT ) ;
+  }
+
+  /**
    * @return true if impl. is a hardware rasterizer, otherwise false.
    * @see #isHardwareRasterizer(AbstractGraphicsDevice, GLProfile)
    * @see GLProfile#isHardwareRasterizer()
@@ -988,7 +1002,7 @@ public abstract class GLContext {
           final GL gl = getGL();
           final int[] val = new int[] { 0 } ;
           try {
-              gl.glGetIntegerv(GL2ES3.GL_MAX_SAMPLES, val, 0);
+              gl.glGetIntegerv(GL.GL_MAX_SAMPLES, val, 0);
               final int glerr = gl.glGetError();
               if(GL.GL_NO_ERROR == glerr) {
                   return val[0];
@@ -1957,6 +1971,29 @@ public abstract class GLContext {
           GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
       }
       return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
+  }
+  /**
+   * Returns true if a ES3 &ge; 3.1 compatible profile is available,
+   * i.e. either a &ge; 4.5 context or a &ge; 3.1 context supporting <code>GL_ARB_ES3_1_compatibility</code>,
+   * otherwise false.
+   * <p>
+   * Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_1_compatibility and GLES3 &ge; 3.1 ]
+   * </p>
+   */
+  public static final boolean isGLES31CompatibleAvailable(final AbstractGraphicsDevice device) {
+      final int major[] = { 0 };
+      final int minor[] = { 0 };
+      final int ctp[] = { 0 };
+      boolean ok;
+
+      ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
+      if( !ok ) {
+          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
+      }
+      if( !ok ) {
+          GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
+      }
+      return 0 != ( ctp[0] & CTX_IMPL_ES31_COMPAT );
   }
 
   public static boolean isGL4bcAvailable(final AbstractGraphicsDevice device, final boolean isHardware[]) {
