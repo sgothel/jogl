@@ -103,7 +103,6 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
 
         @Override
         protected void emitBindingCSignature(final MethodBinding binding, final PrintWriter writer) {
-
             final String symbolRenamed = binding.getName();
             final StringBuilder newComment = new StringBuilder();
 
@@ -113,18 +112,25 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
             writer.print(" </code> ");
 
             newComment.append("<br>Part of ");
-            if (0 == glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", "; ", symbolRenamed, binding.getAliasedNames())) {
+            if (0 == glEmitter.addExtensionsOfSymbols2Doc(newComment, ", ", ", ", symbolRenamed)) {
                 if (glEmitter.getGLConfig().getAllowNonGLExtensions()) {
                     newComment.append("CORE FUNC");
                 } else {
-                    final StringBuilder sb = new StringBuilder();
-                    JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
-                    final RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
-                    glEmitter.getGLConfig().getGLInfo().dump();
-                    // glEmitter.getGLConfig().dumpRenames();
-                    throw ex;
+                    if( !((GLConfiguration)cfg).dropDocInfo ) {
+                        final StringBuilder sb = new StringBuilder();
+                        JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
+                        final RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
+                        System.err.println(ex.getMessage());
+                        glEmitter.getGLConfig().getGLDocInfo().dump();
+                        // glEmitter.getGLConfig().dumpRenames();
+                        throw ex;
+                    } else {
+                        newComment.append("UNDEFINED");
+                    }
                 }
             }
+            newComment.append("<br>");
+            emitAliasedDocNamesComment(funcSym, newComment);
             writer.print(newComment.toString());
         }
     }

@@ -512,7 +512,8 @@
                  config="${config.jogl}/gl-if-gl2_es3.cfg" 
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
-                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
+                 debug="false">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
@@ -904,7 +905,8 @@
                  config="${config.jogl}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
                  literalInclude="${stub.includes.gluegen.gg}"
-                 emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter">
+                 emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter"
+                 debug="false">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>

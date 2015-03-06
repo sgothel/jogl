@@ -39,11 +39,15 @@
  */
 package com.jogamp.gluegen.opengl;
 
+import static java.util.logging.Level.INFO;
+
 import com.jogamp.gluegen.GlueEmitterControls;
 import com.jogamp.gluegen.GlueGen;
 import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.procaddress.ProcAddressConfiguration;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,11 +63,19 @@ import java.util.StringTokenizer;
 public class GLConfiguration extends ProcAddressConfiguration {
 
     // The following data members support ignoring an entire extension at a time
-    private final List<String> glHeaders = new ArrayList<String>();
+    private final List<String> glSemHeaders = new ArrayList<String>();
     private final Set<String> ignoredExtensions = new HashSet<String>();
     private final Set<String> forcedExtensions = new HashSet<String>();
-    private final Set<String> extensionsRenamedIntoCore = new HashSet<String>();
-    private BuildStaticGLInfo glInfo;
+    private final Set<String> renameExtensionsIntoCore = new HashSet<String>();
+    private BuildStaticGLInfo glSemInfo;
+
+    // GLDocHeaders include GLSemHeaders!
+    boolean dropDocInfo = false;
+    private final List<String> glDocHeaders = new ArrayList<String>();
+    // GLDocInfo include GLSemInfo!
+    private BuildStaticGLInfo glDocInfo;
+    private final Map<String, String> javaDocSymbolRenames = new HashMap<String, String>();
+    private final Map<String, Set<String>> javaDocRenamedSymbols = new HashMap<String, Set<String>>();
 
     // Maps function names to the kind of buffer object it deals with
     private final Map<String, GLEmitter.BufferObjectKind> bufferObjectKinds = new HashMap<String, GLEmitter.BufferObjectKind>();
@@ -97,14 +109,26 @@ public class GLConfiguration extends ProcAddressConfiguration {
             forcedExtensions.add(sym);
         } else if (cmd.equalsIgnoreCase("RenameExtensionIntoCore")) {
             final String sym = readString("RenameExtensionIntoCore", tok, filename, lineNo);
-            extensionsRenamedIntoCore.add(sym);
+            renameExtensionsIntoCore.add(sym);
         } else if (cmd.equalsIgnoreCase("AllowNonGLExtensions")) {
             allowNonGLExtensions = readBoolean("AllowNonGLExtensions", tok, filename, lineNo).booleanValue();
         } else if (cmd.equalsIgnoreCase("AutoUnifyExtensions")) {
             autoUnifyExtensions = readBoolean("AutoUnifyExtensions", tok, filename, lineNo).booleanValue();
-        } else if (cmd.equalsIgnoreCase("GLHeader")) {
-            final String sym = readString("GLHeader", tok, filename, lineNo);
-            glHeaders.add(sym);
+        } else if (cmd.equalsIgnoreCase("GLSemHeader")) {
+            final String sym = readString("GLSemHeader", tok, filename, lineNo);
+            if( !glSemHeaders.contains(sym) ) {
+                glSemHeaders.add(sym);
+            }
+            if( !dropDocInfo && !glDocHeaders.contains(sym) ) {
+                glDocHeaders.add(sym);
+            }
+        } else if (cmd.equalsIgnoreCase("GLDocHeader")) {
+            final String sym = readString("GLDocHeader", tok, filename, lineNo);
+            if( !dropDocInfo && !glDocHeaders.contains(sym) ) {
+                glDocHeaders.add(sym);
+            }
+        } else if (cmd.equalsIgnoreCase("DropAllGLDocHeader")) {
+            dropDocInfo = readBoolean("DropAllGLDocHeader", tok, filename, lineNo).booleanValue();
         } else if (cmd.equalsIgnoreCase("BufferObjectKind")) {
             readBufferObjectKind(tok, filename, lineNo);
         } else if (cmd.equalsIgnoreCase("BufferObjectOnly")) {
@@ -209,111 +233,133 @@ public class GLConfiguration extends ProcAddressConfiguration {
     }
 
     @Override
-    public void dumpIgnores() {
-        System.err.println("GL Ignored extensions: ");
+    public void logIgnores() {
+        LOG.log(INFO, "GL Ignored extensions: {0}", ignoredExtensions.size());
         for (final String str : ignoredExtensions) {
-            System.err.println("\t" + str);
+            LOG.log(INFO, "\t{0}", str);
         }
-        System.err.println("GL Forced extensions: ");
+        LOG.log(INFO, "GL Forced extensions: {0}", forcedExtensions.size());
         for (final String str : forcedExtensions) {
-            System.err.println("\t" + str);
+            LOG.log(INFO, "\t{0}", str);
         }
-        super.dumpIgnores();
+        super.logIgnores();
     }
 
-    protected boolean shouldIgnoreExtension(final String symbol, final boolean criteria) {
-        if (criteria && glInfo != null) {
-            final Set<String> extensionNames = glInfo.getExtension(symbol);
-            if( null != extensionNames ) {
-                boolean ignoredExtension = false;
-                for(final Iterator<String> i=extensionNames.iterator(); !ignoredExtension && i.hasNext(); ) {
-                    final String extensionName = i.next();
-                    if ( extensionName != null && ignoredExtensions.contains(extensionName) ) {
-                        if (DEBUG_IGNORES) {
-                            System.err.print("Ignore symbol <" + symbol + "> of extension <" + extensionName + ">");
-                            if(extensionNames.size()==1) {
-                                System.err.println(", single .");
-                            } else {
-                                System.err.println(", WARNING MULTIPLE OCCURENCE: "+extensionNames);
-                            }
-                        }
-                        ignoredExtension = true;
-                    }
-                }
-                if( ignoredExtension ) {
-                    ignoredExtension = !shouldForceExtension( symbol, true, symbol );
-                    if( ignoredExtension ) {
-                        final Set<String> origSymbols = getRenamedJavaSymbols( symbol );
-                        if(null != origSymbols) {
-                            for(final String origSymbol : origSymbols) {
-                                if( shouldForceExtension( origSymbol, true, symbol ) ) {
-                                    ignoredExtension = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                if( ignoredExtension ) {
-                    return true;
+    @Override
+    public void logRenames() {
+        LOG.log(INFO, "GL Renamed extensions into core: {0}", renameExtensionsIntoCore.size());
+        for (final String str : renameExtensionsIntoCore) {
+            LOG.log(INFO, "\t{0}", str);
+        }
+        super.logRenames();
+    }
+
+    protected boolean shouldIgnoreExtension(final AliasedSymbol symbol) {
+        final Set<String> symExtensionNames;
+        // collect current-name symbol extensions
+        {
+            final Set<String> s = glSemInfo.getExtension(symbol.getName());
+            if( null != s ) {
+                symExtensionNames = s;
+            } else {
+                symExtensionNames = new HashSet<String>();
+            }
+        }
+        // collect renamed symbol extensions
+        if( symbol.hasAliases() ) {
+            final Set<String> aliases = symbol.getAliasedNames();
+            for(final String alias : aliases) {
+                final Set<String> s = glSemInfo.getExtension(alias);
+                if( null != s && s.size() > 0 ) {
+                    symExtensionNames.addAll(s);
                 }
             }
-            final boolean isGLEnum = GLNameResolver.isGLEnumeration(symbol);
-            final boolean isGLFunc = GLNameResolver.isGLFunction(symbol);
+        }
+        boolean ignoreExtension = symExtensionNames.size() > 0 &&
+                                  ignoredExtensions.containsAll(symExtensionNames);
+
+        if( LOG.isLoggable(INFO) ) {
+            final Set<String> ignoredSymExtensionNames = new HashSet<String>();
+            final Set<String> notIgnoredSymExtensionNames = new HashSet<String>();
+            for(final Iterator<String> i=symExtensionNames.iterator(); i.hasNext(); ) {
+                final String extensionName = i.next();
+                if ( null != extensionName && ignoredExtensions.contains(extensionName) ) {
+                    ignoredSymExtensionNames.add(extensionName);
+                } else {
+                    notIgnoredSymExtensionNames.add(extensionName);
+                }
+            }
+            if( ignoreExtension ) {
+                LOG.log(INFO, "Ignored symbol {0} of all extensions <{1}>", symbol.getAliasedString(), symExtensionNames);
+            } else if( ignoredSymExtensionNames.size() > 0 ) {
+                LOG.log(INFO, "Not ignored symbol {0};  Ignored in <{1}>, but active in <{2}>",
+                        symbol.getAliasedString(), ignoredSymExtensionNames, notIgnoredSymExtensionNames);
+            }
+        }
+        if( !ignoreExtension ) {
+            // Check whether the current-name denotes an ignored vendor extension
+            final String name = symbol.getName();
+            final boolean isGLEnum = GLNameResolver.isGLEnumeration(name);
+            final boolean isGLFunc = GLNameResolver.isGLFunction(name);
+            String extSuffix = null;
             if (isGLFunc || isGLEnum) {
-                if (GLNameResolver.isExtensionVEN(symbol, isGLFunc)) {
-                    final String extSuffix = GLNameResolver.getExtensionSuffix(symbol, isGLFunc);
+                if (GLNameResolver.isExtensionVEN(name, isGLFunc)) {
+                    extSuffix = GLNameResolver.getExtensionSuffix(name, isGLFunc);
                     if (getDropUniqVendorExtensions(extSuffix)) {
-                        if (DEBUG_IGNORES) {
-                            System.err.println("Ignore UniqVendorEXT: " + symbol + ", vendor " + extSuffix);
-                        }
-                        return true;
+                        LOG.log(INFO, "Ignore UniqVendorEXT: {0}, vendor {1}, isGLFunc {2}, isGLEnum {3}",
+                                symbol.getAliasedString(), extSuffix, isGLFunc, isGLEnum);
+                        ignoreExtension = true;
                     }
                 }
+            }
+            if (!ignoreExtension) {
+                LOG.log(INFO, "Not ignored UniqVendorEXT: {0}, vendor {1}, isGLFunc {2}, isGLEnum {3}",
+                        symbol.getAliasedString(), extSuffix, isGLFunc, isGLEnum);
+            }
+        }
+        if( ignoreExtension ) {
+            ignoreExtension = !shouldForceExtension( symbol, symExtensionNames);
+        }
+        return ignoreExtension;
+    }
+    public boolean shouldForceExtension(final AliasedSymbol symbol, final Set<String> symExtensionNames) {
+        for(final Iterator<String> i=symExtensionNames.iterator(); i.hasNext(); ) {
+            final String extensionName = i.next();
+            if ( extensionName != null && forcedExtensions.contains(extensionName) ) {
+                LOG.log(INFO, "Not ignored symbol {0} of extension <{1}>",
+                        symbol.getAliasedString(), extensionName);
+                return true;
             }
         }
         return false;
     }
 
-    public boolean shouldForceExtension(final String symbol, final boolean criteria, final String renamedSymbol) {
-        if (criteria && glInfo != null) {
-            final Set<String> extensionNames = glInfo.getExtension(symbol);
-            if( null != extensionNames ) {
-                for(final Iterator<String> i=extensionNames.iterator(); i.hasNext(); ) {
-                    final String extensionName = i.next();
-                    if ( extensionName != null && forcedExtensions.contains(extensionName) ) {
-                        if (DEBUG_IGNORES) {
-                            System.err.print("Not Ignore symbol <" + symbol + " -> " + renamedSymbol + "> of extension <" + extensionName + ">");
-                            if(extensionNames.size()==1) {
-                                System.err.println(", single .");
-                            } else {
-                                System.err.println(", WARNING MULTIPLE OCCURENCE: "+extensionNames);
-                            }
-                        }
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Implementation extends the exclusion query w/ {@link #shouldIgnoreExtension(AliasedSymbol) the list of ignored extensions}.
+     * </p>
+     * <p>
+     * If passing the former, it calls down to {@link #shouldIgnoreInInterface_Int(AliasedSymbol)}.
+     * </p>
+     */
     @Override
-    public boolean shouldIgnoreInInterface(final String symbol) {
-        return shouldIgnoreInInterface(symbol, true);
+    public boolean shouldIgnoreInInterface(final AliasedSymbol symbol) {
+        return shouldIgnoreExtension(symbol) || shouldIgnoreInInterface_Int(symbol);
     }
 
-    public boolean shouldIgnoreInInterface(final String symbol, final boolean checkEXT) {
-        return shouldIgnoreExtension(symbol, checkEXT) || super.shouldIgnoreInInterface(symbol);
-    }
-
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Implementation extends the exclusion query w/ {@link #shouldIgnoreExtension(AliasedSymbol) the list of ignored extensions}.
+     * </p>
+     * <p>
+     * If passing the former, it calls down to {@link #shouldIgnoreInImpl_Int(AliasedSymbol)}.
+     * </p>
+     */
     @Override
-    public boolean shouldIgnoreInImpl(final String symbol) {
-        return shouldIgnoreInImpl(symbol, true);
-    }
-
-    public boolean shouldIgnoreInImpl(final String symbol, final boolean checkEXT) {
-        return shouldIgnoreExtension(symbol, checkEXT) || super.shouldIgnoreInImpl(symbol);
+    public boolean shouldIgnoreInImpl(final AliasedSymbol symbol) {
+        return shouldIgnoreExtension(symbol) || shouldIgnoreInImpl_Int(symbol);
     }
 
     /** Should we automatically ignore extensions that have already been
@@ -348,27 +394,114 @@ public class GLConfiguration extends ProcAddressConfiguration {
         return bufferObjectOnly.contains(name);
     }
 
-    /** Parses any GL headers specified in the configuration file for
-    the purpose of being able to ignore an extension at a time. */
-    public void parseGLHeaders(final GlueEmitterControls controls) throws IOException {
-        if (!glHeaders.isEmpty()) {
-            glInfo = new BuildStaticGLInfo();
-            glInfo.setDebug(GlueGen.debug());
-            for (final String file : glHeaders) {
+    /**
+     * Parses any GL headers specified in the configuration file for
+     * the purpose of being able to ignore an extension at a time.
+     * <p>
+     * Targeting semantic information, i.e. influences code generation.
+     * </p>
+     */
+    public void parseGLSemHeaders(final GlueEmitterControls controls) throws IOException {
+        glSemInfo = new BuildStaticGLInfo();
+        glSemInfo.setDebug(GlueGen.debug());
+        if (!glSemHeaders.isEmpty()) {
+            for (final String file : glSemHeaders) {
                 final String fullPath = controls.findHeaderFile(file);
                 if (fullPath == null) {
                     throw new IOException("Unable to locate header file \"" + file + "\"");
                 }
-                glInfo.parse(fullPath);
+                glSemInfo.parse(fullPath);
             }
         }
     }
 
-    /** Returns the information about the association between #defines,
-    function symbols and the OpenGL extensions they are defined
-    in. */
-    public BuildStaticGLInfo getGLInfo() {
-        return glInfo;
+    /**
+     * Returns the information about the association between #defines,
+     * function symbols and the OpenGL extensions they are defined in.
+     * <p>
+     * This instance targets semantic information, i.e. influences code generation.
+     * </p>
+     */
+    public BuildStaticGLInfo getGLSemInfo() {
+        return glSemInfo;
+    }
+
+    /**
+     * Parses any GL headers specified in the configuration file for
+     * the purpose of being able to ignore an extension at a time.
+     * <p>
+     * Targeting API documentation information, i.e. <i>not</i> influencing code generation.
+     * </p>
+     */
+    public void parseGLDocHeaders(final GlueEmitterControls controls) throws IOException {
+        glDocInfo = new BuildStaticGLInfo();
+        glDocInfo.setDebug(GlueGen.debug());
+        if (!glDocHeaders.isEmpty()) {
+            for (final String file : glDocHeaders) {
+                final String fullPath = controls.findHeaderFile(file);
+                if (fullPath == null) {
+                    throw new IOException("Unable to locate header file \"" + file + "\"");
+                }
+                glDocInfo.parse(fullPath);
+            }
+        }
+    }
+
+    @Override
+    public Set<String> getAliasedDocNames(final AliasedSymbol symbol) {
+        return getRenamedJavaDocSymbols(symbol.getName());
+    }
+
+    /**
+     * Returns the information about the association between #defines,
+     * function symbols and the OpenGL extensions they are defined in.
+     * <p>
+     * This instance targets API documentation information, i.e. <i>not</i> influencing code generation.
+     * </p>
+     * <p>
+     * GLDocInfo include GLSemInfo!
+     * </p>
+     */
+    public BuildStaticGLInfo getGLDocInfo() {
+        return glDocInfo;
+    }
+
+    /** Returns a set of replaced javadoc names to the given <code>aliasedName</code>. */
+    public Set<String> getRenamedJavaDocSymbols(final String aliasedName) {
+        return javaDocRenamedSymbols.get(aliasedName);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Also adds a javadoc rename directive for the given symbol.
+     * </p>
+     */
+    @Override
+    public void addJavaSymbolRename(final String origName, final String newName) {
+        super.addJavaSymbolRename(origName, newName);
+        if( !dropDocInfo ) {
+            addJavaDocSymbolRename(origName, newName);
+        }
+    }
+
+    /**
+     * Adds a javadoc rename directive for the given symbol.
+     */
+    public void addJavaDocSymbolRename(final String origName, final String newName) {
+        LOG.log(INFO, "\tDoc Rename {0} -> {1}", origName, newName);
+        final String prevValue = javaDocSymbolRenames.put(origName, newName);
+        if(null != prevValue && !prevValue.equals(newName)) {
+            throw new RuntimeException("Doc-Rename-Override Attampt: "+origName+" -> "+newName+
+                    ", but "+origName+" -> "+prevValue+" already exist. Run in 'debug' mode to analyze!");
+        }
+
+        Set<String> origNames = javaDocRenamedSymbols.get(newName);
+        if(null == origNames) {
+            origNames = new HashSet<String>();
+            javaDocRenamedSymbols.put(newName, origNames);
+        }
+        origNames.add(origName);
     }
 
     /** Returns the OpenGL extensions that should have all of their
@@ -376,6 +509,6 @@ public class GLConfiguration extends ProcAddressConfiguration {
     namespace; for example, glGenFramebuffersEXT to
     glGenFramebuffers and GL_FRAMEBUFFER_EXT to GL_FRAMEBUFFER. */
     public Set<String> getExtensionsRenamedIntoCore() {
-        return extensionsRenamedIntoCore;
+        return renameExtensionsIntoCore;
     }
 }

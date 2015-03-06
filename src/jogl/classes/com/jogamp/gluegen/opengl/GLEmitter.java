@@ -39,9 +39,12 @@
  */
 package com.jogamp.gluegen.opengl;
 
+import static java.util.logging.Level.INFO;
+
 import com.jogamp.gluegen.ConstantDefinition;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.GlueEmitterControls;
+import com.jogamp.gluegen.GlueGen;
 import com.jogamp.gluegen.JavaConfiguration;
 import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
@@ -49,6 +52,7 @@ import com.jogamp.gluegen.JavaType;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.SymbolFilter;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.procaddress.ProcAddressEmitter;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
@@ -56,7 +60,6 @@ import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -78,34 +81,38 @@ public class GLEmitter extends ProcAddressEmitter {
 
     @Override
     public void beginEmission(final GlueEmitterControls controls) throws IOException {
-        getGLConfig().parseGLHeaders(controls);
+        getGLConfig().parseGLSemHeaders(controls);
+        if( null == getGLConfig().getGLSemInfo() ) {
+            throw new RuntimeException("No 'GLSemHeader' defined.");
+        }
+        getGLConfig().parseGLDocHeaders(controls);
+        if( null == getGLConfig().getGLDocInfo() ) {
+            throw new InternalError("XXX"); // since GLDocHeader contains all GLSemHeader ..
+        }
         renameExtensionsIntoCore();
-        if (getGLConfig().getAutoUnifyExtensions()) {
+        if ( getGLConfig().getAutoUnifyExtensions() ) {
             unifyExtensions(controls);
         }
         super.beginEmission(controls);
     }
 
     protected void renameExtensionsIntoCore() {
+        final GLConfiguration config = getGLConfig();
+        renameExtensionsIntoCore(config, config.getGLSemInfo(), true);
+        renameExtensionsIntoCore(config, config.getGLDocInfo(), false);
+    }
+    protected void renameExtensionsIntoCore(final GLConfiguration config, final BuildStaticGLInfo glInfo, final boolean isSemHeader) {
         // This method handles renaming of entire extensions into the
         // OpenGL core namespace. For example, it is used to move certain
         // OpenGL ES (OES) extensions into the core namespace which are
         // already in the core namespace in desktop OpenGL. It builds upon
         // renaming mechanisms that are built elsewhere.
 
-        final GLConfiguration config = getGLConfig();
-        final Set<String> extensionsRenamedIntoCore = config.getExtensionsRenamedIntoCore();
-        final BuildStaticGLInfo glInfo = config.getGLInfo();
-        if (null == glInfo) {
-            if (extensionsRenamedIntoCore.size() > 0) {
-                throw new RuntimeException("ExtensionRenamedIntoCore (num: " + extensionsRenamedIntoCore.size() + "), but no GLHeader");
-            }
-            return;
-        }
-        for (final String extension : extensionsRenamedIntoCore) {
-            if(JavaConfiguration.DEBUG_RENAMES) {
-                System.err.println("<RenameExtensionIntoCore: "+extension+" BEGIN");
-            }
+        final String headerType = isSemHeader ? "GLSemHeader" : "GLDocHeader";
+        final Set<String> extensionSet = isSemHeader ? config.getExtensionsRenamedIntoCore() : glInfo.getExtensions();
+
+        for (final String extension : extensionSet) {
+            LOG.log(INFO, "<RenameExtensionIntoCore: {0} BEGIN {1}", extension, headerType);
             final Set<String> declarations = glInfo.getDeclarations(extension);
             if (declarations != null) {
                 for (final Iterator<String> iterator = declarations.iterator(); iterator.hasNext();) {
@@ -118,14 +125,18 @@ public class GLEmitter extends ProcAddressEmitter {
                     if (isGLFunction || isGLEnumeration) {
                         final String renamed = GLNameResolver.normalize(decl, isGLFunction);
                         if (!renamed.equals(decl)) {
-                            config.addJavaSymbolRename(decl, renamed);
+                            if( isSemHeader ) {
+                                // Sem + Doc
+                                config.addJavaSymbolRename(decl, renamed);
+                            } else {
+                                // Doc only
+                                config.addJavaDocSymbolRename(decl, renamed);
+                            }
                         }
                     }
                 }
             }
-            if(JavaConfiguration.DEBUG_RENAMES) {
-                System.err.println("RenameExtensionIntoCore: "+extension+" END>");
-            }
+            LOG.log(INFO, "RenameExtensionIntoCore: {0} END>", extension, headerType);
         }
     }
 
@@ -135,35 +146,28 @@ public class GLEmitter extends ProcAddressEmitter {
         private List<FunctionSymbol> functions;
 
         @Override
-        public void filterSymbols(final List<ConstantDefinition> constants,
-                final List<FunctionSymbol> functions) {
-            this.constants = constants;
-            this.functions = functions;
-            doWork();
-        }
-
-        @Override
         public List<ConstantDefinition> getConstants() {
             return constants;
         }
-
         @Override
         public List<FunctionSymbol> getFunctions() {
             return functions;
         }
 
-        private void doWork() {
-            final BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
+        @Override
+        public void filterSymbols(final List<ConstantDefinition> inConstList,
+                                  final List<FunctionSymbol> inFuncList) {
+            final BuildStaticGLInfo glInfo = getGLConfig().getGLSemInfo();
             if (glInfo == null) {
                 return;
             }
             // Try to retain a "good" ordering for these symbols
             final Map<String, ConstantDefinition> constantMap = new LinkedHashMap<String, ConstantDefinition>();
-            for (final ConstantDefinition def : constants) {
+            for (final ConstantDefinition def : inConstList) {
                 constantMap.put(def.getName(), def);
             }
             final Map<String, FunctionSymbol> functionMap = new LinkedHashMap<String, FunctionSymbol>();
-            for (final FunctionSymbol sym : functions) {
+            for (final FunctionSymbol sym : inFuncList) {
                 functionMap.put(sym.getName(), sym);
             }
 
@@ -277,6 +281,10 @@ public class GLEmitter extends ProcAddressEmitter {
 
         // Need to expand each one of the generated bindings to take a
         // Java long instead of a Buffer for each void* argument
+        if( GlueGen.debug() ) {
+            System.err.println("expandMethodBinding: j "+binding.toString());
+            System.err.println("expandMethodBinding: c "+binding.getCSymbol());
+        }
 
         // for (MethodBinding cur : bindings) {
         int j=0;
@@ -294,24 +302,38 @@ public class GLEmitter extends ProcAddressEmitter {
             }
 
             MethodBinding result = cur;
+            int replacedCount = 0;
             for (int i = 0; i < cur.getNumArguments(); i++) {
-                if (cur.getJavaArgumentType(i).isNIOBuffer()) {
+                final JavaType jt = cur.getJavaArgumentType(i);
+                if( jt.isOpaqued() ) {
+                    replacedCount++; // already replaced, i.e. due to opaque
+                } else if ( jt.isNIOBuffer() ) {
                     result = result.replaceJavaArgumentType(i, JavaType.createForClass(Long.TYPE));
+                    replacedCount++;
+                }
+                if( GlueGen.debug() ) {
+                    final Type ct = cur.getCArgumentType(i);
+                    System.err.println("  ["+i+"]: #"+replacedCount+", "+ct.getDebugString()+", "+jt.getDebugString());
                 }
             }
 
-            if (result == cur) {
+            if ( 0 == replacedCount ) {
                 throw new RuntimeException("Error: didn't find any void* arguments for BufferObject function "
-                        + binding.getName());
+                        + binding.toString());
             }
 
-            newBindings.add(result);
             // Now need to flag this MethodBinding so that we generate the
             // correct flags in the emitters later
             bufferObjectMethodBindings.put(result, result);
 
-            if( bufferObjectOnly ) {
-                bindings.remove(j);
+            if( result != cur ) {
+                // replaced
+                newBindings.add(result);
+                if( bufferObjectOnly ) {
+                    bindings.remove(j);
+                } else {
+                    j++;
+                }
             } else {
                 j++;
             }
@@ -323,12 +345,14 @@ public class GLEmitter extends ProcAddressEmitter {
 
     @Override
     protected boolean needsModifiedEmitters(final FunctionSymbol sym) {
-        if ((!needsProcAddressWrapper(sym) && !needsBufferObjectVariant(sym))
-                || getConfig().isUnimplemented(sym.getName())) {
+        if ( ( !callThroughProcAddress(sym) && !needsBufferObjectVariant(sym) ) ||
+             getConfig().isUnimplemented(sym)
+           )
+        {
             return false;
+        } else {
+            return true;
         }
-
-        return true;
     }
 
     public boolean isBufferObjectMethodBinding(final MethodBinding binding) {
@@ -337,14 +361,10 @@ public class GLEmitter extends ProcAddressEmitter {
 
     @Override
     public void emitDefine(final ConstantDefinition def, final String optionalComment) throws Exception {
-        final BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
-        if (null == glInfo) {
-            throw new Exception("No GLInfo for: " + def);
-        }
         final String symbolRenamed = def.getName();
         final StringBuilder newComment = new StringBuilder();
         newComment.append("Part of ");
-        if (0 == addExtensionsOfSymbols2Buffer(newComment, ", ", "; ", symbolRenamed, def.getAliasedNames())) {
+        if (0 == addExtensionsOfSymbols2Doc(newComment, ", ", ", ", symbolRenamed)) {
             if (def.isEnum()) {
                 final String enumName = def.getEnumName();
                 if (null != enumName) {
@@ -361,16 +381,13 @@ public class GLEmitter extends ProcAddressEmitter {
                     // #define GL_EXT_lala 1
                     // ...
                     // #endif
-                    if (JavaConfiguration.DEBUG_IGNORES) {
-                        final StringBuilder sb = new StringBuilder();
-                        JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, def.getAliasedNames());
-                        System.err.println("Dropping marker: " + sb.toString());
-                    }
+                    final StringBuilder sb = new StringBuilder();
+                    JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, def.getAliasedNames());
+                    LOG.log(INFO, "Dropping marker: {0}", sb.toString());
                     return;
                 }
             }
         }
-
         if (null != optionalComment) {
             newComment.append("<br>");
             newComment.append(optionalComment);
@@ -379,9 +396,9 @@ public class GLEmitter extends ProcAddressEmitter {
         super.emitDefine(def, newComment.toString());
     }
 
-    private int addExtensionListOfSymbol2Buffer(final BuildStaticGLInfo glInfo, final StringBuilder buf, final String sep1, final String name) {
+    private int addExtensionListOfSymbol2Doc(final BuildStaticGLInfo glDocInfo, final StringBuilder buf, final String sep1, final String name) {
         int num = 0;
-        final Set<String> extensionNames = glInfo.getExtension(name);
+        final Set<String> extensionNames = glDocInfo.getExtension(name);
         if(null!=extensionNames) {
             for(final Iterator<String> i=extensionNames.iterator(); i.hasNext(); ) {
                 final String extensionName = i.next();
@@ -398,49 +415,35 @@ public class GLEmitter extends ProcAddressEmitter {
         }
         return num;
     }
-    private int addExtensionListOfAliasedSymbols2Buffer(final BuildStaticGLInfo glInfo, final StringBuilder buf, final String sep1, final String sep2, final String name, final Collection<String> exclude) {
+    private int addExtensionListOfAliasedSymbols2Doc(final BuildStaticGLInfo glDocInfo, final StringBuilder buf, final String sep1, final String sep2, final String name) {
         int num = 0;
         if(null != name) {
-            num += addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, name); // extensions of given name
-            boolean needsSep2 = 0<num;
-            final Set<String> origNames = cfg.getRenamedJavaSymbols(name);
-            if(null != origNames) {
-                for(final String origName : origNames) {
-                    if(!exclude.contains(origName)) {
-                        if (needsSep2) {
-                            buf.append(sep2); // diff-name seperator
-                        }
-                        final int num2 = addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, origName); // extensions of orig-name
-                        needsSep2 = num<num2;
-                        num += num2;
+            num += addExtensionListOfSymbol2Doc(glDocInfo, buf, sep1, name); // extensions of given name
+            boolean needsSep2 = num > 0;
+            final Set<String> aliases = ((GLConfiguration)cfg).getRenamedJavaDocSymbols(name);
+            if(null != aliases) {
+                for(final String alias : aliases) {
+                    if (needsSep2) {
+                        buf.append(sep2);
                     }
+                    final int num2 = addExtensionListOfSymbol2Doc(glDocInfo, buf, sep1, alias); // extensions of orig-name
+                    needsSep2 = num2 > 0;
+                    num += num2;
                 }
             }
         }
         return num;
     }
 
-    public int addExtensionsOfSymbols2Buffer(StringBuilder buf, final String sep1, final String sep2, final String first, final Collection<String> col) {
-        final BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
-        if (null == glInfo) {
-            throw new RuntimeException("No GLInfo for: " + first);
+    public int addExtensionsOfSymbols2Doc(StringBuilder buf, final String sep1, final String sep2, final String first) {
+        final BuildStaticGLInfo glDocInfo = getGLConfig().getGLDocInfo();
+        if (null == glDocInfo) {
+            throw new RuntimeException("No GLDocInfo for: " + first);
         }
-        int num = 0;
         if (null == buf) {
             buf = new StringBuilder();
         }
-
-        num += addExtensionListOfAliasedSymbols2Buffer(glInfo, buf, sep1, sep2, first, col);
-        boolean needsSep2 = 0<num;
-        for(final Iterator<String> iter = col.iterator(); iter.hasNext(); ) {
-            if(needsSep2) {
-                buf.append(sep2); // diff-name seperator
-            }
-            final int num2 = addExtensionListOfAliasedSymbols2Buffer(glInfo, buf, sep1, sep2, iter.next(), col);
-            needsSep2 = num<num2;
-            num += num2;
-        }
-        return num;
+        return addExtensionListOfAliasedSymbols2Doc(glDocInfo, buf, sep1, sep2, first);
     }
 
     //----------------------------------------------------------------------

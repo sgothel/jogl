@@ -206,7 +206,7 @@ public class BuildStaticGLInfo {
             int type = 0; // 1-define, 2-function
             if ( 0 < block ) { // inside a #ifndef GL_XXX block and matching a function, if block > 0
                 String identifier = null;
-                if( 2 >= block ) {  // not within sub-blocks > 2, i.e. further typedefs
+                if( 3 >= block ) {  // not within sub-blocks > 3, i.e. further typedefs
                     if ((m = funcPattern.matcher(line)).matches()) {
                         identifier = m.group(funcIdentifierGroup).trim();
                         type = 2;
@@ -264,14 +264,15 @@ public class BuildStaticGLInfo {
     }
 
     public void dump() {
+        System.err.println("BuildStaticGLInfo.dump():");
         for (final String name : extensionToDeclarationMap.keySet()) {
             final Set<String> decls = extensionToDeclarationMap.get(name);
-            System.out.println("<" + name + "> :");
+            System.err.println("<" + name + "> :");
             final List<String> l = new ArrayList<String>();
             l.addAll(decls);
             Collections.sort(l);
             for (final String str : l) {
-                System.out.println("  <" + str + ">");
+                System.err.println("  <" + str + ">");
             }
         }
     }
