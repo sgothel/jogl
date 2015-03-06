@@ -38,7 +38,6 @@ extern "C" {
 
 /* Function declaration macros - to move into gl-platform.h */
 #include "gl-platform.h"
-#include "gl-types.h"
 
 /* glcorearb.h is for use with OpenGL core profile implementations.
 ** It should should be placed in the same directory as gl.h and

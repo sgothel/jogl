@@ -38,7 +38,6 @@ extern "C" {
 
 /* Function declaration macros - to move into gl-platform.h */
 #include "gl-platform.h"
-#include "gl-types.h"
 
 #define GL_GLEXT_VERSION 20150202
 
