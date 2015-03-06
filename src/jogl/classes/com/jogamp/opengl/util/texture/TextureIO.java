@@ -60,6 +60,7 @@ import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.PixelFormat;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
@@ -597,9 +598,9 @@ public class TextureIO {
         final GL2GL3 gl = _gl.getGL2GL3();
 
         texture.bind(gl);
-        final int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_INTERNAL_FORMAT);
-        final int width  = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_WIDTH);
-        final int height = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2GL3.GL_TEXTURE_HEIGHT);
+        final int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2ES3.GL_TEXTURE_INTERNAL_FORMAT);
+        final int width  = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2ES3.GL_TEXTURE_WIDTH);
+        final int height = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2ES3.GL_TEXTURE_HEIGHT);
         final int border = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_BORDER);
         TextureData data = null;
         if (internalFormat == GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
@@ -617,7 +618,7 @@ public class TextureIO {
             int fetchedFormat = 0;
             switch (internalFormat) {
             case GL.GL_RGB:
-            case GL2GL3.GL_BGR:
+            case GL.GL_BGR:
             case GL.GL_RGB8:
                 bytesPerPixel = 3;
                 fetchedFormat = GL.GL_RGB;
@@ -1303,7 +1304,7 @@ public class TextureIO {
                 final int pixelType   = pixelAttribs.type;
                 if ((pixelFormat == GL.GL_RGB ||
                      pixelFormat == GL.GL_RGBA ||
-                     pixelFormat == GL2GL3.GL_BGR ||
+                     pixelFormat == GL.GL_BGR ||
                      pixelFormat == GL.GL_BGRA ) &&
                     (pixelType == GL.GL_BYTE ||
                      pixelType == GL.GL_UNSIGNED_BYTE)) {

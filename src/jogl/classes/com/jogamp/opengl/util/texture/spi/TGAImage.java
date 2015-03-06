@@ -42,8 +42,8 @@ package com.jogamp.opengl.util.texture.spi;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
-import com.jogamp.opengl.*;
 
+import com.jogamp.opengl.*;
 import com.jogamp.common.util.IOUtil;
 
 /**
@@ -352,7 +352,7 @@ public class TGAImage {
         bpp = header.pixelDepth / 8;
         switch (header.pixelDepth) {
         case 24:
-            format = glp.isGL2GL3() ? GL2GL3.GL_BGR : GL.GL_RGB;
+            format = glp.isGL2GL3() ? GL.GL_BGR : GL.GL_RGB;
             break;
         case 32:
             boolean useBGRA = glp.isGL2GL3();

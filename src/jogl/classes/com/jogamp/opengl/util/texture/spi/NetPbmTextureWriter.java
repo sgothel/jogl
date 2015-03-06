@@ -44,7 +44,6 @@ import java.nio.*;
 import java.nio.channels.FileChannel;
 
 import com.jogamp.opengl.*;
-
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.*;
 
@@ -112,7 +111,7 @@ public class NetPbmTextureWriter implements TextureWriter {
         final int pixelType   = data.getPixelType();
         if ((pixelFormat == GL.GL_RGB ||
              pixelFormat == GL.GL_RGBA ||
-             pixelFormat == GL2GL3.GL_BGR ||
+             pixelFormat == GL.GL_BGR ||
              pixelFormat == GL.GL_BGRA ) &&
             (pixelType == GL.GL_BYTE ||
              pixelType == GL.GL_UNSIGNED_BYTE)) {
@@ -125,7 +124,7 @@ public class NetPbmTextureWriter implements TextureWriter {
 
             final int comps = ( pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA ) ? 4 : 3 ;
 
-            if( pixelFormat == GL2GL3.GL_BGR || pixelFormat == GL.GL_BGRA ) {
+            if( pixelFormat == GL.GL_BGR || pixelFormat == GL.GL_BGRA ) {
                 // Must reverse order of red and blue channels to get correct results
                 for (int i = 0; i < buf.remaining(); i += comps) {
                     final byte red  = buf.get(i + 0);

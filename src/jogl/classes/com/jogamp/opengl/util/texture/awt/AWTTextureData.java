@@ -232,7 +232,7 @@ public class AWTTextureData extends TextureData {
                         // we can pass the image data directly to OpenGL only if
                         // we have an integral number of pixels in each scanline
                         if ((scanlineStride % 3) == 0) {
-                            pixelAttributes = new GLPixelAttributes(GL2GL3.GL_BGR, GL.GL_UNSIGNED_BYTE);
+                            pixelAttributes = new GLPixelAttributes(GL.GL_BGR, GL.GL_UNSIGNED_BYTE);
                             rowLength = scanlineStride / 3;
                             alignment = 1;
                         } else {

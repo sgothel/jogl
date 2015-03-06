@@ -717,7 +717,7 @@ public class GLBuffers extends Buffers {
               break;
             case GL.GL_RGB:
             case GL2ES3.GL_RGB_INTEGER:
-            case GL2GL3.GL_BGR:
+            case GL.GL_BGR:
             case GL2GL3.GL_BGR_INTEGER:
               compCount = 3;
               break;

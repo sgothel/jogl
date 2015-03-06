@@ -42,7 +42,6 @@ import java.nio.Buffer;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
 /**

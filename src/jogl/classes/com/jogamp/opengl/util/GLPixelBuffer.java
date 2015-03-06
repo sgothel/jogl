@@ -270,7 +270,7 @@ public class GLPixelBuffer {
                             break;
                     }
                     break;
-                case GL2GL3.GL_BGR:
+                case GL.GL_BGR:
                     if( GL.GL_UNSIGNED_BYTE == glDataType ) {
                         pixFmt = PixelFormat.BGR888;
                     }
@@ -392,7 +392,7 @@ public class GLPixelBuffer {
                     break;
                 case BGR888:
                     if( glp.isGL2GL3() ) {
-                        df = GL2GL3.GL_BGR;
+                        df = GL.GL_BGR;
                     }
                     break;
                 case RGBx8888:

@@ -41,7 +41,6 @@
 package jogamp.opengl;
 
 import com.jogamp.opengl.*;
-
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.PropertyAccess;
 
@@ -103,7 +102,7 @@ public class GLBufferStateTracker {
     // Start with known unbound targets for known keys
     // setBoundBufferObject(GL2ES3.GL_VERTEX_ARRAY_BINDING, 0); // not using default VAO (removed in GL3 core) - only explicit
     setBoundBufferObject(GL.GL_ARRAY_BUFFER,         0);
-    setBoundBufferObject(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
+    setBoundBufferObject(GL3ES3.GL_DRAW_INDIRECT_BUFFER, 0);
     setBoundBufferObject(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
     setBoundBufferObject(GL2ES3.GL_PIXEL_PACK_BUFFER,   0);
     setBoundBufferObject(GL2ES3.GL_PIXEL_UNPACK_BUFFER, 0);
@@ -131,16 +130,16 @@ public class GLBufferStateTracker {
   private static final int getQueryName(final int target) {
       switch (target) {
         case GL.GL_ARRAY_BUFFER:                  return GL.GL_ARRAY_BUFFER_BINDING;
-        case GL4.GL_ATOMIC_COUNTER_BUFFER:        return GL4.GL_ATOMIC_COUNTER_BUFFER_BINDING;
+        case GL2ES3.GL_ATOMIC_COUNTER_BUFFER:     return GL2ES3.GL_ATOMIC_COUNTER_BUFFER_BINDING;
         case GL2ES3.GL_COPY_READ_BUFFER:          return GL2ES3.GL_COPY_READ_BUFFER_BINDING;
         case GL2ES3.GL_COPY_WRITE_BUFFER:         return GL2ES3.GL_COPY_WRITE_BUFFER_BINDING;
-        case GL4.GL_DRAW_INDIRECT_BUFFER:         return GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;
-        case GL4.GL_DISPATCH_INDIRECT_BUFFER:     return GL4.GL_DISPATCH_INDIRECT_BUFFER_BINDING;
+        case GL3ES3.GL_DRAW_INDIRECT_BUFFER:      return GL3ES3.GL_DRAW_INDIRECT_BUFFER_BINDING;
+        case GL3ES3.GL_DISPATCH_INDIRECT_BUFFER:  return GL3ES3.GL_DISPATCH_INDIRECT_BUFFER_BINDING;
         case GL.GL_ELEMENT_ARRAY_BUFFER:          return GL.GL_ELEMENT_ARRAY_BUFFER_BINDING;
-        case GL2ES3.GL_PIXEL_PACK_BUFFER:            return GL2ES3.GL_PIXEL_PACK_BUFFER_BINDING;
-        case GL2ES3.GL_PIXEL_UNPACK_BUFFER:          return GL2ES3.GL_PIXEL_UNPACK_BUFFER_BINDING;
-        // FIXME case GL4.GL_QUERY_BUFFER:              return GL4.GL_QUERY_BUFFER_BINDING;
-        case GL4.GL_SHADER_STORAGE_BUFFER:        return GL4.GL_SHADER_STORAGE_BUFFER_BINDING;
+        case GL2ES3.GL_PIXEL_PACK_BUFFER:         return GL2ES3.GL_PIXEL_PACK_BUFFER_BINDING;
+        case GL2ES3.GL_PIXEL_UNPACK_BUFFER:       return GL2ES3.GL_PIXEL_UNPACK_BUFFER_BINDING;
+        case GL4.GL_QUERY_BUFFER:                 return GL4.GL_QUERY_BUFFER_BINDING;
+        case GL3ES3.GL_SHADER_STORAGE_BUFFER:     return GL3ES3.GL_SHADER_STORAGE_BUFFER_BINDING;
         case GL2GL3.GL_TEXTURE_BUFFER:            return GL2GL3.GL_TEXTURE_BINDING_BUFFER;
         case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER: return GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
         case GL2ES3.GL_UNIFORM_BUFFER:            return GL2ES3.GL_UNIFORM_BUFFER_BINDING;
@@ -154,16 +153,16 @@ public class GLBufferStateTracker {
   private static final void checkTargetName(final int target) {
       switch (target) {
         case GL.GL_ARRAY_BUFFER:
-        case GL4.GL_ATOMIC_COUNTER_BUFFER:
+        case GL2ES3.GL_ATOMIC_COUNTER_BUFFER:
         case GL2ES3.GL_COPY_READ_BUFFER:
         case GL2ES3.GL_COPY_WRITE_BUFFER:
-        case GL4.GL_DRAW_INDIRECT_BUFFER:
-        case GL4.GL_DISPATCH_INDIRECT_BUFFER:
+        case GL3ES3.GL_DRAW_INDIRECT_BUFFER:
+        case GL3ES3.GL_DISPATCH_INDIRECT_BUFFER:
         case GL.GL_ELEMENT_ARRAY_BUFFER:
         case GL2ES3.GL_PIXEL_PACK_BUFFER:
         case GL2ES3.GL_PIXEL_UNPACK_BUFFER:
-        // FIXME case GL4.GL_QUERY_BUFFER:
-        case GL4.GL_SHADER_STORAGE_BUFFER:
+        case GL4.GL_QUERY_BUFFER:
+        case GL3ES3.GL_SHADER_STORAGE_BUFFER:
         case GL2GL3.GL_TEXTURE_BUFFER:
         case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER:
         case GL2ES3.GL_UNIFORM_BUFFER:

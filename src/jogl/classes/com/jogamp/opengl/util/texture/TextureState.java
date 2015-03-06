@@ -29,8 +29,8 @@ package com.jogamp.opengl.util.texture;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
-import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.GLException;
 
 /**
@@ -61,11 +61,11 @@ public class TextureState {
             case GL2ES2.GL_TEXTURE_3D: texBindQName = GL2ES2.GL_TEXTURE_BINDING_3D; break;
             case GL2GL3.GL_TEXTURE_1D: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D; break;
             case GL2GL3.GL_TEXTURE_1D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D_ARRAY; break;
-            case GL.GL_TEXTURE_2D_ARRAY: texBindQName = GL.GL_TEXTURE_BINDING_2D_ARRAY; break;
+            case GL2ES3.GL_TEXTURE_2D_ARRAY: texBindQName = GL2ES3.GL_TEXTURE_BINDING_2D_ARRAY; break;
             case GL2GL3.GL_TEXTURE_RECTANGLE: texBindQName = GL2GL3.GL_TEXTURE_BINDING_RECTANGLE; break;
             case GL2GL3.GL_TEXTURE_BUFFER: texBindQName = GL2GL3.GL_TEXTURE_BINDING_BUFFER; break;
-            case GL3.GL_TEXTURE_2D_MULTISAMPLE: texBindQName = GL3.GL_TEXTURE_BINDING_2D_MULTISAMPLE; break;
-            case GL3.GL_TEXTURE_2D_MULTISAMPLE_ARRAY: texBindQName = GL3.GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY; break;
+            case GL2ES2.GL_TEXTURE_2D_MULTISAMPLE: texBindQName = GL2ES2.GL_TEXTURE_BINDING_2D_MULTISAMPLE; break;
+            case GL2ES2.GL_TEXTURE_2D_MULTISAMPLE_ARRAY: texBindQName = GL2ES2.GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY; break;
             default: texBindQName = 0;
         }
         return texBindQName;

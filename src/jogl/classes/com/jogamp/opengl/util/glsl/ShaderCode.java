@@ -136,8 +136,8 @@ public class ShaderCode {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
             case GL3.GL_GEOMETRY_SHADER:
-            case GL4.GL_TESS_CONTROL_SHADER:
-            case GL4.GL_TESS_EVALUATION_SHADER:
+            case GL3.GL_TESS_CONTROL_SHADER:
+            case GL3.GL_TESS_EVALUATION_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -166,8 +166,8 @@ public class ShaderCode {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
             case GL3.GL_GEOMETRY_SHADER:
-            case GL4.GL_TESS_CONTROL_SHADER:
-            case GL4.GL_TESS_EVALUATION_SHADER:
+            case GL3.GL_TESS_CONTROL_SHADER:
+            case GL3.GL_TESS_EVALUATION_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -292,9 +292,9 @@ public class ShaderCode {
                 return binary?SUFFIX_FRAGMENT_BINARY:SUFFIX_FRAGMENT_SOURCE;
             case GL3.GL_GEOMETRY_SHADER:
                 return binary?SUFFIX_GEOMETRY_BINARY:SUFFIX_GEOMETRY_SOURCE;
-            case GL4.GL_TESS_CONTROL_SHADER:
+            case GL3.GL_TESS_CONTROL_SHADER:
                 return binary?SUFFIX_TESS_CONTROL_BINARY:SUFFIX_TESS_CONTROL_SOURCE;
-            case GL4.GL_TESS_EVALUATION_SHADER:
+            case GL3.GL_TESS_EVALUATION_SHADER:
                 return binary?SUFFIX_TESS_EVALUATION_BINARY:SUFFIX_TESS_EVALUATION_SOURCE;
             default:
                 throw new GLException("illegal shader type: "+type);
@@ -520,9 +520,9 @@ public class ShaderCode {
                 return "FRAGMENT_SHADER";
             case GL3.GL_GEOMETRY_SHADER:
                 return "GEOMETRY_SHADER";
-            case GL4.GL_TESS_CONTROL_SHADER:
+            case GL3.GL_TESS_CONTROL_SHADER:
                 return "TESS_CONTROL_SHADER";
-            case GL4.GL_TESS_EVALUATION_SHADER:
+            case GL3.GL_TESS_EVALUATION_SHADER:
                 return "TESS_EVALUATION_SHADER";
         }
         return "UNKNOWN_SHADER";
@@ -1019,8 +1019,8 @@ public class ShaderCode {
             switch ( shaderType ) {
                 case GL2ES2.GL_VERTEX_SHADER:
                 case GL3.GL_GEOMETRY_SHADER:
-                case GL4.GL_TESS_CONTROL_SHADER:
-                case GL4.GL_TESS_EVALUATION_SHADER:
+                case GL3.GL_TESS_CONTROL_SHADER:
+                case GL3.GL_TESS_EVALUATION_SHADER:
                     defaultPrecision = gl3_default_precision_vp_gp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
                     defaultPrecision = gl3_default_precision_fp; break;
