@@ -383,7 +383,7 @@ public class GLEmitter extends ProcAddressEmitter {
                     // #endif
                     final StringBuilder sb = new StringBuilder();
                     JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, def.getAliasedNames());
-                    LOG.log(INFO, "Dropping marker: {0}", sb.toString());
+                    LOG.log(INFO, def.getASTLocusTag(), "Dropping marker: {0}", sb.toString());
                     return;
                 }
             }

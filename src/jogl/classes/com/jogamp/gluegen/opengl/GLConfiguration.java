@@ -290,9 +290,9 @@ public class GLConfiguration extends ProcAddressConfiguration {
                 }
             }
             if( ignoreExtension ) {
-                LOG.log(INFO, "Ignored symbol {0} of all extensions <{1}>", symbol.getAliasedString(), symExtensionNames);
+                LOG.log(INFO, getASTLocusTag(symbol), "Ignored symbol {0} of all extensions <{1}>", symbol.getAliasedString(), symExtensionNames);
             } else if( ignoredSymExtensionNames.size() > 0 ) {
-                LOG.log(INFO, "Not ignored symbol {0};  Ignored in <{1}>, but active in <{2}>",
+                LOG.log(INFO, getASTLocusTag(symbol), "Not ignored symbol {0};  Ignored in <{1}>, but active in <{2}>",
                         symbol.getAliasedString(), ignoredSymExtensionNames, notIgnoredSymExtensionNames);
             }
         }
@@ -306,14 +306,14 @@ public class GLConfiguration extends ProcAddressConfiguration {
                 if (GLNameResolver.isExtensionVEN(name, isGLFunc)) {
                     extSuffix = GLNameResolver.getExtensionSuffix(name, isGLFunc);
                     if (getDropUniqVendorExtensions(extSuffix)) {
-                        LOG.log(INFO, "Ignore UniqVendorEXT: {0}, vendor {1}, isGLFunc {2}, isGLEnum {3}",
+                        LOG.log(INFO, getASTLocusTag(symbol), "Ignore UniqVendorEXT: {0}, vendor {1}, isGLFunc {2}, isGLEnum {3}",
                                 symbol.getAliasedString(), extSuffix, isGLFunc, isGLEnum);
                         ignoreExtension = true;
                     }
                 }
             }
             if (!ignoreExtension) {
-                LOG.log(INFO, "Not ignored UniqVendorEXT: {0}, vendor {1}, isGLFunc {2}, isGLEnum {3}",
+                LOG.log(INFO, getASTLocusTag(symbol), "Not ignored UniqVendorEXT: {0}, vendor {1}, isGLFunc {2}, isGLEnum {3}",
                         symbol.getAliasedString(), extSuffix, isGLFunc, isGLEnum);
             }
         }
@@ -326,7 +326,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
         for(final Iterator<String> i=symExtensionNames.iterator(); i.hasNext(); ) {
             final String extensionName = i.next();
             if ( extensionName != null && forcedExtensions.contains(extensionName) ) {
-                LOG.log(INFO, "Not ignored symbol {0} of extension <{1}>",
+                LOG.log(INFO, getASTLocusTag(symbol), "Not ignored symbol {0} of extension <{1}>",
                         symbol.getAliasedString(), extensionName);
                 return true;
             }
