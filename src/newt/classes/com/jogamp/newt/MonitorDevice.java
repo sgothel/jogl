@@ -342,7 +342,7 @@ public abstract class MonitorDevice {
     public String toString() {
         boolean preComma = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append("Monitor[Id ").append(Display.toHexString(nativeId)).append(", options[");
+        sb.append("Monitor[Id ").append(Display.toHexString(nativeId)).append(" [");
         {
             if( isClone() ) {
                 sb.append("clone");
