@@ -35,7 +35,6 @@ extern "C" {
 
 /* Function declaration macros - to move into gl-platform.h */
 #include "gl-platform.h"
-#include "gl-types.h"
 
 /**
  * GL_EXT_texture_storage == GL_ARB_texture_storage
@@ -74,9 +73,11 @@ extern "C" {
 typedef void (APIENTRYP PFNGLTEXSTORAGE1DEXTPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 typedef void (APIENTRYP PFNGLTEXSTORAGE2DEXTPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void (APIENTRYP PFNGLTEXSTORAGE3DEXTPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+#ifdef __GLUEGEN__
 typedef void (APIENTRYP PFNGLTEXTURESTORAGE1DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 typedef void (APIENTRYP PFNGLTEXTURESTORAGE2DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void (APIENTRYP PFNGLTEXTURESTORAGE3DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+#endif
 #ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glTexStorage1DEXT (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 GLAPI void APIENTRY glTexStorage2DEXT (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
@@ -92,8 +93,14 @@ GLAPI void APIENTRY glTextureStorage3DEXT (GLuint texture, GLenum target, GLsize
  * which collides from GL/glext.h. The latter is obsolete and has different semantics!
  * This variant will override the 'odd' GL/glext.h one.
  * See gl-common.cfg!
+ * This extension is only included while running GlueGen,
+ * due to redefined in glext.h under a different extension.
+ * However, native compilation will validate GlueGen's 
+ * 'ProcAddrTypedef' w/ the glext.h variant!
  */
+#ifdef __GLUEGEN__
 #ifndef GL_EXT_separate_shader_objects
+typedef char GLchar;
 #define GL_EXT_separate_shader_objects 1
 #define GL_ACTIVE_PROGRAM_EXT             0x8259
 #define GL_VERTEX_SHADER_BIT_EXT          0x00000001
@@ -190,8 +197,21 @@ GLAPI void APIENTRY glProgramUniformMatrix2x4fvEXT (GLuint program, GLint locati
 GLAPI void APIENTRY glProgramUniformMatrix4x2fvEXT (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 GLAPI void APIENTRY glProgramUniformMatrix3x4fvEXT (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 GLAPI void APIENTRY glProgramUniformMatrix4x3fvEXT (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-#endif
+#endif /* GL_GLEXT_PROTOTYPES */
 #endif /* GL_EXT_separate_shader_objects */
+#else /* __GLUEGEN_ */
+// GL/glext.h only has the non EXT (subsumed) variants of the following symbols
+typedef void (APIENTRYP PFNGLACTIVESHADERPROGRAMEXTPROC) (GLuint pipeline, GLuint program);
+typedef void (APIENTRYP PFNGLBINDPROGRAMPIPELINEEXTPROC) (GLuint pipeline);
+typedef GLuint (APIENTRYP PFNGLCREATESHADERPROGRAMVEXTPROC) (GLenum type, GLsizei count, const GLchar **strings);
+typedef void (APIENTRYP PFNGLDELETEPROGRAMPIPELINESEXTPROC) (GLsizei n, const GLuint *pipelines);
+typedef void (APIENTRYP PFNGLGENPROGRAMPIPELINESEXTPROC) (GLsizei n, GLuint *pipelines);
+typedef void (APIENTRYP PFNGLGETPROGRAMPIPELINEINFOLOGEXTPROC) (GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+typedef void (APIENTRYP PFNGLGETPROGRAMPIPELINEIVEXTPROC) (GLuint pipeline, GLenum pname, GLint *params);
+typedef GLboolean (APIENTRYP PFNGLISPROGRAMPIPELINEEXTPROC) (GLuint pipeline);
+typedef void (APIENTRYP PFNGLUSEPROGRAMSTAGESEXTPROC) (GLuint pipeline, GLbitfield stages, GLuint program);
+typedef void (APIENTRYP PFNGLVALIDATEPROGRAMPIPELINEEXTPROC) (GLuint pipeline);
+#endif /* __GLUEGEN_ */
 
 #ifdef __cplusplus
 }

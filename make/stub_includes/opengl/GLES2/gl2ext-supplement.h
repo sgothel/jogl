@@ -34,7 +34,6 @@ extern "C" {
  */
 
 #include <GLES2/gl2platform.h>
-#include "gl-types.h"
 
 #ifndef GL_APIENTRYP
 #define GL_APIENTRYP GL_APIENTRY*

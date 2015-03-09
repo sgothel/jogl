@@ -397,7 +397,7 @@ function testawtswt() {
 #testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.oculusvr.OVRVersion $*
 
-testnoawt com.jogamp.newt.opengl.GLWindow $*
+#testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
@@ -621,7 +621,7 @@ testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03aNEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowWarpPointer01NEWT $*

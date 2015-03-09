@@ -5,7 +5,7 @@
 // "gl2ext.h" are parsed.
 #define GL_GLEXT_PROTOTYPES
 
-#include <GLES2/gl2ext-supplement.h>
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext-supplement.h>
 #include <GLES2/gl2ext.h>
 

@@ -44,8 +44,10 @@
 #pragma message enable nosimpint
 #endif
 #endif
-#include <GL/gl.h>
 
+// Due to 'glext-supplement.h', we prefer to include it manually afterwards.
+// This gives us the same behavior as the vanilla GLES, GLES2, GLES3 and glcorearb header.
+// #include <GL/gl.h>
 
 #if defined(USE_MGL_NAMESPACE)
 #include <GL/glx_mangle.h>
@@ -176,7 +178,7 @@ typedef void ( *__GLXextFuncPtr)(void);
 #define GLX_SAMPLE_BUFFERS                100000
 #define GLX_SAMPLES                       100001
 typedef __GLXextFuncPtr ( *PFNGLXGETPROCADDRESSPROC) (const GLubyte *procName);
-#ifdef GL_GLEXT_PROTOTYPES
+#ifdef GLX_GLXEXT_PROTOTYPES
 __GLXextFuncPtr glXGetProcAddress (const GLubyte *procName);
 #endif
 #endif /* GLX_VERSION_1_4 */
@@ -184,13 +186,14 @@ __GLXextFuncPtr glXGetProcAddress (const GLubyte *procName);
 #ifndef GLX_ARB_get_proc_address
 #define GLX_ARB_get_proc_address 1
 typedef __GLXextFuncPtr ( *PFNGLXGETPROCADDRESSARBPROC) (const GLubyte *procName);
-#ifdef GL_GLEXT_PROTOTYPES
+#ifdef GLX_GLXEXT_PROTOTYPES
 __GLXextFuncPtr glXGetProcAddressARB (const GLubyte *procName);
 #endif
 #endif /* GLX_ARB_get_proc_address */
 
-
-#include <GL/glxext.h>
+// Due to 'glext-supplement.h', we prefer to include it manually afterwards.
+// This gives us the same behavior as the vanilla GLES, GLES2, GLES3 and glcorearb header.
+// #include <GL/glxext.h>
 
 #ifdef __cplusplus
 }

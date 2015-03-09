@@ -1314,7 +1314,9 @@ GLAPI void APIENTRY glCopyTexSubImage2D( GLenum target, GLint level, GLint xoffs
 #endif /* GL_VERSION_1_1 */
 
 /* Include Post-GL 1.1 changes and extensions */
-#include <GL/glext.h>
+// Due to 'glext-supplement.h', we prefer to include it manually afterwards.
+// This gives us the same behavior as the vanilla GLES, GLES2, GLES3 and glcorearb header.
+// #include <GL/glext.h>
 
 
 /**********************************************************************
