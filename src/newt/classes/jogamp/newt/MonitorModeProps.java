@@ -151,6 +151,7 @@ public class MonitorModeProps {
 
     public static final int IDX_MONITOR_DEVICE_VIEWPORT =   1 // count
                                                           + 1 // native mode
+                                                          + 1 // isClone
                                                           + MonitorModeProps.NUM_RESOLUTION_PROPERTIES // sizeMM
                                                           ;
 
