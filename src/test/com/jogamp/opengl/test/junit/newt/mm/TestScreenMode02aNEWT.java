@@ -67,7 +67,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
 
-    static int waitTimeShort = 2000; // 2 sec
+    static int waitTimeShort = 4000; // 4 sec
     static int waitTimeLong = 8000; // 8 sec
 
     @BeforeClass
