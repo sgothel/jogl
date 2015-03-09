@@ -209,6 +209,13 @@ public abstract class Screen {
     public abstract List<MonitorDevice> getMonitorDevices();
 
     /**
+     * Returns the windowing manager's primary {@link MonitorDevice},
+     * which holds the system menu bar, etc.
+     * @see MonitorDevice#isPrimary()
+     */
+    public abstract MonitorDevice getPrimaryMonitor();
+
+    /**
      * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewportInWindowUnits() viewport}
      * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of the given rectangle in window units,
      * which is not a {@link MonitorDevice#isClone() clone}.

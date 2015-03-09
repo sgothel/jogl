@@ -119,7 +119,7 @@ public class ScreenDriver extends ScreenImpl {
                     // has at least one mode -> add device
                     final MonitorMode currentMode = getMonitorModeImpl(cache, adapterName, -1);
                     if ( null != currentMode ) { // enabled
-                        final int[] monitorProps = getMonitorDevice0(adapterName, adapterIdx, monitorIdx, getMonitorId(adapterIdx, monitorIdx));
+                        final int[] monitorProps = getMonitorDevice0(adapterIdx, monitorIdx, getMonitorId(adapterIdx, monitorIdx));
                         // merge monitor-props + supported modes
                         MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, supportedModes, monitorProps, 0, null);
 
@@ -139,7 +139,7 @@ public class ScreenDriver extends ScreenImpl {
         final String adapterName = getAdapterName(adapterIdx);
         if( null != adapterName ) {
             if( null != getMonitorName(adapterName, monitorIdx, true) ) {
-                final int[] monitorProps = getMonitorDevice0(adapterName, adapterIdx, monitorIdx, getMonitorId(adapterIdx, monitorIdx));
+                final int[] monitorProps = getMonitorDevice0(adapterIdx, monitorIdx, getMonitorId(adapterIdx, monitorIdx));
                 int offset = MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT;
                 viewportPU.set(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
                 viewportWU.set(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
@@ -187,6 +187,6 @@ public class ScreenDriver extends ScreenImpl {
     private native String getAdapterName0(int adapter_idx);
     private native String getMonitorName0(String adapterName, int monitor_idx, boolean onlyActive);
     private native int[] getMonitorMode0(String adapterName, int mode_idx);
-    private native int[] getMonitorDevice0(String adapterName, int adapter_idx, int monitor_idx, int monitorId);
+    private native int[] getMonitorDevice0(int adapter_idx, int monitor_idx, int monitorId);
     private native boolean setMonitorMode0(int adapter_idx, int x, int y, int width, int height, int bits, int freq, int flags, int rot);
 }

@@ -68,6 +68,7 @@ public abstract class MonitorDevice {
     protected final Rectangle viewportPU; // in pixel units
     protected final Rectangle viewportWU; // in window units
     protected boolean isClone;
+    protected boolean isPrimary;
     protected MonitorMode currentMode;
     protected boolean modeChanged;
 
@@ -75,6 +76,7 @@ public abstract class MonitorDevice {
      * @param screen associated {@link Screen}
      * @param nativeId unique monitor device ID
      * @param isClone flag
+     * @param isPrimary flag
      * @param sizeMM size in millimeters
      * @param currentMode
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
@@ -82,10 +84,10 @@ public abstract class MonitorDevice {
      * @param viewportWU viewport in window-units
      * @param supportedModes all supported {@link MonitorMode}s
      */
-    protected MonitorDevice(final Screen screen, final int nativeId, final boolean isClone,
-                            final DimensionImmutable sizeMM,
-                            final MonitorMode currentMode, final float[] pixelScale, final Rectangle viewportPU,
-                            final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
+    protected MonitorDevice(final Screen screen, final int nativeId,
+                            final boolean isClone, final boolean isPrimary,
+                            final DimensionImmutable sizeMM, final MonitorMode currentMode, final float[] pixelScale,
+                            final Rectangle viewportPU, final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
         this.screen = screen;
         this.nativeId = nativeId;
         this.sizeMM = sizeMM;
@@ -96,6 +98,7 @@ public abstract class MonitorDevice {
         this.viewportWU = viewportWU;
 
         this.isClone = isClone;
+        this.isPrimary = isPrimary;
         this.currentMode = currentMode;
         this.modeChanged = false;
     }
@@ -139,6 +142,12 @@ public abstract class MonitorDevice {
 
     /** @return {@code true} if this device represents a <i>clone</i>, otherwise return {@code false}. */
     public final boolean isClone() { return isClone; }
+
+    /**
+     * Returns {@code true} if this device represents the <i>primary device</i>, otherwise return {@code false}.
+     * @see Screen#getPrimaryMonitor()
+     */
+    public final boolean isPrimary() { return isPrimary; }
 
     /**
      * @return the immutable monitor size in millimeters.
@@ -331,9 +340,28 @@ public abstract class MonitorDevice {
 
     @Override
     public String toString() {
-        return "Monitor[Id "+Display.toHexString(nativeId)+", clone "+isClone+", "+sizeMM+" mm, pixelScale ["+pixelScale[0]+", "+pixelScale[1]+
-               "], viewport "+viewportPU+ " [pixels], "+viewportWU+" [window], orig "+originalMode+", curr "+currentMode+
-               ", modeChanged "+modeChanged+", modeCount "+supportedModes.size()+"]";
+        boolean preComma = false;
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Monitor[Id ").append(Display.toHexString(nativeId)).append(", options[");
+        {
+            if( isClone() ) {
+                sb.append("clone");
+                preComma = true;
+            }
+            if( isPrimary() ) {
+                if( preComma ) {
+                    sb.append(", ");
+                }
+                sb.append("primary");
+            }
+        }
+        preComma = false;
+        sb.append("], ").append(sizeMM).append(" mm, pixelScale [").append(pixelScale[0]).append(", ")
+        .append(pixelScale[1]).append("], viewport ").append(viewportPU).append(" [pixels], ").append(viewportWU)
+        .append(" [window], orig ").append(originalMode).append(", curr ")
+        .append(currentMode).append(", modeChanged ").append(modeChanged).append(", modeCount ")
+        .append(supportedModes.size()).append("]");
+        return sb.toString();
     }
 }
 

@@ -517,7 +517,8 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonit
     int offset = 0;
     prop[offset++] = propCount;
     prop[offset++] = crt_idx;
-    prop[offset++] = 0; // is-clone
+    prop[offset++] = 0; // isClone
+    prop[offset++] = 0 == crt_idx ? 1 : 0; // isPrimary
     prop[offset++] = (jint) sizeMM.width;
     prop[offset++] = (jint) sizeMM.height;
     prop[offset++] = (jint) dBounds.origin.x;    // rotated viewport x      (pixel units, will be fixed in java code)

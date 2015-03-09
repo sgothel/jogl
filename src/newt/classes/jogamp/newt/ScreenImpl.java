@@ -406,6 +406,12 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         return null != sms ? sms.getMonitorDevices().getData() : null;
     }
 
+    @Override
+    public MonitorDevice getPrimaryMonitor() {
+        final ScreenMonitorState sms = getScreenMonitorStatus(false);
+        return null != sms ? sms.getPrimaryMonitorDevice() : null;
+    }
+
     final ScreenMonitorState getScreenMonitorStatus(final boolean throwException) {
         final String key = this.getFQName();
         final ScreenMonitorState res = ScreenMonitorState.getScreenMonitorState(key);
@@ -501,6 +507,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         props[i++] = MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES;
         props[i++] = monitorId;
         props[i++] = 0; // is-clone
+        props[i++] = 0 == monitorId ? 1 : 0; // is-primary
         props[i++] = default_sm_widthmm;
         props[i++] = default_sm_heightmm;
         props[i++] = 0; // rotated viewport x pixel-units
@@ -562,7 +569,18 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                     final MonitorMode mode = getVirtualMonitorMode(cache, 0);
                     cache.monitorModes.getOrAdd(mode);
                     final MonitorDevice monitor = getVirtualMonitorDevice(cache, 0, mode);
+                    ((MonitorDeviceImpl)monitor).setIsPrimary(true);
                     cache.monitorDevices.getOrAdd(monitor);
+                    cache.setPrimary(monitor);
+                }
+                if( null == cache.getPrimary() ) {
+                    // Fallback ..
+                    final MonitorDevice p = cache.monitorDevices.get(0);
+                    ((MonitorDeviceImpl)p).setIsPrimary(true);
+                    cache.setPrimary(p);
+                    if( DEBUG ) {
+                        System.err.println("WARNING: Fallback primary: "+p);
+                    }
                 }
                 // Sort MonitorModes (all and per device) in descending order - default!
                 MonitorModeUtil.sort(cache.monitorModes.getData(), false ); // descending order
@@ -583,8 +601,9 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                             System.err.println("["+i+"]["+j+"]: "+iMode.next());
                         }
                     }
+                    System.err.println("Primary: "+cache.getPrimary());
                 }
-                sms = new ScreenMonitorState(cache.monitorDevices, cache.monitorModes);
+                sms = new ScreenMonitorState(cache.monitorDevices, cache.monitorModes, cache.getPrimary());
                 ScreenMonitorState.mapScreenMonitorState(this.getFQName(), sms);
             }
         } finally {
@@ -609,7 +628,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     private final int collectNativeMonitorModes(final MonitorModeProps.Cache cache) {
         if(!DEBUG_TEST_SCREENMODE_DISABLED) {
             collectNativeMonitorModesAndDevicesImpl(cache);
-            MonitorModeProps.identifyClonedMonitorDevices(cache);
+            MonitorModeProps.identifyMonitorDevices(cache);
         }
         // filter out insufficient modes
         for(int i=cache.monitorModes.size()-1; i>=0; i--) {

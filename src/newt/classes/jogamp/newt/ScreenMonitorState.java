@@ -46,6 +46,7 @@ public class ScreenMonitorState {
     private final RecursiveLock lock = LockFactory.createRecursiveLock();
     private final ArrayHashSet<MonitorDevice> allMonitors;
     private final ArrayHashSet<MonitorMode> allMonitorModes;
+    private final MonitorDevice primaryMonitor;
     private final ArrayList<MonitorModeListener> listener = new ArrayList<MonitorModeListener>();
 
     private static HashMap<String, ScreenMonitorState> screenFQN2ScreenMonitorState = new HashMap<String, ScreenMonitorState>();
@@ -107,13 +108,19 @@ public class ScreenMonitorState {
     }
 
     public ScreenMonitorState(final ArrayHashSet<MonitorDevice> allMonitors,
-                              final ArrayHashSet<MonitorMode> allMonitorModes) {
+                              final ArrayHashSet<MonitorMode> allMonitorModes,
+                              final MonitorDevice primaryMonitor) {
         this.allMonitors = allMonitors;
         this.allMonitorModes = allMonitorModes;
+        this.primaryMonitor = primaryMonitor;
     }
 
     protected ArrayHashSet<MonitorDevice> getMonitorDevices() {
         return allMonitors;
+    }
+
+    protected MonitorDevice getPrimaryMonitorDevice() {
+        return primaryMonitor;
     }
 
     protected ArrayHashSet<MonitorMode> getMonitorModes() {

@@ -247,7 +247,6 @@ class RandR13 implements RandR {
         try {
             setScreenViewport0(dpy, screen_idx, screenResources, viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
         } finally {
-            dumpInfo0(dpy, screen_idx, screenResources);
             releaseScreenResourceHandle(screenResources);
         }
     }

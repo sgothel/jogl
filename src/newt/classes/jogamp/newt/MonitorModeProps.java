@@ -133,6 +133,7 @@ public class MonitorModeProps {
      *   <li>count</li>
      *   <li>id</li>
      *   <li>IsClone</li>
+     *   <li>IsPrimary</li>
      *   <li>ScreenSizeMM[width, height] (2 elements)</li>
      *   <li>Rotated Viewport pixel-units (4 elements)</li>
      *   <li>Rotated Viewport window-units  (4 elements)</li>
@@ -141,17 +142,18 @@ public class MonitorModeProps {
      *   <li>SupportedModeId+</li>
      * </ul>
      * <p>
-     * Viewport := [x, y, width, height] (4 elements)
+     * with Viewport := [x, y, width, height] (4 elements)
      * </p>
      * <p>
      * WARNING: must be synchronized with ScreenMode.h, native implementation
      * </p>
      */
-    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 16;
+    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 17;
 
     public static final int IDX_MONITOR_DEVICE_VIEWPORT =   1 // count
                                                           + 1 // native mode
                                                           + 1 // isClone
+                                                          + 1 // isPrimary
                                                           + MonitorModeProps.NUM_RESOLUTION_PROPERTIES // sizeMM
                                                           ;
 
@@ -161,6 +163,10 @@ public class MonitorModeProps {
         public final ArrayHashSet<MonitorMode.SizeAndRRate> sizeAndRates = new ArrayHashSet<MonitorMode.SizeAndRRate>();
         public final ArrayHashSet<MonitorMode>              monitorModes = new ArrayHashSet<MonitorMode>();
         public final ArrayHashSet<MonitorDevice>            monitorDevices = new ArrayHashSet<MonitorDevice>();
+
+        public final void setPrimary(final MonitorDevice p) { primary = p; }
+        public final MonitorDevice getPrimary() { return primary;}
+        private MonitorDevice primary = null;
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
@@ -292,6 +298,7 @@ public class MonitorModeProps {
         final List<MonitorMode> allMonitorModes = cache.monitorModes.getData();
         final int id = monitorProperties[offset++];
         final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
+        final boolean isPrimary = 0 == monitorProperties[offset++] ? false : true;
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
@@ -311,9 +318,14 @@ public class MonitorModeProps {
                 }
             }
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, isPrimary,
+                                                            sizeMM, currentMode, pixelScale,
+                                                            viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
+            if( monitorDevice.isPrimary() ) {
+                cache.setPrimary(monitorDevice);
+            }
         }
         if( null != monitor_idx ) {
             final int _monitorIdx  = cache.monitorDevices.indexOf(monitorDevice);
@@ -373,12 +385,18 @@ public class MonitorModeProps {
         offset++;
         final int id = monitorProperties[offset++];
         final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
+        final boolean isPrimary = 0 == monitorProperties[offset++] ? false : true;
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, isPrimary,
+                                                            sizeMM, currentMode, pixelScale,
+                                                            viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
+            if( monitorDevice.isPrimary() ) {
+                cache.setPrimary(monitorDevice);
+            }
         }
         if( null != monitor_idx ) {
             final int _monitorIdx  = cache.monitorDevices.indexOf(monitorDevice);
@@ -402,6 +420,7 @@ public class MonitorModeProps {
         data[idx++] = data.length;
         data[idx++] = monitorDevice.getId();
         data[idx++] = monitorDevice.isClone() ? 1 : 0;
+        data[idx++] = monitorDevice.isPrimary() ? 1 : 0;
         data[idx++] = monitorDevice.getSizeMM().getWidth();
         data[idx++] = monitorDevice.getSizeMM().getHeight();
         data[idx++] = monitorDevice.getViewport().getX();
@@ -424,8 +443,13 @@ public class MonitorModeProps {
         return data;
     }
 
-    /** Identify monitor devices in <i>cloned</i> mode, i.e. consecutive devices being 100% covered by preceding devices. */
-    /* pp */ static void identifyClonedMonitorDevices(final MonitorModeProps.Cache cache) {
+    /**
+     * Identify monitor devices:
+     * <ul>
+     *   <li><i>cloned</i> mode, i.e. consecutive devices being 100% covered by preceding devices.</li>
+     * </ul>
+     */
+    /* pp */ static void identifyMonitorDevices(final MonitorModeProps.Cache cache) {
         final ArrayList<MonitorDevice> monitors = cache.monitorDevices.toArrayList();
         final int monitorCount = monitors.size();
         for(int i=0; i<monitorCount; i++) {

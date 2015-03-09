@@ -87,7 +87,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
     }
 
     @Test
-    public void testScreenModeInfo00() throws InterruptedException {
+    public void test00ScreenModeStream() throws InterruptedException {
         final DimensionImmutable res = new Dimension(640, 480);
         final SurfaceSize surfsz = new SurfaceSize(res, 32);
         final MonitorMode modeOut = new MonitorMode(surfsz, 60.0f, 0, 0);
@@ -112,7 +112,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
         final Rectangle viewport = new Rectangle(0, 0, 1920, 1080);
         final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
         supportedModes.add(modeOut);
-        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, false, sizeMM, modeOut, null, viewport, viewport, supportedModes);
+        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, false, true, sizeMM, modeOut, null, viewport, viewport, supportedModes);
         System.err.println("01 out : "+monOut);
         cache.monitorDevices.add(monOut);
         {
@@ -120,19 +120,83 @@ public class TestScreenMode00aNEWT extends UITestCase {
             final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(cache, null, null, props, 0, null);
             System.err.println("01 in : "+monIn);
 
-            Assert.assertEquals(monOut.getCurrentMode(), monOut.getOriginalMode());
-            Assert.assertEquals(monOut.getSupportedModes(), monIn.getSupportedModes());
+            Assert.assertEquals(monOut.getId(), monIn.getId());
+            Assert.assertEquals(monOut.isClone(), monIn.isClone());
+            Assert.assertEquals(monOut.isPrimary(), monIn.isPrimary());
             Assert.assertEquals(monOut.getViewport(), monIn.getViewport());
             Assert.assertEquals(monOut.getViewportInWindowUnits(), monIn.getViewportInWindowUnits());
             Assert.assertEquals(monOut.getOriginalMode(), monIn.getOriginalMode());
             Assert.assertEquals(monOut.getCurrentMode(), monIn.getCurrentMode());
+            Assert.assertEquals(monOut.getSupportedModes(), monIn.getSupportedModes());
+            Assert.assertEquals(monOut.getCurrentMode(), monOut.getOriginalMode());
             Assert.assertEquals(monOut.hashCode(), monIn.hashCode());
             Assert.assertEquals(monOut, monIn);
         }
     }
 
+    static void dumpMonitor(final String pre0, final String pre1, final MonitorDevice monitor) {
+        System.err.println(pre0+" "+monitor);
+        final float[] pixelPerMM = monitor.getPixelsPerMM(new float[2]);
+        System.err.println(pre1+" pixel/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
+        System.err.println(pre1+" pixel/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
+        final MonitorMode sm_o = monitor.getOriginalMode();
+        Assert.assertNotNull(sm_o);
+        final MonitorMode sm_c = monitor.queryCurrentMode();
+        System.err.println(pre1+" orig   : "+sm_o);
+        System.err.println(pre1+" current: "+sm_c);
+        Assert.assertNotNull(sm_c);
+        Assert.assertEquals(sm_o, sm_c);
+    }
+
     @Test
-    public void testScreenModeInfo01() throws InterruptedException {
+    public void test01ScreenAllMonitor() throws InterruptedException {
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        screen.addReference();
+        Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(true,screen.getDisplay().isNativeValid());
+        final List<MonitorDevice> monitors = screen.getMonitorDevices();
+        Assert.assertTrue(monitors.size()>0);
+
+        final MonitorDevice primMonitor = screen.getPrimaryMonitor();
+        Assert.assertNotNull("Could not retrieve primary monitor", primMonitor);
+        dumpMonitor("Primary Device ", "    ", primMonitor);
+        Assert.assertTrue("Tracked primary monitor not flagged as primary", primMonitor.isPrimary());
+
+        // Dump all Monitor's and its DPI and current/original mode
+        int j=0;
+        for(final Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
+            final MonitorDevice monitor = iMonitor.next();
+            dumpMonitor("Monitor Index "+j, "    ", monitor);
+            if( monitor.getId() == primMonitor.getId() ) {
+                Assert.assertTrue("Primary monitor not flagged as primary", monitor.isPrimary());
+            } else {
+                Assert.assertFalse("Non primary monitor flagged as primary", monitor.isPrimary());
+            }
+        }
+        final RectangleImmutable zero = new Rectangle();
+
+        final Rectangle monitorViewPU = new Rectangle();
+        final Rectangle monitorViewWU = new Rectangle();
+        MonitorDevice.unionOfViewports(monitorViewPU, monitorViewWU, monitors);
+        System.err.println("Test.0: Monitor union viewport: "+monitorViewPU+" [pu] / "+monitorViewWU+" [wu]");
+        Assert.assertNotEquals(zero, monitorViewPU);
+        Assert.assertNotEquals(zero, monitorViewWU);
+
+        final RectangleImmutable screenViewPU = screen.getViewport();
+        final RectangleImmutable screenViewWU = screen.getViewportInWindowUnits();
+        System.err.println("Test.1: Screen viewport: "+screenViewPU+" [pu] / "+screenViewWU+" [wu]");
+        Assert.assertNotEquals(zero, screenViewPU);
+        Assert.assertNotEquals(zero, screenViewWU);
+
+        screen.removeReference();
+
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,screen.getDisplay().isNativeValid());
+    }
+
+    @Test
+    public void test02ScreenAllModesInfo() throws InterruptedException {
         final Display dpy = NewtFactory.createDisplay(null);
         final Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         screen.addReference();
@@ -189,39 +253,6 @@ public class TestScreenMode00aNEWT extends UITestCase {
             }
             Assert.assertTrue(allMonitorModes.containsAll(modes));
         }
-
-        // Dump all Monitor's and its DPI and current/original mode
-        j=0;
-        for(final Iterator<MonitorDevice> iMonitor=monitors.iterator(); iMonitor.hasNext(); j++) {
-            final MonitorDevice monitor = iMonitor.next();
-            System.err.println(j+": "+monitor);
-            final float[] pixelPerMM = monitor.getPixelsPerMM(new float[2]);
-            System.err.println(j+" pixel/mm ["+pixelPerMM[0]+", "+pixelPerMM[1]+"]");
-            System.err.println(j+" pixel/in ["+pixelPerMM[0]*25.4f+", "+pixelPerMM[1]*25.4f+"]");
-            final MonitorMode sm_o = monitor.getOriginalMode();
-            Assert.assertNotNull(sm_o);
-            final MonitorMode sm_c = monitor.queryCurrentMode();
-            System.err.println("[0] orig   : "+sm_o);
-            System.err.println("[0] current: "+sm_c);
-            Assert.assertNotNull(sm_c);
-            Assert.assertEquals(sm_o, sm_c);
-        }
-
-        final RectangleImmutable zero = new Rectangle();
-
-        final Rectangle monitorViewPU = new Rectangle();
-        final Rectangle monitorViewWU = new Rectangle();
-        MonitorDevice.unionOfViewports(monitorViewPU, monitorViewWU, monitors);
-        System.err.println("Test.0: Monitor union viewport: "+monitorViewPU+" [pu] / "+monitorViewWU+" [wu]");
-        Assert.assertNotEquals(zero, monitorViewPU);
-        Assert.assertNotEquals(zero, monitorViewWU);
-
-        final RectangleImmutable screenViewPU = screen.getViewport();
-        final RectangleImmutable screenViewWU = screen.getViewportInWindowUnits();
-        System.err.println("Test.1: Screen viewport: "+screenViewPU+" [pu] / "+screenViewWU+" [wu]");
-        Assert.assertNotEquals(zero, screenViewPU);
-        Assert.assertNotEquals(zero, screenViewWU);
-
         screen.removeReference();
 
         Assert.assertEquals(false,screen.isNativeValid());
