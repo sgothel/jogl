@@ -468,9 +468,9 @@ public final void glTexCoordPointer(GLArrayData array) {
 public final void glNamedBufferData(int buffer, long size, Buffer data, int usage)  {
     bufferObjectTracker.createBufferStorage(this, 
                                             buffer, size, data, usage, 0 /* immutableFlags */,
-                                            createNamedMutableStorageDispatch);
+                                            glNamedBufferDataDispatch);
 }
-private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createNamedMutableStorageDispatch = 
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch glNamedBufferDataDispatch = 
     new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
         public final void create(final int buffer, final long size, final Buffer data, final int mutableUsage) {
             glNamedBufferDataDelegate(buffer, size, data, mutableUsage);
@@ -478,12 +478,25 @@ private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createNa
     };
 
 @Override
+public final void glNamedBufferDataEXT(int buffer, long size, Buffer data, int usage)  {
+    bufferObjectTracker.createBufferStorage(this, 
+                                            buffer, size, data, usage, 0 /* immutableFlags */,
+                                            glNamedBufferDataEXTDispatch);
+}
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch glNamedBufferDataEXTDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
+        public final void create(final int buffer, final long size, final Buffer data, final int mutableUsage) {
+            glNamedBufferDataEXTDelegate(buffer, size, data, mutableUsage);
+        }
+    };
+
+@Override
 public final void glBufferStorage(int target, long size, Buffer data, int flags)  {
     bufferObjectTracker.createBufferStorage(bufferStateTracker, this, 
                                             target, size, data, 0 /* mutableUsage */, flags, 
-                                            createBoundImmutableStorageDispatch);
+                                            glBufferStorageDispatch);
 }
-private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createBoundImmutableStorageDispatch = 
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch glBufferStorageDispatch = 
     new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
         public final void create(final int target, final long size, final Buffer data, final int immutableFlags) {
             glBufferStorageDelegate(target, size, data, immutableFlags);
@@ -494,20 +507,32 @@ private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createBo
 public final void glNamedBufferStorage(int buffer, long size, Buffer data, int flags)  {
     bufferObjectTracker.createBufferStorage(this, 
                                             buffer, size, data, 0 /* mutableUsage */, flags,
-                                            createNamedImmutableStorageDispatch);
+                                            glNamedBufferStorageDispatch);
 }
-private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createNamedImmutableStorageDispatch = 
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch glNamedBufferStorageDispatch = 
     new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
         public final void create(final int buffer, final long size, final Buffer data, final int immutableFlags) {
             glNamedBufferStorageDelegate(buffer, size, data, immutableFlags);
         }
     };
+@Override
+public final void glNamedBufferStorageEXT(int buffer, long size, Buffer data, int flags)  {
+    bufferObjectTracker.createBufferStorage(this, 
+                                            buffer, size, data, 0 /* mutableUsage */, flags,
+                                            glNamedBufferStorageEXTDispatch);
+}
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch glNamedBufferStorageEXTDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
+        public final void create(final int buffer, final long size, final Buffer data, final int immutableFlags) {
+            glNamedBufferStorageEXTDelegate(buffer, size, data, immutableFlags);
+        }
+    };
 
 @Override
 public boolean glUnmapNamedBuffer(int buffer)  {
-    return bufferObjectTracker.unmapBuffer(buffer, unmapNamedBufferDispatch);
+    return bufferObjectTracker.unmapBuffer(buffer, glUnmapNamedBufferDispatch);
 }
-private final jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch unmapNamedBufferDispatch = 
+private final jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch glUnmapNamedBufferDispatch = 
     new jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch() {
         public final boolean unmap(final int buffer) {
             return glUnmapNamedBufferDelegate(buffer);
@@ -515,10 +540,14 @@ private final jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch unmapNamed
     };
 
 @Override
-public final GLBufferStorage mapNamedBuffer(final int bufferName, final int access) {
-  return bufferObjectTracker.mapBuffer(bufferName, access, mapNamedBufferAllDispatch);
+public final java.nio.ByteBuffer glMapNamedBuffer(int bufferName, int access)  {
+  return mapNamedBuffer(bufferName, access).getMappedBuffer();
 }
-private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch mapNamedBufferAllDispatch = 
+@Override
+public final GLBufferStorage mapNamedBuffer(final int bufferName, final int access) {
+  return bufferObjectTracker.mapBuffer(bufferName, access, glMapNamedBufferDispatch);
+}
+private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch glMapNamedBufferDispatch = 
     new jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch() {
         public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
         public final long mapBuffer(final int bufferName, final int access) {
@@ -527,10 +556,30 @@ private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch mapNamedB
     };
 
 @Override
-public final GLBufferStorage mapNamedBufferRange(final int bufferName, final long offset, final long length, final int access) {
-  return bufferObjectTracker.mapBuffer(bufferName, offset, length, access, mapNamedBufferRangeDispatch);
+public final java.nio.ByteBuffer glMapNamedBufferEXT(int bufferName, int access)  {
+  return mapNamedBufferEXT(bufferName, access).getMappedBuffer();
 }
-private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch mapNamedBufferRangeDispatch = 
+@Override
+public final GLBufferStorage mapNamedBufferEXT(final int bufferName, final int access) {
+  return bufferObjectTracker.mapBuffer(bufferName, access, glMapNamedBufferEXTDispatch);
+}
+private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch glMapNamedBufferEXTDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch() {
+        public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+        public final long mapBuffer(final int bufferName, final int access) {
+            return glMapNamedBufferEXTDelegate(bufferName, access);
+        }
+    };
+
+@Override
+public final ByteBuffer glMapNamedBufferRange(int bufferName, long offset, long length, int access)  {
+  return mapNamedBufferRange(bufferName, offset, length, access).getMappedBuffer();
+}
+@Override
+public final GLBufferStorage mapNamedBufferRange(final int bufferName, final long offset, final long length, final int access) {
+  return bufferObjectTracker.mapBuffer(bufferName, offset, length, access, glMapNamedBufferRangeDispatch);
+}
+private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch glMapNamedBufferRangeDispatch = 
     new jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch() {
         public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
         public final long mapBuffer(final int bufferName, final long offset, final long length, final int access) {
@@ -539,13 +588,18 @@ private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch mapName
     };
 
 @Override
-public final java.nio.ByteBuffer glMapNamedBuffer(int bufferName, int access)  {
-  return mapNamedBuffer(bufferName, access).getMappedBuffer();
+public final ByteBuffer glMapNamedBufferRangeEXT(int bufferName, long offset, long length, int access)  {
+  return mapNamedBufferRangeEXT(bufferName, offset, length, access).getMappedBuffer();
 }
-
 @Override
-public final ByteBuffer glMapNamedBufferRange(int bufferName, long offset, long length, int access)  {
-  return mapNamedBufferRange(bufferName, offset, length, access).getMappedBuffer();
+public final GLBufferStorage mapNamedBufferRangeEXT(final int bufferName, final long offset, final long length, final int access) {
+  return bufferObjectTracker.mapBuffer(bufferName, offset, length, access, glMapNamedBufferRangeEXTDispatch);
 }
-
+private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch glMapNamedBufferRangeEXTDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch() {
+        public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+        public final long mapBuffer(final int bufferName, final long offset, final long length, final int access) {
+            return glMapNamedBufferRangeEXTDelegate(bufferName, offset, length, access);
+        }
+    };
 
