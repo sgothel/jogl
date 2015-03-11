@@ -40,6 +40,7 @@
 
 package com.jogamp.gluegen.opengl.nativesig;
 
+import com.jogamp.gluegen.GlueGenException;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.JavaType;
 import com.jogamp.gluegen.MethodBinding;
@@ -133,7 +134,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
 
   @Override
   protected String getReturnTypeString(final boolean skipArray) {
-    if (isForImplementingMethodCall()) {
+    if (isPrivateNativeMethod()) {
       final JavaType returnType = getBinding().getJavaReturnType();
       if (returnType.isString() || returnType.isNIOByteBuffer()) {
         // Treat these as addresses
@@ -178,7 +179,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       }
     }
 
-    if (forImplementingMethodCall && binding.hasContainingType()) {
+    if (isPrivateNativeMethod() && binding.hasContainingType()) {
       if (needComma) {
         writer.print(", ");
       }
@@ -212,8 +213,8 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
         writer.print(", ");
       }
 
-      if (forImplementingMethodCall &&
-          (forDirectBufferImplementation && type.isNIOBuffer() ||
+      if (isPrivateNativeMethod() &&
+          (isForDirectBufferImplementation() && type.isNIOBuffer() ||
            type.isString())) {
         // Direct Buffers and Strings go out as longs
         writer.print("long");
@@ -228,7 +229,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       needComma = true;
 
       // Add Buffer and array index offset arguments after each associated argument
-      if (forIndirectBufferAndArrayImplementation) {
+      if (isForIndirectBufferAndArrayImplementation()) {
         if (type.isNIOBuffer()) {
           writer.print(", int " + byteOffsetArgName(i));
         } else if (type.isNIOBufferArray()) {
@@ -438,9 +439,10 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
         } else if(type.isIntArray()) {
           writer.print("Buffers.SIZEOF_INT * ");
         } else {
-          throw new RuntimeException("Unsupported type for calculating array offset argument for " +
+          throw new GlueGenException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
-                                     "-- error occurred while processing Java glue code for " + getName());
+                                     "-- error occurred while processing Java glue code for " + binding.getCSymbol().getAliasedString(),
+                                     binding.getCSymbol().getASTLocusTag());
         }
         writer.print(offsetArgName(i));
       }
@@ -474,9 +476,9 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   }
 
   @Override
-  public String getName() {
-    final String res = super.getName();
-    if (forImplementingMethodCall && bufferObjectVariant) {
+  public String getNativeName() {
+    final String res = super.getNativeName();
+    if (isPrivateNativeMethod() && bufferObjectVariant) {
       return res + "BufObj";
     }
     return res;

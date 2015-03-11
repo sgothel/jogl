@@ -177,7 +177,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
     public List<String> javaPrologueForMethod(final MethodBinding binding, final boolean forImplementingMethodCall, final boolean eraseBufferAndArrayTypes) {
 
         List<String> res = super.javaPrologueForMethod(binding, forImplementingMethodCall, eraseBufferAndArrayTypes);
-        final GLEmitter.BufferObjectKind kind = getBufferObjectKind(binding.getName());
+        final GLEmitter.BufferObjectKind kind = getBufferObjectKind(binding.getCSymbol());
         if (kind != null) {
             // Need to generate appropriate prologue based on both buffer
             // object kind and whether this variant of the MethodBinding
@@ -382,12 +382,18 @@ public class GLConfiguration extends ProcAddressConfiguration {
 
     /** Returns the kind of buffer object this function deals with, or
     null if none. */
-    GLEmitter.BufferObjectKind getBufferObjectKind(final String name) {
-        return bufferObjectKinds.get(name);
+    GLEmitter.BufferObjectKind getBufferObjectKind(final AliasedSymbol symbol) {
+        final String name = symbol.getName();
+        final Set<String> aliases = symbol.getAliasedNames();
+        GLEmitter.BufferObjectKind res = bufferObjectKinds.get( name );
+        if( null == res ) {
+            res = oneInMap(bufferObjectKinds, aliases);
+        }
+        return res;
     }
 
-    public boolean isBufferObjectFunction(final String name) {
-        return (getBufferObjectKind(name) != null);
+    public boolean isBufferObjectFunction(final AliasedSymbol symbol) {
+        return null != getBufferObjectKind(symbol);
     }
 
     public boolean isBufferObjectOnly(final String name) {

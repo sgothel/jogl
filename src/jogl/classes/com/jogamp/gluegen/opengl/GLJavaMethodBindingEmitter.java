@@ -40,6 +40,7 @@
 package com.jogamp.gluegen.opengl;
 
 import com.jogamp.gluegen.CommentEmitter;
+import com.jogamp.gluegen.GlueGenException;
 import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.MethodBinding;
@@ -117,9 +118,7 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
                     newComment.append("CORE FUNC");
                 } else {
                     if( !((GLConfiguration)cfg).dropDocInfo ) {
-                        final StringBuilder sb = new StringBuilder();
-                        JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
-                        final RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
+                        final GlueGenException ex = new GlueGenException("Couldn't find extension to: " + funcSym.getAliasedString(), funcSym.getASTLocusTag());
                         System.err.println(ex.getMessage());
                         glEmitter.getGLConfig().getGLDocInfo().dump();
                         // glEmitter.getGLConfig().dumpRenames();

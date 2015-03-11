@@ -145,7 +145,7 @@ public class NativeSignatureEmitter extends GLEmitter {
             final NativeSignatureJavaMethodBindingEmitter emitter = new NativeSignatureJavaMethodBindingEmitter(javaEmitter);
             emitter.removeModifier(JavaMethodBindingEmitter.PUBLIC);
             emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
-            emitter.setForImplementingMethodCall(true);
+            emitter.setPrivateNativeMethod(true);
             // Note: this is chosen so we don't have to change the logic in
             // emitReturnVariableSetupAndCall which decides which variant
             // (direct / indirect) to call

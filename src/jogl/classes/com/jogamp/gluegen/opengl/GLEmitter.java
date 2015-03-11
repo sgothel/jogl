@@ -257,6 +257,20 @@ public class GLEmitter extends ProcAddressEmitter {
         return new GLConfiguration(this);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Implementation sets the binding's native name to it's interface name,
+     * which is the final aliased shortest name.
+     * The latter is used for the proc-address-table etc ..
+     * </p>
+     */
+    @Override
+    protected void mangleBinding(final MethodBinding binding) {
+        binding.setNativeName(binding.getInterfaceName());
+        super.mangleBinding(binding);
+    }
+
     /** In order to implement Buffer Object variants of certain
     functions we generate another MethodBinding which maps the void*
     argument to a Java long. The generation of emitters then takes
@@ -272,7 +286,7 @@ public class GLEmitter extends ProcAddressEmitter {
         final GLConfiguration glConfig = getGLConfig();
         final List<MethodBinding> bindings = super.expandMethodBinding(binding);
 
-        if ( !glConfig.isBufferObjectFunction(binding.getName()) ) {
+        if ( !glConfig.isBufferObjectFunction(binding.getCSymbol()) ) {
             return bindings;
         }
         final boolean bufferObjectOnly = glConfig.isBufferObjectOnly(binding.getName());
@@ -466,7 +480,7 @@ public class GLEmitter extends ProcAddressEmitter {
     }
 
     protected boolean needsBufferObjectVariant(final FunctionSymbol sym) {
-        return getGLConfig().isBufferObjectFunction(sym.getName());
+        return getGLConfig().isBufferObjectFunction(sym);
     }
 
     protected GLConfiguration getGLConfig() {
