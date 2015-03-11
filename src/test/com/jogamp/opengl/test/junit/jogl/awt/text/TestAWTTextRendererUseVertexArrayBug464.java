@@ -32,7 +32,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
-
+import com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.awt.Frame;
@@ -156,17 +156,6 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestAWTTextRendererUseVertexArrayBug464.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(TestAWTTextRendererUseVertexArrayBug464.class.getName());
     }
 }
