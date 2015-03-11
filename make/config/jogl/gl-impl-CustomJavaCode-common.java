@@ -136,52 +136,61 @@
     private final GLBufferObjectTracker bufferObjectTracker;
     private final GLBufferStateTracker bufferStateTracker;
 
+    @Override
+    public final void glBufferData(int target, long size, Buffer data, int usage)  {
+        bufferObjectTracker.createBufferStorage(bufferStateTracker, this, 
+                                                target, size, data, usage, 0 /* immutableFlags */, 
+                                                createBoundMutableStorageDispatch);
+    }
     private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createBoundMutableStorageDispatch = 
         new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
-            public final void create(final int target, final long size, final Buffer data, final int mutableUsage, final long glProcAddress) {
-                final boolean data_is_direct = Buffers.isDirect(data);
-                dispatch_glBufferData(target, size, 
-                                      data_is_direct ? data : Buffers.getArray(data), 
-                                      data_is_direct ? Buffers.getDirectBufferByteOffset(data) : Buffers.getIndirectBufferByteOffset(data), 
-                                      data_is_direct, mutableUsage, glProcAddress);
+            public final void create(final int target, final long size, final Buffer data, final int mutableUsage) {
+                glBufferDataDelegate(target, size, data, mutableUsage);
             }
         };
-    private native void dispatch_glBufferData(int target, long size, Object data, int data_byte_offset, boolean data_is_direct, int usage, long procAddress);
 
+    @Override
+    public boolean glUnmapBuffer(int target)  {
+        return bufferObjectTracker.unmapBuffer(bufferStateTracker, this, target, unmapBoundBufferDispatch);
+    }
     private final jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch unmapBoundBufferDispatch = 
         new jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch() {
-            public final boolean unmap(final int target, final long glProcAddress) {
-                return dispatch_glUnmapBuffer(target, glProcAddress);
+            public final boolean unmap(final int target) {
+                return glUnmapBufferDelegate(target);
             }
         };
-    private native boolean dispatch_glUnmapBuffer(int target, long procAddress);
 
     @Override
     public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
       return mapBuffer(target, access).getMappedBuffer();
     }
+    @Override
+    public final GLBufferStorage mapBuffer(final int target, final int access) {
+      return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, access, mapBoundBufferAllDispatch);
+    }
+    private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch mapBoundBufferAllDispatch = 
+        new jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch() {
+            public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+            public final long mapBuffer(final int target, final int access) {
+                return glMapBufferDelegate(target, access);
+            }
+        };
 
     @Override
     public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
       return mapBufferRange(target, offset, length, access).getMappedBuffer();
     }
-
-    private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch mapBoundBufferAllDispatch = 
-        new jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch() {
-            public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
-            public final long mapBuffer(final int target, final int access, final long glProcAddress) {
-                return dispatch_glMapBuffer(target, access, glProcAddress);
-            }
-        };
-    private native long dispatch_glMapBuffer(int target, int access, long glProcAddress);
-
+    @Override
+    public final GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) {
+      return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, offset, length, access, mapBoundBufferRangeDispatch);
+    }
     private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch mapBoundBufferRangeDispatch = 
         new jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch() {
             public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
-            public final long mapBuffer(final int target, final long offset, final long length, final int access, final long glProcAddress) {
-                return dispatch_glMapBufferRange(target, offset, length, access, glProcAddress);
+            public final long mapBuffer(final int target, final long offset, final long length, final int access) {
+                return glMapBufferRangeDelegate(target, offset, length, access);
             }
         };
-    private native long dispatch_glMapBufferRange(int target, long offset, long length, int access, long glProcAddress);
 
     private native ByteBuffer newDirectByteBuffer(long addr, long capacity);
+

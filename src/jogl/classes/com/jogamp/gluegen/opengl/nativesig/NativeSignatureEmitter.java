@@ -51,7 +51,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Emitter producing NativeSignature attributes.
@@ -61,10 +60,10 @@ import java.util.Set;
 public class NativeSignatureEmitter extends GLEmitter {
 
     @Override
-    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
+    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final FunctionSymbol sym) throws Exception {
 
         // Allow superclass to do most of the work for us
-        final List<? extends FunctionEmitter> res = super.generateMethodBindingEmitters(methodBindingSet, sym);
+        final List<? extends FunctionEmitter> res = super.generateMethodBindingEmitters(sym);
 
         // Filter out all non-JavaMethodBindingEmitters
         for (final Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {

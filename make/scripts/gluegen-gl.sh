@@ -1,7 +1,7 @@
 #! /bin/bash
 
-#rootrel=build-x86_64
-rootrel=build-x86_64-clang
+rootrel=build-x86_64
+#rootrel=build-x86_64-clang
 
 builddir=../$rootrel
 buildtmp=../build-temp
@@ -885,10 +885,10 @@ function gluegen_all() {
 #
 #   gluegen_if_gl
 #   gluegen_gl2es1
-#   gluegen_es1
+   gluegen_es1
 #   gluegen_gl2es2
 #   gluegen_es2
-   gluegen_gl2es3
+#   gluegen_gl2es3
 #   gluegen_gl3es3
 #   gluegen_es3
 #   gluegen_es3_impl

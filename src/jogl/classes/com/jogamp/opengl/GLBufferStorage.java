@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -40,9 +41,10 @@ import java.nio.IntBuffer;
  * <p>
  * Buffer storage is created via:
  * <ul>
- *   <li><code>glBufferStorage</code> - storage creation with target</li>
- *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation with target</li>
- *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage creation via target</li>
+ *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage creation, direct</li>
+ *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage creation via target</li>
+ *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage creation, direct</li>
  * </ul>
  * Note that storage <i>recreation</i> as mentioned above also invalidate a previous storage instance,
  * i.e. disposed the buffer's current storage if exist and attaches a new storage instance.
@@ -52,7 +54,9 @@ import java.nio.IntBuffer;
  * <ul>
  *   <li>{@link GL#glDeleteBuffers(int, IntBuffer)} - explicit, direct, via {@link #notifyBuffersDeleted(int, IntBuffer)} or {@link #notifyBuffersDeleted(int, int[], int)}</li>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation via target</li>
- *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage recreation via target</li>
+ *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage recreation, direct</li>
  * </ul>
  * </p>
  * <p>
@@ -112,7 +116,7 @@ public abstract class GLBufferStorage {
          * created via {@link GL#glBufferData(int, long, java.nio.Buffer, int)}.
          * <p>
          * Returns <code>false</code> if buffer's storage is immutable, i.e.
-         * created via <code>glBufferStorage</code>. FIXME: Add GL 4.4 support!
+         * created via {@link GL4#glBufferStorage(int, long, Buffer, int)}.
          * </p>
          * @return
          */

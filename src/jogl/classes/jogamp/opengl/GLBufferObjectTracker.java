@@ -47,9 +47,10 @@ import com.jogamp.common.util.PropertyAccess;
  * <p>
  * Buffer storage is created via
  * <ul>
- *   <li><code>glBufferStorage</code> - storage creation with target via {@link #createBufferStorage(GLBufferStateTracker, GL, int, long, Buffer, int, int, CreateStorageDispatch, long)}</li>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation with target via {@link #createBufferStorage(GLBufferStateTracker, GL, int, long, Buffer, int, int, CreateStorageDispatch, long)}</li>
- *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
+ *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
+ *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage creation with target via {@link #createBufferStorage(GLBufferStateTracker, GL, int, long, Buffer, int, int, CreateStorageDispatch, long)}</li>
+ *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
  * </ul>
  * Note that storage <i>recreation</i> as mentioned above also invalidate a previous storage instance,
  * i.e. disposed the buffer's current storage if exist and attaches a new storage instance.
@@ -59,7 +60,9 @@ import com.jogamp.common.util.PropertyAccess;
  * <ul>
  *   <li>{@link GL#glDeleteBuffers(int, IntBuffer)} - explicit, direct, via {@link #notifyBuffersDeleted(int, IntBuffer)} or {@link #notifyBuffersDeleted(int, int[], int)}</li>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation via target</li>
- *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage recreation via target</li>
+ *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage recreation, direct</li>
  * </ul>
  * </p>
  *
@@ -130,18 +133,19 @@ public class GLBufferObjectTracker {
     }
 
     public static interface CreateStorageDispatch {
-        void create(final int targetOrBufferName, final long size, final Buffer data, final int mutableUsageOrImmutableFlags, final long glProcAddress);
+        void create(final int targetOrBufferName, final long size, final Buffer data, final int mutableUsageOrImmutableFlags);
     }
 
     /**
-     * Must be called when [re]creating the GL buffer object via <code>glBufferStorage</code> and {@link GL#glBufferData(int, long, java.nio.Buffer, int)},
+     * Must be called when [re]creating the GL buffer object via {@link GL#glBufferData(int, long, java.nio.Buffer, int)}
+     * and {@link GL4#glBufferStorage(int, long, Buffer, int)},
      * i.e. implies destruction of the buffer.
      *
      * @param bufferStateTracker
      * @param caller
      * @param target
      * @param size
-     * @param mutableUsage <code>glBufferData</code>, <code>glNamedBufferDataEXT</code> usage
+     * @param mutableUsage <code>glBufferData</code>, <code>glNamedBufferData</code> usage
      * @param immutableFlags <code>glBufferStorage</code> flags
      * @throws GLException if buffer is not bound to target
      * @throws GLException if size is less-or-eqaul zero for <code>glBufferStorage</code>, or size is less-than zero otherwise
@@ -149,7 +153,7 @@ public class GLBufferObjectTracker {
      */
     public synchronized final void createBufferStorage(final GLBufferStateTracker bufferStateTracker, final GL caller,
                                                        final int target, final long size, final Buffer data, final int mutableUsage, final int immutableFlags,
-                                                       final CreateStorageDispatch dispatch, final long glProcAddress) throws GLException {
+                                                       final CreateStorageDispatch dispatch) throws GLException {
         final int glerrPre = caller.glGetError(); // clear
         if (DEBUG && GL.GL_NO_ERROR != glerrPre) {
             System.err.printf("%s.%s glerr-pre 0x%X%n", msgClazzName, msgCreateBound, glerrPre);
@@ -159,13 +163,13 @@ public class GLBufferObjectTracker {
             throw new GLException(String.format("%s: Buffer for target 0x%X not bound", GL_INVALID_OPERATION, target));
         }
         final boolean mutableBuffer = 0 != mutableUsage;
-        final boolean invalidSize = (  mutableBuffer && 0 > size )   // glBufferData, glNamedBufferDataEXT
+        final boolean invalidSize = (  mutableBuffer && 0 > size )   // glBufferData, glNamedBufferData
                                  || ( !mutableBuffer && 0 >= size ); // glBufferStorage
         if( invalidSize ) {
             throw new GLException(String.format("%s: Invalid size %d for buffer %d on target 0x%X", GL_INVALID_VALUE, size, bufferName, target));
         }
 
-        dispatch.create(target, size, data, mutableBuffer ? mutableUsage : immutableFlags, glProcAddress);
+        dispatch.create(target, size, data, mutableBuffer ? mutableUsage : immutableFlags);
         final int glerrPost = caller.glGetError(); // be safe, catch failure!
         if(GL.GL_NO_ERROR != glerrPost) {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for target 0x%X -> buffer %d of size %d with data %s",
@@ -187,7 +191,8 @@ public class GLBufferObjectTracker {
     }
 
     /**
-     * Must be called when [re]creating the GL buffer object via {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)},
+     * Must be called when [re]creating the GL buffer object via {@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)}
+     * and {@link GL4#glNamedBufferStorage(int, long, Buffer, int)},
      * i.e. implies destruction of the buffer.
      *
      * @param bufferName
@@ -198,19 +203,19 @@ public class GLBufferObjectTracker {
      */
     public synchronized final void createBufferStorage(final GL caller,
                                                        final int bufferName, final long size, final Buffer data, final int mutableUsage, final int immutableFlags,
-                                                       final CreateStorageDispatch dispatch, final long glProcAddress) throws GLException {
+                                                       final CreateStorageDispatch dispatch) throws GLException {
         final int glerrPre = caller.glGetError(); // clear
         if (DEBUG && GL.GL_NO_ERROR != glerrPre) {
             System.err.printf("%s.%s glerr-pre 0x%X%n", msgClazzName, msgCreateNamed, glerrPre);
         }
-        if ( 0 > size ) { // glBufferData, glNamedBufferDataEXT
+        if ( 0 > size ) { // glBufferData, glNamedBufferData
             throw new GLException(String.format("%s: Invalid size %d for buffer %d", GL_INVALID_VALUE, size, bufferName));
         }
         final boolean mutableBuffer = 0 != mutableUsage;
         if( !mutableBuffer ) {
-            throw new InternalError("Immutable glNamedBufferStorageEXT not supported yet");
+            throw new InternalError("Immutable glNamedBufferStorage not supported yet");
         }
-        dispatch.create(bufferName, size, data, mutableUsage, glProcAddress);
+        dispatch.create(bufferName, size, data, mutableUsage);
         final int glerrPost = caller.glGetError(); // be safe, catch failure!
         if(GL.GL_NO_ERROR != glerrPost) {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for buffer %d of size %d with data %s",
@@ -278,10 +283,10 @@ public class GLBufferObjectTracker {
         ByteBuffer allocNioByteBuffer(final long addr, final long length);
     }
     public static interface MapBufferRangeDispatch extends MapBufferDispatch {
-        long mapBuffer(final int targetOrBufferName, final long offset, final long length, final int access, final long glProcAddress);
+        long mapBuffer(final int targetOrBufferName, final long offset, final long length, final int access);
     }
     public static interface MapBufferAllDispatch extends MapBufferDispatch {
-        long mapBuffer(final int targetOrBufferName, final int access, final long glProcAddress);
+        long mapBuffer(final int targetOrBufferName, final int access);
     }
 
     private static final String GL_INVALID_OPERATION = "GL_INVALID_OPERATION";
@@ -296,8 +301,8 @@ public class GLBufferObjectTracker {
      */
     public synchronized final GLBufferStorage mapBuffer(final GLBufferStateTracker bufferStateTracker,
                                                         final GL caller, final int target, final int access,
-                                                        final MapBufferAllDispatch dispatch, final long glProcAddress) throws GLException {
-        return this.mapBufferImpl(bufferStateTracker, caller, target, false /* useRange */, 0 /* offset */, 0 /* length */, access, dispatch, glProcAddress);
+                                                        final MapBufferAllDispatch dispatch) throws GLException {
+        return this.mapBufferImpl(bufferStateTracker, caller, target, false /* useRange */, 0 /* offset */, 0 /* length */, access, dispatch);
     }
     /**
      * Must be called when mapping GL buffer objects via {@link GL#mapBufferRange(int, long, long, int)}.
@@ -309,8 +314,8 @@ public class GLBufferObjectTracker {
      */
     public synchronized final GLBufferStorage mapBuffer(final GLBufferStateTracker bufferStateTracker,
                                                         final GL caller, final int target, final long offset, final long length, final int access,
-                                                        final MapBufferRangeDispatch dispatch, final long glProcAddress) throws GLException {
-        return this.mapBufferImpl(bufferStateTracker, caller, target, true /* useRange */, offset, length, access, dispatch, glProcAddress);
+                                                        final MapBufferRangeDispatch dispatch) throws GLException {
+        return this.mapBufferImpl(bufferStateTracker, caller, target, true /* useRange */, offset, length, access, dispatch);
     }
     /**
      * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBuffer(int, int)}.
@@ -318,9 +323,8 @@ public class GLBufferObjectTracker {
      * @throws GLException if buffer is already mapped
      * @throws GLException if buffer has invalid store size, i.e. less-than zero
      */
-    public synchronized final GLBufferStorage mapBuffer(final int bufferName, final int access, final MapBufferAllDispatch dispatch,
-                                                        final long glProcAddress) throws GLException {
-        return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, false /* useRange */, 0 /* offset */, 0 /* length */, access, dispatch, glProcAddress);
+    public synchronized final GLBufferStorage mapBuffer(final int bufferName, final int access, final MapBufferAllDispatch dispatch) throws GLException {
+        return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, false /* useRange */, 0 /* offset */, 0 /* length */, access, dispatch);
     }
     /**
      * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBufferRange(int, long, long, int)}.
@@ -329,9 +333,8 @@ public class GLBufferObjectTracker {
      * @throws GLException if buffer has invalid store size, i.e. less-than zero
      * @throws GLException if buffer mapping range does not fit, incl. offset
      */
-    public synchronized final GLBufferStorage mapBuffer(final int bufferName, final long offset, final long length, final int access, final MapBufferRangeDispatch dispatch,
-                                                        final long glProcAddress) throws GLException {
-        return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, true /* useRange */, offset, length, access, dispatch, glProcAddress);
+    public synchronized final GLBufferStorage mapBuffer(final int bufferName, final long offset, final long length, final int access, final MapBufferRangeDispatch dispatch) throws GLException {
+        return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, true /* useRange */, offset, length, access, dispatch);
     }
     /**
      * @throws GLException if buffer is not bound to target
@@ -343,12 +346,12 @@ public class GLBufferObjectTracker {
     private synchronized final GLBufferStorage mapBufferImpl(final GLBufferStateTracker bufferStateTracker,
                                                              final GL caller, final int target, final boolean useRange,
                                                              final long offset, final long length, final int access,
-                                                             final MapBufferDispatch dispatch, final long glProcAddress) throws GLException {
+                                                             final MapBufferDispatch dispatch) throws GLException {
         final int bufferName = bufferStateTracker.getBoundBufferObject(target, caller);
         if( 0 == bufferName ) {
             throw new GLException(String.format("%s.%s: %s Buffer for target 0x%X not bound", msgClazzName, msgMapBuffer, GL_INVALID_OPERATION, target));
         }
-        return this.mapBufferImpl(target, bufferName, false /* isNamedBuffer */, useRange, offset, length, access, dispatch, glProcAddress);
+        return this.mapBufferImpl(target, bufferName, false /* isNamedBuffer */, useRange, offset, length, access, dispatch);
     }
     /**
      * <p>
@@ -365,8 +368,7 @@ public class GLBufferObjectTracker {
      * @throws GLException if buffer mapping range does not fit, incl. optional offset
      */
     private synchronized final GLBufferStorage mapBufferImpl(final int target, final int bufferName, final boolean isNamedBuffer, final boolean useRange, long offset,
-                                                             long length, final int access, final MapBufferDispatch dispatch,
-                                                             final long glProcAddress) throws GLException {
+                                                             long length, final int access, final MapBufferDispatch dispatch) throws GLException {
         final GLBufferStorageImpl store = (GLBufferStorageImpl)bufferName2StorageMap.get(bufferName);
         if ( null == store ) {
             throw new GLException("Buffer with name "+bufferName+" not tracked");
@@ -394,15 +396,15 @@ public class GLBufferObjectTracker {
         final long addr;
         if( isNamedBuffer ) {
             if( useRange ) {
-                addr = ((MapBufferRangeDispatch)dispatch).mapBuffer(bufferName, offset, length, access, glProcAddress);
+                addr = ((MapBufferRangeDispatch)dispatch).mapBuffer(bufferName, offset, length, access);
             } else {
-                addr = ((MapBufferAllDispatch)dispatch).mapBuffer(bufferName, access, glProcAddress);
+                addr = ((MapBufferAllDispatch)dispatch).mapBuffer(bufferName, access);
             }
         } else {
             if( useRange ) {
-                addr = ((MapBufferRangeDispatch)dispatch).mapBuffer(target, offset, length, access, glProcAddress);
+                addr = ((MapBufferRangeDispatch)dispatch).mapBuffer(target, offset, length, access);
             } else {
-                addr = ((MapBufferAllDispatch)dispatch).mapBuffer(target, access, glProcAddress);
+                addr = ((MapBufferAllDispatch)dispatch).mapBuffer(target, access);
             }
         }
         // GL's map-buffer implementation always returns NULL on error,
@@ -425,7 +427,7 @@ public class GLBufferObjectTracker {
     }
 
     public static interface UnmapBufferDispatch {
-        boolean unmap(final int targetOrBufferName, final long glProcAddress);
+        boolean unmap(final int targetOrBufferName);
     }
 
     /**
@@ -437,7 +439,7 @@ public class GLBufferObjectTracker {
      */
     public synchronized final boolean unmapBuffer(final GLBufferStateTracker bufferStateTracker, final GL caller,
                                                   final int target,
-                                                  final UnmapBufferDispatch dispatch, final long glProcAddress) {
+                                                  final UnmapBufferDispatch dispatch) {
         final int bufferName = bufferStateTracker.getBoundBufferObject(target, caller);
         final GLBufferStorageImpl store;
         if( 0 == bufferName ) {
@@ -453,7 +455,7 @@ public class GLBufferObjectTracker {
                 ExceptionUtils.dumpStack(System.err);
             }
         }
-        final boolean res = dispatch.unmap(target, glProcAddress);
+        final boolean res = dispatch.unmap(target);
         if( res && null != store ) {
             store.setMappedBuffer(null);
         }
@@ -466,20 +468,20 @@ public class GLBufferObjectTracker {
         return res;
     }
     /**
-     * Must be called when unmapping GL buffer objects via {@link GL2#glUnmapNamedBufferEXT(int)}.
+     * Must be called when unmapping GL buffer objects via {@link GL2#glUnmapNamedBuffer(int)}.
      * <p>
      * Only clear mapped buffer reference of {@link GLBufferStorage}
      * if native unmapping was successful.
      * </p>
      */
     public synchronized final boolean unmapBuffer(final int bufferName,
-                                                  final UnmapBufferDispatch dispatch, final long glProcAddress) {
+                                                  final UnmapBufferDispatch dispatch) {
         final GLBufferStorageImpl store = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if (DEBUG && null == store ) {
             System.err.printf("%s: %s.%s: Buffer %d not tracked%n", warning, msgClazzName, msgUnmapped, bufferName);
             ExceptionUtils.dumpStack(System.err);
         }
-        final boolean res = dispatch.unmap(bufferName, glProcAddress);
+        final boolean res = dispatch.unmap(bufferName);
         if( res && null != store ) {
             store.setMappedBuffer(null);
         }
