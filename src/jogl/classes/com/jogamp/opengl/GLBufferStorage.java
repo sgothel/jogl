@@ -42,7 +42,8 @@ import java.nio.IntBuffer;
  * Buffer storage is created via:
  * <ul>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage creation via target</li>
- *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage creation, direct</li>
+ *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage creation, direct</li>
+ *   <li>{@link GL4#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage creation, direct</li>
  *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage creation via target</li>
  *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage creation, direct</li>
  * </ul>
@@ -54,7 +55,8 @@ import java.nio.IntBuffer;
  * <ul>
  *   <li>{@link GL#glDeleteBuffers(int, IntBuffer)} - explicit, direct, via {@link #notifyBuffersDeleted(int, IntBuffer)} or {@link #notifyBuffersDeleted(int, int[], int)}</li>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation via target</li>
- *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL4#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
  *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage recreation via target</li>
  *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage recreation, direct</li>
  * </ul>
@@ -62,21 +64,26 @@ import java.nio.IntBuffer;
  * <p>
  * GL buffer storage is mapped via
  * <ul>
- *
  *   <li>{@link GL#mapBuffer(int, int)}</li>
  *   <li>{@link GL#mapBufferRange(int, long, long, int)}</li>
- *   <li>{@link GL2#mapNamedBuffer(int, int)}</li>
- *   <li>{@link GL2#mapNamedBufferRange(int, long, long, int)}</li>
+ *   <li>{@link GL2#mapNamedBufferEXT(int, int)}</li>
+ *   <li>{@link GL2#mapNamedBufferRangeEXT(int, long, long, int)}</li>
+ *   <li>{@link GL4#mapNamedBuffer(int, int)}</li>
+ *   <li>{@link GL4#mapNamedBufferRange(int, long, long, int)}</li>
  * </ul>
  * </p>
  * <p>
  * GL buffer storage is unmapped via
  * <ul>
+ *   <li>{@link GL#glDeleteBuffers(int, IntBuffer)} - buffer deletion</li>
  *   <li>{@link GL#glUnmapBuffer(int)} - explicit via target</li>
  *   <li>{@link GL2#glUnmapNamedBufferEXT(int)} - explicit direct</li>
+ *   <li>{@link GL4#glUnmapNamedBuffer(int)} - explicit direct</li>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation via target</li>
  *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
- *   <li>{@link GL#glDeleteBuffers(int, IntBuffer)} - buffer deletion</li>
+ *   <li>{@link GL4#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage creation via target</li>
+ *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage creation, direct</li>
  * </ul>
  * </p>
  */

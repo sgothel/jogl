@@ -33,7 +33,6 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.jogamp.opengl.*;
-
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IntObjectHashMap;
@@ -48,7 +47,8 @@ import com.jogamp.common.util.PropertyAccess;
  * Buffer storage is created via
  * <ul>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation with target via {@link #createBufferStorage(GLBufferStateTracker, GL, int, long, Buffer, int, int, CreateStorageDispatch, long)}</li>
- *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
+ *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
+ *   <li>{@link GL4#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
  *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage creation with target via {@link #createBufferStorage(GLBufferStateTracker, GL, int, long, Buffer, int, int, CreateStorageDispatch, long)}</li>
  *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage recreation, direct, via {@link #createBufferStorage(GL, int, long, Buffer, int, CreateStorageDispatch, long)}</li>
  * </ul>
@@ -60,7 +60,8 @@ import com.jogamp.common.util.PropertyAccess;
  * <ul>
  *   <li>{@link GL#glDeleteBuffers(int, IntBuffer)} - explicit, direct, via {@link #notifyBuffersDeleted(int, IntBuffer)} or {@link #notifyBuffersDeleted(int, int[], int)}</li>
  *   <li>{@link GL#glBufferData(int, long, java.nio.Buffer, int)} - storage recreation via target</li>
- *   <li>{@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
+ *   <li>{@link GL4#glNamedBufferData(int, long, java.nio.Buffer, int)} - storage recreation, direct</li>
  *   <li>{@link GL4#glBufferStorage(int, long, Buffer, int)} - storage recreation via target</li>
  *   <li>{@link GL4#glNamedBufferStorage(int, long, Buffer, int)} - storage recreation, direct</li>
  * </ul>
@@ -191,7 +192,9 @@ public class GLBufferObjectTracker {
     }
 
     /**
-     * Must be called when [re]creating the GL buffer object via {@link GL2#glNamedBufferData(int, long, java.nio.Buffer, int)}
+     * Must be called when [re]creating the GL buffer object
+     * via {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int) glNamedBufferDataEXT},
+     * {@link GL4#glNamedBufferData(int, long, java.nio.Buffer, int) glNamedBufferData},
      * and {@link GL4#glNamedBufferStorage(int, long, Buffer, int)},
      * i.e. implies destruction of the buffer.
      *
@@ -318,7 +321,7 @@ public class GLBufferObjectTracker {
         return this.mapBufferImpl(bufferStateTracker, caller, target, true /* useRange */, offset, length, access, dispatch);
     }
     /**
-     * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBuffer(int, int)}.
+     * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBufferEXT(int, int)}.
      * @throws GLException if buffer is not tracked
      * @throws GLException if buffer is already mapped
      * @throws GLException if buffer has invalid store size, i.e. less-than zero
@@ -327,7 +330,7 @@ public class GLBufferObjectTracker {
         return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, false /* useRange */, 0 /* offset */, 0 /* length */, access, dispatch);
     }
     /**
-     * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBufferRange(int, long, long, int)}.
+     * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBufferRangeEXT(int, long, long, int)}.
      * @throws GLException if buffer is not tracked
      * @throws GLException if buffer is already mapped
      * @throws GLException if buffer has invalid store size, i.e. less-than zero
