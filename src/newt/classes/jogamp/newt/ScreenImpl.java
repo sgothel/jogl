@@ -440,7 +440,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                                                                                   monitor.getMutuableViewportPU(),
                                                                                   monitor.getMutuableViewportWU());
             if( DEBUG ) {
-                System.err.println("Screen.updateMonitorViewport["+i+"] @  "+Thread.currentThread().getName()+": updated: "+viewportUpdated+
+                System.err.println("Screen.updateMonitorViewport["+Display.toHexString(monitor.getId())+"] @  "+Thread.currentThread().getName()+": updated: "+viewportUpdated+
                                    ", PU "+monitor.getViewport()+", WU "+monitor.getViewportInWindowUnits()+
                                    ", pixelScale ["+pixelScale[0]+", "+pixelScale[1]+"]");
             }

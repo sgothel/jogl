@@ -91,15 +91,16 @@ public class ScreenDriver extends ScreenImpl {
         }
         {
             if( !DEBUG_TEST_RANDR13_DISABLED && randrVersion.compareTo(RandR.version130) >= 0 ) {
-                rAndR = new RandR13();
+                rAndR = new RandR13(randrVersion);
             } else if( randrVersion.compareTo(RandR.version110) >= 0 ) {
-                rAndR = new RandR11();
+                rAndR = new RandR11(randrVersion);
             } else {
                 rAndR = null;
             }
         }
+        ((DisplayDriver)display).registerRandR(rAndR);
         if( DEBUG ) {
-            System.err.println("RandR "+randrVersion+", "+rAndR);
+            System.err.println("Using "+rAndR);
             rAndR.dumpInfo(dpy, screen_idx);
         }
     }
@@ -119,12 +120,13 @@ public class ScreenDriver extends ScreenImpl {
         try {
             if( rAndR.beginInitialQuery(device.getHandle(), this) ) {
                 try {
-                    final int crtCount = rAndR.getMonitorDeviceCount(device.getHandle(), this);
+                    final int[] crt_ids = rAndR.getMonitorDeviceIds(device.getHandle(), this);
+                    final int crtCount = crt_ids.length;
 
                     // Gather all available rotations
                     final ArrayHashSet<Integer> availableRotations = new ArrayHashSet<Integer>();
                     for(int i = 0; i < crtCount; i++) {
-                        final int[] rotations = rAndR.getAvailableRotations(device.getHandle(), this, i);
+                        final int[] rotations = rAndR.getAvailableRotations(device.getHandle(), this, crt_ids[i]);
                         if( null != rotations ) {
                             final List<Integer> rotationList = new ArrayList<Integer>(rotations.length);
                             for(int j=0; j<rotations.length; j++ ) { rotationList.add(rotations[j]); }
@@ -148,7 +150,7 @@ public class ScreenDriver extends ScreenImpl {
                     }
                     if( cache.monitorModes.size() > 0 ) {
                         for(int i = 0; i < crtCount; i++) {
-                            final int[] monitorProps = rAndR.getMonitorDeviceProps(device.getHandle(), this, cache, i);
+                            final int[] monitorProps = rAndR.getMonitorDeviceProps(device.getHandle(), this, cache, crt_ids[i]);
                             if( null != monitorProps &&
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps[0] && // Enabled ? I.e. contains active modes ?
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps.length ) {
@@ -196,16 +198,21 @@ public class ScreenDriver extends ScreenImpl {
         if( null == rAndR ) { return false; }
 
         final long t0 = System.currentTimeMillis();
-        final boolean done = runWithOptTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+        final boolean started = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
             public Boolean run(final long dpy) {
-                return Boolean.valueOf( rAndR.setCurrentMonitorMode(dpy, ScreenDriver.this, monitor, mode) );
+                return Boolean.valueOf( rAndR.setCurrentMonitorModeStart(dpy, ScreenDriver.this, monitor, mode) );
             }
         }).booleanValue();
-
+        final boolean done;
+        if( started ) {
+            done = rAndR.setCurrentMonitorModeWait(this);
+        } else {
+            done = false;
+        }
         if(DEBUG || !done) {
-            System.err.println("X11Screen.setCurrentMonitorModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
-                               (System.currentTimeMillis()-t0)+"ms; "+monitor.getCurrentMode()+" -> "+mode);
+            System.err.println("X11Screen.setCurrentMonitorModeImpl: "+(done?" OK":"NOK")+" (started "+started+"): t/TO "+
+                               (System.currentTimeMillis()-t0)+"/"+SCREEN_MODE_CHANGE_TIMEOUT+"ms; "+monitor.getCurrentMode()+" -> "+mode);
         }
         return done;
     }
@@ -274,14 +281,6 @@ public class ScreenDriver extends ScreenImpl {
             X11Util.closeDisplay(displayHandle);
         }
         return res;
-    }
-
-    private final <T> T runWithOptTempDisplayHandle(final DisplayRunnable<T> action) {
-        if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 ) {
-            return display.runWithLockedDisplayDevice(action);
-        } else {
-            return runWithTempDisplayHandle(action);
-        }
     }
 
     private static native long GetScreen0(long dpy, int scrn_idx);

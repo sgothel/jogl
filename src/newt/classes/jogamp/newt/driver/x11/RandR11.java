@@ -40,12 +40,19 @@ import com.jogamp.newt.Screen;
 class RandR11 implements RandR {
     private static final boolean DEBUG = ScreenDriver.DEBUG;
 
-    RandR11() {
+    private static final int SINGLE_CRT_ID = 0x01;
+
+    private final VersionNumber version;
+
+    RandR11(final VersionNumber version) {
+        this.version = version;
     }
 
     @Override
-    public final VersionNumber getVersion() {
-        return version110;
+    public final VersionNumber getVersion() { return version; }
+    @Override
+    public String toString() {
+        return "RandR11[version "+version+"]";
     }
 
     @Override
@@ -104,13 +111,14 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public int getMonitorDeviceCount(final long dpy, final ScreenDriver screen) {
-        return 1;
+    public int[] getMonitorDeviceIds(final long dpy, final ScreenDriver screen) {
+        // RandR11 only supports 1 CRT
+        return new int[] { SINGLE_CRT_ID };
     }
 
     @Override
-    public int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_idx) {
-        if( 0 < crt_idx ) {
+    public int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_id) {
+        if( SINGLE_CRT_ID != crt_id ) {
             // RandR11 only supports 1 CRT
             return null;
         }
@@ -171,12 +179,12 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, final MonitorModeProps.Cache cache, final int crt_idx) {
-        if( 0 < crt_idx ) {
+    public int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, final MonitorModeProps.Cache cache, final int crt_id) {
+        if( SINGLE_CRT_ID != crt_id ) {
             // RandR11 only supports 1 CRT
             return null;
         }
-        final int[] currentModeProps = getCurrentMonitorModeProps(dpy, screen, crt_idx);
+        final int[] currentModeProps = getCurrentMonitorModeProps(dpy, screen, crt_id);
         if( null == currentModeProps) { // disabled
             return null;
         }
@@ -185,9 +193,9 @@ class RandR11 implements RandR {
         final int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES - 1 + allModesCount];
         int i = 0;
         props[i++] = props.length;
-        props[i++] = crt_idx;
+        props[i++] = SINGLE_CRT_ID;
         props[i++] = 0; // is-clone
-        props[i++] = 0 == crt_idx ? 1 : 0; // is-primary
+        props[i++] = 0 == crt_id ? 1 : 0; // is-primary
         props[i++] = widthMM;
         props[i++] = heightMM;
         props[i++] = 0; // rotated viewport x pixel-units
@@ -207,8 +215,8 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_idx) {
-        if( 0 < crt_idx ) {
+    public int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_id) {
+        if( SINGLE_CRT_ID != crt_id ) {
             // RandR11 only supports 1 CRT
             return null;
         }
@@ -252,8 +260,8 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_idx) {
-        if( 0 < crt_idx ) {
+    public int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_id) {
+        if( SINGLE_CRT_ID != crt_id ) {
             // RandR11 only supports 1 CRT
             return null;
         }
@@ -313,34 +321,62 @@ class RandR11 implements RandR {
     }
 
     @Override
-    public boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, final MonitorDevice monitor, final MonitorMode mode) {
-        final long t0 = System.currentTimeMillis();
-        boolean done = false;
+    public boolean setCurrentMonitorModeStart(final long dpy, final ScreenDriver screen, final MonitorDevice monitor, final MonitorMode mode) {
         final int screen_idx = screen.getIndex();
         final long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
         if(0 == screenConfigHandle) {
-            return Boolean.valueOf(done);
+            return false;
         }
+        boolean res = false;
         try {
-            final int resId = mode.getId();
-            if(0>resId || resId>=resolutionCount) {
-                throw new RuntimeException("Invalid resolution index: ! 0 < "+resId+" < "+resolutionCount+", "+monitor+", "+mode);
+            final int mode_idx = mode.getId();
+            if(0>mode_idx || mode_idx>=resolutionCount) {
+                throw new RuntimeException("Invalid resolution index: ! 0 < "+mode_idx+" < "+resolutionCount+", "+monitor+", "+mode);
             }
-            final int f = (int)mode.getRefreshRate(); // simply cut-off, orig is int
-            final int r = mode.getRotation();
-
-            if( setCurrentScreenModeStart0(dpy, screen_idx, screenConfigHandle, resId, f, r) ) {
-                while(!done && System.currentTimeMillis()-t0 < Screen.SCREEN_MODE_CHANGE_TIMEOUT) {
-                    done = setCurrentScreenModePollEnd0(dpy, screen_idx, resId, f, r);
-                    if(!done) {
-                        try { Thread.sleep(10); } catch (final InterruptedException e) { }
-                    }
-                }
+            final int freq = (int)mode.getRefreshRate(); // simply cut-off, orig is int
+            final int rot = mode.getRotation();
+            set_screen_idx = screen_idx;
+            set_mode_idx = mode_idx;
+            set_freq = freq;
+            set_rot = rot;
+            set_done = false;
+            res = setCurrentScreenModeStart0(dpy, screen_idx, screenConfigHandle, mode_idx, freq, rot);
+            if( !res ) {
+                clearSetModeState();
             }
         } finally {
              freeScreenConfiguration0(screenConfigHandle);
         }
+        return res;
+    }
+    @Override
+    public boolean setCurrentMonitorModeWait(final ScreenDriver screen) {
+        final long t0 = System.currentTimeMillis();
+        boolean done = false;
+        while(!done && System.currentTimeMillis()-t0 < Screen.SCREEN_MODE_CHANGE_TIMEOUT) {
+            done = set_done;
+            if(!done) {
+                try { Thread.sleep(10); } catch (final InterruptedException e) { }
+            }
+        }
+        clearSetModeState();
         return done;
+    }
+    volatile int set_screen_idx;
+    volatile int set_mode_idx;
+    volatile int set_freq;
+    volatile int set_rot;
+    volatile boolean set_done;
+    @Override
+    public void sendRRScreenChangeNotify(final long dpy, final long event) {
+        set_done = sendRRScreenChangeNotify0(dpy, set_screen_idx, event, set_mode_idx, set_freq, set_rot);
+    }
+    private void clearSetModeState() {
+        set_screen_idx = -1;
+        set_mode_idx = -1;
+        set_freq = 0;
+        set_rot = 0;
+        set_done = false;
     }
 
     @Override
@@ -367,6 +403,6 @@ class RandR11 implements RandR {
 
     /** needs own Display connection for XRANDR event handling */
     private static native boolean setCurrentScreenModeStart0(long display, int screen_index, long screenConfiguration, int mode_index, int freq, int rot);
-    private static native boolean setCurrentScreenModePollEnd0(long display, int screen_index, int mode_index, int freq, int rot);
+    private static native boolean sendRRScreenChangeNotify0(long display, int screen_index, final long event, int mode_index, int freq, int rot);
 
 }

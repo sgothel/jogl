@@ -149,7 +149,8 @@ public class WindowDriver extends WindowImpl {
             edtDevice.lock();
             try {
                 CloseWindow0(edtDevice.getHandle(), windowHandleClose,
-                             display.getJavaObjectAtom(), display.getWindowDeleteAtom() /* , display.getKbdHandle() */); // XKB disabled for now
+                             display.getJavaObjectAtom(), display.getWindowDeleteAtom() /* , display.getKbdHandle() */, // XKB disabled for now
+                             display.getRandREventBase(), display.getRandRErrorBase());
             } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
                     final Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
@@ -451,7 +452,8 @@ public class WindowDriver extends WindowImpl {
                                       int visualID, long javaObjectAtom, long windowDeleteAtom,
                                       int x, int y, int width, int height, boolean autoPosition, int flags,
                                       int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct);
-    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle*/ ); // XKB disabled for now
+    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle*/, // XKB disabled for now
+                                     final int randr_event_base, final int randr_error_base);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            long windowDeleteAtom, int x, int y, int width, int height, int flags);
     private native void requestFocus0(long display, long windowHandle, boolean force);

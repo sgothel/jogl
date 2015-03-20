@@ -61,33 +61,35 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_freeScreenResources0
 
 #define SAFE_STRING(s) (NULL==s?"":s)
 
-static void dumpOutputs(const char *prefix, Display *dpy, int screen_idx, XRRScreenResources *resources, int noutput, RROutput * outputs) {
+static void dumpOutput(const char *prefix, Display *dpy, int screen_idx, XRRScreenResources *resources, int outputIdx, RROutput output) {
     int i, j, primIdx=0;
     Window root = RootWindow(dpy, screen_idx);
     RROutput pxid = XRRGetOutputPrimary (dpy, root);
-    fprintf(stderr, "%s %p: Output[count %d, prim %#lx]\n", prefix, resources, noutput, pxid);
+    int isPrim =0;
+    if ( None != pxid && pxid == output ) {
+        primIdx = i;
+        isPrim = 1;
+    }
+    XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+    fprintf(stderr, "%s: Output[%d]: id %#lx, crtx 0x%lX, name %s (%d), %lux%lu, ncrtc %d, nclone %d, nmode %d (preferred %d), primary %d\n", 
+        prefix, outputIdx, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, 
+        xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
+        xrrOutputInfo->ncrtc, xrrOutputInfo->nclone, xrrOutputInfo->nmode, xrrOutputInfo->npreferred, isPrim);
+    for(j=0; j<xrrOutputInfo->ncrtc; j++) {
+        fprintf(stderr, "%s: Output[%d].Crtc[%d].id %#lx\n", prefix, i, j, xrrOutputInfo->crtcs[j]);
+    }
+    for(j=0; j<xrrOutputInfo->nclone; j++) {
+        fprintf(stderr, "%s: Output[%d].Clones[%d].id %#lx\n", prefix, i, j, xrrOutputInfo->clones[j]);
+    }
+    for(j=0; j<xrrOutputInfo->nmode; j++) {
+        fprintf(stderr, "%s: Output[%d].Mode[%d].id %#lx\n", prefix, i, j, xrrOutputInfo->modes[j]);
+    }
+    XRRFreeOutputInfo (xrrOutputInfo);
+}
+static void dumpOutputs(const char *prefix, Display *dpy, int screen_idx, XRRScreenResources *resources, int noutput, RROutput * outputs) {
+    int i;
     for(i=0; i<noutput; i++) {
-        int isPrim =0;
-        RROutput output = outputs[i];
-        if ( None != pxid && pxid == output ) {
-            primIdx = i;
-            isPrim = 1;
-        }
-        XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
-        fprintf(stderr, "  Output[%d]: id %#lx, crtx 0x%lX, name %s (%d), %lux%lu, ncrtc %d, nclone %d, nmode %d (preferred %d), primary %d\n", 
-            i, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, 
-            xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
-            xrrOutputInfo->ncrtc, xrrOutputInfo->nclone, xrrOutputInfo->nmode, xrrOutputInfo->npreferred, isPrim);
-        for(j=0; j<xrrOutputInfo->ncrtc; j++) {
-            fprintf(stderr, "    Output[%d].Crtc[%d].id %#lx\n", i, j, xrrOutputInfo->crtcs[j]);
-        }
-        for(j=0; j<xrrOutputInfo->nclone; j++) {
-            fprintf(stderr, "    Output[%d].Clones[%d].id %#lx\n", i, j, xrrOutputInfo->clones[j]);
-        }
-        for(j=0; j<xrrOutputInfo->nmode; j++) {
-            fprintf(stderr, "    Output[%d].Mode[%d].id %#lx\n", i, j, xrrOutputInfo->modes[j]);
-        }
-        XRRFreeOutputInfo (xrrOutputInfo);
+        dumpOutput(prefix, dpy, screen_idx, resources, i, outputs[i]);
     }
 }
 
@@ -116,7 +118,39 @@ static float getVRefresh(XRRModeInfo *mode) {
     }
     return rate;
 }
+static RRCrtc findRRCrtc(XRRScreenResources *resources, RRCrtc crtc) {
+    if( NULL != resources ) {
+        int i;
+        for(i=resources->ncrtc-1; i>=0; i--) {
+            if( resources->crtcs[i] == crtc ) {
+                return crtc;
+            }
+        }
+    }
+    return 0;
+}
+static XRRCrtcInfo* getXRRCrtcInfo(Display *dpy, XRRScreenResources *resources, RRCrtc _crtc) {
+    RRCrtc crtc = findRRCrtc( resources, _crtc );
+    if( 0 == crtc ) {
+        return NULL;
+    } else {
+        return XRRGetCrtcInfo (dpy, resources, crtc);
+    }
+}
+static XRRModeInfo* findMode(XRRScreenResources *resources, RRMode modeId) {
+    if( NULL != resources ) {
+        int i;
+        for(i=resources->nmode-1; i>=0; i--) {
+            XRRModeInfo *imode = &resources->modes[i];
+            if( imode->id == modeId ) {
+                return imode;
+            }
+        }
+    }
+    return NULL;
+}
 
+#include "xrandr_utils.c"
 
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_dumpInfo0
   (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources)
@@ -144,10 +178,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_dumpInfo0
     for(i=0; i<resources->ncrtc; i++) {
         RRCrtc crtc = resources->crtcs[i];
         XRRCrtcInfo *xrrCrtcInfo = XRRGetCrtcInfo (dpy, resources, crtc);
-        fprintf(stderr, "Crtc[%d]: %d/%d %dx%d, rot 0x%X, mode.id %#lx\n", 
-            i, xrrCrtcInfo->x, xrrCrtcInfo->y, xrrCrtcInfo->width, xrrCrtcInfo->height, xrrCrtcInfo->rotations, xrrCrtcInfo->mode);
+        fprintf(stderr, "Crtc[%d] %#lx: %d/%d %dx%d, rot 0x%X, mode.id %#lx\n", 
+            i, crtc, xrrCrtcInfo->x, xrrCrtcInfo->y, xrrCrtcInfo->width, xrrCrtcInfo->height, xrrCrtcInfo->rotations, xrrCrtcInfo->mode);
         for(j=0; j<xrrCrtcInfo->noutput; j++) {
             fprintf(stderr, "    Crtc[%d].Output[%d].id %#lx\n", i, j, xrrCrtcInfo->outputs[j]);
+            dumpOutput("        ", dpy, screen_idx, resources, j, xrrCrtcInfo->outputs[j]);
         }
         XRRFreeCrtcInfo(xrrCrtcInfo);
     }
@@ -166,14 +201,28 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_dumpInfo0
 
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    getMonitorDeviceCount0
+ * Method:    getMonitorDeviceIds0
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDeviceCount0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDeviceIds0
   (JNIEnv *env, jclass clazz, jlong screenResources)
 {
     XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
-    return ( NULL != resources ) ? resources->ncrtc : 0;
+    int ncrtc = ( NULL != resources ) ? resources->ncrtc : 0;
+    jintArray properties = NULL;
+    if( 0 < ncrtc ) {
+        int crtcs[ncrtc];
+        int i;
+        for(i=0; i<ncrtc; i++) {
+            crtcs[i] = (int)(intptr_t)resources->crtcs[i];
+        }
+        properties = (*env)->NewIntArray(env, ncrtc);
+        if (properties == NULL) {
+            NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", ncrtc);
+        }
+        (*env)->SetIntArrayRegion(env, properties, 0, ncrtc, crtcs);
+    }
+    return properties;
 }
 
 /*
@@ -182,19 +231,12 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDeviceCount
  * Signature: (JIJI)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorInfoHandle0
-  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources, jint crt_idx) 
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources, jint crt_id) 
 {
-    Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)screen_idx);
-    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
-
-    if( NULL == resources || crt_idx >= resources->ncrtc ) {
-        return 0;
-    }
-    RRCrtc crtc = resources->crtcs[crt_idx];
-    XRRCrtcInfo *xrrCrtcInfo = XRRGetCrtcInfo (dpy, resources, crtc);
-
-    return (jlong) (intptr_t) xrrCrtcInfo;
+    XRRCrtcInfo *xrrCrtcInfo = getXRRCrtcInfo((Display *)(intptr_t)display, 
+                                              (XRRScreenResources *)(intptr_t)screenResources, 
+                                              (RRCrtc)(intptr_t)crt_id );
+    return (jlong)(intptr_t)xrrCrtcInfo;
 }
 
 /*
@@ -360,16 +402,8 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorCurren
         return NULL;
     }
 
-    int modeId = xrrCrtcInfo->mode;
-    XRRModeInfo *mode = NULL;
-    int i;
-    for(i=0; i<resources->nmode; i++) {
-        XRRModeInfo *imode = &resources->modes[i];
-        if( imode->id == modeId ) {
-            mode = imode;
-            break;
-        }
-    }
+    RRMode modeId = xrrCrtcInfo->mode;
+    XRRModeInfo *mode = findMode(resources, modeId);
     if( NULL == mode ) {
         // oops ..
         return NULL;
@@ -412,17 +446,20 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorCurren
  * Signature: (JJJJ)[I
  */
 JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice0
-  (JNIEnv *env, jclass clazz, jlong display, jlong screenResources, jlong monitorInfo, jint crt_idx)
+  (JNIEnv *env, jclass clazz, jlong display, jlong screenResources, jlong monitorInfo, jint crt_id)
 {
     Display * dpy = (Display *) (intptr_t) display;
     XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
-    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
-
-    if( NULL == resources || NULL == xrrCrtcInfo || crt_idx >= resources->ncrtc ) {
+    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id );
+    if( 0 == crtc ) {
         // n/a
         return NULL;
     }
-
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+    if( NULL == xrrCrtcInfo ) {
+        // n/a
+        return NULL;
+    }
     if( None == xrrCrtcInfo->mode || 0 == xrrCrtcInfo->noutput ) {
         // disabled
         return NULL;
@@ -444,7 +481,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
     int propIndex = 0;
 
     prop[propIndex++] = propCount;
-    prop[propIndex++] = crt_idx;
+    prop[propIndex++] = crt_id;
     prop[propIndex++] = 0; // isClone, does not work: 0 < xrrOutputInfo->nclone ? 1 : 0;
     prop[propIndex++] = isPrimary;
     prop[propIndex++] = xrrOutputInfo->mm_width;
@@ -457,14 +494,13 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
     prop[propIndex++] = xrrCrtcInfo->y;      // rotated viewport window units (same)
     prop[propIndex++] = xrrCrtcInfo->width;  // rotated viewport window units (same)
     prop[propIndex++] = xrrCrtcInfo->height; // rotated viewport window units (same)
-    prop[propIndex++] = xrrCrtcInfo->mode; // current mode id
+    prop[propIndex++] = xrrCrtcInfo->mode;   // current mode id
     prop[propIndex++] = NewtScreen_XRotation2Degree(env, xrrCrtcInfo->rotation);
     int i;
     for(i=0; i<numModes; i++) {
         // avail modes ..
         prop[propIndex++] = xrrOutputInfo->modes[i];
     }
-
     XRRFreeOutputInfo (xrrOutputInfo);
 
     jintArray properties = (*env)->NewIntArray(env, propCount);
@@ -482,39 +518,143 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
  * Signature: (JJJIIIII)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setMonitorMode0
-  (JNIEnv *env, jclass clazz, jlong display, jlong screenResources, jlong monitorInfo, jint crt_idx, jint modeId, jint rotation, jint x, jint y)
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources, 
+                              jlong monitorInfo, jint crt_id, 
+                              jint jmode_id, jint rotation, jint x, jint y)
 {
-    Display * dpy = (Display *) (intptr_t) display;
-    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
-    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
     jboolean res = JNI_FALSE;
-
-    if( NULL == resources || NULL == xrrCrtcInfo || crt_idx >= resources->ncrtc ) {
+    Display * dpy = (Display *) (intptr_t) display;
+    Window root = RootWindow(dpy, (int)screen_idx);
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id );
+    if( 0 == crtc ) {
         // n/a
+        DBG_PRINT("RandR13_setMonitorMode0.0: n/a: resources %p (%d), crt_id %#lx \n", 
+            resources, (NULL == resources ? 0 : resources->ncrtc), (RRCrtc)(intptr_t)crt_id);
         return res;
     }
-
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+    if( NULL == xrrCrtcInfo ) {
+        // n/a
+        DBG_PRINT("RandR13_setMonitorMode0.1: n/a: resources %p (%d), xrrCrtcInfo %p, crtc %#lx\n", 
+            resources, (NULL == resources ? 0 : resources->ncrtc), xrrCrtcInfo, crtc);
+        return res;
+    }
     if( None == xrrCrtcInfo->mode || 0 == xrrCrtcInfo->noutput ) {
         // disabled
+        DBG_PRINT("RandR13_setMonitorMode0: disabled: mode %d, noutput %d\n", xrrCrtcInfo->mode, xrrCrtcInfo->noutput);
         return res;
     }
-
-    if( 0 >= modeId ) {
+    if( 0 >= jmode_id ) {
         // oops ..
+        DBG_PRINT("RandR13_setMonitorMode0: inv. modeId: modeId %d\n", jmode_id);
         return res;
     }
 
+    RRMode mode_id = (RRMode)(intptr_t)jmode_id;
+    XRRModeInfo *mode_info = findMode(resources, mode_id);
+    if( NULL == mode_info ) {
+        // oops ..
+        DBG_PRINT("RandR13_setMonitorMode0: inv. mode_id: mode_id %#lx\n", mode_id);
+        return res;
+    }
     if( 0 > x || 0 > y ) {
         x = xrrCrtcInfo->x;
         y = xrrCrtcInfo->y;
     }
 
-    Status status = XRRSetCrtcConfig( dpy, resources, resources->crtcs[crt_idx], CurrentTime, 
-                                      x, y, modeId, NewtScreen_Degree2XRotation(env, rotation),
-                                      xrrCrtcInfo->outputs, xrrCrtcInfo->noutput );
+    Rotation xrotation = NewtScreen_Degree2XRotation(env, rotation);
+    int rot_change = xrrCrtcInfo->rotation != xrotation;
+    DBG_PRINT("RandR13_setMonitorMode0: crt %#lx, noutput %d -> 0x%X, mode %#lx -> %#lx, pos %d / %d, rotation %d -> %d (change %d)\n", 
+        crtc, xrrCrtcInfo->noutput, xrrCrtcInfo->outputs[0], xrrCrtcInfo->mode, mode_id,
+        x, y, (int)xrrCrtcInfo->rotation, (int)xrotation, rot_change);
+
+    XRRSelectInput (dpy, root, RRScreenChangeNotifyMask);
+    Status status = RRSetConfigSuccess;
+    int pre_fb_width=0, pre_fb_height=0;
+    int fb_width=0, fb_height=0;
+    int fb_width_mm=0, fb_height_mm=0;
+
+    crtc_t *root_crtc = get_screen_size1(dpy, root, &fb_width, &fb_height,
+                                         resources, crtc, xrrCrtcInfo, xrotation, x, y, mode_info);
+
+    Bool fb_change = get_screen_sizemm(dpy, screen_idx, fb_width, fb_height,
+                                       &fb_width_mm, &fb_height_mm,
+                                       &pre_fb_width, &pre_fb_height);
+
+    DBG_PRINT("RandR13_setMonitorMode0: crt %#lx, fb[change %d: %d x %d -> %d x %d [%d x %d mm]\n", 
+        crtc, fb_change, pre_fb_width, pre_fb_height, fb_width, fb_height, fb_width_mm, fb_height_mm);
+    if(fb_change) {
+        // Disable CRTC first, since new size differs from current
+        // and we shall avoid invalid intermediate configuration (see spec)!
+        #if 0
+        {
+            // Disable all CRTCs (Not required!)
+            crtc_t * iter_crtc;
+            for(iter_crtc=root_crtc; RRSetConfigSuccess == status && NULL!=iter_crtc; iter_crtc=iter_crtc->next) {
+                if( None == iter_crtc->mode_id || NULL == iter_crtc->mode_info || 0 == iter_crtc->crtc_info->noutput ) {
+                    // disabled
+                    continue;
+                }
+                status = XRRSetCrtcConfig (dpy, resources, iter_crtc->crtc_id, CurrentTime,
+                                           0, 0, None, RR_Rotate_0, NULL, 0);
+            }
+        }
+        #else
+        status = XRRSetCrtcConfig (dpy, resources, crtc, CurrentTime,
+                                   0, 0, None, RR_Rotate_0, NULL, 0);
+        #endif
+        DBG_PRINT("RandR13_setMonitorMode0: crt %#lx disable: %d -> %d\n", crtc, status, RRSetConfigSuccess == status);
+        if( RRSetConfigSuccess == status ) {
+            XRRSetScreenSize (dpy, root, fb_width, fb_height,
+                              fb_width_mm, fb_height_mm);
+            DBG_PRINT("RandR13_setMonitorMode0: crt %#lx screen-size\n", crtc);
+        }
+    }
+    if( RRSetConfigSuccess == status ) {
+        #if 0
+        {
+            // Enable/Set all CRTCs (Not required!)
+            crtc_t * iter_crtc;
+            for(iter_crtc=root_crtc; RRSetConfigSuccess == status && NULL!=iter_crtc; iter_crtc=iter_crtc->next) {
+                if( None == iter_crtc->mode_id || NULL == iter_crtc->mode_info || 0 == iter_crtc->crtc_info->noutput ) {
+                    // disabled
+                    continue;
+                }
+                status = XRRSetCrtcConfig( dpy, resources, iter_crtc->crtc_id, CurrentTime, 
+                                           iter_crtc->x, iter_crtc->y, iter_crtc->mode_id, iter_crtc->rotation,
+                                           iter_crtc->crtc_info->outputs, iter_crtc->crtc_info->noutput );
+            }
+        }
+        #else
+        status = XRRSetCrtcConfig( dpy, resources, crtc, CurrentTime, 
+                                   x, y, mode_id, xrotation,
+                                   xrrCrtcInfo->outputs, xrrCrtcInfo->noutput );
+        #endif
+        DBG_PRINT("RandR13_setMonitorMode0: crt %#lx set-config: %d -> %d\n", crtc, status, RRSetConfigSuccess == status);
+    }
+
     res = status == RRSetConfigSuccess;
+    DBG_PRINT("RandR13_setMonitorMode0: FIN: %d -> ok %d\n", status, res);
+
+    destroyCrtcChain(root_crtc, crtc);
+    root_crtc=NULL;
 
     return res;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    sendRRScreenChangeNotify0
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_sendRRScreenChangeNotify0
+  (JNIEnv *env, jclass clazz, jlong display, jlong jevent)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    XEvent *event = (XEvent*)(intptr_t)jevent;
+    XRRUpdateConfiguration(event);
+    DBG_PRINT("RandR13_sendRRScreenChangeNotify0: dpy %p, event %p\n", dpy, event);
 }
 
 /*
@@ -538,5 +678,4 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setScreenViewport
     XRRSetScreenSize (dpy, root, width, height, DisplayWidthMM(dpy, screen_idx), DisplayHeightMM(dpy, screen_idx));
     return JNI_TRUE;
 }
-
 

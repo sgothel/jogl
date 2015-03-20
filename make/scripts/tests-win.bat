@@ -167,7 +167,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAn
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00cNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT %*
@@ -217,3 +217,4 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewt
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 %*

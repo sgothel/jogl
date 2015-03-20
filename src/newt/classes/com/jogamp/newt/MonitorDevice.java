@@ -332,6 +332,7 @@ public abstract class MonitorDevice {
 
     /**
      * Set the current {@link com.jogamp.newt.MonitorMode}.
+     * <p>This method is <a href="Window.html#lifecycleHeavy">lifecycle heavy</a>.</p>
      * @param mode to be made current, must be element of the list {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
      * @return true if successful, otherwise false
      * @throws IllegalStateException if the {@link #getScreen() associated screen} is not {@link Screen#isNativeValid() valid natively}.

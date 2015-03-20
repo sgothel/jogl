@@ -39,6 +39,7 @@ jmethodID visibleChangedID = NULL;
 static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/WindowDriver";
 
 static jmethodID displayCompletedID = NULL;
+static jmethodID sendRRScreenChangeNotifyID = NULL;
 
 static jmethodID getCurrentThreadNameID = NULL;
 static jmethodID dumpStackID = NULL;
@@ -242,8 +243,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         }
     }
 
-    // displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJJ)V"); // Variant using XKB
-    displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
+    // displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJJII)V"); // Variant using XKB
+    displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJII)V");
+    sendRRScreenChangeNotifyID = (*env)->GetMethodID(env, clazz, "sendRRScreenChangeNotify", "(J)V");
     getCurrentThreadNameID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "getCurrentThreadName", "()Ljava/lang/String;");
     dumpStackID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "dumpStack", "()V");
     insetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsChanged", "(ZIIII)V");
@@ -259,6 +261,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     requestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "requestFocus", "(Z)V");
 
     if (displayCompletedID == NULL ||
+        sendRRScreenChangeNotifyID == NULL ||
         getCurrentThreadNameID == NULL ||
         dumpStackID == NULL ||
         insetsChangedID == NULL ||
@@ -311,9 +314,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay
     // XSetCloseDownMode(dpy, RetainTemporary); // Just a try ..
     // kbdHandle = (jlong) (intptr_t) XkbGetKeyboard(dpy, XkbAllComponentsMask, XkbUseCoreKbd); // XKB disabled for now
 
+    int randr_event_base, randr_error_base;
+    XRRQueryExtension(dpy, &randr_event_base, &randr_error_base);
+
     DBG_PRINT("X11: X11Display_completeDisplay dpy %p\n", dpy);
 
-    (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom /*, kbdHandle*/); // XKB disabled for now
+    (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom /*, kbdHandle*/, // XKB disabled for now
+                                     randr_event_base, randr_error_base);
 }
 
 /*
@@ -349,7 +356,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0
-  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom /*, jlong kbdHandle*/)
+  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom /*, jlong kbdHandle*/,
+                             jint randr_event_base, jint randr_error_base)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
@@ -395,6 +403,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         if(dpy!=evt.xany.display) {
             NewtCommon_throwNewRuntimeException(env, "wrong display, bail out!");
             return ;
+        }
+
+        if( randr_event_base > 0 && RRScreenChangeNotify == ( evt.type - randr_event_base ) ) {
+            DBG_PRINT( "X11: DispatchMessages dpy %p, Event RRScreenChangeNotify %p\n", (void*)dpy, (void*)&evt);
+            (*env)->CallVoidMethod(env, obj, sendRRScreenChangeNotifyID, (jlong)(intptr_t)&evt);
+            continue;
         }
 
         if( 0==evt.xany.window ) {

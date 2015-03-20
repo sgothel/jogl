@@ -297,75 +297,56 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_setCurrentScreenM
     DBG_PRINT("X11Screen.setCurrentScreenMode0: CHANGED TO %d: %d x %d PIXELS, %d Hz, %d degree\n", 
         resMode_idx, xrrs[resMode_idx].width, xrrs[resMode_idx].height, (int)freq, rotation);
 
-    int xrot = NewtScreen_Degree2XRotation(env, rotation);
-    
     XRRSelectInput (dpy, root, RRScreenChangeNotifyMask);
-
-    XSync(dpy, False);
+    Rotation xrot = NewtScreen_Degree2XRotation(env, rotation);
     XRRSetScreenConfigAndRate(dpy, conf, root, (int)resMode_idx, xrot, (short)freq, CurrentTime);   
-    XSync(dpy, False);
-
     return JNI_TRUE;
 }
 
 /*
  * Class:     jogamp_newt_driver_x11_RandR11
- * Method:    setCurrentScreenModePollEnd0
- * Signature: (JIII)Z
+ * Method:    sendRRScreenChangeNotify0
+ * Signature: (JIJIII)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_setCurrentScreenModePollEnd0
-  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_sendRRScreenChangeNotify0
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong jevent, jint resMode_idx, jint freq, jint rotation)
 {
-    Display *dpy = (Display *) (intptr_t) display;
-    int randr_event_base, randr_error_base;
-    XEvent evt;
-    XRRScreenChangeNotifyEvent * scn_event = (XRRScreenChangeNotifyEvent *) &evt;
-
+    Display * dpy = (Display *) (intptr_t) display;
+    XEvent *event = (XEvent*)(intptr_t)jevent;
+    XRRUpdateConfiguration(event);
+    DBG_PRINT("RandR11_sendRRScreenChangeNotify0: dpy %p, event %p\n", dpy, event);
+    if( -1 == resMode_idx || -1 == screen_idx ) {
+        // No validation requested
+        return JNI_FALSE;
+    }
+    // Validate numbers ..
+    XRRScreenChangeNotifyEvent * scn_event = (XRRScreenChangeNotifyEvent *) event;
     int num_sizes;   
     XRRScreenSize *xrrs = XRRSizes(dpy, (int)screen_idx, &num_sizes); //get possible screen resolutions
-    XRRScreenConfiguration *conf;
-    
     if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
         NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
     }
 
-    XRRQueryExtension(dpy, &randr_event_base, &randr_error_base);
-
-    int done = 0;
-    int rot;
-    do {
-        if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
-            return JNI_FALSE; // not done
+    jboolean done = JNI_FALSE;
+    if(0 < scn_event->rotation ) { // All valid values greater zero: 0, 90, 180, 270, ..
+        int rot = NewtScreen_XRotation2Degree(env, scn_event->rotation);
+        DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call(OK) %p (root %p) resIdx %d rot %d %dx%d\n", 
+                    (void*)scn_event->window, (void*)scn_event->root, 
+                    (int)scn_event->size_index, rot, 
+                    scn_event->width, scn_event->height);
+        // done = scn_event->size_index == resMode_idx; // not reliable ..
+        if( rot == rotation && 
+            scn_event->width == xrrs[resMode_idx].width && 
+            scn_event->height == xrrs[resMode_idx].height ) {
+            done = JNI_TRUE;
         }
-        XNextEvent(dpy, &evt);
-
-        switch (evt.type - randr_event_base) {
-            case RRScreenChangeNotify:
-                if(0 < scn_event->rotation ) {
-                    rot = NewtScreen_XRotation2Degree(env, (int)scn_event->rotation);
-                    DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call(1) %p (root %p) resIdx %d rot %d %dx%d\n", 
-                                (void*)scn_event->window, (void*)scn_event->root, 
-                                (int)scn_event->size_index, rot, 
-                                scn_event->width, scn_event->height);
-                    // done = scn_event->size_index == resMode_idx; // not reliable ..
-                    done = rot == rotation && 
-                           scn_event->width == xrrs[resMode_idx].width && 
-                           scn_event->height == xrrs[resMode_idx].height;
-                } else {
-                    DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call(0) %p (root %p) resIdx %d %dx%d\n", 
-                                (void*)scn_event->window, (void*)scn_event->root, 
-                                (int)scn_event->size_index,
-                                scn_event->width, scn_event->height);
-                }
-                break;
-            default:
-                DBG_PRINT("RANDR: event . unhandled %d 0x%X call %p\n", (int)evt.type, (int)evt.type, (void*)evt.xany.window);
-        }
-        XRRUpdateConfiguration(&evt);
-    } while(!done);
-
-    XSync(dpy, False);
-
-    return done ? JNI_TRUE : JNI_FALSE;
+    } else { // invalid .. skip
+        DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call(SKIP) %p (root %p) resIdx %d %dx%d\n", 
+                    (void*)scn_event->window, (void*)scn_event->root, 
+                    (int)scn_event->size_index,
+                    scn_event->width, scn_event->height);
+    }
+    return done;
 }
+
 

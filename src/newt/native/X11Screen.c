@@ -74,7 +74,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_ScreenDriver_getHeight0
     return (jint) DisplayHeight( dpy, scrn_idx);
 }
 
-int NewtScreen_XRotation2Degree(JNIEnv *env, int xrotation) {
+int NewtScreen_XRotation2Degree(JNIEnv *env, Rotation xrotation) {
     int degree;
     if(xrotation == RR_Rotate_0) {
       degree = 0;
@@ -93,8 +93,8 @@ int NewtScreen_XRotation2Degree(JNIEnv *env, int xrotation) {
     return degree;
 }
 
-int NewtScreen_Degree2XRotation(JNIEnv *env, int degree) {
-    int xrot;
+Rotation NewtScreen_Degree2XRotation(JNIEnv *env, int degree) {
+    Rotation xrot;
     if(degree == 0) {
       xrot = RR_Rotate_0;
     }

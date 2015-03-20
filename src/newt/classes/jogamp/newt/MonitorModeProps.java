@@ -272,7 +272,7 @@ public class MonitorModeProps {
      * @param cache hash arrays of unique {@link MonitorMode} components and {@link MonitorDevice}s, allowing to avoid duplicates
      * @param screen the associated {@link ScreenImpl}
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
-     * @param monitorProperties the input data minus supported modes!
+     * @param monitorProperties the input data inclusive supported modes.
      * @param offset the offset to the input data
      * @param monitor_idx if not null, returns the index of resulting {@link MonitorDevice} within {@link Cache#monitorDevices}.
      * @return {@link MonitorDevice} of the identical (old or new) element in {@link Cache#monitorDevices},

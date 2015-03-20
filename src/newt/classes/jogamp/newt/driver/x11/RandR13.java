@@ -47,13 +47,17 @@ import com.jogamp.newt.MonitorMode;
  */
 class RandR13 implements RandR {
     private static final boolean DEBUG = ScreenDriver.DEBUG;
+    private final VersionNumber version;
 
-    RandR13() {
+    RandR13(final VersionNumber version) {
+        this.version = version;
     }
 
     @Override
-    public final VersionNumber getVersion() {
-        return version130;
+    public final VersionNumber getVersion() { return version; }
+    @Override
+    public String toString() {
+        return "RandR13[version "+version+"]";
     }
 
     @Override
@@ -113,16 +117,16 @@ class RandR13 implements RandR {
         }
     }
 
-    private final long getMonitorInfoHandle(final long dpy, final int screen_idx, final long screenResources, final int monitor_idx) {
+    private final long getMonitorInfoHandle(final long dpy, final int screen_idx, final long screenResources, final int crt_id) {
         if( null != crtInfoHandleMap ) {
-            long h = crtInfoHandleMap.get(monitor_idx);
+            long h = crtInfoHandleMap.get(crt_id);
             if( 0 == h ) {
-                h = getMonitorInfoHandle0(dpy, screen_idx, screenResources, monitor_idx);
-                crtInfoHandleMap.put(monitor_idx, h);
+                h = getMonitorInfoHandle0(dpy, screen_idx, screenResources, crt_id);
+                crtInfoHandleMap.put(crt_id, h);
             }
             return h;
         } else {
-            return getMonitorInfoHandle0(dpy, screen_idx, screenResources, monitor_idx);
+            return getMonitorInfoHandle0(dpy, screen_idx, screenResources, crt_id);
         }
     }
     private final void releaseMonitorInfoHandle(final long monitorInfoHandle) {
@@ -132,22 +136,22 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public int getMonitorDeviceCount(final long dpy, final ScreenDriver screen) {
+    public int[] getMonitorDeviceIds(final long dpy, final ScreenDriver screen) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
-            return getMonitorDeviceCount0(screenResources);
+            return getMonitorDeviceIds0(screenResources);
         } finally {
             releaseScreenResourceHandle(screenResources);
         }
     }
 
     @Override
-    public int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_idx) {
+    public int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_id) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
-            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_idx);
+            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_id);
             try {
                 final int[] availRotations = getAvailableRotations0(monitorInfo);
                 if(null==availRotations || 0==availRotations.length) {
@@ -174,13 +178,13 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, final MonitorModeProps.Cache cache, final int crt_idx) {
+    public int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, final MonitorModeProps.Cache cache, final int crt_id) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
-            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_idx);
+            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_id);
             try {
-                return getMonitorDevice0(dpy, screenResources, monitorInfo, crt_idx);
+                return getMonitorDevice0(dpy, screenResources, monitorInfo, crt_id);
             } finally {
                 releaseMonitorInfoHandle(monitorInfo);
             }
@@ -190,11 +194,11 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_idx) {
+    public int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_id) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
-            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_idx);
+            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_id);
             try {
                 return getMonitorViewport0(monitorInfo);
             } finally {
@@ -206,11 +210,11 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_idx) {
+    public int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_id) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
-            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_idx);
+            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_id);
             try {
                 return getMonitorCurrentMode0(screenResources, monitorInfo);
             } finally {
@@ -222,15 +226,15 @@ class RandR13 implements RandR {
     }
 
     @Override
-    public boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, final MonitorDevice monitor, final MonitorMode mode) {
+    public boolean setCurrentMonitorModeStart(final long dpy, final ScreenDriver screen, final MonitorDevice monitor, final MonitorMode mode) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         final boolean res;
         try {
             final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, monitor.getId());
             try {
-                res = setMonitorMode0(dpy, screenResources, monitorInfo, monitor.getId(), mode.getId(), mode.getRotation(),
-                                      -1, -1); // no fixed position!
+                res = setMonitorMode0(dpy, screen_idx, screenResources, monitorInfo, monitor.getId(),
+                                      mode.getId(), mode.getRotation(), -1, -1); // no fixed position!
             } finally {
                 releaseMonitorInfoHandle(monitorInfo);
             }
@@ -238,6 +242,15 @@ class RandR13 implements RandR {
             releaseScreenResourceHandle(screenResources);
         }
         return res;
+    }
+    @Override
+    public void sendRRScreenChangeNotify(final long dpy, final long event) {
+        sendRRScreenChangeNotify0(dpy, event);
+    }
+    @Override
+    public boolean setCurrentMonitorModeWait(final ScreenDriver screen) {
+        // RandR13 set command waits until done ..
+        return true;
     }
 
     @Override
@@ -255,9 +268,9 @@ class RandR13 implements RandR {
     private static native void freeScreenResources0(long screenResources);
     private static native void dumpInfo0(long display, int screen_index, long screenResources);
 
-    private static native int getMonitorDeviceCount0(long screenResources);
+    private static native int[] getMonitorDeviceIds0(long screenResources);
 
-    private static native long getMonitorInfoHandle0(long display, int screen_index, long screenResources, int monitor_index);
+    private static native long getMonitorInfoHandle0(long display, int screen_index, long screenResources, int crtc_id);
     private static native void freeMonitorInfoHandle0(long monitorInfoHandle);
 
     private static native int[] getAvailableRotations0(long monitorInfo);
@@ -266,8 +279,12 @@ class RandR13 implements RandR {
 
     private static native int[] getMonitorMode0(long screenResources, int mode_index);
     private static native int[] getMonitorCurrentMode0(long screenResources, long monitorInfo);
-    private static native int[] getMonitorDevice0(long display, long screenResources, long monitorInfo, int monitor_idx);
+    private static native int[] getMonitorDevice0(long display, long screenResources, long monitorInfo, int crtc_id);
 
-    private static native boolean setMonitorMode0(long display, long screenResources, long monitorInfo, int monitor_idx, int mode_id, int rotation, int x, int y);
-    private static native boolean setScreenViewport0(long display, int screen_index, long screenResources, int x, int y, int width, int height);
+    private static native boolean setMonitorMode0(long display, int screen_index, long screenResources,
+                                                  long monitorInfo, int crtc_id,
+                                                  int mode_id, int rotation, int x, int y);
+    private static native boolean setScreenViewport0(long display, int screen_index, long screenResources,
+                                                     int x, int y, int width, int height);
+    private static native void sendRRScreenChangeNotify0(long display, final long event);
 }

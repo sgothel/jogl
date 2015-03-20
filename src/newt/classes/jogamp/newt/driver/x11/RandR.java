@@ -43,6 +43,8 @@ public interface RandR {
     public static final VersionNumber version140 = new VersionNumber(1, 4, 0);
 
     VersionNumber getVersion();
+    @Override
+    String toString();
 
     void dumpInfo(final long dpy, final int screen_idx);
 
@@ -50,7 +52,7 @@ public interface RandR {
      * Encapsulate initial device query allowing caching of internal data structures.
      * Methods covered:
      * <ul>
-     *   <li>{@link #getMonitorDeviceCount(long, ScreenDriver)}</li>
+     *   <li>{@link #getMonitorDeviceIds(long, ScreenDriver)}</li>
      *   <li>{@link #getAvailableRotations(long, ScreenDriver, int)}</li>
      *   <li>{@link #getMonitorModeProps(long, ScreenDriver, int)}</li>
      *   <li>{@link #getCurrentMonitorModeProps(long, ScreenDriver, int)</li>
@@ -67,8 +69,8 @@ public interface RandR {
     boolean beginInitialQuery(long dpy, ScreenDriver screen);
     void endInitialQuery(long dpy, ScreenDriver screen);
 
-    int getMonitorDeviceCount(final long dpy, final ScreenDriver screen);
-    int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_idx);
+    int[] getMonitorDeviceIds(final long dpy, final ScreenDriver screen);
+    int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_id);
     /**
      *
      * @param dpy
@@ -77,10 +79,15 @@ public interface RandR {
      * @return props w/o actual rotation
      */
     int[] getMonitorModeProps(final long dpy, final ScreenDriver screen, final int mode_idx);
-    int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_idx);
-    int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_idx);
-    int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_idx);
-    boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);
+    int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_id);
+    int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_id);
+    int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_id);
+    /** The device shall be locked, blocking message handling.  */
+    boolean setCurrentMonitorModeStart(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);
+    /** The device must not be locked, allowing message handling. */
+    boolean setCurrentMonitorModeWait(final ScreenDriver screen);
+    /** Invoked from Display's EDT thread for message handling. */
+    void sendRRScreenChangeNotify(final long dpy, final long event);
 
-    public void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport);
+    void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport);
 }
