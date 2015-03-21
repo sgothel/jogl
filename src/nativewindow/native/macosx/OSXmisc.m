@@ -138,6 +138,9 @@ Java_jogamp_nativewindow_macosx_OSXUtil_isNSWindow0(JNIEnv *env, jclass _unused,
 }
 
 static CGDirectDisplayID OSXUtil_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    if( NULL == screen ) {
+        return (CGDirectDisplayID)0;
+    }
     // Mind: typedef uint32_t CGDirectDisplayID;
     NSDictionary * dict = [screen deviceDescription];
     NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
@@ -154,19 +157,7 @@ static NSScreen * OSXUtil_getNSScreenByCGDirectDisplayID(CGDirectDisplayID displ
             return screen;
         }
     }
-    return (NSScreen *) [screens objectAtIndex: 0];
-}
-static int OSXUtil_getNSScreenIdxByCGDirectDisplayID(CGDirectDisplayID displayID) {
-    NSArray *screens = [NSScreen screens];
-    int i;
-    for(i=[screens count]-1; i>=0; i--) {
-        NSScreen * screen = (NSScreen *) [screens objectAtIndex: i];
-        CGDirectDisplayID dID = OSXUtil_getCGDirectDisplayIDByNSScreen(screen);
-        if( dID == displayID ) {
-            return i;
-        }
-    }
-    return -1;
+    return NULL;
 }
 
 /*
@@ -275,52 +266,6 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    GetNSScreenIdx0
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSScreenIdx0
-  (JNIEnv *env, jclass unused, jint displayID)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    int idx = OSXUtil_getNSScreenIdxByCGDirectDisplayID((CGDirectDisplayID)displayID);
-    [pool release];
-
-    return idx;
-}
-
-/*
- * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    GetPixelScale0
- * Signature: (I)D
- */
-JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale0
-  (JNIEnv *env, jclass unused, jint screen_idx)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    CGFloat pixelScale;
-    NSScreen *screen;
-    NSArray *screens = [NSScreen screens];
-    if( screen_idx<0 || screen_idx>=[screens count] ) {
-        screen = NULL;
-        pixelScale = 1.0;
-    } else {
-        screen = (NSScreen *) [screens objectAtIndex: screen_idx];
-        pixelScale = 1.0; // default
-NS_DURING
-        // Available >= 10.7
-        pixelScale = [screen backingScaleFactor]; // HiDPI scaling
-NS_HANDLER
-NS_ENDHANDLER
-    }
-    [pool release];
-
-    return (jdouble)pixelScale;
-}
-
-/*
- * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    GetPixelScale1
  * Signature: (I)D
  */
@@ -329,14 +274,15 @@ JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale1
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    CGFloat pixelScale;
+    CGFloat pixelScale = 1.0; // default
     NSScreen *screen =  OSXUtil_getNSScreenByCGDirectDisplayID((CGDirectDisplayID)displayID);
-    pixelScale = 1.0; // default
+    if( NULL != screen ) {
 NS_DURING
-    // Available >= 10.7
-    pixelScale = [screen backingScaleFactor]; // HiDPI scaling
+        // Available >= 10.7
+        pixelScale = [screen backingScaleFactor]; // HiDPI scaling
 NS_HANDLER
 NS_ENDHANDLER
+    }
     [pool release];
 
     return (jdouble)pixelScale;

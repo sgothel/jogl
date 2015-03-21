@@ -180,7 +180,7 @@ public class NewtFactoryAWT extends NewtFactory {
       screen.addReference();
       try {
           if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
-              res = screen.getMonitor( JAWTUtil.getMonitorIndex( awtComp.getGraphicsConfiguration().getDevice() ) );
+              res = screen.getMonitor( JAWTUtil.getMonitorDisplayID( awtComp.getGraphicsConfiguration().getDevice() ) );
           }
           if( null == res ) {
               // Fallback, use AWT component coverage

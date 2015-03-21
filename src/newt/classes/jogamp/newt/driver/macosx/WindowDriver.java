@@ -96,8 +96,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
     }
 
-    private boolean updatePixelScaleByScreenIdx(final boolean sendEvent) {
-        final float maxPixelScaleRaw = (float) OSXUtil.GetPixelScaleByScreenIdx(getScreen().getIndex());
+    private boolean updatePixelScaleByDisplayID(final boolean sendEvent) {
+        final float maxPixelScaleRaw = (float) OSXUtil.GetPixelScaleByDisplayID(getDisplayID());
         if( DEBUG_IMPLEMENTATION ) {
             System.err.println("WindowDriver.updatePixelScale.1: "+hasPixelScale[0]+", "+maxPixelScaleRaw+" (max)");
         }
@@ -130,13 +130,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected final void instantiationFinished() {
-        updatePixelScaleByScreenIdx(false /* sendEvent*/);
+        updatePixelScaleByDisplayID(false /* sendEvent*/);
     }
 
     @Override
     protected void setScreen(final ScreenImpl newScreen) { // never null !
         super.setScreen(newScreen);
-        updatePixelScaleByScreenIdx(false /* sendEvent*/);  // caller (reparent, ..) will send reshape event
+        updatePixelScaleByDisplayID(false /* sendEvent*/);  // caller (reparent, ..) will send reshape event
     }
 
     @Override
@@ -640,6 +640,16 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keySym, keyChar);
     }
 
+    protected int getDisplayID() {
+        if( !isOffscreenInstance ) {
+            final long whandle = getWindowHandle();
+            if(0 != whandle) {
+                return getDisplayID0(whandle);
+            }
+        }
+        return 0;
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -716,6 +726,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /** Must be called on Main-Thread */
     private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
                                     boolean opaque, boolean visible, long view);
+    private native int getDisplayID0(long window);
     private native void setPixelScale0(long window, long view, float reqPixelScale);
     private native boolean lockSurface0(long window, long view);
     private native boolean unlockSurface0(long window, long view);

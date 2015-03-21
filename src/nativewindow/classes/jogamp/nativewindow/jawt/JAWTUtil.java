@@ -550,19 +550,18 @@ public class JAWTUtil {
     return jawtToolkitLock;
   }
 
-  public static final int getMonitorIndex(final GraphicsDevice device) {
-      int idx = -1;
+  public static final int getMonitorDisplayID(final GraphicsDevice device) {
+      int displayID = 0;
       if( null != getCGDisplayIDMethodOnOSX ) {
           // OSX specific
           try {
               final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
               if (res instanceof Integer) {
-                  final int displayID = ((Integer)res).intValue();
-                  idx = OSXUtil.GetNSScreenIdx(displayID);
+                  displayID = ((Integer)res).intValue();
               }
           } catch (final Throwable t) {}
       }
-      return idx;
+      return displayID;
   }
 
   /**

@@ -110,7 +110,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
     }
 
     @Test
-    public void testScreenFullscreenSingleQ1() throws InterruptedException {
+    public void test01ScreenFullscreenSingleQ1() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -126,7 +126,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
     }
 
     @Test
-    public void testScreenFullscreenSingleQ2() throws InterruptedException {
+    public void test02ScreenFullscreenSingleQ2() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -146,7 +146,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
     }
 
     @Test
-    public void testScreenFullscreenSpanQ1Q2() throws InterruptedException {
+    public void test03ScreenFullscreenSpanQ1Q2() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -169,7 +169,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
     }
 
     @Test
-    public void testScreenFullscreenSpanALL() throws InterruptedException {
+    public void test04ScreenFullscreenSpanALL() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0

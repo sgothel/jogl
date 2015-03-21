@@ -366,19 +366,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_destroyPoint
     [pool release];
 }
 
-NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx, BOOL cap) {
+#if 0
+static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx) {
     NSArray *screens = [NSScreen screens];
     if( screen_idx<0 || screen_idx>=[screens count] ) {
-        if( cap ) {
-            screen_idx=0;
-        } else {
-            return NULL;
-        }
+        return NULL;
     }
     return (NSScreen *) [screens objectAtIndex: screen_idx];
 }
-
-NSScreen * NewtScreen_getNSScreenByCoord(int x, int y) {
+static NSScreen * NewtScreen_getNSScreenByCoord(int x, int y) {
     NSArray *screens = [NSScreen screens];
     int i;
     for(i=[screens count]-1; i>=0; i--) {
@@ -391,9 +387,9 @@ NSScreen * NewtScreen_getNSScreenByCoord(int x, int y) {
             return screen;
         }
     }
-    return (NSScreen *) [screens objectAtIndex: 0];
+    return NULL;
 }
-
+#endif
 static void NewtScreen_dump() {
 #ifdef VERBOSE_ON
     NSArray *screens = [NSScreen screens];
@@ -420,11 +416,26 @@ NS_ENDHANDLER
 
 
 CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    if( NULL == screen ) {
+        return (CGDirectDisplayID)0;
+    }
     // Mind: typedef uint32_t CGDirectDisplayID;
     NSDictionary * dict = [screen deviceDescription];
     NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
     // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
     return (CGDirectDisplayID) [val integerValue];
+}
+static NSScreen * NewtScreen_getNSScreenByCGDirectDisplayID(CGDirectDisplayID displayID) {
+    NSArray *screens = [NSScreen screens];
+    int i;
+    for(i=[screens count]-1; i>=0; i--) {
+        NSScreen * screen = (NSScreen *) [screens objectAtIndex: i];
+        CGDirectDisplayID dID = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+        if( dID == displayID ) {
+            return screen;
+        }
+    }
+    return NULL;
 }
 
 /**
@@ -453,16 +464,28 @@ static long GetDictionaryLong(CFDictionaryRef theDict, const void* key)
 
 /*
  * Class:     jogamp_newt_driver_macosx_ScreenDriver
- * Method:    getMonitorCount0
+ * Method:    getMonitorDeviceIds0
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonitorCount0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonitorDeviceIds0
   (JNIEnv *env, jobject obj)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSArray *screens = [NSScreen screens];
+    int count = [screens count];
+    int32_t displayIDs[count];
+    int i;
+    for(i=0; i<count; i++) {
+        NSScreen * screen = (NSScreen *) [screens objectAtIndex: i];
+        displayIDs[i] = (int32_t)NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    }
+    jintArray properties = (*env)->NewIntArray(env, count);
+    if (properties == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", count);
+    }
+    (*env)->SetIntArrayRegion(env, properties, 0, count, displayIDs);
     [pool release];
-    return (jint) [screens count];
+    return properties;
 }
 
 /*
@@ -471,7 +494,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonitorCou
  * Signature: (I)[I
  */
 JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonitorProps0
-  (JNIEnv *env, jobject obj, jint crt_idx)
+  (JNIEnv *env, jobject obj, jint crt_id)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
@@ -485,28 +508,31 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonit
     timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
     fprintf(stderr, "MacScreen_getMonitorProps0.1: %ld ms\n", td_ms); fflush(NULL);
 #endif
-    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)crt_idx, false);
+    CGDirectDisplayID displayID = (CGDirectDisplayID)crt_id;
+    NSScreen *screen =  NewtScreen_getNSScreenByCGDirectDisplayID(displayID);
     if( NULL == screen ) {
         [pool release];
         return NULL;
     }
-    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    CGDirectDisplayID mainDisplayID = CGMainDisplayID();
+    BOOL isPrimary = mainDisplayID == displayID;
 #ifdef DBG_PERF
     timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
     fprintf(stderr, "MacScreen_getMonitorProps0.2: %ld ms\n", td_ms); fflush(NULL);
 #endif
 
-    CGSize sizeMM = CGDisplayScreenSize(display);
+    CGSize sizeMM = CGDisplayScreenSize(displayID);
 #ifdef DBG_PERF
     timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
     fprintf(stderr, "MacScreen_getMonitorProps0.3: %ld ms\n", td_ms); fflush(NULL);
 #endif
 
-    CGRect dBounds = CGDisplayBounds (display); // origin top-left
+    CGRect dBounds = CGDisplayBounds (displayID); // origin top-left
 #ifdef VERBOSE_ON
-    BOOL usesGL = CGDisplayUsesOpenGLAcceleration(display);
+    BOOL usesGL = CGDisplayUsesOpenGLAcceleration(displayID);
     NSRect sFrame = [screen frame]; // origin bottom-left
-    DBG_PRINT( "getMonitorProps0: scrn %d, top-left displayBounds[%d/%d %dx%d], bottom-left screenFrame[%d/%d %dx%d], usesGL %d\n", (int)crt_idx, 
+    DBG_PRINT( "getMonitorProps0: crt_id 0x%X (prim %d), top-left displayBounds[%d/%d %dx%d], bottom-left screenFrame[%d/%d %dx%d], usesGL %d\n", 
+                 (int)crt_id, isPrimary,
                  (int)dBounds.origin.x, (int)dBounds.origin.y, (int)dBounds.size.width, (int)dBounds.size.height,
                  (int)sFrame.origin.x, (int)sFrame.origin.y, (int)sFrame.size.width, (int)sFrame.size.height,
                  (int)usesGL);
@@ -516,9 +542,9 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonit
     jint prop[ propCount ];
     int offset = 0;
     prop[offset++] = propCount;
-    prop[offset++] = crt_idx;
+    prop[offset++] = crt_id;
     prop[offset++] = 0; // isClone
-    prop[offset++] = 0 == crt_idx ? 1 : 0; // isPrimary
+    prop[offset++] = isPrimary ? 1 : 0; // isPrimary
     prop[offset++] = (jint) sizeMM.width;
     prop[offset++] = (jint) sizeMM.height;
     prop[offset++] = (jint) dBounds.origin.x;    // rotated viewport x      (pixel units, will be fixed in java code)
@@ -547,11 +573,12 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonit
  * Signature: (II)[I
  */
 JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getMonitorMode0
-  (JNIEnv *env, jobject obj, jint crt_idx, jint mode_idx)
+  (JNIEnv *env, jobject obj, jint crt_id, jint mode_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)crt_idx, false);
+    CGDirectDisplayID displayID = (CGDirectDisplayID)crt_id;
+    NSScreen *screen =  NewtScreen_getNSScreenByCGDirectDisplayID(displayID);
     if( NULL == screen ) {
         [pool release];
         return NULL;
@@ -563,21 +590,19 @@ NS_DURING
 NS_HANDLER
 NS_ENDHANDLER
 
-    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
-
-    CFArrayRef availableModes = CGDisplayAvailableModes(display);
+    CFArrayRef availableModes = CGDisplayAvailableModes(displayID);
     CFIndex numberOfAvailableModes = CFArrayGetCount(availableModes);
     CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes; 
     CFDictionaryRef mode = NULL;
-    int currentCCWRot = (int)CGDisplayRotation(display);
+    int currentCCWRot = (int)CGDisplayRotation(displayID);
     jint ccwRot = 0;
     int nativeId = 0;
 
 #ifdef VERBOSE_ON
     if(0 >= mode_idx) {
         // only for current mode (-1) and first mode (scanning)
-        DBG_PRINT( "getScreenMode0: scrn %d (s %p, d %p, pscale %lf), mode %d, avail: %d/%d, current rot %d ccw\n",  
-            (int)crt_idx, screen, (void*)(intptr_t)display, pixelScale, (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots, currentCCWRot);
+        DBG_PRINT( "getScreenMode0: crtID 0x%X (s %p, pscale %lf), mode %d, avail: %d/%d, current rot %d ccw\n",  
+            (uint32_t)displayID, screen, pixelScale, (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots, currentCCWRot);
     }
 #endif
 
@@ -594,7 +619,7 @@ NS_ENDHANDLER
         mode = (CFDictionaryRef)CFArrayGetValueAtIndex(availableModes, nativeId);
     } else {
         // current mode
-        mode = CGDisplayCurrentMode(display);
+        mode = CGDisplayCurrentMode(displayID);
         ccwRot = currentCCWRot;
         CFRange range = CFRangeMake (0, numberOfAvailableModes);
         nativeId = CFArrayGetFirstIndexOfValue(availableModes, range, (CFDictionaryRef)mode);
@@ -652,26 +677,25 @@ NS_ENDHANDLER
  * Signature: (III)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_setMonitorMode0
-  (JNIEnv *env, jobject object, jint crt_idx, jint nativeId, jint ccwRot)
+  (JNIEnv *env, jobject object, jint crt_id, jint nativeId, jint ccwRot)
 {
     jboolean res = JNI_TRUE;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)crt_idx, false);
+    CGDirectDisplayID displayID = (CGDirectDisplayID)crt_id;
+    NSScreen *screen =  NewtScreen_getNSScreenByCGDirectDisplayID(displayID);
     if( NULL == screen ) {
         [pool release];
         return JNI_FALSE;
     }
-    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
-
-    CFArrayRef availableModes = CGDisplayAvailableModes(display);
+    CFArrayRef availableModes = CGDisplayAvailableModes(displayID);
     CFIndex numberOfAvailableModes = CFArrayGetCount(availableModes);
 #ifdef VERBOSE_ON
     CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes;
 #endif
 
-    DBG_PRINT( "setScreenMode0: scrn %d (%p, %p), nativeID %d, rot %d ccw, avail: %d/%d\n",  
-        (int)crt_idx, screen, (void*)(intptr_t)display, (int)nativeId, ccwRot, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots);
+    DBG_PRINT( "setScreenMode0: crtID 0x%X (%p), nativeID %d, rot %d ccw, avail: %d/%d\n",  
+        (uint32_t)displayID, screen, (int)nativeId, ccwRot, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots);
 
     CFDictionaryRef mode = NULL;
 
@@ -689,7 +713,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_setMonito
     }
 
     if( NULL != mode ) {
-        CGError err = CGDisplaySwitchToMode(display, mode);
+        CGError err = CGDisplaySwitchToMode(displayID, mode);
         if(kCGErrorSuccess != err) {
             DBG_PRINT( "setScreenMode0: SetMode failed: %d\n", (int)err);
             res = JNI_FALSE;
@@ -805,6 +829,15 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
+}
+
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getDisplayID0(JNIEnv *env, jobject jthis, jlong window) {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
+    NSScreen *screen =  [myWindow screen];
+    int32_t displayID = (int32_t)NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    [pool release];
+    return (jint) displayID;
 }
 
 /**
@@ -968,10 +1001,13 @@ NS_DURING
          * <https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/QuartzDisplayServicesConceptual/Articles/DisplayCapture.html>
          *
         NSScreen *myScreen =  NewtScreen_getNSScreenByCoord(x, y);
-        if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
-            // Available >= 10.5 - Makes the menubar disapear
-            [myView enterFullScreenMode: myScreen withOptions:NULL];
-        } */
+        if( NULL != myScreen ) {
+            if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
+                // Available >= 10.5 - Makes the menubar disapear
+                [myView enterFullScreenMode: myScreen withOptions:NULL];
+            } 
+        }
+        */
         if( myWindow->hasPresentationSwitch ) {
             DBG_PRINT( "initWindow0.%d - %p view %p, setPresentationOptions 0x%X\n", 
                 dbgIdx++, myWindow, myView, (int)myWindow->fullscreenPresentationOptions);
@@ -1005,9 +1041,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPixelScale
 #ifdef VERBOSE_ON
     int dbgIdx = 1;
 #endif
-
     DBG_PRINT( "setPixelScale0 - %p (this), %p (window), view %p, reqPixScale %f (START)\n",
         (void*)(intptr_t)jthis, myWindow, myView, (float)reqPixelScale);
+    (void)myWindow;
 
 NS_DURING
     // HiDPI scaling: Setup - Available >= 10.7

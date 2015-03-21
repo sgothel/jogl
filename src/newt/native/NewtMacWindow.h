@@ -49,8 +49,6 @@
 
 // #define DBG_LIFECYCLE 1
 
-NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx, BOOL cap);
-NSScreen * NewtScreen_getNSScreenByCoord(int x, int y);
 CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 
 @interface NewtView : NSView
