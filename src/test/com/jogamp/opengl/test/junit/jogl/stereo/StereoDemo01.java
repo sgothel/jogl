@@ -40,9 +40,12 @@ import com.jogamp.opengl.GLProfile;
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 
 import com.jogamp.common.net.Uri;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.stereo.StereoDeviceUtil;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSBSStereo;
@@ -249,15 +252,21 @@ public class StereoDemo01 {
         //
         //
         //
-        final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxProgrammable(true /* favorHardwareRasterizer */));
-        final GLWindow window = GLWindow.create(caps);
-
         final PointImmutable devicePos = stereoDevice.getPosition();
         final DimensionImmutable deviceRes = stereoDevice.getSurfaceSize();
+        System.err.println("Device Res "+deviceRes+", reqRotation "+stereoDevice.getRequiredRotation());
+        System.err.println("Device Pos "+devicePos);
+
+        final MonitorDevice monitor = StereoDeviceUtil.getMonitorDevice(stereoDevice, true);
+        final Screen screen = monitor.getScreen();
+
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxProgrammable(true /* favorHardwareRasterizer */));
+        final GLWindow window = GLWindow.create(screen, caps);
+
         if( useStereoScreen ) {
             window.setPosition(devicePos.getX(), devicePos.getY());
         }
-        window.setSurfaceSize(deviceRes.getWidth(), deviceRes.getHeight()); // might be not correct ..
+        window.setSurfaceSize(deviceRes.getWidth(), deviceRes.getHeight());
         window.setAutoSwapBufferMode(useAutoSwap);
         window.setUndecorated(true);
 
@@ -361,6 +370,7 @@ public class StereoDemo01 {
             animator.stop();
         }
         window.destroy();
+        screen.removeReference(); // StereoDeviceUtil.getMonitorDevice(stereoDevice, true);
         stereoDevice.dispose();
     }
 }

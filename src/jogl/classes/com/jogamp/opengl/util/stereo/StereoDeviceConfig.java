@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2015 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,19 +25,9 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.stereo;
+package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.util.stereo.StereoDevice;
-import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
-
-public class GenericStereoDeviceFactory extends StereoDeviceFactory {
-
-    public static boolean isAvailable() {
-        return true;
-    }
-
-    @Override
-    public final StereoDevice createDevice(final int deviceIndex, final StereoDevice.Config config, final boolean verbose) {
-        return new GenericStereoDevice(this, deviceIndex, config);
-    }
+/** Merely a class providing a type-tag for extended configuration. */
+public class StereoDeviceConfig {
+    // NOP
 }

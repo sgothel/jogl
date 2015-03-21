@@ -29,6 +29,7 @@ package jogamp.opengl.util.stereo;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
@@ -380,7 +381,7 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     private final GenericEye[] eyes;
     private final int distortionBits;
     private final int textureCount;
-    private final DimensionImmutable singleTextureSize;
+    private final DimensionImmutable[] eyeTextureSizes;
     private final DimensionImmutable totalTextureSize;
     /** if texUnit0 is null: no post-processing */
     private final GLUniformData texUnit0;
@@ -391,7 +392,7 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     @Override
     public String toString() {
         return "GenericStereo[distortion["+StereoUtil.distortionBitsToString(distortionBits)+
-                             "], singleSize "+singleTextureSize+
+                             "], eyeTexSize "+Arrays.toString(eyeTextureSizes)+
                              ", sbsSize "+totalTextureSize+
                              ", texCount "+textureCount+", texUnit "+(null != texUnit0 ? texUnit0.intValue() : "n/a")+
                              ", "+PlatformPropsImpl.NEWLINE+"  "+(0 < eyes.length ? eyes[0] : "none")+
@@ -404,13 +405,17 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     /* pp */ GenericStereoDeviceRenderer(final GenericStereoDevice context, final int distortionBits,
                                        final int textureCount, final float[] eyePositionOffset,
                                        final EyeParameter[] eyeParam, final float pixelsPerDisplayPixel, final int textureUnit,
-                                       final DimensionImmutable singleTextureSize, final DimensionImmutable totalTextureSize,
+                                       final DimensionImmutable[] eyeTextureSizes, final DimensionImmutable totalTextureSize,
                                        final RectangleImmutable[] eyeViewports) {
+        if( eyeParam.length != eyeTextureSizes.length ||
+            eyeParam.length != eyeViewports.length ) {
+            throw new IllegalArgumentException("eye arrays of different length");
+        }
         this.device = context;
         this.eyes = new GenericEye[eyeParam.length];
         this.distortionBits = ( distortionBits | context.getMinimumDistortionBits() ) & context.getSupportedDistortionBits();
         final boolean usePP = null != device.config.distortionMeshProducer && 0 != this.distortionBits;
-        final DimensionImmutable textureSize;
+        final DimensionImmutable[] textureSizes;
 
         if( usePP ) {
             if( 1 > textureCount || 2 < textureCount ) {
@@ -418,19 +423,30 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
             } else {
                 this.textureCount = textureCount;
             }
-            this.singleTextureSize = singleTextureSize;
+            this.eyeTextureSizes = eyeTextureSizes;
             this.totalTextureSize = totalTextureSize;
-            textureSize = 1 == textureCount ? totalTextureSize : singleTextureSize;
+            if( 1 == textureCount ) {
+                textureSizes = new DimensionImmutable[eyeParam.length];
+                for(int i=0; i<eyeParam.length; i++) {
+                    textureSizes[i] = totalTextureSize;
+                }
+            } else {
+                textureSizes = eyeTextureSizes;
+            }
             texUnit0 = new GLUniformData("svr_Texture0", textureUnit);
         } else {
             this.textureCount = 0;
-            this.singleTextureSize = zeroSize;
+            this.eyeTextureSizes = new DimensionImmutable[eyeParam.length];
+            textureSizes = new DimensionImmutable[eyeParam.length];
+            for(int i=0; i<eyeParam.length; i++) {
+                this.eyeTextureSizes[i] = zeroSize;
+                textureSizes[i] = zeroSize;
+            }
             this.totalTextureSize = zeroSize;
-            textureSize = zeroSize;
             texUnit0 = null;
         }
         for(int i=0; i<eyeParam.length; i++) {
-            eyes[i] = new GenericEye(context, this.distortionBits, eyePositionOffset, eyeParam[i], textureSize, eyeViewports[i]);
+            eyes[i] = new GenericEye(context, this.distortionBits, eyePositionOffset, eyeParam[i], textureSizes[i], eyeViewports[i]);
         }
         sp = null;
     }
@@ -445,7 +461,7 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     public final boolean usesSideBySideStereo() { return true; }
 
     @Override
-    public final DimensionImmutable getSingleSurfaceSize() { return singleTextureSize; }
+    public final DimensionImmutable[] getEyeSurfaceSize() { return eyeTextureSizes; }
 
     @Override
     public final DimensionImmutable getTotalSurfaceSize() { return totalTextureSize; }

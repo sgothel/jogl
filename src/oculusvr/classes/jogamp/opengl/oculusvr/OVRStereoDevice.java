@@ -32,7 +32,6 @@ import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
-
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.OvrHmdContext;
 import com.jogamp.oculusvr.ovrEyeRenderDesc;
@@ -59,6 +58,12 @@ public class OVRStereoDevice implements StereoDevice {
     private final int[] eyeRenderOrder;
     private final int supportedDistortionBits, recommendedDistortionBits, minimumDistortionBits;
 
+    private final String deviceName;
+    private final DimensionImmutable resolution;
+    private final int requiredRotation;
+    private final PointImmutable position;
+    private final int dkVersion;
+
     public OVRStereoDevice(final StereoDeviceFactory factory, final OvrHmdContext nativeContext, final int deviceIndex) {
         if( null == nativeContext ) {
             throw new IllegalArgumentException("Passed null nativeContext");
@@ -68,16 +73,30 @@ public class OVRStereoDevice implements StereoDevice {
         this.deviceIndex = deviceIndex;
         this.hmdDesc = ovrHmdDesc.create();
         OVR.ovrHmd_GetDesc(handle, hmdDesc);
-        final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[hmdDesc.getEyeRenderOrderArrayLength()]);
+        final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[ovrHmdDesc.getEyeRenderOrderArrayLength()]);
         defaultEyeFov = new FovHVHalves[defaultOVREyeFov.length];
         for(int i=0; i<defaultEyeFov.length; i++) {
             defaultEyeFov[i] = OVRUtil.getFovHV(defaultOVREyeFov[i]);
         }
-        eyeRenderOrder = new int[hmdDesc.getEyeRenderOrderArrayLength()];
+        eyeRenderOrder = new int[ovrHmdDesc.getEyeRenderOrderArrayLength()];
         hmdDesc.getEyeRenderOrder(0, eyeRenderOrder);
         supportedDistortionBits = OVRUtil.ovrDistCaps2DistBits(hmdDesc.getDistortionCaps());
         recommendedDistortionBits = supportedDistortionBits & ~StereoDeviceRenderer.DISTORTION_TIMEWARP;
         minimumDistortionBits = StereoDeviceRenderer.DISTORTION_BARREL;
+
+        // DK1 delivers unrotated resolution in target orientation
+        // DK2 delivers rotated resolution in target orientation, monitor screen is rotated 90deg clockwise
+        deviceName = hmdDesc.getDisplayDeviceNameAsString();
+        final ovrSizei res = hmdDesc.getResolution();
+        resolution = new Dimension(res.getW(), res.getH());
+        if( "OVR0002".equals(deviceName) || "OVR0003".equals(deviceName) ) {
+            dkVersion = 2;
+            requiredRotation = 90;
+        } else {
+            dkVersion = 1;
+            requiredRotation = 0;
+        }
+        position = OVRUtil.getVec2iAsPoint(hmdDesc.getWindowsPos());
     }
 
     @Override
@@ -88,8 +107,9 @@ public class OVRStereoDevice implements StereoDevice {
         final StringBuilder sb = new StringBuilder();
         sb.append("OVRStereoDevice[product "+hmdDesc.getProductNameAsString());
         sb.append(", vendor "+hmdDesc.getManufacturerAsString());
-        sb.append(", device "+hmdDesc.getDisplayDeviceNameAsString());
-        sb.append(", surfaceSize "+getSurfaceSize());
+        sb.append(", device "+deviceName);
+        sb.append(", DK "+dkVersion);
+        sb.append(", surfaceSize "+getSurfaceSize()+", reqRotation "+requiredRotation+" ccw-deg");
         sb.append(", surfacePos "+getPosition());
         sb.append(", distortionBits[supported ["+StereoUtil.distortionBitsToString(getSupportedDistortionBits())+
                       "], recommended ["+StereoUtil.distortionBitsToString(getRecommendedDistortionBits())+
@@ -103,14 +123,12 @@ public class OVRStereoDevice implements StereoDevice {
     }
 
     @Override
-    public final PointImmutable getPosition() {
-        return OVRUtil.getVec2iAsPoint(hmdDesc.getWindowsPos());
-    }
+    public final PointImmutable getPosition() { return position; }
 
     @Override
-    public final DimensionImmutable getSurfaceSize() {
-        return OVRUtil.getOVRSizei(hmdDesc.getResolution());
-    }
+    public final DimensionImmutable getSurfaceSize() { return resolution; }
+    @Override
+    public int getRequiredRotation() { return requiredRotation; }
 
     @Override
     public float[] getDefaultEyePositionOffset() {
@@ -182,38 +200,51 @@ public class OVRStereoDevice implements StereoDevice {
             System.err.println("XXX: eyeRenderDesc[1] "+OVRUtil.toString(eyeRenderDesc[1]));
         }
 
-        final ovrSizei recommenedTex0Size = OVR.ovrHmd_GetFovTextureSize(handle, OVR.ovrEye_Left,  eyeRenderDesc[0].getFov(), pixelsPerDisplayPixel);
-        final ovrSizei recommenedTex1Size = OVR.ovrHmd_GetFovTextureSize(handle, OVR.ovrEye_Right, eyeRenderDesc[1].getFov(), pixelsPerDisplayPixel);
+        final DimensionImmutable eye0TextureSize = OVRUtil.getOVRSizei(OVR.ovrHmd_GetFovTextureSize(handle, OVR.ovrEye_Left,  eyeRenderDesc[0].getFov(), pixelsPerDisplayPixel));
+        final DimensionImmutable eye1TextureSize = OVRUtil.getOVRSizei(OVR.ovrHmd_GetFovTextureSize(handle, OVR.ovrEye_Right, eyeRenderDesc[1].getFov(), pixelsPerDisplayPixel));
         if( StereoDevice.DEBUG ) {
-            System.err.println("XXX: recommenedTex0Size "+OVRUtil.toString(recommenedTex0Size));
-            System.err.println("XXX: recommenedTex1Size "+OVRUtil.toString(recommenedTex1Size));
+            System.err.println("XXX: recommenedTex0Size "+eye0TextureSize);
+            System.err.println("XXX: recommenedTex1Size "+eye1TextureSize);
         }
-        final int unifiedW = Math.max(recommenedTex0Size.getW(), recommenedTex1Size.getW());
-        final int unifiedH = Math.max(recommenedTex0Size.getH(), recommenedTex1Size.getH());
+        final int maxWidth = Math.max(eye0TextureSize.getWidth(), eye1TextureSize.getWidth());
+        final int maxHeight = Math.max(eye0TextureSize.getHeight(), eye1TextureSize.getHeight());
 
-        final DimensionImmutable singleTextureSize = new Dimension(unifiedW, unifiedH);
-        final DimensionImmutable totalTextureSize = new Dimension(recommenedTex0Size.getW() + recommenedTex1Size.getW(), unifiedH);
+        final DimensionImmutable[] eyeTextureSizes = new DimensionImmutable[] { eye0TextureSize, eye1TextureSize };
+        final DimensionImmutable totalTextureSize = new Dimension(eye0TextureSize.getWidth() + eye1TextureSize.getWidth(), maxHeight);
         if( StereoDevice.DEBUG ) {
-            System.err.println("XXX: textureSize Single "+singleTextureSize);
+            System.err.println("XXX: textureSize Single "+eyeTextureSizes);
             System.err.println("XXX: textureSize Total  "+totalTextureSize);
         }
 
-        final RectangleImmutable[] eyeRenderViewports = new RectangleImmutable[2];
+        final RectangleImmutable[] eyeViewports = new RectangleImmutable[2];
         if( 1 == textureCount ) { // validated in ctor below!
-            eyeRenderViewports[0] = new Rectangle(0, 0,
-                                                  totalTextureSize.getWidth() / 2,
-                                                  totalTextureSize.getHeight());
-
-            eyeRenderViewports[1] = new Rectangle((totalTextureSize.getWidth() + 1) / 2, 0,
-                                                  totalTextureSize.getWidth() / 2,
-                                                  totalTextureSize.getHeight());
+            // one big texture/FBO, viewport to target space
+            if( false && 2 == dkVersion ) {
+                eyeViewports[0] = new Rectangle(0, 0,
+                                                maxWidth,
+                                                eye0TextureSize.getHeight());
+                eyeViewports[1] = new Rectangle(0, eye0TextureSize.getHeight(),
+                                                maxWidth,
+                                                eye1TextureSize.getHeight());
+            } else {
+                eyeViewports[0] = new Rectangle(0, 0,
+                                                eye0TextureSize.getWidth(),
+                                                maxHeight);
+                eyeViewports[1] = new Rectangle(eye0TextureSize.getWidth(), 0,
+                                                eye1TextureSize.getWidth(),
+                                                maxHeight);
+            }
         } else {
-            eyeRenderViewports[0] = new Rectangle(0, 0,
-                                                  singleTextureSize.getWidth(),
-                                                  singleTextureSize.getHeight());
-            eyeRenderViewports[1] = eyeRenderViewports[0];
+            // two textures/FBOs w/ postprocessing, which renders textures/FBOs into target space
+            // FIXME: DK2
+            eyeViewports[0] = new Rectangle(0, 0,
+                                            eye0TextureSize.getWidth(),
+                                            eye0TextureSize.getHeight());
+            eyeViewports[1] = new Rectangle(0, 0,
+                                            eye1TextureSize.getWidth(),
+                                            eye1TextureSize.getHeight());
         }
         return new OVRStereoDeviceRenderer(this, distortionBits, textureCount, eyePositionOffset,
-                                           eyeRenderDesc, singleTextureSize, totalTextureSize, eyeRenderViewports, textureUnit);
+                                           eyeRenderDesc, eyeTextureSizes, totalTextureSize, eyeViewports, textureUnit);
     }
 }

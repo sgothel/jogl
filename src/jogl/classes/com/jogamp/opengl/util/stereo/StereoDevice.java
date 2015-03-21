@@ -41,11 +41,6 @@ public interface StereoDevice {
     public static final boolean DEBUG = Debug.debug("StereoDevice");
     public static final boolean DUMP_DATA = Debug.isPropertyDefined("jogl.debug.StereoDevice.DumpData", true);
 
-    /** Merely a class providing a type-tag for extensions */
-    public static class Config {
-        // NOP
-    }
-
     /** Return the factory used to create this device. */
     public StereoDeviceFactory getFactory();
 
@@ -62,9 +57,15 @@ public interface StereoDevice {
     public PointImmutable getPosition();
 
     /**
-     * Returns the required surface size in pixel.
+     * Returns the required surface size in pixel
+     * in target space.
      */
     public DimensionImmutable getSurfaceSize();
+
+    /**
+     * Returns the CCW rotation as required by this display device.
+     */
+    public int getRequiredRotation();
 
     /**
      * Return the device default eye position offset for {@link #createRenderer(int, int, float[], FovHVHalves[], float)}.

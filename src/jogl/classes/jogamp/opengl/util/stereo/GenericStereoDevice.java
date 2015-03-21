@@ -27,304 +27,104 @@
  */
 package jogamp.opengl.util.stereo;
 
-import java.util.Arrays;
-
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
-
-import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
-import com.jogamp.opengl.util.stereo.StereoUtil;
+import com.jogamp.opengl.util.stereo.generic.GenericStereoDeviceConfig;
+import com.jogamp.opengl.util.stereo.generic.GenericStereoDeviceFactory;
 
 public class GenericStereoDevice implements StereoDevice {
-    public static enum ShutterType {
-        Global, RollingLeftToRight, RollingRightToLeft, RollingTopToBottom
-    }
-    public static class Config extends StereoDevice.Config {
-        public Config(final String name,
-                      final ShutterType shutterType,
-                      final DimensionImmutable surfaceSizeInPixels,
-                      final float[] screenSizeInMeters,
-                      final DimensionImmutable eyeTextureSize,
-                      final float pupilCenterFromScreenTopInMeters,
-                      final float interpupillaryDistanceInMeters,
-                      final int[] eyeRenderOrder,
-                      final EyeParameter[] defaultEyeParam,
-                      final DistortionMesh.Producer distortionMeshProducer,
-                      final int supportedDistortionBits,
-                      final int recommendedDistortionBits,
-                      final int minimumDistortionBits
-                      ) {
-            this.name = name;
-            this.shutterType = shutterType;
-            this.surfaceSizeInPixels = surfaceSizeInPixels;
-            this.screenSizeInMeters = screenSizeInMeters;
-            this.eyeTextureSize = eyeTextureSize;
-            this.pupilCenterFromScreenTopInMeters = pupilCenterFromScreenTopInMeters;
-            this.interpupillaryDistanceInMeters = interpupillaryDistanceInMeters;
-            this.eyeRenderOrder = eyeRenderOrder;
-            this.defaultEyeParam = defaultEyeParam;
-            this.distortionMeshProducer = distortionMeshProducer;
-            this.supportedDistortionBits = supportedDistortionBits;
-            this.recommendedDistortionBits = recommendedDistortionBits;
-            this.minimumDistortionBits = minimumDistortionBits;
-            this.pupilCenterFromTopLeft = new float[2][2];
-            calcPupilCenterFromTopLeft();
-        }
-        /** A variation w/ different surface/screen specs */
-        public Config(final Config source,
-                      final DimensionImmutable surfaceSizeInPixels,
-                      final float[] screenSizeInMeters,
-                      final DimensionImmutable eyeTextureSize) {
-            this.name = source.name;
-            this.shutterType = source.shutterType;
-            this.surfaceSizeInPixels = surfaceSizeInPixels;
-            this.screenSizeInMeters = screenSizeInMeters;
-            this.eyeTextureSize = eyeTextureSize;
-            this.pupilCenterFromScreenTopInMeters = source.pupilCenterFromScreenTopInMeters;
-            this.interpupillaryDistanceInMeters = source.interpupillaryDistanceInMeters;
-            this.eyeRenderOrder = source.eyeRenderOrder;
-            this.defaultEyeParam = source.defaultEyeParam;
-            this.distortionMeshProducer = source.distortionMeshProducer;
-            this.supportedDistortionBits = source.supportedDistortionBits;
-            this.recommendedDistortionBits = source.recommendedDistortionBits;
-            this.minimumDistortionBits = source.minimumDistortionBits;
-            this.pupilCenterFromTopLeft = new float[2][2];
-            calcPupilCenterFromTopLeft();
-        }
-        private void calcPupilCenterFromTopLeft() {
-            final float visibleWidthOfOneEye = 0.5f * screenSizeInMeters[0];
-            final float leftPupilCenterFromLeftInMeters = ( screenSizeInMeters[0] - interpupillaryDistanceInMeters ) * 0.5f;
-            final float rightPupilCenterFromMiddleInMeters = leftPupilCenterFromLeftInMeters + interpupillaryDistanceInMeters - visibleWidthOfOneEye;
-            pupilCenterFromTopLeft[0][0] = leftPupilCenterFromLeftInMeters / visibleWidthOfOneEye;
-            pupilCenterFromTopLeft[0][1] = pupilCenterFromScreenTopInMeters     / screenSizeInMeters[1];
-            pupilCenterFromTopLeft[1][0] = rightPupilCenterFromMiddleInMeters / visibleWidthOfOneEye;
-            pupilCenterFromTopLeft[1][1] =  pupilCenterFromTopLeft[0][1];
-        }
+    /** A mono view configuration DK1, only one eye is supported */
+    public static final GenericStereoDeviceConfig config01Mono01;
+    /** A mono view configuration DK2, only one eye is supported */
+    public static final GenericStereoDeviceConfig config01Mono02;
 
-        /**
-         * Return the vertical pupil center from the screen top in the range [0..1].
-         * @param screenHeightInMeters
-         * @param pupilCenterFromScreenTopInMeters
-         */
-        public static float getVertPupilCenterFromTop(final float screenHeightInMeters, final float pupilCenterFromScreenTopInMeters) {
-            return pupilCenterFromScreenTopInMeters / screenHeightInMeters;
-        }
+    /** A default stereo SBS view configuration DK1 */
+    public static final GenericStereoDeviceConfig config02StereoSBS01;
+    /** A default stereo SBS view configuration DK2 */
+    public static final GenericStereoDeviceConfig config02StereoSBS02;
 
-        /**
-         * Return the horizontal pupil center from the left side for both eyes in the range [0..1].
-         * <pre>
-            <-------------left eye------------->|                       |<-----------right eye-------------->
-            <------------------------------------screenSizeInMeters.Width----------------------------------->
-                                       <------interpupillaryDistanceInMeters------>
-            <--centerFromLeftInMeters->
-                                       ^
-                                 center of pupil
-         * </pre>
-         *
-         * @param screenWidthInMeters
-         * @param interpupillaryDistanceInMeters
-         */
-        public static float[] getHorizPupilCenterFromLeft(final float screenWidthInMeters, final float interpupillaryDistanceInMeters) {
-            final float visibleWidthOfOneEye = 0.5f * screenWidthInMeters;
-            final float leftPupilCenterFromLeftInMeters = ( screenWidthInMeters - interpupillaryDistanceInMeters ) * 0.5f;
-            final float rightPupilCenterFromMiddleInMeters = leftPupilCenterFromLeftInMeters + interpupillaryDistanceInMeters - visibleWidthOfOneEye;
-            return new float[] { leftPupilCenterFromLeftInMeters    / visibleWidthOfOneEye,
-                                 rightPupilCenterFromMiddleInMeters / visibleWidthOfOneEye };
-        }
+    /** A default stereo SBS lense view configuration DK1, utilizing similar settings as OculusVR DK1 */
+    public static final GenericStereoDeviceConfig config03StereoSBSLense01;
+    /** A default stereo SBS lense view configuration DK2, utilizing similar settings as OculusVR DK1 */
+    public static final GenericStereoDeviceConfig config03StereoSBSLense02;
 
-        void init() {
-            final float[] eyeReliefInMeters = new float[defaultEyeParam.length];
-            if( 0 < defaultEyeParam.length ) {
-                eyeReliefInMeters[0] = defaultEyeParam[0].eyeReliefZ;
-            }
-            if( 1 < defaultEyeParam.length ) {
-                eyeReliefInMeters[1] = defaultEyeParam[1].eyeReliefZ;
-            }
-            if( null != distortionMeshProducer ) {
-                distortionMeshProducer.init(this, eyeReliefInMeters);
-            }
-        }
-
-        @Override
-        public String toString() { return "StereoConfig["+name+", shutter "+shutterType+", surfaceSize "+surfaceSizeInPixels+
-                                   ", screenSize "+screenSizeInMeters[0]+" x "+screenSizeInMeters[0]+
-                                   " [m], eyeTexSize "+eyeTextureSize+", IPD "+interpupillaryDistanceInMeters+
-                                   " [m], eyeParam "+Arrays.toString(defaultEyeParam)+
-                                   ", distortionBits[supported ["+StereoUtil.distortionBitsToString(supportedDistortionBits)+
-                                                  "], recommended ["+StereoUtil.distortionBitsToString(recommendedDistortionBits)+
-                                                  "], minimum ["+StereoUtil.distortionBitsToString(minimumDistortionBits)+"]]]";
-        }
-
-        /** Configuration Name */
-        public final String name;
-        public final ShutterType shutterType;
-
-        public final DimensionImmutable surfaceSizeInPixels;
-        public final float[] screenSizeInMeters;
-        /** Texture size per eye */
-        public final DimensionImmutable eyeTextureSize;
-
-        /** Vertical distance from pupil to screen-top in meters */
-        public final float pupilCenterFromScreenTopInMeters;
-        /** Horizontal interpupillary distance (IPD) in meters */
-        public final float interpupillaryDistanceInMeters;
-        /**
-         * Pupil center from top left per eye, ranging from [0..1], maybe used to produce FovHVHalves,
-         * see {@link #getHorizPupilCenterFromLeft(float, float)} and {@link #getVertPupilCenterFromTop(float, float)}.
-         */
-        public final float[/*per-eye*/][/*xy*/] pupilCenterFromTopLeft;
-        public final int[] eyeRenderOrder;
-        public final EyeParameter[] defaultEyeParam;
-        public final DistortionMesh.Producer distortionMeshProducer;
-
-        public final int supportedDistortionBits;
-        public final int recommendedDistortionBits;
-        public final int minimumDistortionBits;
-    }
-
-    /** A mono view configuration, only one eye is supported */
-    public static final Config config01Mono01;
-
-    /** A default stereo SBS view configuration */
-    public static final Config config02StereoSBS01;
-
-    /** A default stereo SBS lense view configuration, utilizing similar settings as OculusVR DK1 */
-    public static final Config config03StereoSBSLense01;
-
-    private static final Config[] configs;
+    private static final GenericStereoDeviceConfig[] configs;
 
     static {
         final float[] DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES = { 0.0f, 1.6f, -5.0f };  // 1.6 up, 5 forward
         final float[] DEFAULT_EYE_POSITION_OFFSET_STEREO        = { 0.0f, 0.3f,  3.0f };  // 0.3 up, 3 back
         final float[] DEFAULT_EYE_POSITION_OFFSET_MONO          = { 0.0f, 0.0f,  3.0f };  //         3 back
 
-        final DimensionImmutable surfaceSizeInPixel = new Dimension(1280, 800);
-        final float[] screenSizeInMeters = new float[] { 0.1498f, 0.0936f };
+        final DimensionImmutable surfaceSizeInPixelDK1 = new Dimension(1280, 800);
+        final float[] screenSizeInMetersDK1 = new float[] { 0.14976f, 0.0936f };
+        final DimensionImmutable eyeTextureSizeDK1 = new Dimension(1122, 1553);
+
+        final DimensionImmutable surfaceSizeInPixelDK2 = new Dimension(1920, 1080);
+        final float[] screenSizeInMetersDK2 = new float[] { 0.12576f, 0.07074f };
+        final DimensionImmutable eyeTextureSizeDK2 = new Dimension(1182, 1461);
+
         final float interpupillaryDistanceInMeters = 0.0635f;
-        final float pupilCenterFromScreenTopInMeters = screenSizeInMeters[1] / 2f;
-        final float d2r = FloatUtil.PI / 180.0f;
-        {
-            config01Mono01 = new Config(
-                            "Def01Mono01",
-                            ShutterType.RollingTopToBottom,
-                            surfaceSizeInPixel,                // resolution
-                            screenSizeInMeters,                // screenSize [m]
-                            surfaceSizeInPixel,                // eye textureSize
-                            pupilCenterFromScreenTopInMeters,  // pupilCenterFromScreenTop [m]
-                            interpupillaryDistanceInMeters,    // IPD [m]
-                            new int[] { 0 },                   // eye order
-                            new EyeParameter[] {
-                                new EyeParameter(0, DEFAULT_EYE_POSITION_OFFSET_MONO,
-                                                 // degrees: 45/2 l, 45/2 r, 45/2 * aspect t, 45/2 * aspect b
-                                                 FovHVHalves.byFovyRadianAndAspect(45f*d2r, 1280f / 800f),
-                                                 0f /* distNoseToPupil */, 0f /* verticalDelta */, 0f /* eyeReliefInMeters */) },
-                            null, // mash producer distortion bits
-                            0,    // supported distortion bits
-                            0,    // recommended distortion bits
-                            0     // minimum distortion bits
-                            );
-        }
 
-        {
-            final DimensionImmutable eyeTextureSize = new Dimension(surfaceSizeInPixel.getWidth()/2, surfaceSizeInPixel.getHeight());
-            final float[] horizPupilCenterFromLeft = Config.getHorizPupilCenterFromLeft(screenSizeInMeters[0], interpupillaryDistanceInMeters);
-            final float vertPupilCenterFromTop = Config.getVertPupilCenterFromTop(screenSizeInMeters[1], pupilCenterFromScreenTopInMeters);
-            final float fovy = 45f;
-            final float aspect = (float)eyeTextureSize.getWidth() / (float)eyeTextureSize.getHeight();
-            final FovHVHalves defaultSBSEyeFovLeft = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[0]);
-            final FovHVHalves defaultSBSEyeFovRight = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[1]);
+        config01Mono01 = GenericStereoDeviceFactory.createMono("Def01Mono01",
+                                    surfaceSizeInPixelDK1, screenSizeInMetersDK1,
+                                    DEFAULT_EYE_POSITION_OFFSET_MONO);
 
-            config02StereoSBS01 = new Config(
-                            "Def02StereoSBS01",
-                            ShutterType.RollingTopToBottom,
-                            surfaceSizeInPixel,                // resolution
-                            screenSizeInMeters,                // screenSize [m]
-                            eyeTextureSize,                    // eye textureSize
-                            pupilCenterFromScreenTopInMeters,  // pupilCenterFromScreenTop [m]
-                            interpupillaryDistanceInMeters,    // IPD [m]
-                            new int[] { 0, 1 },                // eye order
-                            new EyeParameter[] {
-                                new EyeParameter(0, DEFAULT_EYE_POSITION_OFFSET_STEREO, defaultSBSEyeFovLeft,
-                                              0.032f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */),
-                                new EyeParameter(1, DEFAULT_EYE_POSITION_OFFSET_STEREO, defaultSBSEyeFovRight,
-                                             -0.032f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */) },
-                            null,   // mash producer distortion bits
-                            0,      // supported distortion bits
-                            0,      // recommended distortion bits
-                            0       // minimum distortion bits
-                            );
-        }
+        config02StereoSBS01 = GenericStereoDeviceFactory.createStereoSBS("Def02StereoSBS01",
+                                  surfaceSizeInPixelDK1, screenSizeInMetersDK1,
+                                  interpupillaryDistanceInMeters, 45f /* fovy */,
+                                  DEFAULT_EYE_POSITION_OFFSET_STEREO);
 
-        {
-            DistortionMesh.Producer lenseDistMeshProduce = null;
-            try {
-                lenseDistMeshProduce =
-                    (DistortionMesh.Producer)
-                    ReflectionUtil.createInstance("jogamp.opengl.oculusvr.stereo.lense.DistortionMeshProducer", GenericStereoDevice.class.getClassLoader());
-            } catch (final Throwable t) {
-                if(StereoDevice.DEBUG) { System.err.println("Caught: "+t.getMessage()); t.printStackTrace(); }
-            }
+        config03StereoSBSLense01 = GenericStereoDeviceFactory.createStereoSBSLense("Def03StereoSBSLense01",
+                                  surfaceSizeInPixelDK1, screenSizeInMetersDK1,
+                                  interpupillaryDistanceInMeters, 129f /* fovy */,
+                                  eyeTextureSizeDK1,
+                                  DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES);
 
-            final DimensionImmutable eyeTextureSize = new Dimension(1122, 1553);
-            final float[] horizPupilCenterFromLeft = Config.getHorizPupilCenterFromLeft(screenSizeInMeters[0], interpupillaryDistanceInMeters);
-            final float vertPupilCenterFromTop = Config.getVertPupilCenterFromTop(screenSizeInMeters[1], pupilCenterFromScreenTopInMeters);
-            final float fovy = 129f;
-            final float aspect = (float)eyeTextureSize.getWidth() / (float)eyeTextureSize.getHeight();
-            final FovHVHalves defaultSBSEyeFovLenseLeft = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[0]);
-            final FovHVHalves defaultSBSEyeFovLenseRight = FovHVHalves.byFovyRadianAndAspect(fovy * d2r, vertPupilCenterFromTop, aspect, horizPupilCenterFromLeft[1]);
+        config01Mono02 = GenericStereoDeviceFactory.createMono("Def01Mono02",
+                                    surfaceSizeInPixelDK2, screenSizeInMetersDK2,
+                                    DEFAULT_EYE_POSITION_OFFSET_MONO);
 
-            config03StereoSBSLense01 = null == lenseDistMeshProduce ? null :
-                           new Config(
-                            "Def03StereoSBSLense01",
-                            ShutterType.RollingTopToBottom,
-                            surfaceSizeInPixel,                // resolution
-                            screenSizeInMeters,                // screenSize [m]
-                            eyeTextureSize,                    // eye textureSize
-                            pupilCenterFromScreenTopInMeters,  // pupilCenterFromScreenTop [m]
-                            interpupillaryDistanceInMeters,    // IPD [m]
-                            new int[] { 0, 1 },                // eye order
-                            new EyeParameter[] {
-                                new EyeParameter(0, DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES, defaultSBSEyeFovLenseLeft,
-                                              0.032f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */),
-                                new EyeParameter(1, DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES, defaultSBSEyeFovLenseRight,
-                                             -0.032f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */) },
-                            lenseDistMeshProduce,
-                            // supported distortion bits
-                            StereoDeviceRenderer.DISTORTION_BARREL | StereoDeviceRenderer.DISTORTION_CHROMATIC | StereoDeviceRenderer.DISTORTION_VIGNETTE,
-                            // recommended distortion bits
-                            StereoDeviceRenderer.DISTORTION_BARREL | StereoDeviceRenderer.DISTORTION_CHROMATIC | StereoDeviceRenderer.DISTORTION_VIGNETTE,
-                            // minimum distortion bits
-                            StereoDeviceRenderer.DISTORTION_BARREL
-                            );
-        }
-        configs = new Config[] { config01Mono01, config02StereoSBS01, config03StereoSBSLense01 };
+        config02StereoSBS02 = GenericStereoDeviceFactory.createStereoSBS("Def02StereoSBS02",
+                                  surfaceSizeInPixelDK2, screenSizeInMetersDK2,
+                                  interpupillaryDistanceInMeters, 45f /* fovy */,
+                                  DEFAULT_EYE_POSITION_OFFSET_STEREO);
+
+        config03StereoSBSLense02 = GenericStereoDeviceFactory.createStereoSBSLense("Def03StereoSBSLense02",
+                                  surfaceSizeInPixelDK2, screenSizeInMetersDK2,
+                                  interpupillaryDistanceInMeters, 129f /* fovy */,
+                                  eyeTextureSizeDK2,
+                                  DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES);
+
+        configs = new GenericStereoDeviceConfig[] {
+                                 config01Mono01, config02StereoSBS01, config03StereoSBSLense01,
+                                 config01Mono02, config02StereoSBS02, config03StereoSBSLense02 };
     }
 
     private final StereoDeviceFactory factory;
     public final int deviceIndex;
-    public final Config config;
+    public final GenericStereoDeviceConfig config;
 
     public final Point surfacePos;
     private final FovHVHalves[] defaultEyeFov;
 
     private boolean sensorsStarted = false;
 
-    public GenericStereoDevice(final StereoDeviceFactory factory, final int deviceIndex, final StereoDevice.Config customConfig) {
+    public GenericStereoDevice(final StereoDeviceFactory factory, final int deviceIndex, final StereoDeviceConfig customConfig) {
         this.factory = factory;
         this.deviceIndex = deviceIndex;
 
-        if( customConfig instanceof GenericStereoDevice.Config) {
-            this.config = (GenericStereoDevice.Config) customConfig;
+        if( customConfig instanceof GenericStereoDeviceConfig) {
+            this.config = (GenericStereoDeviceConfig) customConfig;
         } else {
             final int cfgIdx = Math.min(deviceIndex % 10, configs.length-1);
             this.config = null != configs[cfgIdx] ? configs[cfgIdx] : config02StereoSBS01;
@@ -365,6 +165,8 @@ public class GenericStereoDevice implements StereoDevice {
     public final DimensionImmutable getSurfaceSize() {
         return config.surfaceSizeInPixels;
     }
+    @Override
+    public int getRequiredRotation() { return 0; }
 
     @Override
     public float[] getDefaultEyePositionOffset() {
@@ -425,7 +227,8 @@ public class GenericStereoDevice implements StereoDevice {
     @Override
     public final StereoDeviceRenderer createRenderer(final int distortionBits,
                                                      final int textureCount, final float[] eyePositionOffset,
-                                                     final FovHVHalves[] eyeFov, final float pixelsPerDisplayPixel, final int textureUnit) {
+                                                     final FovHVHalves[] eyeFov, final float pixelsPerDisplayPixel,
+                                                     final int textureUnit) {
        final EyeParameter[] eyeParam = new EyeParameter[eyeFov.length];
        for(int i=0; i<eyeParam.length; i++) {
            final EyeParameter defaultEyeParam = config.defaultEyeParam[i];
@@ -436,33 +239,47 @@ public class GenericStereoDevice implements StereoDevice {
        final boolean usePP = null != config.distortionMeshProducer && 0 != distortionBits; // use post-processing
 
        final RectangleImmutable[] eyeViewports = new RectangleImmutable[eyeParam.length];
-       final DimensionImmutable eyeTextureSize = config.eyeTextureSize;
        final DimensionImmutable totalTextureSize;
        if( 1 < eyeParam.length ) {
            // Stereo SBS
-           totalTextureSize = new Dimension(eyeTextureSize.getWidth()*2, eyeTextureSize.getHeight());
+           final DimensionImmutable eye0TextureSize = config.eyeTextureSizes[0];
+           final DimensionImmutable eye1TextureSize = config.eyeTextureSizes[1];
+           final int maxHeight = Math.max(eye0TextureSize.getHeight(), eye1TextureSize.getHeight());
 
+           totalTextureSize = new Dimension(eye0TextureSize.getWidth()+eye1TextureSize.getWidth(), maxHeight);
            if( 1 == textureCount ) { // validated in ctor below!
+               // one big texture/FBO, viewport to target space
                eyeViewports[0] = new Rectangle(0, 0,
-                                               eyeTextureSize.getWidth(), eyeTextureSize.getHeight());
-
-               eyeViewports[1] = new Rectangle(eyeTextureSize.getWidth(), 0,
-                                               eyeTextureSize.getWidth(), eyeTextureSize.getHeight());
+                                               eye0TextureSize.getWidth(),
+                                               maxHeight);
+               eyeViewports[1] = new Rectangle(eye0TextureSize.getWidth(), 0,
+                                               eye1TextureSize.getWidth(),
+                                               maxHeight);
+           } else if( usePP ) {
+               // two textures/FBOs w/ postprocessing, which renders textures/FBOs into target space
+               eyeViewports[0] = new Rectangle(0, 0,
+                                               eye0TextureSize.getWidth(),
+                                               eye0TextureSize.getHeight());
+               eyeViewports[1] = new Rectangle(0, 0,
+                                               eye1TextureSize.getWidth(),
+                                               eye1TextureSize.getHeight());
            } else {
-               eyeViewports[0] = new Rectangle(0, 0, eyeTextureSize.getWidth(), eyeTextureSize.getHeight());
-               if( usePP ) {
-                   eyeViewports[1] = eyeViewports[0];
-               } else {
-                   eyeViewports[1] = new Rectangle(eyeTextureSize.getWidth(), 0,
-                                                   eyeTextureSize.getWidth(), eyeTextureSize.getHeight());
-               }
+               // two textures/FBOs w/o postprocessing, viewport to target space
+               eyeViewports[0] = new Rectangle(0, 0,
+                                               eye0TextureSize.getWidth(),
+                                               eye0TextureSize.getHeight());
+               eyeViewports[1] = new Rectangle(eye0TextureSize.getWidth(), 0,
+                                               eye1TextureSize.getWidth(),
+                                               eye1TextureSize.getHeight());
            }
        } else {
            // Mono
-           totalTextureSize = eyeTextureSize;
-           eyeViewports[0] = new Rectangle(0, 0, eyeTextureSize.getWidth(), eyeTextureSize.getHeight());
+           final DimensionImmutable eye0TextureSize = config.eyeTextureSizes[0];
+           totalTextureSize = eye0TextureSize;
+           eyeViewports[0] = new Rectangle(0, 0, eye0TextureSize.getWidth(), eye0TextureSize.getHeight());
        }
-       return new GenericStereoDeviceRenderer(this, distortionBits, textureCount, eyePositionOffset, eyeParam, pixelsPerDisplayPixel, textureUnit,
-                                              eyeTextureSize, totalTextureSize, eyeViewports);
+       return new GenericStereoDeviceRenderer(this, distortionBits, textureCount, eyePositionOffset, eyeParam,
+                                              pixelsPerDisplayPixel, textureUnit,
+                                              config.eyeTextureSizes, totalTextureSize, eyeViewports);
     }
 }

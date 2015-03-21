@@ -29,6 +29,7 @@ package jogamp.opengl.oculusvr;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.RectangleImmutable;
@@ -375,7 +376,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     private final OVREye[] eyes;
     private final int distortionBits;
     private final int textureCount;
-    private final DimensionImmutable singleTextureSize;
+    private final DimensionImmutable[] eyeTextureSizes;
     private final DimensionImmutable totalTextureSize;
     private final GLUniformData texUnit0;
 
@@ -389,7 +390,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     @Override
     public String toString() {
         return "OVRDist[distortion["+StereoUtil.distortionBitsToString(distortionBits)+
-                       "], singleSize "+singleTextureSize+
+                       "], eyeTexSize "+Arrays.toString(eyeTextureSizes)+
                        ", sbsSize "+totalTextureSize+
                        ", texCount "+textureCount+", texUnit "+getTextureUnit()+
                        ", "+PlatformPropsImpl.NEWLINE+"  "+eyes[0]+", "+PlatformPropsImpl.NEWLINE+"  "+eyes[1]+"]";
@@ -412,7 +413,8 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
     /* pp */ OVRStereoDeviceRenderer(final OVRStereoDevice context, final int distortionBits,
                              final int textureCount, final float[] eyePositionOffset,
-                             final ovrEyeRenderDesc[] eyeRenderDescs, final DimensionImmutable singleTextureSize, final DimensionImmutable totalTextureSize,
+                             final ovrEyeRenderDesc[] eyeRenderDescs,
+                             final DimensionImmutable[] eyeTextureSizes, final DimensionImmutable totalTextureSize,
                              final RectangleImmutable[] eyeViewports, final int textureUnit) {
         if( 1 > textureCount || 2 < textureCount ) {
             throw new IllegalArgumentException("textureCount can only be 1 or 2, has "+textureCount);
@@ -421,14 +423,21 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         this.eyes = new OVREye[2];
         this.distortionBits = ( distortionBits | context.getMinimumDistortionBits() ) & context.getSupportedDistortionBits();
         this.textureCount = textureCount;
-        this.singleTextureSize = singleTextureSize;
+        this.eyeTextureSizes = eyeTextureSizes;
         this.totalTextureSize = totalTextureSize;
 
         texUnit0 = new GLUniformData("ovr_Texture0", textureUnit);
 
-        final ovrSizei ovrTextureSize = OVRUtil.createOVRSizei( 1 == textureCount ? totalTextureSize : singleTextureSize );
-        eyes[0] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[0], ovrTextureSize, eyeViewports[0]);
-        eyes[1] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTextureSize, eyeViewports[1]);
+        final ovrSizei ovrTexture0Size, ovrTexture1Size;
+        if( 1 == textureCount ) {
+            ovrTexture0Size = OVRUtil.createOVRSizei(totalTextureSize);
+            ovrTexture1Size = ovrTexture0Size;
+        } else {
+            ovrTexture0Size = OVRUtil.createOVRSizei(eyeTextureSizes[0]);
+            ovrTexture1Size = OVRUtil.createOVRSizei(eyeTextureSizes[1]);
+        }
+        eyes[0] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[0], ovrTexture0Size, eyeViewports[0]);
+        eyes[1] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTexture1Size, eyeViewports[1]);
         sp = null;
         frameTiming = null;
     }
@@ -445,7 +454,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     public final boolean usesSideBySideStereo() { return true; }
 
     @Override
-    public final DimensionImmutable getSingleSurfaceSize() { return singleTextureSize; }
+    public final DimensionImmutable[] getEyeSurfaceSize() { return eyeTextureSizes; }
 
     @Override
     public final DimensionImmutable getTotalSurfaceSize() { return totalTextureSize; }

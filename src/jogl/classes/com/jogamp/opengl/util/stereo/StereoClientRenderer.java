@@ -85,9 +85,9 @@ public class StereoClientRenderer implements GLEventListener {
         this.fboTexs = new TextureAttachment[fboCount];
     }
 
-    private void initFBOs(final GL gl, final DimensionImmutable size) {
+    private void initFBOs(final GL gl, final DimensionImmutable[] sizes) {
         for(int i=0; i<fbos.length; i++) {
-            fbos[i].init(gl, size.getWidth(), size.getHeight(), numSamples);
+            fbos[i].init(gl, sizes[i].getWidth(), sizes[i].getHeight(), numSamples);
             if( i>0 && fbos[i-1].getNumSamples() != fbos[i].getNumSamples()) {
                 throw new InternalError("sample size mismatch: \n\t0: "+fbos[i-1]+"\n\t1: "+fbos[i]);
             }
@@ -98,7 +98,7 @@ public class StereoClientRenderer implements GLEventListener {
                 fbos[i].attachRenderbuffer(gl, Type.DEPTH, FBObject.DEFAULT_BITS);
                 final FBObject ssink = new FBObject();
                 {
-                    ssink.init(gl, size.getWidth(), size.getHeight(), 0);
+                    ssink.init(gl, sizes[i].getWidth(), sizes[i].getHeight(), 0);
                     ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                     ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
                 }
@@ -146,7 +146,9 @@ public class StereoClientRenderer implements GLEventListener {
         deviceRenderer.init(gl);
 
         // We will do some offscreen rendering, setup FBO...
-        final DimensionImmutable textureSize = deviceRenderer.getTextureCount() > 1 ? deviceRenderer.getSingleSurfaceSize() : deviceRenderer.getTotalSurfaceSize();
+        final DimensionImmutable[] textureSize = deviceRenderer.getTextureCount() > 1 ?
+                                                 deviceRenderer.getEyeSurfaceSize() :
+                                                 new DimensionImmutable[] { deviceRenderer.getTotalSurfaceSize() };
         initFBOs(gl, textureSize);
         helper.init(drawable, false);
 

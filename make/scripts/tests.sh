@@ -313,7 +313,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.test.Screen.disableRandR13"
-    D_ARGS="-Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.debug.Screen"
 
     if [ $awton -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -411,7 +411,7 @@ function testawtswt() {
 #
 # Stereo
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI
@@ -623,7 +623,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03aNEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*

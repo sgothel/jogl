@@ -28,11 +28,17 @@
 package jogamp.opengl.util.stereo;
 
 import com.jogamp.opengl.util.stereo.EyeParameter;
+import com.jogamp.opengl.util.stereo.generic.GenericStereoDeviceConfig;
 
 public class DistortionMesh {
     public static interface Producer {
-        /** Initialize */
-        void init(final GenericStereoDevice.Config deviceConfig, final float[] eyeReliefInMeters);
+        /**
+         * Initialize
+         * @param deviceConfig
+         * @param eyeReliefInMeters
+         * @throws IllegalStateException if already initialized
+         */
+        void init(final GenericStereoDeviceConfig deviceConfig, final float[] eyeReliefInMeters) throws IllegalStateException;
 
         /** Distortion Mesh Producer */
         DistortionMesh create(final EyeParameter eyeParam, final int distortionBits);

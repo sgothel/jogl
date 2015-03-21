@@ -10,11 +10,11 @@
                         }
                         /** No native tool library to load
                         if(!bundle.isToolLibLoaded()) {
-                          System.err.println("Couln't load native OVR/JNI glue library");
+                          System.err.println("Couldn't load native OVR/JNI glue library");
                           return null;
                         } */
                         if(!bundle.isLibComplete()) {
-                          System.err.println("Couln't load native OVR/JNI glue library");
+                          System.err.println("Couldn't load native OVR/JNI glue library");
                           return null;
                         }
                         if( !initializeImpl() ) {

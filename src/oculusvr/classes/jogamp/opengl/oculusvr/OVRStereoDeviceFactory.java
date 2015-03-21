@@ -30,8 +30,8 @@ package jogamp.opengl.oculusvr;
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.OVRVersion;
 import com.jogamp.oculusvr.OvrHmdContext;
+import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.StereoDevice;
-import com.jogamp.opengl.util.stereo.StereoDevice.Config;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 
 public class OVRStereoDeviceFactory extends StereoDeviceFactory {
@@ -44,7 +44,7 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
     }
 
     @Override
-    public final StereoDevice createDevice(final int deviceIndex, final Config config, final boolean verbose) {
+    public final StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
         final OvrHmdContext hmdCtx = OVR.ovrHmd_Create(deviceIndex);
         if( null == hmdCtx ) {
             if( verbose ) {

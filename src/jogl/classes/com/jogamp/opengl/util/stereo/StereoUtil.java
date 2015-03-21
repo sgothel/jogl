@@ -34,6 +34,36 @@ import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer.Eye;
 
 public class StereoUtil {
+    /**
+     * Return the vertical pupil center from the screen top in the range [0..1].
+     * @param screenHeightInMeters
+     * @param pupilCenterFromScreenTopInMeters
+     */
+    public static float getVertPupilCenterFromTop(final float screenHeightInMeters, final float pupilCenterFromScreenTopInMeters) {
+        return pupilCenterFromScreenTopInMeters / screenHeightInMeters;
+    }
+
+    /**
+     * Return the horizontal pupil center from the left side for both eyes in the range [0..1].
+     * <pre>
+            <-------------left eye------------->|                       |<-----------right eye-------------->
+            <------------------------------------screenSizeInMeters.Width----------------------------------->
+                                       <------interpupillaryDistanceInMeters------>
+            <--centerFromLeftInMeters->
+                                       ^
+                                 center of pupil
+     * </pre>
+     *
+     * @param screenWidthInMeters
+     * @param interpupillaryDistanceInMeters
+     */
+    public static float[] getHorizPupilCenterFromLeft(final float screenWidthInMeters, final float interpupillaryDistanceInMeters) {
+        final float visibleWidthOfOneEye = 0.5f * screenWidthInMeters;
+        final float leftPupilCenterFromLeftInMeters = ( screenWidthInMeters - interpupillaryDistanceInMeters ) * 0.5f;
+        final float rightPupilCenterFromMiddleInMeters = leftPupilCenterFromLeftInMeters + interpupillaryDistanceInMeters - visibleWidthOfOneEye;
+        return new float[] { leftPupilCenterFromLeftInMeters    / visibleWidthOfOneEye,
+                             rightPupilCenterFromMiddleInMeters / visibleWidthOfOneEye };
+    }
 
     /** See {@link StereoDeviceRenderer#getDistortionBits()}. */
     public static boolean usesBarrelDistortion(final int distortionBits) { return 0 != ( distortionBits & StereoDeviceRenderer.DISTORTION_BARREL ) ; }

@@ -42,7 +42,7 @@ import com.jogamp.common.util.ReflectionUtil;
  */
 public abstract class StereoDeviceFactory {
     private static final String OVRStereoDeviceClazzName = "jogamp.opengl.oculusvr.OVRStereoDeviceFactory";
-    private static final String GenericStereoDeviceClazzName = "jogamp.opengl.util.stereo.GenericStereoDeviceFactory";
+    private static final String GenericStereoDeviceClazzName = com.jogamp.opengl.util.stereo.generic.GenericStereoDeviceFactory.class.getName();
     private static final String isAvailableMethodName = "isAvailable";
 
     /** {@link StereoDevice} type used for {@link StereoDeviceFactory#createFactory(DeviceType) createFactory(type)}. */
@@ -60,9 +60,13 @@ public abstract class StereoDeviceFactory {
          */
         Generic,
         /**
-         * OculusVR implementation.
+         * OculusVR DK1 implementation.
          */
-        OculusVR
+        OculusVR,
+        /**
+         * OculusVR DK2 implementation.
+         */
+        OculusVR_DK2
     };
 
     public static StereoDeviceFactory createDefaultFactory() {
@@ -80,7 +84,7 @@ public abstract class StereoDeviceFactory {
             case Default: return createDefaultFactory();
             case Generic: className = GenericStereoDeviceClazzName; break;
             case OculusVR: className = OVRStereoDeviceClazzName; break;
-            default: throw new InternalError("XXX");
+            default: throw new InternalError("Unsupported type "+type);
         }
         final ClassLoader cl = StereoDeviceFactory.class.getClassLoader();
         return createFactory(cl, className);
@@ -95,5 +99,12 @@ public abstract class StereoDeviceFactory {
         return null;
     }
 
-    public abstract StereoDevice createDevice(final int deviceIndex, final StereoDevice.Config config, final boolean verbose);
+    /**
+     *
+     * @param deviceIndex
+     * @param config optional custom configuration, matching the implementation, i.e. {@link StereoDeviceConfig.GenericStereoDeviceConfig}.
+     * @param verbose
+     * @return
+     */
+    public abstract StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose);
 }

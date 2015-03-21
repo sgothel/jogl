@@ -155,17 +155,17 @@ public interface StereoDeviceRenderer {
     public boolean usesSideBySideStereo();
 
     /**
-     * Returns the unified surface size of one eye's a single image in pixel units.
+     * Returns the surface size for each eye's a single image in pixel units.
      */
-    public DimensionImmutable getSingleSurfaceSize();
+    public DimensionImmutable[] getEyeSurfaceSize();
 
     /**
      * Returns the total surface size required for the complete images in pixel units.
      * <p>
-     * If {@link #usesSideBySideStereo()} the total size spans over both {@link #getSingleSurfaceSize()}, side-by-side.
+     * If {@link #usesSideBySideStereo()} the total size spans over both {@link #getEyeSurfaceSize()}, side-by-side.
      * </p>
      * <p>
-     * Otherwise the size is equal to {@link #getSingleSurfaceSize()}.
+     * Otherwise the size is equal to {@link #getEyeSurfaceSize()}.
      * </p>
      */
     public DimensionImmutable getTotalSurfaceSize();
