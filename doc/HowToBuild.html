@@ -248,7 +248,7 @@ ln -s libudev.so.1 libudev.so
                             </ul><br/>
                             It is crucial that you checkout the source code under a common root directory:
                             <pre>
-    /home/dude/projects/jogamp> git clone git://jogamp.org/srv/scm/gluegen.git gluegen
+    /home/dude/projects/jogamp> git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
     /home/dude/projects/jogamp> git clone --recurse-submodules git://jogamp.org/srv/scm/jogl.git jogl
                             </pre>
                             Now you should have following directory structure:
@@ -257,11 +257,17 @@ ln -s libudev.so.1 libudev.so
     /home/dude/projects/jogamp/gluegen
     /home/dude/projects/jogamp/jogl
                             </pre>
-                            Note: In case you do not get the JOGL sources with <i>-recurse-submodules</i>,
+                            <p>
+                            Note-1: The GlueGen source must be fetched using <i>-recurse-submodules</i>,
+                                    which imports <i>JCPP</i>, now used as the default C preprocessor. 
+                            </p>
+                            <p>
+                            Note-2: In case you do not get the JOGL sources with <i>-recurse-submodules</i>,
                             you will miss the following features:
                             <ul>
                               <li>OculusVR Support</li>
                             </ul>
+                            </p>
                         </li>
 
                         <li> <b>Unset your CLASSPATH environment variable:</b> <br/>
