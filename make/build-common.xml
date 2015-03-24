@@ -66,8 +66,9 @@
         <property name="config"                     value="${make}/config" />
         <property name="stub.includes"              value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
-        <property name="stub.includes.gluegen.gg"  value="${gluegen.root}/make/stub_includes/gluegen" />
-        <property name="stub.includes.gluegen.cc"  value="${gluegen.root}/make/stub_includes/platform" />
+        <property name="stub.includes.gluegen"     value="${gluegen.root}/make/stub_includes" />
+        <property name="stub.includes.gluegen.gg"  value="${stub.includes.gluegen}/gluegen" />
+        <property name="stub.includes.gluegen.cc"  value="${stub.includes.gluegen}/platform" />
 
         <property name="jogl.build.number" value="manual"/>
         <property name="jogl.build.id"     value="${version.timestamp}"/>
