@@ -64,15 +64,18 @@ public class OVRStereoDevice implements StereoDevice {
     private final PointImmutable position;
     private final int dkVersion;
 
-    public OVRStereoDevice(final StereoDeviceFactory factory, final OvrHmdContext nativeContext, final int deviceIndex) {
+    public OVRStereoDevice(final StereoDeviceFactory factory, final ovrHmdDesc hmdDesc, final int deviceIndex) {
+        if( null == hmdDesc ) {
+            throw new IllegalArgumentException("Passed null hmdDesc");
+        }
+        final OvrHmdContext nativeContext = hmdDesc.getHandle();
         if( null == nativeContext ) {
-            throw new IllegalArgumentException("Passed null nativeContext");
+            throw new IllegalArgumentException("hmdDesc has null OvrHmdContext");
         }
         this.factory = factory;
         this.handle = nativeContext;
         this.deviceIndex = deviceIndex;
-        this.hmdDesc = ovrHmdDesc.create();
-        OVR.ovrHmd_GetDesc(handle, hmdDesc);
+        this.hmdDesc = hmdDesc;
         final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[ovrHmdDesc.getEyeRenderOrderArrayLength()]);
         defaultEyeFov = new FovHVHalves[defaultOVREyeFov.length];
         for(int i=0; i<defaultEyeFov.length; i++) {
@@ -89,12 +92,18 @@ public class OVRStereoDevice implements StereoDevice {
         deviceName = hmdDesc.getDisplayDeviceNameAsString();
         final ovrSizei res = hmdDesc.getResolution();
         resolution = new Dimension(res.getW(), res.getH());
-        if( "OVR0002".equals(deviceName) || "OVR0003".equals(deviceName) ) {
-            dkVersion = 2;
-            requiredRotation = 90;
-        } else {
-            dkVersion = 1;
-            requiredRotation = 0;
+        final int hmdType = hmdDesc.getType();
+        switch( hmdType ) {
+            case OVR.ovrHmd_DKHD:             // 4
+            case 5:                           // OVR.ovrHmd_CrystalCoveProto:
+            case OVR.ovrHmd_DK2:              // 6
+                dkVersion = 2;
+                requiredRotation = 90;
+                break;
+            default:
+                dkVersion = 1;
+                requiredRotation = 0;
+                break;
         }
         position = OVRUtil.getVec2iAsPoint(hmdDesc.getWindowsPos());
     }
@@ -144,9 +153,12 @@ public class OVRStereoDevice implements StereoDevice {
     public final boolean startSensors(final boolean start) {
         if( start && !sensorsStarted ) {
             // Start the sensor which provides the Rift’s pose and motion.
-            final int requiredSensorCaps = 0;
-            final int supportedSensorCaps = requiredSensorCaps | OVR.ovrSensorCap_Orientation | OVR.ovrSensorCap_YawCorrection | OVR.ovrSensorCap_Position;
-            if( OVR.ovrHmd_StartSensor(handle, supportedSensorCaps, requiredSensorCaps) ) {
+            final int requiredTrackingCaps = 0;
+            final int supportedTrackingCaps = requiredTrackingCaps |
+                                            OVR.ovrTrackingCap_Orientation |
+                                            OVR.ovrTrackingCap_MagYawCorrection |
+                                            OVR.ovrTrackingCap_Position;
+            if( OVR.ovrHmd_ConfigureTracking(hmdDesc, supportedTrackingCaps, requiredTrackingCaps) ) {
                 sensorsStarted = true;
                 return true;
             } else {
@@ -154,7 +166,7 @@ public class OVRStereoDevice implements StereoDevice {
                 return false;
             }
         } else if( sensorsStarted ) {
-            OVR.ovrHmd_StopSensor(handle);
+            OVR.ovrHmd_ConfigureTracking(hmdDesc, 0, 0); // STOP
             sensorsStarted = false;
             return true;
         } else {
@@ -193,20 +205,20 @@ public class OVRStereoDevice implements StereoDevice {
         final ovrFovPort ovrEyeFov1 = OVRUtil.getOVRFovPort(eyeFov[1]);
 
         final ovrEyeRenderDesc[] eyeRenderDesc = new ovrEyeRenderDesc[2];
-        eyeRenderDesc[0] = OVR.ovrHmd_GetRenderDesc(handle, OVR.ovrEye_Left, ovrEyeFov0);
-        eyeRenderDesc[1] = OVR.ovrHmd_GetRenderDesc(handle, OVR.ovrEye_Right, ovrEyeFov1);
+        eyeRenderDesc[0] = OVR.ovrHmd_GetRenderDesc(hmdDesc, OVR.ovrEye_Left, ovrEyeFov0);
+        eyeRenderDesc[1] = OVR.ovrHmd_GetRenderDesc(hmdDesc, OVR.ovrEye_Right, ovrEyeFov1);
         if( StereoDevice.DEBUG ) {
             System.err.println("XXX: eyeRenderDesc[0] "+OVRUtil.toString(eyeRenderDesc[0]));
             System.err.println("XXX: eyeRenderDesc[1] "+OVRUtil.toString(eyeRenderDesc[1]));
         }
 
-        final DimensionImmutable eye0TextureSize = OVRUtil.getOVRSizei(OVR.ovrHmd_GetFovTextureSize(handle, OVR.ovrEye_Left,  eyeRenderDesc[0].getFov(), pixelsPerDisplayPixel));
-        final DimensionImmutable eye1TextureSize = OVRUtil.getOVRSizei(OVR.ovrHmd_GetFovTextureSize(handle, OVR.ovrEye_Right, eyeRenderDesc[1].getFov(), pixelsPerDisplayPixel));
+        final DimensionImmutable eye0TextureSize = OVRUtil.getOVRSizei(OVR.ovrHmd_GetFovTextureSize(hmdDesc, OVR.ovrEye_Left,  eyeRenderDesc[0].getFov(), pixelsPerDisplayPixel));
+        final DimensionImmutable eye1TextureSize = OVRUtil.getOVRSizei(OVR.ovrHmd_GetFovTextureSize(hmdDesc, OVR.ovrEye_Right, eyeRenderDesc[1].getFov(), pixelsPerDisplayPixel));
         if( StereoDevice.DEBUG ) {
             System.err.println("XXX: recommenedTex0Size "+eye0TextureSize);
             System.err.println("XXX: recommenedTex1Size "+eye1TextureSize);
         }
-        final int maxWidth = Math.max(eye0TextureSize.getWidth(), eye1TextureSize.getWidth());
+        // final int maxWidth = Math.max(eye0TextureSize.getWidth(), eye1TextureSize.getWidth());
         final int maxHeight = Math.max(eye0TextureSize.getHeight(), eye1TextureSize.getHeight());
 
         final DimensionImmutable[] eyeTextureSizes = new DimensionImmutable[] { eye0TextureSize, eye1TextureSize };
@@ -219,24 +231,14 @@ public class OVRStereoDevice implements StereoDevice {
         final RectangleImmutable[] eyeViewports = new RectangleImmutable[2];
         if( 1 == textureCount ) { // validated in ctor below!
             // one big texture/FBO, viewport to target space
-            if( false && 2 == dkVersion ) {
-                eyeViewports[0] = new Rectangle(0, 0,
-                                                maxWidth,
-                                                eye0TextureSize.getHeight());
-                eyeViewports[1] = new Rectangle(0, eye0TextureSize.getHeight(),
-                                                maxWidth,
-                                                eye1TextureSize.getHeight());
-            } else {
-                eyeViewports[0] = new Rectangle(0, 0,
-                                                eye0TextureSize.getWidth(),
-                                                maxHeight);
-                eyeViewports[1] = new Rectangle(eye0TextureSize.getWidth(), 0,
-                                                eye1TextureSize.getWidth(),
-                                                maxHeight);
-            }
+            eyeViewports[0] = new Rectangle(0, 0,
+                                            eye0TextureSize.getWidth(),
+                                            maxHeight);
+            eyeViewports[1] = new Rectangle(eye0TextureSize.getWidth(), 0,
+                                            eye1TextureSize.getWidth(),
+                                            maxHeight);
         } else {
             // two textures/FBOs w/ postprocessing, which renders textures/FBOs into target space
-            // FIXME: DK2
             eyeViewports[0] = new Rectangle(0, 0,
                                             eye0TextureSize.getWidth(),
                                             eye0TextureSize.getHeight());

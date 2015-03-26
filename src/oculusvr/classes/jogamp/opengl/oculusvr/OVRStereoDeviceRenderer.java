@@ -44,12 +44,12 @@ import jogamp.common.os.PlatformPropsImpl;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.OVRException;
-import com.jogamp.oculusvr.OvrHmdContext;
 import com.jogamp.oculusvr.ovrDistortionMesh;
 import com.jogamp.oculusvr.ovrDistortionVertex;
 import com.jogamp.oculusvr.ovrEyeRenderDesc;
 import com.jogamp.oculusvr.ovrFovPort;
 import com.jogamp.oculusvr.ovrFrameTiming;
+import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.oculusvr.ovrMatrix4f;
 import com.jogamp.oculusvr.ovrPosef;
 import com.jogamp.oculusvr.ovrRecti;
@@ -109,7 +109,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         @Override
         public final EyePose getLastEyePose() { return eyePose; }
 
-        private OVREye(final OvrHmdContext hmdCtx, final int distortionBits,
+        private OVREye(final ovrHmdDesc hmdDesc, final int distortionBits,
                        final float[] eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
                        final ovrSizei ovrTextureSize, final RectangleImmutable eyeViewport) {
             this.eyeName = eyeDesc.getEye();
@@ -133,13 +133,13 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             this.ovrEyeDesc = eyeDesc;
             this.ovrEyeFov = eyeDesc.getFov();
 
-            final ovrVector3f eyeViewAdjust = eyeDesc.getViewAdjust();
+            final ovrVector3f eyeViewAdjust = eyeDesc.getHmdToEyeViewOffset();
             this.eyeParameter = new EyeParameter(eyeName, eyePositionOffset, OVRUtil.getFovHV(ovrEyeFov),
                                                  eyeViewAdjust.getX(), eyeViewAdjust.getY(), eyeViewAdjust.getZ());
 
             this.eyePose = new EyePose(eyeName);
 
-            updateEyePose(hmdCtx); // 1st init
+            updateEyePose(hmdDesc); // 1st init
 
             // Setup: eyeToSourceUVScale, eyeToSourceUVOffset
             {
@@ -167,7 +167,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             final ovrDistortionMesh meshData = ovrDistortionMesh.create();
 
             final int ovrDistortionCaps = distBits2OVRDistCaps(distortionBits);
-            if( !OVR.ovrHmd_CreateDistortionMesh(hmdCtx, eyeName, ovrEyeFov, ovrDistortionCaps, meshData) ) {
+            if( !OVR.ovrHmd_CreateDistortionMesh(hmdDesc, eyeName, ovrEyeFov, ovrDistortionCaps, meshData) ) {
                 throw new OVRException("Failed to create meshData for eye "+eyeName+", "+OVRUtil.toString(ovrEyeFov)+" and "+StereoUtil.distortionBitsToString(distortionBits));
             }
             vertexCount = meshData.getVertexCount();
@@ -204,7 +204,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
                     System.err.println("XXX."+eyeName+": START VERTEX "+vertNum+" / "+vertexCount);
                 }
                 // pos
-                v = ov.getPos();
+                v = ov.getScreenPosNDC();
                 if( StereoDevice.DUMP_DATA ) {
                     System.err.println("XXX."+eyeName+": pos "+OVRUtil.toString(v));
                 }
@@ -226,7 +226,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
                 iVBOFB.put(ov.getTimeWarpFactor());
 
                 // texCoordR
-                v = ov.getTexR();
+                v = ov.getTanEyeAnglesR();
                 if( StereoDevice.DUMP_DATA ) {
                     System.err.println("XXX."+eyeName+": texR "+OVRUtil.toString(v));
                 }
@@ -235,7 +235,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
                 if( useChromatic ) {
                     // texCoordG
-                    v = ov.getTexG();
+                    v = ov.getTanEyeAnglesG();
                     if( StereoDevice.DUMP_DATA ) {
                         System.err.println("XXX."+eyeName+": texG "+OVRUtil.toString(v));
                     }
@@ -243,7 +243,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
                     iVBOFB.put(v.getY());
 
                     // texCoordB
-                    v = ov.getTexB();
+                    v = ov.getTanEyeAnglesB();
                     if( StereoDevice.DUMP_DATA ) {
                         System.err.println("XXX."+eyeName+": texB "+OVRUtil.toString(v));
                     }
@@ -331,11 +331,11 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             }
         }
 
-        private void updateTimewarp(final OvrHmdContext hmdCtx, final ovrPosef eyeRenderPose, final float[] mat4Tmp1, final float[] mat4Tmp2) {
+        private void updateTimewarp(final ovrHmdDesc hmdDesc, final ovrPosef eyeRenderPose, final float[] mat4Tmp1, final float[] mat4Tmp2) {
             final ovrMatrix4f[] timeWarpMatrices = new ovrMatrix4f[2];
             timeWarpMatrices[0] = ovrMatrix4f.create(); // FIXME: remove ctor / double check
             timeWarpMatrices[1] = ovrMatrix4f.create();
-            OVR.ovrHmd_GetEyeTimewarpMatrices(hmdCtx, eyeName, eyeRenderPose, timeWarpMatrices);
+            OVR.ovrHmd_GetEyeTimewarpMatrices(hmdDesc, eyeName, eyeRenderPose, timeWarpMatrices);
 
             final float[] eyeRotationStartM = FloatUtil.transposeMatrix(timeWarpMatrices[0].getM(0, mat4Tmp1), mat4Tmp2);
             final FloatBuffer eyeRotationStartU = eyeRotationStart.floatBufferValue();
@@ -351,10 +351,10 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         /**
          * Updates {@link #ovrEyePose} and it's extracted
          * {@link #eyeRenderPoseOrientation} and {@link #eyeRenderPosePosition}.
-         * @param hmdCtx used get the {@link #ovrEyePose} via {@link OVR#ovrHmd_GetEyePose(OvrHmdContext, int)}
+         * @param hmdCtx used get the {@link #ovrEyePose} via {@link OVR#ovrHmd_GetHmdPosePerEye(ovrHmdDesc, int)}
          */
-        private EyePose updateEyePose(final OvrHmdContext hmdCtx) {
-            ovrEyePose = OVR.ovrHmd_GetEyePose(hmdCtx, eyeName);
+        private EyePose updateEyePose(final ovrHmdDesc hmdDesc) {
+            ovrEyePose = OVR.ovrHmd_GetHmdPosePerEye(hmdDesc, eyeName);
             final ovrVector3f pos = ovrEyePose.getPosition();
             eyePose.setPosition(pos.getX(), pos.getY(), pos.getZ());
             OVRUtil.copyToQuaternion(ovrEyePose.getOrientation(), eyePose.orientation);
@@ -436,8 +436,8 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             ovrTexture0Size = OVRUtil.createOVRSizei(eyeTextureSizes[0]);
             ovrTexture1Size = OVRUtil.createOVRSizei(eyeTextureSizes[1]);
         }
-        eyes[0] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[0], ovrTexture0Size, eyeViewports[0]);
-        eyes[1] = new OVREye(context.handle, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTexture1Size, eyeViewports[1]);
+        eyes[0] = new OVREye(context.hmdDesc, this.distortionBits, eyePositionOffset, eyeRenderDescs[0], ovrTexture0Size, eyeViewports[0]);
+        eyes[1] = new OVREye(context.hmdDesc, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTexture1Size, eyeViewports[1]);
         sp = null;
         frameTiming = null;
     }
@@ -545,12 +545,12 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
     @Override
     public final EyePose updateEyePose(final int eyeNum) {
-        return eyes[eyeNum].updateEyePose(context.handle);
+        return eyes[eyeNum].updateEyePose(context.hmdDesc);
     }
 
     @Override
     public final void beginFrame(final GL gl) {
-        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.handle, 0);
+        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.hmdDesc, 0);
     }
 
     @Override
@@ -558,7 +558,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         if( null == frameTiming ) {
             throw new IllegalStateException("beginFrame not called");
         }
-        OVR.ovrHmd_EndFrameTiming(context.handle);
+        OVR.ovrHmd_EndFrameTiming(context.hmdDesc);
         frameTiming = null;
     }
 
@@ -596,7 +596,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     public final void ppOneEye(final GL gl, final int eyeNum) {
         final OVREye eye = eyes[eyeNum];
         if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
-            eye.updateTimewarp(context.handle, eye.ovrEyePose, mat4Tmp1, mat4Tmp2);
+            eye.updateTimewarp(context.hmdDesc, eye.ovrEyePose, mat4Tmp1, mat4Tmp2);
         }
         final GL2ES2 gl2es2 = gl.getGL2ES2();
 

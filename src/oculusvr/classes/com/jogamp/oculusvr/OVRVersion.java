@@ -33,9 +33,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.oculusvr.OVR;
-import com.jogamp.oculusvr.OvrHmdContext;
 import com.jogamp.oculusvr.ovrHmdDesc;
-import com.jogamp.oculusvr.ovrSensorDesc;
 import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.oculusvr.ovrVector2i;
 
@@ -69,10 +67,10 @@ public class OVRVersion extends JogampVersion {
         if( !OVR.ovr_Initialize() ) { // recursive ..
             sb.append("\tOVR not available").append(Platform.getNewline());
         } else {
-            final OvrHmdContext ovrHmdCtx = OVR.ovrHmd_Create(ovrHmdIndex);
-            if( null != ovrHmdCtx ) {
-                getAvailableCapabilitiesInfo(ovrHmdCtx, ovrHmdIndex, sb);
-                OVR.ovrHmd_Destroy(ovrHmdCtx);
+            final ovrHmdDesc hmdDesc = OVR.ovrHmd_Create(ovrHmdIndex);
+            if( null != hmdDesc ) {
+                getAvailableCapabilitiesInfo(hmdDesc, ovrHmdIndex, sb);
+                OVR.ovrHmd_Destroy(hmdDesc);
             } else {
                 sb.append("\thmd."+ovrHmdIndex+" not available").append(Platform.getNewline());
             }
@@ -83,50 +81,28 @@ public class OVRVersion extends JogampVersion {
     }
     /**
      *
-     * @param ovrHmdCtx
-     * @param ovrHmdIndex only for informal purposes, OVR HMD index of created <code>ovrHmdHandle</code>
-     * @param sb
-     * @return
-     */
-    public static StringBuilder getAvailableCapabilitiesInfo(final OvrHmdContext ovrHmdCtx, final int ovrHmdIndex, StringBuilder sb) {
-        if(null == ovrHmdCtx) {
-            throw new IllegalArgumentException("null ovrHmdHandle");
-        }
-        if(null==sb) {
-            sb = new StringBuilder();
-        }
-        final ovrHmdDesc hmdDesc = ovrHmdDesc.create();
-        OVR.ovrHmd_GetDesc(ovrHmdCtx, hmdDesc);
-        getAvailableCapabilitiesInfo(hmdDesc, ovrHmdIndex, sb);
-
-        final ovrSensorDesc sensorDesc = ovrSensorDesc.create();
-        if( OVR.ovrHmd_GetSensorDesc(ovrHmdCtx, sensorDesc) ) {
-            sb.append("\thmd."+ovrHmdIndex+".sensor.productId:\t0x"+Integer.toHexString(sensorDesc.getProductId())).append(Platform.getNewline());
-            sb.append("\thmd."+ovrHmdIndex+".sensor.vendorId:\t0x"+Integer.toHexString(sensorDesc.getVendorId())).append(Platform.getNewline());
-            sb.append("\thmd."+ovrHmdIndex+".sensor.serial:\t"+sensorDesc.getSerialNumberAsString()).append(Platform.getNewline());
-        } else {
-            sb.append("\thmd."+ovrHmdIndex+".sensor:\tn/a").append(Platform.getNewline());
-        }
-        return sb;
-    }
-    /**
-     *
      * @param hmdDesc
      * @param ovrHmdIndex only for informal purposes, OVR HMD index of <code>hmdDesc</code>
      * @param sb
      * @return
      */
     public static StringBuilder getAvailableCapabilitiesInfo(final ovrHmdDesc hmdDesc, final int ovrHmdIndex, StringBuilder sb) {
+        if(null == hmdDesc) {
+            throw new IllegalArgumentException("null hmdDesc");
+        }
         if(null==sb) {
             sb = new StringBuilder();
         }
         sb.append("\thmd."+ovrHmdIndex+".productName:\t"+hmdDesc.getProductNameAsString()).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".vendorName:\t"+hmdDesc.getManufacturerAsString()).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".deviceName:\t"+hmdDesc.getDisplayDeviceNameAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".productId:\t0x"+Integer.toHexString(hmdDesc.getProductId())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".vendorId:\t0x"+Integer.toHexString(hmdDesc.getVendorId())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".serial:\t"+hmdDesc.getSerialNumberAsString()).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".type:\t"+hmdDesc.getType()).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".hmdCaps:\t"+hmdDesc.getHmdCaps()).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".distorCaps:\t"+hmdDesc.getDistortionCaps()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+hmdDesc.getSensorCaps()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+hmdDesc.getTrackingCaps()).append(Platform.getNewline());
         final ovrSizei resolution = hmdDesc.getResolution();
         sb.append("\thmd."+ovrHmdIndex+".resolution:\t"+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
         final ovrVector2i winPos = hmdDesc.getWindowsPos();

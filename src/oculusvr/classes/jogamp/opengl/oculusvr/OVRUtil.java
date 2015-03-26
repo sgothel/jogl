@@ -168,6 +168,6 @@ public class OVRUtil {
         return "["+desc.getEye()+", fov"+toString(desc.getFov())+
                  ", viewport"+toString(desc.getDistortedViewport())+
                  ", pptCtr"+toString(desc.getPixelsPerTanAngleAtCenter())+
-                 ", view-adjust"+toString(desc.getViewAdjust())+"]";
+                 ", view-adjust"+toString(desc.getHmdToEyeViewOffset())+"]";
     }
 }

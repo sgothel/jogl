@@ -29,7 +29,7 @@ package jogamp.opengl.oculusvr;
 
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.OVRVersion;
-import com.jogamp.oculusvr.OvrHmdContext;
+import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
@@ -45,15 +45,15 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
 
     @Override
     public final StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
-        final OvrHmdContext hmdCtx = OVR.ovrHmd_Create(deviceIndex);
-        if( null == hmdCtx ) {
+        final ovrHmdDesc hmdDesc = OVR.ovrHmd_Create(deviceIndex);
+        if( null == hmdDesc ) {
             if( verbose ) {
                 System.err.println("Failed to create hmdCtx for device index "+deviceIndex+" on thread "+Thread.currentThread().getName());
                 Thread.dumpStack();
             }
             return null;
         }
-        final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdCtx, deviceIndex);
+        final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdDesc, deviceIndex);
         if( verbose ) {
             System.err.println(OVRVersion.getAvailableCapabilitiesInfo(ctx.hmdDesc, deviceIndex, null).toString());
         }
