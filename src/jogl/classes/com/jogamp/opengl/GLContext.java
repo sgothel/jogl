@@ -2029,10 +2029,17 @@ public abstract class GLContext {
     needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
     needColon = appendString(sb, "arb",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
     needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));
-    needColon = appendString(sb, "ES2 compat",            needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
-    needColon = appendString(sb, "ES3 compat",            needColon, 0 != ( CTX_IMPL_ES3_COMPAT & ctp ));
+    needColon = appendString(sb, "compat[",               needColon, true);
+    {
+        needColon = false;
+        needColon = appendString(sb, "ES2",               needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
+        needColon = appendString(sb, "ES3",               needColon, 0 != ( CTX_IMPL_ES3_COMPAT & ctp ));
+        needColon = appendString(sb, "ES31",              needColon, 0 != ( CTX_IMPL_ES31_COMPAT & ctp ));
+        needColon = appendString(sb, "FP32",              needColon, 0 != ( CTX_IMPL_FP32_COMPAT_API & ctp ));
+        needColon = false;
+    }
+    needColon = appendString(sb, "]",                     needColon, true);
     needColon = appendString(sb, "FBO",                   needColon, 0 != ( CTX_IMPL_FBO & ctp ));
-    needColon = appendString(sb, "FP32 compat",           needColon, 0 != ( CTX_IMPL_FP32_COMPAT_API & ctp ));
     if( 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
         needColon = appendString(sb, "software",          needColon, true);
     } else {
