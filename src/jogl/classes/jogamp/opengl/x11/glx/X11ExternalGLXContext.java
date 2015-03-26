@@ -113,7 +113,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
   }
 
   @Override
-  protected boolean createImpl(final long shareWithHandle) {
+  protected boolean createImpl(final long shareWithHandle) throws GLException {
       return true;
   }
 

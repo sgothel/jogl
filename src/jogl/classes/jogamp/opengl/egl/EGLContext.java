@@ -51,6 +51,7 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.egl.EGLExtImpl;
 import jogamp.opengl.egl.EGLExtProcAddressTable;
+import jogamp.opengl.windows.wgl.WindowsWGLContext;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
@@ -310,16 +311,25 @@ public class EGLContext extends GLContextImpl {
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
         final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         final GLProfile glp = glCaps.getGLProfile();
-
-        contextHandle = createContextARB(shareWithHandle, true);
-        if (DEBUG) {
-            if( 0 != contextHandle ) {
-                System.err.println(getThreadName() + ": EGLContext.createImpl: OK (ARB) on eglDevice "+device+
-                        ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
-            } else {
-                System.err.println(getThreadName() + ": EGLContext.createImpl: NOT OK (ARB) - creation failed on eglDevice "+device+
-                        ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+        final boolean createContextARBAvailable = isCreateContextARBAvail(device);
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": EGLContext.createImpl: START "+glCaps+", share "+toHexString(shareWithHandle));
+            System.err.println(getThreadName() + ": Use ARB[avail["+getCreateContextARBAvailStr(device)+
+                    "] -> "+createContextARBAvailable+"]]");
+        }
+        if( createContextARBAvailable ) {
+            contextHandle = createContextARB(shareWithHandle, true);
+            if (DEBUG) {
+                if( 0 != contextHandle ) {
+                    System.err.println(getThreadName() + ": createImpl: OK (ARB) on eglDevice "+device+
+                            ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+                } else {
+                    System.err.println(getThreadName() + ": createImpl: NOT OK (ARB) - creation failed on eglDevice "+device+
+                            ", eglConfig "+config+", "+glp+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
+                }
             }
+        } else {
+            contextHandle = 0;
         }
         if( 0 == contextHandle ) {
             if( !glp.isGLES() ) {
@@ -339,18 +349,18 @@ public class EGLContext extends GLContextImpl {
                 EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
                 EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
                 contextHandle = 0;
-                throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+                throw new GLException("setGLFunctionAvailability !strictMatch failed");
             }
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": EGLContext.createImpl: Created OpenGL context 0x" +
+            System.err.println(getThreadName() + ": createImpl: Created OpenGL context 0x" +
                                Long.toHexString(contextHandle) +
                                ",\n\twrite surface 0x" + Long.toHexString(drawable.getHandle()) +
                                ",\n\tread  surface 0x" + Long.toHexString(drawableRead.getHandle())+
                                ",\n\t"+this+
                                ",\n\tsharing with 0x" + Long.toHexString(shareWithHandle));
         }
-        return 0 != contextHandle;
+        return true;
     }
 
     @Override

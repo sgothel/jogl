@@ -289,8 +289,15 @@ public class MacOSXCGLContext extends GLContextImpl
   @Override
   protected boolean createImpl(final long shareWithHandle) throws GLException {
     final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
-    final GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    final GLProfile glp = capabilitiesChosen.getGLProfile();
+    final AbstractGraphicsDevice device = config.getScreen().getDevice();
+    final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final GLProfile glp = glCaps.getGLProfile();
+    final boolean createContextARBAvailable = isCreateContextARBAvail(device);
+    if(DEBUG) {
+        System.err.println(getThreadName() + ": MacOSXCGLContext.createImpl: START "+glCaps+", share "+toHexString(shareWithHandle));
+        System.err.println(getThreadName() + ": Use ARB[avail["+getCreateContextARBAvailStr(device)+
+                "] -> "+createContextARBAvailable+"]]");
+    }
     if( glp.isGLES() ||
         ( glp.isGL3() && !isLionOrLater ) || ( glp.isGL4() && !isMavericksOrLater ) ) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);

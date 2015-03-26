@@ -30,39 +30,16 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.VersionUtil;
-import com.jogamp.nativewindow.NativeWindowVersion;
-import com.jogamp.newt.NewtVersion;
-import com.jogamp.opengl.JoglVersion;
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLProfile01NEWT extends GLProfile0XBase {
-
-    @Test
-    public void test00Version() throws InterruptedException {
-        System.err.println(VersionUtil.getPlatformInfo());
-        System.err.println(GlueGenVersion.getInstance());
-        System.err.println(NativeWindowVersion.getInstance());
-        System.err.println(JoglVersion.getInstance());
-        System.err.println(NewtVersion.getInstance());
-
-        final GLDrawableFactory deskFactory = GLDrawableFactory.getDesktopFactory();
-        if( null != deskFactory ) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(deskFactory.getDefaultDevice(), null, true).toString());
-        }
-        final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
-        if( null != eglFactory ) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(eglFactory.getDefaultDevice(), null, true).toString());
-        }
-    }
+public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
 
     @Test
     public void test01GLProfileDefault() throws InterruptedException {
@@ -70,8 +47,19 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
         System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
         final GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile.getDefault(): "+glp);
-        validateOffline("default", glp);
-        validateOnlineOnscreen("default", glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen("default", caps);
+    }
+
+    @Test
+    public void test02GLProfileDefaultBitmap() throws InterruptedException {
+        System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
+        System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
+        final GLProfile glp = GLProfile.getDefault();
+        System.out.println("GLProfile.getDefault(): "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        validateOnlineOffscreen("default", caps);
     }
 
     @Test
@@ -79,8 +67,8 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
         // Assuming at least one programmable profile is available
         final GLProfile glp = GLProfile.getMaxProgrammable(true);
         System.out.println("GLProfile.getMaxProgrammable(): "+glp);
-        validateOffline("maxProgrammable", glp);
-        validateOnlineOnscreen("maxProgrammable", glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen("maxProgrammable", caps);
     }
 
     @Test
@@ -88,8 +76,8 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
         // Assuming at least one fixed function profile is available
         final GLProfile glp = GLProfile.getMaxFixedFunc(true);
         System.out.println("GLProfile.getMaxFixedFunc(): "+glp);
-        validateOffline("maxFixedFunc", glp);
-        validateOnlineOnscreen("maxFixedFunc", glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen("maxFixedFunc", caps);
     }
 
     @Test
@@ -99,8 +87,8 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
             return;
         }
         final GLProfile glp = GLProfile.getGL2ES1();
-        validateOffline(GLProfile.GL2ES1, glp);
-        validateOnlineOnscreen(GLProfile.GL2ES1, glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen(GLProfile.GL2ES1, caps);
     }
 
     @Test
@@ -110,8 +98,8 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
             return;
         }
         final GLProfile glp = GLProfile.getGL2ES2();
-        validateOffline(GLProfile.GL2ES2, glp);
-        validateOnlineOnscreen(GLProfile.GL2ES2, glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen(GLProfile.GL2ES2, caps);
     }
 
     @Test
@@ -121,8 +109,8 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
             return;
         }
         final GLProfile glp = GLProfile.getGL4ES3();
-        validateOffline(GLProfile.GL4ES3, glp);
-        validateOnlineOnscreen(GLProfile.GL4ES3, glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen(GLProfile.GL4ES3, caps);
     }
 
     @Test
@@ -132,15 +120,15 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
             return;
         }
         final GLProfile glp = GLProfile.getGL2GL3();
-        validateOffline(GLProfile.GL2GL3, glp);
-        validateOnlineOnscreen(GLProfile.GL2GL3, glp);
+        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        validateOnlineOffscreen(GLProfile.GL2GL3, caps);
     }
 
     void testSpecificProfile(final String glps) throws InterruptedException {
         if(GLProfile.isAvailable(glps)) {
             final GLProfile glp = GLProfile.get(glps);
-            validateOffline(glps, glp);
-            validateOnlineOnscreen(glps, glp);
+            final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+            validateOnlineOffscreen(glps, caps);
         } else {
             System.err.println("Profile "+glps+" n/a");
         }
@@ -187,7 +175,7 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestGLProfile01NEWT.class.getName();
+        final String tstname = TestGLProfile03NEWTOffscreen.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

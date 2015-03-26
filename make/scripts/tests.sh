@@ -123,7 +123,7 @@ function jrun() {
     #D_ARGS="-Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.disable.openglcore"
-    #D_ARGS="-Djogl.disable.openglarbcontext"
+    #D_ARGS="-Djogl.debug=all -Djogl.disable.openglarbcontext"
     #D_ARGS="-Djogl.debug.DebugGL -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.TraceGL -Djogl.debug.GLBufferStateTracker"
@@ -406,12 +406,15 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWTNoARBCtx $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
 # Stereo
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI

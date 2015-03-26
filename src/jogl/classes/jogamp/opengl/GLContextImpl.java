@@ -851,18 +851,25 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   /**
-   * Platform dependent entry point for context creation.<br>
-   *
-   * This method is called from {@link #makeCurrentWithinLock()} .. {@link #makeCurrent()} .<br>
-   *
+   * Platform dependent entry point for context creation.
+   * <p>
+   * This method is called from {@link #makeCurrentWithinLock()} .. {@link #makeCurrent()} .
+   * </p>
+   * <p>
    * The implementation shall verify this context with a
-   * <code>MakeContextCurrent</code> call.<br>
-   *
-   * The implementation <b>must</b> leave the context current.<br>
-   *
+   * <code>MakeContextCurrent</code> call.
+   * </p>
+   * <p>
+   * The implementation <b>must</b> leave the context current.
+   * </p>
+   * <p>
+   * Non fatal context creation failure via return {@code false}
+   * is currently implemented for: {@code MacOSXCGLContext}.
+   * </p>
    * @param sharedWithHandle the shared context handle or 0
-   * @return true if successful, or false
-   * @throws GLException
+   * @return {@code true} if successful. Method returns {@code false} if the context creation failed non fatally,
+   * hence it may be created at a later time. Otherwise method throws {@link GLException}.
+   * @throws GLException if method fatally fails creating the context and no attempt shall be made at a later time.
    */
   protected abstract boolean createImpl(long sharedWithHandle) throws GLException ;
 
@@ -908,6 +915,15 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected abstract void destroyContextARBImpl(long context);
 
+  protected final boolean isCreateContextARBAvail(final AbstractGraphicsDevice device) {
+    return !GLProfile.disableOpenGLARBContext &&
+           !GLRendererQuirks.existStickyDeviceQuirk(device, GLRendererQuirks.NoARBCreateContext);
+  }
+  protected final String getCreateContextARBAvailStr(final AbstractGraphicsDevice device) {
+    final boolean noARBCreateContext = GLRendererQuirks.existStickyDeviceQuirk(device, GLRendererQuirks.NoARBCreateContext);
+    return "disabled "+GLProfile.disableOpenGLARBContext+", quirk "+noARBCreateContext;
+  }
+
   /**
    * Platform independent part of using the <code>ARB_create_context</code>
    * mechanism to create a context.<br>
@@ -929,25 +945,12 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected final long createContextARB(final long share, final boolean direct)
   {
-    if( GLProfile.disableOpenGLARBContext ||
-        GLRendererQuirks.existStickyDeviceQuirk(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice(),
-                                                GLRendererQuirks.NoARBCreateContext) ) {
-        if( DEBUG ) {
-            System.err.println(getThreadName() + ": createContextARB: Disabled "+
-                    "- property disableOpenGLARBContext "+ GLProfile.disableOpenGLARBContext +
-                    ", quirk NoARBCreateContext "+GLRendererQuirks.existStickyDeviceQuirk(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice(),
-                                                                                          GLRendererQuirks.NoARBCreateContext));
-        }
-        return 0;
-    }
     final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
-
     if (DEBUG) {
       System.err.println(getThreadName() + ": createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+
                GLContext.getAvailableGLVersionsSet(device));
     }
-
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final GLProfile glp = glCaps.getGLProfile();
 
@@ -1016,7 +1019,7 @@ public abstract class GLContextImpl extends GLContext {
                             System.err.println("Quirk Triggerd: "+GLRendererQuirks.toString(GLRendererQuirks.GL4NeedsGL3Request)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber());
                         }
                     }
-                    resetStates(false); // clean this context states, since creation was temporary
+                    resetStates(false); // clean the context states, since creation was temporary
                 }
             }
         }
@@ -1468,9 +1471,14 @@ public abstract class GLContextImpl extends GLContext {
    * the cache of which GL functions are available for calling through this
    * context. See {@link #isFunctionAvailable(String)} for more information on
    * the definition of "available".
-   * <br>
+   * <p>
    * All ProcaddressTables are being determined and cached, the GL version is being set
    * and the extension cache is determined as well.
+   * </p>
+   * <p>
+   * It is the callers responsibility to issue {@link #resetStates(boolean)}
+   * in case this method returns {@code false} or throws a {@link GLException}.
+   * </p>
    *
    * @param force force the setting, even if is already being set.
    *              This might be useful if you change the OpenGL implementation.
@@ -1489,13 +1497,16 @@ public abstract class GLContextImpl extends GLContext {
    * @return returns <code>true</code> if successful, otherwise <code>false</code>.<br>
    *                 If <code>strictMatch</code> is <code>false</code> method shall always return <code>true</code> or throw an exception.
    *                 If <code>false</code> is returned, no data has been cached or mapped, i.e. ProcAddressTable, Extensions, Version, etc.
+   * @throws GLException in case of an unexpected OpenGL related issue, e.g. missing expected GL function pointer.
    * @see #setContextVersion
    * @see com.jogamp.opengl.GLContext#CTX_OPTION_ANY
    * @see com.jogamp.opengl.GLContext#CTX_PROFILE_COMPAT
    * @see com.jogamp.opengl.GLContext#CTX_IMPL_ES2_COMPAT
    */
   protected final boolean setGLFunctionAvailability(final boolean force, int major, int minor, int ctxProfileBits,
-                                                    final boolean strictMatch, final boolean withinGLVersionsMapping) {
+                                                    final boolean strictMatch, final boolean withinGLVersionsMapping)
+                                                    throws GLException
+  {
     if( null != this.gl && null != glProcAddressTable && !force ) {
         return true; // already done and not forced
     }
@@ -1695,7 +1706,7 @@ public abstract class GLContextImpl extends GLContext {
         synchronized(mappedContextTypeObjectLock) {
             table = mappedGLProcAddress.get( contextFQN );
             if(null != table && !verifyInstance(glp, "ProcAddressTable", table)) {
-                throw new InternalError("GLContext GL ProcAddressTable mapped key("+contextFQN+" - " + GLContext.getGLVersion(major, minor, ctxProfileBits, null)+
+                throw new GLException("GLContext GL ProcAddressTable mapped key("+contextFQN+" - " + GLContext.getGLVersion(major, minor, ctxProfileBits, null)+
                       ") -> "+ table.getClass().getName()+" not matching "+glp.getGLImplBaseClassName());
             }
         }

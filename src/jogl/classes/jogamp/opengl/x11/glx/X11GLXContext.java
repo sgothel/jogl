@@ -298,7 +298,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected boolean createImpl(final long shareWithHandle) {
+  protected boolean createImpl(final long shareWithHandle) throws GLException {
     boolean direct = true; // try direct always
     isDirect = false; // fall back
 
@@ -314,6 +314,14 @@ public class X11GLXContext extends GLContextImpl {
 
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final GLProfile glp = glCaps.getGLProfile();
+    final boolean createContextARBAvailable = isCreateContextARBAvail(device) && config.hasFBConfig();
+    final boolean sharedCreatedWithARB = null != sharedContext && sharedContext.isCreatedWithARBMethod();
+    if(DEBUG) {
+        System.err.println(getThreadName() + ": X11GLXContext.createImpl: START "+glCaps+", share "+toHexString(shareWithHandle));
+        System.err.println(getThreadName() + ": Use ARB[avail["+getCreateContextARBAvailStr(device)+
+                "], fbCfg "+config.hasFBConfig()+" -> "+createContextARBAvailable+
+                "], shared "+sharedCreatedWithARB+"]");
+    }
 
     if( !config.hasFBConfig() ) {
         // not able to use FBConfig -> GLX 1.1
@@ -332,23 +340,22 @@ public class X11GLXContext extends GLContextImpl {
             glXReleaseContext(display); // release temp context
             GLX.glXDestroyContext(display, contextHandle);
             contextHandle = 0;
-            throw new InternalError("setGLFunctionAvailability !strictMatch failed.1");
+            throw new GLException("setGLFunctionAvailability !strictMatch failed.1");
         }
         isDirect = GLX.glXIsDirect(display, contextHandle);
         if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextImpl: OK (old-1) share "+toHexString(shareWithHandle)+", direct "+isDirect+"/"+direct);
+            System.err.println(getThreadName() + ": createImpl: OK (old-1) share "+toHexString(shareWithHandle)+", direct "+isDirect+"/"+direct);
         }
         return true;
     }
-
     boolean createContextARBTried = false;
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
-    if( null != sharedContext && sharedContext.isCreatedWithARBMethod() ) {
+    if( createContextARBAvailable && sharedCreatedWithARB ) {
         contextHandle = createContextARB(shareWithHandle, direct);
         createContextARBTried = true;
         if ( DEBUG && 0 != contextHandle ) {
-            System.err.println(getThreadName() + ": createContextImpl: OK (ARB, using sharedContext) share "+toHexString(shareWithHandle));
+            System.err.println(getThreadName() + ": createImpl: OK (ARB, using sharedContext) share "+toHexString(shareWithHandle));
         }
     }
 
@@ -366,10 +373,10 @@ public class X11GLXContext extends GLContextImpl {
         if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
             glXReleaseContext(display); // release temp context
             GLX.glXDestroyContext(display, temp_ctx);
-            throw new InternalError("setGLFunctionAvailability !strictMatch failed.2");
+            throw new GLException("setGLFunctionAvailability !strictMatch failed.2");
         }
         glXReleaseContext(display); // release temp context
-        if( !createContextARBTried ) {
+        if( createContextARBAvailable && !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
             final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
             final boolean isExtARBCreateContextAvailable = isExtensionAvailable("GLX_ARB_create_context");
@@ -379,13 +386,13 @@ public class X11GLXContext extends GLContextImpl {
                 createContextARBTried=true;
                 if (DEBUG) {
                     if( 0 != contextHandle ) {
-                        System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+toHexString(shareWithHandle));
+                        System.err.println(getThreadName() + ": createImpl: OK (ARB, initial) share "+toHexString(shareWithHandle));
                     } else {
-                        System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+toHexString(shareWithHandle));
+                        System.err.println(getThreadName() + ": createImpl: NOT OK (ARB, initial) - creation failed - share "+toHexString(shareWithHandle));
                     }
                 }
             } else if( DEBUG ) {
-                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
+                System.err.println(getThreadName() + ": createImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
                                    ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+
                                    ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
@@ -408,11 +415,11 @@ public class X11GLXContext extends GLContextImpl {
             // otherwise context of similar profile but different creation method may not be share-able.
             glXReleaseContext(display);
             GLX.glXDestroyContext(display, temp_ctx);
-            throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ARB n/a but required, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glp+", current: "+getGLVersion());
+            throw new GLException(getThreadName()+": createImpl ARB n/a but required, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glp+", current: "+getGLVersion());
         }
-
         if(DEBUG) {
-            System.err.println(getThreadName()+": X11GLXContext.createContextImpl ARB not used, fall back to !ARB context "+getGLVersion());
+            System.err.println(getThreadName()+": createImpl ARB not used[avail "+createContextARBAvailable+
+                               ", tried "+createContextARBTried+"], fall back to !ARB context "+getGLVersion());
         }
 
         // continue with temp context
@@ -423,12 +430,12 @@ public class X11GLXContext extends GLContextImpl {
             throw new GLException(getThreadName()+": Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextImpl: OK (old-2) share "+toHexString(shareWithHandle));
+            System.err.println(getThreadName() + ": createImpl: OK (old-2) share "+toHexString(shareWithHandle));
         }
     }
     isDirect = GLX.glXIsDirect(display, contextHandle);
     if (DEBUG) {
-        System.err.println(getThreadName() + ": createContextImpl: OK direct "+isDirect+"/"+direct);
+        System.err.println(getThreadName() + ": createImpl: OK direct "+isDirect+"/"+direct);
     }
 
     return true;

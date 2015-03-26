@@ -50,7 +50,6 @@ import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
-
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
@@ -278,7 +277,7 @@ public class WindowsWGLContext extends GLContextImpl {
    * called by {@link #makeCurrentImpl()}.
    */
   @Override
-  protected boolean createImpl(long shareWithHandle) {
+  protected boolean createImpl(long shareWithHandle) throws GLException {
     final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
     final WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
@@ -287,14 +286,18 @@ public class WindowsWGLContext extends GLContextImpl {
 
     isGLReadDrawableAvailable(); // trigger setup wglGLReadDrawableAvailable
 
-    if (DEBUG) {
-        System.err.println(getThreadName() + ": createImpl: START "+glCaps+", share "+toHexString(shareWithHandle));
+    final boolean createContextARBAvailable = isCreateContextARBAvail(device) && !glCaps.isBitmap();
+    final boolean sharedCreatedWithARB = null != sharedContext && sharedContext.isCreatedWithARBMethod();
+    if(DEBUG) {
+        System.err.println(getThreadName() + ": WindowsWGLContext.createImpl: START "+glCaps+", share "+toHexString(shareWithHandle));
+        System.err.println(getThreadName() + ": Use ARB[avail["+getCreateContextARBAvailStr(device)+
+                "], bitmap "+glCaps.isBitmap()+" -> "+createContextARBAvailable+
+                "], shared "+sharedCreatedWithARB+"]");
     }
-
     boolean createContextARBTried = false;
 
-    // utilize the shared context's GLXExt in case it was using the ARB method and it already exists ; exclude BITMAP
-    if( null != sharedContext && sharedContext.isCreatedWithARBMethod() && !glCaps.isBitmap() ) {
+    // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
+    if( createContextARBAvailable && sharedCreatedWithARB ) {
         if ( sharedContext.getRendererQuirks().exist( GLRendererQuirks.NeedCurrCtx4ARBCreateContext ) ) {
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
                 throw new GLException("Could not make Shared Context current: "+sharedContext);
@@ -327,34 +330,27 @@ public class WindowsWGLContext extends GLContextImpl {
         if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
             WGL.wglMakeCurrent(0, 0); // release temp context
             WGL.wglDeleteContext(temp_ctx);
-            throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+            throw new GLException("setGLFunctionAvailability !strictMatch failed");
         }
         WGL.wglMakeCurrent(0, 0); // release temp context
 
-        if( !createContextARBTried ) {
+        if( createContextARBAvailable && !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
-            final boolean isProcCreateContextAttribsARBAvailable;
-            final boolean isExtARBCreateContextAvailable;
-            if( !glCaps.isBitmap() ) { // exclude ARB if BITMAP
-                isProcCreateContextAttribsARBAvailable = isFunctionAvailable("wglCreateContextAttribsARB");
-                isExtARBCreateContextAvailable = isExtensionAvailable("WGL_ARB_create_context");
-            } else {
-                isProcCreateContextAttribsARBAvailable = false;
-                isExtARBCreateContextAvailable = false;
-            }
+            final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("wglCreateContextAttribsARB");
+            final boolean isExtARBCreateContextAvailable = isExtensionAvailable("WGL_ARB_create_context");
             if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(shareWithHandle, true);
                 createContextARBTried=true;
                 if (DEBUG) {
                     if( 0 != contextHandle ) {
-                        System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+toHexString(shareWithHandle));
+                        System.err.println(getThreadName() + ": createImpl: OK (ARB, initial) share "+toHexString(shareWithHandle));
                     } else {
-                        System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+toHexString(shareWithHandle));
+                        System.err.println(getThreadName() + ": createImpl: NOT OK (ARB, initial) - creation failed - share "+toHexString(shareWithHandle));
                     }
                 }
             } else if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
+                System.err.println(getThreadName() + ": createImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
                                    ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+
                                    ", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
@@ -378,10 +374,11 @@ public class WindowsWGLContext extends GLContextImpl {
             // otherwise context of similar profile but different creation method may not be share-able.
             WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(temp_ctx);
-            throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
+            throw new GLException(getThreadName()+": createImpl ctx !ARB but ARB is used, profile > GL2 requested (OpenGL >= 3.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
         }
         if(DEBUG) {
-            System.err.println("WindowsWGLContext.createContext ARB not used, fall back to !ARB context "+getGLVersion());
+            System.err.println(getThreadName()+": createImpl ARB not used[avail "+createContextARBAvailable+
+                               ", tried "+createContextARBTried+"], fall back to !ARB context "+getGLVersion());
         }
 
         // continue with temp context

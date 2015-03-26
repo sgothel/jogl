@@ -77,6 +77,10 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDraw
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWTNoARBCtx $*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
+
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch02AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch11NEWT %*
@@ -217,4 +221,4 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewt
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 %*
