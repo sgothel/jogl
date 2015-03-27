@@ -128,9 +128,16 @@ public class OVRStereoDevice implements StereoDevice {
 
     @Override
     public final void dispose() {
-       OVR.ovrHmd_Destroy(hmdDesc);
-       hmdDesc = null;
-       handle = null;
+       if( isValid() ) {
+           OVR.ovrHmd_Destroy(hmdDesc);
+           hmdDesc = null;
+           handle = null;
+       }
+    }
+
+    @Override
+    public boolean isValid() {
+        return null != hmdDesc && null != handle;
     }
 
     @Override

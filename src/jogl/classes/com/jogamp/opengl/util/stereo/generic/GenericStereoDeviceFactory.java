@@ -187,12 +187,22 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
     }
 
     @Override
-    public final StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
+    protected final StereoDevice createDeviceImpl(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
         return new GenericStereoDevice(this, deviceIndex, config);
     }
 
+    private boolean isValid = true;
+
     @Override
-    public void shutdown() {
-        // NOP
+    public boolean isValid() {
+        return isValid;
+    }
+
+    @Override
+    public final void shutdown() {
+        if( isValid ) {
+            // NOP
+            isValid = false;
+        }
     }
 }

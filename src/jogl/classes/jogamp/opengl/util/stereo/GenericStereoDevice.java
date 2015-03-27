@@ -157,6 +157,11 @@ public class GenericStereoDevice implements StereoDevice {
     }
 
     @Override
+    public boolean isValid() {
+        return true;
+    }
+
+    @Override
     public final PointImmutable getPosition() {
         return surfacePos;
     }

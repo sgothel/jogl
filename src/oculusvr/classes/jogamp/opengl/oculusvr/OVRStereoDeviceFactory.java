@@ -63,12 +63,14 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
         return false;
     }
 
+    private boolean isValid = true;
+
     private void dumpCaps(final ovrHmdDesc hmdDesc, final int deviceIndex) {
         System.err.println(OVRVersion.getAvailableCapabilitiesInfo(hmdDesc, deviceIndex, null).toString());
     }
 
     @Override
-    public final StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
+    protected final StereoDevice createDeviceImpl(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
         final ovrHmdDesc hmdDesc = OVR.ovrHmd_Create(deviceIndex);
         if( null == hmdDesc ) {
             if( verbose ) {
@@ -86,12 +88,19 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
         if( verbose ) {
             dumpCaps(hmdDesc, deviceIndex);
         }
-        final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdDesc, deviceIndex);
-        return ctx;
+        return new OVRStereoDevice(this, hmdDesc, deviceIndex);
+    }
+
+    @Override
+    public boolean isValid() {
+        return isValid;
     }
 
     @Override
     public final void shutdown() {
-        OVR.ovr_Shutdown();
+        if( isValid ) {
+            OVR.ovr_Shutdown();
+            isValid = false;
+        }
     }
 }

@@ -44,8 +44,14 @@ public interface StereoDevice {
     /** Return the factory used to create this device. */
     public StereoDeviceFactory getFactory();
 
-    /** Disposes this {@link StereoDevice}. */
+    /** Disposes this {@link StereoDevice}, if {@link #isValid() valid}. */
     public void dispose();
+
+    /**
+     * Returns {@code true}, if instance is created and not {@link #dispose() disposed},
+     * otherwise returns {@code false}.
+     */
+    public boolean isValid();
 
     /**
      * If operation within a device spanning virtual desktop,
