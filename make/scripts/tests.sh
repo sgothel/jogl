@@ -414,8 +414,7 @@ function testawtswt() {
 #
 # Stereo
 #
-testnoawt com.jogamp.oculusvr.OVRVersion $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI

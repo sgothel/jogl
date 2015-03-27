@@ -72,7 +72,10 @@ public class StereoDeviceUtil {
         final Screen screen = NewtFactory.createScreen(display, 0);
         screen.addReference();
         final MonitorDevice monitor = screen.getMainMonitor(rect);
-        if( adjustRotation && 0 != deviceReqRotation ) {
+        System.err.println("StereoDevice Monitor: "+monitor);
+        final MonitorMode currentMode = monitor.getCurrentMode();
+        if( adjustRotation && deviceReqRotation != currentMode.getRotation() ) {
+            System.err.println("StereoDevice Current Mode: "+currentMode+", requires rotation: "+deviceReqRotation);
             final DimensionImmutable deviceRotRes;
             if( 90 == deviceReqRotation || 270 == deviceReqRotation ) {
                 deviceRotRes = new Dimension(deviceRes.getHeight(), deviceRes.getWidth());
@@ -83,8 +86,12 @@ public class StereoDeviceUtil {
             final List<MonitorMode> mmodes1 = MonitorModeUtil.filterByResolution(mmodes0, deviceRotRes);
             final List<MonitorMode> mmodes2 = MonitorModeUtil.filterByRotation(mmodes1, deviceReqRotation);
             if( mmodes2.size() > 0 ) {
-                monitor.setCurrentMode(mmodes2.get(0));
+                final MonitorMode newMode = mmodes2.get(0);
+                System.err.println("StereoDevice Set Mode: "+newMode);
+                monitor.setCurrentMode(newMode);
             }
+        } else {
+            System.err.println("StereoDevice Keeps Mode: "+currentMode);
         }
         return monitor;
     }

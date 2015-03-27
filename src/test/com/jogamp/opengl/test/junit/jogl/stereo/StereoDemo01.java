@@ -352,6 +352,9 @@ public class StereoDemo01 {
         System.err.println("Window.0.windowSize : "+window.getWidth()+" x "+window.getHeight());
         System.err.println("Window.0.surfaceSize: "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setSurfaceSize(deviceRes.getWidth(), deviceRes.getHeight());
+        if( useStereoScreen ) {
+            window.setPosition(devicePos.getX(), devicePos.getY());
+        }
         System.err.println("Window.1.windowSize : "+window.getWidth()+" x "+window.getHeight());
         System.err.println("Window.1.surfaceSize: "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
 
