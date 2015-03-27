@@ -29,6 +29,7 @@ package jogamp.opengl.oculusvr;
 
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.OVRVersion;
+import com.jogamp.oculusvr.OvrHmdContext;
 import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.StereoDevice;
@@ -38,7 +39,26 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
 
     public static boolean isAvailable() {
         if( OVR.ovr_Initialize() ) { // recursive ..
-            return 0 < OVR.ovrHmd_Detect();
+            boolean res = false;
+            final int count = OVR.ovrHmd_Detect();
+            System.err.println("Detect.0: ovrHmd_Detect() -> "+count);
+            if( 0 < count ) {
+                res = true;
+            } else {
+                // SDK 0.4.4 w/ DK1 (Linux): ovrHmd_Detect() returns zero!
+                final ovrHmdDesc hmdDesc = OVR.ovrHmd_Create(0);
+                if( null != hmdDesc ) {
+                    final OvrHmdContext ctx = hmdDesc.getHandle();
+                    if( null != ctx ) {
+                        res = true;
+                        System.err.println("Detect.1: hmdDesc: "+hmdDesc.getProductNameAsString());
+                    }
+                    OVR.ovrHmd_Destroy(hmdDesc);
+                }
+            }
+            return res;
+        } else {
+            System.err.println("ovr_Initialize() failed");
         }
         return false;
     }
@@ -68,5 +88,10 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
         }
         final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdDesc, deviceIndex);
         return ctx;
+    }
+
+    @Override
+    public final void shutdown() {
+        OVR.ovr_Shutdown();
     }
 }

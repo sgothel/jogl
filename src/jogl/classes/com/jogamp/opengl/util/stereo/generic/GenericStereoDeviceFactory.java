@@ -190,4 +190,9 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
     public final StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
         return new GenericStereoDevice(this, deviceIndex, config);
     }
+
+    @Override
+    public void shutdown() {
+        // NOP
+    }
 }

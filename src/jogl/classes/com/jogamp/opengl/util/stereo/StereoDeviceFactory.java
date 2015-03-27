@@ -107,4 +107,9 @@ public abstract class StereoDeviceFactory {
      * @return
      */
     public abstract StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose);
+
+    /**
+     * Shutdown factory
+     */
+    public abstract void shutdown();
 }

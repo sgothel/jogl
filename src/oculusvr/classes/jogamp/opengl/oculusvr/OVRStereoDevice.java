@@ -49,11 +49,11 @@ public class OVRStereoDevice implements StereoDevice {
     private static final float[] DEFAULT_EYE_POSITION_OFFSET = { 0.0f, 1.6f, -5.0f };
 
     private final StereoDeviceFactory factory;
-    public final OvrHmdContext handle;
     public final int deviceIndex;
-    public final ovrHmdDesc hmdDesc;
     private final FovHVHalves[] defaultEyeFov;
 
+    public ovrHmdDesc hmdDesc;
+    public OvrHmdContext handle;
     private boolean sensorsStarted = false;
     private final int[] eyeRenderOrder;
     private final int supportedDistortionBits, recommendedDistortionBits, minimumDistortionBits;
@@ -128,7 +128,9 @@ public class OVRStereoDevice implements StereoDevice {
 
     @Override
     public final void dispose() {
-        // NOP
+       OVR.ovrHmd_Destroy(hmdDesc);
+       hmdDesc = null;
+       handle = null;
     }
 
     @Override

@@ -375,5 +375,6 @@ public class StereoDemo01 {
         window.destroy();
         screen.removeReference(); // StereoDeviceUtil.getMonitorDevice(stereoDevice, true);
         stereoDevice.dispose();
+        stereoDeviceFactory.shutdown();
     }
 }
