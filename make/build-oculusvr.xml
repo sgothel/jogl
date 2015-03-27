@@ -227,6 +227,22 @@
         <compilerarg value="/usr/include" />
       </compiler>
 
+      <compiler id="compiler.cfg.macosx.oculusvr" name="${gcc.compat.compiler}">
+        <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
+        <compilerarg value="-arch" if="use.macosppc"/>
+        <compilerarg value="ppc" if="use.macosppc"/>
+        <compilerarg value="-arch" if="use.macosx32"/>
+        <compilerarg value="i386" if="use.macosx32"/>
+        <compilerarg value="-arch" if="use.macosx64"/>
+        <compilerarg value="x86_64" if="use.macosx64"/>
+        <compilerarg value="-Wmost" />
+        <!-- compilerarg value="-ObjC" / -->
+        <compilerarg value="-mmacosx-version-min=10.5"/>
+        <defineset>
+          <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+        </defineset>
+      </compiler>
+  
       <!-- linker configuration -->
  
       <linker id="linker.cfg.macosx.oculusvr" extends="linker.cfg.macosx">
@@ -234,8 +250,6 @@
         <linkerarg value="AppKit" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="IOKit" />
-        <!--linkerarg value="-weak_framework" />
-        <linkerarg value="OpenGL" /-->
       </linker>
 
     </target>
@@ -371,7 +385,7 @@
     <target name="c.configure.x11" if="isX11" />
 
     <target name="c.configure.macosx" if="isOSX">
-      <property name="compiler.cfg.id"                     value="compiler.cfg.macosx" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.macosx.oculusvr" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.macosx.oculusvr" />
     </target>
     
@@ -450,7 +464,9 @@
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_LatencyTest2Reader.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_Render_Stereo.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_SystemGUI.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_SystemGUI_OSX.mm"                 if="isOSX"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_SystemInfo.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_SystemInfo_OSX.mm"                if="isOSX"/>
 
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Display.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Linux_Display.cpp"             if="isLinux"/>
@@ -460,6 +476,8 @@
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_FocusReader.cpp"         if="isWindows"/>
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_RenderShim.cpp"      if="isWindows"/ -->
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_ShimFunctions.cpp"   if="isWindows"/ -->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_OSX_FocusObserver.mm"      if="isOSX"/ -->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_OSX_FocusReader.mm"        if="isOSX"/ -->
 
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_BitStream.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_NetworkPlugin.cpp"/>
@@ -518,6 +536,9 @@
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}" />
+
+                <compilerarg location="start" value="-ObjC"              if="isOSX"/>
+
               </compiler>
             </cc>
             <!-- C++ Compilation -->
@@ -544,8 +565,9 @@
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}" />
 
-                <compilerarg location="start" value="-x"                       if="isCLANG"/>
-                <compilerarg location="start" value="c++"                      if="isCLANG"/>
+                <compilerarg location="start" value="-ObjC++"                  if="isOSX"/>
+                <compilerarg location="start" value="-x"                       if="isCLANG" unless="isOSX"/>
+                <compilerarg location="start" value="c++"                      if="isCLANG" unless="isOSX"/>
 
                 <compilerarg value="-fno-rtti"/>
                 <compilerarg value="-DHEADLESS_APP=1"/>
