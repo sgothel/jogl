@@ -403,71 +403,81 @@
             <include name="${rootrel.generated.c}/OVR_JNI.c"/>
         </patternset>
         <patternset id="c.src.files.oculusvr.cpp">
-            <include name="${rootrel.src.c}/OVRImplMisc.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_CAPI.cpp"/>
-            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_DistortionRenderer.cpp"/-->
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_DistortionRenderer.cpp"/>
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/GL/CAPI_GL_DistortionRenderer.cpp"/-->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/GL/CAPI_GL_HSWDisplay.cpp"/-->
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/GL/CAPI_GL_Util.cpp"/-->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/GL/CAPI_GLE.cpp"/-->
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_FrameTimeManager.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_GlobalState.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_HMDRenderState.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_HMDState.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_DeviceHandle.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_DeviceImpl.cpp"/>
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_HSWDisplay.cpp"/ -->
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_LatencyStatistics.cpp"/>
+
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_JSON.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_LatencyTestImpl.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Profile.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SensorCalibration.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SensorFilter.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SensorFusion.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SensorImpl.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Sensor2Impl.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SensorImpl_Common.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SensorTimeFilter.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_SerialFormat.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Stereo.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_ThreadCommandQueue.cpp"/>
+
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Alg.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Allocator.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Atomic.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_CRC32.cpp"/>
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_DebugHelp.cpp"/ -->
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_File.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_FileFILE.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Lockless.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Log.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Math.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Recording.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_RefCount.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_SharedMemory.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Std.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_String.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_String_FormatUtil.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_String_PathUtil.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_SysFile.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_System.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadCommandQueue.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadsPthread.cpp"              if="isLinux"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadsPthread.cpp"              if="isOSX"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadsWinAPI.cpp"               if="isWindows"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_Timer.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_UTF8Util.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_LatencyTest.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_LatencyTest2.cpp"/>
+
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_ImageWindow.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_Interface.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_LatencyTest2Reader.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_Render_Stereo.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_SystemGUI.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Util/Util_SystemInfo.cpp"/>
+
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Display.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Linux_Display.cpp"             if="isLinux"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Linux_SDKWindow.cpp"           if="isLinux"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_OSX_Display.cpp"               if="isOSX"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_Display.cpp"             if="isWindows"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_FocusReader.cpp"         if="isWindows"/>
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_RenderShim.cpp"      if="isWindows"/ -->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_ShimFunctions.cpp"   if="isWindows"/ -->
+
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_BitStream.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_NetworkPlugin.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_PacketizedTCPSocket.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_RPC1.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_Session.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_Socket.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_Unix_Socket.cpp"                    if="isLinux"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_Unix_Socket.cpp"                    if="isOSX"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Net/OVR_Win32_Socket.cpp"                   if="isWindows"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Service/Service_NetClient.cpp"/>
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Service/Service_NetSessionCommon.cpp"/>
+
+            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Tracking/Tracking_SensorStateReader.cpp"/>
+
             <include name="${rootrel.oculusvr.sdk}/3rdParty/TinyXml/tinyxml2.cpp"/>
 
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadsPthread.cpp" if="isLinux"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Linux_HIDDevice.cpp"       if="isLinux"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Linux_SensorDevice.cpp"    if="isLinux"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Linux_DeviceManager.cpp"   if="isLinux"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Linux_HMDDevice.cpp"       if="isLinux"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Linux_SensorDevice.cpp"    if="isLinux"/>
-            <include name="${rootrel.oculusvr.sdk}/3rdParty/EDID/edid.cpp"                   if="isLinux"/>
-
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadsWinAPI.cpp"  if="isWindows"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Win32_DeviceManager.cpp"   if="isWindows"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Win32_DeviceStatus.cpp"    if="isWindows"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Win32_HIDDevice.cpp"       if="isWindows"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Win32_HMDDevice.cpp"       if="isWindows"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_Win32_SensorDevice.cpp"    if="isWindows"/>
-
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Kernel/OVR_ThreadsPthread.cpp" if="isOSX"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_OSX_DeviceManager.cpp"     if="isOSX"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_OSX_HIDDevice.cpp"         if="isOSX"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_OSX_HMDDevice.cpp"         if="isOSX"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_OSX_SensorDevice.cpp"      if="isOSX"/>
+            <include name="${rootrel.oculusvr.sdk}/3rdParty/EDID/edid.cpp"                                if="isLinux"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -538,6 +548,7 @@
                 <compilerarg location="start" value="c++"                      if="isCLANG"/>
 
                 <compilerarg value="-fno-rtti"/>
+                <compilerarg value="-DHEADLESS_APP=1"/>
 
                 <compilerarg value="-municode"                                 if="isMingW"/>
                 <compilerarg value="-DUNICODE"                                 if="isMingW"/>
@@ -560,6 +571,8 @@
               <linker extends="@{linker.cfg.id}">
                 <syslibset libs="setupapi, winmm"                              if="isWindows"/>
                 <syslibset libs="gdi32, kernel32"                              if="isWindows"/>
+                <syslibset libs="version"                                      if="isWindows"/>
+                <syslibset libs="ws2_32"                                       if="isWindows"/>
 
                 <syslibset libs="X11 Xrandr udev m"                            if="isLinux" unless="isLinuxARMv6" />
                 <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" 

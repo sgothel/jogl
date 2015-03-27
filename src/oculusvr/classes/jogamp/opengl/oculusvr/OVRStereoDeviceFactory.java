@@ -43,6 +43,10 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
         return false;
     }
 
+    private void dumpCaps(final ovrHmdDesc hmdDesc, final int deviceIndex) {
+        System.err.println(OVRVersion.getAvailableCapabilitiesInfo(hmdDesc, deviceIndex, null).toString());
+    }
+
     @Override
     public final StereoDevice createDevice(final int deviceIndex, final StereoDeviceConfig config, final boolean verbose) {
         final ovrHmdDesc hmdDesc = OVR.ovrHmd_Create(deviceIndex);
@@ -53,10 +57,16 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
             }
             return null;
         }
-        final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdDesc, deviceIndex);
-        if( verbose ) {
-            System.err.println(OVRVersion.getAvailableCapabilitiesInfo(ctx.hmdDesc, deviceIndex, null).toString());
+        final int hmdCaps = hmdDesc.getHmdCaps();
+        if( 0 == ( hmdCaps & OVR.ovrHmdCap_ExtendDesktop ) ) {
+            System.err.println("Device "+deviceIndex+" is not in ExtendDesktop mode as required.");
+            dumpCaps(hmdDesc, deviceIndex);
+            return null;
         }
+        if( verbose ) {
+            dumpCaps(hmdDesc, deviceIndex);
+        }
+        final OVRStereoDevice ctx = new OVRStereoDevice(this, hmdDesc, deviceIndex);
         return ctx;
     }
 }

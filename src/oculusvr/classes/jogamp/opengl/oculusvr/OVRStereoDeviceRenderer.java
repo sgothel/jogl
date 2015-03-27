@@ -386,6 +386,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
     private ShaderProgram sp;
     private ovrFrameTiming frameTiming;
+    private int frameCount;
 
     @Override
     public String toString() {
@@ -440,6 +441,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         eyes[1] = new OVREye(context.hmdDesc, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTexture1Size, eyeViewports[1]);
         sp = null;
         frameTiming = null;
+        frameCount = 0;
     }
 
     @Override
@@ -550,7 +552,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
 
     @Override
     public final void beginFrame(final GL gl) {
-        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.hmdDesc, 0);
+        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.hmdDesc, 0); // ovrHmd_GetFrameTiming not used, otherwise: frameCount);
     }
 
     @Override
@@ -560,6 +562,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         }
         OVR.ovrHmd_EndFrameTiming(context.hmdDesc);
         frameTiming = null;
+        frameCount++;
     }
 
     @Override

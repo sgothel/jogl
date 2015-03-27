@@ -1,4 +1,6 @@
 
+#define HEADLESS_APP 1
+
 typedef struct ovrHmdStruct {
 } OvrHmdContext;
 

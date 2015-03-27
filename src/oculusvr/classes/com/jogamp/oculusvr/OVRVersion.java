@@ -90,6 +90,10 @@ public class OVRVersion extends JogampVersion {
         if(null == hmdDesc) {
             throw new IllegalArgumentException("null hmdDesc");
         }
+        final OvrHmdContext hmdCtx = hmdDesc.getHandle();
+        if(null == hmdCtx) {
+            throw new IllegalArgumentException("null hmdCtx");
+        }
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -100,15 +104,16 @@ public class OVRVersion extends JogampVersion {
         sb.append("\thmd."+ovrHmdIndex+".vendorId:\t0x"+Integer.toHexString(hmdDesc.getVendorId())).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".serial:\t"+hmdDesc.getSerialNumberAsString()).append(Platform.getNewline());
         sb.append("\thmd."+ovrHmdIndex+".type:\t"+hmdDesc.getType()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".hmdCaps:\t"+hmdDesc.getHmdCaps()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".distorCaps:\t"+hmdDesc.getDistortionCaps()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+hmdDesc.getTrackingCaps()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".hmdCaps:\t"+toHexString(hmdDesc.getHmdCaps())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".distorCaps:\t"+toHexString(hmdDesc.getDistortionCaps())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+toHexString(hmdDesc.getTrackingCaps())).append(Platform.getNewline());
         final ovrSizei resolution = hmdDesc.getResolution();
         sb.append("\thmd."+ovrHmdIndex+".resolution:\t"+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
         final ovrVector2i winPos = hmdDesc.getWindowsPos();
         sb.append("\thmd."+ovrHmdIndex+".winPos:\t"+winPos.getX()+" / "+winPos.getY()).append(Platform.getNewline());
         return sb;
     }
+    private static String toHexString(final int v) { return "0x"+Integer.toHexString(v); }
 
     public static StringBuilder getAllAvailableCapabilitiesInfo(StringBuilder sb) {
         if(null==sb) {
