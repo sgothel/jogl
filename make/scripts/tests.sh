@@ -409,12 +409,12 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWTNoARBCtx $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
 # Stereo
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI

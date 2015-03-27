@@ -56,9 +56,12 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
     static final Set<String> excludesDefault;
+    static final Set<String> excludesV230V23X;
     static {
         excludesDefault = new HashSet<String>();
         excludesDefault.add("^\\Qjogamp/\\E.*$");
+        excludesV230V23X = new HashSet<String>(excludesDefault);
+        excludesV230V23X.add("^\\Qcom/jogamp/opengl/util/stereo/\\E.*$");
     }
 
 
@@ -87,6 +90,11 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
         testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.0", "2.2.1", excludesDefault);
     }
 
+    @Test
+    public void testVersionV221V230() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.2.1", "2.3.0", excludesDefault);
+    }
+
     void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
                       final String v1, final String v2, final Set<String> excludes)
                               throws IllegalArgumentException, IOException, URISyntaxException {
@@ -103,11 +111,11 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     }
 
     @Test
-    public void testVersionV221V23x() throws IllegalArgumentException, IOException, URISyntaxException {
+    public void testVersionV230V23x_00std() throws IllegalArgumentException, IOException, URISyntaxException {
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.2.1");
+        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
 
         final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
@@ -116,6 +124,21 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
                                          previousJar, preVersionNumber,
                                          curVersion.getClass(), currentCL, curVersionNumber,
                                          excludesDefault);
+    }
+    @Test
+    public void testVersionV230V23x_01patch() throws IllegalArgumentException, IOException, URISyntaxException {
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+
+        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
+        final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
+
+        final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
+
+        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
+                                         previousJar, preVersionNumber,
+                                         curVersion.getClass(), currentCL, curVersionNumber,
+                                         excludesV230V23X);
     }
 
     public static void main(final String args[]) throws IOException {
