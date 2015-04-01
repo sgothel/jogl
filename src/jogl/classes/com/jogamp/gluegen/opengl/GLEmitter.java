@@ -377,18 +377,17 @@ public class GLEmitter extends ProcAddressEmitter {
     public void emitDefine(final ConstantDefinition def, final String optionalComment) throws Exception {
         final String symbolRenamed = def.getName();
         final StringBuilder newComment = new StringBuilder();
-        newComment.append("Part of ");
         if (0 == addExtensionsOfSymbols2Doc(newComment, ", ", ", ", symbolRenamed)) {
             if (def.isEnum()) {
                 final String enumName = def.getEnumName();
-                if (null != enumName) {
-                    newComment.append(enumName);
-                } else {
-                    newComment.append("CORE ENUM");
+                if (null == enumName) {
+                    newComment.append("Part of CORE ");
+                    newComment.append("ENUM");
                 }
             } else {
                 if (getGLConfig().getAllowNonGLExtensions()) {
-                    newComment.append("CORE DEF");
+                    newComment.append("Part of CORE ");
+                    newComment.append("DEF");
                 } else {
                     // Note: All GL defines must be contained within an extension marker !
                     // #ifndef GL_EXT_lala
@@ -403,7 +402,9 @@ public class GLEmitter extends ProcAddressEmitter {
             }
         }
         if (null != optionalComment) {
-            newComment.append("<br>");
+            if( newComment.length() > 0 ) {
+                newComment.append("<br>");
+            }
             newComment.append(optionalComment);
         }
 
