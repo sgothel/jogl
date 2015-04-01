@@ -158,11 +158,11 @@ public class MonitorModeProps {
                                                           ;
 
     public static class Cache {
-        public final ArrayHashSet<DimensionImmutable>       resolutions  = new ArrayHashSet<DimensionImmutable>();
-        public final ArrayHashSet<SurfaceSize>              surfaceSizes = new ArrayHashSet<SurfaceSize>();
-        public final ArrayHashSet<MonitorMode.SizeAndRRate> sizeAndRates = new ArrayHashSet<MonitorMode.SizeAndRRate>();
-        public final ArrayHashSet<MonitorMode>              monitorModes = new ArrayHashSet<MonitorMode>();
-        public final ArrayHashSet<MonitorDevice>            monitorDevices = new ArrayHashSet<MonitorDevice>();
+        public final ArrayHashSet<DimensionImmutable>       resolutions  = new ArrayHashSet<DimensionImmutable>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+        public final ArrayHashSet<SurfaceSize>              surfaceSizes = new ArrayHashSet<SurfaceSize>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+        public final ArrayHashSet<MonitorMode.SizeAndRRate> sizeAndRates = new ArrayHashSet<MonitorMode.SizeAndRRate>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+        public final ArrayHashSet<MonitorMode>              monitorModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+        public final ArrayHashSet<MonitorDevice>            monitorDevices = new ArrayHashSet<MonitorDevice>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
 
         public final void setPrimary(final MonitorDevice p) { primary = p; }
         public final MonitorDevice getPrimary() { return primary;}
@@ -308,7 +308,7 @@ public class MonitorModeProps {
             final int rotation = monitorProperties[offset++];
             currentMode = getByNativeIdAndRotation(allMonitorModes, modeId, rotation);
         }
-        final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
+        final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
         while( offset < limit ) {
             final int modeId = monitorProperties[offset++];
             for (int i=0; i<allMonitorModes.size(); i++) {

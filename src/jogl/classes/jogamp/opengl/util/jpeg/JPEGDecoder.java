@@ -317,7 +317,7 @@ public class JPEGDecoder {
             this.precision = precision;
             this.scanLines = scanLines;
             this.samplesPerLine = samplesPerLine;
-            compIDs = new ArrayHashSet<Integer>(componentsCount);
+            compIDs = new ArrayHashSet<Integer>(false, componentsCount, ArrayHashSet.DEFAULT_LOAD_FACTOR);
             comps = new ComponentIn[componentsCount];
             this.compCount = componentsCount;
             this.qtt = qtt;

@@ -101,7 +101,8 @@ public class ScreenDriver extends ScreenImpl {
 
     @Override
     protected void collectNativeMonitorModesAndDevicesImpl(final MonitorModeProps.Cache cache) {
-        ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
+        ArrayHashSet<MonitorMode> supportedModes =
+                new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
         String adapterName;
         for(int adapterIdx=0; null != ( adapterName = getAdapterName(adapterIdx) ); adapterIdx++ ) {
             for(int monitorIdx=0; null != getMonitorName(adapterName, monitorIdx, true); monitorIdx++ ) {
@@ -124,7 +125,7 @@ public class ScreenDriver extends ScreenImpl {
                         MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, supportedModes, monitorProps, 0, null);
 
                         // next monitor, 1st mode
-                        supportedModes = new ArrayHashSet<MonitorMode>();
+                        supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
                     }
                 }
             }

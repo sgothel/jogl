@@ -257,7 +257,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private final PointerState1 pState1 = new PointerState1();
 
     /** Pointer names -> pointer ID (consecutive index, starting w/ 0) */
-    private final ArrayHashSet<Integer> pName2pID = new ArrayHashSet<Integer>();
+    private final ArrayHashSet<Integer> pName2pID = new ArrayHashSet<Integer>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
 
     private boolean defaultGestureHandlerEnabled = true;
     private DoubleTapScrollGesture gesture2PtrTouchScroll = null;

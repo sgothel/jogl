@@ -124,7 +124,7 @@ public class ScreenDriver extends ScreenImpl {
                     final int crtCount = crt_ids.length;
 
                     // Gather all available rotations
-                    final ArrayHashSet<Integer> availableRotations = new ArrayHashSet<Integer>();
+                    final ArrayHashSet<Integer> availableRotations = new ArrayHashSet<Integer>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
                     for(int i = 0; i < crtCount; i++) {
                         final int[] rotations = rAndR.getAvailableRotations(device.getHandle(), this, crt_ids[i]);
                         if( null != rotations ) {

@@ -155,7 +155,8 @@ public class ScreenDriver extends ScreenImpl {
         //
         for(int crtIdx=0; crtIdx<crtProps.count; crtIdx++) {
             final int crt_id = crtProps.crtIDs[crtIdx];
-            final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
+            final ArrayHashSet<MonitorMode> supportedModes =
+                    new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
             int modeIdx = 0;
             {
                 // Get all supported modes for this monitorDevice

@@ -110,7 +110,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
 
         final DimensionImmutable sizeMM = new Dimension(50, 50);
         final Rectangle viewport = new Rectangle(0, 0, 1920, 1080);
-        final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
+        final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
         supportedModes.add(modeOut);
         final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, false, true, sizeMM, modeOut, null, viewport, viewport, supportedModes);
         System.err.println("01 out : "+monOut);

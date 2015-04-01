@@ -152,7 +152,8 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 // collect all available PFD IDs
                 final GraphicsConfiguration[] configs = device.getConfigurations();
                 final int[] pfdIDs = new int[configs.length];
-                final ArrayHashSet<Integer> pfdIDOSet = new ArrayHashSet<Integer>();
+                final ArrayHashSet<Integer> pfdIDOSet =
+                        new ArrayHashSet<Integer>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
                 for (int i = 0; i < configs.length; i++) {
                     final GraphicsConfiguration gc = configs[i];
                     pfdIDs[i] = Win32SunJDKReflection.graphicsConfigurationGetPixelFormatID(gc);
