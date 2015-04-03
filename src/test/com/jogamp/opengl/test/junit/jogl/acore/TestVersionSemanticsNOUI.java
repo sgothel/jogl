@@ -67,22 +67,22 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
 
     // @Test
     public void testVersionV212V213() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.2", "2.1.3", excludesDefault);
+        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.2", "2.1.3", excludesDefault);
     }
 
     // @Test
     public void testVersionV213V214() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.3", "2.1.4", excludesDefault);
+        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.3", "2.1.4", excludesDefault);
     }
 
     // @Test
     public void testVersionV214V215() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.4", "2.1.5", excludesDefault);
+        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.4", "2.1.5", excludesDefault);
     }
 
     // @Test
     public void testVersionV215V220() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.1.5", "2.2.0", excludesDefault);
+        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.5", "2.2.0", excludesDefault);
     }
 
     @Test
