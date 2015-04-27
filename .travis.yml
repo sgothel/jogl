@@ -5,8 +5,6 @@ git:
 before_install:
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
-  - sudo apt-get install openjdk-7-jre openjdk-7-jdk ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++6-4.6-dev
-  - sudo apt-get install kernel-package build-essential 
   - unsetenv CLASSPATH
   - pusdh gluegen/make
   - ant
