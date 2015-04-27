@@ -5,7 +5,6 @@ git:
 before_install:
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
-  - unsetenv CLASSPATH
   - pusdh gluegen/make
   - ant
   - popd
