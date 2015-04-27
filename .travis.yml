@@ -1,4 +1,6 @@
 language: java
+git:
+  submodules: false
 
 before_install:
   - cd ..
