@@ -1,8 +1,10 @@
 language: java
 git:
   submodules: false
+sudo: required
 
 before_install:
+  - sudo apt-get install libx11-dev
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
   - pushd gluegen/make
