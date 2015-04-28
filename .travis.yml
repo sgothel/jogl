@@ -5,11 +5,11 @@ git:
 before_install:
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
-  - pusdh gluegen/make
+  - pushd gluegen/make
   - ant
   - popd
 
 install:
-  - pusdh jogl/make
+  - pushd jogl/make
   - ant
   - ant junit.run
