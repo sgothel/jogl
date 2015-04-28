@@ -4,7 +4,7 @@ git:
 sudo: required
 
 before_install:
-  - sudo apt-get install libx11-dev libxxf86vm-dev
+  - sudo apt-get install libx11-dev libxxf86vm-dev xvfb libgl1-mesa-dri
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
   - pushd gluegen/make
