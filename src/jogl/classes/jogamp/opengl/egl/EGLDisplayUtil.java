@@ -44,6 +44,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
 /**
  * This implementation provides recursive calls to
@@ -196,7 +197,27 @@ public class EGLDisplayUtil {
             }
             return singletonEGLDisplay.eglDisplay;
         }
-        final long eglDisplay = EGL.eglGetDisplay(nativeDisplay_id);
+
+        final String nativeWindowType = NativeWindowFactory.getNativeWindowType(false);
+        int platform = 0;
+        final long eglDisplay;
+        if(nativeWindowType == NativeWindowFactory.TYPE_X11) {
+            platform = EGLExt.EGL_PLATFORM_X11_KHR;
+        }else if(nativeWindowType == NativeWindowFactory.TYPE_ANDROID) {
+            platform = EGLExt.EGL_PLATFORM_ANDROID_KHR;
+        }else if(nativeWindowType == NativeWindowFactory.TYPE_GBM){
+            platform = EGLExt.EGL_PLATFORM_GBM_MESA;
+        } else if(nativeWindowType == NativeWindowFactory.TYPE_WAYLAND){
+            // TODO
+            platform = EGLExt.EGL_PLATFORM_WAYLAND_KHR;
+        }
+        if( platform != 0){
+            eglDisplay = EGL.eglGetPlatformDisplay(platform, nativeDisplay_id, null);
+        }
+        else{
+           eglDisplay = EGL.eglGetDisplay(nativeDisplay_id);
+        }
+
         if(DEBUG) {
             System.err.println("EGLDisplayUtil.eglGetDisplay.X: eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
                                EGLContext.toHexString(eglDisplay)+
