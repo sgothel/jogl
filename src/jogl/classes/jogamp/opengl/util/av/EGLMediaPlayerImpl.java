@@ -27,16 +27,14 @@
  */
 package jogamp.opengl.util.av;
 
-import java.nio.Buffer;
-import java.nio.IntBuffer;
-
-import com.jogamp.opengl.GL;
-
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.GL;
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.egl.EGLExt;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
+
+import java.nio.IntBuffer;
 
 import jogamp.opengl.egl.EGLContext;
 import jogamp.opengl.egl.EGLDrawable;
@@ -57,14 +55,14 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
 
     public static class EGLTextureFrame extends TextureSequence.TextureFrame {
 
-        public EGLTextureFrame(final Buffer clientBuffer, final Texture t, final long khrImage, final long khrSync) {
+        public EGLTextureFrame(final long clientBuffer, final Texture t, final long khrImage, final long khrSync) {
             super(t);
             this.clientBuffer = clientBuffer;
             this.image = khrImage;
             this.sync = khrSync;
         }
 
-        public final Buffer getClientBuffer() { return clientBuffer; }
+        public final long getClientBuffer() { return clientBuffer; }
         public final long getImage() { return image; }
         public final long getSync() { return sync; }
 
@@ -72,7 +70,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         public String toString() {
             return "EGLTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", img "+ image + ", sync "+ sync+", clientBuffer "+clientBuffer+"]";
         }
-        protected final Buffer clientBuffer;
+        protected final long clientBuffer;
         protected final long image;
         protected final long sync;
     }
@@ -87,7 +85,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     @Override
     protected TextureSequence.TextureFrame createTexImage(final GL gl, final int texName) {
         final Texture texture = super.createTexImageImpl(gl, texName, getWidth(), getHeight());
-        final Buffer clientBuffer;
+        final long clientBuffer;
         final long image;
         final long sync;
         final boolean eglUsage = TextureType.KHRImage == texType || useKHRSync ;
@@ -108,7 +106,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         if(TextureType.KHRImage == texType) {
             final IntBuffer nioTmp = Buffers.newDirectIntBuffer(1);
             // create EGLImage from texture
-            clientBuffer = null; // FIXME
+            clientBuffer = 0; // FIXME
             nioTmp.put(0, EGL.EGL_NONE);
             image =  eglExt.eglCreateImageKHR( eglDrawable.getNativeSurface().getDisplayHandle(), eglCtx.getHandle(),
                                                EGLExt.EGL_GL_TEXTURE_2D_KHR,
@@ -117,7 +115,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
                 throw new RuntimeException("EGLImage creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", tex "+texName+", err "+toHexString(EGL.eglGetError()));
             }
         } else {
-            clientBuffer = null;
+            clientBuffer = 0;
             image = 0;
         }
 
