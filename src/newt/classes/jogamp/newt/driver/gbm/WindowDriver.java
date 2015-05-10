@@ -56,7 +56,7 @@ public class WindowDriver extends WindowImpl {
             chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
         }
         setGraphicsConfiguration(cfg);
-        long nativeWindowHandle = createSurface(display.getGbmDevice());
+        long nativeWindowHandle = createSurface();
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+cfg);
         }
@@ -70,7 +70,7 @@ public class WindowDriver extends WindowImpl {
         focusChanged(false, true);
     }
 
-    private native long createSurface(final long gbmDevice);
+    private native long createSurface();
     //{
         //        surface = GbmLibrary.INSTANCE.gbm_surface_create(dev,
 //                                                         mode.hdisplay, mode.vdisplay,
