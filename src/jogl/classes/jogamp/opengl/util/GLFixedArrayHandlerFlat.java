@@ -28,53 +28,54 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
-import javax.media.opengl.fixedfunc.GLPointerFunc;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 
 /**
- * Used for interleaved fixed function arrays, i.e. where the buffer data itself is handled 
+ * Used for interleaved fixed function arrays, i.e. where the buffer data itself is handled
  * separately and interleaves many arrays.
  */
 public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
-  private GLArrayDataWrapper ad;
+  private final GLArrayDataWrapper ad;
 
-  public GLFixedArrayHandlerFlat(GLArrayDataWrapper ad) {
+  public GLFixedArrayHandlerFlat(final GLArrayDataWrapper ad) {
     this.ad = ad;
   }
 
+  @Override
   public GLArrayDataWrapper getData() {
       return ad;
   }
-  
-  public final void syncData(GL gl, boolean enable, boolean force, Object ext) {
-    if(enable) {
-        final GLPointerFunc glp = gl.getGL2ES1();
-        switch(ad.getIndex()) {
-            case GLPointerFunc.GL_VERTEX_ARRAY:
-                glp.glVertexPointer(ad);
-                break;
-            case GLPointerFunc.GL_NORMAL_ARRAY:
-                glp.glNormalPointer(ad);
-                break;
-            case GLPointerFunc.GL_COLOR_ARRAY:
-                glp.glColorPointer(ad);
-                break;
-            case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
-                glp.glTexCoordPointer(ad);
-                break;
-            default:
-                throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad); 
-        }
+
+  @Override
+  public final void syncData(final GL gl, final Object ext) {
+    final GLPointerFunc glp = gl.getGL2ES1();
+    switch(ad.getIndex()) {
+        case GLPointerFunc.GL_VERTEX_ARRAY:
+            glp.glVertexPointer(ad);
+            break;
+        case GLPointerFunc.GL_NORMAL_ARRAY:
+            glp.glNormalPointer(ad);
+            break;
+        case GLPointerFunc.GL_COLOR_ARRAY:
+            glp.glColorPointer(ad);
+            break;
+        case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
+            glp.glTexCoordPointer(ad);
+            break;
+        default:
+            throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad);
     }
   }
 
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  @Override
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
-        glp.glEnableClientState(ad.getIndex());        
+        glp.glEnableClientState(ad.getIndex());
     } else {
         glp.glDisableClientState(ad.getIndex());
     }

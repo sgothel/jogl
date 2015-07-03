@@ -32,21 +32,21 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class VheaTable implements Table {
 
-    private DirectoryEntry _de;
-    private int _version;
-    private short _ascent;
-    private short _descent;
-    private short _lineGap;
-    private short _advanceHeightMax;
-    private short _minTopSideBearing;
-    private short _minBottomSideBearing;
-    private short _yMaxExtent;
-    private short _caretSlopeRise;
-    private short _caretSlopeRun;
-    private short _metricDataFormat;
-    private int _numberOfLongVerMetrics;
+    private final DirectoryEntry _de;
+    private final int _version;
+    private final short _ascent;
+    private final short _descent;
+    private final short _lineGap;
+    private final short _advanceHeightMax;
+    private final short _minTopSideBearing;
+    private final short _minBottomSideBearing;
+    private final short _yMaxExtent;
+    private final short _caretSlopeRise;
+    private final short _caretSlopeRun;
+    private final short _metricDataFormat;
+    private final int _numberOfLongVerMetrics;
 
-    protected VheaTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected VheaTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _version = di.readInt();
         _ascent = di.readShort();
@@ -105,6 +105,7 @@ public class VheaTable implements Table {
         return _numberOfLongVerMetrics;
     }
 
+    @Override
     public int getType() {
         return vhea;
     }
@@ -113,8 +114,9 @@ public class VheaTable implements Table {
         return _yMaxExtent;
     }
 
+    @Override
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'vhea' Table - Vertical Header\n------------------------------")
             .append("\n        'vhea' version:       ").append(Fixed.floatValue(_version))
             .append("\n        xAscender:            ").append(_ascent)
@@ -135,13 +137,14 @@ public class VheaTable implements Table {
             .append("\n        numOf_LongVerMetrics: ").append(_numberOfLongVerMetrics)
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

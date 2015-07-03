@@ -812,7 +812,7 @@ public class Fixed {
      * @param num Input
      * @return Output
      */
-    public static int arctan( int num ) {
+    public static int arctan( final int num ) {
         return 0;
     }
 
@@ -822,7 +822,7 @@ public class Fixed {
      * @param num The 26.6 fixed number in question
      * @return The resulting square root
      */
-    public static int squareRoot(int num) {
+    public static int squareRoot(final int num) {
         int n = num;
         int divisor = num;
         int nSquared;
@@ -840,13 +840,13 @@ public class Fixed {
         }
         return n;
     }
-    
-    public static float floatValue(long fixed) {
+
+    public static float floatValue(final long fixed) {
         return (fixed >> 16) + (float)(fixed & 0xffff) / 0x10000;
     }
-    
-    public static float roundedFloatValue(long fixed, int decimalPlaces) {
-        int factor = 10 * decimalPlaces;
+
+    public static float roundedFloatValue(final long fixed, final int decimalPlaces) {
+        final int factor = 10 * decimalPlaces;
         return (float)((int)(floatValue(fixed) * factor)) / factor;
     }
 }

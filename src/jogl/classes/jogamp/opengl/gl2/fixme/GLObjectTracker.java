@@ -42,7 +42,7 @@ package jogamp.opengl.gl2;
 import jogamp.opengl.*;
 
 import java.nio.*;
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 /** 
  * Tracks the creation of server-side OpenGL objects which can be

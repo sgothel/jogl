@@ -47,15 +47,14 @@ public class Maplist {
 
   /**
    * Backend class
+   * private final Backend backend;
    */
-  private Backend backend;
 
   /**
    * Makes new Maplist
-   * @param backend Backend class
    */
-  public Maplist(Backend backend) {
-    this.backend = backend;
+  public Maplist(/* final Backend backend */) {
+    // this.backend = backend;
   }
 
   /**
@@ -72,9 +71,9 @@ public class Maplist {
    * @param rational is map rational
    * @param ncoords number of coords
    */
-  public void define(int type, int rational, int ncoords) {
+  public void define(final int type, final int rational, final int ncoords) {
     // DONE
-    Mapdesc m = locate(type);
+    final Mapdesc m = locate(type);
     assert (m == null || (m.isrational == rational && m.ncoords == ncoords));
     add(type, rational, ncoords);
 
@@ -86,9 +85,9 @@ public class Maplist {
    * @param rational is map rational
    * @param ncoords number of coords
    */
-  private void add(int type, int rational, int ncoords) {
+  private void add(final int type, final int rational, final int ncoords) {
     // DONE
-    Mapdesc map = new Mapdesc(type, rational, ncoords, backend);
+    final Mapdesc map = new Mapdesc(type, rational, ncoords);
     if (maps == null) {
       maps = map;
     } else {
@@ -102,7 +101,7 @@ public class Maplist {
    * @param type map type
    * @return Mapdesc of type or null if there is no such map
    */
-  public Mapdesc locate(int type) {
+  public Mapdesc locate(final int type) {
     // DONE
     Mapdesc m = null;
     for (m = maps; m != null; m = m.next)
@@ -116,7 +115,7 @@ public class Maplist {
    * @param type maptype
    * @return Mapdesc of type or null if there is no such map
    */
-  public Mapdesc find(int type) {
+  public Mapdesc find(final int type) {
     return locate(type);
   }
 }

@@ -41,7 +41,7 @@ package jogamp.opengl.glu.nurbs;
  */
 public class Subdivider {
   /**
-   * Cull type 
+   * Cull type
    */
   public static final int CULL_TRIVIAL_REJECT = 0;
 
@@ -76,7 +76,7 @@ public class Subdivider {
   private int subdivisions;
 
   /**
-   * U step when using domain distance sampling 
+   * U step when using domain distance sampling
    */
   private float domain_distance_u_rate;
 
@@ -133,12 +133,12 @@ public class Subdivider {
   /**
    * Breakpoints
    */
-  private Flist smbrkpts;
+  private final Flist smbrkpts = new Flist();
 
   /**
    * Not used
+   * private float[] stepsizes;
    */
-  private float[] stepsizes;
 
   /**
    * Domain distance in V direction
@@ -148,7 +148,7 @@ public class Subdivider {
   /**
    * Initializes quilt list
    */
-  public void beginQuilts(Backend backend) {
+  public void beginQuilts(final Backend backend) {
     // DONE
     qlist = null;
     renderhints = new Renderhints();
@@ -162,7 +162,7 @@ public class Subdivider {
    * Adds quilt to linked list
    * @param quilt added quilt
    */
-  public void addQuilt(Quilt quilt) {
+  public void addQuilt(final Quilt quilt) {
     // DONE
     if (qlist == null)
       qlist = quilt;
@@ -198,8 +198,8 @@ public class Subdivider {
       }
     }
 
-    float[] from = new float[2];
-    float[] to = new float[2];
+    final float[] from = new float[2];
+    final float[] to = new float[2];
 
     spbrkpts = new Flist();
     tpbrkpts = new Flist();
@@ -215,7 +215,7 @@ public class Subdivider {
         makeBorderTrim(from, to);
       }
     } else {
-      float[] rate = new float[2];
+      final float[] rate = new float[2];
       qlist.findRates(spbrkpts, tpbrkpts, rate);
       //                System.out.println("subdivider.drawsurfaces decompose");
     }
@@ -231,8 +231,8 @@ public class Subdivider {
       int num_v_steps;
       for (i = spbrkpts.start; i < spbrkpts.end - 1; i++) {
         for (j = tpbrkpts.start; j < tpbrkpts.end - 1; j++) {
-          float[] pta = new float[2];
-          float[] ptb = new float[2];
+          final float[] pta = new float[2];
+          final float[] ptb = new float[2];
 
           pta[0] = spbrkpts.pts[i];
           ptb[0] = spbrkpts.pts[i + 1];
@@ -266,7 +266,7 @@ public class Subdivider {
    * Empty method
    * @param initialbin2
    */
-  private void freejarcs(Bin initialbin2) {
+  private void freejarcs(final Bin initialbin2) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.freejarcs");
   }
@@ -275,7 +275,7 @@ public class Subdivider {
    * Subdivide in U direction
    * @param source Trimming arcs source
    */
-  private void subdivideInS(Bin source) {
+  private void subdivideInS(final Bin source) {
     // DONE
     if (renderhints.display_method == NurbsConsts.N_OUTLINE_PARAM) {
       outline(source);
@@ -294,13 +294,13 @@ public class Subdivider {
    * @param start breakpoints start
    * @param end breakpoints end
    */
-  private void splitInS(Bin source, int start, int end) {
+  private void splitInS(final Bin source, final int start, final int end) {
     // DONE
     if (source.isnonempty()) {
       if (start != end) {
-        int i = start + (end - start) / 2;
-        Bin left = new Bin();
-        Bin right = new Bin();
+        final int i = start + (end - start) / 2;
+        final Bin left = new Bin();
+        final Bin right = new Bin();
 
         split(source, left, right, 0, spbrkpts.pts[i]);
         splitInS(left, start, i);
@@ -329,15 +329,15 @@ public class Subdivider {
    * @param start
    * @param end
    */
-  private void splitInT(Bin source, int start, int end) {
+  private void splitInT(final Bin source, final int start, final int end) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.splitint");
 
     if (source.isnonempty()) {
       if (start != end) {
-        int i = start + (end - start) / 2;
-        Bin left = new Bin();
-        Bin right = new Bin();
+        final int i = start + (end - start) / 2;
+        final Bin left = new Bin();
+        final Bin right = new Bin();
         split(source, left, right, 1, tpbrkpts.pts[i + 1]);
         splitInT(left, start, i);
         splitInT(right, i + 1, end);
@@ -352,8 +352,8 @@ public class Subdivider {
           setArcTypeBezier();
           setDegenerate();
 
-          float[] pta = new float[2];
-          float[] ptb = new float[2];
+          final float[] pta = new float[2];
+          final float[] ptb = new float[2];
 
           pta[0] = spbrkpts.pts[s_index - 1];
           pta[1] = tpbrkpts.pts[t_index - 1];
@@ -362,7 +362,7 @@ public class Subdivider {
           ptb[1] = tpbrkpts.pts[t_index];
           qlist.downloadAll(pta, ptb, backend);
 
-          Patchlist patchlist = new Patchlist(qlist, pta, ptb);
+          final Patchlist patchlist = new Patchlist(qlist, pta, ptb);
 
           samplingSplit(source, patchlist,
                         renderhints.maxsubdivisions, 0);
@@ -375,14 +375,14 @@ public class Subdivider {
   }
 
   /**
-   * Sample 
+   * Sample
    * @param source
    * @param patchlist
    * @param subdivisions
    * @param param
    */
-  private void samplingSplit(Bin source, Patchlist patchlist,
-                             int subdivisions, int param) {
+  private void samplingSplit(final Bin source, final Patchlist patchlist,
+                             final int subdivisions, int param) {
     // DONE
     if (!source.isnonempty())
       return;
@@ -408,13 +408,13 @@ public class Subdivider {
       else
         param = 1 - param;
 
-      Bin left = new Bin();
-      Bin right = new Bin();
+      final Bin left = new Bin();
+      final Bin right = new Bin();
 
-      float mid = (float) ((patchlist.pspec[param].range[0] + patchlist.pspec[param].range[1]) * .5);
+      final float mid = (float) ((patchlist.pspec[param].range[0] + patchlist.pspec[param].range[1]) * .5);
 
       split(source, left, right, param, mid);
-      Patchlist subpatchlist = new Patchlist(patchlist, param, mid);
+      final Patchlist subpatchlist = new Patchlist(patchlist, param, mid);
       samplingSplit(left, subpatchlist, subdivisions - 1, param);
       samplingSplit(right, subpatchlist, subdivisions - 1, param);
     } else {
@@ -433,18 +433,18 @@ public class Subdivider {
    * @param subdivisions
    * @param param
    */
-  private void nonSamplingSplit(Bin source, Patchlist patchlist,
-                                int subdivisions, int param) {
+  private void nonSamplingSplit(final Bin source, final Patchlist patchlist,
+                                final int subdivisions, int param) {
     // DONE
     if (patchlist.needsNonSamplingSubdivision() && subdivisions > 0) {
       param = 1 - param;
 
-      Bin left = new Bin();
-      Bin right = new Bin();
+      final Bin left = new Bin();
+      final Bin right = new Bin();
 
-      float mid = (float) ((patchlist.pspec[param].range[0] + patchlist.pspec[param].range[1]) * .5);
+      final float mid = (float) ((patchlist.pspec[param].range[0] + patchlist.pspec[param].range[1]) * .5);
       split(source, left, right, param, mid);
-      Patchlist subpatchlist = new Patchlist(patchlist, param, mid);
+      final Patchlist subpatchlist = new Patchlist(patchlist, param, mid);
       if (left.isnonempty()) {
         if (subpatchlist.cullCheck() == CULL_TRIVIAL_REJECT)
           freejarcs(left);
@@ -483,7 +483,7 @@ public class Subdivider {
    * @param start
    * @param end
    */
-  private void monosplitInS(Bin source, int start, int end) {
+  private void monosplitInS(final Bin source, final int start, final int end) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.monosplitins");
   }
@@ -492,7 +492,7 @@ public class Subdivider {
    * Not used
    * @param source
    */
-  private void findIrregularS(Bin source) {
+  private void findIrregularS(final Bin source) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.findIrregularS");
   }
@@ -510,7 +510,7 @@ public class Subdivider {
    * @param source
    * @param patchlist
    */
-  private void tesselation(Bin source, Patchlist patchlist) {
+  private void tesselation(final Bin source, final Patchlist patchlist) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.tesselation");
   }
@@ -531,19 +531,19 @@ public class Subdivider {
    * @param param
    * @param value
    */
-  private void split(Bin bin, Bin left, Bin right, int param, float value) {
+  private void split(final Bin bin, final Bin left, final Bin right, final int param, final float value) {
     // DONE
-    Bin intersections = new Bin();
-    Bin unknown = new Bin();
+    final Bin intersections = new Bin();
+    final Bin unknown = new Bin();
 
     partition(bin, left, intersections, right, unknown, param, value);
 
-    int count = intersections.numarcs();
+    final int count = intersections.numarcs();
     // TODO jumpbuffer ??
 
     if (count % 2 == 0) {
 
-      Arc[] arclist = new Arc[MAXARCS];
+      final Arc[] arclist = new Arc[MAXARCS];
       CArrayOfArcs list;
       if (count >= MAXARCS) {
         list = new CArrayOfArcs(new Arc[count]);
@@ -559,7 +559,7 @@ public class Subdivider {
         last.set(jarc);
 
       if (param == 0) {// sort into incrasing t order
-        ArcSdirSorter sorter = new ArcSdirSorter(this);
+        final ArcSdirSorter sorter = new ArcSdirSorter(this);
         sorter.qsort(list, count);
 
         for (lptr = new CArrayOfArcs(list); lptr.getPointer() < last
@@ -578,7 +578,7 @@ public class Subdivider {
         }
 
       } else {// sort into decreasing s order
-        ArcTdirSorter sorter = new ArcTdirSorter(this);
+        final ArcTdirSorter sorter = new ArcTdirSorter(this);
         sorter.qsort(list, count);
 
         for (lptr = new CArrayOfArcs(list); lptr.getPointer() < last
@@ -609,7 +609,7 @@ public class Subdivider {
    * @param arc
    * @param relative
    */
-  private void join_t(Bin left, Bin right, Arc arc, Arc relative) {
+  private void join_t(final Bin left, final Bin right, final Arc arc, final Arc relative) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.join_t");
   }
@@ -619,7 +619,7 @@ public class Subdivider {
    * @param arc
    * @param relative
    */
-  private void check_t(Arc arc, Arc relative) {
+  private void check_t(final Arc arc, final Arc relative) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.check_t");
   }
@@ -631,28 +631,28 @@ public class Subdivider {
    * @param jarc1
    * @param jarc2
    */
-  private void join_s(Bin left, Bin right, Arc jarc1, Arc jarc2) {
+  private void join_s(final Bin left, final Bin right, Arc jarc1, Arc jarc2) {
     // DONE
     if (!jarc1.getitail())
       jarc1 = jarc1.next;
     if (!jarc2.getitail())
       jarc2 = jarc2.next;
 
-    float s = jarc1.tail()[0];
-    float t1 = jarc1.tail()[1];
-    float t2 = jarc2.tail()[1];
+    final float s = jarc1.tail()[0];
+    final float t1 = jarc1.tail()[1];
+    final float t2 = jarc2.tail()[1];
 
     if (t1 == t2) {
       simplelink(jarc1, jarc2);
     } else {
-      Arc newright = new Arc(Arc.ARC_RIGHT);
-      Arc newleft = new Arc(Arc.ARC_LEFT);
+      final Arc newright = new Arc(Arc.ARC_RIGHT);
+      final Arc newleft = new Arc(Arc.ARC_LEFT);
       if (isBezierArcType()) {
         arctesselator.bezier(newright, s, s, t1, t2);
         arctesselator.bezier(newleft, s, s, t2, t1);
       } else {
-        arctesselator.pwl_right(newright, s, t1, t2, stepsizes[0]);
-        arctesselator.pwl_left(newright, s, t2, t1, stepsizes[2]);
+        arctesselator.pwl_right(newright, s, t1, t2, 0 /* stepsizes[0] */);
+        arctesselator.pwl_left(newright, s, t2, t1, 0 /* stepsizes[2] */);
       }
       link(jarc1, jarc2, newright, newleft);
       left.addarc(newright);
@@ -668,7 +668,7 @@ public class Subdivider {
    * @param newright
    * @param newleft
    */
-  private void link(Arc jarc1, Arc jarc2, Arc newright, Arc newleft) {
+  private void link(final Arc jarc1, final Arc jarc2, final Arc newright, final Arc newleft) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.link");
   }
@@ -688,7 +688,7 @@ public class Subdivider {
    * @param jarc1
    * @param jarc2
    */
-  private void simplelink(Arc jarc1, Arc jarc2) {
+  private void simplelink(final Arc jarc1, final Arc jarc2) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.simplelink");
   }
@@ -698,7 +698,7 @@ public class Subdivider {
    * @param arc
    * @param relative
    */
-  private void check_s(Arc arc, Arc relative) {
+  private void check_s(final Arc arc, final Arc relative) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.check_s");
 
@@ -714,17 +714,17 @@ public class Subdivider {
    * @param param
    * @param value
    */
-  private void partition(Bin bin, Bin left, Bin intersections, Bin right,
-                         Bin unknown, int param, float value) {
+  private void partition(final Bin bin, final Bin left, final Bin intersections, final Bin right,
+                         final Bin unknown, final int param, final float value) {
 
-    Bin headonleft = new Bin();
-    Bin headonright = new Bin();
-    Bin tailonleft = new Bin();
-    Bin tailonright = new Bin();
+    final Bin headonleft = new Bin();
+    final Bin headonright = new Bin();
+    final Bin tailonleft = new Bin();
+    final Bin tailonright = new Bin();
 
     for (Arc jarc = bin.removearc(); jarc != null; jarc = bin.removearc()) {
-      float tdiff = jarc.tail()[param] - value;
-      float hdiff = jarc.head()[param] - value;
+      final float tdiff = jarc.tail()[param] - value;
+      final float hdiff = jarc.head()[param] - value;
 
       if (tdiff > 0) {
         if (hdiff > 0) {
@@ -732,7 +732,6 @@ public class Subdivider {
         } else if (hdiff == 0) {
           tailonright.addarc(jarc);
         } else {
-          Arc jtemp;
           switch (arc_split(jarc, param, value, 0)) {
           case 2:
             tailonright.addarc(jarc);
@@ -785,8 +784,8 @@ public class Subdivider {
    * @param right
    * @param value
    */
-  private void classify_tailonright_t(Bin tailonright, Bin intersections,
-                                      Bin right, float value) {
+  private void classify_tailonright_t(final Bin tailonright, final Bin intersections,
+                                      final Bin right, final float value) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.classify_tailonright_t");
 
@@ -799,14 +798,14 @@ public class Subdivider {
    * @param out
    * @param val
    */
-  private void classify_tailonleft_s(Bin bin, Bin in, Bin out, float val) {
+  private void classify_tailonleft_s(final Bin bin, final Bin in, final Bin out, final float val) {
 
     // DONE
     Arc j;
     while ((j = bin.removearc()) != null) {
       j.clearitail();
 
-      float diff = j.next.head()[0] - val;
+      final float diff = j.next.head()[0] - val;
       if (diff > 0) {
         in.addarc(j);
       } else if (diff < 0) {
@@ -831,13 +830,13 @@ public class Subdivider {
    * @param out
    * @param val
    */
-  private void classify_headonright_s(Bin bin, Bin in, Bin out, float val) {
+  private void classify_headonright_s(final Bin bin, final Bin in, final Bin out, final float val) {
     // DONE
     Arc j;
     while ((j = bin.removearc()) != null) {
       j.setitail();
 
-      float diff = j.prev.tail()[0] - val;
+      final float diff = j.prev.tail()[0] - val;
       if (diff > 0) {
         if (ccwTurn_sr(j.prev, j))
           out.addarc(j);
@@ -860,7 +859,7 @@ public class Subdivider {
    * @param j
    * @return false
    */
-  private boolean ccwTurn_sr(Arc prev, Arc j) {
+  private boolean ccwTurn_sr(final Arc prev, final Arc j) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO ccwTurn_sr");
     return false;
@@ -873,8 +872,8 @@ public class Subdivider {
    * @param right
    * @param value
    */
-  private void classify_headonright_t(Bin headonright, Bin intersections,
-                                      Bin right, float value) {
+  private void classify_headonright_t(final Bin headonright, final Bin intersections,
+                                      final Bin right, final float value) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.classify_headonright_t");
   }
@@ -886,8 +885,8 @@ public class Subdivider {
    * @param left
    * @param value
    */
-  private void classify_tailonleft_t(Bin tailonleft, Bin intersections,
-                                     Bin left, float value) {
+  private void classify_tailonleft_t(final Bin tailonleft, final Bin intersections,
+                                     final Bin left, final float value) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.classify_tailonleft_t");
   }
@@ -899,13 +898,13 @@ public class Subdivider {
    * @param out
    * @param val
    */
-  private void classify_headonleft_t(Bin bin, Bin in, Bin out, float val) {
+  private void classify_headonleft_t(final Bin bin, final Bin in, final Bin out, final float val) {
     // DONE
     Arc j;
     while ((j = bin.removearc()) != null) {
       j.setitail();
 
-      float diff = j.prev.tail()[1] - val;
+      final float diff = j.prev.tail()[1] - val;
       if (diff > 0) {
         out.addarc(j);
       } else if (diff < 0) {
@@ -928,7 +927,7 @@ public class Subdivider {
    * @param j
    * @return false
    */
-  private boolean ccwTurn_tl(Arc prev, Arc j) {
+  private boolean ccwTurn_tl(final Arc prev, final Arc j) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.ccwTurn_tl");
     return false;
@@ -941,13 +940,13 @@ public class Subdivider {
    * @param out
    * @param val
    */
-  private void classify_tailonright_s(Bin bin, Bin in, Bin out, float val) {
+  private void classify_tailonright_s(final Bin bin, final Bin in, final Bin out, final float val) {
     // DONE
     Arc j;
     while ((j = bin.removearc()) != null) {
       j.clearitail();
 
-      float diff = j.next.head()[0] - val;
+      final float diff = j.next.head()[0] - val;
       if (diff > 0) {
         if (ccwTurn_sr(j, j.next))
           out.addarc(j);
@@ -972,13 +971,13 @@ public class Subdivider {
    * @param out
    * @param val
    */
-  private void classify_headonleft_s(Bin bin, Bin in, Bin out, float val) {
+  private void classify_headonleft_s(final Bin bin, final Bin in, final Bin out, final float val) {
     // DONE
     Arc j;
     while ((j = bin.removearc()) != null) {
       j.setitail();
 
-      float diff = j.prev.tail()[0] - val;
+      final float diff = j.prev.tail()[0] - val;
       if (diff > 0) {
         out.addarc(j);
       } else if (diff < 0) {
@@ -1002,7 +1001,7 @@ public class Subdivider {
    * @param j
    * @return false
    */
-  private boolean ccwTurn_sl(Arc prev, Arc j) {
+  private boolean ccwTurn_sl(final Arc prev, final Arc j) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.ccwTurn_sl");
     return false;
@@ -1016,7 +1015,7 @@ public class Subdivider {
    * @param i
    * @return 0
    */
-  private int arc_split(Arc jarc, int param, float value, int i) {
+  private int arc_split(final Arc jarc, final int param, final float value, final int i) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.arc_split");
     return 0;
@@ -1043,7 +1042,7 @@ public class Subdivider {
    * Not used
    * @param source
    */
-  private void outline(Bin source) {
+  private void outline(final Bin source) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO subdivider.outline");
   }
@@ -1053,13 +1052,13 @@ public class Subdivider {
    * @param from range beginnings
    * @param to range ends
    */
-  private void makeBorderTrim(float[] from, float[] to) {
+  private void makeBorderTrim(final float[] from, final float[] to) {
     // DONE
-    float smin = from[0];
-    float smax = to[0];
+    final float smin = from[0];
+    final float smax = to[0];
 
-    float tmin = from[1];
-    float tmax = to[1];
+    final float tmin = from[1];
+    final float tmax = to[1];
 
     pjarc = null;
     Arc jarc = null;
@@ -1092,10 +1091,10 @@ public class Subdivider {
    */
   public void drawCurves() {
     // DONE
-    float[] from = new float[1];
-    float[] to = new float[1];
+    final float[] from = new float[1];
+    final float[] to = new float[1];
 
-    Flist bpts = new Flist();
+    final Flist bpts = new Flist();
     qlist.getRange(from, to, bpts);
 
     renderhints.init();
@@ -1103,13 +1102,13 @@ public class Subdivider {
     backend.bgncurv();
 
     for (int i = bpts.start; i < bpts.end - 1; i++) {
-      float[] pta = new float[1];
-      float[] ptb = new float[1];
+      final float[] pta = new float[1];
+      final float[] ptb = new float[1];
       pta[0] = bpts.pts[i];
       ptb[0] = bpts.pts[i + 1];
 
       qlist.downloadAll(pta, ptb, backend);
-      Curvelist curvelist = new Curvelist(qlist, pta, ptb);
+      final Curvelist curvelist = new Curvelist(qlist, pta, ptb);
       samplingSplit(curvelist, renderhints.maxsubdivisions);
     }
     backend.endcurv();
@@ -1120,7 +1119,7 @@ public class Subdivider {
    * @param curvelist list of curves
    * @param maxsubdivisions maximum number of subdivisions
    */
-  private void samplingSplit(Curvelist curvelist, int maxsubdivisions) {
+  private void samplingSplit(final Curvelist curvelist, final int maxsubdivisions) {
     if (curvelist.cullCheck() == CULL_TRIVIAL_REJECT)
       return;
 
@@ -1130,7 +1129,7 @@ public class Subdivider {
       // TODO kód
       //                System.out.println("TODO subdivider-needsSamplingSubdivision");
     } else {
-      int nu = (int) (1 + curvelist.range[2] / curvelist.stepsize);
+      final int nu = (int) (1 + curvelist.range[2] / curvelist.stepsize);
       backend.curvgrid(curvelist.range[0], curvelist.range[1], nu);
       backend.curvmesh(0, nu);
     }
@@ -1142,7 +1141,7 @@ public class Subdivider {
    * @param d new domain_distance_u_rate value
 
   */
-  public void set_domain_distance_u_rate(double d) {
+  public void set_domain_distance_u_rate(final double d) {
     // DONE
     domain_distance_u_rate = (float) d;
   }
@@ -1151,7 +1150,7 @@ public class Subdivider {
    * Sets new domain_distance_v_rate value
    * @param d new domain_distance_v_rate value
    */
-  public void set_domain_distance_v_rate(double d) {
+  public void set_domain_distance_v_rate(final double d) {
     // DONE
     domain_distance_v_rate = (float) d;
   }
@@ -1160,7 +1159,7 @@ public class Subdivider {
    * Sets new is_domain_distance_sampling value
    * @param i new is_domain_distance_sampling value
    */
-  public void set_is_domain_distance_sampling(int i) {
+  public void set_is_domain_distance_sampling(final int i) {
     // DONE
     this.is_domain_distance_sampling = i;
   }

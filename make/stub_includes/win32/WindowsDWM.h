@@ -1,8 +1,11 @@
 #ifndef WGL_DWM_VERSION_1_X
 
-#define DWM_BB_ENABLE 1
+#define DWM_BB_ENABLE                 0x00000001
+#define DWM_BB_BLURREGION             0x00000002
+#define DWM_BB_TRANSITIONONMAXIMIZED  0x00000004
 #define DWM_EC_DISABLECOMPOSITION     0
 #define DWM_EC_ENABLECOMPOSITION      1
+
   
 typedef struct tagDWM_BLURBEHIND {  
     DWORD dwFlags;  

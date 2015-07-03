@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -26,7 +26,7 @@ public class Panose {
   byte bXHeight = 0;
 
   /** Creates new Panose */
-  public Panose(byte[] panose) {
+  public Panose(final byte[] panose) {
     bFamilyType = panose[0];
     bSerifStyle = panose[1];
     bWeight = panose[2];
@@ -42,11 +42,11 @@ public class Panose {
   public byte getFamilyType() {
     return bFamilyType;
   }
-  
+
   public byte getSerifStyle() {
     return bSerifStyle;
   }
-  
+
   public byte getWeight() {
     return bWeight;
   }
@@ -54,33 +54,34 @@ public class Panose {
   public byte getProportion() {
     return bProportion;
   }
-  
+
   public byte getContrast() {
     return bContrast;
   }
-  
+
   public byte getStrokeVariation() {
     return bStrokeVariation;
   }
-  
+
   public byte getArmStyle() {
     return bArmStyle;
   }
-  
+
   public byte getLetterForm() {
     return bLetterform;
   }
-  
+
   public byte getMidline() {
     return bMidline;
   }
-  
+
   public byte getXHeight() {
     return bXHeight;
   }
-  
+
+  @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append(String.valueOf(bFamilyType)).append(" ")
       .append(String.valueOf(bSerifStyle)).append(" ")
       .append(String.valueOf(bWeight)).append(" ")

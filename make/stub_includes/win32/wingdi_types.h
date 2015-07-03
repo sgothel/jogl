@@ -9,7 +9,8 @@
  * Editions / Removals and a split (wingdi.h -> wingdi.h + wingdi_types.h + winwgl.h) were made by the JogAmp Community, 2010, 2012
  */
 
-#ifndef GDI_VERSION_1_X
+#ifndef GDI_TYPES_1_X
+#define GDI_TYPES_1_X
 
 typedef struct tagRECT {
     LONG left;
@@ -161,6 +162,6 @@ typedef struct tagPIXELFORMATDESCRIPTOR {
 #define OBJ_ENHMETAFILE 13
 #define OBJ_COLORSPACE 14
 
-#endif /*  GDI_VERSION_1_X */
+#endif /* GDI_TYPES_1_X */
 
 

@@ -33,7 +33,7 @@ a request for e.g. GL2ES2 will utilize the highest common desktop profile.
 ...>
 
 Linux:
-    PVRVFrame 2.09.29.0649
+    PVRVFrame 2.09.29.0649, Version_REL_2.10
         Debian Wheezy/testing x64, NV 290.10, 32bit libraries: OK
             GL_VENDOR     Imagination Technologies (Host GL: `NVIDIA Corporation`)
             GL_RENDERER   PowerVR PVRVFrame 8.1 SGX (Host GL: `GeForce GTX 460/PCI/SSE2`)
@@ -75,7 +75,7 @@ Linux:
         Ubuntu 11.10 x64, AMD Catalyst 12.1, 64bit libraries, libgles2-mesa 7.11-0ubuntu3: Error (swrast error, null values)
 
 Windows:
-    PVRVFrame 2.09.29.0649
+    PVRVFrame 2.09.29.0649, Version_REL_2.10
        Windows7 64bit, NV 290.10, 32bit libraries: OK 
             GL_VENDOR     Imagination Technologies (Host GL: `NVIDIA Corporation`)
             GL_RENDERER   PowerVR PVRVFrame 8.1 SGX (Host GL: `GeForce GTX 460/PCIe/SSE2`)

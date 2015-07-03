@@ -60,12 +60,12 @@ import java.io.IOException;
  */
 public class LigatureSet {
 
-    private int _ligatureCount;
-    private int[] _ligatureOffsets;
-    private Ligature[] _ligatures;
+    private final int _ligatureCount;
+    private final int[] _ligatureOffsets;
+    private final Ligature[] _ligatures;
 
     /** Creates new LigatureSet */
-    public LigatureSet(DataInputStream dis, int offset) throws IOException {
+    public LigatureSet(final DataInputStream dis, final int offset) throws IOException {
         dis.reset();
         dis.skipBytes(offset);
         _ligatureCount = dis.readUnsignedShort();

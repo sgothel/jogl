@@ -6,15 +6,15 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
  * CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
  * PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- * 
+ *
  * NOTE:  The Original Code (as defined below) has been licensed to Sun
  * Microsystems, Inc. ("Sun") under the SGI Free Software License B
  * (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -44,7 +44,7 @@
 
 package jogamp.opengl.glu.mipmap;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 import java.nio.*;
 
 /**
@@ -52,23 +52,23 @@ import java.nio.*;
  * @author  Administrator
  */
 public class HalveImage {
-  
+
   private static final int BOX2 = 2;
   private static final int BOX4 = 4;
   private static final int BOX8 = 8;
-  
-  public static void halveImage( int components, int width, int height,
-          ShortBuffer datain, ShortBuffer dataout ) {
+
+  public static void halveImage( final int components, final int width, final int height,
+          final ShortBuffer datain, final ShortBuffer dataout ) {
     int i, j, k;
     int newwidth, newheight;
     int delta;
     int t = 0;
     short temp = 0;
-    
+
     newwidth = width / 2;
     newheight = height /2;
     delta = width * components;
-    
+
     // Piece of cake
     for( i = 0; i < newheight; i++ ) {
       for( j = 0; j < newwidth; j++ ) {
@@ -91,27 +91,27 @@ public class HalveImage {
       t += delta;
     }
   }
-  
-  public static void halveImage_ubyte( int components, int width, int height,
-                                      ByteBuffer datain, ByteBuffer dataout,
-                                      int element_size, int ysize, int group_size ) {
+
+  public static void halveImage_ubyte( final int components, final int width, final int height,
+                                      final ByteBuffer datain, final ByteBuffer dataout,
+                                      final int element_size, final int ysize, final int group_size ) {
     int i, j, k;
     int newwidth, newheight;
     int s;
     int t;
-    
+
     // Handle case where there is only 1 column/row
     if( width == 1 || height == 1 ) {
       assert( !( width == 1 && height == 1 ) ); // can't be 1x1
       halve1Dimage_ubyte( components, width, height, datain, dataout, element_size, ysize, group_size );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
     s = 0;
     t = 0;
-    
+
     int temp = 0;
     // piece of cake
     for( i = 0; i < newheight; i++ ) {
@@ -133,24 +133,24 @@ public class HalveImage {
       t += ysize;
     }
   }
-  
-  public static void halve1Dimage_ubyte( int components, int width, int height,
-                      ByteBuffer datain, ByteBuffer dataout, 
-                      int element_size, int ysize, int group_size ) {
+
+  public static void halve1Dimage_ubyte( final int components, final int width, final int height,
+                      final ByteBuffer datain, final ByteBuffer dataout,
+                      final int element_size, final int ysize, final int group_size ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int dest = 0;
     int jj;
     int temp = 0;
-    
+
     assert( width == 1 || height == 1 ); // Must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // widthxheight can't be 1x1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
@@ -161,7 +161,7 @@ public class HalveImage {
           temp /= 2;
           dataout.put( (byte)temp );
           /*
-          dataout.setByte( (byte)(((0x000000FF & datain.setIndexInBytes(src).getByte()) + 
+          dataout.setByte( (byte)(((0x000000FF & datain.setIndexInBytes(src).getByte()) +
                     (0x000000FF & datain.setIndexInBytes( src + group_size ).getByte())) / 2 ) );
            */
           src += element_size;
@@ -170,10 +170,10 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assertion only
     } else if( width == 1 ) { // 1 column
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 );
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
@@ -188,7 +188,7 @@ public class HalveImage {
           temp /= 2;
           dataout.put( (byte)temp );
           /*
-          dataout.setByte( (byte)(((0x000000FF & datain.setIndexInBytes(src).getByte()) + 
+          dataout.setByte( (byte)(((0x000000FF & datain.setIndexInBytes(src).getByte()) +
                     (0x000000FF & datain.setIndexInBytes(src + ysize).getByte()) ) / 2 ) );
            */
           src += element_size;
@@ -202,16 +202,16 @@ public class HalveImage {
     assert( src == ysize * height );
     assert( dest == components * element_size * halfWidth * halfHeight );
   }
-  
-  public static void halveImage_byte( int components, int width, int height,
-                    ByteBuffer datain, ByteBuffer dataout, int element_size,
-                    int ysize, int group_size ) {
+
+  public static void halveImage_byte( final int components, final int width, final int height,
+                    final ByteBuffer datain, final ByteBuffer dataout, final int element_size,
+                    final int ysize, final int group_size ) {
     int i, j, k;
     int newwidth, newheight;
-    int s = 0;
+    final int s = 0;
     int t = 0;
     byte temp = (byte)0;
-    
+
     // handle case where there is only 1 column
     if( width == 1 || height == 1 ) {
       assert( !( width == 1 && height == 1 ) );
@@ -219,10 +219,10 @@ public class HalveImage {
                                                             ysize, group_size );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
-    
+
     for( i = 0; i < newheight; i++ ) {
       for( j = 0; j < newwidth; j++ ) {
         for( k = 0; k < components; k++ ) {
@@ -244,24 +244,24 @@ public class HalveImage {
       t += ysize;
     }
   }
-  
-  public static void halve1Dimage_byte( int components, int width, int height,
-                      ByteBuffer datain, ByteBuffer dataout,
-                      int element_size, int ysize, int group_size ) {
+
+  public static void halve1Dimage_byte( final int components, final int width, final int height,
+                      final ByteBuffer datain, final ByteBuffer dataout,
+                      final int element_size, final int ysize, final int group_size ) {
     int halfWidth = width / 2;
     int halfHeight = width / 2;
     int src = 0;
     int dest = 0;
     int jj;
     byte temp = (byte)0;
-    
+
     assert( width == 1 || height == 1 ); // must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // widthxheight can't be 1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
@@ -276,15 +276,15 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assert only
     } else if( width == 1 ) { // 1 column
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 ); // widthxheight can't be 1
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
@@ -303,13 +303,14 @@ public class HalveImage {
     }
     assert( dest == components * element_size * halfWidth * halfHeight );
   }
-  
-  public static void halveImage_ushort( int components, int width, int height,
-                          ByteBuffer datain, ShortBuffer dataout, int element_size,
-                          int ysize, int group_size, boolean myswap_bytes ) {
-    int i, j, k, l;
+
+  public static void halveImage_ushort( final int components, final int width, final int height,
+                          final ByteBuffer datain, final ShortBuffer dataout, final int element_size,
+                          final int ysize, final int group_size, final boolean myswap_bytes ) {
+    int i, j, k;
+    final int l;
     int newwidth, newheight;
-    int s = 0;
+    final int s = 0;
     int t = 0;
     int temp = 0;
     // handle case where there is only 1 column/row
@@ -319,10 +320,10 @@ public class HalveImage {
                                 ysize, group_size, myswap_bytes );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
-    
+
     // Piece of cake
     if( !myswap_bytes ) {
       for( i = 0; i < newheight; i++ ) {
@@ -364,27 +365,27 @@ public class HalveImage {
       }
     }
   }
-  
-  public static void halve1Dimage_ushort( int components, int width, int height,
-                      ByteBuffer datain, ShortBuffer dataout, int element_size,
-                      int ysize, int group_size, boolean myswap_bytes ) {
+
+  public static void halve1Dimage_ushort( final int components, final int width, final int height,
+                      final ByteBuffer datain, final ShortBuffer dataout, final int element_size,
+                      final int ysize, final int group_size, final boolean myswap_bytes ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int dest = 0;
     int jj;
-    
+
     assert( width == 1 || height == 1 ); // must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // widthxheight can't be 1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < halfHeight; kk++ ) {
-          int[] ushort = new int[BOX2];
+          final int[] ushort = new int[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             ushort[0] = ( 0x0000FFFF & Mipmap.GLU_SWAP_2_BYTES( datain.getShort() ) );
@@ -402,19 +403,19 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assertion only
     } else if( width == 1 ) { // 1 column
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 ); // widthxheight can't be 1
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          int[] ushort = new int[BOX2];
+          final int[] ushort = new int[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             ushort[0] = ( 0x0000FFFF & Mipmap.GLU_SWAP_2_BYTES( datain.getShort() ) );
@@ -437,13 +438,14 @@ public class HalveImage {
     }
     assert( dest == components * element_size * halfWidth * halfHeight );
   }
-  
-  public static void halveImage_short( int components, int width, int height,
-                        ByteBuffer datain, ShortBuffer dataout, int element_size,
-                        int ysize, int group_size, boolean myswap_bytes ) {
-    int i, j, k, l;
+
+  public static void halveImage_short( final int components, final int width, final int height,
+                        final ByteBuffer datain, final ShortBuffer dataout, final int element_size,
+                        final int ysize, final int group_size, final boolean myswap_bytes ) {
+    int i, j, k;
+    final int l;
     int newwidth, newheight;
-    int s = 0;
+    final int s = 0;
     int t = 0;
     short temp = (short)0;
     // handle case where there is only 1 column/row
@@ -453,10 +455,10 @@ public class HalveImage {
                             ysize, group_size, myswap_bytes );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
-    
+
     // Piece of cake
     if( !myswap_bytes ) {
       for( i = 0; i < newheight; i++ ) {
@@ -472,7 +474,7 @@ public class HalveImage {
             temp += datain.getShort();
             temp += 2;
             temp /= 4;
-            dataout.put( (short)temp );
+            dataout.put( temp );
             t += element_size;
           }
           t += group_size;
@@ -483,8 +485,8 @@ public class HalveImage {
       for( i = 0; i < newheight; i++ ) {
         for( j = 0; j < newwidth; j++ ) {
           for( k = 0; k < components; k++ ) {
-            short b;
-            int buf;
+            final short b;
+            final int buf;
             datain.position( t );
             temp = Mipmap.GLU_SWAP_2_BYTES( datain.getShort() );
             datain.position( t + group_size );
@@ -504,27 +506,27 @@ public class HalveImage {
       }
     }
   }
-  
-  public static void halve1Dimage_short( int components, int width, int height,
-              ByteBuffer datain, ShortBuffer dataout, int element_size, int ysize,
-              int group_size, boolean myswap_bytes ) {
+
+  public static void halve1Dimage_short( final int components, final int width, final int height,
+              final ByteBuffer datain, final ShortBuffer dataout, final int element_size, final int ysize,
+              final int group_size, final boolean myswap_bytes ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int dest = 0;
     int jj;
-    
+
     assert( width == 1 || height == 1 ); // must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // can't be 1x1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          short[] sshort = new short[BOX2];
+          final short[] sshort = new short[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             sshort[0] = Mipmap.GLU_SWAP_2_BYTES( datain.getShort() );
@@ -542,19 +544,19 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assertion only
     } else if( width == 1 ) {
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 );
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          short[] sshort = new short[BOX2];
+          final short[] sshort = new short[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             sshort[0] = Mipmap.GLU_SWAP_2_BYTES( datain.getShort() );
@@ -577,16 +579,17 @@ public class HalveImage {
     }
     assert( dest == ( components * element_size * halfWidth * halfHeight ) );
   }
-  
-  public static void halveImage_uint( int components, int width, int height,
-                          ByteBuffer datain, IntBuffer dataout, int element_size,
-                          int ysize, int group_size, boolean myswap_bytes ) {
-    int i, j, k, l;
+
+  public static void halveImage_uint( final int components, final int width, final int height,
+                          final ByteBuffer datain, final IntBuffer dataout, final int element_size,
+                          final int ysize, final int group_size, final boolean myswap_bytes ) {
+    int i, j, k;
+    final int l;
     int newwidth, newheight;
-    int s = 0;
+    final int s = 0;
     int t = 0;
     double temp = 0;
-    
+
     // handle case where there is only 1 column/row
     if( width == 1 || height == 1 ) {
       assert( !( width == 1 && height == 1 ) ); // can't be 1x1
@@ -594,10 +597,10 @@ public class HalveImage {
                                 ysize, group_size, myswap_bytes );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
-    
+
     // Piece of cake
     if( !myswap_bytes ) {
       for( i = 0; i < newheight; i++ ) {
@@ -643,27 +646,27 @@ public class HalveImage {
       }
     }
   }
-  
-  public static void halve1Dimage_uint( int components, int width, int height,
-                      ByteBuffer datain, IntBuffer dataout, int element_size, int ysize,
-                      int group_size, boolean myswap_bytes ) {
+
+  public static void halve1Dimage_uint( final int components, final int width, final int height,
+                      final ByteBuffer datain, final IntBuffer dataout, final int element_size, final int ysize,
+                      final int group_size, final boolean myswap_bytes ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int dest = 0;
     int jj;
-    
+
     assert( width == 1 || height == 1 ); // must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // widthxheight can't be 1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < halfHeight; kk++ ) {
-          long[] uint = new long[BOX2];
+          final long[] uint = new long[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             uint[0] = ( 0x00000000FFFFFFFF & Mipmap.GLU_SWAP_4_BYTES( datain.getInt() ) );
@@ -681,19 +684,19 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assertion only
     } else if( width == 1 ) { // 1 column
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 ); // widthxheight can't be 1
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          long[] uint = new long[BOX2];
+          final long[] uint = new long[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             uint[0] = ( 0x00000000FFFFFFFF & Mipmap.GLU_SWAP_4_BYTES( datain.getInt() ) );
@@ -716,16 +719,17 @@ public class HalveImage {
     }
     assert( dest == components * element_size * halfWidth * halfHeight );
   }
-  
-  public static void halveImage_int( int components, int width, int height,
-                        ByteBuffer datain, IntBuffer dataout, int element_size,
-                        int ysize, int group_size, boolean myswap_bytes ) {
-    int i, j, k, l;
+
+  public static void halveImage_int( final int components, final int width, final int height,
+                        final ByteBuffer datain, final IntBuffer dataout, final int element_size,
+                        final int ysize, final int group_size, final boolean myswap_bytes ) {
+    int i, j, k;
+    final int l;
     int newwidth, newheight;
-    int s = 0;
+    final int s = 0;
     int t = 0;
     int temp = 0;
-    
+
     // handle case where there is only 1 column/row
     if( width == 1 || height == 1 ) {
       assert( !( width == 1 && height == 1 ) ); // can't be 1x1
@@ -733,10 +737,10 @@ public class HalveImage {
                             ysize, group_size, myswap_bytes );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
-    
+
     // Piece of cake
     if( !myswap_bytes ) {
       for( i = 0; i < newheight; i++ ) {
@@ -785,27 +789,27 @@ public class HalveImage {
       }
     }
   }
-  
-  public static void halve1Dimage_int( int components, int width, int height,
-              ByteBuffer datain, IntBuffer dataout, int element_size, int ysize,
-              int group_size, boolean myswap_bytes ) {
+
+  public static void halve1Dimage_int( final int components, final int width, final int height,
+              final ByteBuffer datain, final IntBuffer dataout, final int element_size, final int ysize,
+              final int group_size, final boolean myswap_bytes ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int dest = 0;
     int jj;
-    
+
     assert( width == 1 || height == 1 ); // must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // can't be 1x1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          long[] uint = new long[BOX2];
+          final long[] uint = new long[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             uint[0] = ( 0x00000000FFFFFFFF & Mipmap.GLU_SWAP_4_BYTES( datain.getInt() ) );
@@ -823,19 +827,19 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assertion only
     } else if( width == 1 ) {
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 );
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          long[] uint = new long[BOX2];
+          final long[] uint = new long[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             uint[0] = ( 0x00000000FFFFFFFF & Mipmap.GLU_SWAP_4_BYTES( datain.getInt() ) );
@@ -858,13 +862,14 @@ public class HalveImage {
     }
     assert( dest == ( components * element_size * halfWidth * halfHeight ) );
   }
-  
-  public static void halveImage_float( int components, int width, int height,
-                    ByteBuffer datain, FloatBuffer dataout, int element_size,
-                    int ysize, int group_size, boolean myswap_bytes ) {
-    int i, j, k, l;
+
+  public static void halveImage_float( final int components, final int width, final int height,
+                    final ByteBuffer datain, final FloatBuffer dataout, final int element_size,
+                    final int ysize, final int group_size, final boolean myswap_bytes ) {
+    int i, j, k;
+    final int l;
     int newwidth, newheight;
-    int s = 0;
+    final int s = 0;
     int t = 0;
     float temp = 0.0f;
     // handle case where there is only 1 column/row
@@ -874,10 +879,10 @@ public class HalveImage {
                                               ysize, group_size, myswap_bytes );
       return;
     }
-    
+
     newwidth = width / 2;
     newheight = height / 2;
-    
+
     // Piece of cake
     if( !myswap_bytes ) {
       for( i = 0; i < newheight; i++ ) {
@@ -920,27 +925,27 @@ public class HalveImage {
       }
     }
   }
-  
-  public static void halve1Dimage_float( int components, int width, int height,
-              ByteBuffer datain, FloatBuffer dataout, int element_size, int ysize,
-              int group_size, boolean myswap_bytes ) {
+
+  public static void halve1Dimage_float( final int components, final int width, final int height,
+              final ByteBuffer datain, final FloatBuffer dataout, final int element_size, final int ysize,
+              final int group_size, final boolean myswap_bytes ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int dest = 0;
     int jj;
-    
+
     assert( width == 1 || height == 1 ); // must be 1D
     assert( width != height ); // can't be square
-    
+
     if( height == 1 ) { // 1 row
       assert( width != 1 ); // can't be 1x1
       halfHeight = 1;
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          float[] sfloat = new float[BOX2];
+          final float[] sfloat = new float[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             sfloat[0] = Mipmap.GLU_SWAP_4_BYTES( datain.getFloat() );
@@ -958,19 +963,19 @@ public class HalveImage {
         }
         src += group_size; // skip to next 2
       }
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       src += padBytes; // for assertion only
     } else if( width == 1 ) {
-      int padBytes = ysize - ( width * group_size );
+      final int padBytes = ysize - ( width * group_size );
       assert( height != 1 );
       halfWidth = 1;
       // one vertical column with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
         int kk;
         for( kk = 0; kk < components; kk++ ) {
-          float[] sfloat = new float[BOX2];
+          final float[] sfloat = new float[BOX2];
           if( myswap_bytes ) {
             datain.position( src );
             sfloat[0] = Mipmap.GLU_SWAP_4_BYTES( datain.getFloat() );
@@ -993,10 +998,10 @@ public class HalveImage {
     }
     assert( dest == ( components * element_size * halfWidth * halfHeight ) );
   }
-  
-  public static void halveImagePackedPixel( int components, Extract extract, int width, 
-          int height, ByteBuffer datain, ByteBuffer dataout, 
-          int pixelSizeInBytes, int rowSizeInBytes, boolean isSwap ) {
+
+  public static void halveImagePackedPixel( final int components, final Extract extract, final int width,
+          final int height, final ByteBuffer datain, final ByteBuffer dataout,
+          final int pixelSizeInBytes, final int rowSizeInBytes, final boolean isSwap ) {
     if( width == 1 || height == 1 ) {
       assert( !( width == 1 && height == 1 ) );
       halve1DimagePackedPixel( components, extract, width, height, datain, dataout,
@@ -1004,19 +1009,19 @@ public class HalveImage {
       return;
     }
     int ii, jj;
-    
-    int halfWidth = width / 2;
-    int halfHeight = height / 2;
+
+    final int halfWidth = width / 2;
+    final int halfHeight = height / 2;
     int src = 0;
-    int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
+    final int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
     int outIndex = 0;
-    
+
     for( ii = 0; ii < halfHeight; ii++ ) {
       for( jj = 0; jj < halfWidth; jj++ ) {
-        float totals[] = new float[4];
-        float extractTotals[][] = new float[BOX4][4];
+        final float totals[] = new float[4];
+        final float extractTotals[][] = new float[BOX4][4];
         int cc;
-        
+
         datain.position( src );
         extract.extract( isSwap, datain, extractTotals[0] );
         datain.position( src + pixelSizeInBytes );
@@ -1045,31 +1050,31 @@ public class HalveImage {
     assert( src == rowSizeInBytes * height );
     assert( outIndex == halfWidth * halfHeight );
   }
-  
-  public static void halve1DimagePackedPixel( int components, Extract extract, int width,
-              int height, ByteBuffer datain, ByteBuffer dataout,
-              int pixelSizeInBytes, int rowSizeInBytes, boolean isSwap ) {
+
+  public static void halve1DimagePackedPixel( final int components, final Extract extract, final int width,
+              final int height, final ByteBuffer datain, final ByteBuffer dataout,
+              final int pixelSizeInBytes, final int rowSizeInBytes, final boolean isSwap ) {
     int halfWidth = width / 2;
     int halfHeight = height / 2;
     int src = 0;
     int jj;
-    
+
     assert( width == 1 || height == 1 );
     assert( width != height );
-    
+
     if( height == 1 ) {
       int outIndex = 0;
-      
+
       assert( width != 1 );
       halfHeight = 1;
-      
+
       // one horizontal row with possible pad bytes
-      
+
       for( jj = 0; jj < halfWidth; jj++ ) {
-        float[] totals = new float[4];
-        float[][] extractTotals = new float[BOX2][4];
+        final float[] totals = new float[4];
+        final float[][] extractTotals = new float[BOX2][4];
         int cc;
-        
+
         datain.position( src );
         extract.extract( isSwap, datain, extractTotals[0] );
         datain.position( src + pixelSizeInBytes );
@@ -1088,22 +1093,22 @@ public class HalveImage {
         // skip over to next group of 2
         src += pixelSizeInBytes + pixelSizeInBytes;
       }
-      int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
+      final int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
       src += padBytes;
-      
+
       assert( src == rowSizeInBytes );
       assert( outIndex == halfWidth * halfHeight );
     } else if( width == 1 ) {
       int outIndex = 0;
-      
+
       assert( height != 1 );
       halfWidth = 1;
       // one vertical volumn with possible pad bytes per row
       // average two at a time
-      
+
       for( jj = 0; jj < halfHeight; jj++ ) {
-        float[] totals = new float[4];
-        float[][] extractTotals = new float[BOX2][4];
+        final float[] totals = new float[4];
+        final float[][] extractTotals = new float[BOX2][4];
         int cc;
         // average two at a time, instead of four
         datain.position( src );
@@ -1128,38 +1133,38 @@ public class HalveImage {
       assert( outIndex == halfWidth * halfHeight );
     }
   }
-  
-  public static void halveImagePackedPixelSlice( int components, Extract extract,
-          int width, int height, int depth, ByteBuffer dataIn,
-          ByteBuffer dataOut, int pixelSizeInBytes, int rowSizeInBytes,
-          int imageSizeInBytes, boolean isSwap ) {
+
+  public static void halveImagePackedPixelSlice( final int components, final Extract extract,
+          final int width, final int height, final int depth, final ByteBuffer dataIn,
+          final ByteBuffer dataOut, final int pixelSizeInBytes, final int rowSizeInBytes,
+          final int imageSizeInBytes, final boolean isSwap ) {
     int ii, jj;
-    int halfWidth = width / 2;
-    int halfHeight = height / 2;
-    int halfDepth = depth / 2;
+    final int halfWidth = width / 2;
+    // final int halfHeight = height / 2;
+    final int halfDepth = depth / 2;
     int src = 0;
-    int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
+    // final int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
     int outIndex = 0;
-    
+
     assert( (width == 1 || height == 1) && depth >= 2 );
-    
+
     if( width == height ) {
       assert( width == 1 && height == 1 );
       assert( depth >= 2 );
-      
+
       for( ii = 0; ii < halfDepth; ii++ ) {
-        float totals[] = new float[4];
-        float extractTotals[][] = new float[BOX2][4];
+        final float totals[] = new float[4];
+        final float extractTotals[][] = new float[BOX2][4];
         int cc;
-        
+
         dataIn.position( src );
         extract.extract( isSwap, dataIn, extractTotals[0] );
         dataIn.position( src + imageSizeInBytes );
         extract.extract( isSwap, dataIn, extractTotals[1] );
-        
+
         for( cc = 0; cc < components; cc++ ) {
           int kk;
-          
+
           // average only 2 pixels since a column
           totals[cc]= 0.0f;
           for( kk = 0; kk < BOX2; kk++ ) {
@@ -1167,7 +1172,7 @@ public class HalveImage {
           }
           totals[cc] /= BOX2;
         } // for cc
-        
+
         extract.shove( totals, outIndex, dataOut );
         outIndex++;
         // skip over to next group of 2
@@ -1175,13 +1180,13 @@ public class HalveImage {
       } // for ii
     } else if( height == 1 ) {
       assert( width != 1 );
-      
+
       for( ii = 0; ii < halfDepth; ii++ ) {
         for( jj = 0; jj < halfWidth; jj++ ) {
-          float totals[] = new float[4];
-          float extractTotals[][] = new float[BOX4][4];
+          final float totals[] = new float[4];
+          final float extractTotals[][] = new float[BOX4][4];
           int cc;
-          
+
           dataIn.position( src );
           extract.extract( isSwap, dataIn, extractTotals[0] );
           dataIn.position( src + pixelSizeInBytes );
@@ -1190,16 +1195,16 @@ public class HalveImage {
           extract.extract( isSwap, dataIn, extractTotals[2] );
           dataIn.position( src + pixelSizeInBytes + imageSizeInBytes );
           extract.extract( isSwap, dataIn, extractTotals[3] );
-          
+
           for( cc = 0; cc < components; cc++ ) {
             int kk;
-            
+
             // grab 4 pixels to average
             totals[cc] = 0.0f;
             for( kk = 0; kk < BOX4; kk++ ) {
               totals[cc]+= extractTotals[kk][cc];
             }
-            totals[cc]/= (float)BOX4;
+            totals[cc]/= BOX4;
           }
           extract.shove( totals, outIndex, dataOut );
           outIndex++;
@@ -1209,13 +1214,13 @@ public class HalveImage {
       }
     } else if( width == 1 ) {
       assert( height != 1 );
-      
+
       for( ii = 0; ii < halfDepth; ii++ ) {
         for( jj = 0; jj < halfWidth; jj++ ) {
-          float totals[] = new float[4];
-          float extractTotals[][] = new float[BOX4][4];
+          final float totals[] = new float[4];
+          final float extractTotals[][] = new float[BOX4][4];
           int cc;
-          
+
           dataIn.position( src );
           extract.extract( isSwap, dataIn, extractTotals[0] );
           dataIn.position( src + rowSizeInBytes );
@@ -1224,16 +1229,16 @@ public class HalveImage {
           extract.extract( isSwap, dataIn, extractTotals[2] );
           dataIn.position( src + rowSizeInBytes + imageSizeInBytes );
           extract.extract( isSwap, dataIn, extractTotals[3] );
-          
+
           for( cc = 0; cc < components; cc++ ) {
             int kk;
-            
+
             // grab 4 pixels to average
             totals[cc] = 0.0f;
             for( kk = 0; kk < BOX4; kk++ ) {
               totals[cc]+= extractTotals[kk][cc];
             }
-            totals[cc]/= (float)BOX4;
+            totals[cc]/= BOX4;
           }
           extract.shove( totals, outIndex, dataOut );
           outIndex++;
@@ -1243,37 +1248,37 @@ public class HalveImage {
       }
     }
   }
-  
-  public static void halveImageSlice( int components, ExtractPrimitive extract, int width,
-          int height, int depth, ByteBuffer dataIn, ByteBuffer dataOut,
-          int elementSizeInBytes, int groupSizeInBytes, int rowSizeInBytes,
-          int imageSizeInBytes, boolean isSwap ) {
+
+  public static void halveImageSlice( final int components, final ExtractPrimitive extract, final int width,
+          final int height, final int depth, final ByteBuffer dataIn, final ByteBuffer dataOut,
+          final int elementSizeInBytes, final int groupSizeInBytes, final int rowSizeInBytes,
+          final int imageSizeInBytes, final boolean isSwap ) {
     int ii, jj;
-    int halfWidth = width / 2;
-    int halfHeight = height / 2;
-    int halfDepth = depth / 2;
+    final int halfWidth = width / 2;
+    final int halfHeight = height / 2;
+    final int halfDepth = depth / 2;
     int src = 0;
-    int padBytes = rowSizeInBytes - ( width * groupSizeInBytes );
+    final int padBytes = rowSizeInBytes - ( width * groupSizeInBytes );
     int outIndex = 0;
-    
+
     assert( (width == 1 || height == 1) && depth >= 2 );
-    
+
     if( width == height ) {
       assert( width == 1 && height == 1 );
       assert( depth >= 2 );
-      
+
       for( ii = 0; ii < halfDepth; ii++ ) {
         int cc;
         for( cc = 0; cc < components; cc++ ) {
-          double[] totals = new double[4];
-          double[][] extractTotals = new double[BOX2][4];
+          final double[] totals = new double[4];
+          final double[][] extractTotals = new double[BOX2][4];
           int kk;
-          
+
           dataIn.position( src );
           extractTotals[0][cc] = extract.extract( isSwap, dataIn );
           dataIn.position( src + imageSizeInBytes );
           extractTotals[1][cc] = extract.extract( isSwap, dataIn );
-          
+
           // average 2 pixels since only a column
           totals[cc] = 0.0f;
           // totals[red] = extractTotals[0][red] + extractTotals[1][red];
@@ -1281,8 +1286,8 @@ public class HalveImage {
           for( kk = 0; kk < BOX2; kk++ ) {
             totals[cc] += extractTotals[kk][cc];
           }
-          totals[cc] /= (double)BOX2;
-          
+          totals[cc] /= BOX2;
+
           extract.shove( totals[cc], outIndex, dataOut );
           outIndex++;
           src += elementSizeInBytes;
@@ -1290,20 +1295,20 @@ public class HalveImage {
         // skip over next group of 2
         src += rowSizeInBytes;
       } // for ii
-      
+
       assert( src == rowSizeInBytes * height * depth );
       assert( outIndex == halfDepth * components );
     } else if( height == 1 ) {
       assert( width != 1 );
-      
+
       for( ii = 0; ii < halfDepth; ii++ ) {
         for( jj = 0; jj < halfWidth; jj++ ) {
           int cc;
           for( cc = 0; cc < components; cc++ ) {
             int kk;
-            double totals[] = new double[4];
-            double extractTotals[][] = new double[BOX4][4];
-            
+            final double totals[] = new double[4];
+            final double extractTotals[][] = new double[BOX4][4];
+
             dataIn.position( src );
             extractTotals[0][cc] = extract.extract( isSwap, dataIn );
             dataIn.position( src + groupSizeInBytes );
@@ -1312,7 +1317,7 @@ public class HalveImage {
             extractTotals[2][cc] = extract.extract( isSwap, dataIn );
             dataIn.position( src + imageSizeInBytes + groupSizeInBytes );
             extractTotals[3][cc] = extract.extract( isSwap, dataIn );
-            
+
             // grab 4 pixels to average
             totals[cc] = 0.0f;
             // totals[red] = extractTotals[0][red] + extractTotals[1][red] +
@@ -1321,8 +1326,8 @@ public class HalveImage {
             for( kk = 0; kk < BOX4; kk++ ) {
               totals[cc] += extractTotals[kk][cc];
             }
-            totals[cc] /= (double)BOX4;
-            
+            totals[cc] /= BOX4;
+
             extract.shove( totals[cc], outIndex, dataOut );
             outIndex++;
             src += elementSizeInBytes;
@@ -1337,15 +1342,15 @@ public class HalveImage {
       assert( outIndex == halfWidth * halfDepth * components );
     } else if( width == 1 ) {
       assert( height != 1 );
-      
+
       for( ii = 0; ii < halfDepth; ii++ ) {
         for( jj = 0; jj < halfHeight; jj++ ) {
           int cc;
           for( cc = 0; cc < components; cc++ ) {
             int kk;
-            double totals[] = new double[4];
-            double extractTotals[][] = new double[BOX4][4];
-            
+            final double totals[] = new double[4];
+            final double extractTotals[][] = new double[BOX4][4];
+
             dataIn.position( src );
             extractTotals[0][cc] = extract.extract( isSwap, dataIn );
             dataIn.position( src + rowSizeInBytes );
@@ -1354,8 +1359,8 @@ public class HalveImage {
             extractTotals[2][cc] = extract.extract( isSwap, dataIn );
             dataIn.position( src + imageSizeInBytes + groupSizeInBytes );
             extractTotals[3][cc] = extract.extract( isSwap, dataIn );
-            
-            
+
+
             // grab 4 pixels to average
             totals[cc] = 0.0f;
             // totals[red] = extractTotals[0][red] + extractTotals[1][red] +
@@ -1364,8 +1369,8 @@ public class HalveImage {
             for( kk = 0; kk < BOX4; kk++ ) {
               totals[cc] += extractTotals[kk][cc];
             }
-            totals[cc] /= (double)BOX4;
-            
+            totals[cc] /= BOX4;
+
             extract.shove( totals[cc], outIndex, dataOut );
             outIndex++;
             src += elementSizeInBytes;
@@ -1380,41 +1385,41 @@ public class HalveImage {
       assert( outIndex == halfWidth * halfDepth * components );
     }
   }
-  
-  public static void halveImage3D( int components, ExtractPrimitive extract,
-          int width, int height, int depth, ByteBuffer dataIn, ByteBuffer dataOut,
-          int elementSizeInBytes, int groupSizeInBytes, int rowSizeInBytes,
-          int imageSizeInBytes, boolean isSwap ) {
+
+  public static void halveImage3D( final int components, final ExtractPrimitive extract,
+          final int width, final int height, final int depth, final ByteBuffer dataIn, final ByteBuffer dataOut,
+          final int elementSizeInBytes, final int groupSizeInBytes, final int rowSizeInBytes,
+          final int imageSizeInBytes, final boolean isSwap ) {
     assert( depth > 1 );
-    
+
     // horizontal/vertical/onecolumn slice viewed from top
     if( width == 1 || height == 1 ) {
       assert( 1 <= depth );
-      
+
       halveImageSlice( components, extract, width, height, depth, dataIn, dataOut,
               elementSizeInBytes, groupSizeInBytes, rowSizeInBytes, imageSizeInBytes,
               isSwap );
       return;
     }
-    
+
     int ii, jj, dd;
-    
-    int halfWidth = width / 2;
-    int halfHeight = height / 2;
-    int halfDepth = depth / 2;
+
+    final int halfWidth = width / 2;
+    final int halfHeight = height / 2;
+    final int halfDepth = depth / 2;
     int src = 0;
-    int padBytes = rowSizeInBytes - ( width * groupSizeInBytes );
+    final int padBytes = rowSizeInBytes - ( width * groupSizeInBytes );
     int outIndex = 0;
-    
+
     for( dd = 0; dd < halfDepth; dd++ ) {
       for( ii = 0; ii < halfHeight; ii++ ) {
         for( jj = 0; jj < halfWidth; jj++ ) {
           int cc;
           for( cc = 0; cc < components; cc++ ) {
             int kk;
-            double totals[] = new double[4];
-            double extractTotals[][] = new double[BOX8][4];
-            
+            final double totals[] = new double[4];
+            final double extractTotals[][] = new double[BOX8][4];
+
             dataIn.position( src );
             extractTotals[0][cc] = extract.extract( isSwap, dataIn );
             dataIn.position( src + groupSizeInBytes );
@@ -1431,17 +1436,17 @@ public class HalveImage {
             extractTotals[6][cc] = extract.extract( isSwap, dataIn );
             dataIn.position( src + rowSizeInBytes + imageSizeInBytes + groupSizeInBytes );
             extractTotals[7][cc] = extract.extract( isSwap, dataIn );
-            
+
             totals[cc] = 0.0f;
-            
+
             for( kk = 0; kk < BOX8; kk++ ) {
               totals[cc] += extractTotals[kk][cc];
             }
-            totals[cc] /= (double)BOX8;
-            
+            totals[cc] /= BOX8;
+
             extract.shove( totals[cc], outIndex, dataOut );
             outIndex++;
-            
+
             src += elementSizeInBytes;
           } // for cc
           // skip over to next square of 4
@@ -1456,40 +1461,40 @@ public class HalveImage {
     assert( src == rowSizeInBytes * height * depth );
     assert( outIndex == halfWidth * halfHeight * halfDepth * components );
   }
-  
-  public static void halveImagePackedPixel3D( int components, Extract extract,
-          int width, int height, int depth, ByteBuffer dataIn, 
-          ByteBuffer dataOut, int pixelSizeInBytes, int rowSizeInBytes,
-          int imageSizeInBytes, boolean isSwap ) {
+
+  public static void halveImagePackedPixel3D( final int components, final Extract extract,
+          final int width, final int height, final int depth, final ByteBuffer dataIn,
+          final ByteBuffer dataOut, final int pixelSizeInBytes, final int rowSizeInBytes,
+          final int imageSizeInBytes, final boolean isSwap ) {
     if( depth == 1 ) {
       assert( 1 <= width && 1 <= height );
-      
+
       halveImagePackedPixel( components, extract, width, height, dataIn, dataOut,
               pixelSizeInBytes, rowSizeInBytes, isSwap );
       return;
     } else if( width == 1 || height == 1 ) { // a horizontal or vertical slice viewed from top
       assert( 1 <= depth );
-      
+
       halveImagePackedPixelSlice( components, extract, width, height, depth, dataIn,
               dataOut, pixelSizeInBytes, rowSizeInBytes, imageSizeInBytes, isSwap );
       return;
     }
     int ii, jj, dd;
-    
-    int halfWidth = width / 2;
-    int halfHeight = height / 2;
-    int halfDepth = depth / 2;
+
+    final int halfWidth = width / 2;
+    final int halfHeight = height / 2;
+    final int halfDepth = depth / 2;
     int src = 0;
-    int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
+    final int padBytes = rowSizeInBytes - ( width * pixelSizeInBytes );
     int outIndex = 0;
-    
+
     for( dd = 0; dd < halfDepth; dd++ ) {
       for( ii = 0; ii < halfHeight; ii++ ) {
         for( jj = 0; jj < halfWidth; jj++ ) {
-          float totals[] = new float[4]; // 4 is max components
-          float extractTotals[][] = new float[BOX8][4];
+          final float totals[] = new float[4]; // 4 is max components
+          final float extractTotals[][] = new float[BOX8][4];
           int cc;
-          
+
           dataIn.position( src );
           extract.extract( isSwap, dataIn, extractTotals[0] );
           dataIn.position( src + pixelSizeInBytes );
@@ -1506,7 +1511,7 @@ public class HalveImage {
           extract.extract( isSwap, dataIn, extractTotals[6] );
           dataIn.position( src + rowSizeInBytes + pixelSizeInBytes + imageSizeInBytes );
           extract.extract( isSwap, dataIn, extractTotals[7] );
-          
+
           for( cc = 0; cc < components; cc++ ) {
             int kk;
             // grab 8 pixels to average
@@ -1514,7 +1519,7 @@ public class HalveImage {
             for( kk = 0; kk < BOX8; kk++ ) {
               totals[cc] += extractTotals[kk][cc];
             }
-            totals[cc] /= (float)BOX8;
+            totals[cc] /= BOX8;
           }
           extract.shove( totals, outIndex, dataOut );
           outIndex++;

@@ -30,14 +30,14 @@ import java.io.IOException;
  * @version $Id: HdmxTable.java,v 1.2 2007-07-26 11:12:30 davidsch Exp $
  */
 public class HdmxTable implements Table {
-    
-    public class DeviceRecord {
-        
-        private short _pixelSize;
-        private short _maxWidth;
-        private short[] _widths;
 
-        protected DeviceRecord(int numGlyphs, DataInput di) throws IOException {
+    public static class DeviceRecord {
+
+        private final short _pixelSize;
+        private final short _maxWidth;
+        private final short[] _widths;
+
+        protected DeviceRecord(final int numGlyphs, final DataInput di) throws IOException {
             _pixelSize = di.readByte();
             _maxWidth = di.readByte();
             _widths = new short[numGlyphs];
@@ -49,36 +49,36 @@ public class HdmxTable implements Table {
         public short getPixelSize() {
             return _pixelSize;
         }
-        
+
         public short getMaxWidth() {
             return _maxWidth;
         }
-        
+
         public short[] getWidths() {
             return _widths;
         }
 
-        public short getWidth(int glyphidx) {
+        public short getWidth(final int glyphidx) {
             return _widths[glyphidx];
         }
-        
+
     }
-    
-    private DirectoryEntry _de;
-    private int _version;
-    private short _numRecords;
-    private int _sizeDeviceRecords;
-    private DeviceRecord[] _records;
+
+    private final DirectoryEntry _de;
+    private final int _version;
+    private final short _numRecords;
+    private final int _sizeDeviceRecords;
+    private final DeviceRecord[] _records;
 
     /** Creates a new instance of HdmxTable */
-    protected HdmxTable(DirectoryEntry de, DataInput di, MaxpTable maxp)
+    protected HdmxTable(final DirectoryEntry de, final DataInput di, final MaxpTable maxp)
     throws IOException {
         _de = (DirectoryEntry) de.clone();
         _version = di.readUnsignedShort();
         _numRecords = di.readShort();
         _sizeDeviceRecords = di.readInt();
         _records = new DeviceRecord[_numRecords];
-        
+
         // Read the device records
         for (int i = 0; i < _numRecords; ++i) {
             _records[i] = new DeviceRecord(maxp.getNumGlyphs(), di);
@@ -88,17 +88,19 @@ public class HdmxTable implements Table {
     public int getNumberOfRecords() {
         return _numRecords;
     }
-    
-    public DeviceRecord getRecord(int i) {
+
+    public DeviceRecord getRecord(final int i) {
         return _records[i];
     }
-    
+
+    @Override
     public int getType() {
         return hdmx;
     }
-    
+
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");
         sb.append("Size = ").append(_de.getLength()).append(" bytes\n")
             .append("\t'hdmx' version:         ").append(_version).append("\n")
@@ -124,6 +126,7 @@ public class HdmxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

@@ -27,79 +27,91 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES2;
 
-import jogamp.graph.curve.text.GlyphString;
+import jogamp.graph.geom.plane.AffineTransform;
 
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
-public abstract class Label extends UIShape implements UITextShape {
+public class Label extends UIShape {
     protected Font font;
-    protected int size;
+    protected float pixelSize;
     protected String text;
-    protected GlyphString glyphString; 
-    
-    public Label(Factory<? extends Vertex> factory, Font font, int size, String text) {
-        super(factory);
+
+    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float pixelSize, final String text) {
+        super(factory, renderModes);
         this.font = font;
-        this.size = size;
+        this.pixelSize = pixelSize;
         this.text = text;
     }
-    
-    public GlyphString getGlyphString() {
-        return glyphString;
-    }
-    
+
     public String getText() {
         return text;
     }
-    
-    public void setText(String text) {
+
+    public void setText(final String text) {
         this.text = text;
-        dirty |= DIRTY_SHAPE;
+        markShapeDirty();
     }
-    
+
     public Font getFont() {
         return font;
     }
 
-    public void setFont(Font font) {
+    public void setFont(final Font font) {
         this.font = font;
-        dirty |= DIRTY_SHAPE;        
+        markShapeDirty();
     }
 
-    public int getSize() {
-        return size;
+    public float getPixelSize() {
+        return pixelSize;
     }
 
-    public void setSize(int size) {
-        this.size = size;
-        dirty |= DIRTY_SHAPE;        
+    public float getLineHeight() {
+        return font.getLineHeight(pixelSize);
     }
 
-    public String toString(){
-        return "Label [" + font.toString() + ", size " + size + ", " + getText() + "]";
-    }
-
-    @Override
-    protected void clearImpl() {
-        if(null != glyphString) {
-            glyphString.destroy(null, null);
-        }        
-    }
-    
-    @Override
-    protected void createShape() {
-        clearImpl();
-        glyphString = GlyphString.createString(shape, getVertexFactory(), font, size, text);        
+    public void setPixelSize(final float pixelSize) {
+        this.pixelSize = pixelSize;
+        markShapeDirty();
     }
 
     @Override
-    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer,
-            int renderModes, int[/*1*/] texSize, boolean selection) {        
+    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    }
+
+    @Override
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    }
+
+    private final float[] tmpV3 = new float[3];
+    private final AffineTransform tempT1 = new AffineTransform();
+    private final AffineTransform tempT2 = new AffineTransform();
+
+    private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
+        @Override
+        public void visit(final OutlineShape shape, final AffineTransform t) {
+            shape.setSharpness(shapesSharpness);
+            region.addOutlineShape(shape, t, rgbaColor);
+            box.resize(shape.getBounds(), t, tmpV3);
+        }
+    };
+
+    @Override
+    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
+        TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text, tempT1, tempT2);
+        final float[] ctr = box.getCenter();
+        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+    }
+
+    @Override
+    public String getSubString() {
+        final int m = Math.min(text.length(), 8);
+        return super.getSubString()+", psize " + pixelSize + ", '" + text.substring(0, m)+"'";
     }
 }

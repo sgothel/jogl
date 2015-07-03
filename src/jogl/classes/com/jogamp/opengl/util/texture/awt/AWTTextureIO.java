@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -41,7 +41,7 @@ package com.jogamp.opengl.util.texture.awt;
 
 import java.awt.image.*;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.texture.*;
 
 public class AWTTextureIO extends TextureIO {
@@ -59,8 +59,8 @@ public class AWTTextureIO extends TextureIO {
      *
      * @see #newTextureData(GLProfile, BufferedImage, boolean)
      */
-    public static TextureData newTextureData(GLProfile glp, BufferedImage image,
-                                             boolean mipmap) {
+    public static TextureData newTextureData(final GLProfile glp, final BufferedImage image,
+                                             final boolean mipmap) {
         return newTextureDataImpl(glp, image, 0, 0, mipmap);
     }
 
@@ -89,10 +89,10 @@ public class AWTTextureIO extends TextureIO {
      * @throws IllegalArgumentException if either internalFormat or
      *                                  pixelFormat was 0
      */
-    public static TextureData newTextureData(GLProfile glp, BufferedImage image,
-                                             int internalFormat,
-                                             int pixelFormat,
-                                             boolean mipmap) throws IllegalArgumentException {
+    public static TextureData newTextureData(final GLProfile glp, final BufferedImage image,
+                                             final int internalFormat,
+                                             final int pixelFormat,
+                                             final boolean mipmap) throws IllegalArgumentException {
         if ((internalFormat == 0) || (pixelFormat == 0)) {
             throw new IllegalArgumentException("internalFormat and pixelFormat must be non-zero");
         }
@@ -100,7 +100,7 @@ public class AWTTextureIO extends TextureIO {
         return newTextureDataImpl(glp, image, internalFormat, pixelFormat, mipmap);
     }
 
-    /** 
+    /**
      * Creates an OpenGL texture object from the specified BufferedImage
      * using the current OpenGL context.
      *
@@ -112,18 +112,18 @@ public class AWTTextureIO extends TextureIO {
      * @throws GLException if no OpenGL context is current or if an
      *                     OpenGL error occurred
      */
-    public static Texture newTexture(GLProfile glp, BufferedImage image, boolean mipmap) throws GLException {
-        TextureData data = newTextureData(glp, image, mipmap);
-        Texture texture = newTexture(data);
+    public static Texture newTexture(final GLProfile glp, final BufferedImage image, final boolean mipmap) throws GLException {
+        final TextureData data = newTextureData(glp, image, mipmap);
+        final Texture texture = newTexture(data);
         data.flush();
         return texture;
     }
 
-    private static TextureData newTextureDataImpl(GLProfile glp, 
-                                                  BufferedImage image,
-                                                  int internalFormat,
-                                                  int pixelFormat,
-                                                  boolean mipmap) {
+    private static TextureData newTextureDataImpl(final GLProfile glp,
+                                                  final BufferedImage image,
+                                                  final int internalFormat,
+                                                  final int pixelFormat,
+                                                  final boolean mipmap) {
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, image);
     }
 }

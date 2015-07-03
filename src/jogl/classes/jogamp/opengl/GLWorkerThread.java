@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -40,15 +40,17 @@
 package jogamp.opengl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import javax.media.opengl.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.jogamp.opengl.GLContext;
 
 /** Singleton thread upon which all OpenGL work is performed by
     default. Unfortunately many vendors' OpenGL drivers are not really
     thread-safe and stability is much improved by performing OpenGL
     work on at most one thread. This is the default behavior of the
     GLAutoDrawable implementations according to the {@link
-    javax.media.opengl.Threading Threading} class. The GLWorkerThread
+    com.jogamp.opengl.Threading Threading} class. The GLWorkerThread
     replaces the original AWT event queue thread-based mechanism for
     two reasons: first, more than one AWT event queue thread may be
     spawned, for example if a dialog is being shown; second, it avoids
@@ -64,8 +66,8 @@ public class GLWorkerThread {
   // The Runnable to execute immediately on the worker thread
   private static volatile Runnable work;
   // Queue of Runnables to be asynchronously invoked
-  private static List queue = new LinkedList();
-  
+  private static List<Runnable> queue = new ArrayList<Runnable>();
+
   /** Should only be called by Threading class if creation of the
       GLWorkerThread was requested via the opengl.1thread system
       property. <br>
@@ -77,14 +79,14 @@ public class GLWorkerThread {
         if (!started) {
           lock = new Object();
           thread = new Thread(new WorkerRunnable(),
-                              "JOGL GLWorkerThread");
+                              "JOGL-GLWorkerThread-");
           thread.setDaemon(true);
           started = true;
           synchronized (lock) {
             thread.start();
             try {
               lock.wait();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
             }
           }
 
@@ -141,19 +143,28 @@ public class GLWorkerThread {
           */
 
         } else {
-          throw new RuntimeException("Should not start GLWorkerThread twice");
+          throw new RuntimeException(getThreadName()+": Should not start GLWorkerThread twice");
         }
       }
     }
   }
 
-  public static void invokeAndWait(Runnable runnable)
+  public static void invoke(final boolean wait, final Runnable runnable)
+      throws InvocationTargetException, InterruptedException {
+      if(wait) {
+          invokeAndWait(runnable);
+      } else {
+          invokeLater(runnable);
+      }
+  }
+
+  public static void invokeAndWait(final Runnable runnable)
     throws InvocationTargetException, InterruptedException {
     if (!started) {
-      throw new RuntimeException("May not invokeAndWait on worker thread without starting it first");
+      throw new RuntimeException(getThreadName()+": May not invokeAndWait on worker thread without starting it first");
     }
 
-    Object lockTemp = lock;
+    final Object lockTemp = lock;
     if (lockTemp == null) {
       return; // Terminating
     }
@@ -168,19 +179,19 @@ public class GLWorkerThread {
       lockTemp.notifyAll();
       lockTemp.wait();
       if (exception != null) {
-        Throwable localException = exception;
+        final Throwable localException = exception;
         exception = null;
         throw new InvocationTargetException(localException);
       }
     }
   }
 
-  public static void invokeLater(Runnable runnable) {
+  public static void invokeLater(final Runnable runnable) {
     if (!started) {
-      throw new RuntimeException("May not invokeLater on worker thread without starting it first");
+      throw new RuntimeException(getThreadName()+": May not invokeLater on worker thread without starting it first");
     }
 
-    Object lockTemp = lock;
+    final Object lockTemp = lock;
     if (lockTemp == null) {
       return; // Terminating
     }
@@ -208,7 +219,10 @@ public class GLWorkerThread {
     return (Thread.currentThread() == thread);
   }
 
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
+
   static class WorkerRunnable implements Runnable {
+    @Override
     public void run() {
       // Notify starting thread that we're ready
       synchronized (lock) {
@@ -223,7 +237,7 @@ public class GLWorkerThread {
             try {
               // Avoid race conditions with wanting to release contexts on this thread
               lock.wait(1000);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
             }
 
             if (GLContext.getCurrent() != null) {
@@ -231,7 +245,7 @@ public class GLWorkerThread {
               break;
             }
           }
-          
+
           if (shouldTerminate) {
             lock.notifyAll();
             thread = null;
@@ -242,7 +256,7 @@ public class GLWorkerThread {
           if (work != null) {
             try {
               work.run();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
               exception = t;
             } finally {
               work = null;
@@ -252,19 +266,19 @@ public class GLWorkerThread {
 
           while (!queue.isEmpty()) {
             try {
-              Runnable curAsync = (Runnable) queue.remove(0);
+              final Runnable curAsync = queue.remove(0);
               curAsync.run();
-            } catch (Throwable t) {
-              System.err.println("Exception occurred on JOGL OpenGL worker thread:");
+            } catch (final Throwable t) {
+              System.err.println(getThreadName()+": Exception occurred on JOGL OpenGL worker thread:");
               t.printStackTrace();
             }
           }
 
           // See about releasing current context
-          GLContext curContext = GLContext.getCurrent();
+          final GLContext curContext = GLContext.getCurrent();
           if (curContext != null &&
               (curContext instanceof GLContextImpl)) {
-            GLContextImpl impl = (GLContextImpl) curContext;
+            final GLContextImpl impl = (GLContextImpl) curContext;
             if (impl.hasWaiters()) {
               impl.release();
             }

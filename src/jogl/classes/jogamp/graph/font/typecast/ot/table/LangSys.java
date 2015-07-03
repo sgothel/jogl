@@ -60,13 +60,13 @@ import java.io.IOException;
  */
 public class LangSys {
 
-    private int _lookupOrder;
-    private int _reqFeatureIndex;
-    private int _featureCount;
-    private int[] _featureIndex;
-    
+    private final int _lookupOrder;
+    private final int _reqFeatureIndex;
+    private final int _featureCount;
+    private final int[] _featureIndex;
+
     /** Creates new LangSys */
-    protected LangSys(DataInput di) throws IOException {
+    protected LangSys(final DataInput di) throws IOException {
         _lookupOrder = di.readUnsignedShort();
         _reqFeatureIndex = di.readUnsignedShort();
         _featureCount = di.readUnsignedShort();
@@ -75,24 +75,24 @@ public class LangSys {
             _featureIndex[i] = di.readUnsignedShort();
         }
     }
-    
+
     public int getLookupOrder() {
         return _lookupOrder;
     }
-    
+
     public int getReqFeatureIndex() {
         return _reqFeatureIndex;
     }
-    
+
     public int getFeatureCount() {
         return _featureCount;
     }
-    
-    public int getFeatureIndex(int i) {
+
+    public int getFeatureIndex(final int i) {
         return _featureIndex[i];
     }
 
-    protected boolean isFeatureIndexed(int n) {
+    protected boolean isFeatureIndexed(final int n) {
         for (int i = 0; i < _featureCount; i++) {
             if (_featureIndex[i] == n) {
                 return true;

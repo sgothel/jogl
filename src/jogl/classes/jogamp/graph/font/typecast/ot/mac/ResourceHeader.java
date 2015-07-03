@@ -30,13 +30,13 @@ import java.io.IOException;
  */
 public class ResourceHeader {
 
-    private int dataOffset;
-    private int mapOffset;
-    private int dataLen;
-    private int mapLen;
+    private final int dataOffset;
+    private final int mapOffset;
+    private final int dataLen;
+    private final int mapLen;
 
     /** Creates new ResourceHeader */
-    public ResourceHeader(DataInput di) throws IOException {
+    public ResourceHeader(final DataInput di) throws IOException {
         dataOffset = di.readInt();
         mapOffset = di.readInt();
         dataLen = di.readInt();
@@ -46,15 +46,15 @@ public class ResourceHeader {
     public int getDataOffset() {
         return dataOffset;
     }
-    
+
     public int getMapOffset() {
         return mapOffset;
     }
-    
+
     public int getDataLength() {
         return dataLen;
     }
-    
+
     public int getMapLength() {
         return mapLen;
     }

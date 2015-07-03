@@ -26,7 +26,7 @@ public class IllegalPathStateException extends RuntimeException {
     public IllegalPathStateException() {
     }
 
-    public IllegalPathStateException(String s) {
+    public IllegalPathStateException(final String s) {
         super(s);
     }
 

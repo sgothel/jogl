@@ -60,11 +60,11 @@ import java.io.IOException;
  */
 public class ScriptRecord {
 
-    private int _tag;
-    private int _offset;
-    
+    private final int _tag;
+    private final int _offset;
+
     /** Creates new ScriptRecord */
-    protected ScriptRecord(DataInput di) throws IOException {
+    protected ScriptRecord(final DataInput di) throws IOException {
         _tag = di.readInt();
         _offset = di.readUnsignedShort();
     }
@@ -72,13 +72,13 @@ public class ScriptRecord {
     public int getTag() {
         return _tag;
     }
-    
+
     public int getOffset() {
         return _offset;
     }
 
     public String getTagAsString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append((char)((_tag>>24)&0xff))
             .append((char)((_tag>>16)&0xff))
             .append((char)((_tag>>8)&0xff))

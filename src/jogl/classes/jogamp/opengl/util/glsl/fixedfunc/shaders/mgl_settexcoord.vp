@@ -22,14 +22,20 @@ void setTexCoord(in vec4 defpos) {
   mgl_TexCoords[7] = ( 0 != (mgl_TexCoordEnabled & 128) ) ? mgl_MultiTexCoord7 : defpos;
    */
   
+  #if MAX_TEXTURE_UNITS >= 2
   mgl_TexCoords[0] = ( 0 != mgl_TexCoordEnabled[0] ) ? mgl_MultiTexCoord0 : defpos;
   mgl_TexCoords[1] = ( 0 != mgl_TexCoordEnabled[1] ) ? mgl_MultiTexCoord1 : defpos;
+  #endif
+  #if MAX_TEXTURE_UNITS >= 4
   mgl_TexCoords[2] = ( 0 != mgl_TexCoordEnabled[2] ) ? mgl_MultiTexCoord2 : defpos;
   mgl_TexCoords[3] = ( 0 != mgl_TexCoordEnabled[3] ) ? mgl_MultiTexCoord3 : defpos;
+  #endif
+  #if MAX_TEXTURE_UNITS >= 8
   mgl_TexCoords[4] = ( 0 != mgl_TexCoordEnabled[4] ) ? mgl_MultiTexCoord4 : defpos;
   mgl_TexCoords[5] = ( 0 != mgl_TexCoordEnabled[5] ) ? mgl_MultiTexCoord5 : defpos;
   mgl_TexCoords[6] = ( 0 != mgl_TexCoordEnabled[6] ) ? mgl_MultiTexCoord6 : defpos;
   mgl_TexCoords[7] = ( 0 != mgl_TexCoordEnabled[7] ) ? mgl_MultiTexCoord7 : defpos;
+  #endif
 }
 
 #endif // mgl_settexcoord_vp

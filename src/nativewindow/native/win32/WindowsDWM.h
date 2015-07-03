@@ -4,6 +4,8 @@
     #include <windows.h> 
 
     #define DWM_BB_ENABLE                 0x00000001  // fEnable has been specified  
+    #define DWM_BB_BLURREGION             0x00000002
+    #define DWM_BB_TRANSITIONONMAXIMIZED  0x00000004
     #define DWM_EC_DISABLECOMPOSITION     0
     #define DWM_EC_ENABLECOMPOSITION      1
       

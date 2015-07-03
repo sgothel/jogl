@@ -28,7 +28,7 @@
 
 package com.jogamp.graph.curve.tess;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
@@ -36,34 +36,42 @@ import com.jogamp.graph.geom.Triangle;
 /** Interface to the triangulation algorithms provided
  *  A triangulation of 2D outlines where you can
  *  provides an easy one or more outlines to be triangulated
- *  
+ *
  *  example usage:
  *      addCurve(o1);
  *      addCurve(o2);
  *      addCurve(o3);
  *      generate();
  *      reset();
- *      
+ *
  * @see Outline
  * @see Triangulation
  */
 public interface Triangulator {
-    
-    /** Add a curve to the list of Outlines
+
+    /**
+     * Add a curve to the list of Outlines
      * describing the shape
+     * @param sink list where the generated triangles will be added
      * @param outline a bounding {@link Outline}
+     * @param sharpness TODO
      */
-    public void addCurve(Outline outline);
-    
-    /** Generate the triangulation of the provided 
+    public void addCurve(List<Triangle> sink, Outline outline, float sharpness);
+
+    /** Generate the triangulation of the provided
      *  List of {@link Outline}s
-     * @return an arraylist of {@link Triangle}s resembling the
-     * final shape.
+     * @param sink list where the generated triangles will be added
      */
-    public ArrayList<Triangle> generate();
-    
-    /** Reset the triangulation to initial state
-     *  Clearing cached data
+    public void generate(List<Triangle> sink);
+
+    /**
+     * Reset the triangulation to initial state
+     * Clearing cached data
      */
     public void reset();
+
+    /**
+     * Return the number of newly added vertices during {@link #addCurve(List, Outline, float)}.
+     */
+    public int getAddedVerticeCount();
 }

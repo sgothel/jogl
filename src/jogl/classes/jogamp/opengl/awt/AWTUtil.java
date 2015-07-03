@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -37,17 +37,15 @@
 
 package jogamp.opengl.awt;
 
-import jogamp.nativewindow.jawt.*;
-
-import javax.media.opengl.*;
-
-import java.lang.reflect.*;
 import java.awt.GraphicsEnvironment;
+import java.lang.reflect.Method;
+
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLException;
 
 public class AWTUtil {
   // See whether we're running in headless mode
   private static boolean headlessMode;
-  private static Class j2dClazz = null;
   private static Method isOGLPipelineActive = null;
   private static Method isQueueFlusherThread = null;
   private static boolean j2dOk = false;
@@ -57,11 +55,11 @@ public class AWTUtil {
     headlessMode = GraphicsEnvironment.isHeadless();
     if(!headlessMode) {
         try {
-            j2dClazz = Class.forName("jogamp.opengl.awt.Java2D");
+            final Class<?> j2dClazz = Class.forName("jogamp.opengl.awt.Java2D");
             isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", (Class[])null);
             isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", (Class[])null);
             j2dOk = true;
-        } catch (Exception e) {}
+        } catch (final Exception e) {}
     }
   }
 
@@ -84,12 +82,12 @@ public class AWTUtil {
       try {
         if( !((Boolean)isOGLPipelineActive.invoke(null, (Object[])null)).booleanValue() ||
             !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
-          JAWTUtil.lockToolkit();
+          NativeWindowFactory.getAWTToolkitLock().lock();
         }
-      } catch (Exception e) { j2dOk=false; }
-    } 
+      } catch (final Exception e) { j2dOk=false; }
+    }
     if(!j2dOk) {
-      JAWTUtil.lockToolkit();
+      NativeWindowFactory.getAWTToolkitLock().lock();
     }
   }
 
@@ -107,12 +105,12 @@ public class AWTUtil {
           try {
             if( !((Boolean)isOGLPipelineActive.invoke(null, (Object[])null)).booleanValue() ||
                 !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
-              JAWTUtil.unlockToolkit();
+              NativeWindowFactory.getAWTToolkitLock().unlock();
             }
-          } catch (Exception e) { j2dOk=false; }
-        } 
+          } catch (final Exception e) { j2dOk=false; }
+        }
         if(!j2dOk) {
-          JAWTUtil.unlockToolkit();
+          NativeWindowFactory.getAWTToolkitLock().unlock();
         }
     }
   }

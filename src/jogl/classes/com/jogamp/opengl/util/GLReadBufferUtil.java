@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,23 +20,30 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
-package com.jogamp.opengl.util;
 
-import com.jogamp.common.nio.Buffers;
+package com.jogamp.opengl.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.*;
-import javax.media.opengl.*;
 
+import com.jogamp.nativewindow.util.PixelFormat;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLException;
+
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
+import com.jogamp.opengl.util.GLPixelBuffer;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelBufferProvider;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
@@ -44,34 +51,45 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * <p>May be used directly to write the TextureData to file (screenshot).</p>
  */
 public class GLReadBufferUtil {
-    protected final int components, alignment; 
+    protected final GLPixelBufferProvider pixelBufferProvider;
     protected final Texture readTexture;
     protected final GLPixelStorageModes psm;
-    
-    protected int readPixelSizeLast = 0;
-    protected ByteBuffer readPixelBuffer = null;
+
+    protected boolean hasAlpha;
+    protected GLPixelBuffer readPixelBuffer = null;
     protected TextureData readTextureData = null;
 
     /**
-     * @param alpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: Alpha maybe forced on ES platforms! 
+     * @param alpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: Alpha maybe forced on ES platforms!
      * @param write2Texture true if readPixel's TextureData shall be written to a 2d Texture
      */
-    public GLReadBufferUtil(boolean alpha, boolean write2Texture) {
-        components = alpha ? 4 : 3 ;
-        alignment = alpha ? 4 : 1 ; 
-        readTexture = write2Texture ? new Texture(GL.GL_TEXTURE_2D) : null ;
-        psm = new GLPixelStorageModes();
+    public GLReadBufferUtil(final boolean alpha, final boolean write2Texture) {
+        this(GLPixelBuffer.defaultProviderNoRowStride, alpha, write2Texture);
     }
-    
+
+    public GLReadBufferUtil(final GLPixelBufferProvider pixelBufferProvider, final boolean alpha, final boolean write2Texture) {
+        this.pixelBufferProvider = pixelBufferProvider;
+        this.readTexture = write2Texture ? new Texture(GL.GL_TEXTURE_2D) : null ;
+        this.psm = new GLPixelStorageModes();
+        this.hasAlpha = alpha; // preset
+    }
+
+    /** Returns the {@link GLPixelBufferProvider} used by this instance. */
+    public GLPixelBufferProvider getPixelBufferProvider() { return pixelBufferProvider; }
+
     public boolean isValid() {
-      return null!=readTextureData && null!=readPixelBuffer ;
+      return null!=readTextureData && null!=readPixelBuffer && readPixelBuffer.isValid();
     }
-    
+
+    public boolean hasAlpha() { return hasAlpha; }
+
+    public GLPixelStorageModes getGLPixelStorageModes() { return psm; }
+
     /**
-     * @return the raw pixel ByteBuffer, filled by {@link #readPixels(GLAutoDrawable, boolean)}
+     * Returns the {@link GLPixelBuffer}, created and filled by {@link #readPixels(GLAutoDrawable, boolean)}.
      */
-    public ByteBuffer getPixelBuffer() { return readPixelBuffer; }
-    
+    public GLPixelBuffer getPixelBuffer() { return readPixelBuffer; }
+
     /**
      * rewind the raw pixel ByteBuffer
      */
@@ -81,7 +99,7 @@ public class GLReadBufferUtil {
      * @return the resulting TextureData, filled by {@link #readPixels(GLAutoDrawable, boolean)}
      */
     public TextureData getTextureData() { return readTextureData; }
-    
+
     /**
      * @return the Texture object filled by {@link #readPixels(GLAutoDrawable, boolean)},
      *         if this instance writes to a 2d Texture, otherwise null.
@@ -92,103 +110,144 @@ public class GLReadBufferUtil {
     /**
      * Write the TextureData filled by {@link #readPixels(GLAutoDrawable, boolean)} to file
      */
-    public void write(File dest) {
+    public void write(final File dest) {
         try {
             TextureIO.write(readTextureData, dest);
             rewindPixelBuffer();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             throw new RuntimeException("can not write to file: " + dest.getAbsolutePath(), ex);
         }
     }
 
     /**
-     * Read the drawable's pixels to TextureData and Texture, if requested at construction
-     * 
-     * @param gl the current GL object
-     * @param drawable the drawable to read from
-     * @param flip weather to flip the data vertically or not
-     * 
+     * Read the drawable's pixels to TextureData and Texture, if requested at construction.
+     *
+     * @param gl the current GL context object. It's read drawable is being used as the pixel source.
+     * @param mustFlipVertically indicates whether to flip the data vertically or not.
+     *                           The context's drawable {@link GLDrawable#isGLOriented()} state
+     *                           is taken into account.
+     *                           Vertical flipping is propagated to TextureData
+     *                           and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
+     *
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public boolean readPixels(GL gl, GLDrawable drawable, boolean flip) {
-        final int textureInternalFormat, textureDataFormat, textureDataType;
-        final int[] glImplColorReadVals = new int[] { 0, 0 };
-        
-        if(gl.isGL2GL3() && 3 == components) {
-            textureInternalFormat=GL.GL_RGB;
-            textureDataFormat=GL.GL_RGB;
-            textureDataType = GL.GL_UNSIGNED_BYTE;            
-        } else if(gl.isGLES2Compatible() || gl.isExtensionAvailable("GL_OES_read_format")) {
-            gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
-            gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);            
-            textureInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
-            textureDataFormat = glImplColorReadVals[0];
-            textureDataType = glImplColorReadVals[1];
+    public boolean readPixels(final GL gl, final boolean mustFlipVertically) {
+        return readPixels(gl, 0, 0, 0, 0, mustFlipVertically);
+    }
+
+    /**
+     * Read the drawable's pixels to TextureData and Texture, if requested at construction.
+     *
+     * @param gl the current GL context object. It's read drawable is being used as the pixel source.
+     * @param inX readPixel x offset
+     * @param inY readPixel y offset
+     * @param inWidth optional readPixel width value, used if [1 .. drawable.width], otherwise using drawable.width
+     * @param inHeight optional readPixel height, used if [1 .. drawable.height], otherwise using drawable.height
+     * @param mustFlipVertically indicates whether to flip the data vertically or not.
+     *                           The context's drawable {@link GLDrawable#isGLOriented()} state
+     *                           is taken into account.
+     *                           Vertical flipping is propagated to TextureData
+     *                           and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
+     * @see #GLReadBufferUtil(boolean, boolean)
+     */
+    public boolean readPixels(final GL gl, final int inX, final int inY, final int inWidth, final int inHeight, final boolean mustFlipVertically) {
+        final GLDrawable drawable = gl.getContext().getGLReadDrawable();
+        final int width, height;
+        if( 0 >= inWidth || drawable.getSurfaceWidth() < inWidth ) {
+            width = drawable.getSurfaceWidth();
         } else {
-            // RGBA read is safe for all GL profiles 
-            textureInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
-            textureDataFormat=GL.GL_RGBA;
-            textureDataType = GL.GL_UNSIGNED_BYTE;
+            width = inWidth;
         }
-        
+        if( 0 >= inHeight || drawable.getSurfaceHeight() < inHeight ) {
+            height = drawable.getSurfaceHeight();
+        } else {
+            height= inHeight;
+        }
+        return readPixelsImpl(drawable, gl, inX, inY, width, height, mustFlipVertically);
+    }
+
+    protected boolean readPixelsImpl(final GLDrawable drawable, final GL gl,
+                                     final int inX, final int inY, final int width, final int height,
+                                     final boolean mustFlipVertically) {
+        final int glerr0 = gl.glGetError();
+        if(GL.GL_NO_ERROR != glerr0) {
+            System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
+        }
+        final int reqCompCount = hasAlpha ? 4 : 3;
+        final PixelFormat.Composition hostPixelComp = pixelBufferProvider.getHostPixelComp(gl.getGLProfile(), reqCompCount);
+        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, reqCompCount, true);
+        final int componentCount = pixelAttribs.pfmt.comp.componentCount();
+        hasAlpha = 0 <= pixelAttribs.pfmt.comp.find(PixelFormat.CType.A);
+        final int alignment = 4 == componentCount ? 4 : 1 ;
+        final int internalFormat = 4 == componentCount ? GL.GL_RGBA : GL.GL_RGB;
+
+        final boolean flipVertically;
+        if( drawable.isGLOriented() ) {
+            flipVertically = mustFlipVertically;
+        } else {
+            flipVertically = !mustFlipVertically;
+        }
+
         final int tmp[] = new int[1];
-        final int readPixelSize = GLBuffers.sizeof(gl, tmp, textureDataFormat, textureDataType, 
-                                                   drawable.getWidth(), drawable.getHeight(), 1, true);
-        
+        final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.pfmt.comp.bytesPerPixel(), width, height, 1, true);
+
         boolean newData = false;
-        if(readPixelSize>readPixelSizeLast) {
-            readPixelBuffer = Buffers.newDirectByteBuffer(readPixelSize);
-            readPixelSizeLast = readPixelSize ;
+        if( null == readPixelBuffer || readPixelBuffer.requiresNewBuffer(gl, width, height, readPixelSize) ) {
+            readPixelBuffer = pixelBufferProvider.allocate(gl, hostPixelComp, pixelAttribs, true, width, height, 1, readPixelSize);
+            Buffers.rangeCheckBytes(readPixelBuffer.buffer, readPixelSize);
             try {
                 readTextureData = new TextureData(
                            gl.getGLProfile(),
-                           textureInternalFormat,
-                           drawable.getWidth(), drawable.getHeight(),
-                           0, 
-                           textureDataFormat,
-                           textureDataType,
-                           false, false, 
-                           flip,
-                           readPixelBuffer,
+                           internalFormat,
+                           width, height,
+                           0,
+                           pixelAttribs,
+                           false, false,
+                           flipVertically,
+                           readPixelBuffer.buffer,
                            null /* Flusher */);
                 newData = true;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 readTextureData = null;
                 readPixelBuffer = null;
-                readPixelSizeLast = 0;
                 throw new RuntimeException("can not fetch offscreen texture", e);
             }
         } else {
-            readTextureData.setInternalFormat(textureInternalFormat);
-            readTextureData.setWidth(drawable.getWidth());
-            readTextureData.setHeight(drawable.getHeight());
-            readTextureData.setPixelFormat(textureDataFormat);
-            readTextureData.setPixelType(textureDataType);
+            readTextureData.setInternalFormat(internalFormat);
+            readTextureData.setWidth(width);
+            readTextureData.setHeight(height);
+            readTextureData.setPixelAttributes(pixelAttribs);
         }
-        boolean res = null!=readPixelBuffer;
+        boolean res = null!=readPixelBuffer && readPixelBuffer.isValid();
         if(res) {
-            psm.setAlignment(gl, alignment, alignment);
+            psm.setPackAlignment(gl, alignment);
+            if(gl.isGL2ES3()) {
+                final GL2ES3 gl2es3 = gl.getGL2ES3();
+                psm.setPackRowLength(gl2es3, width);
+                gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
+            }
             readPixelBuffer.clear();
-            gl.glReadPixels(0, 0, drawable.getWidth(), drawable.getHeight(), textureDataFormat, textureDataType, readPixelBuffer);
-            readPixelBuffer.position(readPixelSize);
+            try {
+                gl.glReadPixels(inX, inY, width, height, pixelAttribs.format, pixelAttribs.type, readPixelBuffer.buffer);
+            } catch(final GLException gle) { res = false; gle.printStackTrace(); }
+            readPixelBuffer.position( readPixelSize );
             readPixelBuffer.flip();
             final int glerr1 = gl.glGetError();
             if(GL.GL_NO_ERROR != glerr1) {
                 System.err.println("GLReadBufferUtil.readPixels: readPixels error 0x"+Integer.toHexString(glerr1)+
-                                   " "+drawable.getWidth()+"x"+drawable.getHeight()+
-                                   ", fmt 0x"+Integer.toHexString(textureDataFormat)+", type 0x"+Integer.toHexString(textureDataType)+
-                                   ", impl-fmt 0x"+Integer.toHexString(glImplColorReadVals[0])+", impl-type 0x"+Integer.toHexString(glImplColorReadVals[1])+
+                                   " "+width+"x"+height+
+                                   ", "+pixelAttribs+
                                    ", "+readPixelBuffer+", sz "+readPixelSize);
-                res = false;                
+                res = false;
             }
             if(res && null != readTexture) {
                 if(newData) {
                     readTexture.updateImage(gl, readTextureData);
                 } else {
-                    readTexture.updateSubImage(gl, readTextureData, 0, 
+                    readTexture.updateSubImage(gl, readTextureData, 0,
                                                0, 0, // src offset
                                                0, 0, // dst offset
-                                               drawable.getWidth(), drawable.getHeight());
+                                               width, height);
                 }
                 readPixelBuffer.rewind();
             }
@@ -197,16 +256,15 @@ public class GLReadBufferUtil {
         return res;
     }
 
-    public void dispose(GL gl) {  
+    public void dispose(final GL gl) {
         if(null != readTexture) {
             readTexture.destroy(gl);
             readTextureData = null;
         }
         if(null != readPixelBuffer) {
-            readPixelBuffer.clear();
+            readPixelBuffer.dispose();
             readPixelBuffer = null;
         }
-        readPixelSizeLast = 0;
     }
 
 }

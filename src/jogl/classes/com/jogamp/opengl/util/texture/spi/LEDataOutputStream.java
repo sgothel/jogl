@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -72,72 +72,84 @@ public class LEDataOutputStream extends FilterOutputStream implements DataOutput
      */
     DataOutputStream dataOut;
 
-    public LEDataOutputStream(OutputStream out)
+    public LEDataOutputStream(final OutputStream out)
     {
         super(out);
         dataOut = new DataOutputStream(out);
     }
 
+    @Override
     public void close() throws IOException
     {
         dataOut.close(); // better close as we create it.
         // this will close underlying as well.
     }
 
-    public synchronized final void write(byte b[]) throws IOException
+    @Override
+    public synchronized final void write(final byte b[]) throws IOException
     {
         dataOut.write(b, 0, b.length);
     }
 
-    public synchronized final void write(byte b[], int off, int len) throws IOException
+    @Override
+    public synchronized final void write(final byte b[], final int off, final int len) throws IOException
     {
         dataOut.write(b, off, len);
     }
 
-    public final void write(int b) throws IOException
+    @Override
+    public final void write(final int b) throws IOException
     {
         dataOut.write(b);
     }
 
-    public final void writeBoolean(boolean v) throws IOException
+    @Override
+    public final void writeBoolean(final boolean v) throws IOException
     {
         dataOut.writeBoolean(v);
     }
 
-    public final void writeByte(int v) throws IOException
+    @Override
+    public final void writeByte(final int v) throws IOException
     {
         dataOut.writeByte(v);
     }
 
     /** Don't call this -- not implemented */
-    public final void writeBytes(String s) throws IOException
+    @Override
+    public final void writeBytes(final String s) throws IOException
     {
         throw new UnsupportedOperationException();
     }
 
-    public final void writeChar(int v) throws IOException
+    @Override
+    public final void writeChar(final int v) throws IOException
     {
         dataOut.writeChar(((v >> 8) & 0xff) |
                           ((v & 0xff) << 8));
     }
 
     /** Don't call this -- not implemented */
-    public final void writeChars(String s) throws IOException
+    @Override
+    public final void writeChars(final String s) throws IOException
     {
         throw new UnsupportedOperationException();
     }
 
-    public final void writeDouble(double v) throws IOException
+    @Override
+    public final void writeDouble(final double v) throws IOException
     {
         writeLong(Double.doubleToRawLongBits(v));
     }
 
-    public final void writeFloat(float v) throws IOException
+    @Override
+    public final void writeFloat(final float v) throws IOException
     {
         writeInt(Float.floatToRawIntBits(v));
     }
 
-    public final void writeInt(int v) throws IOException
+    @Override
+    public final void writeInt(final int v) throws IOException
     {
         dataOut.writeInt((v >>> 24) |
                          ((v >>> 8) & 0xff00) |
@@ -145,20 +157,23 @@ public class LEDataOutputStream extends FilterOutputStream implements DataOutput
                          (v << 24));
     }
 
-    public final void writeLong(long v) throws IOException
+    @Override
+    public final void writeLong(final long v) throws IOException
     {
         writeInt((int) v);
         writeInt((int) (v >>> 32));
     }
 
-    public final void writeShort(int v) throws IOException
+    @Override
+    public final void writeShort(final int v) throws IOException
     {
         dataOut.writeShort(((v >> 8) & 0xff) |
                            ((v & 0xff) << 8));
     }
 
     /** Don't call this -- not implemented */
-    public final void writeUTF(String s) throws IOException
+    @Override
+    public final void writeUTF(final String s) throws IOException
     {
         throw new UnsupportedOperationException();
     }

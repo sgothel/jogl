@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,14 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package com.jogamp.newt.event;
 
+import com.jogamp.nativewindow.WindowClosingProtocol;
+
+/** NEWT {@link WindowEvent} listener. */
 public interface WindowListener extends NEWTEventListener {
     /** Window is resized, your application shall respect the new window dimension. A repaint is recommended. */
     public void windowResized(WindowEvent e);
@@ -41,10 +44,19 @@ public interface WindowListener extends NEWTEventListener {
     /** Window has been moved. */
     public void windowMoved(WindowEvent e);
 
-    /** Window will be destroyed. Release of resources is recommended. */
+    /**
+     * Window destruction has been requested.
+     * <p>
+     * Depending on the {@link WindowClosingProtocol#getDefaultCloseOperation() default close operation},
+     * the window maybe destroyed or not.
+     * </p>
+     * In case the window will be destroyed (see above), release of resources is recommended.
+     **/
     public void windowDestroyNotify(WindowEvent e);
 
-    /** Window has been destroyed.*/
+    /**
+     * Window has been destroyed.
+     */
     public void windowDestroyed(WindowEvent e);
 
     /** Window gained focus. */

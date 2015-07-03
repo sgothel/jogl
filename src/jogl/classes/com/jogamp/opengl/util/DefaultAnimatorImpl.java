@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -34,33 +34,38 @@
 package com.jogamp.opengl.util;
 
 import java.util.ArrayList;
-import javax.media.opengl.GLAutoDrawable;
+
+import com.jogamp.opengl.GLAutoDrawable;
+
+import com.jogamp.opengl.util.AnimatorBase.UncaughtAnimatorException;
 
 /** Abstraction to factor out AWT dependencies from the Animator's
     implementation in a way that still allows the FPSAnimator to pick
     up this behavior if desired. */
 
 class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
-    public void display(ArrayList<GLAutoDrawable> drawables,
-                        boolean ignoreExceptions,
-                        boolean printExceptions) {
+    @Override
+    public void display(final ArrayList<GLAutoDrawable> drawables,
+                        final boolean ignoreExceptions,
+                        final boolean printExceptions) throws UncaughtAnimatorException {
         for (int i=0; i<drawables.size(); i++) {
-            GLAutoDrawable drawable = drawables.get(i);
+            final GLAutoDrawable drawable = drawables.get(i);
             try {
                 drawable.display();
-            } catch (RuntimeException e) {
+            } catch (final Throwable t) {
                 if (ignoreExceptions) {
                     if (printExceptions) {
-                        e.printStackTrace();
+                        t.printStackTrace();
                     }
                 } else {
-                    throw(e);
+                    throw new UncaughtAnimatorException(drawable, t);
                 }
             }
         }
     }
 
-    public boolean blockUntilDone(Thread thread) {
-        return (Thread.currentThread() != thread);
+    @Override
+    public boolean blockUntilDone(final Thread thread) {
+        return Thread.currentThread() != thread;
     }
 }

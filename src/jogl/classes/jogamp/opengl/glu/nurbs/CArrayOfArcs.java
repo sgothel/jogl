@@ -2,9 +2,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class replacing C language pointer
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class CArrayOfArcs {
   /**
@@ -20,17 +20,17 @@ public class CArrayOfArcs {
   /**
    * Don't check for array borders?
    */
-  private boolean noCheck = true;
+  private final boolean noCheck = true;
 
   /**
    * Makes new CArray
-   * 
+   *
    * @param array
    *            underlaying array
    * @param pointer
    *            pointer (index) to array
    */
-  public CArrayOfArcs(Arc[] array, int pointer) {
+  public CArrayOfArcs(final Arc[] array, final int pointer) {
     this.array = array;
     // this.pointer=pointer;
     setPointer(pointer);
@@ -38,11 +38,11 @@ public class CArrayOfArcs {
 
   /**
    * Makes new CArray from other CArray
-   * 
+   *
    * @param carray
    *            reference array
    */
-  public CArrayOfArcs(CArrayOfArcs carray) {
+  public CArrayOfArcs(final CArrayOfArcs carray) {
     this.array = carray.array;
     // this.pointer=carray.pointer;
     setPointer(carray.pointer);
@@ -50,18 +50,18 @@ public class CArrayOfArcs {
 
   /**
    * Makes new CArray with pointer set to 0
-   * 
+   *
    * @param ctlarray
    *            underlaying array
    */
-  public CArrayOfArcs(Arc[] ctlarray) {
+  public CArrayOfArcs(final Arc[] ctlarray) {
     this.array = ctlarray;
     this.pointer = 0;
   }
 
   /**
    * Returns element at pointer
-   * 
+   *
    * @return element at pointer
    */
   public Arc get() {
@@ -78,63 +78,63 @@ public class CArrayOfArcs {
 
   /**
    * Sets element at pointer
-   * 
+   *
    * @param f
    *            desired value
    */
-  public void set(Arc f) {
+  public void set(final Arc f) {
     array[pointer] = f;
 
   }
 
   /**
    * Returns array element at specified index
-   * 
+   *
    * @param i
    *            array index
    * @return element at index
    */
-  public Arc get(int i) {
+  public Arc get(final int i) {
     return array[i];
   }
 
   /**
    * Returns array element at specified index relatively to pointer
-   * 
+   *
    * @param i
    *            relative index
    * @return element at relative index
    */
-  public Arc getRelative(int i) {
+  public Arc getRelative(final int i) {
     return array[pointer + i];
   }
 
   /**
    * Sets value of element at specified index relatively to pointer
-   * 
+   *
    * @param i
    *            relative index
    * @param value
    *            value to be set
    */
-  public void setRelative(int i, Arc value) {
+  public void setRelative(final int i, final Arc value) {
     array[pointer + i] = value;
   }
 
   /**
    * Lessens pointer by value
-   * 
+   *
    * @param i
    *            lessen by
    */
-  public void lessenPointerBy(int i) {
+  public void lessenPointerBy(final int i) {
     // pointer-=i;
     setPointer(pointer - i);
   }
 
   /**
    * Returns pointer value
-   * 
+   *
    * @return pointer value
    */
   public int getPointer() {
@@ -143,11 +143,11 @@ public class CArrayOfArcs {
 
   /**
    * Sets ponter value
-   * 
+   *
    * @param pointer
    *            pointer value to be set
    */
-  public void setPointer(int pointer) {
+  public void setPointer(final int pointer) {
     if (!noCheck && pointer > array.length)
       throw new IllegalArgumentException("Pointer " + pointer
                                          + " out of bounds " + array.length);
@@ -156,11 +156,11 @@ public class CArrayOfArcs {
 
   /**
    * Raises pointer by value
-   * 
+   *
    * @param i
    *            raise by
    */
-  public void raisePointerBy(int i) {
+  public void raisePointerBy(final int i) {
     // pointer+=i;
     setPointer(pointer + i);
   }
@@ -175,7 +175,7 @@ public class CArrayOfArcs {
 
   /**
    * Returns underlaying array
-   * 
+   *
    * @return underlaying array
    */
   public Arc[] getArray() {
@@ -184,11 +184,11 @@ public class CArrayOfArcs {
 
   /**
    * Sets underlaying array
-   * 
+   *
    * @param array
    *            underlaying array
    */
-  public void setArray(Arc[] array) {
+  public void setArray(final Arc[] array) {
     this.array = array;
   }
 }

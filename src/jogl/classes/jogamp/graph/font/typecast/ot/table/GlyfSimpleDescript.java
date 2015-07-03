@@ -61,19 +61,19 @@ import jogamp.graph.font.typecast.ot.Disassembler;
  */
 public class GlyfSimpleDescript extends GlyfDescript {
 
-    private int[] _endPtsOfContours;
-    private byte[] _flags;
-    private short[] _xCoordinates;
-    private short[] _yCoordinates;
-    private int _count;
+    private final int[] _endPtsOfContours;
+    private final byte[] _flags;
+    private final short[] _xCoordinates;
+    private final short[] _yCoordinates;
+    private final int _count;
 
     public GlyfSimpleDescript(
-            GlyfTable parentTable,
-            int glyphIndex,
-            short numberOfContours,
-            DataInput di) throws IOException {
+            final GlyfTable parentTable,
+            final int glyphIndex,
+            final short numberOfContours,
+            final DataInput di) throws IOException {
         super(parentTable, glyphIndex, numberOfContours, di);
-        
+
         // Simple glyph description
         _endPtsOfContours = new int[numberOfContours];
         for (int i = 0; i < numberOfContours; i++) {
@@ -86,36 +86,43 @@ public class GlyfSimpleDescript extends GlyfDescript {
         _xCoordinates = new short[_count];
         _yCoordinates = new short[_count];
 
-        int instructionCount = di.readShort();
+        final int instructionCount = di.readShort();
         readInstructions(di, instructionCount);
         readFlags(_count, di);
         readCoords(_count, di);
     }
 
-    public int getEndPtOfContours(int i) {
+    @Override
+    public int getEndPtOfContours(final int i) {
         return _endPtsOfContours[i];
     }
 
-    public byte getFlags(int i) {
+    @Override
+    public byte getFlags(final int i) {
         return _flags[i];
     }
 
-    public short getXCoordinate(int i) {
+    @Override
+    public short getXCoordinate(final int i) {
         return _xCoordinates[i];
     }
 
-    public short getYCoordinate(int i) {
+    @Override
+    public short getYCoordinate(final int i) {
         return _yCoordinates[i];
     }
 
+    @Override
     public boolean isComposite() {
         return false;
     }
 
+    @Override
     public int getPointCount() {
         return _count;
     }
 
+    @Override
     public int getContourCount() {
         return getNumberOfContours();
     }
@@ -131,7 +138,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
     /**
      * The table is stored as relative values, but we'll store them as absolutes
      */
-    private void readCoords(int count, DataInput di) throws IOException {
+    private void readCoords(final int count, final DataInput di) throws IOException {
         short x = 0;
         short y = 0;
         for (int i = 0; i < count; i++) {
@@ -168,25 +175,26 @@ public class GlyfSimpleDescript extends GlyfDescript {
     /**
      * The flags are run-length encoded
      */
-    private void readFlags(int flagCount, DataInput di) throws IOException {
+    private void readFlags(final int flagCount, final DataInput di) throws IOException {
         try {
             for (int index = 0; index < flagCount; index++) {
                 _flags[index] = di.readByte();
                 if ((_flags[index] & repeat) != 0) {
-                    int repeats = di.readByte();
+                    final int repeats = di.readByte();
                     for (int i = 1; i <= repeats; i++) {
                         _flags[index + i] = _flags[index];
                     }
                     index += repeats;
                 }
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } catch (final ArrayIndexOutOfBoundsException e) {
             System.out.println("error: array index out of bounds");
         }
     }
-    
+
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append("\n\n        EndPoints\n        ---------");
         for (int i = 0; i < _endPtsOfContours.length; i++) {

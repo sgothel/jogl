@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -284,24 +284,24 @@ public class PostTable implements Table {
         ""              // 257
     };
 
-    private DirectoryEntry de;
-    private int version;
-    private int italicAngle;
-    private short underlinePosition;
-    private short underlineThickness;
-    private int isFixedPitch;
-    private int minMemType42;
-    private int maxMemType42;
-    private int minMemType1;
-    private int maxMemType1;
-    
+    private final DirectoryEntry de;
+    private final int version;
+    private final int italicAngle;
+    private final short underlinePosition;
+    private final short underlineThickness;
+    private final int isFixedPitch;
+    private final int minMemType42;
+    private final int maxMemType42;
+    private final int minMemType1;
+    private final int maxMemType1;
+
     // v2
     private int numGlyphs;
     private int[] glyphNameIndex;
     private String[] psGlyphName;
 
     /** Creates new PostTable */
-    protected PostTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected PostTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readInt();
         italicAngle = di.readInt();
@@ -312,7 +312,7 @@ public class PostTable implements Table {
         maxMemType42 = di.readInt();
         minMemType1 = di.readInt();
         maxMemType1 = di.readInt();
-        
+
         if (version == 0x00020000) {
             numGlyphs = di.readUnsignedShort();
             glyphNameIndex = new int[numGlyphs];
@@ -324,14 +324,14 @@ public class PostTable implements Table {
                 h -= 257;
                 psGlyphName = new String[h];
                 for (int i = 0; i < h; i++) {
-                    int len = di.readUnsignedByte();
-                    byte[] buf = new byte[len];
+                    final int len = di.readUnsignedByte();
+                    final byte[] buf = new byte[len];
                     di.readFully(buf);
                     psGlyphName[i] = new String(buf);
                 }
             }
-        } else if (version == 0x00025000) {
-        } else if (version == 0x00030000) {
+        // } else if (version == 0x00025000) {
+        // } else if (version == 0x00030000) {
         }
     }
 
@@ -349,7 +349,7 @@ public class PostTable implements Table {
         return high;
     }
 
-    public String getGlyphName(int i) {
+    public String getGlyphName(final int i) {
         if (version == 0x00020000) {
             return (glyphNameIndex[i] > 257)
                 ? psGlyphName[glyphNameIndex[i] - 258]
@@ -359,23 +359,25 @@ public class PostTable implements Table {
         }
     }
 
-    private boolean isMacGlyphName(int i) {
+    private boolean isMacGlyphName(final int i) {
         if (version == 0x00020000) {
             return glyphNameIndex[i] <= 257;
         } else {
             return false;
         }
     }
-    
+
     /** Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return post;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'post' Table - PostScript Metrics\n---------------------------------\n")
             .append("\n        'post' version:        ").append(Fixed.floatValue(version))
             .append("\n        italicAngle:           ").append(Fixed.floatValue(italicAngle))
@@ -409,15 +411,16 @@ public class PostTable implements Table {
         }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

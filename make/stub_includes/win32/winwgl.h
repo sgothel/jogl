@@ -9,9 +9,9 @@
  * Editions / Removals and a split (wingdi.h -> wingdi.h + wingdi_types.h + winwgl.h) were made by the JogAmp Community, 2010, 2012
  */
 
-#include "wingdi_types.h"
-
 #ifndef WGL_GDI_VERSION_1_X
+
+#include "wingdi_types.h"
 
 /* layer types */
 #define WGL_SWAP_MAIN_PLANE 1

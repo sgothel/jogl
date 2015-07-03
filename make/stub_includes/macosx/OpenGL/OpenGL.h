@@ -59,7 +59,8 @@ typedef enum _CGLPixelFormatAttribute {
  */
 typedef enum _CGLOpenGLProfile {
     kCGLOGLPVersion_Legacy   = 0x1000,      /* Legacy/Pre-OpenGL 3.0 */
-    kCGLOGLPVersion_3_2_Core = 0x3200       /* OpenGL 3.2 Core */
+    kCGLOGLPVersion_GL3_Core = 0x3200,      /* OpenGL 3 Core */
+    kCGLOGLPVersion_GL4_Core = 0x4100       /* OpenGL 4 Core */
 } CGLOpenGLProfile;
 
 /*

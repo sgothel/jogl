@@ -1,3 +1,9 @@
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
 #include es_precision.glsl
 #include mgl_lightdef.glsl
 
@@ -50,16 +56,18 @@ void main(void)
       }
     }
   }
-  ambient  *= mgl_FrontMaterial.ambient;
-  diffuse  *= mgl_FrontMaterial.diffuse;
-  specular *= mgl_FrontMaterial.specular;
-
   if(mgl_ColorEnabled>0) {
     frontColor=mgl_Color;
   } else {
     frontColor=mgl_ColorStatic;
   }
   if( lightEnabled ) {
+    //                   light-ambient                               +                 global-ambient
+    // ( mgl_LightSource[0..n].ambient * mgl_FrontMaterial.ambient ) + ( mgl_LightModel.ambient * mgl_FrontMaterial.ambient )
+    ambient   = ( ambient + mgl_LightModel.ambient ) * mgl_FrontMaterial.ambient;
+    diffuse  *= mgl_FrontMaterial.diffuse;
+    specular *= mgl_FrontMaterial.specular;
+
     frontColor *= ambient + diffuse + specular;
   }
 

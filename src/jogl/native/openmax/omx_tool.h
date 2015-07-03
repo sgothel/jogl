@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
 #define EGLIMAGE_MAX_BUFFERS 4
 
 extern int USE_OPENGL;
@@ -73,16 +74,16 @@ typedef struct {
     OMX_HANDLETYPE endComponent;
     OMX_CALLBACKTYPE callbacks;
 
-    KDchar audioCodec[256];
-    KDchar audioCodecComponent[256];
-    KDchar videoCodec[256];
-    KDchar videoCodecComponent[256];
+    KDchar audioCodec[64];
+    KDchar audioCodecComponent[64];
+    KDchar videoCodec[64];
+    KDchar videoCodecComponent[64];
     int audioPort;
     int videoPort;
     KDuint32 width;
     KDuint32 height;
     KDuint32 bitrate; // per seconds
-    KDuint32 framerate; // per seconds
+    KDfloat32 framerate; // per seconds
     KDfloat32 length; // seconds
     KDfloat32 speed; // current clock scale
     KDfloat32 play_speed; // current play clock scale
@@ -90,6 +91,7 @@ typedef struct {
     KDThreadMutex * mutex;
     KDThreadSem   * flushSem;
 
+    // FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
     OMXToolImageBuffer_t buffers[EGLIMAGE_MAX_BUFFERS];
     int vBufferNum;
     int glPos;
@@ -99,17 +101,7 @@ typedef struct {
 
     int status;
 
-    intptr_t jni_env;
     intptr_t jni_instance;
-    intptr_t jni_mid_saveAttributes;
-    intptr_t jni_mid_attributesUpdated;
-    intptr_t jni_fid_width;
-    intptr_t jni_fid_height;
-    intptr_t jni_fid_fps;
-    intptr_t jni_fid_bps;
-    intptr_t jni_fid_totalFrames;
-    intptr_t jni_fid_acodec;
-    intptr_t jni_fid_vcodec;
 } OMXToolBasicAV_t ;
 
 //
@@ -128,7 +120,7 @@ KDint OMXToolBasicAV_SetState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state, KD
 //
 OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(EGLDisplay dpy); // #1
 void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const KDchar * stream); // #2
-void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #3
+void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #3
 void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV); // #4
 
 void OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV); // Stop, DetachVideoRenderer, SetEGLImageTexture2D ..  before ..
@@ -138,10 +130,10 @@ void OMXToolBasicAV_SetPlaySpeed(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale);
 void OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV); // #5
 void OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV);
 void OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV);
-void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time);
-GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV);
+void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time);
+GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV, int blocking);
 
-KDfloat32 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV);
+KDint64 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV);
 
 void OMXToolBasicAV_DestroyInstance(OMXToolBasicAV_t * pOMXAV);
 

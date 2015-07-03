@@ -33,14 +33,14 @@ import com.jogamp.opengl.test.junit.util.GLSLSimpleProgram;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
-import javax.media.opengl.FPSCounter;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLProfile;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
@@ -48,28 +48,27 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.shader.RedSquareShader;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 
 import java.io.IOException;
-import javax.media.opengl.GL2ES2;
-import org.junit.AfterClass;
+import com.jogamp.opengl.GL2ES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLSLSimple01NEWT extends UITestCase {
     static long durationPerTest = 100; // ms
 
     @Test(timeout=60000)
     public void testGLSLCompilation01() {
-        GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
+        final GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         Assert.assertNotNull(glp);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
-        GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(caps);
         Assert.assertNotNull(window);
         window.setSize(800, 600);
         window.setVisible(true);
         Assert.assertTrue(window.isNativeValid());
 
-        GLContext context = window.getContext();
-        context.setSynchronized(true);
-        
+        final GLContext context = window.getContext();
+
         // trigger native creation of drawable/context
         window.display();
         Assert.assertTrue(window.isRealized());
@@ -79,8 +78,8 @@ public class TestGLSLSimple01NEWT extends UITestCase {
 
         // given
 
-        GL2ES2 gl = context.getGL().getGL2ES2();
-        GLSLSimpleProgram myShader = GLSLSimpleProgram.create(gl,
+        final GL2ES2 gl = context.getGL().getGL2ES2();
+        final GLSLSimpleProgram myShader = GLSLSimpleProgram.create(gl,
                 RedSquareShader.VERTEX_SHADER_TEXT,
                 RedSquareShader.FRAGMENT_SHADER_TEXT,
                 true);
@@ -92,20 +91,20 @@ public class TestGLSLSimple01NEWT extends UITestCase {
 
     @Test(timeout=60000)
     public void testGLSLUse01() throws InterruptedException {
-        GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
+        final GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         Assert.assertNotNull(glp);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
-        GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(caps);
         Assert.assertNotNull(window);
         window.setSize(800, 600);
         window.setVisible(true);
         Assert.assertTrue(window.isNativeValid());
         window.addGLEventListener(new RedSquareES2());
-        
-        Animator animator = new Animator(window);
-        animator.setUpdateFPSFrames(1, null);        
+
+        final Animator animator = new Animator(window);
+        animator.setUpdateFPSFrames(1, null);
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
@@ -117,14 +116,14 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         animator.stop();
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         System.err.println("main - start");
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = MiscUtils.atoi(args[++i], (int)durationPerTest);
             }
         }
-        String tstname = TestGLSLSimple01NEWT.class.getName();
+        final String tstname = TestGLSLSimple01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
         System.err.println("main - end");
     }

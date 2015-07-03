@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -36,38 +36,40 @@ package jogamp.nativewindow.x11.awt;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.ToolkitLock;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
-import javax.media.nativewindow.x11.X11GraphicsScreen;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.ToolkitLock;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
 
-import jogamp.nativewindow.NativeVisualID;
-import jogamp.nativewindow.NativeVisualID.NVIDType;
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
+
 import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
 public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
-    
+
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, new X11AWTGraphicsConfigurationFactory());
-    }    
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, CapabilitiesImmutable.class, new X11AWTGraphicsConfigurationFactory());
+    }
     private X11AWTGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {    
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, final int nativeVisualID) {
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
             throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only AWTGraphicsScreen objects");
@@ -76,51 +78,51 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
             absScreen = AWTGraphicsScreen.createDefault();
         }
 
-        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, (AWTGraphicsScreen)absScreen);
+        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, (AWTGraphicsScreen)absScreen, nativeVisualID);
     }
-    
+
     public static AWTGraphicsConfiguration chooseGraphicsConfigurationStatic(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AWTGraphicsScreen awtScreen) {
+            CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, final AWTGraphicsScreen awtScreen, final int nativeVisualID) {
         if(DEBUG) {
             System.err.println("X11AWTGraphicsConfigurationFactory: got "+awtScreen);
         }
-        
+
         final GraphicsDevice device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
-        long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
-        boolean owner = false;
-        if(0==displayHandle) {
+        final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+        final long displayHandle;
+        final boolean owner;
+        if(0==displayHandleAWT) {
             displayHandle = X11Util.openDisplay(null);
             owner = true;
             if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - X11AWTGraphicsConfigurationFactory: create local X11 display");
+                System.err.println(getThreadName()+" - X11AWTGraphicsConfigurationFactory: Null AWT dpy, create local X11 display: "+toHexString(displayHandle));
             }
         } else {
             /**
              * Using the AWT display handle works fine with NVidia.
-             * However we experienced different results w/ AMD drivers, 
-             * some work, but some behave erratic. 
+             * However we experienced different results w/ AMD drivers,
+             * some work, but some behave erratic.
              * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
              */
-            final String displayName = X11Lib.XDisplayString(displayHandle);
-            if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - X11AWTGraphicsConfigurationFactory: create X11 display @ "+displayName+" / 0x"+Long.toHexString(displayHandle));
-            }
+            final String displayName = X11Lib.XDisplayString(displayHandleAWT);
             displayHandle = X11Util.openDisplay(displayName);
             owner = true;
+            if(DEBUG) {
+                System.err.println(getThreadName()+" - X11AWTGraphicsConfigurationFactory: AWT dpy "+displayName+" / "+toHexString(displayHandleAWT)+", create X11 display "+toHexString(displayHandle));
+            }
         }
-        final ToolkitLock lock = owner ? 
-                NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_AWT) : // own non-shared X11 display connection, no X11 lock
-                NativeWindowFactory.createDefaultToolkitLock(NativeWindowFactory.TYPE_X11, NativeWindowFactory.TYPE_AWT, displayHandle);
-        final X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, lock, owner); 
+        // Global JAWT lock required - No X11 resource locking due to private display connection
+        final ToolkitLock lock = NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_AWT);
+        final X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, lock, owner);
         final X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
         if(DEBUG) {
             System.err.println("X11AWTGraphicsConfigurationFactory: made "+x11Screen);
         }
-        
-        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device);
-        AbstractGraphicsConfiguration aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
+
+        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device, capsChosen);
+        AbstractGraphicsConfiguration aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen, nativeVisualID);
         if (aConfig == null) {
             throw new NativeWindowException("Unable to choose a GraphicsConfiguration (1): "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
         }
@@ -128,7 +130,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
             System.err.println("X11AWTGraphicsConfigurationFactory: chosen config: "+aConfig);
             // Thread.dumpStack();
         }
-        
+
         //
         // Match the X11/GL Visual with AWT:
         //   - choose a config AWT agnostic and then
@@ -136,19 +138,21 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         //
         // The resulting GraphicsConfiguration has to be 'forced' on the AWT native peer,
         // ie. returned by GLCanvas's getGraphicsConfiguration() befor call by super.addNotify().
-        //        
+        //
         final GraphicsConfiguration[] configs = device.getConfigurations();
-        int visualID = ((NativeVisualID) aConfig.getChosenCapabilities()).getVisualID(NVIDType.NATIVE_ID);
-        for (int i = 0; i < configs.length; i++) {
-            GraphicsConfiguration gc = configs[i];
-            if (gc != null) {
-                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
-                    if(DEBUG) {
-                        System.err.println("Found matching AWT visual: 0x"+Integer.toHexString(visualID) +" -> "+aConfig);
+        int visualID = aConfig.getVisualID(VIDType.NATIVE);
+        if(VisualIDHolder.VID_UNDEFINED != visualID) {
+            for (int i = 0; i < configs.length; i++) {
+                final GraphicsConfiguration gc = configs[i];
+                if (gc != null) {
+                    if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
+                        if(DEBUG) {
+                            System.err.println("Found matching AWT visual: 0x"+Integer.toHexString(visualID) +" -> "+aConfig);
+                        }
+                        return new AWTGraphicsConfiguration(awtScreen,
+                                                            aConfig.getChosenCapabilities(), aConfig.getRequestedCapabilities(),
+                                                            gc, aConfig);
                     }
-                    return new AWTGraphicsConfiguration(awtScreen,
-                                                        aConfig.getChosenCapabilities(), aConfig.getRequestedCapabilities(),
-                                                        gc, aConfig);
                 }
             }
         }
@@ -156,20 +160,22 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         // try again using an AWT Colormodel compatible configuration
         GraphicsConfiguration gc = device.getDefaultConfiguration();
         capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
-        aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
+        aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen, nativeVisualID);
         if (aConfig == null) {
             throw new NativeWindowException("Unable to choose a GraphicsConfiguration (2): "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
         }
-        visualID = ((NativeVisualID) aConfig.getChosenCapabilities()).getVisualID(NVIDType.NATIVE_ID);
-        for (int i = 0; i < configs.length; i++) {
-            gc = configs[i];
-            if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
-                if(DEBUG) {
-                    System.err.println("Found matching default AWT visual: 0x"+Integer.toHexString(visualID) +" -> "+aConfig);
+        visualID = aConfig.getVisualID(VIDType.NATIVE);
+        if(VisualIDHolder.VID_UNDEFINED != visualID) {
+            for (int i = 0; i < configs.length; i++) {
+                gc = configs[i];
+                if (X11SunJDKReflection.graphicsConfigurationGetVisualID(gc) == visualID) {
+                    if(DEBUG) {
+                        System.err.println("Found matching default AWT visual: 0x"+Integer.toHexString(visualID) +" -> "+aConfig);
+                    }
+                    return new AWTGraphicsConfiguration(awtScreen,
+                                                        aConfig.getChosenCapabilities(), aConfig.getRequestedCapabilities(),
+                                                        gc, aConfig);
                 }
-                return new AWTGraphicsConfiguration(awtScreen,
-                                                    aConfig.getChosenCapabilities(), aConfig.getRequestedCapabilities(),
-                                                    gc, aConfig);
             }
         }
 

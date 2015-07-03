@@ -61,30 +61,30 @@ import java.io.IOException;
  */
 public class GlyfTable implements Table {
 
-    private DirectoryEntry _de;
-    private GlyfDescript[] _descript;
+    private final DirectoryEntry _de;
+    private final GlyfDescript[] _descript;
 
     protected GlyfTable(
-            DirectoryEntry de,
-            DataInput di,
-            MaxpTable maxp,
-            LocaTable loca) throws IOException {
+            final DirectoryEntry de,
+            final DataInput di,
+            final MaxpTable maxp,
+            final LocaTable loca) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _descript = new GlyfDescript[maxp.getNumGlyphs()];
-        
+
         // Buffer the whole table so we can randomly access it
-        byte[] buf = new byte[de.getLength()];
+        final byte[] buf = new byte[de.getLength()];
         di.readFully(buf);
-        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
-        
+        final ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+
         // Process all the simple glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
-            int len = loca.getOffset(i + 1) - loca.getOffset(i);
+            final int len = loca.getOffset(i + 1) - loca.getOffset(i);
             if (len > 0) {
                 bais.reset();
                 bais.skip(loca.getOffset(i));
-                DataInputStream dis = new DataInputStream(bais);
-                short numberOfContours = dis.readShort();
+                final DataInputStream dis = new DataInputStream(bais);
+                final short numberOfContours = dis.readShort();
                 if (numberOfContours >= 0) {
                     _descript[i] = new GlyfSimpleDescript(this, i, numberOfContours, dis);
                 }
@@ -95,12 +95,12 @@ public class GlyfTable implements Table {
 
         // Now do all the composite glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
-            int len = loca.getOffset(i + 1) - loca.getOffset(i);
+            final int len = loca.getOffset(i + 1) - loca.getOffset(i);
             if (len > 0) {
                 bais.reset();
                 bais.skip(loca.getOffset(i));
-                DataInputStream dis = new DataInputStream(bais);
-                short numberOfContours = dis.readShort();
+                final DataInputStream dis = new DataInputStream(bais);
+                final short numberOfContours = dis.readShort();
                 if (numberOfContours < 0) {
                     _descript[i] = new GlyfCompositeDescript(this, i, dis);
                 }
@@ -108,7 +108,7 @@ public class GlyfTable implements Table {
         }
     }
 
-    public GlyfDescript getDescription(int i) {
+    public GlyfDescript getDescription(final int i) {
         if (i < _descript.length) {
             return _descript[i];
         } else {
@@ -116,16 +116,18 @@ public class GlyfTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return glyf;
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

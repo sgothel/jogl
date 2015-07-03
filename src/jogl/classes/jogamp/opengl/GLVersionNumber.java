@@ -28,96 +28,103 @@
 
 package jogamp.opengl;
 
-import java.util.StringTokenizer;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.VersionNumberString;
 
 /**
  * A class for storing and comparing OpenGL version numbers.
  * This only works for desktop OpenGL at the moment.
  */
-class GLVersionNumber extends VersionNumber {
+public class GLVersionNumber extends VersionNumberString {
 
-    protected boolean valid;
+    private final boolean valid;
 
-    public GLVersionNumber(int majorRev, int minorRev, int subMinorRev) {
-        super(majorRev, minorRev, subMinorRev);
-        valid = true;
+    private GLVersionNumber(final int[] val, final int strEnd, final short state, final String versionString, final boolean valid) {
+        super(val[0], val[1], val[2], strEnd, state, versionString);
+        this.valid = valid;
     }
 
-    public GLVersionNumber(String versionString) {
-        super();
-        valid = false;
-        try {
-            if (versionString.startsWith("GL_VERSION_")) {
-                StringTokenizer tok = new StringTokenizer(versionString, "_");
-                tok.nextToken(); // GL_
-                tok.nextToken(); // VERSION_
-                if (!tok.hasMoreTokens()) {
-                    major = 0;
-                    return;
-                }
-                major = Integer.valueOf(tok.nextToken()).intValue();
-                if (!tok.hasMoreTokens()) {
-                    minor = 0;
-                    return;
-                }
-                minor = Integer.valueOf(tok.nextToken()).intValue();
-                if (!tok.hasMoreTokens()) {
-                    sub = 0;
-                    return;
-                }
-                sub = Integer.valueOf(tok.nextToken()).intValue();
-            } else {
-                int radix = 10;
-                if (versionString.length() > 2) {
-                    if (Character.isDigit(versionString.charAt(0)) && versionString.charAt(1) == '.' && Character.isDigit(versionString.charAt(2))) {
-                        major = Character.digit(versionString.charAt(0), radix);
-                        minor = Character.digit(versionString.charAt(2), radix);
-                        // See if there's version-specific information which might
-                        // imply a more recent OpenGL version
-                        StringTokenizer tok = new StringTokenizer(versionString, " ");
-                        if (tok.hasMoreTokens()) {
-                            tok.nextToken();
-                            if (tok.hasMoreTokens()) {
-                                String token = tok.nextToken();
-                                int i = 0;
-                                while (i < token.length() && !Character.isDigit(token.charAt(i))) {
-                                    i++;
-                                }
-                                if (i < token.length() - 2 && Character.isDigit(token.charAt(i)) && token.charAt(i + 1) == '.' && Character.isDigit(token.charAt(i + 2))) {
-                                    int altMajor = Character.digit(token.charAt(i), radix);
-                                    int altMinor = Character.digit(token.charAt(i + 2), radix);
-                                    // Avoid possibly confusing situations by putting some
-                                    // constraints on the upgrades we do to the major and
-                                    // minor versions
-                                    if ((altMajor == major && altMinor > minor) || altMajor == major + 1) {
-                                        major = altMajor;
-                                        minor = altMinor;
-                                    }
-                                }
-                            }
-                        }
-                    }
+    private static java.util.regex.Pattern getUnderscorePattern() {
+        if( null == _Pattern ) { // volatile dbl-checked-locking OK
+            synchronized( VersionNumber.class ) {
+                if( null == _Pattern ) {
+                    _Pattern = getVersionNumberPattern("_");
                 }
             }
-            valid = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            // FIXME: refactor desktop OpenGL dependencies and make this
-            // class work properly for OpenGL ES
-            System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: " + e);
-            major = 1;
-            minor = 0;
-            /*
-            throw (IllegalArgumentException)
-            new IllegalArgumentException(
-            "Illegally formatted version identifier: \"" + versionString + "\"")
-            .initCause(e);
-             */
         }
+        return _Pattern;
+    }
+    private static volatile java.util.regex.Pattern _Pattern = null;
+
+    public static final GLVersionNumber create(final String versionString) {
+        final int[] val = new int[] { 0, 0, 0 };
+        int strEnd = 0;
+        short state = 0;
+        boolean valid = false;
+        if (versionString != null && versionString.length() > 0) {
+            try {
+                final java.util.regex.Pattern versionPattern;
+                if (versionString.startsWith("GL_VERSION_")) {
+                    versionPattern = getUnderscorePattern();
+                } else {
+                    versionPattern = VersionNumber.getDefaultVersionNumberPattern();
+                }
+                final VersionNumberString version = new VersionNumberString(versionString, versionPattern);
+                strEnd = version.endOfStringMatch();
+                val[0] = version.getMajor();
+                val[1] = version.getMinor();
+                state = (short) ( ( version.hasMajor() ? VersionNumber.HAS_MAJOR : (short)0 ) |
+                                  ( version.hasMinor() ? VersionNumber.HAS_MINOR : (short)0 ) );
+                valid = version.hasMajor() && version.hasMinor(); // Requires at least a defined major and minor version component!
+            } catch (final Exception e) {
+                e.printStackTrace();
+                System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: " + e);
+                val[0] = 1;
+                val[1] = 0;
+            }
+        }
+        return new GLVersionNumber(val, strEnd, state, versionString, valid);
     }
 
     public final boolean isValid() {
         return valid;
+    }
+
+    /**
+     * Returns the optional vendor version at the end of the
+     * <code>GL_VERSION</code> string if exists, otherwise the {@link VersionNumberString#zeroVersion zero version} instance.
+     * <pre>
+     *   2.1 Mesa 7.0.3-rc2 -> 7.0.3 (7.0.3-rc2)
+     *   2.1 Mesa 7.12-devel (git-d6c318e) -> 7.12.0 (7.12-devel)
+     *   4.2.12171 Compatibility Profile Context 9.01.8 -> 9.1.8 (9.01.8)
+     *   4.2.12198 Compatibility Profile Context 12.102.3.0 -> 12.102.3 (12.102.3.0)
+     *   4.3.0 NVIDIA 310.32 -> 310.32 (310.32)
+     * </pre>
+     */
+    public static final VersionNumberString createVendorVersion(final String versionString) {
+        if (versionString == null || versionString.length() <= 0) {
+            return null;
+        }
+
+        // Skip the 1st GL version
+        String str;
+        {
+            final GLVersionNumber glv = create(versionString);
+            str = versionString.substring(glv.endOfStringMatch()).trim();
+        }
+
+        while ( str.length() > 0 ) {
+            final VersionNumberString version = new VersionNumberString(str, getDefaultVersionNumberPattern());
+            final int eosm = version.endOfStringMatch();
+            if( 0 < eosm ) {
+                if( version.hasMajor() && version.hasMinor() ) { // Requires at least a defined major and minor version component!
+                    return version;
+                }
+                str = str.substring( eosm ).trim();
+            } else {
+                break; // no match
+            }
+        }
+        return VersionNumberString.zeroVersion;
     }
 }

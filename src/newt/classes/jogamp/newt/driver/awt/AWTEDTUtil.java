@@ -29,122 +29,293 @@
 package jogamp.newt.driver.awt;
 
 import java.awt.EventQueue;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowException;
 
-import com.jogamp.newt.Display;
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.RunnableTask;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.util.EDTUtil;
+
 import jogamp.newt.Debug;
 
 public class AWTEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
-    private static Timer pumpMessagesTimer=null;
-    private static TimerTask pumpMessagesTimerTask=null;
-    private static final Map<Display, Runnable> pumpMessageDisplayMap = new HashMap<Display, Runnable>();
-    private static AWTEDTUtil singletonMainThread = new AWTEDTUtil(); // one singleton MainThread
+    private final Object edtLock = new Object(); // locking the EDT start/stop state
+    private final ThreadGroup threadGroup;
+    private final String name;
+    private final Runnable dispatchMessages;
+    private NEDT nedt = null;
+    private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
-    
-    public static AWTEDTUtil getSingleton() {
-        return singletonMainThread;
+
+    public AWTEDTUtil(final ThreadGroup tg, final String name, final Runnable dispatchMessages) {
+        this.threadGroup = tg;
+        this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
+        this.dispatchMessages=dispatchMessages;
+        this.nedt = new NEDT(threadGroup, name);
+        this.nedt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
-    AWTEDTUtil() {
-        // package private access ..
-    }
-
+    @Override
     final public long getPollPeriod() {
         return pollPeriod;
     }
 
-    final public void setPollPeriod(long ms) {
-        pollPeriod = ms;
-    }
-    
-    final public void reset() {
-        // nop AWT is always running
+    @Override
+    final public void setPollPeriod(final long ms) {
+        pollPeriod = ms; // writing to static field is intended
     }
 
-    final public void start() {
-        // nop AWT is always running
+    @Override
+    public final void start() throws IllegalStateException {
+        synchronized(edtLock) {
+            if( nedt.isRunning() ) {
+                throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", NEDT "+nedt.getName()+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", on AWT-EDT "+EventQueue.isDispatchThread());
+            }
+            if(DEBUG) {
+                System.err.println(Thread.currentThread()+": AWT-EDT reset - edt: "+nedt);
+            }
+            if( nedt.getState() != Thread.State.NEW ) {
+                nedt = new NEDT(threadGroup, name);
+                nedt.setDaemon(true); // don't stop JVM from shutdown ..
+            }
+            startImpl();
+        }
+        if( !nedt.isRunning() ) {
+            throw new RuntimeException("EDT could not be started: "+nedt);
+        }
     }
 
+    private final void startImpl() {
+        if(nedt.isAlive()) {
+            throw new RuntimeException("AWT-EDT Thread.isAlive(): true, isRunning: "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", edt: "+nedt);
+        }
+        start_iter++;
+        nedt.setName(name+start_iter);
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": AWT-EDT START - edt: "+nedt);
+            // Thread.dumpStack();
+        }
+        nedt.start();
+    }
+
+    @Override
     final public boolean isCurrentThreadEDT() {
         return EventQueue.isDispatchThread();
     }
 
+    @Override
+    public final boolean isCurrentThreadNEDT() {
+        return nedt == Thread.currentThread();
+    }
+
+    @Override
+    public final boolean isCurrentThreadEDTorNEDT() {
+        return EventQueue.isDispatchThread() || nedt == Thread.currentThread();
+    }
+
+    @Override
     final public boolean isRunning() {
-        return true; // AWT is always running
+        return nedt.isRunning() ;
     }
 
-    final public void invokeStop(Runnable r) {
-        invoke(true, r); // AWT is always running
+    @Override
+    public final boolean invokeStop(final boolean wait, final Runnable task) {
+        return invokeImpl(wait, task, true);
     }
 
-    final public void invoke(boolean wait, Runnable r) {
-        if(r == null) {
-            return;
-        }
+    @Override
+    public final boolean invoke(final boolean wait, final Runnable task) {
+        return invokeImpl(wait, task, false);
+    }
 
-        // handover to AWT MainThread ..
-        try {
-            if ( isCurrentThreadEDT() ) {
-                r.run();
-                return;
+    private final boolean invokeImpl(boolean wait, final Runnable task, final boolean stop) {
+        Throwable throwable = null;
+        RunnableTask rTask = null;
+        final Object rTaskLock = new Object();
+        synchronized(rTaskLock) { // lock the optional task execution
+            synchronized(edtLock) { // lock the EDT status
+                if( nedt.shouldStop ) {
+                    // drop task ..
+                    System.err.println(Thread.currentThread()+": Warning: AWT-EDT about (1) to stop, won't enqueue new task: "+nedt);
+                    if(DEBUG) {
+                        ExceptionUtils.dumpStack(System.err);
+                    }
+                    return false;
+                }
+                if( isCurrentThreadEDT() ) {
+                    if(null != task) {
+                        task.run();
+                    }
+                    wait = false; // running in same thread (EDT) -> no wait
+                    if(stop) {
+                        nedt.shouldStop = true;
+                    }
+                } else {
+                    if( !nedt.isRunning ) {
+                        if( null != task ) {
+                            if( stop ) {
+                                System.err.println(Thread.currentThread()+": Warning: AWT-EDT is about (3) to stop and stopped already, dropping task. NEDT "+nedt);
+                            } else {
+                                System.err.println(Thread.currentThread()+": Warning: AWT-EDT is not running, dropping task. NEDT "+nedt);
+                            }
+                            if(DEBUG) {
+                                ExceptionUtils.dumpStack(System.err);
+                            }
+                        }
+                        return false;
+                    } else if( stop ) {
+                        if(DEBUG) {
+                            System.err.println(Thread.currentThread()+": AWT-EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop);
+                        }
+                        synchronized(nedt.sync) {
+                            nedt.shouldStop = true;
+                            nedt.sync.notifyAll(); // stop immediate if waiting (poll freq)
+                        }
+                    }
+
+                    if(null != task) {
+                        rTask = new RunnableTask(task,
+                                                 wait ? rTaskLock : null,
+                                                 true /* always catch and report Exceptions, don't disturb EDT */,
+                                                 wait ? null : System.err);
+                        AWTEDTExecutor.singleton.invoke(false, rTask);
+                    }
+                }
             }
-            if(wait) {
-                EventQueue.invokeAndWait(r);
-            } else {
-                EventQueue.invokeLater(r);
+            if( wait ) {
+                try {
+                    rTaskLock.wait(); // free lock, allow execution of rTask
+                } catch (final InterruptedException ie) {
+                    throwable = ie;
+                }
+                if(null==throwable) {
+                    throwable = rTask.getThrowable();
+                }
+                if(null!=throwable) {
+                    if(throwable instanceof NativeWindowException) {
+                        throw (NativeWindowException)throwable;
+                    }
+                    throw new RuntimeException(throwable);
+                }
             }
-        } catch (Exception e) {
-            throw new NativeWindowException(e);
+            return true;
         }
     }
 
-    final public void waitUntilIdle() {
-        // wait until previous events are processed, at least ..
+    @Override
+    final public boolean waitUntilIdle() {
+        final NEDT _edt;
+        synchronized(edtLock) {
+            _edt = nedt;
+        }
+        if(!_edt.isRunning || _edt == Thread.currentThread() || EventQueue.isDispatchThread()) {
+            return false;
+        }
         try {
-            EventQueue.invokeAndWait( new Runnable() {
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                @Override
                 public void run() { }
             });
-        } catch (Exception e) { }
+        } catch (final Exception e) { }
+        return true;
     }
 
-    final public void waitUntilStopped() {
-        // nop: AWT is always running
-    }
-
-    public static void addPumpMessage(Display dpy, Runnable pumpMessage) {
-        if(DEBUG) {
-            System.err.println("AWTEDTUtil.addPumpMessage(): "+Thread.currentThread().getName()+" - dpy "+dpy);
+    @Override
+    final public boolean waitUntilStopped() {
+        synchronized(edtLock) {
+            if( nedt.isRunning && nedt != Thread.currentThread() && !EventQueue.isDispatchThread() ) {
+                while( nedt.isRunning ) {
+                    try {
+                        edtLock.wait();
+                    } catch (final InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
         }
-        
-        synchronized (pumpMessageDisplayMap) {
-            if(null == pumpMessagesTimer) {
-                // AWT pump messages .. MAIN_THREAD uses main thread
-                pumpMessagesTimer = new Timer();
-                pumpMessagesTimerTask = new TimerTask() {
-                    public void run() {
-                        synchronized(pumpMessageDisplayMap) {
-                            for(Iterator<Runnable> i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
-                                AWTEDTUtil.getSingleton().invoke(true, i.next());
-                                // AWTEDTUtil.getSingleton().invoke(false, i.next());
-                                // i.next().run();
+    }
+
+    class NEDT extends Thread {
+        volatile boolean shouldStop = false;
+        volatile boolean isRunning = false;
+        Object sync = new Object();
+
+        public NEDT(final ThreadGroup tg, final String name) {
+            super(tg, name);
+        }
+
+        final public boolean isRunning() {
+            return isRunning && !shouldStop;
+        }
+
+        @Override
+        final public void start() throws IllegalThreadStateException {
+            isRunning = true;
+            super.start();
+        }
+
+        /**
+         * Utilizing locking only on tasks and its execution,
+         * not for event dispatching.
+         */
+        @Override
+        final public void run() {
+            if(DEBUG) {
+                System.err.println(getName()+": AWT-EDT run() START "+ getName());
+            }
+            RuntimeException error = null;
+            try {
+                do {
+                    // event dispatch
+                    if(!shouldStop) {
+                        // EDT invoke thread is AWT-EDT,
+                        // hence dispatching is required to run on AWT-EDT as well.
+                        // Otherwise a deadlock may happen due to dispatched event's
+                        // triggering a locking action.
+                        AWTEDTExecutor.singleton.invoke(true, dispatchMessages);
+                    }
+                    // wait
+                    synchronized(sync) {
+                        if(!shouldStop) {
+                            try {
+                                sync.wait(pollPeriod);
+                            } catch (final InterruptedException e) {
+                                e.printStackTrace();
                             }
                         }
                     }
-                };
-                pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, pollPeriod);
-            }
-            pumpMessageDisplayMap.put(dpy, pumpMessage);
-        }
-    }
+                } while(!shouldStop) ;
+            } catch (final Throwable t) {
+                // handle errors ..
+                shouldStop = true;
+                if(t instanceof RuntimeException) {
+                    error = (RuntimeException) t;
+                } else {
+                    error = new RuntimeException("Within AWT-EDT", t);
+                }
+            } finally {
+                if(DEBUG) {
+                    System.err.println(getName()+": AWT-EDT run() END "+ getName()+", "+error);
+                }
+                synchronized(edtLock) {
+                    isRunning = false;
+                    edtLock.notifyAll();
+                }
+                if(DEBUG) {
+                    System.err.println(getName()+": AWT-EDT run() EXIT "+ getName()+", exception: "+error);
+                }
+                if(null!=error) {
+                    throw error;
+                }
+            } // finally
+        } // run()
+    } // EventDispatchThread
 
 }
 

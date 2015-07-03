@@ -9,10 +9,10 @@
  * Editions / Removals and a split (wingdi.h -> wingdi.h + wingdi_types.h + winwgl.h) were made by the JogAmp Community, 2010, 2012
  */
 
-#include "wingdi_types.h"
-
 #ifndef GDI_VERSION_1_X
 #define GDI_VERSION_1_X
+
+#include "wingdi_types.h"
 
 // Windows routines
 WINBASEAPI DWORD WINAPI GetLastError(VOID);
@@ -44,10 +44,14 @@ WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 WINUSERAPI DWORD WINAPI GetObjectType(HGDIOBJ h);
 WINUSERAPI BOOL WINAPI IsWindowVisible(HWND hWnd);
 WINUSERAPI BOOL WINAPI IsWindow(HWND hWnd);
+WINUSERAPI HWND WINAPI GetParent(HWND hWnd);
+WINUSERAPI HWND WINAPI SetParent(HWND hWndChild,HWND hWndNewParent);
 
 WINUSERAPI HANDLE WINAPI GetCurrentProcess(void);
-WINUSERAPI BOOL WINAPI GetProcessAffinityMask(HANDLE hProcess,PDWORD_PTR lpProcessAffinityMask,PDWORD_PTR lpSystemAffinityMask);
-WINUSERAPI BOOL WINAPI SetProcessAffinityMask(HANDLE hProcess,DWORD_PTR dwProcessAffinityMask);
+WINUSERAPI HANDLE WINAPI GetCurrentThread(void);
+WINUSERAPI BOOL WINAPI GetProcessAffinityMask(HANDLE hProcess, PDWORD_PTR lpProcessAffinityMask, PDWORD_PTR lpSystemAffinityMask);
+WINUSERAPI BOOL WINAPI SetProcessAffinityMask(HANDLE hProcess, DWORD_PTR dwProcessAffinityMask);
+WINUSERAPI DWORD_PTR WINAPI SetThreadAffinityMask(HANDLE hThread, DWORD_PTR dwThreadAffinityMask);
 
 
 // Routines for changing gamma ramp of display device

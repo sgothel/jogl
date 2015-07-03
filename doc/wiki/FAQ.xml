@@ -224,7 +224,7 @@ Note: A bug on MacOSX is known, launching 2 JOGL applets in 2 tabs.
    <param name="progressbar" value="true">
    <param name="jnlpNumExtensions" value="1">
    <param name="jnlpExtension1"
-          value="http://download.java.net/media/jogl/jsr-231-2.x-webstart/jogl-core.jnlp">
+          value="http://download.java.net/media/jogl/jsr-231-2.x-webstart/jogl.jnlp">
    <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
    <param name="jnlp_href" value="applet-gears.jnlp">
 </applet>

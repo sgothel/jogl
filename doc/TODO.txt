@@ -1,15 +1,30 @@
+Version 2.0:
+
+- SIGG slides / video 
+- ES3 / GL 4.3
+
+
++++
+
+NVIDIA Tegra: discard problem (still exist?):
+  OK:
+    GL_RENDERER: NVIDIA Tegra
+    GL_VERSION: OpenGL ES 2.0 14.01002
+
++++
+
+TestSharedContextVBOES2NEWT crashes the NV driver sporadically.
+
+++
+
 WIP:
+
++++
 
 Random, somewhat old to-do list:
 
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
-
-- figure out how to deal with WGL entry points:
-    WINGDIAPI HGLRC WINAPI wglCreateLayerContext(HDC, int);
-    WINGDIAPI BOOL  WINAPI wglUseFontBitmapsA(HDC, DWORD, DWORD, DWORD);
-    WINGDIAPI BOOL  WINAPI wglUseFontBitmapsW(HDC, DWORD, DWORD, DWORD);
-  see commented-out section in make/stub_includes/win32/wingdi.h
 
 - Need a disciplined mechanism for converting char* argument types. For
   example, many C functions accept a "char*" argument with the semantic that

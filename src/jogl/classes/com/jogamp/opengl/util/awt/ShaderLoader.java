@@ -27,10 +27,9 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
-
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLException;
 
 
 /**
@@ -112,7 +111,7 @@ class ShaderLoader {
      * @return True if <tt>shader</tt> was compiled without errors
      */
     private static boolean isCompiled(final GL2ES2 gl, final int shader) {
-        return ShaderUtil.isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS);
+        return ShaderUtil.isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS, null);
     }
 
     /**

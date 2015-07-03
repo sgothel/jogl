@@ -5,6 +5,7 @@
 
 void timespec_now(struct timespec *ts);
 void timespec_addms(struct timespec *ts, long ms);
+void timespec_addmicros(struct timespec *ts, long micro);
 void timespec_addns(struct timespec *ts, long ns);
 
 /** returns 0: a==b, >0: a>b, <0: a<b */
@@ -15,5 +16,8 @@ void timespec_subtract(struct timespec *r, struct timespec *a, struct timespec *
 
 /** convert the timespec into milliseconds (may overflow) */
 long timespec_milliseconds(struct timespec *a);
+
+/** convert the timespec into microseconds (may overflow) */
+long timespec_microseconds(struct timespec *a);
 
 #endif /* _timespec_h */

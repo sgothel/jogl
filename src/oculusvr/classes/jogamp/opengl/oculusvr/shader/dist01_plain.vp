@@ -1,0 +1,27 @@
+//Copyright 2014 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform vec2    ovr_EyeToSourceUVScale;
+uniform vec2    ovr_EyeToSourceUVOffset;
+
+attribute vec2  ovr_Position;
+attribute vec2  ovr_Params;
+attribute vec2  ovr_TexCoordR;
+
+varying vec3    ovv_Fade;
+varying vec2    ovv_TexCoordR;
+
+void main(void)
+{
+    gl_Position = vec4(ovr_Position.xy, 0.5, 1.0);
+    ovv_Fade = vec3(ovr_Params.r); // vignetteFade
+    
+    // Vertex inputs are in TanEyeAngle space for the R,G,B channels (i.e. after chromatic aberration and distortion).
+    // Scale them into the correct [0-1],[0-1] UV lookup space (depending on eye)    
+    ovv_TexCoordR = ovr_TexCoordR * ovr_EyeToSourceUVScale + ovr_EyeToSourceUVOffset;
+    ovv_TexCoordR.y = 1.0-ovv_TexCoordR.y;
+}

@@ -1,5 +1,5 @@
-  /** Part of <code>GL_ARB_separate_shader_objects</code>, <code>GL_EXT_separate_shader_objects</code> */
-  public static final int GL_ALL_SHADER_BITS = 0xFFFFFFFF ;
+  /** Part of <code>GL_ES_VERSION_2_0</code>, <code>GL_VERSION_1_1</code>, <code>GL_VERSION_1_0</code> */
+  public static final int GL_STENCIL_INDEX = 0x1901;
 
   /** Start: GL_ARB_ES2_compatibility functions, which are part of ES2 core as well */
 
@@ -39,10 +39,18 @@
    * <br> Calls <code> void {@native glDepthRange}(GLclampd zNear, GLclampd zFar); </code> if no native implementation is available.   */
   public void glDepthRangef(float zNear, float zFar);
 
+  public void glDepthRange(double zNear, double zFar);
+
   /** Entry point to C language function: 
    * <code> void {@native glClearDepthf}(GLclampf depth); </code> 
    * <br>Part of <code>GL_ES_VERSION_2_0</code> and <code>GL_ARB_ES2_compatibility</code>. 
    * <br> Calls <code> void {@native glClearDepth}(GLclampd depth); </code> if no native implementation is available.   */
   public void glClearDepthf(float depth);
+
+  public void glClearDepth( double depth );
+
+  public void glVertexAttribPointer(GLArrayData array);
+
+  public void glUniform(GLUniformData data);
 
   /** End: GL_ARB_ES2_compatibility functions, which are part of ES2 core as well */

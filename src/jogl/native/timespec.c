@@ -24,6 +24,20 @@ void timespec_addms(struct timespec *ts, long ms)
     ts->tv_nsec=ts->tv_nsec%1000000000;
 }
 
+void timespec_addmicros(struct timespec *ts, long micro)
+{
+    int sec=micro/1000000;
+    micro=micro - sec*1000000;
+
+    // perform the addition
+    ts->tv_nsec+=micro*1000;
+
+    // adjust the time
+    ts->tv_sec+=ts->tv_nsec/1000000000 + sec;
+    ts->tv_nsec=ts->tv_nsec%1000000000;
+
+}
+
 void timespec_addns(struct timespec *ts, long ns)
 {
     int sec=ns/1000000000;
@@ -60,4 +74,9 @@ void timespec_subtract(struct timespec *r, struct timespec *a, struct timespec *
 long timespec_milliseconds(struct timespec *a) 
 {
     return a->tv_sec*1000 + a->tv_nsec/1000000;
+}
+
+long timespec_microseconds(struct timespec *a) 
+{
+    return a->tv_sec*1000000 + a->tv_nsec/1000;
 }

@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -72,16 +72,16 @@ public class Rect {
   // there is no room left due either to fragmentation or just being
   // out of space)
   private Rect nextLocation;
-  
+
   public Rect() {
     this(null);
   }
 
-  public Rect(Object userData) {
+  public Rect(final Object userData) {
     this(0, 0, 0, 0, userData);
   }
 
-  public Rect(int x, int y, int w, int h, Object userData) {
+  public Rect(final int x, final int y, final int w, final int h, final Object userData) {
     setPosition(x, y);
     setSize(w, h);
     setUserData(userData);
@@ -94,7 +94,7 @@ public class Rect {
   public Object getUserData() { return userData; }
   public Rect getNextLocation() { return nextLocation; }
 
-  public void setPosition(int x, int y) {
+  public void setPosition(final int x, final int y) {
     if (x < 0)
       throw new IllegalArgumentException("Negative x");
     if (y < 0)
@@ -103,7 +103,7 @@ public class Rect {
     this.y = y;
   }
 
-  public void setSize(int w, int h) throws IllegalArgumentException {
+  public void setSize(final int w, final int h) throws IllegalArgumentException {
     if (w < 0)
       throw new IllegalArgumentException("Negative width");
     if (h < 0)
@@ -112,8 +112,8 @@ public class Rect {
     this.h = h;
   }
 
-  public void setUserData(Object obj) { userData = obj; }
-  public void setNextLocation(Rect nextLocation) { this.nextLocation = nextLocation; }
+  public void setUserData(final Object obj) { userData = obj; }
+  public void setNextLocation(final Rect nextLocation) { this.nextLocation = nextLocation; }
 
   // Helpers for computations.
 
@@ -139,11 +139,12 @@ public class Rect {
     return y() + h() - 1;
   }
 
-  public boolean canContain(Rect other) {
+  public boolean canContain(final Rect other) {
     return (w() >= other.w() &&
             h() >= other.h());
   }
 
+  @Override
   public String toString() {
     return "[Rect x: " + x() + " y: " + y() + " w: " + w() + " h: " + h() + "]";
   }

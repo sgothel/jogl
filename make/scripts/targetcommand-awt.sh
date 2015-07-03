@@ -2,6 +2,8 @@
 
 THISDIR=`pwd`
 
+ROOT_REL=build-linux-armv6hf
+
 #XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode"
 XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.EGL -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Dnewt.debug.Screen"
@@ -14,23 +16,24 @@ XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.EGL -Dnativewindow
 #XTRA_FLAGS="-Djogl.debug.TraceGL"
 #XTRA_FLAGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
 
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn
  
  mkdir -p $THISDIR/projects-cross 
 
  rsync -av --delete --delete-after --delete-excluded \
        --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
        --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \
+       --exclude 'make/lib/external/' \
        jogamp@jogamp02::PROJECTS/JOGL/gluegen jogamp@jogamp02::PROJECTS/JOGL/jogl $THISDIR/projects-cross 
 
  cd $THISDIR/projects-cross/jogl/make 
  
 function junit_run() {
      java \
-     -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/build-linux-armv7/gluegen-rt.jar:../build-linux-armv7/jar/jogl.all.jar:../build-linux-armv7/jar/jogl.test.jar\
+     -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/$ROOT_REL/gluegen-rt.jar:../$ROOT_REL/jar/jogl-all.jar:../$ROOT_REL/jar/jogl-test.jar\
      $XTRA_FLAGS \
-     com.jogamp.newt.util.MainThread\
      org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \
      $TSTCLASS \
      filtertrace=true \
@@ -46,9 +49,8 @@ function junit_run() {
  
 function main_run() {
      java \
-     -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/build-linux-armv7/gluegen-rt.jar:../build-linux-armv7/jar/jogl.all.jar:../build-linux-armv7/jar/jogl.test.jar\
+     -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/$ROOT_REL/gluegen-rt.jar:../$ROOT_REL/jar/jogl-all.jar:../$ROOT_REL/jar/jogl-test.jar\
      $XTRA_FLAGS \
-     com.jogamp.newt.util.MainThread\
      $TSTCLASS \
      $*
 }

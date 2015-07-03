@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -44,7 +44,7 @@ import java.awt.image.*;
 import java.io.*;
 import java.net.*;
 import javax.imageio.*;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 import com.jogamp.opengl.util.texture.*;
@@ -54,12 +54,13 @@ import com.jogamp.opengl.util.texture.spi.*;
 public class IIOTextureProvider implements TextureProvider {
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
-    public TextureData newTextureData(GLProfile glp, File file,
-                                      int internalFormat,
-                                      int pixelFormat,
-                                      boolean mipmap,
-                                      String fileSuffix) throws IOException {
-        BufferedImage img = ImageIO.read(file);
+    @Override
+    public TextureData newTextureData(final GLProfile glp, final File file,
+                                      final int internalFormat,
+                                      final int pixelFormat,
+                                      final boolean mipmap,
+                                      final String fileSuffix) throws IOException {
+        final BufferedImage img = ImageIO.read(file);
         if (img == null) {
             return null;
         }
@@ -70,12 +71,13 @@ public class IIOTextureProvider implements TextureProvider {
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
     }
 
-    public TextureData newTextureData(GLProfile glp, InputStream stream,
-                                      int internalFormat,
-                                      int pixelFormat,
-                                      boolean mipmap,
-                                      String fileSuffix) throws IOException {
-        BufferedImage img = ImageIO.read(stream);
+    @Override
+    public TextureData newTextureData(final GLProfile glp, final InputStream stream,
+                                      final int internalFormat,
+                                      final int pixelFormat,
+                                      final boolean mipmap,
+                                      final String fileSuffix) throws IOException {
+        final BufferedImage img = ImageIO.read(stream);
         if (img == null) {
             return null;
         }
@@ -86,12 +88,13 @@ public class IIOTextureProvider implements TextureProvider {
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
     }
 
-    public TextureData newTextureData(GLProfile glp, URL url,
-                                      int internalFormat,
-                                      int pixelFormat,
-                                      boolean mipmap,
-                                      String fileSuffix) throws IOException {
-        InputStream stream = url.openStream();
+    @Override
+    public TextureData newTextureData(final GLProfile glp, final URL url,
+                                      final int internalFormat,
+                                      final int pixelFormat,
+                                      final boolean mipmap,
+                                      final String fileSuffix) throws IOException {
+        final InputStream stream = url.openStream();
         try {
             return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
         } finally {

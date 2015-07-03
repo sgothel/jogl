@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,80 +28,90 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.*;
-import jogamp.opengl.*;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
 
-/** Provides control over the primary display's gamma, brightness and
-    contrast controls via the hardware gamma ramp tables. Not
-    supported on all platforms or graphics hardware. <P>
+import com.jogamp.common.util.locks.RecursiveLock;
 
-    Thanks to the LWJGL project for illustrating how to access gamma
-    control on the various platforms.
-*/
-
+/**
+ * Provides convenient wrapper for {@link GLDrawableFactory} control over
+ * individual display's gamma, brightness and contrast values
+ * via the hardware gamma ramp tables.
+ * <p>
+ * Not supported on all platforms or graphics hardware.
+ * </p>
+ * <p>
+ * Thanks to the LWJGL project for illustrating how to access gamma
+ * control on the various platforms.
+ * </p>
+ */
 public class Gamma {
   private Gamma() {}
 
   /**
-   * Sets the gamma, brightness, and contrast of the current main
-   * display. This functionality is not available on all platforms and
-   * graphics hardware. Returns true if the settings were successfully
-   * changed, false if not. This method may return false for some
-   * values of the incoming arguments even on hardware which does
-   * support the underlying functionality. <P>
-   *
-   * If this method returns true, the display settings will
-   * automatically be reset to their original values upon JVM exit
-   * (assuming the JVM does not crash); if the user wishes to change
-   * the display settings back to normal ahead of time, use {@link
-   * #resetDisplayGamma resetDisplayGamma}(). It is recommended to
-   * call {@link #resetDisplayGamma resetDisplayGamma} before calling
-   * e.g. <code>System.exit()</code> from the application rather than
-   * rely on the shutdown hook functionality due to inevitable race
-   * conditions and unspecified behavior during JVM teardown. <P>
-   *
-   * This method may be called multiple times during the application's
-   * execution, but calling {@link #resetDisplayGamma
-   * resetDisplayGamma} will only reset the settings to the values
-   * before the first call to this method. <P>
-   *
-   * @param gamma The gamma value, typically > 1.0 (default values
-   *   vary, but typically roughly 1.0)
-   * @param brightness The brightness value between -1.0 and 1.0,
-   *   inclusive (default values vary, but typically 0)
-   * @param contrast The contrast, greater than 0.0 (default values
-   *   vary, but typically 1)
-   * @return true if gamma settings were successfully changed, false
-   *   if not
-   * @throws IllegalArgumentException if any of the parameters were
-   *   out-of-bounds
+   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(com.jogamp.nativewindow.NativeSurface, float, float, float)}.
+   * <p>
+   * Use {@link #setDisplayGamma(GLAutoDrawable, float, float, float)} in case of using an {#link GLAutoDrawable}.
+   * </p>
    */
-  public static boolean setDisplayGamma(GL gl, float gamma, float brightness, float contrast) throws IllegalArgumentException {
-    return GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).setDisplayGamma(gamma, brightness, contrast);
+  public static boolean setDisplayGamma(final GLDrawable drawable, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
+    return GLDrawableFactory.getFactory(drawable.getGLProfile()).setDisplayGamma(drawable.getNativeSurface(), gamma, brightness, contrast);
   }
 
   /**
-   * Resets the gamma, brightness and contrast values for the primary
-   * display to their original values before {@link #setDisplayGamma
-   * setDisplayGamma} was called the first time. {@link
-   * #setDisplayGamma setDisplayGamma} must be called before calling
-   * this method or an unspecified exception will be thrown. While it
-   * is not explicitly required that this method be called before
-   * exiting, calling it is recommended because of the inevitable
-   * unspecified behavior during JVM teardown.
+   * Convenient wrapper for {@link GLDrawableFactory#setDisplayGamma(com.jogamp.nativewindow.NativeSurface, float, float, float)}
+   * locking {@link GLAutoDrawable#getUpstreamLock()} to ensure proper atomic operation.
    */
-  public static void resetDisplayGamma(GL gl) {
-    GLDrawableFactoryImpl.getFactoryImpl(gl.getContext().getGLDrawable().getGLProfile()).resetDisplayGamma();
+  public static boolean setDisplayGamma(final GLAutoDrawable drawable, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
+    final RecursiveLock lock = drawable.getUpstreamLock();
+    lock.lock();
+    try {
+        return GLDrawableFactory.getFactory(drawable.getGLProfile()).setDisplayGamma(drawable.getNativeSurface(), gamma, brightness, contrast);
+    } finally {
+        lock.unlock();
+    }
+  }
+
+  /**
+   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(com.jogamp.nativewindow.NativeSurface)}.
+   * <p>
+   * Use {@link #resetDisplayGamma(GLAutoDrawable)} in case of using an {#link GLAutoDrawable}.
+   * </p>
+   */
+  public static void resetDisplayGamma(final GLDrawable drawable) {
+    GLDrawableFactory.getFactory(drawable.getGLProfile()).resetDisplayGamma(drawable.getNativeSurface());
+  }
+
+  /**
+   * Convenient wrapper for {@link GLDrawableFactory#resetDisplayGamma(com.jogamp.nativewindow.NativeSurface)}
+   * locking {@link GLAutoDrawable#getUpstreamLock()} to ensure proper atomic operation.
+   */
+  public static void resetDisplayGamma(final GLAutoDrawable drawable) {
+    final RecursiveLock lock = drawable.getUpstreamLock();
+    lock.lock();
+    try {
+        GLDrawableFactory.getFactory(drawable.getGLProfile()).resetDisplayGamma(drawable.getNativeSurface());
+    } finally {
+        lock.unlock();
+    }
+  }
+
+  /**
+   * Convenient wrapper for {@link GLDrawableFactory#resetAllDisplayGamma()}.
+   */
+  public static void resetAllDisplayGamma(final GLDrawable drawable) {
+    GLDrawableFactory.getFactory(drawable.getGLProfile()).resetAllDisplayGamma();
   }
 }

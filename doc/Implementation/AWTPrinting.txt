@@ -1,0 +1,99 @@
+Screenshots of unit tests: 
+  <http://jogamp.org/files/screenshots/printing/test01-awt/>
+
+Unit test producing the results: 
+  Base Test Class:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TiledPrintingAWTBase.java;hb=HEAD>
+  AWT:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsAWT.java;hb=HEAD>
+  Swing:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsSwingAWT.java;hb=HEAD>
+
+Print code: 
+  AWTPrintLifecycle:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/nativewindow/classes/com/jogamp/nativewindow/awt/AWTPrintLifecycle.java;hb=HEAD>
+  GLCanvas:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/com/jogamp/opengl/awt/GLCanvas.java;hb=HEAD#l731>
+  ...
+  AWTTilePainter (common code): 
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/jogamp/opengl/awt/AWTTilePainter.java;hb=HEAD>
+
++++
+
+Enhance lifecycle for AWT printing via AWTPrintLifecycle:
+
+We fit the frame into the imageable area with for 72 dpi,
+assuming that is the default AWT painting density.
+The frame borders are considered.
+
+The frame's scale factor 'scaleComp72' is used for the graphics print matrix
+of the overall print-job, hence no frame resize is required.
+
+The GL scale factor 'scaleGLMatXY', 72dpi/glDPI, is passed to the GL object
+which locally scales the print matrix and renders the scene with 1/scaleGLMatXY pixels.
+
+Before printing, we setup the GLCanvas, ..:
+  - move GLContext and GLEventListener -> offscreen
+  - offscreen is of tile-size
+
+this is performed w/ AWTPrintLifecycle.setupPrint(..).
+Impl. in GLCanvas, etc.
+
+After printing, AWTPrintLifecycle.releasePrint() shall be called. Impl. in GLCanvas .. etc.
+
+To perform AWTPrintLifecycle on all components in one container decorating PrinterJob.job(),
+one may use:
+
+    Container cont;
+    double scaleGLMatXY = 72.0/glDPI;
+    int numSamples = 0; // leave multisampling as-is
+    PrinterJob job;
+    ...
+    final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(cont, scaleGLMatXY, scaleGLMatXY, numSamples);
+    try {
+       AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
+                try {
+                    job.print();
+                } catch (PrinterException ex) {
+                    ex.printStackTrace();
+                }
+           } });
+    } finally {
+       ctx.releasePrint();
+    }
+
++++
+
+Tiled rendering is used, i.e. at print(Graphics g),
+the clip bounds is used to setup the TiledRenderer's
+image size and the impl. renders all tiles.
+
+For the tiled reshape, a user component, 
+i.e. GLEventListener reshape(x, y, width, height),
+needs to know about the current tile's position and image size.
+The tile size itself is passed as width and height
+as this is being used to set the current viewport.
+
+Hence the GLEventListener shall implement the 
+TileRendererBase.TileRendererNotify interface!
+
++++
+
+Bugs:
+  - None in results
+
+  - GLCanvas: Workaround Bug 830 where onscreen MSAA cannot switch to offscreen FBO,
+              i.e. stay 'onscreen'
+
++++
+
+OSX local 'virtual' printer installation,
+i.e. print-to-file printer using cups:
+
+cupsctl FileDevice=Yes
+killall -HUP cupsd
+mkdir /data/lp
+chown jogamp /data/lp
+chmod ugo+rwx /data/lp
+lpadmin -p lprint -E -v file:/data/lp/out.ps -P /Library/Printers/PPDs/Contents/Resources/HP\ LaserJet\ 4\ Plus.gz

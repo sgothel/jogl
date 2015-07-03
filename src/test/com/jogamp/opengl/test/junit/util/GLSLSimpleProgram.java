@@ -31,8 +31,8 @@ package com.jogamp.opengl.test.junit.util;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 import org.junit.Assert;
 
 public class GLSLSimpleProgram {
@@ -41,47 +41,47 @@ public class GLSLSimpleProgram {
     private int fragShader;
     private boolean isValid;
 
-    private GLSLSimpleProgram(int shaderProgram, int vertShader, int fragShader) {
+    private GLSLSimpleProgram(final int shaderProgram, final int vertShader, final int fragShader) {
         this.shaderProgram = shaderProgram;
         this.vertShader = vertShader;
         this.fragShader = fragShader;
         this.isValid = true;
     }
 
-    public static GLSLSimpleProgram create(GL2ES2 gl, String vertShaderCode, String fragShaderCode, boolean link) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream pbaos = new PrintStream(baos);
+    public static GLSLSimpleProgram create(final GL2ES2 gl, final String vertShaderCode, final String fragShaderCode, final boolean link) {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream pbaos = new PrintStream(baos);
 
-        int vertShader = gl.glCreateShader(GL2ES2.GL_VERTEX_SHADER);
+        final int vertShader = gl.glCreateShader(GL2ES2.GL_VERTEX_SHADER);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-        int fragShader = gl.glCreateShader(GL2ES2.GL_FRAGMENT_SHADER);
+        final int fragShader = gl.glCreateShader(GL2ES2.GL_FRAGMENT_SHADER);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-        String[] vlines = new String[] { vertShaderCode };
-        int[] vlengths = new int[] { vlines[0].length() };
+        final String[] vlines = new String[] { gl.getContext().getGLSLVersionString()+vertShaderCode };
+        final int[] vlengths = new int[] { vlines[0].length() };
         gl.glShaderSource(vertShader, vlines.length, vlines, vlengths, 0);
         gl.glCompileShader(vertShader);
-        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, gl.GL_COMPILE_STATUS, pbaos)) {
+        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, GL2ES2.GL_COMPILE_STATUS, pbaos)) {
             System.out.println("getShader:postCompile vertShader: "+baos.toString());
             Assert.assertTrue(false);
         }
         pbaos.flush(); baos.reset();
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-        
-        String[] flines = new String[] { fragShaderCode };
-        int[] flengths = new int[] { flines[0].length() };
+
+        final String[] flines = new String[] { gl.getContext().getGLSLVersionString()+fragShaderCode };
+        final int[] flengths = new int[] { flines[0].length() };
         gl.glShaderSource(fragShader, flines.length, flines, flengths, 0);
         gl.glCompileShader(fragShader);
-        if(!ShaderUtil.isShaderStatusValid(gl, fragShader, gl.GL_COMPILE_STATUS, pbaos)) {
+        if(!ShaderUtil.isShaderStatusValid(gl, fragShader, GL2ES2.GL_COMPILE_STATUS, pbaos)) {
             System.out.println("getShader:postCompile fragShader: "+baos.toString());
             Assert.assertTrue(false);
         }
         pbaos.flush(); baos.reset();
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-        int shaderProgram = gl.glCreateProgram();
+        final int shaderProgram = gl.glCreateProgram();
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         gl.glAttachShader(shaderProgram, vertShader);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -90,17 +90,17 @@ public class GLSLSimpleProgram {
 
         if(link) {
             gl.glLinkProgram(shaderProgram);
-            if(!ShaderUtil.isProgramValid(gl, shaderProgram, pbaos)) {
+            if(!ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, pbaos)) {
                 System.out.println("Error (GLSL link error):  "+baos.toString());
                 Assert.assertTrue(false);
             }
         }
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        GLSLSimpleProgram res = new GLSLSimpleProgram(shaderProgram, vertShader, fragShader);
+        final GLSLSimpleProgram res = new GLSLSimpleProgram(shaderProgram, vertShader, fragShader);
         return res;
     }
 
-    public void release(GL2ES2 gl) {
+    public void release(final GL2ES2 gl) {
         gl.glUseProgram(0);
         gl.glDetachShader(shaderProgram, vertShader);
         gl.glDeleteShader(vertShader);
@@ -124,7 +124,7 @@ public class GLSLSimpleProgram {
     public int getVertShader() {
         return vertShader;
     }
-    
+
     public boolean isValid() {
         return isValid;
     }

@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Application-Name: Java Bindings for OpenGL Test
+Specification-Title: Test Java Bindings for OpenGL API Specification
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp Community
+Implementation-Title: Test JOGL Runtime Environment
+Implementation-Version: @VERSION@
+Implementation-Build: @BUILD_VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
+Implementation-Vendor: JogAmp Community
+Implementation-URL: http://jogamp.org/
+Extension-Name: com.jogamp.opengl.test
+Implementation-Vendor-Id: com.jogamp
+Permissions: sandbox
+Application-Library-Allowable-Codebase: *
+@JAR_CODEBASE_TAG@
+

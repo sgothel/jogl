@@ -22,7 +22,9 @@ Contact Us
 
 Web                http://jogamp.org/
 Forum/Mailinglist  http://forum.jogamp.org/
-JogAmp Channel     server: conference.jabber.org room: jogamp
+Chatrooms
+  IRC              irc.freenode.net #jogamp 
+  Jabber           conference.jabber.org room: jogamp (deprecated!)
 Repository         http://jogamp.org/git/
 Email              mediastream _at_ jogamp _dot_ org
 

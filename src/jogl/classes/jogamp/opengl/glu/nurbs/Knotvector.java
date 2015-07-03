@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Knot vector used in curve specification
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class Knotvector {
 
@@ -75,7 +75,7 @@ public class Knotvector {
 
   /**
    * Makes new knotvector
-   * 
+   *
    * @param nknots
    *            number of knots
    * @param stride
@@ -85,14 +85,14 @@ public class Knotvector {
    * @param knot
    *            knots
    */
-  public Knotvector(int nknots, int stride, int order, float[] knot) {
+  public Knotvector(final int nknots, final int stride, final int order, final float[] knot) {
     // DONE
     init(nknots, stride, order, knot);
   }
 
   /**
    * Initializes knotvector
-   * 
+   *
    * @param nknots
    *            number of knots
    * @param stride
@@ -102,7 +102,7 @@ public class Knotvector {
    * @param knot
    *            knots
    */
-  public void init(int nknots, int stride, int order, float[] knot) {
+  public void init(final int nknots, final int stride, final int order, final float[] knot) {
     // DONE
     this.knotcount = nknots;
     this.stride = stride;
@@ -116,7 +116,7 @@ public class Knotvector {
 
   /**
    * Validates knot vector parameters
-   * 
+   *
    * @return knot vector validity
    */
   public int validate() {
@@ -154,11 +154,11 @@ public class Knotvector {
 
   /**
    * Show specified message
-   * 
+   *
    * @param msg
    *            message to be shown
    */
-  public void show(String msg) {
+  public void show(final String msg) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO knotvector.show");
 
@@ -166,14 +166,14 @@ public class Knotvector {
 
   /**
    * Compares two knots for equality
-   * 
+   *
    * @param a
    *            first knot
    * @param b
    *            second knot
    * @return knots are/are not equal
    */
-  public static boolean identical(float a, float b) {
+  public static boolean identical(final float a, final float b) {
     return ((a - b) < TOLERANCE) ? true : false;
   }
 }

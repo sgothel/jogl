@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,20 +28,21 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package com.jogamp.opengl.util.gl2;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
-import javax.media.opengl.glu.gl2.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.fixedfunc.GLLightingFunc;
+import com.jogamp.opengl.glu.*;
+import com.jogamp.opengl.glu.gl2.*;
 
 /** Subset of the routines provided by the GLUT interface. Note the
     signatures of many of the methods are necessarily different than
@@ -103,13 +104,13 @@ public class GLUT {
   public static final int BITMAP_HELVETICA_12 = 7;
   public static final int BITMAP_HELVETICA_18 = 8;
 
-  private GLUgl2 glu = new GLUgl2();
+  private final GLUgl2 glu = new GLUgl2();
 
   //----------------------------------------------------------------------
   // Shapes
   //
 
-  public void glutWireSphere(double radius, int slices, int stacks) {
+  public void glutWireSphere(final double radius, final int slices, final int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_LINE);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -119,7 +120,7 @@ public class GLUT {
     glu.gluSphere(quadObj, radius, slices, stacks);
   }
 
-  public void glutSolidSphere(double radius, int slices, int stacks) {
+  public void glutSolidSphere(final double radius, final int slices, final int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -129,8 +130,8 @@ public class GLUT {
     glu.gluSphere(quadObj, radius, slices, stacks);
   }
 
-  public void glutWireCone(double base, double height,
-                           int slices, int stacks) {
+  public void glutWireCone(final double base, final double height,
+                           final int slices, final int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_LINE);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -140,8 +141,8 @@ public class GLUT {
     glu.gluCylinder(quadObj, base, 0.0, height, slices, stacks);
   }
 
-  public void glutSolidCone(double base, double height,
-                            int slices, int stacks) {
+  public void glutSolidCone(final double base, final double height,
+                            final int slices, final int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -151,7 +152,7 @@ public class GLUT {
     glu.gluCylinder(quadObj, base, 0.0, height, slices, stacks);
   }
 
-  public void glutWireCylinder(double radius, double height, int slices, int stacks) {
+  public void glutWireCylinder(final double radius, final double height, final int slices, final int stacks) {
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_LINE);
     glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
@@ -161,22 +162,22 @@ public class GLUT {
     glu.gluCylinder(quadObj, radius, radius, height, slices, stacks);
   }
 
-  public void glutSolidCylinder(double radius, double height, int slices, int stacks) {
-    GL2 gl = GLUgl2.getCurrentGL2();
-      
+  public void glutSolidCylinder(final double radius, final double height, final int slices, final int stacks) {
+    final GL2 gl = GLUgl2.getCurrentGL2();
+
     // Prepare table of points for drawing end caps
-    double [] x = new double[slices];
-    double [] y = new double[slices];
-    double angleDelta = Math.PI * 2 / slices;
+    final double [] x = new double[slices];
+    final double [] y = new double[slices];
+    final double angleDelta = Math.PI * 2 / slices;
     double angle = 0;
     for (int i = 0 ; i < slices ; i ++) {
       angle = i * angleDelta;
       x[i] = Math.cos(angle) * radius;
       y[i] = Math.sin(angle) * radius;
     }
-      
+
     // Draw bottom cap
-    gl.glBegin(GL2.GL_TRIANGLE_FAN);
+    gl.glBegin(GL.GL_TRIANGLE_FAN);
     gl.glNormal3d(0,0,-1);
     gl.glVertex3d(0,0,0);
     for (int i = 0 ; i < slices ; i ++) {
@@ -184,9 +185,9 @@ public class GLUT {
     }
     gl.glVertex3d(x[0], y[0], 0);
     gl.glEnd();
-      
+
     // Draw top cap
-    gl.glBegin(GL2.GL_TRIANGLE_FAN);
+    gl.glBegin(GL.GL_TRIANGLE_FAN);
     gl.glNormal3d(0,0,1);
     gl.glVertex3d(0,0,height);
     for (int i = 0 ; i < slices ; i ++) {
@@ -194,7 +195,7 @@ public class GLUT {
     }
     gl.glVertex3d(x[0], y[0], height);
     gl.glEnd();
-      
+
     // Draw walls
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
@@ -205,68 +206,68 @@ public class GLUT {
     glu.gluCylinder(quadObj, radius, radius, height, slices, stacks);
   }
 
-  public void glutWireCube(float size) {
-    drawBox(GLUgl2.getCurrentGL2(), size, GL2.GL_LINE_LOOP);
+  public void glutWireCube(final float size) {
+    drawBox(GLUgl2.getCurrentGL2(), size, GL.GL_LINE_LOOP);
   }
 
-  public void glutSolidCube(float size) {
-    drawBox(GLUgl2.getCurrentGL2(), size, GL2.GL_QUADS);
+  public void glutSolidCube(final float size) {
+    drawBox(GLUgl2.getCurrentGL2(), size, GL2GL3.GL_QUADS);
   }
 
-  public void glutWireTorus(double innerRadius, double outerRadius,
-                            int nsides, int rings) {
-    GL2 gl = GLUgl2.getCurrentGL2();
+  public void glutWireTorus(final double innerRadius, final double outerRadius,
+                            final int nsides, final int rings) {
+    final GL2 gl = GLUgl2.getCurrentGL2();
     gl.glPushAttrib(GL2.GL_POLYGON_BIT);
-    gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
+    gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_LINE);
     doughnut(gl, innerRadius, outerRadius, nsides, rings);
     gl.glPopAttrib();
   }
 
-  public void glutSolidTorus(double innerRadius, double outerRadius,
-                             int nsides, int rings) {
+  public void glutSolidTorus(final double innerRadius, final double outerRadius,
+                             final int nsides, final int rings) {
     doughnut(GLUgl2.getCurrentGL2(), innerRadius, outerRadius, nsides, rings);
   }
 
   public void glutWireDodecahedron() {
-    dodecahedron(GLUgl2.getCurrentGL2(), GL2.GL_LINE_LOOP);
+    dodecahedron(GLUgl2.getCurrentGL2(), GL.GL_LINE_LOOP);
   }
 
   public void glutSolidDodecahedron() {
-    dodecahedron(GLUgl2.getCurrentGL2(), GL2.GL_TRIANGLE_FAN);
+    dodecahedron(GLUgl2.getCurrentGL2(), GL.GL_TRIANGLE_FAN);
   }
 
   public void glutWireOctahedron() {
-    octahedron(GLUgl2.getCurrentGL2(), GL2.GL_LINE_LOOP);
+    octahedron(GLUgl2.getCurrentGL2(), GL.GL_LINE_LOOP);
   }
 
   public void glutSolidOctahedron() {
-    octahedron(GLUgl2.getCurrentGL2(), GL2.GL_TRIANGLES);
+    octahedron(GLUgl2.getCurrentGL2(), GL.GL_TRIANGLES);
   }
 
   public void glutWireIcosahedron() {
-    icosahedron(GLUgl2.getCurrentGL2(), GL2.GL_LINE_LOOP);
+    icosahedron(GLUgl2.getCurrentGL2(), GL.GL_LINE_LOOP);
   }
 
   public void glutSolidIcosahedron() {
-    icosahedron(GLUgl2.getCurrentGL2(), GL2.GL_TRIANGLES);
+    icosahedron(GLUgl2.getCurrentGL2(), GL.GL_TRIANGLES);
   }
 
   public void glutWireTetrahedron() {
-    tetrahedron(GLUgl2.getCurrentGL2(), GL2.GL_LINE_LOOP);
+    tetrahedron(GLUgl2.getCurrentGL2(), GL.GL_LINE_LOOP);
   }
 
   public void glutSolidTetrahedron() {
-    tetrahedron(GLUgl2.getCurrentGL2(), GL2.GL_TRIANGLES);
+    tetrahedron(GLUgl2.getCurrentGL2(), GL.GL_TRIANGLES);
   }
 
 /**
    * Renders the teapot as a solid shape of the specified size. The teapot is
    * created in a way that replicates the C GLUT implementation.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    */
-  public void glutSolidTeapot(double scale) {
+  public void glutSolidTeapot(final double scale) {
     glutSolidTeapot(scale, true);
   }
 
@@ -278,28 +279,28 @@ public class GLUT {
    * instead of the y=-1 plane). Both surface normals and texture coordinates
    * for the teapot are generated. The teapot is generated with OpenGL
    * evaluators.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    * @param cStyle
    *        whether to create the teapot in exactly the same way as in the C
    *        implementation of GLUT
    */
-  public void glutSolidTeapot(double scale, boolean cStyle) {
-    teapot(GLUgl2.getCurrentGL2(), 14, scale, GL2.GL_FILL, cStyle);
+  public void glutSolidTeapot(final double scale, final boolean cStyle) {
+    teapot(GLUgl2.getCurrentGL2(), 14, scale, GL2GL3.GL_FILL, cStyle);
   }
 
   /**
    * Renders the teapot as a wireframe shape of the specified size. The teapot
    * is created in a way that replicates the C GLUT implementation.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    */
-  public void glutWireTeapot(double scale) {
+  public void glutWireTeapot(final double scale) {
     glutWireTeapot(scale, true);
   }
-  
+
   /**
    * Renders the teapot as a wireframe shape of the specified size. The teapot
    * can either be created in a way that is backward-compatible with the
@@ -308,29 +309,29 @@ public class GLUT {
    * plane, instead of the y=-1 plane). Both surface normals and texture
    * coordinates for the teapot are generated. The teapot is generated with
    * OpenGL evaluators.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    * @param cStyle
    *        whether to create the teapot in exactly the same way as in the C
    *        implementation of GLUT
    */
-  public void glutWireTeapot(double scale, boolean cStyle) {
-    teapot(GLUgl2.getCurrentGL2(), 10, scale, GL2.GL_LINE, cStyle);
+  public void glutWireTeapot(final double scale, final boolean cStyle) {
+    teapot(GLUgl2.getCurrentGL2(), 10, scale, GL2GL3.GL_LINE, cStyle);
   }
 
   //----------------------------------------------------------------------
   // Fonts
   //
 
-  public void glutBitmapCharacter(int font, char character) {
-    GL2 gl = GLUgl2.getCurrentGL2();
-    int[] swapbytes  = new int[1];
-    int[] lsbfirst   = new int[1];
-    int[] rowlength  = new int[1];
-    int[] skiprows   = new int[1];
-    int[] skippixels = new int[1];
-    int[] alignment  = new int[1];
+  public void glutBitmapCharacter(final int font, final char character) {
+    final GL2 gl = GLUgl2.getCurrentGL2();
+    final int[] swapbytes  = new int[1];
+    final int[] lsbfirst   = new int[1];
+    final int[] rowlength  = new int[1];
+    final int[] skiprows   = new int[1];
+    final int[] skippixels = new int[1];
+    final int[] alignment  = new int[1];
     beginBitmap(gl,
                 swapbytes,
                 lsbfirst,
@@ -348,26 +349,26 @@ public class GLUT {
               alignment);
   }
 
-  public void glutBitmapString   (int font, String string) {
-    GL2 gl = GLUgl2.getCurrentGL2();
-    int[] swapbytes  = new int[1];
-    int[] lsbfirst   = new int[1];
-    int[] rowlength  = new int[1];
-    int[] skiprows   = new int[1];
-    int[] skippixels = new int[1];
-    int[] alignment  = new int[1];
-    beginBitmap(gl, 
+  public void glutBitmapString   (final int font, final String string) {
+    final GL2 gl = GLUgl2.getCurrentGL2();
+    final int[] swapbytes  = new int[1];
+    final int[] lsbfirst   = new int[1];
+    final int[] rowlength  = new int[1];
+    final int[] skiprows   = new int[1];
+    final int[] skippixels = new int[1];
+    final int[] alignment  = new int[1];
+    beginBitmap(gl,
                 swapbytes,
                 lsbfirst,
                 rowlength,
                 skiprows,
                 skippixels,
                 alignment);
-    int len = string.length();
+    final int len = string.length();
     for (int i = 0; i < len; i++) {
       bitmapCharacterImpl(gl, font, string.charAt(i));
     }
-    endBitmap(gl, 
+    endBitmap(gl,
               swapbytes,
               lsbfirst,
               rowlength,
@@ -376,31 +377,31 @@ public class GLUT {
               alignment);
   }
 
-  public int  glutBitmapWidth    (int font, char character) {
-    BitmapFontRec fontinfo = getBitmapFont(font);
-    int c = character & 0xFFFF;
+  public int  glutBitmapWidth    (final int font, final char character) {
+    final BitmapFontRec fontinfo = getBitmapFont(font);
+    final int c = character & 0xFFFF;
     if (c < fontinfo.first || c >= fontinfo.first + fontinfo.num_chars)
       return 0;
-    BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
+    final BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
     if (ch != null)
       return (int) ch.advance;
     else
       return 0;
   }
 
-  public void glutStrokeCharacter(int font, char character) {
-    GL2 gl = GLUgl2.getCurrentGL2();
-    StrokeFontRec fontinfo = getStrokeFont(font);
-    int c = character & 0xFFFF;
+  public void glutStrokeCharacter(final int font, final char character) {
+    final GL2 gl = GLUgl2.getCurrentGL2();
+    final StrokeFontRec fontinfo = getStrokeFont(font);
+    final int c = character & 0xFFFF;
     if (c < 0 || c >= fontinfo.num_chars)
       return;
-    StrokeCharRec ch = fontinfo.ch[c];
+    final StrokeCharRec ch = fontinfo.ch[c];
     if (ch != null) {
       for (int i = 0; i < ch.num_strokes; i++) {
-        StrokeRec stroke = ch.stroke[i];
-        gl.glBegin(GL2.GL_LINE_STRIP);
+        final StrokeRec stroke = ch.stroke[i];
+        gl.glBegin(GL.GL_LINE_STRIP);
         for (int j = 0; j < stroke.num_coords; j++) {
-          CoordRec coord = stroke.coord[j];
+          final CoordRec coord = stroke.coord[j];
           gl.glVertex2f(coord.x, coord.y);
         }
         gl.glEnd();
@@ -409,21 +410,21 @@ public class GLUT {
     }
   }
 
-  public void glutStrokeString(int font, String string) {
-    GL2 gl = GLUgl2.getCurrentGL2();
-    StrokeFontRec fontinfo = getStrokeFont(font);
-    int len = string.length();
+  public void glutStrokeString(final int font, final String string) {
+    final GL2 gl = GLUgl2.getCurrentGL2();
+    final StrokeFontRec fontinfo = getStrokeFont(font);
+    final int len = string.length();
     for (int pos = 0; pos < len; pos++) {
-      int c = string.charAt(pos) & 0xFFFF;
+      final int c = string.charAt(pos) & 0xFFFF;
       if (c < 0 || c >= fontinfo.num_chars)
         continue;
-      StrokeCharRec ch = fontinfo.ch[c];
+      final StrokeCharRec ch = fontinfo.ch[c];
       if (ch != null) {
         for (int i = 0; i < ch.num_strokes; i++) {
-          StrokeRec stroke = ch.stroke[i];
-          gl.glBegin(GL2.GL_LINE_STRIP);
+          final StrokeRec stroke = ch.stroke[i];
+          gl.glBegin(GL.GL_LINE_STRIP);
           for (int j = 0; j < stroke.num_coords; j++) {
-            CoordRec coord = stroke.coord[j];
+            final CoordRec coord = stroke.coord[j];
             gl.glVertex2f(coord.x, coord.y);
           }
           gl.glEnd();
@@ -433,30 +434,30 @@ public class GLUT {
     }
   }
 
-  public int  glutStrokeWidth    (int font, char character) {
+  public int  glutStrokeWidth    (final int font, final char character) {
     return (int) glutStrokeWidthf(font, character);
   }
 
-  public float glutStrokeWidthf   (int font, char character) {
-    StrokeFontRec fontinfo = getStrokeFont(font);
-    int c = character & 0xFFFF;
+  public float glutStrokeWidthf   (final int font, final char character) {
+    final StrokeFontRec fontinfo = getStrokeFont(font);
+    final int c = character & 0xFFFF;
     if (c < 0 || c >= fontinfo.num_chars)
       return 0;
-    StrokeCharRec ch = fontinfo.ch[c];
+    final StrokeCharRec ch = fontinfo.ch[c];
     if (ch != null)
       return ch.right;
     else
       return 0;
   }
 
-  public int  glutBitmapLength   (int font, String string) {
-    BitmapFontRec fontinfo = getBitmapFont(font);
+  public int  glutBitmapLength   (final int font, final String string) {
+    final BitmapFontRec fontinfo = getBitmapFont(font);
     int length = 0;
-    int len = string.length();
+    final int len = string.length();
     for (int pos = 0; pos < len; pos++) {
-      int c = string.charAt(pos) & 0xFFFF;
+      final int c = string.charAt(pos) & 0xFFFF;
       if (c >= fontinfo.first && c < fontinfo.first + fontinfo.num_chars) {
-        BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
+        final BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
         if (ch != null)
           length += ch.advance;
       }
@@ -464,18 +465,18 @@ public class GLUT {
     return length;
   }
 
-  public int  glutStrokeLength   (int font, String string) {
+  public int  glutStrokeLength   (final int font, final String string) {
     return (int) glutStrokeLengthf(font, string);
   }
 
-  public float glutStrokeLengthf  (int font, String string) {
-    StrokeFontRec fontinfo = getStrokeFont(font);
+  public float glutStrokeLengthf  (final int font, final String string) {
+    final StrokeFontRec fontinfo = getStrokeFont(font);
     float length = 0;
-    int len = string.length();
+    final int len = string.length();
     for (int i = 0; i < len; i++) {
-      char c = string.charAt(i);
+      final char c = string.charAt(i);
       if (c >= 0 && c < fontinfo.num_chars) {
-        StrokeCharRec ch = fontinfo.ch[c];
+        final StrokeCharRec ch = fontinfo.ch[c];
         if (ch != null)
           length += ch.right;
       }
@@ -491,9 +492,9 @@ public class GLUT {
      The polyhedron is centered at the origin.
   */
   public void glutWireRhombicDodecahedron() {
-    GL2 gl = GLUgl2.getCurrentGL2();
+    final GL2 gl = GLUgl2.getCurrentGL2();
     for( int i = 0; i < 12; i++ ) {
-      gl.glBegin( GL2.GL_LINE_LOOP );
+      gl.glBegin( GL.GL_LINE_LOOP );
       gl.glNormal3dv( rdod_n[ i ],0 );
       gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 0 ] ],0 );
       gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 1 ] ],0 );
@@ -502,7 +503,7 @@ public class GLUT {
       gl.glEnd( );
     }
   }
-  
+
   /**
    This function draws a solid-shaded dodecahedron
    whose facets are rhombic and
@@ -511,8 +512,8 @@ public class GLUT {
    The polyhedron is centered at the origin.
    */
   public void glutSolidRhombicDodecahedron() {
-    GL2 gl = GLUgl2.getCurrentGL2();
-    gl.glBegin( GL2.GL_QUADS );
+    final GL2 gl = GLUgl2.getCurrentGL2();
+    gl.glBegin( GL2GL3.GL_QUADS );
     for( int i = 0; i < 12; i++ ) {
       gl.glNormal3dv( rdod_n[ i ],0 );
       gl.glVertex3dv( rdod_r[ rdod_v[ i ][ 0 ] ],0 );
@@ -522,7 +523,7 @@ public class GLUT {
     }
     gl.glEnd( );
   }
-  
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -532,7 +533,7 @@ public class GLUT {
   //
 
   private GLUquadric quadObj;
-  private void quadObjInit(GLUgl2 glu) {
+  private void quadObjInit(final GLUgl2 glu) {
     if (quadObj == null) {
       quadObj = glu.gluNewQuadric();
     }
@@ -541,7 +542,7 @@ public class GLUT {
     }
   }
 
-  private static void doughnut(GL2 gl, double r, double R, int nsides, int rings) {
+  private static void doughnut(final GL2 gl, final double r, final double R, final int nsides, final int rings) {
     int i, j;
     float theta, phi, theta1;
     float cosTheta, sinTheta;
@@ -597,9 +598,9 @@ public class GLUT {
     {5, 6, 2, 1},
     {7, 4, 0, 3}
   };
-  private void drawBox(GL2 gl, float size, int type) {
+  private void drawBox(final GL2 gl, final float size, final int type) {
     if (boxVertices == null) {
-      float[][] v = new float[8][];
+      final float[][] v = new float[8][];
       for (int i = 0; i < 8; i++) {
         v[i] = new float[3];
       }
@@ -611,9 +612,9 @@ public class GLUT {
       v[1][2] = v[2][2] = v[5][2] = v[6][2] =  0.5f;
       boxVertices = v;
     }
-    float[][] v = boxVertices;
-    float[][] n = boxNormals;
-    int[][] faces = boxFaces;
+    final float[][] v = boxVertices;
+    final float[][] n = boxNormals;
+    final int[][] faces = boxFaces;
     for (int i = 5; i >= 0; i--) {
       gl.glBegin(type);
       gl.glNormal3fv(n[i], 0);
@@ -664,14 +665,14 @@ public class GLUT {
     dodec[19][0] = 0; dodec[19][1] = -beta; dodec[19][2] = -alpha;
   }
 
-  private static void diff3(float[] a, float[] b, float[] c) {
+  private static void diff3(final float[] a, final float[] b, final float[] c) {
     c[0] = a[0] - b[0];
     c[1] = a[1] - b[1];
     c[2] = a[2] - b[2];
   }
 
-  private static void crossprod(float[] v1, float[] v2, float[] prod) {
-    float[] p = new float[3];         /* in case prod == v1 or v2 */
+  private static void crossprod(final float[] v1, final float[] v2, final float[] prod) {
+    final float[] p = new float[3];         /* in case prod == v1 or v2 */
 
     p[0] = v1[1] * v2[2] - v2[1] * v1[2];
     p[1] = v1[2] * v2[0] - v2[2] * v1[0];
@@ -681,7 +682,7 @@ public class GLUT {
     prod[2] = p[2];
   }
 
-  private static void normalize(float[] v) {
+  private static void normalize(final float[] v) {
     float d;
 
     d = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -694,10 +695,10 @@ public class GLUT {
     v[2] *= d;
   }
 
-  private void pentagon(GL2 gl, int a, int b, int c, int d, int e, int shadeType) {
-    float[] n0 = new float[3];
-    float[] d1 = new float[3];
-    float[] d2 = new float[3];
+  private void pentagon(final GL2 gl, final int a, final int b, final int c, final int d, final int e, final int shadeType) {
+    final float[] n0 = new float[3];
+    final float[] d1 = new float[3];
+    final float[] d2 = new float[3];
 
     diff3(dodec[a], dodec[b], d1);
     diff3(dodec[b], dodec[c], d2);
@@ -714,7 +715,7 @@ public class GLUT {
     gl.glEnd();
   }
 
-  private void dodecahedron(GL2 gl, int type) {
+  private void dodecahedron(final GL2 gl, final int type) {
     if (dodec == null) {
       initDodecahedron();
     }
@@ -732,9 +733,9 @@ public class GLUT {
     pentagon(gl, 4, 12, 5, 16, 17, type);
   }
 
-  private static void recorditem(GL2 gl, float[] n1, float[] n2, float[] n3, int shadeType) {
-    float[] q0 = new float[3];
-    float[] q1 = new float[3];
+  private static void recorditem(final GL2 gl, final float[] n1, final float[] n2, final float[] n3, final int shadeType) {
+    final float[] q0 = new float[3];
+    final float[] q1 = new float[3];
 
     diff3(n1, n2, q0);
     diff3(n2, n3, q1);
@@ -749,11 +750,11 @@ public class GLUT {
     gl.glEnd();
   }
 
-  private static void subdivide(GL2 gl, float[] v0, float[] v1, float[] v2, int shadeType) {
+  private static void subdivide(final GL2 gl, final float[] v0, final float[] v1, final float[] v2, final int shadeType) {
     int depth;
-    float[] w0 = new float[3];
-    float[] w1 = new float[3];
-    float[] w2 = new float[3];
+    final float[] w0 = new float[3];
+    final float[] w1 = new float[3];
+    final float[] w2 = new float[3];
     float l;
     int i, j, k, n;
 
@@ -785,10 +786,10 @@ public class GLUT {
     }
   }
 
-  private static void drawtriangle(GL2 gl, int i, float[][] data, int[][] ndx, int shadeType) {
-    float[] x0 = data[ndx[i][0]];
-    float[] x1 = data[ndx[i][1]];
-    float[] x2 = data[ndx[i][2]];
+  private static void drawtriangle(final GL2 gl, final int i, final float[][] data, final int[][] ndx, final int shadeType) {
+    final float[] x0 = data[ndx[i][0]];
+    final float[] x1 = data[ndx[i][1]];
+    final float[] x2 = data[ndx[i][2]];
     subdivide(gl, x0, x1, x2, shadeType);
   }
 
@@ -816,7 +817,7 @@ public class GLUT {
     {1, 3, 5}
   };
 
-  private static void octahedron(GL2 gl, int shadeType) {
+  private static void octahedron(final GL2 gl, final int shadeType) {
     int i;
 
     for (i = 7; i >= 0; i--) {
@@ -870,7 +871,7 @@ public class GLUT {
     {7, 2, 11},
   };
 
-  private static void icosahedron(GL2 gl, int shadeType) {
+  private static void icosahedron(final GL2 gl, final int shadeType) {
     int i;
 
     for (i = 19; i >= 0; i--) {
@@ -879,7 +880,7 @@ public class GLUT {
   }
 
   /* rhombic dodecahedron data: */
-  
+
   private static final double rdod_r[][] =
   {
     { 0.0, 0.0, 1.0 },
@@ -897,7 +898,7 @@ public class GLUT {
     {  0.000000000000, -0.707106781187, -0.5 },
     {  0.0, 0.0, -1.0 }
   };
-  
+
   private static final int rdod_v[][] =
   {
     { 0,  1,  5,  2 },
@@ -913,7 +914,7 @@ public class GLUT {
     { 7, 11, 13, 12 },
     { 8, 12, 13,  9 }
   };
-  
+
   private static final double rdod_n[][] =
   {
     {  0.353553390594,  0.353553390594,  0.5 },
@@ -929,7 +930,7 @@ public class GLUT {
     { -0.353553390594, -0.353553390594, -0.5 },
     {  0.353553390594, -0.353553390594, -0.5 }
   };
-  
+
   /* tetrahedron data: */
 
   private static final float T = 1.73205080756887729f;
@@ -950,7 +951,7 @@ public class GLUT {
     {1, 2, 3}
   };
 
-  private static final void tetrahedron(GL2 gl, int shadeType) {
+  private static final void tetrahedron(final GL2 gl, final int shadeType) {
     for (int i = 3; i >= 0; i--)
       drawtriangle(gl, i, tdata, tndex, shadeType);
   }
@@ -1112,28 +1113,28 @@ public class GLUT {
     0, 0, 1, 0, 0, 1, 1, 1
   };
 
-  private static void teapot(GL2 gl,
-                             int grid,
-                             double scale,
-                             int type,
-                             boolean backCompatible)
+  private static void teapot(final GL2 gl,
+                             final int grid,
+                             final double scale,
+                             final int type,
+                             final boolean backCompatible)
   {
     // As mentioned above, GL2.glMap2f expects a packed array of floats
-    float[] p = new float[4*4*3];
-    float[] q = new float[4*4*3];
-    float[] r = new float[4*4*3];
-    float[] s = new float[4*4*3];
+    final float[] p = new float[4*4*3];
+    final float[] q = new float[4*4*3];
+    final float[] r = new float[4*4*3];
+    final float[] s = new float[4*4*3];
     int i, j, k, l;
-  
+
     gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_EVAL_BIT | GL2.GL_POLYGON_BIT);
     gl.glEnable(GL2.GL_AUTO_NORMAL);
-    gl.glEnable(GL2.GL_NORMALIZE);
+    gl.glEnable(GLLightingFunc.GL_NORMALIZE);
     gl.glEnable(GL2.GL_MAP2_VERTEX_3);
     gl.glEnable(GL2.GL_MAP2_TEXTURE_COORD_2);
     gl.glPushMatrix();
     if (!backCompatible) {
       // The time has come to have the teapot no longer be inside out
-      gl.glFrontFace(GL2.GL_CW);
+      gl.glFrontFace(GL.GL_CW);
       gl.glScaled(0.5*scale, 0.5*scale, 0.5*scale);
     } else {
       // We want the teapot in it's backward compatible position and
@@ -1183,30 +1184,30 @@ public class GLUT {
     gl.glPopMatrix();
     gl.glPopAttrib();
   }
-  
-  private static void evaluateTeapotMesh(GL2 gl,
-                                         int grid,
-                                         int type,
-                                         int partNum,
-                                         boolean repairSingularities)
+
+  private static void evaluateTeapotMesh(final GL2 gl,
+                                         final int grid,
+                                         final int type,
+                                         final int partNum,
+                                         final boolean repairSingularities)
   {
     if (repairSingularities && (partNum == 5 || partNum == 3)) {
       // Instead of using evaluators that give bad results at singularities,
       // evaluate by hand
-      gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, type);
+      gl.glPolygonMode(GL.GL_FRONT_AND_BACK, type);
       for (int nv = 0; nv < grid; nv++) {
         if (nv == 0) {
           // Draw a small triangle-fan to fill the hole
           gl.glDisable(GL2.GL_AUTO_NORMAL);
           gl.glNormal3f(0, 0, partNum == 3 ? 1 : -1);
-          gl.glBegin(GL2.GL_TRIANGLE_FAN);
+          gl.glBegin(GL.GL_TRIANGLE_FAN);
           {
             gl.glEvalCoord2f(0, 0);
             // Note that we draw in clock-wise order to match the evaluator
             // method
             for (int nu = 0; nu <= grid; nu++)
             {
-              gl.glEvalCoord2f(nu / (float)grid, (1f / grid) / (float)grid);
+              gl.glEvalCoord2f(nu / (float)grid, (1f / grid) / grid);
             }
           }
           gl.glEnd();
@@ -1219,7 +1220,7 @@ public class GLUT {
           for (int nu = grid; nu >= 0; nu--) {
             gl.glEvalCoord2f(nu / (float)grid, (nv + 1) / (float)grid);
             gl.glEvalCoord2f(nu / (float)grid, Math.max(nv, 1f / grid)
-                                                         / (float)grid);
+                                                         / grid);
           }
         }
         gl.glEnd();
@@ -1233,13 +1234,13 @@ public class GLUT {
   // Font implementation
   //
 
-  private static void bitmapCharacterImpl(GL2 gl, int font, char cin) {
-    BitmapFontRec fontinfo = getBitmapFont(font);
-    int c = cin & 0xFFFF;
+  private static void bitmapCharacterImpl(final GL2 gl, final int font, final char cin) {
+    final BitmapFontRec fontinfo = getBitmapFont(font);
+    final int c = cin & 0xFFFF;
     if (c < fontinfo.first ||
         c >= fontinfo.first + fontinfo.num_chars)
       return;
-    BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
+    final BitmapCharRec ch = fontinfo.ch[c - fontinfo.first];
     if (ch != null) {
       gl.glBitmap(ch.width, ch.height, ch.xorig, ch.yorig,
                   ch.advance, 0, ch.bitmap, 0);
@@ -1249,7 +1250,7 @@ public class GLUT {
   private static final BitmapFontRec[] bitmapFonts = new BitmapFontRec[9];
   private static final StrokeFontRec[] strokeFonts = new StrokeFontRec[9];
 
-  private static BitmapFontRec getBitmapFont(int font) {
+  private static BitmapFontRec getBitmapFont(final int font) {
     BitmapFontRec rec = bitmapFonts[font];
     if (rec == null) {
       switch (font) {
@@ -1282,7 +1283,7 @@ public class GLUT {
     return rec;
   }
 
-  private static StrokeFontRec getStrokeFont(int font) {
+  private static StrokeFontRec getStrokeFont(final int font) {
     StrokeFontRec rec = strokeFonts[font];
     if (rec == null) {
       switch (font) {
@@ -1299,44 +1300,44 @@ public class GLUT {
     return rec;
   }
 
-  private static void beginBitmap(GL2 gl,
-                                  int[] swapbytes,
-                                  int[] lsbfirst,
-                                  int[] rowlength,
-                                  int[] skiprows,
-                                  int[] skippixels,
-                                  int[] alignment) {
-    gl.glGetIntegerv(GL2.GL_UNPACK_SWAP_BYTES, swapbytes, 0);
-    gl.glGetIntegerv(GL2.GL_UNPACK_LSB_FIRST, lsbfirst, 0);
-    gl.glGetIntegerv(GL2.GL_UNPACK_ROW_LENGTH, rowlength, 0);
-    gl.glGetIntegerv(GL2.GL_UNPACK_SKIP_ROWS, skiprows, 0);
-    gl.glGetIntegerv(GL2.GL_UNPACK_SKIP_PIXELS, skippixels, 0);
-    gl.glGetIntegerv(GL2.GL_UNPACK_ALIGNMENT, alignment, 0);
+  private static void beginBitmap(final GL2 gl,
+                                  final int[] swapbytes,
+                                  final int[] lsbfirst,
+                                  final int[] rowlength,
+                                  final int[] skiprows,
+                                  final int[] skippixels,
+                                  final int[] alignment) {
+    gl.glGetIntegerv(GL2GL3.GL_UNPACK_SWAP_BYTES, swapbytes, 0);
+    gl.glGetIntegerv(GL2GL3.GL_UNPACK_LSB_FIRST, lsbfirst, 0);
+    gl.glGetIntegerv(GL2ES2.GL_UNPACK_ROW_LENGTH, rowlength, 0);
+    gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_ROWS, skiprows, 0);
+    gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_PIXELS, skippixels, 0);
+    gl.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT, alignment, 0);
     /* Little endian machines (DEC Alpha for example) could
        benefit from setting GL_UNPACK_LSB_FIRST to GL_TRUE
        instead of GL_FALSE, but this would require changing the
        generated bitmaps too. */
-    gl.glPixelStorei(GL2.GL_UNPACK_SWAP_BYTES, GL2.GL_FALSE);
-    gl.glPixelStorei(GL2.GL_UNPACK_LSB_FIRST, GL2.GL_FALSE);
-    gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, 0);
-    gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, 0);
-    gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, 0);
-    gl.glPixelStorei(GL2.GL_UNPACK_ALIGNMENT, 1);
+    gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES, GL.GL_FALSE);
+    gl.glPixelStorei(GL2GL3.GL_UNPACK_LSB_FIRST, GL.GL_FALSE);
+    gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, 0);
+    gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, 0);
+    gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, 0);
+    gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
   }
 
-  private static void endBitmap(GL2 gl,
-                                int[] swapbytes,
-                                int[] lsbfirst,
-                                int[] rowlength,
-                                int[] skiprows,
-                                int[] skippixels,
-                                int[] alignment) {
+  private static void endBitmap(final GL2 gl,
+                                final int[] swapbytes,
+                                final int[] lsbfirst,
+                                final int[] rowlength,
+                                final int[] skiprows,
+                                final int[] skippixels,
+                                final int[] alignment) {
     /* Restore saved modes. */
-    gl.glPixelStorei(GL2.GL_UNPACK_SWAP_BYTES, swapbytes[0]);
-    gl.glPixelStorei(GL2.GL_UNPACK_LSB_FIRST, lsbfirst[0]);
-    gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, rowlength[0]);
-    gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, skiprows[0]);
-    gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, skippixels[0]);
-    gl.glPixelStorei(GL2.GL_UNPACK_ALIGNMENT, alignment[0]);
+    gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES, swapbytes[0]);
+    gl.glPixelStorei(GL2GL3.GL_UNPACK_LSB_FIRST, lsbfirst[0]);
+    gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, rowlength[0]);
+    gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, skiprows[0]);
+    gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, skippixels[0]);
+    gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, alignment[0]);
   }
 }

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -34,13 +34,17 @@
 package jogamp.opengl.macosx.cgl;
 
 import jogamp.opengl.GLGraphicsConfigurationFactory;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
+
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawableFactory;
 
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
@@ -50,21 +54,16 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, new MacOSXCGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice.class, GLCapabilitiesImmutable.class, new MacOSXCGLGraphicsConfigurationFactory());
     }
-    private MacOSXCGLGraphicsConfigurationFactory() {        
+    private MacOSXCGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
-        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, absScreen, false);
-    }
+            final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
+            final CapabilitiesChooser chooser, final AbstractGraphicsScreen absScreen, final int nativeVisualID) {
 
-    static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(CapabilitiesImmutable capsChosen,
-                                                                            CapabilitiesImmutable capsRequested,
-                                                                            CapabilitiesChooser chooser,
-                                                                            AbstractGraphicsScreen absScreen, boolean usePBuffer) {
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
@@ -77,11 +76,23 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - requested");
         }
 
-        if (chooser != null &&
-            !(chooser instanceof GLCapabilitiesChooser)) {
+        if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
 
-        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, 0);
+        return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)chooser, absScreen, false);
+    }
+
+    static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
+                                                                            final GLCapabilitiesImmutable capsRequested,
+                                                                            final GLCapabilitiesChooser chooser,
+                                                                            final AbstractGraphicsScreen absScreen, final boolean usePBuffer) {
+        if (absScreen == null) {
+            throw new IllegalArgumentException("AbstractGraphicsScreen is null");
+        }
+        final AbstractGraphicsDevice device = absScreen.getDevice();
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLDrawableFactory.getDesktopFactory(), device);
+
+        return new MacOSXCGLGraphicsConfiguration(absScreen, capsChosen, capsRequested);
     }
 }

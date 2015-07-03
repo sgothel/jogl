@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,20 +29,22 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 package com.jogamp.gluegen.opengl;
 
 import com.jogamp.gluegen.CommentEmitter;
+import com.jogamp.gluegen.GlueGenException;
 import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 
@@ -57,8 +59,8 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     protected GLEmitter glEmitter;
     protected CommentEmitter glCommentEmitter = new GLCommentEmitter();
 
-    public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap, boolean callThroughProcAddress,
-            String getProcAddressTableExpr, boolean changeNameAndArguments, boolean bufferObjectVariant, GLEmitter emitter) {
+    public GLJavaMethodBindingEmitter(final JavaMethodBindingEmitter methodToWrap, final boolean callThroughProcAddress,
+            final String getProcAddressTableExpr, final boolean changeNameAndArguments, final boolean bufferObjectVariant, final GLEmitter emitter) {
 
         super(methodToWrap, callThroughProcAddress, getProcAddressTableExpr, changeNameAndArguments, emitter);
         this.bufferObjectVariant = bufferObjectVariant;
@@ -66,20 +68,20 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
         setCommentEmitter(glCommentEmitter);
     }
 
-    public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap, GLEmitter emitter, boolean bufferObjectVariant) {
+    public GLJavaMethodBindingEmitter(final ProcAddressJavaMethodBindingEmitter methodToWrap, final GLEmitter emitter, final boolean bufferObjectVariant) {
         super(methodToWrap);
         this.bufferObjectVariant = bufferObjectVariant;
         this.glEmitter = emitter;
         setCommentEmitter(glCommentEmitter);
     }
 
-    public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
+    public GLJavaMethodBindingEmitter(final GLJavaMethodBindingEmitter methodToWrap) {
         this(methodToWrap, methodToWrap.glEmitter, methodToWrap.bufferObjectVariant);
     }
 
     @Override
-    protected String getArgumentName(int i) {
-        String name = super.getArgumentName(i);
+    protected String getArgumentName(final int i) {
+        final String name = super.getArgumentName(i);
 
         if (!bufferObjectVariant) {
             return name;
@@ -88,8 +90,8 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
         // Emitters for VBO/PBO-related routines change the outgoing
         // argument name for the buffer
         if (binding.getJavaArgumentType(i).isLong()) {
-            Type cType = binding.getCArgumentType(i);
-            Type targetType = cType.asPointer().getTargetType();
+            final Type cType = binding.getCArgumentType(i);
+            final Type targetType = cType.asPointer().getTargetType();
             if (cType.isPointer() && (targetType.isVoid() || targetType.isPrimitive())) {
                 return name + "_buffer_offset";
             }
@@ -101,26 +103,33 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     protected class GLCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
 
         @Override
-        protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {
+        protected void emitBindingCSignature(final MethodBinding binding, final PrintWriter writer) {
+            final String symbolRenamed = binding.getName();
+            final StringBuilder newComment = new StringBuilder();
 
-            super.emitBindingCSignature(binding, writer);
-
-            String symbolRenamed = binding.getName();
-            StringBuilder newComment = new StringBuilder();
+            final FunctionSymbol funcSym = binding.getCSymbol();
+            writer.print("<code> ");
+            writer.print(funcSym.getType().toString(symbolRenamed, tagNativeBinding));
+            writer.print(" </code> ");
 
             newComment.append("<br>Part of ");
-            if (0 == glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", "; ", symbolRenamed, binding.getAliasedNames())) {
+            if (0 == glEmitter.addExtensionsOfSymbols2Doc(newComment, ", ", ", ", symbolRenamed)) {
                 if (glEmitter.getGLConfig().getAllowNonGLExtensions()) {
                     newComment.append("CORE FUNC");
                 } else {
-                    StringBuilder sb = new StringBuilder();
-                    JavaEmitter.addStrings2Buffer(sb, ", ", symbolRenamed, binding.getAliasedNames());
-                    RuntimeException ex = new RuntimeException("Couldn't find extension to: " + binding + " ; " + sb.toString());
-                    glEmitter.getGLConfig().getGLInfo().dump();
-                    // glEmitter.getGLConfig().dumpRenames();
-                    throw ex;
+                    if( !((GLConfiguration)cfg).dropDocInfo ) {
+                        final GlueGenException ex = new GlueGenException("Couldn't find extension to: " + funcSym.getAliasedString(), funcSym.getASTLocusTag());
+                        System.err.println(ex.getMessage());
+                        glEmitter.getGLConfig().getGLDocInfo().dump();
+                        // glEmitter.getGLConfig().dumpRenames();
+                        throw ex;
+                    } else {
+                        newComment.append("UNDEFINED");
+                    }
                 }
             }
+            newComment.append("<br>");
+            emitAliasedDocNamesComment(funcSym, newComment);
             writer.print(newComment.toString());
         }
     }

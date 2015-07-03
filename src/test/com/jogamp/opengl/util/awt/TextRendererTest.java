@@ -27,6 +27,10 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.FPSAnimator;
 
 import java.awt.Color;
@@ -35,10 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL3;
-import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
 import org.junit.Assert;

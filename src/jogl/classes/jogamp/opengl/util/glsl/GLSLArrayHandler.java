@@ -30,43 +30,52 @@ package jogamp.opengl.util.glsl;
 
 import java.nio.Buffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 
-import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLArrayHandlerFlat;
+import jogamp.opengl.util.GLVBOArrayHandler;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
- * Used for 1:1 GLSL arrays, i.e. where the buffer data 
- * represents this array only. 
+ * Used for 1:1 GLSL arrays, i.e. where the buffer data
+ * represents this array only.
  */
-public class GLSLArrayHandler implements GLArrayHandler {
-  private GLArrayDataEditable ad;
+public class GLSLArrayHandler extends GLVBOArrayHandler {
 
-  public GLSLArrayHandler(GLArrayDataEditable ad) {
-    this.ad = ad;
+  public GLSLArrayHandler(final GLArrayDataEditable ad) {
+    super(ad);
   }
-  
-  public final void setSubArrayVBOName(int vboName) {
+
+  @Override
+  public final void setSubArrayVBOName(final int vboName) {
       throw new UnsupportedOperationException();
   }
-  
-  public final void addSubHandler(GLArrayHandlerFlat handler) {
+
+  @Override
+  public final void addSubHandler(final GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
-  
-  public final void syncData(GL gl, boolean enable, Object ext) {
+
+  @Override
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-    
+    if( null != ext ) {
+        enableShaderState(glsl, enable, (ShaderState)ext);
+    } else {
+        enableSimple(glsl, enable);
+    }
+  }
+
+  private final int[] tempI = new int[1];
+
+  private final void enableShaderState(final GL2ES2 glsl, final boolean enable, final ShaderState st) {
     if(enable) {
-        final Buffer buffer = ad.getBuffer();
         /*
          * This would be the non optimized code path:
-         * 
+         *
         if(ad.isVBO()) {
             glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
             if(!ad.isVBOWritten()) {
@@ -78,6 +87,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
         }
         st.vertexAttribPointer(glsl, ad);
         */
+        final Buffer buffer = ad.getBuffer();
         if(ad.isVBO()) {
             // bind and refresh the VBO / vertex-attr only if necessary
             if(!ad.isVBOWritten()) {
@@ -87,34 +97,76 @@ public class GLSLArrayHandler implements GLArrayHandler {
                 }
                 ad.setVBOWritten(true);
                 st.vertexAttribPointer(glsl, ad);
+                glsl.glBindBuffer(ad.getVBOTarget(), 0);
             } else if(st.getAttribLocation(glsl, ad) >= 0) {
                 // didn't experience a performance hit on this query ..
                 // (using ShaderState's location query above to validate the location)
-                final int[] qi = new int[1];
-                glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
-                if(ad.getVBOName() != qi[0]) {
+                glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, tempI, 0);
+                if(ad.getVBOName() != tempI[0]) {
                     glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                     st.vertexAttribPointer(glsl, ad);
+                    glsl.glBindBuffer(ad.getVBOTarget(), 0);
                 }
             }
         } else if(null!=buffer) {
             st.vertexAttribPointer(glsl, ad);
         }
-    } else if(ad.isVBO()) {
-        glsl.glBindBuffer(ad.getVBOTarget(), 0);
-    }      
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) {
-    final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-    
-    if(enable) {
+
         st.enableVertexAttribArray(glsl, ad);
     } else {
         st.disableVertexAttribArray(glsl, ad);
     }
   }
 
+  private final void enableSimple(final GL2ES2 glsl, final boolean enable) {
+    final int location = ad.getLocation();
+    if( 0 > location ) {
+        return;
+    }
+    if(enable) {
+        /*
+         * This would be the non optimized code path:
+         *
+        if(ad.isVBO()) {
+            glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+            if(!ad.isVBOWritten()) {
+                if(null!=buffer) {
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getSizeInBytes(), buffer, ad.getVBOUsage());
+                }
+                ad.setVBOWritten(true);
+            }
+        }
+        st.vertexAttribPointer(glsl, ad);
+        */
+        final Buffer buffer = ad.getBuffer();
+        if(ad.isVBO()) {
+            // bind and refresh the VBO / vertex-attr only if necessary
+            if(!ad.isVBOWritten()) {
+                glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+                if(null!=buffer) {
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getSizeInBytes(), buffer, ad.getVBOUsage());
+                }
+                ad.setVBOWritten(true);
+                glsl.glVertexAttribPointer(ad);
+                glsl.glBindBuffer(ad.getVBOTarget(), 0);
+            } else {
+                // didn't experience a performance hit on this query ..
+                // (using ShaderState's location query above to validate the location)
+                glsl.glGetVertexAttribiv(location, GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, tempI, 0);
+                if(ad.getVBOName() != tempI[0]) {
+                    glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
+                    glsl.glVertexAttribPointer(ad);
+                    glsl.glBindBuffer(ad.getVBOTarget(), 0);
+                }
+            }
+        } else if(null!=buffer) {
+            glsl.glVertexAttribPointer(ad);
+        }
+
+        glsl.glEnableVertexAttribArray(location);
+    } else {
+        glsl.glDisableVertexAttribArray(location);
+    }
+  }
 }
 

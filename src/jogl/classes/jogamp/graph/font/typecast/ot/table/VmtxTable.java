@@ -30,15 +30,15 @@ import java.io.IOException;
  */
 public class VmtxTable implements Table {
 
-    private DirectoryEntry _de;
+    private final DirectoryEntry _de;
     private int[] _vMetrics = null;
     private short[] _topSideBearing = null;
 
     protected VmtxTable(
-            DirectoryEntry de,
-            DataInput di,
-            VheaTable vhea,
-            MaxpTable maxp) throws IOException {
+            final DirectoryEntry de,
+            final DataInput di,
+            final VheaTable vhea,
+            final MaxpTable maxp) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _vMetrics = new int[vhea.getNumberOfLongVerMetrics()];
         for (int i = 0; i < vhea.getNumberOfLongVerMetrics(); ++i) {
@@ -48,14 +48,14 @@ public class VmtxTable implements Table {
                     | di.readUnsignedByte()<<8
                     | di.readUnsignedByte();
         }
-        int tsbCount = maxp.getNumGlyphs() - vhea.getNumberOfLongVerMetrics();
+        final int tsbCount = maxp.getNumGlyphs() - vhea.getNumberOfLongVerMetrics();
         _topSideBearing = new short[tsbCount];
         for (int i = 0; i < tsbCount; ++i) {
             _topSideBearing[i] = di.readShort();
         }
     }
 
-    public int getAdvanceHeight(int i) {
+    public int getAdvanceHeight(final int i) {
         if (_vMetrics == null) {
             return 0;
         }
@@ -66,7 +66,7 @@ public class VmtxTable implements Table {
         }
     }
 
-    public short getTopSideBearing(int i) {
+    public short getTopSideBearing(final int i) {
         if (_vMetrics == null) {
             return 0;
         }
@@ -77,12 +77,14 @@ public class VmtxTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return vmtx;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'vmtx' Table - Vertical Metrics\n-------------------------------\n");
         sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
             .append(_vMetrics.length).append(" entries\n");
@@ -106,6 +108,7 @@ public class VmtxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

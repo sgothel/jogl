@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.util.awt.TextureBackingStore.EventListener;
 import com.jogamp.opengl.util.awt.TextureBackingStore.EventType;
 import com.jogamp.opengl.util.packrect.BackingStoreManager;
@@ -35,9 +37,6 @@ import com.jogamp.opengl.util.packrect.Rect;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
 
 
 /**

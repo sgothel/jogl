@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -19,29 +19,32 @@ import jogamp.graph.font.typecast.ot.Disassembler;
  */
 public class PrepTable extends Program implements Table {
 
-    private DirectoryEntry de;
+    private final DirectoryEntry de;
 
-    public PrepTable(DirectoryEntry de, DataInput di) throws IOException {
+    public PrepTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         readInstructions(di, de.getLength());
     }
 
+    @Override
     public int getType() {
         return prep;
     }
 
+    @Override
     public String toString() {
         return Disassembler.disassemble(getInstructions(), 0);
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

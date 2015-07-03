@@ -60,12 +60,12 @@ import java.io.IOException;
  */
 public class SingleSubstFormat1 extends SingleSubst {
 
-    private int _coverageOffset;
-    private short _deltaGlyphID;
-    private Coverage _coverage;
+    private final int _coverageOffset;
+    private final short _deltaGlyphID;
+    private final Coverage _coverage;
 
     /** Creates new SingleSubstFormat1 */
-    protected SingleSubstFormat1(DataInputStream dis, int offset) throws IOException {
+    protected SingleSubstFormat1(final DataInputStream dis, final int offset) throws IOException {
         _coverageOffset = dis.readUnsignedShort();
         _deltaGlyphID = dis.readShort();
         dis.reset();
@@ -73,18 +73,21 @@ public class SingleSubstFormat1 extends SingleSubst {
         _coverage = Coverage.read(dis);
     }
 
+    @Override
     public int getFormat() {
         return 1;
     }
 
-    public int substitute(int glyphId) {
-        int i = _coverage.findGlyph(glyphId);
+    @Override
+    public int substitute(final int glyphId) {
+        final int i = _coverage.findGlyph(glyphId);
         if (i > -1) {
             return glyphId + _deltaGlyphID;
         }
         return glyphId;
     }
-    
+
+    @Override
     public String getTypeAsString() {
         return "SingleSubstFormat1";
     }

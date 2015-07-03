@@ -63,30 +63,30 @@ import java.io.IOException;
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
  */
 public class NameTable implements Table {
-    private DirectoryEntry _de;
-    private short _formatSelector;
-    private short _numberOfNameRecords;
-    private short _stringStorageOffset;
-    private NameRecord[] _records;
-    
-    protected NameTable(DirectoryEntry de, DataInput di) throws IOException {
+    private final DirectoryEntry _de;
+    private final short _formatSelector;
+    private final short _numberOfNameRecords;
+    private final short _stringStorageOffset;
+    private final NameRecord[] _records;
+
+    protected NameTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _formatSelector = di.readShort();
         _numberOfNameRecords = di.readShort();
         _stringStorageOffset = di.readShort();
         _records = new NameRecord[_numberOfNameRecords];
-        
+
         // Load the records, which contain the encoding information and string
         // offsets
         for (int i = 0; i < _numberOfNameRecords; i++) {
             _records[i] = new NameRecord(di);
         }
-        
+
         // Load the string data into a buffer so the records can copy out the
         // bits they are interested in
-        byte[] buffer = new byte[_de.getLength() - _stringStorageOffset];
+        final byte[] buffer = new byte[_de.getLength() - _stringStorageOffset];
         di.readFully(buffer);
-        
+
         // Now let the records get their hands on them
         for (int i = 0; i < _numberOfNameRecords; i++) {
             _records[i].loadString(
@@ -98,15 +98,15 @@ public class NameTable implements Table {
         return _numberOfNameRecords;
     }
 
-    
-    public NameRecord getRecord(int i) {
+
+    public NameRecord getRecord(final int i) {
         if(_numberOfNameRecords > i) {
             return _records[i];
         }
         return null;
     }
 
-    public StringBuilder getRecordsRecordString(StringBuilder sb, int i) {
+    public StringBuilder getRecordsRecordString(final StringBuilder sb, final int i) {
         if(_numberOfNameRecords > i) {
             _records[i].getRecordString(sb);
         } else {
@@ -115,7 +115,7 @@ public class NameTable implements Table {
         return sb;
     }
 
-    public StringBuilder getNamedRecordString(StringBuilder sb, short nameId) {
+    public StringBuilder getNamedRecordString(final StringBuilder sb, final short nameId) {
         // Search for the first instance of this name ID
         boolean done = false;
         for (int i = 0; !done && i < _numberOfNameRecords; i++) {
@@ -130,18 +130,20 @@ public class NameTable implements Table {
         return sb;
     }
 
+    @Override
     public int getType() {
         return name;
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }
-    
+
 }

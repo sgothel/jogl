@@ -37,15 +37,14 @@ import jogamp.opengl.glu.nurbs.*;
 
 import java.lang.reflect.Method;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.glu.GLUnurbs;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLUnurbs;
 
 /**
  * Base object for working with NURBS curves and surfaces
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class GLUgl2nurbsImpl implements GLUnurbs {
 
@@ -67,17 +66,17 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
   /**
    * Matrixes autoloading
    */
-  private boolean autoloadmode;
+  private final boolean autoloadmode;
 
   /**
    * Using callback
+   * private final int callBackFlag;
    */
-  private int callBackFlag;
 
   /**
    * Object for error call backs
+   * private final Object errorCallback;
    */
-  private Object errorCallback;
 
   /**
    * List of map definitions
@@ -116,33 +115,33 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Is curve modified
+   * private int isCurveModified;
    */
-  private int isCurveModified;
 
   /**
    * Object holding rendering settings
    */
-  private Renderhints renderhints;
+  private final Renderhints renderhints;
 
   /**
    * Display list
+   * private DisplayList dl;
    */
-  private DisplayList dl;
 
   /**
    * Object for subdividing curves and surfaces
    */
-  private Subdivider subdivider;
+  private final Subdivider subdivider;
 
   /**
    * Object responsible for rendering
+   * private Backend backend;
    */
-  private Backend backend;
 
   /**
    * Next picewise linear curve in linked list
+   * private O_pwlcurve nextPwlcurve;
    */
-  private O_pwlcurve nextPwlcurve;
 
   /**
    * Next trimming NURBS curve in linked list
@@ -156,13 +155,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Are there any changes in trimming
+   * private boolean isTrimModified;
    */
-  private boolean isTrimModified;
 
   /**
    * Are there any changes in surface data
+   * private boolean isDataSurfaceModified;
    */
-  private boolean isDataSurfaceModified;
 
   /**
    * Nurber of trmims of processed surface
@@ -181,20 +180,20 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Nextr surface in linked list
+   * private O_nurbssurface nextNurbssurface;
    */
-  private O_nurbssurface nextNurbssurface;
 
   /**
    * Are there any changes in surface
+   * private boolean isSurfaceModified;
    */
-  private boolean isSurfaceModified;
 
   /**
    * Initializes default GLUgl2nurbs object
    */
   public GLUgl2nurbsImpl() {
     // DONE
-    maplist = new Maplist(backend);
+    maplist = new Maplist();
     renderhints = new Renderhints();
     subdivider = new Subdivider();
     // original code
@@ -221,13 +220,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     defineMap(GL2.GL_MAP1_INDEX, 0, 1);
 
     setnurbsproperty(GL2.GL_MAP1_VERTEX_3, NurbsConsts.N_SAMPLINGMETHOD,
-                     (float) NurbsConsts.N_PATHLENGTH);
+                     NurbsConsts.N_PATHLENGTH);
     setnurbsproperty(GL2.GL_MAP1_VERTEX_4, NurbsConsts.N_SAMPLINGMETHOD,
-                     (float) NurbsConsts.N_PATHLENGTH);
+                     NurbsConsts.N_PATHLENGTH);
     setnurbsproperty(GL2.GL_MAP2_VERTEX_3, NurbsConsts.N_SAMPLINGMETHOD,
-                     (float) NurbsConsts.N_PATHLENGTH);
+                     NurbsConsts.N_PATHLENGTH);
     setnurbsproperty(GL2.GL_MAP2_VERTEX_4, NurbsConsts.N_SAMPLINGMETHOD,
-                     (float) NurbsConsts.N_PATHLENGTH);
+                     NurbsConsts.N_PATHLENGTH);
 
     setnurbsproperty(GL2.GL_MAP1_VERTEX_3, NurbsConsts.N_PIXEL_TOLERANCE,
                      (float) 50.0);
@@ -265,29 +264,29 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     this.autoloadmode = true;
 
-    this.callBackFlag = 0;
+    // this.callBackFlag = 0;
 
-    this.errorCallback = null;
+    // this.errorCallback = null;
   }
 
   /**
    * Sets domain distance for dom.dist. sampling in u direction
-   * 
+   *
    * @param d
    *            distance
    */
-  private void set_domain_distance_u_rate(double d) {
+  private void set_domain_distance_u_rate(final double d) {
     // DONE
     subdivider.set_domain_distance_u_rate(d);
   }
 
   /**
    * Sets domain distance for dom.dist. sampling in v direction
-   * 
+   *
    * @param d
    *            distance
    */
-  private void set_domain_distance_v_rate(double d) {
+  private void set_domain_distance_v_rate(final double d) {
     // DONE
     subdivider.set_domain_distance_v_rate(d);
   }
@@ -297,31 +296,31 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   public void bgncurve() {
     // DONE
-    O_curve o_curve = new O_curve();
+    final O_curve o_curve = new O_curve();
     thread("do_bgncurve", o_curve);
   }
 
   /**
    * Calls a method with given name and passes argumet
-   * 
+   *
    * @param name
    *            name of a method to be called
    * @param arg
    *            parameter to be passed to called method
    */
-  private void thread(String name, Object arg) {
+  private void thread(final String name, final Object arg) {
     // DONE
-    Class partype[] = new Class[1];
+    final Class<?> partype[] = new Class[1];
     partype[0] = arg.getClass();
     Method m;
     try {
       m = this.getClass().getMethod(name, partype);
-      if (dl != null) {
+      /* if (dl != null) {
         dl.append(this, m, arg);
-      } else {
+      } else */ {
         m.invoke(this, new Object[] { arg });
       }
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       e.printStackTrace();
     }
 
@@ -329,31 +328,31 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Calls a method with given name
-   * 
+   *
    * @param name
    *            name of a method to be called
    */
-  private void thread2(String name) {
+  private void thread2(final String name) {
     // DONE
     try {
-      Method m = this.getClass().getMethod(name, (Class[]) null);
-      if (dl != null) {
+      final Method m = this.getClass().getMethod(name, (Class[]) null);
+      /* if (dl != null) {
         dl.append(this, m, null);
-      } else {
+      } else */ {
         m.invoke(this, (Object[]) null);
       }
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       e.printStackTrace();
     }
   }
 
   /**
    * Begins a NURBS curve
-   * 
+   *
    * @param o_curve
    *            curve object
    */
-  public void do_bgncurve(O_curve o_curve) {
+  public void do_bgncurve(final O_curve o_curve) {
     if (inCurve > 0) {
       do_nurbserror(6);
       endcurve();
@@ -365,7 +364,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     if (inTrim) {
       if (!nextCurve.equals(o_curve)) {
-        isCurveModified = 1;
+        // isCurveModified = 1;
         nextCurve = o_curve;
       }
     } else {
@@ -375,17 +374,17 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     }
     nextCurve = o_curve.next;
     // kind of solution of union
-    nextPwlcurve = o_curve.o_pwlcurve;
+    // nextPwlcurve = o_curve.o_pwlcurve;
     nextNurbscurve = o_curve.o_nurbscurve;
   }
 
   /**
    * Begins new surface
-   * 
+   *
    * @param o_surface
    *            surface object
    */
-  public void do_bgnsurface(O_surface o_surface) {
+  public void do_bgnsurface(final O_surface o_surface) {
     // DONE
     if (inSurface > 0) {
       do_nurbserror(27);
@@ -395,13 +394,13 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     if (!playBack)
       bgnrender();
 
-    isTrimModified = false;
-    isDataSurfaceModified = false;
+    // isTrimModified = false;
+    // isDataSurfaceModified = false;
     isDataValid = 1;
     numTrims = 0;
     currentSurface = o_surface;
     nextTrim = o_surface.o_trim;
-    nextNurbssurface = o_surface.o_nurbssurface;
+    // nextNurbssurface = o_surface.o_nurbssurface;
   }
 
   /**
@@ -429,14 +428,14 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     inSurface = 0;
 
-    nextNurbssurface = null;
+    // nextNurbssurface = null;
 
     if (isDataValid <= 0) {
       return;
     }
 
     if (nextTrim != null) {
-      isTrimModified = true;
+      // isTrimModified = true;
       nextTrim = null;
     }
 
@@ -503,11 +502,11 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Method for handling error codes
-   * 
+   *
    * @param i
    *            error code
    */
-  private void do_nurbserror(int i) {
+  private void do_nurbserror(final int i) {
     // TODO nurberror
     //            System.out.println("TODO nurbserror " + i);
   }
@@ -539,7 +538,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Make a NURBS curve
-   * 
+   *
    * @param nknots
    *            number of knots in knot vector
    * @param knot
@@ -553,10 +552,10 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    * @param realType
    *            type of the curve
    */
-  public void nurbscurve(int nknots, float[] knot, int stride,
-                         float[] ctlarray, int order, int realType) {
+  public void nurbscurve(final int nknots, final float[] knot, final int stride,
+                         final float[] ctlarray, final int order, final int realType) {
     // DONE
-    Mapdesc mapdesc = maplist.locate(realType);
+    final Mapdesc mapdesc = maplist.locate(realType);
     if (mapdesc == null) {
       do_nurbserror(35);
       isDataValid = 0;
@@ -572,14 +571,14 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
       isDataValid = 0;
       return;
     }
-    Knotvector knots = new Knotvector(nknots, stride, order, knot);
+    final Knotvector knots = new Knotvector(nknots, stride, order, knot);
 
     if (!do_check_knots(knots, "curve"))
       return;
 
-    O_nurbscurve o_nurbscurve = new O_nurbscurve(realType);
+    final O_nurbscurve o_nurbscurve = new O_nurbscurve(realType);
     o_nurbscurve.bezier_curves = new Quilt(mapdesc);
-    CArrayOfFloats ctrlcarr = new CArrayOfFloats(ctlarray);
+    final CArrayOfFloats ctrlcarr = new CArrayOfFloats(ctlarray);
     o_nurbscurve.bezier_curves.toBezier(knots, ctrlcarr, mapdesc
                                         .getNCoords());
     thread("do_nurbscurve", o_nurbscurve);
@@ -587,16 +586,16 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Check knot vector specification
-   * 
+   *
    * @param knots
    *            knot vector
    * @param msg
    *            error message
    * @return knot vector is / is not valid
    */
-  public boolean do_check_knots(Knotvector knots, String msg) {
+  public boolean do_check_knots(final Knotvector knots, final String msg) {
     // DONE
-    int status = knots.validate();
+    final int status = knots.validate();
     if (status > 0) {
       do_nurbserror(status);
       if (renderhints.errorchecking != NurbsConsts.N_NOMSG)
@@ -607,11 +606,11 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Draw a curve
-   * 
+   *
    * @param o_nurbscurve
    *            NURBS curve object
    */
-  public void do_nurbscurve(O_nurbscurve o_nurbscurve) {
+  public void do_nurbscurve(final O_nurbscurve o_nurbscurve) {
     // DONE
 
     if (inCurve <= 0) {
@@ -638,7 +637,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
     // if(!o_nurbscurve.equals(nextNurbscurve)){
     if (!o_nurbscurve.equals(currentCurve.o_nurbscurve)) {
-      isCurveModified = 1;
+      // isCurveModified = 1;
       currentCurve.o_nurbscurve = o_nurbscurve;
       // nextNurbscurve=o_nurbscurve;
 
@@ -647,24 +646,28 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     nextNurbscurve = o_nurbscurve.next;
 
     if (!currentCurve.equals(o_nurbscurve.owner)) {
-      isCurveModified = 1;
+      // isCurveModified = 1;
       o_nurbscurve.owner = currentCurve;
     }
 
-    if (o_nurbscurve.owner == null)
-      isCurveModified = 1;
 
-    if (inCurve == 2)
+    /**
+    if (o_nurbscurve.owner == null) {
+      isCurveModified = 1;
+    } */
+
+    if (inCurve == 2) {
       endcurve();
+    }
   }
 
   /**
    * Draw NURBS surface
-   * 
+   *
    * @param o_nurbssurface
    *            NURBS surface object
    */
-  public void do_nurbssurface(O_nurbssurface o_nurbssurface) {
+  public void do_nurbssurface(final O_nurbssurface o_nurbssurface) {
     // DONE
     if (inSurface <= 0) {
       bgnsurface();
@@ -677,18 +680,18 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
     } else
       o_nurbssurface.used = true;
 
-    if (!o_nurbssurface.equals(nextNurbscurve)) {
-      isSurfaceModified = true;
+    // Always true, instances of diff classes are compared: if (!o_nurbssurface.equals(nextNurbscurve)) {
+      // isSurfaceModified = true;
       // nextNurbssurface=o_nurbssurface;
       currentSurface.o_nurbssurface = o_nurbssurface;
-    }
+    // }
 
     if (!currentSurface.equals(o_nurbssurface.owner)) {
-      isSurfaceModified = true;
+      // isSurfaceModified = true;
       o_nurbssurface.owner = currentSurface;
     }
 
-    nextNurbssurface = o_nurbssurface.next;
+    // nextNurbssurface = o_nurbssurface.next;
 
     if (inSurface == 2)
       endsurface();
@@ -704,7 +707,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Define a map of given properties
-   * 
+   *
    * @param type
    *            map type
    * @param rational
@@ -712,14 +715,14 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    * @param ncoords
    *            number of control point coordinates
    */
-  public void defineMap(int type, int rational, int ncoords) {
+  public void defineMap(final int type, final int rational, final int ncoords) {
     // DONE
     maplist.define(type, rational, ncoords);
   }
 
   /**
    * Set NURBS property
-   * 
+   *
    * @param type
    *            property type
    * @param tag
@@ -727,9 +730,9 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    * @param value
    *            property value
    */
-  public void setnurbsproperty(int type, int tag, float value) {
+  public void setnurbsproperty(final int type, final int tag, final float value) {
     // DONE
-    Mapdesc mapdesc = maplist.locate(type);
+    final Mapdesc mapdesc = maplist.locate(type);
     if (mapdesc == null) {
       do_nurbserror(35);
       return;
@@ -738,28 +741,28 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
       do_nurbserror(26);
       return;
     }
-    Property prop = new Property(type, tag, value);
+    final Property prop = new Property(type, tag, value);
     thread("do_setnurbsproperty2", prop);
   }
 
   /**
    * Set parameters of existing property
-   * 
+   *
    * @param prop
    *            property
    */
-  public void do_setnurbsproperty2(Property prop) {
-    Mapdesc mapdesc = maplist.find(prop.type);
+  public void do_setnurbsproperty2(final Property prop) {
+    final Mapdesc mapdesc = maplist.find(prop.type);
     mapdesc.setProperty(prop.tag, prop.value);
   }
 
   /**
    * Set given property to rendering hints
-   * 
+   *
    * @param prop
    *            property to be set
    */
-  public void do_setnurbsproperty(Property prop) {
+  public void do_setnurbsproperty(final Property prop) {
     // DONE
     renderhints.setProperty(prop);
     // TODO freeproperty?
@@ -767,11 +770,11 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Sets wheteher we use domain distance sampling
-   * 
+   *
    * @param i
    *            domain distance sampling flag
    */
-  public void set_is_domain_distance_sampling(int i) {
+  public void set_is_domain_distance_sampling(final int i) {
     // DONE
     subdivider.set_is_domain_distance_sampling(i);
   }
@@ -781,7 +784,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    */
   public void bgnsurface() {
     // DONE
-    O_surface o_surface = new O_surface();
+    final O_surface o_surface = new O_surface();
     // TODO nuid
     //            System.out.println("TODO glunurbs.bgnsurface nuid");
     thread("do_bgnsurface", o_surface);
@@ -805,7 +808,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Make NURBS surface
-   * 
+   *
    * @param sknot_count
    *            number of knots in s direction
    * @param sknot
@@ -827,11 +830,11 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
    * @param type
    *            NURBS surface type (rational,...)
    */
-  public void nurbssurface(int sknot_count, float[] sknot, int tknot_count,
-                           float[] tknot, int s_stride, int t_stride, float[] ctlarray,
-                           int sorder, int torder, int type) {
+  public void nurbssurface(final int sknot_count, final float[] sknot, final int tknot_count,
+                           final float[] tknot, final int s_stride, final int t_stride, final float[] ctlarray,
+                           final int sorder, final int torder, final int type) {
     // DONE
-    Mapdesc mapdesc = maplist.locate(type);
+    final Mapdesc mapdesc = maplist.locate(type);
     if (mapdesc == null) {
       do_nurbserror(35);
       isDataValid = 0;
@@ -842,19 +845,19 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
       isDataValid = 0;
       return;
     }
-    Knotvector sknotvector = new Knotvector(sknot_count, s_stride, sorder,
+    final Knotvector sknotvector = new Knotvector(sknot_count, s_stride, sorder,
                                             sknot);
     if (!do_check_knots(sknotvector, "surface"))
       return;
-    Knotvector tknotvector = new Knotvector(tknot_count, t_stride, torder,
+    final Knotvector tknotvector = new Knotvector(tknot_count, t_stride, torder,
                                             tknot);
     if (!do_check_knots(tknotvector, "surface"))
       return;
 
-    O_nurbssurface o_nurbssurface = new O_nurbssurface(type);
+    final O_nurbssurface o_nurbssurface = new O_nurbssurface(type);
     o_nurbssurface.bezier_patches = new Quilt(mapdesc);
 
-    CArrayOfFloats ctrlarr = new CArrayOfFloats(ctlarray);
+    final CArrayOfFloats ctrlarr = new CArrayOfFloats(ctlarray);
     o_nurbssurface.bezier_patches.toBezier(sknotvector, tknotvector,
                                            ctrlarr, mapdesc.getNCoords());
     thread("do_nurbssurface", o_nurbssurface);

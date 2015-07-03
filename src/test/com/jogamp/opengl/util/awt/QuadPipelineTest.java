@@ -29,12 +29,12 @@ package com.jogamp.opengl.util.awt;
 
 import static org.junit.Assert.*;
 
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.awt.QuadPipeline.Quad;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL3;
-import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
 import org.junit.Test;

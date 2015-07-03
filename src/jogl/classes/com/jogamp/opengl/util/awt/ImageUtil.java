@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -50,11 +50,11 @@ public class ImageUtil {
   /** Flips the supplied BufferedImage vertically. This is often a
       necessary conversion step to display a Java2D image correctly
       with OpenGL and vice versa. */
-  public static void flipImageVertically(BufferedImage image) {
-    WritableRaster raster = image.getRaster();
+  public static void flipImageVertically(final BufferedImage image) {
+    final WritableRaster raster = image.getRaster();
     Object scanline1 = null;
     Object scanline2 = null;
-      
+
     for (int i = 0; i < image.getHeight() / 2; i++) {
       scanline1 = raster.getDataElements(0, i, image.getWidth(), 1, scanline1);
       scanline2 = raster.getDataElements(0, image.getHeight() - i - 1, image.getWidth(), 1, scanline2);
@@ -73,8 +73,8 @@ public class ImageUtil {
    *
    * @return A instance of <code>BufferedImage</code> with a type compatible with the graphics card.
    */
-  public static BufferedImage createCompatibleImage(int width, int height) {
-    GraphicsConfiguration configuration =
+  public static BufferedImage createCompatibleImage(final int width, final int height) {
+    final GraphicsConfiguration configuration =
       GraphicsEnvironment.getLocalGraphicsEnvironment().
       getDefaultScreenDevice().getDefaultConfiguration();
     return configuration.createCompatibleImage(width, height);
@@ -92,35 +92,35 @@ public class ImageUtil {
    *
    * @return A thumbnail with the requested width or the original picture if thumbWidth = image.getWidth()
    */
-  public static BufferedImage createThumbnail(BufferedImage image, int thumbWidth) {
+  public static BufferedImage createThumbnail(final BufferedImage image, final int thumbWidth) {
     // Thanks to Romain Guy for this utility
     if (thumbWidth > image.getWidth()) {
       throw new IllegalArgumentException("Thumbnail width must be greater than image width");
     }
-   
+
     if (thumbWidth == image.getWidth()) {
       return image;
     }
- 
-    float ratio = (float) image.getWidth() / (float) image.getHeight();
+
+    final float ratio = (float) image.getWidth() / (float) image.getHeight();
     int width = image.getWidth();
     BufferedImage thumb = image;
-   
+
     do {
       width /= 2;
       if (width < thumbWidth) {
         width = thumbWidth;
       }
-     
-      BufferedImage temp = createCompatibleImage(width, (int) (width / ratio));
-      Graphics2D g2 = temp.createGraphics();
+
+      final BufferedImage temp = createCompatibleImage(width, (int) (width / ratio));
+      final Graphics2D g2 = temp.createGraphics();
       g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                           RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       g2.drawImage(thumb, 0, 0, temp.getWidth(), temp.getHeight(), null);
       g2.dispose();
       thumb = temp;
     } while (width != thumbWidth);
-   
+
     return thumb;
   }
 

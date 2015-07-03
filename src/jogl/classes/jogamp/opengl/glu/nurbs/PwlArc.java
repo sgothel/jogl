@@ -44,7 +44,7 @@ public class PwlArc {
   /**
    * Number of points
    */
-  private int npts;
+  private final int npts;
 
   /**
    * Vertexes
@@ -54,14 +54,14 @@ public class PwlArc {
   /**
    * Arc type
    */
-  private int type;
+  private final int type;
 
   /**
    * Makes new trimming arc
    * @param i num ber of vertexes
    * @param p trimming vertexes array
    */
-  public PwlArc(int i, TrimVertex[] p) {
+  public PwlArc(final int i, final TrimVertex[] p) {
     // DONE
     this.npts = i;
     this.pts = p;

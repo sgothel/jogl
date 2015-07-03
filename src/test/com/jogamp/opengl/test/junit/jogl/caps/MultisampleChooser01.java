@@ -40,25 +40,30 @@
 package com.jogamp.opengl.test.junit.jogl.caps;
 
 import java.util.List;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
+
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 class MultisampleChooser01 extends DefaultGLCapabilitiesChooser {
 
-    public int chooseCapabilities(GLCapabilitiesImmutable desired, List/*<GLCapabilitiesImmutable>*/ available, int windowSystemRecommendedChoice) {
+    @Override
+    public int chooseCapabilities(final CapabilitiesImmutable desired,
+                                  final List<? extends CapabilitiesImmutable> available,
+                                  final int windowSystemRecommendedChoice) {
         boolean anyHaveSampleBuffers = false;
         for (int i = 0; i < available.size(); i++) {
-            GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) available.get(i);
+            final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) available.get(i);
             if ( caps.getSampleBuffers() ) {
                 anyHaveSampleBuffers = true;
                 break;
             }
         }
-        int selection = super.chooseCapabilities(desired, available, windowSystemRecommendedChoice);
+        final int selection = super.chooseCapabilities(desired, available, windowSystemRecommendedChoice);
         if (!anyHaveSampleBuffers) {
             System.err.println("WARNING: antialiasing will be disabled because none of the available pixel formats had it to offer");
         } else {
-            GLCapabilitiesImmutable selected = (GLCapabilitiesImmutable) available.get(selection);
+            final GLCapabilitiesImmutable selected = (GLCapabilitiesImmutable) available.get(selection);
             if (!selected.getSampleBuffers()) {
                 System.err.println("WARNING: antialiasing will be disabled because the DefaultGLCapabilitiesChooser didn't supply it");
             }

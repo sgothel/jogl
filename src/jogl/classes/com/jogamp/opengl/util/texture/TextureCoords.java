@@ -1,21 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -47,18 +48,34 @@ package com.jogamp.opengl.util.texture;
 
 public class TextureCoords {
     // These represent the lower-left point
-    private float left;
-    private float bottom;
+    private final float left;
+    private final float bottom;
     // These represent the upper-right point
-    private float right;
-    private float top;
+    private final float right;
+    private final float top;
 
-    public TextureCoords(float left, float bottom,
-                         float right, float top) {
+    public TextureCoords(final float left, final float bottom,
+                         final float right, final float top) {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
         this.top = top;
+    }
+
+    /** Transfers <code>{s * ss, t * ts}</code> from this object into the given <code>float[8+d_off]</code> in the following order:
+     * <pre>
+     *   left,  bottom
+     *   right, bottom
+     *   left,  top
+     *   right  top
+     * </pre>
+     */
+    public float[] getST_LB_RB_LT_RT(final float[] d, final int d_off, final float ss, final float ts) {
+        d[0+d_off] = left  *ss;  d[1+d_off] = bottom*ts;
+        d[2+d_off] = right *ss;  d[3+d_off] = bottom*ts;
+        d[4+d_off] = left  *ss;  d[5+d_off] = top   *ts;
+        d[6+d_off] = right *ss;  d[7+d_off] = top   *ts;
+        return d;
     }
 
     /** Returns the leftmost (x) texture coordinate of this
@@ -76,4 +93,7 @@ public class TextureCoords {
     /** Returns the topmost (y) texture coordinate of this
         rectangle. */
     public float top() { return top; }
+
+    @Override
+    public String toString() { return "TexCoord[h: "+left+" - "+right+", v: "+bottom+" - "+top+"]"; }
 }

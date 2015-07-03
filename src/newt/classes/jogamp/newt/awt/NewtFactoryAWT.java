@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,34 +20,47 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.newt.awt;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+import java.awt.GraphicsDevice;
 
-import jogamp.nativewindow.jawt.JAWTWindow;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
+
+import jogamp.nativewindow.awt.AWTMisc;
+import jogamp.nativewindow.jawt.JAWTUtil;
+import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.Debug;
 
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.awt.JAWTWindow;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 
 public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
   /**
-   * Wraps an AWT component into a {@link javax.media.nativewindow.NativeWindow} utilizing the {@link javax.media.nativewindow.NativeWindowFactory},<br>
-   * using a configuration agnostic dummy {@link javax.media.nativewindow.DefaultGraphicsConfiguration}.<br>
+   * Wraps an AWT component into a {@link com.jogamp.nativewindow.NativeWindow} utilizing the {@link com.jogamp.nativewindow.NativeWindowFactory},<br>
+   * using a configuration agnostic dummy {@link com.jogamp.nativewindow.DefaultGraphicsConfiguration}.<br>
    * <p>
-   * The actual wrapping implementation is {@link jogamp.nativewindow.jawt.JAWTWindow}.<br></p>
+   * The actual wrapping implementation is {@link com.jogamp.nativewindow.awt.JAWTWindow}.<br></p>
    * <p>
    * Purpose of this wrapping is to access the AWT window handle,<br>
    * not to actually render into it.<br>
@@ -55,7 +68,7 @@ public class NewtFactoryAWT extends NewtFactory {
    *
    * @param awtCompObject must be of type java.awt.Component
    */
-  public static JAWTWindow getNativeWindow(Object awtCompObject, CapabilitiesImmutable capsRequested) {
+  public static JAWTWindow getNativeWindow(final Object awtCompObject, final CapabilitiesImmutable capsRequested) {
       if(null==awtCompObject) {
         throw new NativeWindowException("Null AWT Component");
       }
@@ -65,9 +78,9 @@ public class NewtFactoryAWT extends NewtFactory {
       return getNativeWindow( (java.awt.Component) awtCompObject, capsRequested );
   }
 
-  public static JAWTWindow getNativeWindow(java.awt.Component awtComp, CapabilitiesImmutable capsRequested) {
-      AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
-      NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
+  public static JAWTWindow getNativeWindow(final java.awt.Component awtComp, final CapabilitiesImmutable capsRequested) {
+      final AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
+      final NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
       if(! ( nw instanceof JAWTWindow ) ) {
           throw new NativeWindowException("Not an AWT NativeWindow: "+nw);
       }
@@ -76,12 +89,109 @@ public class NewtFactoryAWT extends NewtFactory {
       }
       return (JAWTWindow)nw;
   }
-    
-  public static void destroyNativeWindow(JAWTWindow jawtWindow) {
+
+  public static void destroyNativeWindow(final JAWTWindow jawtWindow) {
       final AbstractGraphicsConfiguration config = jawtWindow.getGraphicsConfiguration();
       jawtWindow.destroy();
-      config.getScreen().getDevice().close();      
+      config.getScreen().getDevice().close();
   }
-    
+
+  /**
+   * @param awtComp
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   */
+  private static void checkComponentValid(final java.awt.Component awtComp) throws IllegalArgumentException {
+      if( !awtComp.isDisplayable() ) {
+          throw new IllegalArgumentException("Given AWT-Component is not displayable: "+awtComp);
+      }
+      if( null == awtComp.getGraphicsConfiguration() ) {
+          throw new IllegalArgumentException("Given AWT-Component has no GraphicsConfiguration set: "+awtComp);
+      }
+  }
+
+  /**
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @param reuse attempt to reuse an existing {@link Display} with same <code>name</code> if set true, otherwise create a new instance.
+   * @return {@link Display} instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #getAbstractGraphicsScreen(java.awt.Component)
+   */
+  public static Display createDisplay(final java.awt.Component awtComp, final boolean reuse) throws IllegalArgumentException {
+      checkComponentValid(awtComp);
+      final GraphicsDevice device = awtComp.getGraphicsConfiguration().getDevice();
+
+      final String displayConnection;
+      final String nwt = NativeWindowFactory.getNativeWindowType(true);
+      if( NativeWindowFactory.TYPE_X11 == nwt ) {
+          final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+          if( 0 == displayHandleAWT ) {
+              displayConnection = null; // default
+          } else {
+              /**
+               * Using the AWT display handle works fine with NVidia.
+               * However we experienced different results w/ AMD drivers,
+               * some work, but some behave erratic.
+               * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
+               */
+              displayConnection = X11Lib.XDisplayString(displayHandleAWT);
+          }
+      } else {
+          displayConnection = null; // default
+      }
+      return NewtFactory.createDisplay(displayConnection, reuse);
+  }
+
+  /**
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @param reuse attempt to reuse an existing {@link Display} with same <code>name</code> if set true, otherwise create a new instance.
+   * @return {@link Screen} instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #createDevice(java.awt.Component)
+   */
+  public static Screen createScreen(final java.awt.Component awtComp, final boolean reuse) throws IllegalArgumentException {
+      final Display display = createDisplay(awtComp, reuse);
+      return NewtFactory.createScreen(display, AWTGraphicsScreen.findScreenIndex(awtComp.getGraphicsConfiguration().getDevice()));
+  }
+
+  /**
+   * Retrieves the {@link MonitorDevice} for the given displayable {@code awtComp}.
+   * <p>
+   * In case this method shall be called multiple times, it is advised to keep the given {@link Screen} instance
+   * natively created during operation. This should be done via the initial {@link Screen#addReference()}.
+   * After operation, user shall destroy the instance accordingly via the final {@link Screen#removeReference()}.
+   * </p>
+   * @param screen the {@link Screen} instance matching {@code awtComp}, i.e. via {@link #createScreen(java.awt.Component, boolean)}.
+   * @param awtComp must be {@link java.awt.Component#isDisplayable() displayable}
+   *        and must have a {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}
+   * @return {@link MonitorDevice} instance reflecting the {@code awtComp}
+   * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
+   *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
+   * @see #createScreen(java.awt.Component, boolean)
+   */
+  public static MonitorDevice getMonitorDevice(final Screen screen, final java.awt.Component awtComp) throws IllegalArgumentException {
+      checkComponentValid(awtComp);
+      final String nwt = NativeWindowFactory.getNativeWindowType(true);
+      MonitorDevice res = null;
+      screen.addReference();
+      try {
+          if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
+              res = screen.getMonitor( JAWTUtil.getMonitorDisplayID( awtComp.getGraphicsConfiguration().getDevice() ) );
+          }
+          if( null == res ) {
+              // Fallback, use AWT component coverage
+              final Point los = AWTMisc.getLocationOnScreenSafe(null, awtComp, false);
+              final RectangleImmutable r = new Rectangle(los.getX(), los.getY(), awtComp.getWidth(), awtComp.getHeight());
+              res = screen.getMainMonitor(r);
+          }
+      } finally {
+          screen.removeReference();
+      }
+      return res;
+  }
 }
 

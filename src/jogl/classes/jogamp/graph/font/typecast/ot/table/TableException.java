@@ -26,7 +26,7 @@ package jogamp.graph.font.typecast.ot.table;
  * @version $Id: TableException.java,v 1.1.1.1 2004-12-05 23:15:00 davidsch Exp $
  */
 public class TableException extends java.lang.Exception {
-    
+
     private static final long serialVersionUID = 1L;
 
     /**
@@ -34,13 +34,13 @@ public class TableException extends java.lang.Exception {
      */
     public TableException() {
     }
-    
-    
+
+
     /**
      * Constructs an instance of <code>TableException</code> with the specified detail message.
      * @param msg the detail message.
      */
-    public TableException(String msg) {
+    public TableException(final String msg) {
         super(msg);
     }
 }

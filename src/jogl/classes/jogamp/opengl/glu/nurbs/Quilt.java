@@ -74,10 +74,10 @@ public class Quilt {
    * Makes new quilt with mapdesc
    * @param mapdesc map description
    */
-  public Quilt(Mapdesc mapdesc) {
+  public Quilt(final Mapdesc mapdesc) {
     // DONE
     this.mapdesc = mapdesc;
-    Quiltspec[] tmpquilts = new Quiltspec[MAXDIM];
+    final Quiltspec[] tmpquilts = new Quiltspec[MAXDIM];
     for (int i = 0; i < tmpquilts.length; i++)
       tmpquilts[i] = new Quiltspec();
     this.qspec = new CArrayOfQuiltspecs(tmpquilts);
@@ -91,9 +91,9 @@ public class Quilt {
    * @param ctrlarr control points
    * @param coords control points coords
    */
-  public void toBezier(Knotvector sknotvector, Knotvector tknotvector,
-                       CArrayOfFloats ctrlarr, int coords) {
-    Splinespec spline = new Splinespec(2);
+  public void toBezier(final Knotvector sknotvector, final Knotvector tknotvector,
+                       final CArrayOfFloats ctrlarr, final int coords) {
+    final Splinespec spline = new Splinespec(2);
     spline.kspecinit(sknotvector, tknotvector);
     spline.select();
     spline.layout(coords);
@@ -108,9 +108,9 @@ public class Quilt {
    * @param ctlarray control points
    * @param ncoords number of coordinates
    */
-  public void toBezier(Knotvector knots, CArrayOfFloats ctlarray, int ncoords) {
+  public void toBezier(final Knotvector knots, final CArrayOfFloats ctlarray, final int ncoords) {
     // DONE
-    Splinespec spline = new Splinespec(1);
+    final Splinespec spline = new Splinespec(1);
     spline.kspecinit(knots);
     spline.select();
     spline.layout(ncoords);
@@ -125,7 +125,7 @@ public class Quilt {
    * @param ptb high border
    * @param backend Backend
    */
-  public void downloadAll(float[] pta, float[] ptb, Backend backend) {
+  public void downloadAll(final float[] pta, final float[] ptb, final Backend backend) {
     // DONE
     for (Quilt m = this; m != null; m = m.next) {
       m.select(pta, ptb);
@@ -138,11 +138,11 @@ public class Quilt {
    * Renders arcs/patches
    * @param backend Backend for rendering
    */
-  private void download(Backend backend) {
+  private void download(final Backend backend) {
     // DONE
     if (getDimension() == 2) {
 
-      CArrayOfFloats ps = new CArrayOfFloats(cpts);
+      final CArrayOfFloats ps = new CArrayOfFloats(cpts);
       ps.raisePointerBy(qspec.get(0).offset);
       ps.raisePointerBy(qspec.get(1).offset);
       ps.raisePointerBy(qspec.get(0).index * qspec.get(0).order
@@ -159,7 +159,7 @@ public class Quilt {
 
     } else {// code for curves
       // CArrayOfFloats ps=new CArrayOfFloats(cpts);
-      CArrayOfFloats ps = new CArrayOfFloats(cpts.getArray(), 0);
+      final CArrayOfFloats ps = new CArrayOfFloats(cpts.getArray(), 0);
       ps.raisePointerBy(qspec.get(0).offset);
       ps.raisePointerBy(qspec.get(0).index * qspec.get(0).order
                         * qspec.get(0).stride);
@@ -185,9 +185,9 @@ public class Quilt {
    * @param pta range
    * @param ptb range
    */
-  private void select(float[] pta, float[] ptb) {
+  private void select(final float[] pta, final float[] ptb) {
     // DONE
-    int dim = eqspec.getPointer() - qspec.getPointer();
+    final int dim = eqspec.getPointer() - qspec.getPointer();
     int i, j;
     for (i = 0; i < dim; i++) {
       for (j = qspec.get(i).width - 1; j >= 0; j--)
@@ -205,7 +205,7 @@ public class Quilt {
    * @param to high param
    * @param bpts breakpoints
    */
-  public void getRange(float[] from, float[] to, Flist bpts) {
+  public void getRange(final float[] from, final float[] to, final Flist bpts) {
     // DONE
     getRange(from, to, 0, bpts);
 
@@ -218,9 +218,9 @@ public class Quilt {
    * @param i from/to array index
    * @param list breakpoints
    */
-  private void getRange(float[] from, float[] to, int i, Flist list) {
+  private void getRange(final float[] from, final float[] to, final int i, final Flist list) {
     // DONE
-    Quilt maps = this;
+    final Quilt maps = this;
     from[i] = maps.qspec.get(i).breakpoints[0];
     to[i] = maps.qspec.get(i).breakpoints[maps.qspec.get(i).width];
     int maxpts = 0;
@@ -262,7 +262,7 @@ public class Quilt {
    * @param slist u direction breakpoints
    * @param tlist v direction breakpoints
    */
-  public void getRange(float[] from, float[] to, Flist slist, Flist tlist) {
+  public void getRange(final float[] from, final float[] to, final Flist slist, final Flist tlist) {
     // DONE
     getRange(from, to, 0, slist);
     getRange(from, to, 1, tlist);
@@ -275,7 +275,7 @@ public class Quilt {
    * @param tbrkpts
    * @param rate
    */
-  public void findRates(Flist sbrkpts, Flist tbrkpts, float[] rate) {
+  public void findRates(final Flist sbrkpts, final Flist tbrkpts, final float[] rate) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO quilt.findrates");
   }

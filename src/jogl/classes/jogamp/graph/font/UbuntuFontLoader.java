@@ -28,29 +28,44 @@
 package jogamp.graph.font;
 
 import java.io.IOException;
-import javax.media.opengl.GLException;
+import java.io.InputStream;
+import java.net.URLConnection;
 
-import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.net.Uri;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
-
+import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
-import java.net.URL;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 public class UbuntuFontLoader implements FontSet {
-    
-    final static FontSet fontLoader = new UbuntuFontLoader();
 
-    public static FontSet get() {
+    // FIXME: Add cache size to limit memory usage
+    private static final IntObjectHashMap fontMap = new IntObjectHashMap();
+
+    private static final Uri.Encoded jarSubDir = Uri.Encoded.cast("atomic/");
+    private static final Uri.Encoded jarName = Uri.Encoded.cast("jogl-fonts-p0.jar");
+
+    private static final String relFontPath = "fonts/ubuntu/" ;
+    private static final String absFontPath = "jogamp/graph/font/fonts/ubuntu/" ;
+
+    private static final FontSet fontLoader = new UbuntuFontLoader();
+
+    public static final FontSet get() {
         return fontLoader;
     }
-    
+
     final static String availableFontFileNames[] =
     {
         /* 00 */ "Ubuntu-R.ttf",   // regular
         /* 01 */ "Ubuntu-RI.ttf",  // regular italic
-        /* 02 */ "Ubuntu-B.ttf",   // bold     
+        /* 02 */ "Ubuntu-B.ttf",   // bold
         /* 03 */ "Ubuntu-BI.ttf",  // bold italic
         /* 04 */ "Ubuntu-L.ttf",   // light
         /* 05 */ "Ubuntu-LI.ttf",  // light italic
@@ -58,24 +73,21 @@ public class UbuntuFontLoader implements FontSet {
         /* 07 */ "Ubuntu-MI.ttf",  // medium italic
 
     };
-        
-    final static String relPath = "fonts/ubuntu/" ;    
-    
+
     private UbuntuFontLoader() {
     }
 
-    // FIXME: Add cache size to limit memory usage 
-    static final IntObjectHashMap fontMap = new IntObjectHashMap();
-        
-    static boolean is(int bits, int bit) {
+    static boolean is(final int bits, final int bit) {
         return 0 != ( bits & bit ) ;
     }
-    
+
+    @Override
     public Font getDefault() throws IOException {
-        return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
+        return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular
     }
-    
-    public Font get(int family, int style) throws IOException {
+
+    @Override
+    public Font get(final int family, final int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -97,7 +109,7 @@ public class UbuntuFontLoader implements FontSet {
                     font = abspath(availableFontFileNames[0], family, style);
                 }
                 break;
-                
+
             case FAMILY_LIGHT:
                 if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[5], family, style);
@@ -105,34 +117,89 @@ public class UbuntuFontLoader implements FontSet {
                     font = abspath(availableFontFileNames[4], family, style);
                 }
                 break;
-                
+
             case FAMILY_MEDIUM:
                 if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[6], family, style);
                 } else {
                     font = abspath(availableFontFileNames[7], family, style);
                 }
-                break;                
+                break;
         }
 
         return font;
     }
-        
-    Font abspath(String fname, int family, int style) throws IOException {
-        final String err = "Problem loading font "+fname+", stream "+relPath+fname;
-        try {
-            URL url = IOUtil.getResource(UbuntuFontLoader.class, relPath+fname);
-            if(null == url) {
-                throw new GLException(err);
+
+    private static boolean attemptedJARLoading = false;
+    private static boolean useTempJARCache = false;
+
+    private synchronized Font abspath(final String fname, final int family, final int style) throws IOException {
+        if( !attemptedJARLoading ) {
+            attemptedJARLoading = true;
+            Platform.initSingleton();
+            if( TempJarCache.isInitialized() ) {
+                try {
+                    final Uri uri = JarUtil.getRelativeOf(UbuntuFontLoader.class, jarSubDir, jarName);
+                    final Exception e0 = AccessController.doPrivileged(new PrivilegedAction<Exception>() {
+                        @Override
+                        public Exception run() {
+                            try {
+                                TempJarCache.addResources(UbuntuFontLoader.class, uri);
+                                useTempJARCache = true;
+                                return null;
+                            } catch (final Exception e) {
+                                return e;
+                            }
+                        } } );
+                    if( null != e0 ) {
+                        throw e0;
+                    }
+                } catch(final Exception e1) {
+                    System.err.println("Caught "+e1.getMessage());
+                    e1.printStackTrace();
+                }
             }
-            final Font f= FontFactory.get ( url ) ;
+        }
+        final String path = useTempJARCache ? absFontPath : relFontPath;
+        try {
+            final Font f = abspathImpl(path+fname, family, style);
+            if( null != f ) {
+                return f;
+            }
+            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, path, fname));
+        } catch(final Exception e) {
+            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, path, fname), e);
+        }
+    }
+    private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
+        final InputStream stream;
+        if( useTempJARCache ) {
+            final Exception[] privErr = { null };
+            stream = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+                @Override
+                public InputStream run() {
+                    try {
+                        final Uri uri = TempJarCache.getResourceUri(fname);
+                        return null != uri ? uri.toURL().openConnection().getInputStream() : null;
+                    } catch (final Exception e) {
+                        privErr[0] = e;
+                        return null;
+                    }
+                } } );
+            if( null != privErr[0] ) {
+                throw new IOException(privErr[0]);
+            }
+        } else {
+            final URLConnection urlConn = IOUtil.getResource(UbuntuFontLoader.class, fname);
+            stream = null != urlConn ? urlConn.getInputStream() : null;
+        }
+        if(null != stream) {
+            final Font f= FontFactory.get ( stream, true ) ;
             if(null != f) {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;
-            }        
-            throw new IOException(err);
-        } catch(IOException ioe) {
-            throw new IOException(err, ioe);            
+            }
         }
-    }           
+        return null;
+    }
 }

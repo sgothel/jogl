@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -48,43 +48,44 @@ import java.util.*;
     backing store, when necessary. */
 
 public class RectanglePacker {
+
   private static final float DEFAULT_EXPANSION_FACTOR = 0.5f;
 
-  private BackingStoreManager manager;
+  private final BackingStoreManager manager;
   private Object backingStore;
   private LevelSet levels;
-  private float EXPANSION_FACTOR;
-  private float SHRINK_FACTOR = 0.3f;
+  private final float EXPANSION_FACTOR;
+  private static final float SHRINK_FACTOR = 0.3f;
 
-  private int initialWidth;
-  private int initialHeight;
+  private final int initialWidth;
+  private final int initialHeight;
 
   private int maxWidth  = -1;
   private int maxHeight = -1;
 
-  static class RectHComparator implements Comparator {
-    public int compare(Object o1, Object o2) {
-      Rect r1 = (Rect) o1;
-      Rect r2 = (Rect) o2;
+  static class RectHComparator implements Comparator<Rect> {
+    @Override
+    public int compare(final Rect r1, final Rect r2) {
       return r2.h() - r1.h();
     }
 
-    public boolean equals(Object obj) {
+    @Override
+    public boolean equals(final Object obj) {
       return this == obj;
     }
   }
-  private static final Comparator rectHComparator = new RectHComparator();
+  private static final Comparator<Rect> rectHComparator = new RectHComparator();
 
-  public RectanglePacker(BackingStoreManager manager,
-                         int initialWidth,
-                         int initialHeight) {
+  public RectanglePacker(final BackingStoreManager manager,
+                         final int initialWidth,
+                         final int initialHeight) {
     this(manager, initialWidth, initialHeight, DEFAULT_EXPANSION_FACTOR);
   }
 
-  public RectanglePacker(BackingStoreManager manager,
-                         int initialWidth,
-                         int initialHeight,
-                         float expansionFactor) {
+  public RectanglePacker(final BackingStoreManager manager,
+                         final int initialWidth,
+                         final int initialHeight,
+                         final float expansionFactor) {
     this.manager = manager;
     levels = new LevelSet(initialWidth, initialHeight);
     this.initialWidth = initialWidth;
@@ -105,7 +106,7 @@ public class RectanglePacker {
       necessary. Setting up a maximum width and height introduces the
       possibility that additions will fail; these are handled with the
       BackingStoreManager's allocationFailed notification. */
-  public void setMaxSize(int maxWidth, int maxHeight) {
+  public void setMaxSize(final int maxWidth, final int maxHeight) {
     this.maxWidth  = maxWidth;
     this.maxHeight = maxHeight;
   }
@@ -117,7 +118,7 @@ public class RectanglePacker {
       BackingStoreManager#preExpand BackingStoreManager.preExpand}
       does not clear enough space for the incoming rectangle, then
       this method will throw a RuntimeException. */
-  public void add(Rect rect) throws RuntimeException {
+  public void add(final Rect rect) throws RuntimeException {
     // Allocate backing store if we don't have any yet
     if (backingStore == null)
       backingStore = manager.allocateBackingStore(levels.w(), levels.h());
@@ -153,12 +154,12 @@ public class RectanglePacker {
   }
 
   /** Removes the given rectangle from this RectanglePacker. */
-  public void remove(Rect rect) {
+  public void remove(final Rect rect) {
     levels.remove(rect);
   }
 
   /** Visits all Rects contained in this RectanglePacker. */
-  public void visit(RectVisitor visitor) {
+  public void visit(final RectVisitor visitor) {
     levels.visit(visitor);
   }
 
@@ -178,7 +179,7 @@ public class RectanglePacker {
   }
 
   // The "cause" rect may be null
-  private void compactImpl(Rect cause) {
+  private void compactImpl(final Rect cause) {
     // Have to either expand, compact or both. Need to figure out what
     // direction to go. Prefer to expand vertically. Expand
     // horizontally only if rectangle being added is too wide. FIXME:
@@ -213,14 +214,14 @@ public class RectanglePacker {
       }
 
       nextLevelSet = new LevelSet(newWidth, newHeight);
-      
+
       // Make copies of all existing rectangles
-      List/*<Rect>*/ newRects = new ArrayList/*<Rect>*/();
-      for (Iterator i1 = levels.iterator(); i1.hasNext(); ) {
-        Level level = (Level) i1.next();
-        for (Iterator i2 = level.iterator(); i2.hasNext(); ) {
-          Rect cur = (Rect) i2.next();
-          Rect newRect = new Rect(0, 0, cur.w(), cur.h(), null);
+      final List<Rect> newRects = new ArrayList<Rect>();
+      for (final Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
+        final Level level = i1.next();
+        for (final Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
+          final Rect cur = i2.next();
+          final Rect newRect = new Rect(0, 0, cur.w(), cur.h(), null);
           cur.setNextLocation(newRect);
           // Hook up the reverse mapping too for easier replacement
           newRect.setNextLocation(cur);
@@ -232,8 +233,8 @@ public class RectanglePacker {
       Collections.sort(newRects, rectHComparator);
       // Try putting all of these rectangles into the new level set
       done = true;
-      for (Iterator iter = newRects.iterator(); iter.hasNext(); ) {
-        if (!nextLevelSet.add((Rect) iter.next())) {
+      for (final Iterator<Rect> iter = newRects.iterator(); iter.hasNext(); ) {
+        if (!nextLevelSet.add(iter.next())) {
           done = false;
           break;
         }
@@ -278,13 +279,13 @@ public class RectanglePacker {
     // new locations of rectangles on the backing store. Allocate a
     // new backing store, move the contents over and deallocate the
     // old one.
-    Object newBackingStore = manager.allocateBackingStore(nextLevelSet.w(),
+    final Object newBackingStore = manager.allocateBackingStore(nextLevelSet.w(),
                                                           nextLevelSet.h());
     manager.beginMovement(backingStore, newBackingStore);
-    for (Iterator i1 = levels.iterator(); i1.hasNext(); ) {
-      Level level = (Level) i1.next();
-      for (Iterator i2 = level.iterator(); i2.hasNext(); ) {
-        Rect cur = (Rect) i2.next();
+    for (final Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
+      final Level level = i1.next();
+      for (final Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
+        final Rect cur = i2.next();
         manager.move(backingStore, cur,
                      newBackingStore, cur.getNextLocation());
       }

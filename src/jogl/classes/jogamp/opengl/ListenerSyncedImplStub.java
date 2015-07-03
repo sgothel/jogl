@@ -33,9 +33,9 @@ import java.util.ArrayList;
 /**
  * Simple locked listener implementation stub to be used for listener handler,
  * synchronized on it's instance.
- * 
+ *
  * <p>Utilizing simple locking via synchronized.</p>
- * 
+ *
  * @param <E> The listener type
  */
 public class ListenerSyncedImplStub<E> {
@@ -48,7 +48,7 @@ public class ListenerSyncedImplStub<E> {
   public synchronized final void reset() {
     listeners = new ArrayList<E>();
   }
-  
+
   public synchronized final void destroy() {
     listeners.clear();
     listeners = null;
@@ -57,23 +57,23 @@ public class ListenerSyncedImplStub<E> {
   public synchronized final int size() {
     return listeners.size();
   }
-  
-  public synchronized final void addListener(E listener) {
+
+  public synchronized final void addListener(final E listener) {
     addListener(-1, listener);
   }
 
-  public synchronized final void addListener(int index, E listener) {
+  public synchronized final void addListener(int index, final E listener) {
     if(0>index) {
         index = listeners.size();
     }
     listeners.add(index, listener);
   }
-  
-  public synchronized final void removeListener(E listener) {
+
+  public synchronized final void removeListener(final E listener) {
     listeners.remove(listener);
   }
 
   public final ArrayList<E> getListeners() {
       return listeners;
-  }  
+  }
 }

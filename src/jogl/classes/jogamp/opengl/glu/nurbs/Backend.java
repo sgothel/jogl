@@ -67,7 +67,7 @@ public abstract class Backend {
   protected SurfaceEvaluator surfaceEvaluator;
 
   /**
-   * Makes new backend 
+   * Makes new backend
    */
   public Backend() {
     // curveEvaluator = new OpenGLCurveEvaluator();
@@ -101,8 +101,8 @@ public abstract class Backend {
    * @param ulo smallest u
    * @param uhi highest u
    */
-  public void curvpts(int type, CArrayOfFloats ps, int stride, int order,
-                      float ulo, float uhi) {
+  public void curvpts(final int type, final CArrayOfFloats ps, final int stride, final int order,
+                      final float ulo, final float uhi) {
     // DONE
     curveEvaluator.map1f(type, ulo, uhi, stride, order, ps);
     curveEvaluator.enable(type);
@@ -114,7 +114,7 @@ public abstract class Backend {
    * @param u2 highest u
    * @param nu number of pieces
    */
-  public void curvgrid(float u1, float u2, int nu) {
+  public void curvgrid(final float u1, final float u2, final int nu) {
     // DONE
     curveEvaluator.mapgrid1f(nu, u1, u2);
 
@@ -125,7 +125,7 @@ public abstract class Backend {
    * @param from low param
    * @param n step
    */
-  public void curvmesh(int from, int n) {
+  public void curvmesh(final int from, final int n) {
     // DONE
     curveEvaluator.mapmesh1f(N_MESHFILL, from, from + n);
   }
@@ -135,7 +135,7 @@ public abstract class Backend {
    * @param wiretris use triangles
    * @param wirequads use quads
    */
-  public void bgnsurf(int wiretris, int wirequads) {
+  public void bgnsurf(final int wiretris, final int wirequads) {
     // DONE
     surfaceEvaluator.bgnmap2f();
 
@@ -160,7 +160,7 @@ public abstract class Backend {
    * @param vlo low v param
    * @param vhi high v param
    */
-  public void patch(float ulo, float uhi, float vlo, float vhi) {
+  public void patch(final float ulo, final float uhi, final float vlo, final float vhi) {
     // DONE
     surfaceEvaluator.domain2f(ulo, uhi, vlo, vhi);
   }
@@ -174,7 +174,7 @@ public abstract class Backend {
    * @param v1 highest v
    * @param nv number of pieces in v direction
    */
-  public void surfgrid(float u0, float u1, int nu, float v0, float v1, int nv) {
+  public void surfgrid(final float u0, final float u1, final int nu, final float v0, final float v1, final int nv) {
     // DONE
     surfaceEvaluator.mapgrid2f(nu, u0, u1, nv, v0, v1);
 
@@ -187,7 +187,7 @@ public abstract class Backend {
    * @param n step in u direction
    * @param m step in v direction
    */
-  public void surfmesh(int u, int v, int n, int m) {
+  public void surfmesh(final int u, final int v, final int n, final int m) {
     //            System.out.println("TODO backend.surfmesh wireframequads");
     // TODO wireframequads
     surfaceEvaluator.mapmesh2f(NurbsConsts.N_MESHFILL, u, u + n, v, v + m);
@@ -206,8 +206,8 @@ public abstract class Backend {
    * @param vlo lowest v
    * @param vhi hightest v
    */
-  public void surfpts(int type, CArrayOfFloats pts, int ustride, int vstride,
-                      int uorder, int vorder, float ulo, float uhi, float vlo, float vhi) {
+  public void surfpts(final int type, final CArrayOfFloats pts, final int ustride, final int vstride,
+                      final int uorder, final int vorder, final float ulo, final float uhi, final float vlo, final float vhi) {
     // DONE
     surfaceEvaluator.map2f(type, ulo, uhi, ustride, uorder, vlo, vhi,
                            vstride, vorder, pts);

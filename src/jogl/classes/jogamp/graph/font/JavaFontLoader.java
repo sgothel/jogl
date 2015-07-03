@@ -27,12 +27,15 @@
  */
 package jogamp.graph.font;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.opengl.GLException;
+import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.font.Font;
@@ -40,13 +43,16 @@ import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
 
 public class JavaFontLoader implements FontSet {
-    
-    final static FontSet fontLoader = new JavaFontLoader();
+
+    // FIXME: Add cache size to limit memory usage
+    private static final IntObjectHashMap fontMap = new IntObjectHashMap();
+
+    private static final FontSet fontLoader = new JavaFontLoader();
 
     public static FontSet get() {
         return fontLoader;
     }
-    
+
     final static String availableFontFileNames[] =
     {
         /* 00 */ "LucidaBrightRegular.ttf",
@@ -58,11 +64,12 @@ public class JavaFontLoader implements FontSet {
         /* 06 */ "LucidaTypewriterRegular.ttf",
         /* 07 */ "LucidaTypewriterBold.ttf",
     };
-        
+
     final String javaFontPath;
-    
+
     private JavaFontLoader() {
         final String javaHome = AccessController.doPrivileged(new PrivilegedAction<String>() {
+            @Override
             public String run() {
                 return System.getProperty("java.home");
             }
@@ -74,26 +81,28 @@ public class JavaFontLoader implements FontSet {
         }
     }
 
-    // FIXME: Add cache size to limit memory usage 
-    static final IntObjectHashMap fontMap = new IntObjectHashMap();
-    
-    static boolean is(int bits, int bit) {
+    static boolean is(final int bits, final int bit) {
         return 0 != ( bits & bit ) ;
     }
-    
+
+    @Override
     public Font getDefault() throws IOException {
-        return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
+        return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular
     }
-    
-    public Font get(int family, int style) throws IOException {
+
+    @Override
+    public Font get(final int family, final int style) throws IOException {
+        if(null == javaFontPath) {
+            throw new GLException("java font path undefined");
+        }
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
         }
 
         // 1st process Sans Serif (2 fonts)
-        if( is(style, STYLE_SERIF) ) {                
-            if( is(style, STYLE_BOLD) ) {                
+        if( is(style, STYLE_SERIF) ) {
+            if( is(style, STYLE_BOLD) ) {
                 font = abspath(availableFontFileNames[5], family, style);
             } else {
                 font = abspath(availableFontFileNames[4], family, style);
@@ -103,53 +112,74 @@ public class JavaFontLoader implements FontSet {
             }
             return font;
         }
-        
+
         // Serif Fonts ..
         switch (family) {
             case FAMILY_LIGHT:
             case FAMILY_MEDIUM:
             case FAMILY_CONDENSED:
             case FAMILY_REGULAR:
-                if( is(style, STYLE_BOLD) ) {                
-                    if( is(style, STYLE_ITALIC) ) {                
+                if( is(style, STYLE_BOLD) ) {
+                    if( is(style, STYLE_ITALIC) ) {
                         font = abspath(availableFontFileNames[3], family, style);
                     } else {
                         font = abspath(availableFontFileNames[2], family, style);
                     }
-                } else if( is(style, STYLE_ITALIC) ) {                
+                } else if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[1], family, style);
                 } else {
                     font = abspath(availableFontFileNames[0], family, style);
                 }
                 break;
-                
+
             case FAMILY_MONOSPACED:
-                if( is(style, STYLE_BOLD) ) {                
+                if( is(style, STYLE_BOLD) ) {
                     font = abspath(availableFontFileNames[7], family, style);
                 } else {
                     font = abspath(availableFontFileNames[6], family, style);
                 }
-                break;                
+                break;
         }
 
         return font;
     }
-    
-    Font abspath(String fname, int family, int style) throws IOException {
-        if(null == javaFontPath) {
-            throw new GLException("java font path undefined");
-        }
-        final String err = "Problem loading font "+fname+", file "+javaFontPath+fname ;
-                
+
+    Font abspath(final String fname, final int family, final int style) throws IOException {
         try {
-            final Font f = FontFactory.get( new File(javaFontPath+fname) );
+            final Font f = abspathImpl(javaFontPath+fname, family, style);
+            if(null != f) {
+                return f;
+            }
+            throw new IOException (String.format("Problem loading font %s, file %s%s", fname, javaFontPath, fname));
+        } catch (final IOException ioe) {
+            throw new IOException(String.format("Problem loading font %s, file %s%s", fname, javaFontPath, fname), ioe);
+        }
+    }
+    private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
+        final Exception[] privErr = { null };
+        final int[] streamLen = { 0 };
+        final InputStream stream = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+            @Override
+            public InputStream run() {
+                try {
+                    final File file = new File(fname);
+                    streamLen[0] = (int) file.length();
+                    return new BufferedInputStream(new FileInputStream(file), streamLen[0]);
+                } catch (final Exception e) {
+                    privErr[0] = e;
+                    return null;
+                }
+            } } );
+        if( null != privErr[0] ) {
+            throw new IOException(privErr[0]);
+        }
+        if(null != stream) {
+            final Font f= FontFactory.get ( stream, streamLen[0], true ) ;
             if(null != f) {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;
             }
-            throw new IOException (err);            
-        } catch (IOException ioe) {
-            throw new IOException(err, ioe);            
         }
-    }    
+        return null;
+    }
 }

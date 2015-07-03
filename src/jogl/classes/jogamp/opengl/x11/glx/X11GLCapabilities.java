@@ -28,68 +28,43 @@
 
 package jogamp.opengl.x11.glx;
 
-import jogamp.nativewindow.NativeVisualID;
 import jogamp.nativewindow.x11.XVisualInfo;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
-import java.util.Comparator;
 
-public class X11GLCapabilities extends GLCapabilities implements NativeVisualID {
-  final XVisualInfo xVisualInfo; // maybe null if !onscreen
-  final long fbcfg;
-  final int  fbcfgid;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
-  /** Comparing xvisual id only */
-  public static class XVisualIDComparator implements Comparator {
+public class X11GLCapabilities extends GLCapabilities {
+  final private XVisualInfo xVisualInfo; // maybe null if !onscreen
+  final private long fbcfg;
+  final private int  fbcfgid;
 
-      public int compare(Object o1, Object o2) {
-        if ( ! ( o1 instanceof X11GLCapabilities ) ) {
-            Class<?> c = (null != o1) ? o1.getClass() : null ;
-            throw new ClassCastException("arg1 not a X11GLCapabilities object: " + c);
-        }
-        if ( ! ( o2 instanceof X11GLCapabilities ) ) {
-            Class<?> c = (null != o2) ? o2.getClass() : null ;
-            throw new ClassCastException("arg2 not a X11GLCapabilities object: " + c);
-        }
-
-        final X11GLCapabilities caps1 = (X11GLCapabilities) o1;
-        final int id1 = caps1.getXVisualID();
-
-        final X11GLCapabilities caps2 = (X11GLCapabilities) o2;
-        final int id2 = caps2.getXVisualID();
-
-        if(id1 > id2) {
-            return 1;
-        } else if(id1 < id2) {
-            return -1;
-        }
-        return 0;
-      }
-  }
-
-  public X11GLCapabilities(XVisualInfo xVisualInfo, long fbcfg, int fbcfgid, GLProfile glp) {
+  public X11GLCapabilities(final XVisualInfo xVisualInfo, final long fbcfg, final int fbcfgid, final GLProfile glp) {
       super(glp);
       this.xVisualInfo = xVisualInfo;
       this.fbcfg = fbcfg;
       this.fbcfgid = fbcfgid;
   }
 
-  public X11GLCapabilities(XVisualInfo xVisualInfo, GLProfile glp) {
+  public X11GLCapabilities(final XVisualInfo xVisualInfo, final GLProfile glp) {
       super(glp);
       this.xVisualInfo = xVisualInfo;
       this.fbcfg = 0;
-      this.fbcfgid = -1;
+      this.fbcfgid = VisualIDHolder.VID_UNDEFINED;
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new GLException(e);
     }
   }
@@ -100,29 +75,28 @@ public class X11GLCapabilities extends GLCapabilities implements NativeVisualID 
 
   final public long getFBConfig() { return fbcfg; }
   final public int getFBConfigID() { return fbcfgid; }
-  final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid>0; }
+  final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid!=VisualIDHolder.VID_UNDEFINED; }
 
-  final public int getVisualID(NVIDType type) {
+  @Override
+  final public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
-          case GEN_ID:
-          case NATIVE_ID:
-              // fall through intended
-          case X11_XVisualID:
+          case INTRINSIC:
+          case NATIVE:
+          case X11_XVISUAL:
               return getXVisualID();
-          case X11_FBConfigID:
+          case X11_FBCONFIG:
               return getFBConfigID();
           default:
-              throw new IllegalArgumentException("Invalid type <"+type+">");
-      }      
+              throw new NativeWindowException("Invalid type <"+type+">");
+      }
   }
-  
-  final static String na_str = "----" ;
 
-  public StringBuffer toString(StringBuffer sink) {
+  @Override
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
-    sink.append("x11 vid ");
+    sink.append("glx vid ");
     if(hasXVisualInfo()) {
         sink.append("0x").append(Long.toHexString(xVisualInfo.getVisualid()));
     } else {

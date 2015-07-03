@@ -1,13 +1,18 @@
 #define GLAPI
 
-// Define GL_GLEXT_PROTOTYPES so that the OpenGL extension prototypes in
-// "glext.h" are parsed.
-#define GL_GLEXT_PROTOTYPES
+#include <GL/gl-platform.h>
 
-#include <GL/gl.h>
+// Define GL_GLEXT_PROTOTYPES so that the OpenGL GLX extension prototypes in
+// "glx.h" are parsed.
+// #define GL_GLEXT_PROTOTYPES
+// #include <GL/gl.h>
+// #include <GL/glext-supplement.h>
+// #include <GL/glext.h>
+#include <gl-types.h>
+
 
 // Bring in the wgl extensions
 #define WGL_WGLEXT_PROTOTYPES
-#define SKIP_WGL_HANDLE_DEFINITIONS
 #include <windows.h>
+#include <wingdi_types.h>
 #include <GL/wglext.h>

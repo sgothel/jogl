@@ -59,32 +59,32 @@ public class Curve {
   /**
    * OpenGL maps
    */
-  private Mapdesc mapdesc;
+  private final Mapdesc mapdesc;
 
   /**
    * Does the curve need sampling
    */
-  private boolean needsSampling;
+  private final boolean needsSampling;
 
   /**
    * Culling
    */
-  private int cullval;
+  private final int cullval;
 
   /**
    * Number of coords
    */
-  private int stride;
+  private final int stride;
 
   /**
    * Curve order
    */
-  private int order;
+  private final int order;
 
   /**
    * Holds conversion range borders
    */
-  private float[] range;
+  private final float[] range;
 
   /**
    * Subdivision stepsize
@@ -103,14 +103,14 @@ public class Curve {
 
   /**
    * Makes new Curve
-   * 
+   *
    * @param geo
    * @param pta
    * @param ptb
    * @param c
    *            next curve in linked list
    */
-  public Curve(Quilt geo, float[] pta, float[] ptb, Curve c) {
+  public Curve(final Quilt geo, final float[] pta, final float[] ptb, final Curve c) {
 
     spts = new float[MAXORDER * MAXCOORDS];
 
@@ -125,8 +125,8 @@ public class Curve {
     stride = MAXCOORDS;
 
     // CArrayOfFloats ps = geo.cpts;
-    CArrayOfFloats ps = new CArrayOfFloats(geo.cpts.getArray(), 0);
-    CArrayOfQuiltspecs qs = geo.qspec;
+    final CArrayOfFloats ps = new CArrayOfFloats(geo.cpts.getArray(), 0);
+    final CArrayOfQuiltspecs qs = geo.qspec;
     ps.raisePointerBy(qs.get().offset);
     ps.raisePointerBy(qs.get().index * qs.get().order * qs.get().stride);
 
@@ -143,7 +143,7 @@ public class Curve {
     range[0] = qs.get().breakpoints[qs.get().index];
     range[1] = qs.get().breakpoints[qs.get().index + 1];
     range[2] = range[1] - range[0];
-    // TODO it is necessary to solve problem with "this" pointer here 
+    // TODO it is necessary to solve problem with "this" pointer here
     if (range[0] != pta[0]) {
       //                System.out.println("TODO curve.Curve-range0");
       // Curve lower=new Curve(this,pta,0);
@@ -182,27 +182,31 @@ public class Curve {
     } else {
       assert (order <= MAXORDER);
 
-      float tmp[][] = new float[MAXORDER][MAXCOORDS];
+      setstepsize(mapdesc.maxrate);
 
-      int tstride = (MAXORDER);
+      /***
+          final float tmp[][] = new float[MAXORDER][MAXCOORDS];
 
-      int val = 0;
-      // mapdesc.project(spts,stride,tmp,tstride,order);
+          final int tstride = (MAXORDER);
 
-      //                System.out.println("TODO curve.getsptepsize mapdesc.project");
+          final int val = 0;
+          // mapdesc.project(spts,stride,tmp,tstride,order);
 
-      if (val == 0) {
-        setstepsize(mapdesc.maxrate);
-      } else {
-        float t = mapdesc.getProperty(NurbsConsts.N_PIXEL_TOLERANCE);
-        if (mapdesc.isParametricDistanceSampling()) {
-          //                        System.out.println("TODO curve.getstepsize - parametric");
-        } else if (mapdesc.isPathLengthSampling()) {
-          //                        System.out.println("TODO curve.getstepsize - pathlength");
-        } else {
-          setstepsize(mapdesc.maxrate);
-        }
-      }
+          //                System.out.println("TODO curve.getsptepsize mapdesc.project");
+
+          if (val == 0) {
+            setstepsize(mapdesc.maxrate);
+          } else {
+            final float t = mapdesc.getProperty(NurbsConsts.N_PIXEL_TOLERANCE);
+            if (mapdesc.isParametricDistanceSampling()) {
+              //                        System.out.println("TODO curve.getstepsize - parametric");
+            } else if (mapdesc.isPathLengthSampling()) {
+              //                        System.out.println("TODO curve.getstepsize - pathlength");
+            } else {
+              setstepsize(mapdesc.maxrate);
+            }
+          }
+      */
 
     }
 
@@ -212,7 +216,7 @@ public class Curve {
    * Sets maximum subdivision step size
    * @param max maximum subdivision step size
    */
-  private void setstepsize(float max) {
+  private void setstepsize(final float max) {
     // DONE
     stepsize = (max >= 1) ? (range[2] / max) : range[2];
     minstepsize = stepsize;
@@ -229,7 +233,7 @@ public class Curve {
 
   /**
    * Tells whether curve needs subdivision
-   * 
+   *
    * @return curve needs subdivison
    */
   public boolean needsSamplingSubdivision() {

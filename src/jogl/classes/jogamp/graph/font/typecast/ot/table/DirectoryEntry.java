@@ -59,22 +59,23 @@ import java.io.IOException;
  */
 public class DirectoryEntry implements Cloneable {
 
-    private int _tag;
-    private int _checksum;
-    private int _offset;
-    private int _length;
+    private final int _tag;
+    private final int _checksum;
+    private final int _offset;
+    private final int _length;
 
-    protected DirectoryEntry(DataInput di) throws IOException {
+    protected DirectoryEntry(final DataInput di) throws IOException {
         _tag = di.readInt();
         _checksum = di.readInt();
         _offset = di.readInt();
         _length = di.readInt();
     }
-    
+
+    @Override
     public Object clone() {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             return null;
         }
     }
@@ -96,16 +97,17 @@ public class DirectoryEntry implements Cloneable {
     }
 
     public String getTagAsString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append((char)((_tag>>24)&0xff))
             .append((char)((_tag>>16)&0xff))
             .append((char)((_tag>>8)&0xff))
             .append((char)((_tag)&0xff))
             .toString();
     }
-    
+
+    @Override
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'").append(getTagAsString())
             .append("' - chksm = 0x").append(Integer.toHexString(_checksum))
             .append(", off = 0x").append(Integer.toHexString(_offset))

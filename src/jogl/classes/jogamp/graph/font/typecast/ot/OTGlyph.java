@@ -56,7 +56,7 @@ import jogamp.graph.font.typecast.ot.table.GlyfDescript;
 import jogamp.graph.font.typecast.ot.table.GlyphDescription;
 import jogamp.graph.font.typecast.t2.T2Interpreter;
 
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.opengl.math.geom.AABBox;
 
 
 
@@ -65,10 +65,10 @@ import com.jogamp.graph.geom.AABBox;
  * @version $Id: Glyph.java,v 1.3 2007-02-21 12:23:54 davidsch Exp $
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>, Sven Gothel
  */
-public class OTGlyph {
+public final class OTGlyph {
 
-    protected short _leftSideBearing;
-    protected int _advanceWidth;
+    private final short _leftSideBearing;
+    private final int _advanceWidth;
     private Point[] _points;
     AABBox _bbox;
 
@@ -79,7 +79,7 @@ public class OTGlyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public OTGlyph(GlyphDescription gd, short lsb, int advance) {
+    public OTGlyph(final GlyphDescription gd, final short lsb, final int advance) {
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         describe(gd);
@@ -91,47 +91,44 @@ public class OTGlyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public OTGlyph(Charstring cs, short lsb, int advance) {
+    public OTGlyph(final Charstring cs, final short lsb, final int advance) {
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         if (cs instanceof CharstringType2) {
-            T2Interpreter t2i = new T2Interpreter();
+            final T2Interpreter t2i = new T2Interpreter();
             _points = t2i.execute((CharstringType2) cs);
         } else {
             //throw unsupported charstring type
         }
     }
 
-    public AABBox getBBox() { 
-        return _bbox; 
+    public final void clearPointData() {
+        _points = null;
     }
-    
-    public int getAdvanceWidth() {
+
+    public final AABBox getBBox() {
+        return _bbox;
+    }
+
+    public final int getAdvanceWidth() {
         return _advanceWidth;
     }
 
-    public short getLeftSideBearing() {
+    public final short getLeftSideBearing() {
         return _leftSideBearing;
     }
 
-    public Point getPoint(int i) {
+    public final Point getPoint(final int i) {
         return _points[i];
     }
 
-    public int getPointCount() {
-        return _points.length;
-    }
-
-    /**
-     * Resets the glyph to the TrueType table settings
-     */
-    public void reset() {
+    public final int getPointCount() {
+        return null != _points ? _points.length : 0;
     }
 
     /**
      * @param factor a 16.16 fixed value
-     */
-    public void scale(int factor) {
+    public void scale(final int factor) {
         for (int i = 0; i < _points.length; i++) {
             //points[i].x = ( points[i].x * factor ) >> 6;
             //points[i].y = ( points[i].y * factor ) >> 6;
@@ -141,15 +138,16 @@ public class OTGlyph {
         _leftSideBearing = (short)(( _leftSideBearing * factor) >> 6);
         _advanceWidth = (_advanceWidth * factor) >> 6;
     }
+     */
 
     /**
      * Set the points of a glyph from the GlyphDescription
      */
-    private void describe(GlyphDescription gd) {
+    private final void describe(final GlyphDescription gd) {
         int endPtIndex = 0;
         _points = new Point[gd.getPointCount() /* + 2 */ ];
         for (int i = 0; i < gd.getPointCount(); i++) {
-            boolean endPt = gd.getEndPtOfContours(endPtIndex) == i;
+            final boolean endPt = gd.getEndPtOfContours(endPtIndex) == i;
             if (endPt) {
                 endPtIndex++;
             }
@@ -163,7 +161,7 @@ public class OTGlyph {
         // Append the origin and advanceWidth points (n & n+1)
         // _points[gd.getPointCount()] = new Point(0, 0, true, true);
         // _points[gd.getPointCount()+1] = new Point(_advanceWidth, 0, true, true);
-        
+
         _bbox = new AABBox(gd.getXMinimum(), gd.getYMinimum(), 0, gd.getXMaximum(), gd.getYMaximum(), 0);
     }
 }

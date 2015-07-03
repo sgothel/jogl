@@ -33,12 +33,26 @@
 #ifndef _SCREEN_MODE_H
 #define _SCREEN_MODE_H
 
-#define NUM_RESOLUTION_PROPERTIES   2   /* width, height */
-#define NUM_SURFACE_SIZE_PROPERTIES 1   /* bpp */
-#define NUM_MONITOR_MODE_PROPERTIES 3   /* ScreenSizeMM[width, height], refresh-rate */
-#define NUM_SCREEN_MODE_PROPERTIES  1   /* rotation */
+#define NUM_RESOLUTION_PROPERTIES     2   /* width, height */
+#define NUM_SURFACE_SIZE_PROPERTIES   1   /* bpp */
+#define NUM_SIZEANDRATE_PROPERTIES    2   /* refresh-rate, flags */
+#define NUM_MONITOR_MODE_PROPERTIES   2   /* id, rotation */
 
-#define NUM_SCREEN_MODE_PROPERTIES_ALL  8   /* count + the above */
+#define NUM_MONITOR_MODE_PROPERTIES_ALL  8  /* count + the above */
+
+#define MIN_MONITOR_DEVICE_PROPERTIES 17   /* count + id + isClone + isPrimary, 
+                                              ScreenSizeMM[width, height], 
+                                              rotated Viewport pixel-units, 
+                                              rotated Viewport pixel-units, 
+                                              currentMonitorModeId, 
+                                              rotation, 
+                                              supportedModeId+
+                                              
+                                              with Viewport := [x, y, width, height] (4 elements) 
+                                            */
+
+#define FLAG_INTERLACE      ( 1 << 0 )
+#define FLAG_DOUBLESCAN     ( 1 << 1 )
 
 #endif
 

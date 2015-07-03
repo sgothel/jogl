@@ -59,15 +59,15 @@ import java.io.IOException;
  */
 public class HmtxTable implements Table {
 
-    private DirectoryEntry _de;
+    private final DirectoryEntry _de;
     private int[] _hMetrics = null;
     private short[] _leftSideBearing = null;
 
     protected HmtxTable(
-            DirectoryEntry de,
-            DataInput di,
-            HheaTable hhea,
-            MaxpTable maxp) throws IOException {
+            final DirectoryEntry de,
+            final DataInput di,
+            final HheaTable hhea,
+            final MaxpTable maxp) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _hMetrics = new int[hhea.getNumberOfHMetrics()];
         for (int i = 0; i < hhea.getNumberOfHMetrics(); ++i) {
@@ -77,14 +77,14 @@ public class HmtxTable implements Table {
                     | di.readUnsignedByte()<<8
                     | di.readUnsignedByte();
         }
-        int lsbCount = maxp.getNumGlyphs() - hhea.getNumberOfHMetrics();
+        final int lsbCount = maxp.getNumGlyphs() - hhea.getNumberOfHMetrics();
         _leftSideBearing = new short[lsbCount];
         for (int i = 0; i < lsbCount; ++i) {
             _leftSideBearing[i] = di.readShort();
         }
     }
 
-    public int getAdvanceWidth(int i) {
+    public int getAdvanceWidth(final int i) {
         if (_hMetrics == null) {
             return 0;
         }
@@ -95,7 +95,7 @@ public class HmtxTable implements Table {
         }
     }
 
-    public short getLeftSideBearing(int i) {
+    public short getLeftSideBearing(final int i) {
         if (_hMetrics == null) {
             return 0;
         }
@@ -106,12 +106,14 @@ public class HmtxTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return hmtx;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'hmtx' Table - Horizontal Metrics\n---------------------------------\n");
         sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
             .append(_hMetrics.length).append(" entries\n");
@@ -135,6 +137,7 @@ public class HmtxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

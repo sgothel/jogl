@@ -28,55 +28,43 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLException;
 
-import com.jogamp.opengl.util.*;
+import com.jogamp.opengl.util.GLArrayDataEditable;
 
-import java.nio.*;
 
 /**
- * Used for pure VBO data arrays, i.e. where the buffer data 
- * does not represents a specific array name. 
+ * Used for pure VBO data arrays, i.e. where the buffer data
+ * does not represents a specific array name.
  */
-public class GLDataArrayHandler implements GLArrayHandler {
-  private GLArrayDataEditable ad;
+public class GLDataArrayHandler extends GLVBOArrayHandler {
 
-  public GLDataArrayHandler(GLArrayDataEditable ad) {
-    this.ad = ad;
+  public GLDataArrayHandler(final GLArrayDataEditable ad) {
+    super(ad);
   }
 
-  public final void setSubArrayVBOName(int vboName) {
+  @Override
+  public final void setSubArrayVBOName(final int vboName) {
       throw new UnsupportedOperationException();
   }
-  
-  public final void addSubHandler(GLArrayHandlerFlat handler) {
+
+  @Override
+  public final void addSubHandler(final GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
-  
-  public final void syncData(GL gl, boolean enable, Object ext) {
-    if(!ad.isVBO()) {
-        // makes no sense otherwise
-        throw new GLException("GLDataArrayHandler can only handle VBOs.");
-    }
+
+  @Override
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     if(enable) {
-        Buffer buffer = ad.getBuffer();
-
-        // always bind and refresh the VBO mgr, 
-        // in case more than one gl*Pointer objects are in use
-        gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-        if(!ad.isVBOWritten()) {
-            if(null!=buffer) {
-                gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
-            }
-            ad.setVBOWritten(true);
+        if(!ad.isVBO()) {
+            // makes no sense otherwise
+            throw new GLException("GLDataArrayHandler can only handle VBOs.");
         }
-    } else {
-        gl.glBindBuffer(ad.getVBOTarget(), 0);
-    }      
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) { 
-      // no array association
+        bindBuffer(gl, true);
+        bindBuffer(gl, false);
+    }
+    // no array association
   }
 }
 

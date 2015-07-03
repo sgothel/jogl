@@ -36,7 +36,7 @@ Consider the classic demo code
     <a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/GearsES2.java;hb=HEAD">GearsES2.java</a>
     [<a href="http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/demos/es2/GearsES2.java;h=d92d98894acc4cfe42e77ec316858d16d202b5b8;hb=HEAD">v2.0-rc3</a>],
 which implements a
-<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLEventListener.html">GLEventEventListener</a>.</p>
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLEventListener.html">GLEventEventListener</a>.</p>
 
 <p>
 The simple application
@@ -45,7 +45,7 @@ The simple application
 creates a NEWT 
 <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/opengl/GLWindow.html">GLWindow</a>,
 which implements a
-<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLAutoDrawable.html">GLAutoDrawable</a>
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLAutoDrawable.html">GLAutoDrawable</a>
 and hence is able to add the demo code.
 NEWT&#8217;s GLWindow also implements the NEWT <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/Window.html">Window</a>,
 which gives you full control of the native windowing, as shown in the demo.</p>
@@ -102,7 +102,7 @@ shows the same example using Swing.<br/>
 Last but not least, the above mechanism can be used to show NEWT Window&#8217;s in an AWT Applet.<br/>
 <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/newt/awt/applet/JOGLNewtApplet1Run.html">JOGLNewtApplet1Run</a>
 is an Applet launcher for any
-<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLEventListener.html">GLEventEventListener</a>
+<a href="/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLEventListener.html">GLEventEventListener</a>
 exposing a default constructor.
 See it <a href="/deployment/jogamp-next/jogl-test-applets.html"><i>alive</i> here</a>.
 </p>
@@ -112,6 +112,62 @@ See it <a href="/deployment/jogamp-next/jogl-test-applets.html"><i>alive</i> her
     <a href="">TestParenting01cSwingAWT.java</a>
     [<a href="">v2.0-rc3</a>]
 -->
+
+<h4>Native Window Reparenting Details</h4>
+
+NEWT's reparenting algorithm only issues a <i>destroy</i> if:
+<ul>
+  <li>Becomes CHILD-Window
+  <ul>
+    <li>new parent window is not realized yet, 
+      i.e. parent's window handle is null</li>
+
+    <li>forceRecreate</li>
+
+    <li>moving to a new incompatible screen/device</li>
+  </ul></li>
+
+  <li>Becomes TOP-Level-Window
+  <ul> 
+    <li>forceRecreate</li>
+  </ul></li>
+
+  <li>reparenting failed</li>
+</ul>
+
+In case <i>destroy</i> is issued, recreation will follow
+as soon as the new parent window handle becomes available
+or the instant if becoming a top-level window.
+
+<p>
+In case <i>destroy</i> must be issued, the hint <i>REPARENT_HINT_BECOMES_VISIBLE</i>
+will preserve the GLState at destroy, see below.
+</p>
+
+<p>
+To avoid <i>destroy</i> <b>and</b> the GLState preservation,
+the NEWT window shall simply be reparented before 
+parent's destruction. This is true for 'window hopping' 
+as well as child->top transition.
+
+See TestParenting04AWT for example ..
+</p>
+
+
+<h5>Using GLState Preservation</h5>
+
+A preserved GLState will be recovered when the resource gets recreated,
+e.g. the parent window becomes visible again.
+This mechanism exists to sooth the <i>destroy</i> case.
+
+See: GLStateKeeper, GLEventListenerState
+
+Regularly Used in the following use cases:
+<ul>
+  <li>OSX CALayer/Top-Level NEWT reparenting</li>
+  <li>Android GLState preservation: 'Home Button', 'Rotation' ..</li>
+</ul>
+
 
 <h4>How to pass user input back to the rendering loop ?</h4>
 

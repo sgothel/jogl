@@ -28,98 +28,88 @@
 
 package jogamp.opengl.egl;
 
-import java.util.Comparator;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
-import jogamp.nativewindow.NativeVisualID;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
-public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID {
-  final long eglcfg;
-  final int  eglcfgid;
-  final int renderableType;  
-  int nativeVisualID;
-  
-  /** Comparing EGLConfig ID only */
-  public static class EglCfgIDComparator implements Comparator<EGLGLCapabilities> {
 
-      public int compare(EGLGLCapabilities caps1, EGLGLCapabilities caps2) {
-        final long id1 = caps1.getEGLConfigID();
-
-        final long id2 = caps2.getEGLConfigID();
-
-        if(id1 > id2) {
-            return 1;
-        } else if(id1 < id2) {
-            return -1;
-        }
-        return 0;
-      }
-  }
+public class EGLGLCapabilities extends GLCapabilities {
+  private long eglcfg;
+  final private int  eglcfgid;
+  final private int  renderableType;
+  final private int  nativeVisualID;
 
   /**
-   * 
+   *
    * @param eglcfg
    * @param eglcfgid
-   * @param glp desired GLProfile, or null if determined by renderableType
+   * @param visualID native visualID if valid, otherwise VisualIDHolder.VID_UNDEFINED
+   * @param glp desired GLProfile
    * @param renderableType actual EGL renderableType
-   * 
+   *
    * May throw GLException if given GLProfile is not compatible w/ renderableType
    */
-  public EGLGLCapabilities(long eglcfg, int eglcfgid, GLProfile glp, int renderableType) {
-      super( ( null != glp ) ? glp : getCompatible(renderableType) );
+  public EGLGLCapabilities(final long eglcfg, final int eglcfgid, final int visualID, final GLProfile glp, final int renderableType) {
+      super( glp );
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
       if(!isCompatible(glp, renderableType)) {
-          throw new GLException("Incompatible "+glp+
-                                " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
+          throw new GLException("Requested GLProfile "+glp+
+                                " not compatible with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
       }
       this.renderableType = renderableType;
-      this.nativeVisualID = -1;
+      this.nativeVisualID = visualID;
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
-    } catch (RuntimeException e) {
+    } catch (final RuntimeException e) {
       throw new GLException(e);
     }
   }
 
+  final protected void setEGLConfig(final long v) { eglcfg=v; }
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
-  final public void setNativeVisualID(int vid) { nativeVisualID=vid; }
   final public int getNativeVisualID() { return nativeVisualID; }
-  
-  final public int getVisualID(NVIDType type) {
+
+  @Override
+  final public int getVisualID(final VIDType type) throws NativeWindowException {
       switch(type) {
-          case GEN_ID:
-              // fall through intended
-          case EGL_ConfigID:
+          case INTRINSIC:
+          case EGL_CONFIG:
               return getEGLConfigID();
-          case NATIVE_ID:
-              // fall through intended
-          case EGL_NativeVisualID:
+          case NATIVE:
               return getNativeVisualID();
           default:
-              throw new IllegalArgumentException("Invalid type <"+type+">");
-      }      
+              throw new NativeWindowException("Invalid type <"+type+">");
+      }
   }
-  
-  public static boolean isCompatible(GLProfile glp, int renderableType) {
+
+  public static boolean isCompatible(final GLProfile glp, final int renderableType) {
     if(null == glp) {
         return true;
     }
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && glp.usesNativeGLES3()) {
         return true;
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && glp.usesNativeGLES2()) {
+        return true;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
         return true;
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT) && !glp.usesNativeGLES()) {
@@ -128,24 +118,28 @@ public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID 
     return false;
   }
 
-  public static GLProfile getCompatible(int renderableType) {
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(GLProfile.GLES2)) {
-        return GLProfile.get(GLProfile.GLES2);
+  public static GLProfile getCompatible(final EGLGraphicsDevice device, final int renderableType) {
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && GLProfile.isAvailable(device, GLProfile.GLES3)) {
+        return GLProfile.get(device, GLProfile.GLES3);
     }
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(GLProfile.GLES1)) {
-        return GLProfile.get(GLProfile.GLES1);
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(device, GLProfile.GLES2)) {
+        return GLProfile.get(device, GLProfile.GLES2);
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(device, GLProfile.GLES1)) {
+        return GLProfile.get(device, GLProfile.GLES1);
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
-        return GLProfile.getDefault();
+        return GLProfile.getDefault(device);
     }
     return null;
   }
-  
-  public static StringBuffer renderableTypeToString(StringBuffer sink, int renderableType) {
+
+  public static StringBuilder renderableTypeToString(StringBuilder sink, final int renderableType) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     boolean first=true;
+    sink.append("0x").append(Integer.toHexString(renderableType)).append(": ");
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
         sink.append("GL"); first=false;
     }
@@ -155,15 +149,19 @@ public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID 
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT)) {
         if(!first) sink.append(", "); sink.append("GLES2");  first=false;
     }
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR)) {
+        if(!first) sink.append(", "); sink.append("GLES3");  first=false;
+    }
     if(0 != (renderableType & EGL.EGL_OPENVG_API)) {
         if(!first) sink.append(", "); sink.append("VG");  first=false;
     }
-    return sink;      
+    return sink;
   }
-  
-  public StringBuffer toString(StringBuffer sink) {
+
+  @Override
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     sink.append("egl cfg 0x").append(Integer.toHexString(eglcfgid));
     sink.append(", vid 0x").append(Integer.toHexString(nativeVisualID)).append(": ");

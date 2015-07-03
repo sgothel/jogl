@@ -60,16 +60,16 @@ import java.io.IOException;
  */
 public class LigatureSubstFormat1 extends LigatureSubst {
 
-    private int _coverageOffset;
-    private int _ligSetCount;
-    private int[] _ligatureSetOffsets;
-    private Coverage _coverage;
-    private LigatureSet[] _ligatureSets;
+    private final int _coverageOffset;
+    private final int _ligSetCount;
+    private final int[] _ligatureSetOffsets;
+    private final Coverage _coverage;
+    private final LigatureSet[] _ligatureSets;
 
     /** Creates new LigatureSubstFormat1 */
     protected LigatureSubstFormat1(
-            DataInputStream dis,
-            int offset) throws IOException {
+            final DataInputStream dis,
+            final int offset) throws IOException {
         _coverageOffset = dis.readUnsignedShort();
         _ligSetCount = dis.readUnsignedShort();
         _ligatureSetOffsets = new int[_ligSetCount];
@@ -89,7 +89,8 @@ public class LigatureSubstFormat1 extends LigatureSubst {
         return 1;
     }
 
+    @Override
     public String getTypeAsString() {
         return "LigatureSubstFormat1";
-    }    
+    }
 }

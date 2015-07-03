@@ -6,15 +6,15 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
  * CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
  * PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- * 
+ *
  * NOTE:  The Original Code (as defined below) has been licensed to Sun
  * Microsystems, Inc. ("Sun") under the SGI Free Software License B
  * (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -129,7 +129,7 @@ public class PixelStorageModes {
    * Holds value of property unpackImageHeight.
    */
   private int unpackImageHeight;
-  
+
   /** Creates a new instance of PixelStorageModes */
   public PixelStorageModes() {
   }
@@ -147,7 +147,7 @@ public class PixelStorageModes {
    * Setter for property packAlignment.
    * @param packAlignment New value of property packAlignment.
    */
-  public void setPackAlignment(int packAlignment) {
+  public void setPackAlignment(final int packAlignment) {
 
     this.packAlignment = packAlignment;
   }
@@ -165,7 +165,7 @@ public class PixelStorageModes {
    * Setter for property packRowLength.
    * @param packRowLength New value of property packRowLength.
    */
-  public void setPackRowLength(int packRowLength) {
+  public void setPackRowLength(final int packRowLength) {
 
     this.packRowLength = packRowLength;
   }
@@ -183,7 +183,7 @@ public class PixelStorageModes {
    * Setter for property packSkipRows.
    * @param packSkipRows New value of property packSkipRows.
    */
-  public void setPackSkipRows(int packSkipRows) {
+  public void setPackSkipRows(final int packSkipRows) {
 
     this.packSkipRows = packSkipRows;
   }
@@ -201,7 +201,7 @@ public class PixelStorageModes {
    * Setter for property packSkipPixels.
    * @param packSkipPixels New value of property packSkipPixels.
    */
-  public void setPackSkipPixels(int packSkipPixels) {
+  public void setPackSkipPixels(final int packSkipPixels) {
 
     this.packSkipPixels = packSkipPixels;
   }
@@ -219,7 +219,7 @@ public class PixelStorageModes {
    * Setter for property packLsbFirst.
    * @param packLsbFirst New value of property packLsbFirst.
    */
-  public void setPackLsbFirst(boolean packLsbFirst) {
+  public void setPackLsbFirst(final boolean packLsbFirst) {
 
     this.packLsbFirst = packLsbFirst;
   }
@@ -237,7 +237,7 @@ public class PixelStorageModes {
    * Setter for property packSwapBytes.
    * @param packSwapBytes New value of property packSwapBytes.
    */
-  public void setPackSwapBytes(boolean packSwapBytes) {
+  public void setPackSwapBytes(final boolean packSwapBytes) {
 
     this.packSwapBytes = packSwapBytes;
   }
@@ -255,7 +255,7 @@ public class PixelStorageModes {
    * Setter for property packSkipImages.
    * @param packSkipImages New value of property packSkipImages.
    */
-  public void setPackSkipImages(int packSkipImages) {
+  public void setPackSkipImages(final int packSkipImages) {
 
     this.packSkipImages = packSkipImages;
   }
@@ -273,7 +273,7 @@ public class PixelStorageModes {
    * Setter for property packImageHeight.
    * @param packImageHeight New value of property packImageHeight.
    */
-  public void setPackImageHeight(int packImageHeight) {
+  public void setPackImageHeight(final int packImageHeight) {
 
     this.packImageHeight = packImageHeight;
   }
@@ -291,7 +291,7 @@ public class PixelStorageModes {
    * Setter for property unpackAlignment.
    * @param unpackAlignment New value of property unpackAlignment.
    */
-  public void setUnpackAlignment(int unpackAlignment) {
+  public void setUnpackAlignment(final int unpackAlignment) {
 
     this.unpackAlignment = unpackAlignment;
   }
@@ -309,7 +309,7 @@ public class PixelStorageModes {
    * Setter for property unpackRowLength.
    * @param unpackRowLength New value of property unpackRowLength.
    */
-  public void setUnpackRowLength(int unpackRowLength) {
+  public void setUnpackRowLength(final int unpackRowLength) {
 
     this.unpackRowLength = unpackRowLength;
   }
@@ -327,7 +327,7 @@ public class PixelStorageModes {
    * Setter for property unpackSkipRows.
    * @param unpackSkipRows New value of property unpackSkipRows.
    */
-  public void setUnpackSkipRows(int unpackSkipRows) {
+  public void setUnpackSkipRows(final int unpackSkipRows) {
 
     this.unpackSkipRows = unpackSkipRows;
   }
@@ -345,7 +345,7 @@ public class PixelStorageModes {
    * Setter for property unpackSkipPixels.
    * @param unpackSkipPixels New value of property unpackSkipPixels.
    */
-  public void setUnpackSkipPixels(int unpackSkipPixels) {
+  public void setUnpackSkipPixels(final int unpackSkipPixels) {
 
     this.unpackSkipPixels = unpackSkipPixels;
   }
@@ -363,7 +363,7 @@ public class PixelStorageModes {
    * Setter for property unpackLsbFirst.
    * @param unpackLsbFirst New value of property unpackLsbFirst.
    */
-  public void setUnpackLsbFirst(boolean unpackLsbFirst) {
+  public void setUnpackLsbFirst(final boolean unpackLsbFirst) {
 
     this.unpackLsbFirst = unpackLsbFirst;
   }
@@ -381,7 +381,7 @@ public class PixelStorageModes {
    * Setter for property unpackSwapBytes.
    * @param unpackSwapBytes New value of property unpackSwapBytes.
    */
-  public void setUnpackSwapBytes(boolean unpackSwapBytes) {
+  public void setUnpackSwapBytes(final boolean unpackSwapBytes) {
 
     this.unpackSwapBytes = unpackSwapBytes;
   }
@@ -399,7 +399,7 @@ public class PixelStorageModes {
    * Setter for property unpackSkipImages.
    * @param unpackSkipImages New value of property unpackSkipImages.
    */
-  public void setUnpackSkipImages(int unpackSkipImages) {
+  public void setUnpackSkipImages(final int unpackSkipImages) {
 
     this.unpackSkipImages = unpackSkipImages;
   }
@@ -417,10 +417,10 @@ public class PixelStorageModes {
    * Setter for property unpackImageHeight.
    * @param unpackImageHeight New value of property unpackImageHeight.
    */
-  public void setUnpackImageHeight(int unpackImageHeight) {
+  public void setUnpackImageHeight(final int unpackImageHeight) {
 
     this.unpackImageHeight = unpackImageHeight;
   }
-  
-  
+
+
 }

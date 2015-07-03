@@ -53,30 +53,12 @@
   public static final int GL_SMOOTH_POINT_SIZE_RANGE = 0x0B12;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_XOR = 0x1506;
+  /** Part of <code>GL_ARB_half_float_vertex</code>; <code>GL_NV_half_float</code>; <code>GL_ARB_half_float_pixel</code>, 
+      earmarked for ES 3.0 (hence kept in GL while fixing Bug 590)  */
+  public static final int GL_HALF_FLOAT = 0x140B;
 
-  public void glClearDepth( double depth );
-
-  public void glDepthRange(double zNear, double zFar);
-
-  /**
-   * @param target a GL buffer (VBO) target as used in {@link GL#glBindBuffer(int, int)}, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}, {@link GL#GL_ARRAY_BUFFER}, ..
-   * @return the GL buffer (VBO) name bound to a target via {@link GL#glBindBuffer(int, int)} or 0 if unbound.
-   */
-  public int glGetBoundBuffer(int target);
-
-  /**
-   * @param buffer a GL buffer name, generated with {@link GL#glGenBuffers(int, int[], int)} and used in {@link GL#glBindBuffer(int, int)}, {@link GL#glBufferData(int, long, java.nio.Buffer, int)} or {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} for example.
-   * @return the size of the given GL buffer
-   */
-  public long glGetBufferSize(int buffer);
-
-  /**
-   * @return true if a VBO is bound to {@link GL.GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
-   */
-  public boolean glIsVBOArrayEnabled();
-
-  /**
-   * @return true if a VBO is bound to {@link GL.GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
-   */
-  public boolean glIsVBOElementArrayEnabled();
+  /** Part of <code>GL_EXT_framebuffer_object</code>; <code>GL_ES_VERSION_2_0</code>; <code>GL_OES_framebuffer_object</code> */
+  public static final int GL_FRAMEBUFFER_INCOMPLETE_FORMATS = 0x8CDA;
+  /** Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code>; <code>GL_EXT_packed_float</code> */
+  public static final int GL_UNSIGNED_INT_10F_11F_11F_REV = 0x8C3B;
 

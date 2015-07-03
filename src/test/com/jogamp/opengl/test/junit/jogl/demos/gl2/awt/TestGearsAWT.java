@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,77 +20,93 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
-import javax.media.opengl.awt.GLCanvas;
+
+import com.jogamp.opengl.awt.GLCanvas;
+
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
-
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+
+import java.awt.Dimension;
 import java.awt.Frame;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsAWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
-    static boolean firstUIActionOnProcess = false;
+    static boolean waitForKey = false;
+    static int msaaCount = 0;
 
     @BeforeClass
     public static void initClass() {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
+            width  = 640;
+            height = 480;
         } else {
             setTestSupported(false);
         }
+        // Runtime.getRuntime().traceInstructions(true);
+        // Runtime.getRuntime().traceMethodCalls(true);
     }
 
     @AfterClass
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
+        final Dimension glc_sz = new Dimension(width, height);
+        glCanvas.setMinimumSize(glc_sz);
+        glCanvas.setPreferredSize(glc_sz);
+        glCanvas.setSize(glc_sz);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
 
         glCanvas.addGLEventListener(new Gears(1));
 
-        Animator animator = new Animator(glCanvas);
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glCanvas).addTo(glCanvas);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.pack();
                 frame.setVisible(true);
             }});
-        animator.setUpdateFPSFrames(60, System.err);        
+
+        final Animator animator = new Animator(glCanvas);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -103,7 +119,10 @@ public class TestGearsAWT extends UITestCase {
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
-        frame.setVisible(false);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+            }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -114,22 +133,38 @@ public class TestGearsAWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        if( msaaCount > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(msaaCount);
+        }
         runTestGL(caps);
     }
 
     static long duration = 500; // ms
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
-            } else if(args[i].equals("-firstUIAction")) {
-                firstUIActionOnProcess = true;
+                } catch (final Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-msaa")) {
+                i++;
+                try {
+                    msaaCount = Integer.parseInt(args[i]);
+                } catch (final Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
+        }
+        if(waitForKey) {
+            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (final IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
     }

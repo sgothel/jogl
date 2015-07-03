@@ -2,6 +2,12 @@
 
 SDIR=`dirname $0` 
 
+#J2RE_HOME=/opt-linux-x86_64/jre1.7.0_45
+#JAVA_HOME=/opt-linux-x86_64/jdk1.7.0_45
+#J2RE_HOME=/opt-linux-x86_64/jre7
+#JAVA_HOME=/opt-linux-x86_64/j2se7
+#export J2RE_HOME JAVA_HOME
+
 if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
     . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
 fi
@@ -18,6 +24,7 @@ if [ "$1" = "-libdir" ] ; then
 fi
 
 #    -Dc.compiler.debug=true \
+#    -Djavacdebuglevel="source,lines,vars" \
 
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \
@@ -28,6 +35,9 @@ fi
 #    -Dtarget.sourcelevel=1.6 \
 #    -Dtarget.targetlevel=1.6 \
 #    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
+#
+#    -Dsetup.addNativeOpenMAX=true \
+#    -Dsetup.addNativeKD=true \
 
 
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
@@ -42,19 +52,16 @@ echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a $LOGF
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $LOGF
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
-#    -Dc.compiler.debug=true \
-#    -Djavacdebug="true" \
-#    -Djavacdebuglevel="source,lines,vars" \
+export SOURCE_LEVEL=1.6
+export TARGET_LEVEL=1.6
+export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+
+#export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
 # BUILD_ARCHIVE=true \
 ant  \
     $CUSTOMLIBDIR \
-    -Dtarget.sourcelevel=1.6 \
-    -Dtarget.targetlevel=1.6 \
-    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
-    -Djavacdebuglevel="source,lines,vars" \
     -Drootrel.build=build-x86_64 \
-    -Dsetup.addNativeOpenMAX=true \
-    -Dsetup.addNativeKD=true \
     $* 2>&1 | tee -a $LOGF
 

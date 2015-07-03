@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -76,118 +76,134 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      */
     DataInputStream    dataIn;
 
-    public LEDataInputStream(InputStream in)
+    public LEDataInputStream(final InputStream in)
     {
         super(in);
         dataIn = new DataInputStream(in);
     }
 
+    @Override
     public void close() throws IOException
     {
         dataIn.close();        // better close as we create it.
         // this will close underlying as well.
     }
 
-    public synchronized    final int read(byte    b[]) throws    IOException
+    @Override
+    public synchronized    final int read(final byte    b[]) throws    IOException
     {
         return dataIn.read(b, 0, b.length);
     }
 
-    public synchronized    final int read(byte    b[], int off, int len) throws IOException
+    @Override
+    public synchronized    final int read(final byte    b[], final int off, final int len) throws IOException
     {
-        int    rl = dataIn.read(b,    off, len);
+        final int    rl = dataIn.read(b,    off, len);
         return rl;
     }
 
-    public final void readFully(byte b[]) throws IOException
+    @Override
+    public final void readFully(final byte b[]) throws IOException
     {
         dataIn.readFully(b,    0, b.length);
     }
 
-    public final void readFully(byte b[], int off, int len)    throws IOException
+    @Override
+    public final void readFully(final byte b[], final int off, final int len)    throws IOException
     {
         dataIn.readFully(b,    off, len);
     }
 
-    public final int skipBytes(int n) throws IOException
+    @Override
+    public final int skipBytes(final int n) throws IOException
     {
         return dataIn.skipBytes(n);
     }
 
+    @Override
     public final boolean readBoolean() throws IOException
     {
-        int    ch = dataIn.read();
+        final int    ch = dataIn.read();
         if (ch < 0)
             throw new EOFException();
         return (ch != 0);
     }
 
+    @Override
     public final byte readByte() throws    IOException
     {
-        int    ch = dataIn.read();
+        final int    ch = dataIn.read();
         if (ch < 0)
             throw new EOFException();
         return (byte)(ch);
     }
 
+    @Override
     public final int readUnsignedByte()    throws IOException
     {
-        int    ch = dataIn.read();
+        final int    ch = dataIn.read();
         if (ch < 0)
             throw new EOFException();
         return ch;
     }
 
+    @Override
     public final short readShort() throws IOException
     {
-        int    ch1    = dataIn.read();
-        int    ch2    = dataIn.read();
+        final int    ch1    = dataIn.read();
+        final int    ch2    = dataIn.read();
         if ((ch1 | ch2)    < 0)
             throw new EOFException();
         return (short)((ch1    << 0) +    (ch2 <<    8));
     }
 
+    @Override
     public final int readUnsignedShort() throws    IOException
-    { 
-        int    ch1    = dataIn.read();
-        int    ch2    = dataIn.read();
+    {
+        final int    ch1    = dataIn.read();
+        final int    ch2    = dataIn.read();
         if ((ch1 | ch2)    < 0)
             throw new EOFException();
         return (ch1    << 0) +    (ch2 <<    8);
     }
 
+    @Override
     public final char readChar() throws    IOException
     {
-        int    ch1    = dataIn.read();
-        int    ch2    = dataIn.read();
+        final int    ch1    = dataIn.read();
+        final int    ch2    = dataIn.read();
         if ((ch1 | ch2)    < 0)
             throw new EOFException();
         return (char)((ch1 << 0) + (ch2    << 8));
     }
 
+    @Override
     public final int readInt() throws IOException
     {
-        int    ch1    = dataIn.read();
-        int    ch2    = dataIn.read();
-        int    ch3    = dataIn.read();
-        int    ch4    = dataIn.read();
+        final int    ch1    = dataIn.read();
+        final int    ch2    = dataIn.read();
+        final int    ch3    = dataIn.read();
+        final int    ch4    = dataIn.read();
         if ((ch1 | ch2 | ch3 | ch4)    < 0)
             throw new EOFException();
         return ((ch1 <<    0) + (ch2 << 8)    + (ch3 << 16) +    (ch4 <<    24));
     }
 
+    @Override
     public final long readLong() throws    IOException
     {
-        int    i1 = readInt();
-        int    i2 = readInt();
-        return ((long)(i1) & 0xFFFFFFFFL) +    (i2    << 32);
+        final int    i1 = readInt();
+        final int    i2 = readInt();
+        return (i1 & 0xFFFFFFFFL) + ((long)i2 << 32);
     }
 
+    @Override
     public final float readFloat() throws IOException
     {
         return Float.intBitsToFloat(readInt());
     }
 
+    @Override
     public final double    readDouble() throws    IOException
     {
         return Double.longBitsToDouble(readLong());
@@ -195,29 +211,31 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
 
     /**
      * dont call this it is not implemented.
-     * @return empty new string 
+     * @return empty new string
      **/
+    @Override
     public final String    readLine() throws IOException
     {
-        return new String();
+        return "";
     }
 
     /**
      * dont call this it is not implemented
-     * @return empty new string 
+     * @return empty new string
      **/
+    @Override
     public final String    readUTF() throws IOException
     {
-        return new String();
+        return "";
     }
 
     /**
      * dont call this it is not implemented
-     * @return empty new string 
+     * @return empty new string
      **/
-    public final static    String readUTF(DataInput in) throws    IOException
+    public final static    String readUTF(final DataInput in) throws    IOException
     {
-        return new String();
+        return "";
     }
 }
 

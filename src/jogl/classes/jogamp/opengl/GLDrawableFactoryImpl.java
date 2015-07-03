@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -41,24 +41,39 @@
 package jogamp.opengl;
 
 import java.nio.Buffer;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.OffscreenLayerSurface;
-import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.SurfaceChangeable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLPbuffer;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.OffscreenLayerSurface;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.MutableSurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLFBODrawable;
+import com.jogamp.opengl.GLOffscreenAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
+import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
+import com.jogamp.opengl.GLAutoDrawableDelegate;
+import com.jogamp.opengl.GLRendererQuirks;
+
 
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device
@@ -66,90 +81,222 @@ import jogamp.nativewindow.MutableGraphicsConfiguration;
     these GLDrawables is not supplied directly to end users, though
     they may be instantiated by the GLJPanel implementation. */
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
-  protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
+  protected static final boolean DEBUG = GLDrawableFactory.DEBUG; // allow package access
 
   protected GLDrawableFactoryImpl() {
     super();
   }
 
   /**
-   * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
-   * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
-   * Creation of the shared context is tried only once.
+   * Returns {@code true} if context is capable of operating without a surface,
+   * otherwise returns {@code false} and sets the {@link GLRendererQuirks#NoSurfacelessCtx}.
+   * <p>
+   * Method will skip probing in case {@link GLRendererQuirks#NoSurfacelessCtx} has been already set.
+   * </p>
+   * <p>
+   * Caller shall skip probing in case surfaceless support is not possible,
+   * e.g. OpenGL ES without {@code EGL_KHR_surfaceless_context} or EGL &lt; 1.5,
+   * or desktop OpenGL context &lt; 3.0 and instead call {@link #setNoSurfacelessCtxQuirk(GLContext)}!
+   * </p>
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param context the context to probe, must be current
+   * @param restoreDrawable If {@code true}, the initial drawable will be restored after probing
+   *                        and the temporary {@code zeroDrawable} will be released.
+   *                        If {@code false}, the temporary {@code zeroDrawable} will be kept (bound) to the context.
+   *                        Restoration may be skipped, if the drawable and context will be destroyed anyways.
+   *
+   * @see GLRendererQuirks#NoSurfacelessCtx
    */
-  public final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
-      device = validateDevice(device);
-      if(null!=device) {
-        return getOrCreateSharedContextImpl(device);
+  protected final boolean probeSurfacelessCtx(final GLContext context, final boolean restoreDrawable) {
+      final GLDrawable origDrawable = context.getGLDrawable();
+      final AbstractGraphicsDevice device = origDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+
+      final boolean noSurfacelessCtxQuirk = context.hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx);
+      boolean allowsSurfacelessCtx = false;
+
+      if( !noSurfacelessCtxQuirk ) {
+          GLDrawable zeroDrawable = null;
+          try {
+              final GLCapabilitiesImmutable caps = origDrawable.getRequestedGLCapabilities();
+              final ProxySurface zeroSurface = createSurfacelessImpl(device, true, caps, caps, null, 64, 64);
+              zeroDrawable = createOnscreenDrawableImpl(zeroSurface);
+              zeroDrawable.setRealized(true);
+
+              // Since context is still current,
+              // will keep context current w/ zeroDrawable or throws GLException
+              context.setGLDrawable(zeroDrawable, false);
+              allowsSurfacelessCtx = true; // if setGLDrawable is successful, i.e. no GLException
+
+              if( restoreDrawable ) {
+                  context.setGLDrawable(origDrawable, false);
+              }
+          } catch (final Throwable t) {
+              if( DEBUG  || GLContext.DEBUG ) {
+                  ExceptionUtils.dumpThrowable("", t);
+              }
+          } finally {
+              if( null != zeroDrawable && restoreDrawable ) {
+                  zeroDrawable.setRealized(false);
+              }
+          }
+      }
+      if( !noSurfacelessCtxQuirk && !allowsSurfacelessCtx ) {
+          setNoSurfacelessCtxQuirkImpl(device, context);
+      }
+      return allowsSurfacelessCtx;
+  }
+
+  /**
+   * Method will set the {@link GLRendererQuirks#NoSurfacelessCtx}
+   * if it has not been set already.
+   *
+   * @param context the context to probe, must be current
+   * @see GLRendererQuirks#NoSurfacelessCtx
+   */
+  protected final void setNoSurfacelessCtxQuirk(final GLContext context) {
+      final boolean noSurfacelessCtxQuirk = context.hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx);
+      if( !noSurfacelessCtxQuirk ) {
+          final GLDrawable origDrawable = context.getGLDrawable();
+          final AbstractGraphicsDevice device = origDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+          setNoSurfacelessCtxQuirkImpl(device, context);
+      }
+  }
+  private final void setNoSurfacelessCtxQuirkImpl(final AbstractGraphicsDevice device, final GLContext context) {
+      final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+      if(DEBUG || GLContext.DEBUG) {
+          System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+" -> "+device+": cause: probe");
+      }
+      final GLRendererQuirks glrq = context.getRendererQuirks();
+      if( null != glrq ) {
+          glrq.addQuirk(quirk);
+      }
+      GLRendererQuirks.addStickyDeviceQuirk(device, quirk);
+  }
+
+  /**
+   * Returns the shared resource mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
+   * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
+   * Creation of the shared resource is tried only once.
+   *
+   * @param device which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   */
+  protected final SharedResourceRunner.Resource getOrCreateSharedResource(AbstractGraphicsDevice device) {
+      try {
+          device = validateDevice(device);
+          if( null != device) {
+              return getOrCreateSharedResourceImpl( device );
+          }
+      } catch (final GLException gle) {
+          if(DEBUG) {
+              System.err.println("Caught exception on thread "+getThreadName());
+              gle.printStackTrace();
+          }
       }
       return null;
   }
-  protected abstract GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device);
-  
+  protected abstract SharedResourceRunner.Resource getOrCreateSharedResourceImpl(AbstractGraphicsDevice device);
+
+  /**
+   * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
+   * either a pre-existing or newly created, or <code>null</code> if creation failed or <b>not supported</b>.<br>
+   * Creation of the shared context is tried only once.
+   *
+   * @param device which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   */
+  public final GLContext getOrCreateSharedContext(final AbstractGraphicsDevice device) {
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+        return sr.getContext();
+      }
+      return null;
+  }
+
+  @Override
+  protected final boolean createSharedResourceImpl(final AbstractGraphicsDevice device) {
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+          return sr.isAvailable();
+      }
+      return false;
+  }
+
+  @Override
+  public final GLRendererQuirks getRendererQuirks(final AbstractGraphicsDevice device, final GLProfile glp) {
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+          return sr.getRendererQuirks(glp);
+      }
+      return null;
+  }
+
   /**
    * Returns the shared device mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
    * either a preexisting or newly created, or <code>null</code> if creation failed or not supported.<br>
    * Creation of the shared context is tried only once.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param device which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    */
-  protected final AbstractGraphicsDevice getOrCreateSharedDevice(AbstractGraphicsDevice device) {
-      if(null==device) {
-          device = getDefaultDevice();
-          if(null==device) {
-              throw new InternalError("no default device");
-          }
-          if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactoryImpl.getOrCreateSharedContext: using default device : "+device);
-          }
-      } else if( !getIsDeviceCompatible(device) ) {
-          if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactoryImpl.getOrCreateSharedContext: device not compatible : "+device);
-          }
-          return null;
+  protected final AbstractGraphicsDevice getOrCreateSharedDevice(final AbstractGraphicsDevice device) {
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+        return sr.getDevice();
       }
-      return getOrCreateSharedDeviceImpl(device);
+      return null;
   }
-  protected abstract AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device);
 
-  /** 
+  /**
    * Returns the GLDynamicLookupHelper
-   * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
+   * @param profileName if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
    *        otherwise the profile is ignored.
+   * @throws GLException if no DynamicLookupHelper is installed
    */
-  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(int profile);
+  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(final String profileName) throws GLException;
 
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities
   //
-  public GLDrawable createGLDrawable(NativeSurface target) {
+  @Override
+  public final GLDrawable createGLDrawable(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
     final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration();
-    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+    final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+    final boolean isFBOAvailable = GLContext.isFBOAvailable(adevice, chosenCaps.getGLProfile());
     GLDrawable result = null;
     adevice.lock();
     try {
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
         if(null != ols) {
-            // layered surface -> Offscreen/PBuffer
-            final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
-            chosenCapsMod.setOnscreen(false);
-            chosenCapsMod.setPBuffer(canCreateGLPbuffer(adevice));
-            config.setChosenCapabilities(chosenCapsMod);
-            if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer: "+target);
+            final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
+
+            // layered surface -> Offscreen/[FBO|PBuffer]
+            if( !chosenCapsMod.isFBO() && !chosenCapsMod.isPBuffer() ) {
+                throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
             }
-            if( ! ( target instanceof SurfaceChangeable ) ) {
+            config.setChosenCapabilities(chosenCapsMod);
+            ols.setChosenCapabilities(chosenCapsMod);
+            if(DEBUG) {
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer");
+                System.err.println("chosenCaps:    "+chosenCaps);
+                System.err.println("chosenCapsMod: "+chosenCapsMod);
+                System.err.println("OffscreenLayerSurface: **** "+ols);
+                System.err.println("Target: **** "+target);
+                ExceptionUtils.dumpStack(System.err);
+            }
+            if( ! ( target instanceof MutableSurface ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
             }
-            result = createOffscreenDrawableImpl(target);            
+            if( chosenCapsMod.isFBO() ) {
+                result = createFBODrawableImpl(target, chosenCapsMod, 0);
+            } else {
+                result = createOffscreenDrawableImpl(target);
+            }
         } else if(chosenCaps.isOnscreen()) {
             // onscreen
+            final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
+            config.setChosenCapabilities(chosenCapsMod);
             if(DEBUG) {
                 System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable: "+target);
             }
@@ -157,12 +304,20 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         } else {
             // offscreen
             if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable (PBuffer: "+chosenCaps.isPBuffer()+"): "+target);
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable, FBO chosen / avail, PBuffer: "+
+                                   chosenCaps.isFBO()+" / "+isFBOAvailable+", "+chosenCaps.isPBuffer()+": "+target);
             }
-            if( ! ( target instanceof SurfaceChangeable ) ) {
-                throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
+            if( ! ( target instanceof MutableSurface ) ) {
+                throw new IllegalArgumentException("Passed NativeSurface must implement MutableSurface for offscreen: "+target);
             }
-            result = createOffscreenDrawableImpl(target);
+            if( chosenCaps.isFBO() && isFBOAvailable ) {
+                // need to hook-up a native dummy surface since source may not have & use minimum GLCapabilities for it w/ same profile
+                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, false, new GLCapabilities(chosenCaps.getGLProfile()), (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
+                dummySurface.setUpstreamSurfaceHook(new DelegatedUpstreamSurfaceHookWithSurfaceSize(dummySurface.getUpstreamSurfaceHook(), target));
+                result = createFBODrawableImpl(dummySurface, chosenCaps, 0);
+            } else {
+                result = createOffscreenDrawableImpl(target);
+            }
         }
     } finally {
         adevice.unlock();
@@ -175,128 +330,254 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   //---------------------------------------------------------------------------
   //
-  // Onscreen GLDrawable construction 
+  // Onscreen GLDrawable construction
   //
 
   protected abstract GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target);
 
   //---------------------------------------------------------------------------
   //
-  // PBuffer GLDrawable construction 
+  // PBuffer Offscreen GLAutoDrawable construction
   //
 
-  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
-
-  public GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
-                                   GLCapabilitiesImmutable capsRequested,
-                                   GLCapabilitiesChooser chooser,
-                                   int width,
-                                   int height,
-                                   GLContext shareWith) {
-    if(height<=0 || height<=0) {
-        throw new GLException("Width and height of pbuffer must be positive (were (" +
-                        width + ", " + height + "))");
-    }
-
-    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
-    if(null == device) {
-        throw new GLException("No shared device for requested: "+deviceReq);
-    }
-
-    if (!canCreateGLPbuffer(device)) {
-        throw new GLException("Pbuffer support not available with device: "+device);
-    }
-    
-    GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(capsRequested);
-    GLDrawableImpl drawable = null;
-    device.lock();
-    try {
-        drawable = (GLDrawableImpl) createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height) );
-        if(null != drawable) {
-            drawable.setRealized(true);
-        }
-    } finally {
-        device.unlock();
-    }
-
-    if(null==drawable) {
-        throw new GLException("Could not create Pbuffer drawable for: "+device+", "+capsChosen+", "+width+"x"+height);
-    }
-    return new GLPbufferImpl( drawable, shareWith);
-  }
-
+  @Override
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   //---------------------------------------------------------------------------
   //
-  // Offscreen GLDrawable construction 
+  // Offscreen GLDrawable construction
   //
 
-  protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
-
-  public GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
-                                            GLCapabilitiesImmutable capsRequested,
-                                            GLCapabilitiesChooser chooser,
-                                            int width,
-                                            int height) {
-    if(width<=0 || height<=0) {
-        throw new GLException("Width and height of pbuffer must be positive (were (" +
-                        width + ", " + height + "))");
-    }
-    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+  @Override
+  public final boolean canCreateFBO(final AbstractGraphicsDevice deviceReq, final GLProfile glp) {
+    final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffScreenGLCapabilities(capsRequested, canCreateGLPbuffer(deviceReq));
+    return GLContext.isFBOAvailable(device, glp);
+  }
 
-    device.lock();
+  @Override
+  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(final AbstractGraphicsDevice deviceReq,
+                                                                   final GLCapabilitiesImmutable capsRequested,
+                                                                   final GLCapabilitiesChooser chooser,
+                                                                   final int width, final int height) {
+    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
     try {
-        return createGLDrawable( createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height) );
+        drawable.setRealized(true);
+    } catch( final GLException gle) {
+        try {
+            drawable.setRealized(false);
+        } catch( final GLException gle2) { /* ignore */ }
+        throw gle;
+    }
+    if(drawable instanceof GLFBODrawableImpl) {
+        return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, null, null, null );
+    }
+    return new GLOffscreenAutoDrawableImpl( drawable, null, null, null);
+  }
+
+  @Override
+  public final GLAutoDrawable createDummyAutoDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
+      final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, capsRequested, chooser);
+      try {
+          drawable.setRealized(true);
+      } catch( final GLException gle) {
+          try {
+              drawable.setRealized(false);
+          } catch( final GLException gle2) { /* ignore */ }
+          throw gle;
+      }
+      final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
+      return sharedDrawable;
+  }
+
+  @Override
+  public final GLDrawable createOffscreenDrawable(final AbstractGraphicsDevice deviceReq,
+                                                  final GLCapabilitiesImmutable capsRequested,
+                                                  final GLCapabilitiesChooser chooser,
+                                                  final int width, final int height) {
+    if(width<=0 || height<=0) {
+        throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
+    }
+    final SharedResourceRunner.Resource sr = getOrCreateSharedResource( deviceReq );
+    if( null == sr ) {
+        throw new GLException("No shared device for requested: "+deviceReq);
+    }
+    final AbstractGraphicsDevice device = sr.getDevice();
+    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, this, device);
+
+    if( capsChosen.isFBO() ) {
+        // Use minimum GLCapabilities for the dummy surface w/ same profile
+        final GLProfile glp = capsChosen.getGLProfile();
+        final GLCapabilitiesImmutable glCapsMin = new GLCapabilities(glp);
+        final GLRendererQuirks glrq = sr.getRendererQuirks(glp);
+        final ProxySurface surface;
+        if( null != glrq && !glrq.exist(GLRendererQuirks.NoSurfacelessCtx) ) {
+            surface = createSurfacelessImpl(device, true, glCapsMin, capsRequested, null, width, height);
+        } else {
+            surface = createDummySurfaceImpl(device, true, glCapsMin, capsRequested, null, width, height);
+        }
+        final GLDrawableImpl drawable = createOnscreenDrawableImpl(surface);
+        return new GLFBODrawableImpl.ResizeableImpl(this, drawable, surface, capsChosen, 0);
+    }
+    return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
+                                                                 new UpstreamSurfaceHookMutableSize(width, height) ) );
+  }
+
+  @Override
+  public final GLDrawable createDummyDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
+    final AbstractGraphicsDevice device = createNewDevice ? getOrCreateSharedDevice(deviceReq) : deviceReq;
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
+    }
+    if( !createNewDevice ) {
+        device.lock();
+    }
+    try {
+        final ProxySurface dummySurface = createDummySurfaceImpl(device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
+        return createOnscreenDrawableImpl(dummySurface);
     } finally {
-        device.unlock();
+        if( !createNewDevice ) {
+            device.unlock();
+        }
     }
   }
 
-  public NativeSurface createOffscreenSurface(AbstractGraphicsDevice deviceReq,
-                                              GLCapabilitiesImmutable capsRequested,
-                                              GLCapabilitiesChooser chooser,
-                                              int width, int height) {
-    AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+  /** Creates a platform independent unrealized FBO offscreen GLDrawable */
+  protected final GLFBODrawable createFBODrawableImpl(final NativeSurface dummySurface, final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
+    final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
+    return new GLFBODrawableImpl(this, dummyDrawable, dummySurface, fboCaps, textureUnit);
+  }
+
+  /** Creates a platform dependent unrealized offscreen pbuffer/pixmap GLDrawable instance */
+  protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
+
+  /**
+   * Creates a mutable {@link ProxySurface} w/o defined surface handle.
+   * <p>
+   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given {@link GLCapabilitiesImmutable}.
+   * </p>
+   * <p>
+   * Lifecycle (destruction) of the TBD surface handle shall be handled by the caller.
+   * </p>
+   * @param device a valid platform dependent target device.
+   * @param createNewDevice if <code>true</code> a new independent device instance is created using <code>device</code> details,
+   *                        otherwise <code>device</code> instance is used as-is.
+   * @param capsChosen
+   * @param capsRequested
+   * @param chooser the custom chooser, may be null for default
+   * @param upstreamHook surface size information and optional control of the surface's lifecycle
+   * @return the created {@link MutableSurface} instance w/o defined surface handle
+   */
+  protected abstract ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
+                                                           GLCapabilitiesImmutable capsChosen,
+                                                           GLCapabilitiesImmutable capsRequested,
+                                                           GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook);
+
+  /**
+   * A dummy surface is not visible on screen, it may be on- or offscreen.
+   * <p>
+   * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
+   * </p>
+   * <p>
+   * Creates a new independent device instance using <code>deviceReq</code> details.
+   * </p>
+   * @param deviceReq which {@link com.jogamp.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param requestedCaps
+   * @param chooser the custom chooser, may be null for default
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
+   *        The latter is platform specific and small
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
+   *        The latter is platform specific and small
+   *
+   * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
+   */
+  public final ProxySurface createDummySurface(final AbstractGraphicsDevice deviceReq, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser,
+                                          final int width, final int height) {
+    final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffScreenGLCapabilities(capsRequested, canCreateGLPbuffer(deviceReq));
+    return createDummySurfaceImpl(device, true, requestedCaps, requestedCaps, chooser, width, height);
+  }
+
+  /**
+   * A dummy surface is not visible on screen and may be on- or offscreen.
+   * <p>
+   * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
+   * </p>
+   * @param device a valid platform dependent target device.
+   * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
+   *                        otherwise <code>device</code> instance is used as-is.
+   * @param chosenCaps
+   * @param requestedCaps
+   * @param chooser the custom chooser, may be null for default
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
+   *        The latter is platform specific and small
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
+   *        The latter is platform specific and small
+   * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
+   */
+  public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
+                                                      GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
+
+  /**
+   * A surfaceless {@link ProxySurface} is a non-existing surface and will not be used as a render target.
+   * <p>
+   * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} w/o default framebuffer to query information.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
+   * </p>
+   * @param device a valid platform dependent target device.
+   * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
+   *                        otherwise <code>device</code> instance is used as-is.
+   * @param chosenCaps
+   * @param requestedCaps
+   * @param chooser the custom chooser, may be null for default
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
+   *        The latter is platform specific and small
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
+   *        The latter is platform specific and small
+   * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
+   */
+  public abstract ProxySurface createSurfacelessImpl(AbstractGraphicsDevice device, boolean createNewDevice,
+                                                     GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
+
+  //---------------------------------------------------------------------------
+  //
+  // ProxySurface (Wrapped pre-existing native surface) construction
+  //
+
+  @Override
+  public ProxySurface createProxySurface(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle,
+                                         final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstream) {
+    final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq);
+    }
+    if(0 == windowHandle) {
+        throw new IllegalArgumentException("Null windowHandle");
+    }
 
     device.lock();
     try {
-        return createOffscreenSurfaceImpl(device, capsChosen, capsRequested, chooser, width, height);
+        return createProxySurfaceImpl(device, screenIdx, windowHandle, capsRequested, chooser, upstream);
     } finally {
         device.unlock();
     }
   }
 
   /**
-   * creates an offscreen NativeSurface, which must implement SurfaceChangeable as well,
-   * so the windowing system related implementation is able to set the surface handle.
+   * Creates a {@link ProxySurface} with a set surface handle.
+   * <p>
+   * Implementation is also required to allocate it's own {@link AbstractGraphicsDevice} instance.
+   * </p>
+ * @param upstream TODO
    */
-  protected abstract NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device,
-                                                              GLCapabilitiesImmutable capabilities, GLCapabilitiesImmutable capsRequested,
-                                                              GLCapabilitiesChooser chooser,
-                                                              int width, int height);
-
-  public ProxySurface createProxySurface(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
-    if(null == device) {
-        throw new GLException("No shared device for requested: "+device);
-    }
-
-    device.lock();
-    try {
-        return createProxySurfaceImpl(device, windowHandle, capsRequested, chooser);
-    } finally {
-        device.unlock();
-    }
-  }  
-  
-  protected abstract ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice device, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser);
+  protected abstract ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle,
+                                                         GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream);
 
   //---------------------------------------------------------------------------
   //
@@ -304,25 +585,17 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
 
   protected abstract GLContext createExternalGLContextImpl();
-  
+
+  @Override
   public GLContext createExternalGLContext() {
-    NativeWindowFactory.getDefaultToolkitLock().lock();
-    try {
-        return createExternalGLContextImpl();
-    } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
-    }
+    return createExternalGLContextImpl();
   }
 
   protected abstract GLDrawable createExternalGLDrawableImpl();
 
+  @Override
   public GLDrawable createExternalGLDrawable() {
-    NativeWindowFactory.getDefaultToolkitLock().lock();
-    try {
-        return createExternalGLDrawableImpl();
-    } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
-    }
+    return createExternalGLDrawableImpl();
   }
 
 
@@ -337,20 +610,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
-  public static GLDrawableFactoryImpl getFactoryImpl(GLProfile glp) {
+  public static GLDrawableFactoryImpl getFactoryImpl(final GLProfile glp) {
     return (GLDrawableFactoryImpl) getFactory(glp);
   }
-
-  //---------------------------------------------------------------------------
-  // Support for Java2D/JOGL bridge on Mac OS X; the external
-  // GLDrawable mechanism in the public API is sufficient to
-  // implement this functionality on all other platforms
-  //
-
-  public abstract boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device);
-
-  public abstract GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
-    throws GLException;
 
   //----------------------------------------------------------------------
   // Gamma adjustment support
@@ -389,62 +651,99 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    */
 
-  /**
-   * Sets the gamma, brightness, and contrast of the current main
-   * display. Returns true if the settings were changed, false if
-   * not. If this method returns true, the display settings will
-   * automatically be reset upon JVM exit (assuming the JVM does not
-   * crash); if the user wishes to change the display settings back to
-   * normal ahead of time, use resetDisplayGamma(). Throws
-   * IllegalArgumentException if any of the parameters were
-   * out-of-bounds.
-   * 
-   * @param gamma The gamma value, typically > 1.0 (default value is
-   *   1.0)
-   * @param brightness The brightness value between -1.0 and 1.0,
-   *   inclusive (default value is 0)
-   * @param contrast The contrast, greater than 0.0 (default value is 1)
-   * @throws IllegalArgumentException if any of the parameters were
-   *   out-of-bounds
-   */
-  public boolean setDisplayGamma(float gamma, float brightness, float contrast) throws IllegalArgumentException {
+  @Override
+  public synchronized final boolean setDisplayGamma(final NativeSurface surface, final float gamma, final float brightness, final float contrast) throws IllegalArgumentException {
     if ((brightness < -1.0f) || (brightness > 1.0f)) {
       throw new IllegalArgumentException("Brightness must be between -1.0 and 1.0");
     }
     if (contrast < 0) {
       throw new IllegalArgumentException("Contrast must be greater than 0.0");
     }
-    // FIXME: ensure gamma is > 1.0? Are smaller / negative values legal?
-    int rampLength = getGammaRampLength();
-    if (rampLength == 0) {
-      return false;
+    if( NativeSurface.LOCK_SURFACE_NOT_READY >= surface.lockSurface() ) {
+        return false;
     }
-    float[] gammaRamp = new float[rampLength];
-    for (int i = 0; i < rampLength; i++) {
-      float intensity = (float) i / (float) (rampLength - 1);
-      // apply gamma
-      float rampEntry = (float) java.lang.Math.pow(intensity, gamma);
-      // apply brightness
-      rampEntry += brightness;
-      // apply contrast
-      rampEntry = (rampEntry - 0.5f) * contrast + 0.5f;
-      // Clamp entry to [0, 1]
-      if (rampEntry > 1.0f)
-        rampEntry = 1.0f;
-      else if (rampEntry < 0.0f)
-        rampEntry = 0.0f;
-      gammaRamp[i] = rampEntry;
+    try {
+        // FIXME: ensure gamma is > 1.0? Are smaller / negative values legal?
+        final int rampLength = getGammaRampLength(surface);
+        if (rampLength == 0) {
+          return false;
+        }
+        final float[] gammaRamp = new float[rampLength];
+        for (int i = 0; i < rampLength; i++) {
+          final float intensity = (float) i / (float) (rampLength - 1);
+          // apply gamma
+          float rampEntry = (float) java.lang.Math.pow(intensity, gamma);
+          // apply brightness
+          rampEntry += brightness;
+          // apply contrast
+          rampEntry = (rampEntry - 0.5f) * contrast + 0.5f;
+          // Clamp entry to [0, 1]
+          if (rampEntry > 1.0f)
+            rampEntry = 1.0f;
+          else if (rampEntry < 0.0f)
+            rampEntry = 0.0f;
+          gammaRamp[i] = rampEntry;
+        }
+        final AbstractGraphicsScreen screen = surface.getGraphicsConfiguration().getScreen();
+        final DeviceScreenID deviceScreenID = new DeviceScreenID(screen.getDevice().getConnection(), screen.getIndex());
+        if( null == screen2OrigGammaRamp.get(deviceScreenID) ) {
+            screen2OrigGammaRamp.put(deviceScreenID, getGammaRamp(surface)); // cache original gamma ramp once
+            if( DEBUG ) {
+                System.err.println("DisplayGamma: Stored: "+deviceScreenID);
+                dumpGammaStore();
+            }
+        }
+        return setGammaRamp(surface, gammaRamp);
+    } finally {
+        surface.unlockSurface();
     }
-    registerGammaShutdownHook();
-    return setGammaRamp(gammaRamp);
   }
 
-  public synchronized void resetDisplayGamma() {
-    if (gammaShutdownHook == null) {
-      throw new IllegalArgumentException("Should not call this unless setDisplayGamma called first");
+  @Override
+  public synchronized final void resetDisplayGamma(final NativeSurface surface) {
+    if( NativeSurface.LOCK_SURFACE_NOT_READY >= surface.lockSurface() ) {
+        return;
     }
-    resetGammaRamp(originalGammaRamp);
-    unregisterGammaShutdownHook();
+    try {
+        final AbstractGraphicsScreen screen = surface.getGraphicsConfiguration().getScreen();
+        final DeviceScreenID deviceScreenID = new DeviceScreenID(screen.getDevice().getConnection(), screen.getIndex());
+        final Buffer originalGammaRamp = screen2OrigGammaRamp.remove(deviceScreenID);
+        if( null != originalGammaRamp ) {
+            resetGammaRamp(surface, originalGammaRamp);
+        }
+    } finally {
+        surface.unlockSurface();
+    }
+  }
+
+  @Override
+  public synchronized final void resetAllDisplayGamma() {
+    resetAllDisplayGammaNoSync();
+  }
+
+  @Override
+  protected final void resetAllDisplayGammaNoSync() {
+    if( DEBUG ) {
+        System.err.println("DisplayGamma: Reset");
+        dumpGammaStore();
+    }
+    final Set<DeviceScreenID> deviceScreenIDs = screen2OrigGammaRamp.keySet();
+    for( final Iterator<DeviceScreenID> i = deviceScreenIDs.iterator(); i.hasNext(); ) {
+        final DeviceScreenID deviceScreenID = i.next();
+        final Buffer originalGammaRamp = screen2OrigGammaRamp.remove(deviceScreenID);
+        if( null != originalGammaRamp ) {
+            resetGammaRamp(deviceScreenID, originalGammaRamp);
+        }
+    }
+  }
+  private void dumpGammaStore() {
+    final Set<DeviceScreenID> deviceScreenIDs = screen2OrigGammaRamp.keySet();
+    int count = 0;
+    for( final Iterator<DeviceScreenID> i = deviceScreenIDs.iterator(); i.hasNext(); count++) {
+        final DeviceScreenID deviceScreenID = i.next();
+        final Buffer originalGammaRamp = screen2OrigGammaRamp.get(deviceScreenID);
+        System.err.printf("%4d/%4d: %s -> %s%n", count, deviceScreenIDs.size(), deviceScreenID, originalGammaRamp);
+    }
   }
 
   //------------------------------------------------------
@@ -452,58 +751,64 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
 
   /** Returns the length of the computed gamma ramp for this OS and
-      hardware. Returns 0 if gamma changes are not supported. */
-  protected int getGammaRampLength() {
+      hardware. Returns 0 if gamma changes are not supported.
+ * @param surface TODO*/
+  protected int getGammaRampLength(final NativeSurface surface) {
     return 0;
   }
 
   /** Sets the gamma ramp for the main screen. Returns false if gamma
-      ramp changes were not supported. */
-  protected boolean setGammaRamp(float[] ramp) {
+      ramp changes were not supported.
+ * @param surface TODO*/
+  protected boolean setGammaRamp(final NativeSurface surface, final float[] ramp) {
     return false;
   }
 
   /** Gets the current gamma ramp. This is basically an opaque value
       used only on some platforms to reset the gamma ramp to its
-      original settings. */
-  protected Buffer getGammaRamp() {
+      original settings.
+ * @param surface TODO*/
+  protected Buffer getGammaRamp(final NativeSurface surface) {
     return null;
   }
 
   /** Resets the gamma ramp, potentially using the specified Buffer as
-      data to restore the original values. */
-  protected void resetGammaRamp(Buffer originalGammaRamp) {
+      data to restore the original values.
+ * @param surface TODO*/
+  protected void resetGammaRamp(final NativeSurface surface, final Buffer originalGammaRamp) {
+  }
+  protected void resetGammaRamp(final DeviceScreenID deviceScreenID, final Buffer originalGammaRamp) {
   }
 
   // Shutdown hook mechanism for resetting gamma
-  private boolean gammaShutdownHookRegistered;
-  private Thread  gammaShutdownHook;
-  private Buffer  originalGammaRamp;
-  private synchronized void registerGammaShutdownHook() {
-    if (gammaShutdownHookRegistered)
-      return;
-    if (gammaShutdownHook == null) {
-      gammaShutdownHook = new Thread(new Runnable() {
-          public void run() {
-            synchronized (GLDrawableFactoryImpl.this) {
-              resetGammaRamp(originalGammaRamp);
-            }
+  public final class DeviceScreenID {
+      public final String deviceConnection;
+      public final int screenIdx;
+      DeviceScreenID(final String deviceConnection, final int screenIdx) {
+          this.deviceConnection = deviceConnection;
+          this.screenIdx = screenIdx;
+      }
+      @Override
+      public int hashCode() {
+          // 31 * x == (x << 5) - x
+          int hash = 31 + deviceConnection.hashCode();
+          hash = ((hash << 5) - hash) + screenIdx;
+          return hash;
+      }
+      @Override
+      public boolean equals(final Object obj) {
+          if(this == obj)  { return true; }
+          if (obj instanceof DeviceScreenID) {
+              final DeviceScreenID other = (DeviceScreenID)obj;
+              return this.deviceConnection.equals(other.deviceConnection) &&
+                     this.screenIdx == other.screenIdx;
           }
-        });
-      originalGammaRamp = getGammaRamp();
-    }
-    Runtime.getRuntime().addShutdownHook(gammaShutdownHook);
-    gammaShutdownHookRegistered = true;
+          return false;
+      }
+      @Override
+      public String toString() {
+          return "DeviceScreenID[devCon "+deviceConnection+", screenIdx "+screenIdx+", hash 0x"+Integer.toHexString(hashCode())+"]";
+      }
   }
-
-  private synchronized void unregisterGammaShutdownHook() {
-    if (!gammaShutdownHookRegistered)
-      return;
-    if (gammaShutdownHook == null) {
-      throw new InternalError("Error in gamma shutdown hook logic");
-    }
-    Runtime.getRuntime().removeShutdownHook(gammaShutdownHook);
-    gammaShutdownHookRegistered = false;
-    // Leave the original gamma ramp data alone
-  }
+  private final Map<DeviceScreenID, Buffer> screen2OrigGammaRamp = new HashMap<DeviceScreenID, Buffer>();
 }

@@ -1,0 +1,33 @@
+//Copyright 2014 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform vec2    ovr_EyeToSourceUVScale;
+uniform vec2    ovr_EyeToSourceUVOffset;
+
+attribute vec2  ovr_Position;
+attribute vec2  ovr_Params;
+attribute vec2  ovr_TexCoordR;
+attribute vec2  ovr_TexCoordG;
+attribute vec2  ovr_TexCoordB;
+
+varying vec3    ovv_Fade;
+varying vec2    ovv_TexCoordR;
+varying vec2    ovv_TexCoordG;
+varying vec2    ovv_TexCoordB;
+
+void main(void)
+{
+    gl_Position = vec4(ovr_Position.xy, 0.5, 1.0);
+    ovv_Fade = vec3(ovr_Params.r); // vignetteFade
+    
+    ovv_TexCoordR = ovr_TexCoordR * ovr_EyeToSourceUVScale + ovr_EyeToSourceUVOffset;
+    ovv_TexCoordR.y = 1.0-ovv_TexCoordR.y;
+    ovv_TexCoordG = ovr_TexCoordG * ovr_EyeToSourceUVScale + ovr_EyeToSourceUVOffset;
+    ovv_TexCoordG.y = 1.0-ovv_TexCoordG.y;
+    ovv_TexCoordB = ovr_TexCoordB * ovr_EyeToSourceUVScale + ovr_EyeToSourceUVOffset;
+    ovv_TexCoordB.y = 1.0-ovv_TexCoordB.y;
+}

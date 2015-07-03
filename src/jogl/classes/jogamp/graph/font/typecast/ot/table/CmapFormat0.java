@@ -61,9 +61,9 @@ import java.io.IOException;
  */
 public class CmapFormat0 extends CmapFormat {
 
-    private int[] _glyphIdArray = new int[256];
+    private final int[] _glyphIdArray = new int[256];
 
-    protected CmapFormat0(DataInput di) throws IOException {
+    protected CmapFormat0(final DataInput di) throws IOException {
         super(di);
         _format = 0;
         for (int i = 0; i < 256; i++) {
@@ -71,18 +71,21 @@ public class CmapFormat0 extends CmapFormat {
         }
     }
 
+    @Override
     public int getRangeCount() {
         return 1;
     }
-    
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+
+    @Override
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         if (index != 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
         return new Range(0, 255);
     }
 
-    public int mapCharCode(int charCode) {
+    @Override
+    public int mapCharCode(final int charCode) {
         if (0 <= charCode && charCode < 256) {
             return _glyphIdArray[charCode];
         } else {

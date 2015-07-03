@@ -28,7 +28,7 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 
@@ -39,23 +39,21 @@ public interface GLArrayHandlerFlat {
 
   /**
    * Implementation shall associate the data with the array
-   * 
+   *
    * @param gl current GL object
-   * @param enable true if array data shall be valid, otherwise false.
-   * @param force true force data association, bypassing optimization
-   * @param ext extension object allowing passing of an implementation detail 
+   * @param ext extension object allowing passing of an implementation detail
    */
-  public void syncData(GL gl, boolean enable, boolean force, Object ext);
-  
+  public void syncData(GL gl, Object ext);
+
   /**
    * Implementation shall enable or disable the array state.
-   * 
+   *
    * @param gl current GL object
    * @param enable true if array shall be enabled, otherwise false.
-   * @param ext extension object allowing passing of an implementation detail 
+   * @param ext extension object allowing passing of an implementation detail
    */
-  public void enableState(GL gl, boolean enable, Object ext);  
-  
+  public void enableState(GL gl, boolean enable, Object ext);
+
   public GLArrayDataWrapper getData();
 }
 

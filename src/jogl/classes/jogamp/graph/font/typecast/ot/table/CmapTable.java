@@ -61,12 +61,12 @@ import java.util.Arrays;
  */
 public class CmapTable implements Table {
 
-    private DirectoryEntry _de;
-    private int _version;
-    private int _numTables;
-    private CmapIndexEntry[] _entries;
+    private final DirectoryEntry _de;
+    private final int _version;
+    private final int _numTables;
+    private final CmapIndexEntry[] _entries;
 
-    protected CmapTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected CmapTable(final DirectoryEntry de, final DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _version = di.readUnsignedShort();
         _numTables = di.readUnsignedShort();
@@ -94,11 +94,11 @@ public class CmapTable implements Table {
             } else if (_entries[i].getOffset() > bytesRead) {
                 di.skipBytes(_entries[i].getOffset() - (int) bytesRead);
             } else if (_entries[i].getOffset() != bytesRead) {
-                
+
                 // Something is amiss
                 throw new IOException();
             }
-            int formatType = di.readUnsignedShort();
+            final int formatType = di.readUnsignedShort();
             lastFormat = CmapFormat.create(formatType, di);
             lastOffset = _entries[i].getOffset();
             _entries[i].setFormat(lastFormat);
@@ -109,16 +109,16 @@ public class CmapTable implements Table {
     public int getVersion() {
         return _version;
     }
-    
+
     public int getNumTables() {
         return _numTables;
     }
-    
-    public CmapIndexEntry getCmapIndexEntry(int i) {
+
+    public CmapIndexEntry getCmapIndexEntry(final int i) {
         return _entries[i];
     }
-    
-    public CmapFormat getCmapFormat(short platformId, short encodingId) {
+
+    public CmapFormat getCmapFormat(final short platformId, final short encodingId) {
 
         // Find the requested format
         for (int i = 0; i < _numTables; i++) {
@@ -130,12 +130,14 @@ public class CmapTable implements Table {
         return null;
     }
 
+    @Override
     public int getType() {
         return cmap;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer().append("cmap\n");
+        final StringBuilder sb = new StringBuilder().append("cmap\n");
 
         // Get each of the index entries
         for (int i = 0; i < _numTables; i++) {
@@ -148,13 +150,14 @@ public class CmapTable implements Table {
 //        }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

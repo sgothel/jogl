@@ -63,12 +63,12 @@ public abstract class SingleSubst extends LookupSubtable {
     public abstract int getFormat();
 
     public abstract int substitute(int glyphId);
-    
-    public static SingleSubst read(DataInputStream dis, int offset) throws IOException {
+
+    public static SingleSubst read(final DataInputStream dis, final int offset) throws IOException {
         SingleSubst s = null;
         dis.reset();
         dis.skipBytes(offset);
-        int format = dis.readUnsignedShort();
+        final int format = dis.readUnsignedShort();
         if (format == 1) {
             s = new SingleSubstFormat1(dis, offset);
         } else if (format == 2) {

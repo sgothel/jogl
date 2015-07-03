@@ -56,14 +56,17 @@
                                     (not yet tested)</li>
                             </ul>
                         </li>
-                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.0 or later</li>
+                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.9.0 or later</li>
                         <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br/>
                             <ul>
                                 <li> Use your Unix distribution's version, if available, or</li>
                                 <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a>, or</li>
-                                <li> <a href="http://code.google.com/p/msysgit/">Git on Windows</a>,
-                                    <a href="http://code.google.com/p/msysgit/downloads/list">download</a> version
-                                    <a href="http://code.google.com/p/msysgit/downloads/detail?name=Git-1.7.0.2-preview20100309.exe&amp;can=2&amp;q=">1.7.0</a> or later.</li>
+                                <li> Git on Windows
+                                    <ul>
+                                        <li> <a href="https://cygwin.com">cygwin</a></li>
+                                        <li> <a href="http://code.google.com/p/msysgit/">msysgit</a></li>
+                                    </ul>
+                                </li>
                                 <li> <a href="http://code.google.com/p/git-osx-installer/">git-osx-installer</a> </li>
                             </ul>
                         </li>
@@ -76,9 +79,13 @@
                         <li> <b>GNU Linux</b> x86, 32- and 64-bit<br/>
                             You may have to install a few developer packages ...
                             <ul>
-                                <li> <b>[K]Ubuntu</b> 10.04 or later
+                                <li> <b>Debian</b> 5.00 or later
                                     <ul>
+                                        <li>openjdk-7-jre</li>
+                                        <li>openjdk-7-jdk</li>
+                                        <li>ant</li>
                                         <li>git</li>
+                                        <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>libgl1-mesa-dev</li>
                                         <li>libglu1-mesa-dev</li>
@@ -91,12 +98,50 @@
                                         <li>libxinerama-dev</li>
                                         <li>libxrandr-dev</li>
                                         <li>libxrender-dev</li>
+                                        <li>libxcursor-dev</li>
+                                        <li>libudev-dev</li>
                                         <li>Optional: Your card vendor's proprietary driver</li>
+                                    </ul>
+                                    One liner install command:
+                                    <pre>
+apt-get install openjdk-7-jre openjdk-7-jdk ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++6-4.7-dev
+                                    </pre>
+                                    Optional: Add <i>kernel</i> build utilities:
+                                    <pre>
+apt-get install kernel-package build-essential 
+                                    </pre>
+                                    Optional: Add <i>multiarch</i> i386 next to amd64 
+                                    <ul>
+                                      <li><b>Debian</b> 7.00
+                                        <pre>
+dpkg --add-architecture i386
+apt-get update
+apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libc6-i386 llibudev0:i386 ibc6-dev-i386 g++-multilib lib32stdc++6 openjdk-7-jre:i386 openjdk-7-jdk:i386
+                                        </pre></li>
+
+                                      <li><b>Debian</b> 8.00
+                                        <pre>
+dpkg --add-architecture i386
+apt-get update
+apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-7-jre:i386 openjdk-7-jdk:i386
+
+cd /usr/lib/i386-linux-gnu/
+ln -s libXrender.so.1 libXrender.so
+ln -s libXxf86vm.so.1 libXxf86vm.so
+ln -s libXrandr.so.2 libXrandr.so
+ln -s libXcursor.so.1 libXcursor.so
+cd /lib/i386-linux-gnu/
+ln -s libudev.so.1 libudev.so
+                                        </pre></li>
                                     </ul>
                                 </li>
                                 <li> <b>OpenSuSE</b> 10.2 or later
                                     <ul>
+                                        <li>openjdk-7-jre</li>
+                                        <li>openjdk-7-jdk</li>
+                                        <li>ant</li>
                                         <li>git</li>
+                                        <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>x11-devel</li>
                                         <li>mesa-devel</li>
@@ -104,7 +149,11 @@
                                 </li>
                                 <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br/>
                                     <ul>
+                                        <li>openjdk-7-jre</li>
+                                        <li>openjdk-7-jdk</li>
+                                        <li>ant</li>
                                         <li>git</li>
+                                        <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>mesa-libGL-devel</li>
                                         <li>xorg-x11-proto-devel</li>
@@ -119,6 +168,8 @@
                                         <li>libXinerama-devel</li>
                                         <li>libXrandr-devel</li>
                                         <li>libXrender-devel</li>
+                                        <li>libXcursor-devel</li>
+                                        <li>libudev-devel</li>
                                         <li>Optional: Your card vendor's proprietary driver</li>
                                     </ul>
                                 </li>
@@ -136,25 +187,44 @@
                                 <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
                             </ul>
                         </li>
-                        <li> <b>Windows</b>/x86 (32-bit)
+                        <li> <b>Windows</b>/x86 (32 bit)
                             <ul>
                                 <li>Windows XP or later </li>
                                 <li>git, see above</li>
-                                <li> <a href="http://www.mingw.org/">MinGW</a><br/>
-                                    Read <a href="http://www.mingw.org/wiki/Getting_Started">MinGW Getting Started</a>.<br/>
-                                    We used the download script <code>mingwdl.sh</code> shown at
-                                    <a href="http://www.mingw.org/wiki/HOWTO_Install_the_MinGW_GCC_Compiler_Suite">HOWTO Install the MinGW GCC Compiler Suite</a>.<br/></li>
-                                <li> Not supported: Microsoft Visual C++ 6.0 or later, but may work. Last successful try in 2008.</li>
+                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
+                                  <ul>
+                                    <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
+                                      <ul>
+                                        <li>mingw-build-install</li>
+                                        <li>version: 4.8.1</li>
+                                        <li>host: x32</li>
+                                        <li>threading: win32</li>
+                                        <li>exceptions: SJLJ</li>
+                                        <li>revision: 5</li>
+                                      </ul></li>
+                                    <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
+                                         via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/32-bit/threads-win32/sjlj/">7z archive file</a></li>
+                                  </ul></li>
                             </ul>
                         </li>
-                        <li> <b>Windows</b>/x86_64 (64-bit)<br/>
+                        <li> <b>Windows</b>/x86_64 (64-bit)
                             <ul>
                                 <li>Windows XP or later </li>
                                 <li>git, see above</li>
-                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a><br/>
-                                    We used the build <code>mingw-w64-bin_x86_64-mingw_20100515_sezero.zip</code> available at
-                                    <a href="http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/sezero_20100515/">MingW64 Personal Builds - sezero</a>.<br/></li>
-                                <li> Not supported: Microsoft Visual C++, never tried.</li>
+                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
+                                  <ul>
+                                    <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
+                                      <ul>
+                                        <li>mingw-build-install</li>
+                                        <li>version: 4.8.1</li>
+                                        <li>host: x64</li>
+                                        <li>threading: win32</li>
+                                        <li>exceptions: SJLJ</li>
+                                        <li>revision: 5</li>
+                                      </ul></li>
+                                    <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
+                                         via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/sjlj/">7z archive file</a></li>
+                                  </ul></li>
                             </ul>
                         </li>
                     </ul>
@@ -178,8 +248,8 @@
                             </ul><br/>
                             It is crucial that you checkout the source code under a common root directory:
                             <pre>
-    /home/dude/projects/jogamp> git clone git://jogamp.org/srv/scm/gluegen.git gluegen
-    /home/dude/projects/jogamp> git clone git://jogamp.org/srv/scm/jogl.git jogl
+    /home/dude/projects/jogamp> git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
+    /home/dude/projects/jogamp> git clone --recurse-submodules git://jogamp.org/srv/scm/jogl.git jogl
                             </pre>
                             Now you should have following directory structure:
                             <pre>
@@ -187,6 +257,17 @@
     /home/dude/projects/jogamp/gluegen
     /home/dude/projects/jogamp/jogl
                             </pre>
+                            <p>
+                            Note-1: The GlueGen source must be fetched using <i>-recurse-submodules</i>,
+                                    which imports <i>JCPP</i>, now used as the default C preprocessor. 
+                            </p>
+                            <p>
+                            Note-2: In case you do not get the JOGL sources with <i>-recurse-submodules</i>,
+                            you will miss the following features:
+                            <ul>
+                              <li>OculusVR Support</li>
+                            </ul>
+                            </p>
                         </li>
 
                         <li> <b>Unset your CLASSPATH environment variable:</b> <br/>

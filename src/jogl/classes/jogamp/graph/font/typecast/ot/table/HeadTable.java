@@ -62,26 +62,26 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class HeadTable implements Table {
 
-    private DirectoryEntry _de;
-    private int _versionNumber;
-    private int _fontRevision;
-    private int _checkSumAdjustment;
-    private int _magicNumber;
-    private short _flags;
-    private short _unitsPerEm;
-    private long _created;
-    private long _modified;
-    private short _xMin;
-    private short _yMin;
-    private short _xMax;
-    private short _yMax;
-    private short _macStyle;
-    private short _lowestRecPPEM;
-    private short _fontDirectionHint;
-    private short _indexToLocFormat;
-    private short _glyphDataFormat;
+    private final DirectoryEntry _de;
+    private final int _versionNumber;
+    private final int _fontRevision;
+    private final int _checkSumAdjustment;
+    private final int _magicNumber;
+    private final short _flags;
+    private final short _unitsPerEm;
+    private final long _created;
+    private final long _modified;
+    private final short _xMin;
+    private final short _yMin;
+    private final short _xMax;
+    private final short _yMax;
+    private final short _macStyle;
+    private final short _lowestRecPPEM;
+    private final short _fontDirectionHint;
+    private final short _indexToLocFormat;
+    private final short _glyphDataFormat;
 
-    protected HeadTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected HeadTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this._de = (DirectoryEntry) de.clone();
         _versionNumber = di.readInt();
         _fontRevision = di.readInt();
@@ -142,6 +142,7 @@ public class HeadTable implements Table {
         return _modified;
     }
 
+    @Override
     public int getType() {
         return head;
     }
@@ -170,8 +171,9 @@ public class HeadTable implements Table {
         return _yMin;
     }
 
+    @Override
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'head' Table - Font Header\n--------------------------")
             .append("\n  'head' version:      ").append(Fixed.floatValue(_versionNumber))
             .append("\n  fontRevision:        ").append(Fixed.roundedFloatValue(_fontRevision, 8))
@@ -192,15 +194,16 @@ public class HeadTable implements Table {
             .append("\n  glyphDataFormat:     ").append(_glyphDataFormat)
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }
-    
+
 }

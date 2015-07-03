@@ -53,8 +53,8 @@
 package jogamp.opengl.glu.tessellator;
 
 import jogamp.opengl.glu.tessellator.*;
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
 
 public class GLUtessellatorImpl implements GLUtessellator {
     public static final int TESS_MAX_CACHE = 100;
@@ -177,11 +177,11 @@ public class GLUtessellatorImpl implements GLUtessellator {
         mesh = null;
     }
 
-    private void requireState(int newState) {
+    private void requireState(final int newState) {
         if (state != newState) gotoState(newState);
     }
 
-    private void gotoState(int newState) {
+    private void gotoState(final int newState) {
         while (state != newState) {
             /* We change the current state one level at a time, to get to
              * the desired state.
@@ -211,7 +211,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
         requireState(TessState.T_DORMANT);
     }
 
-    public void gluTessProperty(int which, double value) {
+    public void gluTessProperty(final int which, final double value) {
         switch (which) {
             case GLU.GLU_TESS_TOLERANCE:
                 if (value < 0.0 || value > 1.0) break;
@@ -219,7 +219,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
                 return;
 
             case GLU.GLU_TESS_WINDING_RULE:
-                int windingRule = (int) value;
+                final int windingRule = (int) value;
                 if (windingRule != value) break;    /* not an integer */
 
                 switch (windingRule) {
@@ -250,7 +250,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
     }
 
 /* Returns tessellator property */
-    public void gluGetTessProperty(int which, double[] value, int value_offset) {
+    public void gluGetTessProperty(final int which, final double[] value, final int value_offset) {
         switch (which) {
             case GLU.GLU_TESS_TOLERANCE:
 /* tolerance should be in range [0..1] */
@@ -279,13 +279,13 @@ public class GLUtessellatorImpl implements GLUtessellator {
         }
     } /* gluGetTessProperty() */
 
-    public void gluTessNormal(double x, double y, double z) {
+    public void gluTessNormal(final double x, final double y, final double z) {
         normal[0] = x;
         normal[1] = y;
         normal[2] = z;
     }
 
-    public void gluTessCallback(int which, GLUtessellatorCallback aCallback) {
+    public void gluTessCallback(final int which, final GLUtessellatorCallback aCallback) {
         switch (which) {
             case GLU.GLU_TESS_BEGIN:
                 callBegin = aCallback == null ? NULL_CB : aCallback;
@@ -340,7 +340,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
         }
     }
 
-    private boolean addVertex(double[] coords, Object vertexData) {
+    private boolean addVertex(final double[] coords, final Object vertexData) {
         GLUhalfEdge e;
 
         e = lastEdge;
@@ -354,7 +354,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
 /* Create a new vertex and edge which immediately follow e
  * in the ordering around the left face.
  */
-            if (Mesh.__gl_meshSplitEdge(e) == null) return false;
+            Mesh.__gl_meshSplitEdge(e);
             e = e.Lnext;
         }
 
@@ -377,12 +377,12 @@ public class GLUtessellatorImpl implements GLUtessellator {
         return true;
     }
 
-    private void cacheVertex(double[] coords, Object vertexData) {
+    private void cacheVertex(final double[] coords, final Object vertexData) {
         if (cache[cacheCount] == null) {
             cache[cacheCount] = new CachedVertex();
         }
 
-        CachedVertex v = cache[cacheCount];
+        final CachedVertex v = cache[cacheCount];
 
         v.data = vertexData;
         v.coords[0] = coords[0];
@@ -393,14 +393,15 @@ public class GLUtessellatorImpl implements GLUtessellator {
 
 
     private boolean flushCache() {
-        CachedVertex[] v = cache;
+        final CachedVertex[] v = cache;
 
         mesh = Mesh.__gl_meshNewMesh();
-        if (mesh == null) return false;
 
         for (int i = 0; i < cacheCount; i++) {
-            CachedVertex vertex = v[i];
-            if (!addVertex(vertex.coords, vertex.data)) return false;
+            final CachedVertex vertex = v[i];
+            if (!addVertex(vertex.coords, vertex.data)) {
+                return false;
+            }
         }
         cacheCount = 0;
         flushCacheOnNextVertex = false;
@@ -408,11 +409,11 @@ public class GLUtessellatorImpl implements GLUtessellator {
         return true;
     }
 
-    public void gluTessVertex(double[] coords, int coords_offset, Object vertexData) {
+    public void gluTessVertex(final double[] coords, final int coords_offset, final Object vertexData) {
         int i;
         boolean tooLarge = false;
         double x;
-        double[] clamped = new double[3];
+        final double[] clamped = new double[3];
 
         requireState(TessState.T_IN_CONTOUR);
 
@@ -456,7 +457,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
     }
 
 
-    public void gluTessBeginPolygon(Object data) {
+    public void gluTessBeginPolygon(final Object data) {
         requireState(TessState.T_DORMANT);
 
         state = TessState.T_IN_POLYGON;
@@ -573,7 +574,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
             Mesh.__gl_meshDeleteMesh(mesh);
             polygonData = null;
             mesh = null;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             callErrorOrErrorData(GLU.GLU_OUT_OF_MEMORY);
         }
@@ -590,7 +591,7 @@ public class GLUtessellatorImpl implements GLUtessellator {
 
 
 /*ARGSUSED*/
-    public void gluNextContour(int type) {
+    public void gluNextContour(final int type) {
         gluTessEndContour();
         gluTessBeginContour();
     }
@@ -601,21 +602,21 @@ public class GLUtessellatorImpl implements GLUtessellator {
         gluTessEndPolygon();
     }
 
-    void callBeginOrBeginData(int a) {
+    void callBeginOrBeginData(final int a) {
         if (callBeginData != NULL_CB)
             callBeginData.beginData(a, polygonData);
         else
             callBegin.begin(a);
     }
 
-    void callVertexOrVertexData(Object a) {
+    void callVertexOrVertexData(final Object a) {
         if (callVertexData != NULL_CB)
             callVertexData.vertexData(a, polygonData);
         else
             callVertex.vertex(a);
     }
 
-    void callEdgeFlagOrEdgeFlagData(boolean a) {
+    void callEdgeFlagOrEdgeFlagData(final boolean a) {
         if (callEdgeFlagData != NULL_CB)
             callEdgeFlagData.edgeFlagData(a, polygonData);
         else
@@ -629,14 +630,14 @@ public class GLUtessellatorImpl implements GLUtessellator {
             callEnd.end();
     }
 
-    void callCombineOrCombineData(double[] coords, Object[] vertexData, float[] weights, Object[] outData) {
+    void callCombineOrCombineData(final double[] coords, final Object[] vertexData, final float[] weights, final Object[] outData) {
         if (callCombineData != NULL_CB)
             callCombineData.combineData(coords, vertexData, weights, outData, polygonData);
         else
             callCombine.combine(coords, vertexData, weights, outData);
     }
 
-    void callErrorOrErrorData(int a) {
+    void callErrorOrErrorData(final int a) {
         if (callErrorData != NULL_CB)
             callErrorData.errorData(a, polygonData);
         else

@@ -7,6 +7,10 @@ static {
         if (val != null && !val.toLowerCase().equals("false")) {
           useJavaMipmapCode = false;
         }
+        /** Not required nor forced
+        if( !initializeImpl() ) {
+            throw new RuntimeException("Initialization failure");
+        } */
         return null;
       }
     });
@@ -31,17 +35,8 @@ static {
 
 public GLUgl2()
 {
-  this.project = new ProjectDouble();
+  project = new ProjectDouble();
 }
-
-public void destroy() {
-  if(null!=this.project) {
-      this.project.destroy();
-      this.project=null;
-  }
-  super.destroy();
-}
-
 
 //----------------------------------------------------------------------
 // Utility routines
@@ -132,7 +127,7 @@ public final boolean isFunctionAvailable(String gluFunctionName)
 // Projection routines
 //
 
-private ProjectDouble project;
+private final ProjectDouble project;
 
 public final void gluOrtho2D(float left, float right, float bottom, float top) {
   project.gluOrtho2D(getCurrentGL2(), (double)left, (double)right, (double)bottom, (double)top);

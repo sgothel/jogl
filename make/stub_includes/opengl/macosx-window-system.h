@@ -13,6 +13,7 @@
 #include <AppKit/NSOpenGLLayer.h>
 #include <OpenGL/CGLDevice.h>
 #include <OpenGL/OpenGL.h>
+#include <gluegen_stdint.h>
 
 typedef int Bool;
 
@@ -31,10 +32,12 @@ NSView* getNSView(NSOpenGLContext* ctx);
 
 NSOpenGLContext* createContext(NSOpenGLContext* shareContext,
                     NSView* nsView,
-                    Bool isBackingLayerView,
+                    Bool incompleteView,
                     NSOpenGLPixelFormat* pixelFormat,
                     Bool opaque,
                     int* viewNotReady);
+void setContextView(NSOpenGLContext* ctx, NSView* view);
+void clearDrawable(NSOpenGLContext* ctx);
 Bool  makeCurrentContext(NSOpenGLContext* ctx);
 Bool  clearCurrentContext(NSOpenGLContext *ctx);
 Bool  deleteContext(NSOpenGLContext* ctx, Bool releaseOnMainThread);
@@ -51,12 +54,15 @@ NSOpenGLPixelBuffer* createPBuffer(int renderTarget, int internalFormat, int wid
 Bool destroyPBuffer(NSOpenGLPixelBuffer* pBuffer);
 void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer);
 void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, GLenum colorBuffer);
+Bool isNSOpenGLPixelBuffer(uint64_t object);
 
-// NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque);
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* pbuffer, Bool opaque, int texWidth, int texHeight);
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, int gl3ShaderProgramName, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, 
+                                   int texWidth, int texHeight, int winWidth, int winHeight);
+void setNSOpenGLLayerEnabled(NSOpenGLLayer* layer, Bool enable);
 void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval);
-void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_ms);
-void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* glLayer);
+void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros);
+void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID);
+void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p);
 void releaseNSOpenGLLayer(NSOpenGLLayer *glLayer);
 
 void* getProcAddress(const char *procName);

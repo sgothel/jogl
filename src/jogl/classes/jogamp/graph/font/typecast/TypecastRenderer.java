@@ -27,194 +27,197 @@
  */
 package jogamp.graph.font.typecast;
 
-import java.util.ArrayList;
-
 import jogamp.graph.font.typecast.ot.OTGlyph;
 import jogamp.graph.font.typecast.ot.Point;
-import jogamp.graph.geom.plane.AffineTransform;
-import jogamp.graph.geom.plane.Path2D;
-import jogamp.graph.geom.plane.PathIterator;
+import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
 /**
- * Factory to build a {@link com.jogamp.graph.geom.Path2D Path2D} from 
- * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s. 
+ * Factory to build an {@link OutlineShape} from
+ * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s.
+ *
+ * http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html
+ * http://walon.org/pub/ttf/ttf_glyphs.htm
  */
 public class TypecastRenderer {
+    private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
 
-    private static void getPaths(TypecastFont font, 
-            CharSequence string, float pixelSize, AffineTransform transform, Path2D[] p)
-    {        
-        if (string == null) {
-            return;
-        }
-        Font.Metrics metrics = font.getMetrics();
-        float advanceTotal = 0;
-        float lineGap = metrics.getLineGap(pixelSize) ;
-        float ascent = metrics.getAscent(pixelSize) ;
-        float descent = metrics.getDescent(pixelSize) ;
-        if (transform == null) {
-            transform = new AffineTransform();
-        }
-        AffineTransform t = new AffineTransform();
-
-        float advanceY = lineGap - descent + ascent;
-        float y = 0;
-        for (int i=0; i<string.length(); i++)
-        {
-            p[i] = new Path2D();
-            p[i].reset();
-            t.setTransform(transform);
-            char character = string.charAt(i);
-            if (character == '\n') {
-                y += advanceY;
-                advanceTotal = 0;
-                continue;
-            } else if (character == ' ') {
-                advanceTotal += font.font.getHmtxTable().getAdvanceWidth(TypecastGlyph.ID_SPACE) * metrics.getScale(pixelSize);
-                continue;
-            }        
-            TypecastGlyph glyph = (TypecastGlyph) font.getGlyph(character);
-            Path2D gp = glyph.getPath();
-            float scale = metrics.getScale(pixelSize);
-            t.translate(advanceTotal, y);
-            t.scale(scale, scale);
-            p[i].append(gp.iterator(t), false);
-            advanceTotal += glyph.getAdvance(pixelSize, true); 
-        }
+    private static void addShapeMoveTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1) {
+        if( DEBUG ) { System.err.println("Shape.MoveTo: "+p1); }
+        shape.closeLastOutline(false);
+        shape.addEmptyOutline();
+        shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
     }
-
-    public static ArrayList<OutlineShape> getOutlineShapes(TypecastFont font, CharSequence string, float pixelSize, AffineTransform transform, Factory<? extends Vertex> vertexFactory) {
-        Path2D[] paths = new Path2D[string.length()];
-        getPaths(font, string, pixelSize, transform, paths);
-
-        ArrayList<OutlineShape> shapes = new ArrayList<OutlineShape>();
-        final int numGlyps = paths.length;
-        for (int index=0;index<numGlyps;index++) {
-            if(paths[index] == null){
-                continue;
-            }
-            OutlineShape shape = new OutlineShape(vertexFactory);
-            shapes.add(shape);
-            PathIterator iterator = paths[index].iterator(transform);
-            if(null != iterator){
-                while(!iterator.isDone()){
-                    float[] coords = new float[6];
-                    int segmentType = iterator.currentSegment(coords);
-                    addPathVertexToOutline(shape, vertexFactory, coords, segmentType);
-                    iterator.next();
-                }
-            }
-        }
-        return shapes;
+    private static void addShapeLineTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1) {
+        if( DEBUG ) { System.err.println("Shape.LineTo: "+p1); }
+        shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
     }
-    private static void addPathVertexToOutline(OutlineShape shape, Factory<? extends Vertex> vertexFactory, float[] coords, int segmentType){
-        switch(segmentType) {
-        case PathIterator.SEG_MOVETO:
-            shape.closeLastOutline();
-            shape.addEmptyOutline();
-            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
-            break;
-        case PathIterator.SEG_LINETO:
-            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
-            break;
-        case PathIterator.SEG_QUADTO:
-            shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
-            shape.addVertex(0, vertexFactory.create(coords, 2, 2, true));            
-            break;
-        case PathIterator.SEG_CUBICTO:
-            shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
-            shape.addVertex(0, vertexFactory.create(coords, 2, 2, false));
-            shape.addVertex(0, vertexFactory.create(coords, 4, 2, true));            
-            break;
-        case PathIterator.SEG_CLOSE:
-            shape.closeLastOutline();
-            break;
-        default:
-            throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
-        }
+    private static void addShapeQuadTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1, final Point p2) {
+        if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", "+p2); }
+        shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
+        shape.addVertex(0, vertexFactory.create(p2.x,  p2.y, 0, p2.onCurve));
     }
-
+    private static void addShapeQuadTo(final OutlineShape shape, final Factory<? extends Vertex> vertexFactory, final Point p1,
+                                       final float p2x, final float p2y, final boolean p2OnCurve) {
+        if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", p2 "+p2x+", "+p2y+", onCurve "+p2OnCurve); }
+        shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
+        shape.addVertex(0, vertexFactory.create(p2x,    p2y, 0, p2OnCurve));
+    }
     /**
-     * Build a {@link com.jogamp.graph.geom.Path2D Path2D} from a
-     * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}.  This glyph path can then
-     * be transformed and rendered.
-     */
-    public static Path2D buildPath(OTGlyph glyph) {
+    private static void addShapeCubicTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2, Point p3) {
+        shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
+        shape.addVertex(0, vertexFactory.create(p2.x,  p2.y, 0, p2.onCurve));
+        shape.addVertex(0, vertexFactory.create(p3.x,  p3.y, 0, p3.onCurve));
+    } */
+
+    public static OutlineShape buildShape(final char symbol, final OTGlyph glyph, final Factory<? extends Vertex> vertexFactory) {
+        //
+        // See Typecast: GlyphPathFactory.addContourToPath(..)
+        //
 
         if (glyph == null) {
             return null;
         }
 
-        Path2D glyphPath = new Path2D();
+        final OutlineShape shape = new OutlineShape(vertexFactory);
+        buildShapeImpl(shape, symbol, glyph, vertexFactory);
+        shape.setIsQuadraticNurbs();
+        return shape;
+    }
 
+    /**
+    private static void buildShapeImpl02(final OutlineShape shape, char symbol, OTGlyph glyph, Factory<? extends Vertex> vertexFactory) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
-        int firstIndex = 0;
+        int startIndex = 0;
         int count = 0;
         for (int i = 0; i < glyph.getPointCount(); i++) {
             count++;
-            if (glyph.getPoint(i).endOfContour) {
-                addContourToPath(glyphPath, glyph, firstIndex, count);
-                firstIndex = i + 1;
+            if ( glyph.getPoint(i).endOfContour ) {
+                for(int j=0; j<count; j++) {
+                    final Point p = glyph.getPoint(startIndex + j);
+                    shape.addVertex(0, vertexFactory.create(p.x,  p.y, 0, p.onCurve));
+                }
+                shape.closeLastOutline(false);
+                startIndex = i + 1;
                 count = 0;
             }
         }
-        return glyphPath;
-    }
+    } */
 
-    private static void addContourToPath(Path2D gp, OTGlyph glyph, int startIndex, int count) {
-        int offset = 0;
-        while (offset < count) {
-            Point point = glyph.getPoint(startIndex + offset%count);
-            Point point_plus1 = glyph.getPoint(startIndex + (offset+1)%count);
-            Point point_plus2 = glyph.getPoint(startIndex + (offset+2)%count);
-            if(offset == 0)
-            {
-                gp.moveTo(point.x, point.y);
-            }
+    private static void buildShapeImpl(final OutlineShape shape, final char symbol, final OTGlyph glyph, final Factory<? extends Vertex> vertexFactory) {
+        // Iterate through all of the points in the glyph.  Each time we find a
+        // contour end point, add the point range to the path.
+        int startIndex = 0;
+        int count = 0;
+        final int totalPoints = glyph.getPointCount();
+        for (int i = 0; i < totalPoints; i++) {
+            count++;
+            if ( glyph.getPoint(i).endOfContour ) {
+                int offset = 0;
+                while ( offset < count - 1 ) { // require at least +1 point (last one is end-of-contour)
+                    final Point p0 = glyph.getPoint(startIndex + offset%count);
+                    final Point p1 = glyph.getPoint(startIndex + (offset+1)%count);
+                    final Point p2 = glyph.getPoint(startIndex + (offset+2)%count);
+                    final Point p3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
+                    if( DEBUG  ) {
+                        System.err.println("GlyphShape<"+symbol+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
+                        final int pMIdx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
+                        final Point pM = glyph.getPoint(pMIdx);
+                        final int p0Idx = startIndex + offset%count;
+                        final int p1Idx = startIndex + (offset+1)%count;
+                        final int p2Idx = startIndex + (offset+2)%count;
+                        final int p3Idx = startIndex + (offset+3)%count;
+                        System.err.println("\t pM["+pMIdx+"] "+pM);
+                        System.err.println("\t p0["+p0Idx+"] "+p0);
+                        System.err.println("\t p1["+p1Idx+"] "+p1);
+                        System.err.println("\t p2["+p2Idx+"] "+p2);
+                        System.err.println("\t p3["+p3Idx+"] "+p3);
+                    }
+                    if(offset == 0) {
+                        addShapeMoveTo(shape, vertexFactory, p0);
+                        // gp.moveTo(point.x, point.y);
+                    }
 
-            if (point.onCurve) {
-                if (point_plus1.onCurve) {
-                    // s = new Line2D.Float(point.x, point.y, point_plus1.x, point_plus1.y);
-                    gp.lineTo( point_plus1.x, point_plus1.y );
-                    offset++;                    
-                } else {
-                    if (point_plus2.onCurve) {
-                        // s = new QuadCurve2D.Float( point.x, point.y, point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
-                        gp.quadTo(point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
-                        offset+=2;                    
+                    if( p0.endOfContour ) {
+                        // Branch-0: EOC ** SHALL NEVER HAPPEN **
+                        if( DEBUG ) { System.err.println("B0 .. end-of-contour **** EOC"); }
+                        shape.closeLastOutline(false);
+                        break;
+                    } else if (p0.onCurve) {
+                        if (p1.onCurve) {
+                            // Branch-1: point.onCurve && p1.onCurve
+                            if( DEBUG ) { System.err.println("B1 .. line-to p0-p1"); }
+
+                            // s = new Line2D.Float(point.x, point.y, p1.x, p1.y);
+                            // gp.lineTo( p1.x, p1.y );
+                            addShapeLineTo(shape, vertexFactory, p1);
+                            offset++;
+                        } else {
+                            if (p2.onCurve) {
+                                // Branch-2: point.onCurve && !p1.onCurve && p2.onCurve
+                                if( DEBUG ) { System.err.println("B2 .. quad-to p0-p1-p2"); }
+
+                                // s = new QuadCurve2D.Float( point.x, point.y, p1.x, p1.y, p2.x, p2.y);
+                                // gp.quadTo(p1.x, p1.y, p2.x, p2.y);
+                                addShapeQuadTo(shape, vertexFactory, p1, p2);
+                                offset+=2;
+                            } else {
+                                if (null != p3 && p3.onCurve) {
+                                    // Branch-3: point.onCurve && !p1.onCurve && !p2.onCurve && p3.onCurve
+                                    if( DEBUG ) { System.err.println("B3 .. 2-quad p0-p1-p1_2, p1_2-p2-p3 **** 2QUAD"); }
+                                    // addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
+                                    addShapeQuadTo(shape, vertexFactory, p1,
+                                                   midValue(p1.x, p2.x),
+                                                   midValue(p1.y, p2.y), true);
+                                    addShapeQuadTo(shape, vertexFactory, p2, p3);
+                                    offset+=3;
+                                } else {
+                                    // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
+                                    if( DEBUG ) { System.err.println("B4 .. quad-to p0-p1-p2h **** MID"); }
+
+                                    // s = new QuadCurve2D.Float(point.x,point.y,p1.x,p1.y,
+                                    //                           midValue(p1.x, p2.x), midValue(p1.y, p2.y));
+                                    // gp.quadTo(p1.x, p1.y, midValue(p1.x, p2.x), midValue(p1.y, p2.y));
+                                    addShapeQuadTo(shape, vertexFactory, p1,
+                                                   midValue(p1.x, p2.x),
+                                                   midValue(p1.y, p2.y), true);
+                                    offset+=2; // Skip p2 as done in Typecast
+                                }
+                            }
+                        }
                     } else {
-                        // s = new QuadCurve2D.Float(point.x,point.y,point_plus1.x,point_plus1.y,
-                        //                           midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
-                        gp.quadTo(point_plus1.x, point_plus1.y, midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
-                        offset+=2;
+                        if (!p1.onCurve) {
+                            // Branch-5: !point.onCurve && !p1.onCurve
+                            if( DEBUG ) { System.err.println("B5 .. quad-to pMh-p0-p1h ***** MID"); }
+                            // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
+                            //                           point.x, point.y,
+                            //                           midValue(point.x, p1.x), midValue(point.y, p1.y));
+                            addShapeQuadTo(shape, vertexFactory, p0,
+                                           midValue(p0.x, p1.x), midValue(p0.y, p1.y), true);
+                            offset++;
+                        } else {
+                            // Branch-6: !point.onCurve && p1.onCurve
+                            if( DEBUG ) { System.err.println("B6 .. quad-to pMh-p0-p1"); }
+                            // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
+                            //                           point.x, point.y, p1.x, p1.y);
+                            // gp.quadTo(point.x, point.y, p1.x, p1.y);
+                            addShapeQuadTo(shape, vertexFactory, p0, p1);
+                            offset++;
+                        }
                     }
                 }
-            } else {
-                if (point_plus1.onCurve) {
-                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y),
-                    //                           point.x, point.y, point_plus1.x, point_plus1.y);
-                    //gp.curve3(point_plus1.x, point_plus1.y, point.x, point.y);
-                    gp.quadTo(point.x, point.y, point_plus1.x, point_plus1.y);
-                    offset++;
-
-                } else {
-                    // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y), point.x, point.y,
-                    //                           midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
-                    //gp.curve3(midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y), point.x, point.y);
-                    gp.quadTo(point.x, point.y, midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
-                    offset++;                    
-                }
+                shape.closeLastOutline(false);
+                startIndex = i + 1;
+                count = 0;
             }
         }
     }
 
-    private static int midValue(int a, int b) {
-        return a + (b - a)/2;
+    private static float midValue(final float a, final float b) {
+        return a + (b - a)/2f;
     }
 }

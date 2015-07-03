@@ -2,5 +2,9 @@ build
 javadoc_public
 build-temp
 make/temp*
+temp/*
 .idea/workspace.xml
+.settings/*
 **~
+build*/
+make/lib/external/*

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -44,68 +44,87 @@ import java.lang.reflect.InvocationTargetException;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
 
+import com.jogamp.opengl.test.junit.jogl.demos.es1.MultisampleDemoES1;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMultisampleES1AWT extends UITestCase {
-  static long durationPerTest = 250; // ms
+  static long durationPerTest = 60; // ms
   private GLCanvas canvas;
 
-  public static void main(String[] args) {
+  public static void main(final String[] args) {
      for(int i=0; i<args.length; i++) {
         if(args[i].equals("-time")) {
             durationPerTest = MiscUtils.atoi(args[++i], 500);
         }
      }
      System.out.println("durationPerTest: "+durationPerTest);
-     String tstname = TestMultisampleES1AWT.class.getName();
+     final String tstname = TestMultisampleES1AWT.class.getName();
      org.junit.runner.JUnitCore.main(tstname);
   }
 
   @Test
-  public void testMultiSampleAA4() throws InterruptedException, InvocationTargetException {
+  public void testOnscreenMultiSampleAA0() throws InterruptedException, InvocationTargetException {
+    testMultiSampleAAImpl(0);
+  }
+
+  @Test
+  public void testOnscreenMultiSampleAA4() throws InterruptedException, InvocationTargetException {
     testMultiSampleAAImpl(4);
   }
 
   @Test
-  public void testMultiSampleNone() throws InterruptedException, InvocationTargetException {
-    testMultiSampleAAImpl(0);
+  public void testOnscreenMultiSampleAA8() throws InterruptedException, InvocationTargetException {
+    testMultiSampleAAImpl(8);
   }
 
-  private void testMultiSampleAAImpl(int samples) throws InterruptedException, InvocationTargetException {
-    GLProfile glp = GLProfile.getMaxFixedFunc(true);
-    GLCapabilities caps = new GLCapabilities(glp);
-    GLCapabilitiesChooser chooser = new MultisampleChooser01();
+  private void testMultiSampleAAImpl(final int reqSamples) throws InterruptedException, InvocationTargetException {
+    final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
+    final GLProfile glp = GLProfile.getMaxFixedFunc(true);
+    final GLCapabilities caps = new GLCapabilities(glp);
+    final GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
-    if(samples>0) {
+    if(reqSamples>0) {
         caps.setSampleBuffers(true);
-        caps.setNumSamples(samples);
-        // turns out we need to have alpha, 
-        // otherwise no AA will be visible.
-        caps.setAlphaBits(1); 
+        caps.setNumSamples(reqSamples);
     }
 
-    canvas = new GLCanvas(caps, chooser, null, null);
-    canvas.addGLEventListener(new MultisampleDemoES1(samples>0?true:false));
-    
-    final Frame frame = new Frame("Multi Samples "+samples);
+    canvas = new GLCanvas(caps, chooser, null);
+    canvas.addGLEventListener(new MultisampleDemoES1(reqSamples>0?true:false));
+    canvas.addGLEventListener(new GLEventListener() {
+        int displayCount = 0;
+        public void init(final GLAutoDrawable drawable) {}
+        public void dispose(final GLAutoDrawable drawable) {}
+        public void display(final GLAutoDrawable drawable) {
+            snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+        }
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
+    });
+
+    final Frame frame = new Frame("Multi Samples "+reqSamples);
     frame.setLayout(new BorderLayout());
     canvas.setSize(512, 512);
-    frame.add(canvas, BorderLayout.CENTER);
-    frame.pack();
 
     javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
         public void run() {
+            frame.add(canvas, BorderLayout.CENTER);
+            frame.pack();
             frame.setVisible(true);
-            frame.setLocation(0, 0);
             canvas.requestFocus();
             canvas.display();
         }});

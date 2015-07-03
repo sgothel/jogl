@@ -48,7 +48,7 @@
        setup.noNativeDesktop
        setup.addNativeKD
        setup.addNativeIntelGDL
-       setup.addNativeBroadcomEGL
+       setup.addNativeBroadcom  ( always true if 'isLinux' )
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -71,6 +71,10 @@
       -->
     <target name="base.init" depends="common.init">
 
+        <condition property="setup.addNativeBroadcom">
+           <isset property="isLinux"/>
+        </condition>
+
         <condition property="setup.nonatives">
             <and>
                 <isfalse value="${isWindows}" />
@@ -79,7 +83,7 @@
                 <isfalse value="${isAndroid}" />
                 <isfalse value="${setup.addNativeKD}" />
                 <isfalse value="${setup.addNativeIntelGDL}" />
-                <isfalse value="${setup.addNativeBroadcomEGL}" />
+                <isfalse value="${setup.addNativeBroadcom}" />
             </and>
         </condition>
 
@@ -90,22 +94,28 @@
         <echo message="isAndroid: ${isAndroid}" />
         <echo message="setup.addNativeKD: ${setup.addNativeKD}" />
         <echo message="setup.addNativeIntelGDL: ${setup.addNativeIntelGDL}" />
-        <echo message="setup.addNativeBroadcomEGL: ${setup.addNativeBroadcomEGL}" />
+        <echo message="setup.addNativeBroadcom: ${setup.addNativeBroadcom}" />
         <echo message="setup.nonatives: ${setup.nonatives}" />
 
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* jogamp/newt/* jogamp/newt/event/* jogamp/newt/driver/*"/>
+                  value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* com/jogamp/newt/util/applet/* jogamp/newt/* jogamp/newt/event/* jogamp/newt/driver/*"/>
 
         <property name="java.part.opengl"
-                  value="com/jogamp/newt/opengl/**"/>
+                  value="com/jogamp/newt/opengl/** jogamp/newt/driver/opengl/**"/>
 
         <property name="java.part.driver.awt"
                   value="jogamp/newt/driver/awt/**"/>
 
         <property name="java.part.awt"
                   value="com/jogamp/newt/awt/** com/jogamp/newt/event/awt/** jogamp/newt/awt/** ${java.part.driver.awt}"/>
+
+        <property name="java.part.swt"
+                  value="com/jogamp/newt/swt/** jogamp/newt/swt/**"/>
+
+        <property name="java.part.driver.linux"
+                  value="jogamp/newt/driver/linux/**"/>
 
         <property name="java.part.driver.x11"
                   value="jogamp/newt/driver/x11/**"/>
@@ -122,8 +132,11 @@
         <property name="java.part.driver.intelgdl"
                   value="jogamp/newt/driver/intel/gdl/**"/>
 
-        <property name="java.part.driver.broadcomegl"
-                  value="jogamp/newt/driver/broadcom/egl/**"/>
+        <property name="java.part.driver.bcm.old"
+                  value="jogamp/newt/driver/bcm/egl/**"/>
+
+        <property name="java.part.driver.bcm.vc"
+                  value="jogamp/newt/driver/bcm/vc/**"/>
 
         <property name="java.part.driver.android"
                   value="jogamp/newt/driver/android/**"/>
@@ -135,11 +148,16 @@
            <isset property="setup.noAWT"/>
         </condition>
 
+        <condition property="java.excludes.swt"
+                   value="${java.part.swt}">
+           <isset property="setup.noSWT"/> 
+        </condition>
+
         <condition property="java.excludes.opengl" value="${java.part.opengl}">
            <isset property="setup.noOpenGL"/>
         </condition>
 
-        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.opengl}" />
+        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.swt}, ${java.excludes.opengl}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
     </target>
@@ -170,7 +188,7 @@
         <property name="javadoc" value="${project.root}/javadoc_newt_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_newt_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_newt_dev" />
-        <property name="javadoc.windowtitle" value="NEWT API -- ${newt_base_version} Specification" />
+        <property name="javadoc.windowtitle" value="NEWT API -- ${jogamp.version.base} Specification" />
         <property name="javadoc.overview" value="spec-overview.html" />
         <property name="javadoc.spec.packagenames" value="com.jogamp.newt, com.jogamp.newt.event, com.jogamp.newt.opengl, com.jogamp.newt.util" />
 
@@ -193,7 +211,8 @@
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/KD" />
         <mkdir dir="${src.generated.c}/IntelGDL" />
-        <mkdir dir="${src.generated.c}/BroadcomEGL" />
+        <mkdir dir="${src.generated.c}/bcm/egl" />
+        <mkdir dir="${src.generated.c}/bcm/vc/iv" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj.newt}" />
     </target>
@@ -203,9 +222,8 @@
        - Compile the original and generated source.
       -->
     <target name="java.compile.javase">
-        <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -219,7 +237,21 @@
         </javac>
     </target>
 
-    <target name="java.compile" depends="java.compile.javase" />
+    <target name="java.compile.android" if="android-jars.available">
+        <javac destdir="${classes}"
+               excludes="${java.excludes.all}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <src path="${src.java}" />
+            <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
+        </javac>
+    </target>
 
     <!-- ================================================================== -->
     <!--
@@ -233,7 +265,13 @@
         <includepath path="/usr/local/include" />
       </compiler>
 
-      <compiler id="compiler.cfg.linux.armv7.newt.x11" extends="compiler.cfg.linux.armv7">
+      <compiler id="compiler.cfg.linux.armv6.newt.x11" extends="compiler.cfg.linux.armv6">
+        <!-- Need to force /usr/include headers on to include path (after all others), due to crosscompiler usage -->
+        <compilerarg value="-idirafter" />
+        <compilerarg value="/usr/include" />
+      </compiler>
+
+      <compiler id="compiler.cfg.linux.aarch64.newt.x11" extends="compiler.cfg.linux.aarch64">
         <!-- Need to force /usr/include headers on to include path (after all others), due to crosscompiler usage -->
         <compilerarg value="-idirafter" />
         <compilerarg value="/usr/include" />
@@ -245,15 +283,26 @@
         <linkerarg value="-L/usr/local/lib"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.newt.x11" extends="linker.cfg.freebsd.amd64">
         <linkerarg value="-L/usr/local/lib"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
-      <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
+      <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
+        <syslibset libs="EGL"/>
+        <syslibset libs="GLES_CM"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.newt.bcm_vc" extends="linker.cfg.linux">
+        <!-- syslibset libs="EGL"/ -->
+      </linker>
+
+      <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
         <syslibset libs="EGL"/>
         <syslibset libs="GLES_CM"/>
       </linker>
@@ -261,42 +310,61 @@
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
+        <!--syslibset libs="xcb" /-->
+        <!--syslibset libs="X11-xcb" /-->
       </linker>
 
       <linker id="linker.cfg.linux.x86.newt.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
+        <!--syslibset libs="xcb" /-->
+        <!--syslibset libs="X11-xcb" /-->
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
+        <!--syslibset libs="xcb" /-->
+        <!--syslibset libs="X11-xcb" /-->
       </linker>
 
-      <linker id="linker.cfg.linux.armv7.newt.x11" extends="linker.cfg.linux.armv7">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrandr" />
+      <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
+      </linker>
+
+      <linker id="linker.cfg.linux.aarch64.newt.x11" extends="linker.cfg.linux.aarch64">
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="android" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="android" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.newt.x11" extends="linker.cfg.solaris.sparcv9">
         <linkerarg value="-L/usr/lib/sparcv9"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.newt.x11" extends="linker.cfg.solaris.amd64">
         <linkerarg value="-L/usr/lib/amd64"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.newt" extends="linker.cfg.win32.mingw">
@@ -316,6 +384,8 @@
       <linker id="linker.cfg.macosx.newt" extends="linker.cfg.macosx">
         <linkerarg value="-weak_framework" />
         <linkerarg value="AppKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="Carbon" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
       </linker>
@@ -363,11 +433,21 @@
       <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
     </target>
 
-    <target name="c.configure.linux.armv7" if="isLinuxARMv7">
-      <echo message="Linux.armv7" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7.newt.x11" />
-      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.armv7.newt.x11"
-                                                            else="linker.cfg.linux.armv7">
+    <target name="c.configure.linux.armv6" if="isLinuxARMv6">
+      <echo message="Linux.armv6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6.newt.x11" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.armv6.newt.x11"
+                                                            else="linker.cfg.linux.armv6">
+          <isset property="isX11" />
+      </condition>
+      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+    </target>
+
+    <target name="c.configure.linux.aarch64" if="isLinuxARM64">
+      <echo message="Linux.aarch64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.aarch64.newt.x11" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.aarch64.newt.x11"
+                                                            else="linker.cfg.linux.aarch64">
           <isset property="isX11" />
       </condition>
       <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
@@ -439,7 +519,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv7,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
+    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.aarch64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
@@ -535,15 +615,22 @@
         <patternset id="c.src.files.newt">
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <!-- include name="${rootrel.src.c}/timespec.c"   /--> <!-- currently used for X11 and OSX with special PERF DEBUG MODE-->
-          <include name="${rootrel.src.c}/WindowsWindow.c" if="isWindows"/>
-          <include name="${rootrel.src.c}/*.m"             if="isOSX"/>
-          <include name="${rootrel.src.c}/AndroidWindow.c" if="isAndroid"/>
-          <include name="${rootrel.src.c}/X11Display.c"    if="isX11"/>
-          <include name="${rootrel.src.c}/X11Screen.c"     if="isX11"/>
-          <include name="${rootrel.src.c}/X11Window.c"     if="isX11"/>
-          <include name="${rootrel.src.c}/KDWindow.c"      if="setup.addNativeKD"/>
-          <include name="${rootrel.src.c}/IntelGDL.c"      if="setup.addNativeIntelGDL"/>
-          <include name="${rootrel.src.c}/BroadcomEGL.c"   if="setup.addNativeBroadcomEGL"/>
+          <include name="${rootrel.src.c}/WindowsWindow.c"    if="isWindows"/>
+          <include name="${rootrel.src.c}/WindowsEDID.c"      if="isWindows"/>
+          <include name="${rootrel.src.c}/MacWindow.m"        if="isOSX"/>
+          <include name="${rootrel.src.c}/NewtMacWindow.m"    if="isOSX"/>
+          <include name="${rootrel.src.c}/AndroidWindow.c"    if="isAndroid"/>
+          <include name="${rootrel.src.c}/X11Display.c"       if="isX11"/>
+          <!-- include name="${rootrel.src.c}/X11Event.c"      if="isX11"/-->
+          <!-- include name="${rootrel.src.c}/XCBEvent.c"      if="isX11"/-->
+          <include name="${rootrel.src.c}/X11Screen.c"        if="isX11"/>
+          <include name="${rootrel.src.c}/X11RandR11.c"       if="isX11"/>
+          <include name="${rootrel.src.c}/X11RandR13.c"       if="isX11"/>
+          <include name="${rootrel.src.c}/X11Window.c"        if="isX11"/>
+          <include name="${rootrel.src.c}/KDWindow.c"         if="setup.addNativeKD"/>
+          <include name="${rootrel.src.c}/IntelGDL.c"         if="setup.addNativeIntelGDL"/>
+          <include name="${rootrel.src.c}/bcm_egl.c"          if="setup.addNativeBroadcom"/>
+          <include name="${rootrel.src.c}/bcm_vc_iv.c"        if="setup.addNativeBroadcom"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -588,7 +675,8 @@
                 <includepath path="${src.generated.c}/KD"           if="setup.addNativeKD" />
                 <includepath path="${src.generated.c}/IntelGDL"     if="setup.addNativeIntelGDL" />
                 <includepath path="stub_includes/embedded/IntelGDL" if="setup.addNativeIntelGDL" />
-                <includepath path="${src.generated.c}/BroadcomEGL"  if="setup.addNativeBroadcomEGL" />
+                <includepath path="${src.generated.c}/bcm/egl"      if="setup.addNativeBroadcom" />
+                <includepath path="${src.generated.c}/bcm/vc/iv"    if="setup.addNativeBroadcom" />
     
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -627,24 +715,20 @@
     </macrodef>
 
     <target name="c.build.newt.prepare">
-      <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Display" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Screen" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Window" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.DisplayDriver, jogamp.newt.driver.intel.gdl.ScreenDriver, jogamp.newt.driver.intel.gdl.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${javah.classpath}" class="jogamp.newt.driver.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/bcm/egl"     classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.egl.WindowDriver" />
+      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.DisplayDriver, jogamp.newt.driver.bcm.vc.iv.ScreenDriver, jogamp.newt.driver.bcm.vc.iv.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsWindow" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsScreen" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsDisplay" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.MacWindow" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.MacScreen" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.MacDisplay" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Window" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Screen" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Display" />
-      <javah destdir="${src.generated.c}/Android"     classpath="${javah.classpath}:${android.jar}" class="jogamp.newt.driver.android.AndroidWindow" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver, jogamp.newt.driver.windows.ScreenDriver, jogamp.newt.driver.windows.DisplayDriver" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver, jogamp.newt.driver.macosx.ScreenDriver, jogamp.newt.driver.macosx.DisplayDriver" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver, jogamp.newt.driver.x11.ScreenDriver, jogamp.newt.driver.x11.RandR11, jogamp.newt.driver.x11.RandR13, jogamp.newt.driver.x11.DisplayDriver" />
+    </target>
+
+    <target name="c.build.newt.prepare.android" if="isAndroid">
+      <javah destdir="${src.generated.c}/Android"     classpath="${javah.classpath}:${android.jar}" class="jogamp.newt.driver.android.WindowDriver" />
     </target>
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">
@@ -662,7 +746,7 @@
     <target name="c.build.newt.natives" depends="c.build.newt.windowlib" unless="setup.nonatives">
     </target>
 
-    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.natives">
+    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.prepare.android,c.build.newt.natives">
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
@@ -670,73 +754,97 @@
     <!--
        - Build the newt.jar files.
       -->
-    <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase" />
-
     <target name="setup-manifestfile">
         <property name="manifestfile" value="newtversion"/>
         <copy file="${manifestfile}"
           tofile="${build.newt}/manifest.mf"
           overwrite="true">
           <filterset>
-              <filter token="VERSION" value="${newt.version}"/>
+              <filter token="VERSION" value="${jogamp.version}"/>
+              <filter token="BUILD_VERSION" value="${jogl.version}"/>
               <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
               <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-              <filter token="BASEVERSION" value="${newt_base_version}"/>
+              <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+              <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+          </filterset>
+        </copy>
+        <copy file="${manifestfile}-natives"
+          tofile="${build.newt}/manifest-natives.mf"
+          overwrite="true">
+          <filterset>
+              <filter token="VERSION" value="${jogamp.version}"/>
+              <filter token="BUILD_VERSION" value="${jogl.version}"/>
+              <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+              <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+              <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+              <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
           </filterset>
         </copy>
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.awt.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"/>
         </jar>
     </target>
 
+    <target name="build-jars-swt" depends="setup-manifestfile" unless="setup.noSWT">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-swt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.swt}"/>
+        </jar>
+    </target>
+
     <target name="build-jars-opengl" depends="setup-manifestfile" unless="setup.noOpenGL">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.ogl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-ogl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.opengl}"/>
         </jar>
     </target>
 
     <target name="build-jars-driver" depends="setup-manifestfile">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.x11.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-linux.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.linux}"/>
+        </jar>
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.x11}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.win.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.windows}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.macosx.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.macosx}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.android.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.driver.android}"/>
-        </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.kd.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-kd.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.kd}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.broadcomegl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-bcm-old.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.driver.broadcomegl}"/>
+                     includes="${java.part.driver.bcm.old}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.intelgdl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-bcm-vc.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.bcm.vc}"/>
+        </jar>
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-intelgdl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.intelgdl}"/>
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-driver">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.core.jar}" filesonly="true">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-driver">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
+            <fileset dir="resources/assets" includes="newt/data/**" />
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.event.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-event.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="com/jogamp/newt/Display*" />
                 <include name="com/jogamp/newt/Screen*" />
@@ -746,11 +854,21 @@
                 <include name="jogamp/newt/Debug*" />
             </fileset>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${build.newt}/newt-natives-${os.and.arch}.jar" filesonly="true">
-            <fileset dir="${obj.newt}">
-              <include name="*.${native.library.suffix}" />
-            </fileset>
+    </target>
+
+    <target name="build-jars-android" depends="setup-manifestfile" if="android-jars.available">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-android.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.android}"/>
         </jar>
+    </target>
+
+    <target name="build-jars-native" depends="gluegen.cpptasks.detect.os,setup-manifestfile">
+        <native.tag.jar objdir="${obj.newt}"
+                        nativejarfile="${build.newt}/newt-natives-${os.and.arch}.jar"
+                        manifestfile="${build.newt}/manifest-natives.mf"
+                        module="newt"
+                        includelibs="*.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->
@@ -772,7 +890,8 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-         <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+         <classpath refid="jogl_doc.classpath"/>
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -788,7 +907,8 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-         <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+         <classpath refid="jogl_doc.classpath"/>
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -804,7 +924,8 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-         <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+         <classpath refid="jogl_doc.classpath"/>
+          <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
 
@@ -827,11 +948,11 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="init,java.compile,c.build.newt,build-jars,generate.version.txt" />
+    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="init,java.compile.javase,build-jars-javase,java.compile.android,build-jars-android,c.build.newt,build-jars-native,generate.version.txt" />
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
-        <echo message="${newt.version}" file="${build.newt}/version.txt" />
+        <echo message="${jogl.version}" file="${build.newt}/version.txt" />
     </target>
 
 </project>

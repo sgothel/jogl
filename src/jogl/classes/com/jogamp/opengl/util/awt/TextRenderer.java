@@ -27,6 +27,9 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLContext;
+import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.util.texture.TextureCoords;
 
 import java.awt.Color;
@@ -40,10 +43,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
-
 
 /**
  * Utility for rendering bitmapped Java 2D text into an OpenGL window.
@@ -55,15 +54,15 @@ import javax.media.opengl.GLException;
  * public API.
  *
  * <p>Using the TextRenderer is simple. Add a "{@code TextRenderer renderer;}"
- * field to your {@link javax.media.opengl.GLEventListener GLEventListener}. In
- * your {@link javax.media.opengl.GLEventListener#init init} method, add:
+ * field to your {@link com.jogamp.opengl.GLEventListener GLEventListener}. In
+ * your {@link com.jogamp.opengl.GLEventListener#init init} method, add:
  *
  * <PRE>
  * renderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
  * </PRE>
  *
- * <p>In the {@link javax.media.opengl.GLEventListener#display display} method
- * of your {@link javax.media.opengl.GLEventListener GLEventListener}, add:
+ * <p>In the {@link com.jogamp.opengl.GLEventListener#display display} method
+ * of your {@link com.jogamp.opengl.GLEventListener GLEventListener}, add:
  * <PRE>
  * renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
  * // optionally set the color

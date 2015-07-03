@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,204 +20,345 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.newt.driver.android.event;
 
-import java.awt.event.MouseEvent;
+import jogamp.newt.Debug;
+import android.view.MotionEvent;
 
-import com.jogamp.common.util.IntIntHashMap;
-import com.jogamp.newt.Window;
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.NEWTEvent;
 
 public class AndroidNewtEventFactory {
+    private static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Android.MouseEvent");
+    private static final boolean DEBUG_KEY_EVENT = Debug.debug("Android.KeyEvent");
 
-    protected static final IntIntHashMap eventTypeANDROID2NEWT;
+    /** API Level 12: {@link android.view.MotionEvent#ACTION_SCROLL} = {@value} */
+    private static final int ACTION_SCROLL = 8;
 
-    private static final String names[] = { "DOWN" , "UP" , "MOVE" , "CANCEL" , "OUTSIDE" ,
-                                            "POINTER_DOWN" , "POINTER_UP" , "7?" , "8?" , "9?" };
-    
-    static {
-        IntIntHashMap map = new IntIntHashMap();
-        map.setKeyNotFoundValue(0xFFFFFFFF);
-        
-        map.put(android.view.KeyEvent.ACTION_DOWN, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED);
-        map.put(android.view.KeyEvent.ACTION_UP, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED);
-        map.put(android.view.KeyEvent.ACTION_MULTIPLE, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED);
-        
-        map.put(android.view.MotionEvent.ACTION_DOWN, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED);
-        map.put(android.view.MotionEvent.ACTION_UP, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
-        map.put(android.view.MotionEvent.ACTION_CANCEL, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
-        map.put(android.view.MotionEvent.ACTION_MOVE, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED);
-        map.put(android.view.MotionEvent.ACTION_OUTSIDE, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED);
-        
-        map.put(android.view.MotionEvent.ACTION_POINTER_DOWN, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED);
-        map.put(android.view.MotionEvent.ACTION_POINTER_UP, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
-        
-        map.put(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED, com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS);
-
-        eventTypeANDROID2NEWT = map;
-    }
-
-    static final int androidKeyCode2Newt(int androidKeyCode) {
-        //safest ...but ugly
-        if (android.view.KeyEvent.KEYCODE_0 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_0;
-        if (android.view.KeyEvent.KEYCODE_1 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_1;
-        if (android.view.KeyEvent.KEYCODE_2 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_2;
-        if (android.view.KeyEvent.KEYCODE_3 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_3;
-        if (android.view.KeyEvent.KEYCODE_4 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_4;
-        if (android.view.KeyEvent.KEYCODE_5 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_5;
-        if (android.view.KeyEvent.KEYCODE_6 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_6;
-        if (android.view.KeyEvent.KEYCODE_7 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_7;
-        if (android.view.KeyEvent.KEYCODE_8 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_8;
-        if (android.view.KeyEvent.KEYCODE_9 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_9;
-        
-        if (android.view.KeyEvent.KEYCODE_A == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_A;
-        if (android.view.KeyEvent.KEYCODE_B == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_B;
-        if (android.view.KeyEvent.KEYCODE_C == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_C;
-        if (android.view.KeyEvent.KEYCODE_D == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_D;
-        if (android.view.KeyEvent.KEYCODE_E == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_E;
-        if (android.view.KeyEvent.KEYCODE_F == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_F;
-        if (android.view.KeyEvent.KEYCODE_G == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_G;
-        if (android.view.KeyEvent.KEYCODE_H == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_H;
-        if (android.view.KeyEvent.KEYCODE_I == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_I;
-        if (android.view.KeyEvent.KEYCODE_J == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_J;
-        if (android.view.KeyEvent.KEYCODE_K == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_K;
-        if (android.view.KeyEvent.KEYCODE_L == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_L;
-        if (android.view.KeyEvent.KEYCODE_M == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_M;
-        if (android.view.KeyEvent.KEYCODE_N == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_N;
-        if (android.view.KeyEvent.KEYCODE_O == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_O;
-        if (android.view.KeyEvent.KEYCODE_P == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_P;
-        if (android.view.KeyEvent.KEYCODE_Q == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_Q;
-        if (android.view.KeyEvent.KEYCODE_R == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_R;
-        if (android.view.KeyEvent.KEYCODE_S == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_S;
-        if (android.view.KeyEvent.KEYCODE_T == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_T;
-        if (android.view.KeyEvent.KEYCODE_U == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_U;
-        if (android.view.KeyEvent.KEYCODE_V == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_V;
-        if (android.view.KeyEvent.KEYCODE_W == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_W;
-        if (android.view.KeyEvent.KEYCODE_X == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_X;
-        if (android.view.KeyEvent.KEYCODE_Y == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_Y;
-        if (android.view.KeyEvent.KEYCODE_Z == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_Z;
-          
-        if (android.view.KeyEvent.KEYCODE_AT == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_AT;
-        return 0;
-    }
-    
-    public static final com.jogamp.newt.event.WindowEvent createWindowEvent(android.view.accessibility.AccessibilityEvent event, com.jogamp.newt.Window newtSource) {
-        int type = eventTypeANDROID2NEWT.get(event.getEventType());
-        if(0xFFFFFFFF != type) {
-            return new com.jogamp.newt.event.WindowEvent(type, ((null==newtSource)?null:(Object)newtSource), event.getEventTime());
+    private static final com.jogamp.newt.event.MouseEvent.PointerType aToolType2PointerType(final int aToolType) {
+        switch( aToolType ) {
+            case MotionEvent.TOOL_TYPE_FINGER:
+                return com.jogamp.newt.event.MouseEvent.PointerType.TouchScreen;
+            case MotionEvent.TOOL_TYPE_MOUSE:
+                return com.jogamp.newt.event.MouseEvent.PointerType.Mouse;
+            case MotionEvent.TOOL_TYPE_STYLUS:
+            case MotionEvent.TOOL_TYPE_ERASER:
+                return com.jogamp.newt.event.MouseEvent.PointerType.Pen;
+            default:
+                return com.jogamp.newt.event.MouseEvent.PointerType.Undefined;
         }
-        return null; // no mapping ..
     }
 
-    static final int androidKeyModifiers2Newt(int androidMods) {
+    private static final short aMotionEventType2Newt(final int aType) {
+        switch( aType ) {
+            case android.view.MotionEvent.ACTION_DOWN:
+            case android.view.MotionEvent.ACTION_POINTER_DOWN:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED;
+            case android.view.MotionEvent.ACTION_UP:
+            case android.view.MotionEvent.ACTION_POINTER_UP:
+            case android.view.MotionEvent.ACTION_CANCEL:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED;
+            case android.view.MotionEvent.ACTION_MOVE:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED;
+            case android.view.MotionEvent.ACTION_OUTSIDE:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED;
+            // case ACTION_HOVER_MOVE
+            case ACTION_SCROLL:  // API Level 12 !
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
+            // case ACTION_HOVER_ENTER
+            // case ACTION_HOVER_EXIT
+        }
+        return (short)0;
+    }
+
+    private static final short aAccessibilityEventType2Newt(final int aType) {
+        switch( aType ) {
+            case android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED:
+                return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_GAINED_FOCUS;
+        }
+        return (short)0;
+    }
+
+    private static final short aKeyEventType2NewtEventType(final int androidKeyAction) {
+        switch(androidKeyAction) {
+            case android.view.KeyEvent.ACTION_DOWN:
+            case android.view.KeyEvent.ACTION_MULTIPLE:
+                return com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED;
+            case android.view.KeyEvent.ACTION_UP:
+                return com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED;
+        }
+        return (short)0;
+    }
+
+    private static final short aKeyCode2NewtKeyCode(final int androidKeyCode, final boolean inclSysKeys) {
+        if(android.view.KeyEvent.KEYCODE_0 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_9) {
+            return (short) ( com.jogamp.newt.event.KeyEvent.VK_0 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_0 ) );
+        }
+        if(android.view.KeyEvent.KEYCODE_A <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_Z) {
+            return (short) ( com.jogamp.newt.event.KeyEvent.VK_A + ( androidKeyCode - android.view.KeyEvent.KEYCODE_A ) );
+        }
+        if(android.view.KeyEvent.KEYCODE_F1 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_F12) {
+            return (short) ( com.jogamp.newt.event.KeyEvent.VK_F1 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_F1 ) );
+        }
+        if(android.view.KeyEvent.KEYCODE_NUMPAD_0 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_NUMPAD_9) {
+            return (short) ( com.jogamp.newt.event.KeyEvent.VK_NUMPAD0 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_NUMPAD_0 ) );
+        }
+        switch(androidKeyCode) {
+            case android.view.KeyEvent.KEYCODE_COMMA: return com.jogamp.newt.event.KeyEvent.VK_COMMA;
+            case android.view.KeyEvent.KEYCODE_PERIOD: return com.jogamp.newt.event.KeyEvent.VK_PERIOD;
+            case android.view.KeyEvent.KEYCODE_ALT_LEFT: return com.jogamp.newt.event.KeyEvent.VK_ALT;
+            case android.view.KeyEvent.KEYCODE_ALT_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_ALT_GRAPH;
+            case android.view.KeyEvent.KEYCODE_SHIFT_LEFT: return com.jogamp.newt.event.KeyEvent.VK_SHIFT;
+            case android.view.KeyEvent.KEYCODE_SHIFT_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_SHIFT;
+            case android.view.KeyEvent.KEYCODE_TAB: return com.jogamp.newt.event.KeyEvent.VK_TAB;
+            case android.view.KeyEvent.KEYCODE_SPACE: return com.jogamp.newt.event.KeyEvent.VK_SPACE;
+            case android.view.KeyEvent.KEYCODE_ENTER: return com.jogamp.newt.event.KeyEvent.VK_ENTER;
+            case android.view.KeyEvent.KEYCODE_DEL: return com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE;
+            case android.view.KeyEvent.KEYCODE_MINUS: return com.jogamp.newt.event.KeyEvent.VK_MINUS;
+            case android.view.KeyEvent.KEYCODE_EQUALS: return com.jogamp.newt.event.KeyEvent.VK_EQUALS;
+            case android.view.KeyEvent.KEYCODE_LEFT_BRACKET: return com.jogamp.newt.event.KeyEvent.VK_LEFT_PARENTHESIS;
+            case android.view.KeyEvent.KEYCODE_RIGHT_BRACKET: return com.jogamp.newt.event.KeyEvent.VK_RIGHT_PARENTHESIS;
+            case android.view.KeyEvent.KEYCODE_BACKSLASH: return com.jogamp.newt.event.KeyEvent.VK_BACK_SLASH;
+            case android.view.KeyEvent.KEYCODE_SEMICOLON: return com.jogamp.newt.event.KeyEvent.VK_SEMICOLON;
+            // case android.view.KeyEvent.KEYCODE_APOSTROPHE: ??
+            case android.view.KeyEvent.KEYCODE_SLASH: return com.jogamp.newt.event.KeyEvent.VK_SLASH;
+            case android.view.KeyEvent.KEYCODE_AT: return com.jogamp.newt.event.KeyEvent.VK_AT;
+            // case android.view.KeyEvent.KEYCODE_MUTE: ??
+            case android.view.KeyEvent.KEYCODE_PAGE_UP: return com.jogamp.newt.event.KeyEvent.VK_PAGE_UP;
+            case android.view.KeyEvent.KEYCODE_PAGE_DOWN: return com.jogamp.newt.event.KeyEvent.VK_PAGE_DOWN;
+            case android.view.KeyEvent.KEYCODE_ESCAPE: return com.jogamp.newt.event.KeyEvent.VK_ESCAPE;
+            case android.view.KeyEvent.KEYCODE_CTRL_LEFT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL;
+            case android.view.KeyEvent.KEYCODE_CTRL_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL; // ??
+            case android.view.KeyEvent.KEYCODE_BACK:
+                if( inclSysKeys ) {
+                    // Note that manual mapping is performed, based on the keyboard state.
+                    // I.e. we map to VK_KEYBOARD_INVISIBLE if keyboard was visible and now becomes invisible!
+                    // Otherwise we map to VK_ESCAPE, and if not consumed by user, the application will be terminated.
+                    return com.jogamp.newt.event.KeyEvent.VK_ESCAPE;
+                }
+                break;
+            case android.view.KeyEvent.KEYCODE_HOME:
+                if( inclSysKeys ) {
+                    // If not consumed by user, the application will be 'paused',
+                    // i.e. resources (GLEventListener) pulled before surface gets destroyed!
+                    return com.jogamp.newt.event.KeyEvent.VK_HOME;
+                }
+                break;
+        }
+        return com.jogamp.newt.event.KeyEvent.VK_UNDEFINED;
+    }
+
+    private static final int aKeyModifiers2Newt(final int androidMods) {
         int newtMods = 0;
         if ((androidMods & android.view.KeyEvent.META_SYM_ON)   != 0)   newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
         if ((androidMods & android.view.KeyEvent.META_SHIFT_ON) != 0)   newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
         if ((androidMods & android.view.KeyEvent.META_ALT_ON)   != 0)   newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
-        
+
         return newtMods;
     }
-    
-    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent event, com.jogamp.newt.Window newtSource) {
-        int type = eventTypeANDROID2NEWT.get(event.getAction());
-        if(0xFFFFFFFF != type) {
-            return new com.jogamp.newt.event.KeyEvent(
-                           type, (null==newtSource)?null:(Object)newtSource, event.getEventTime(), 
-                           androidKeyModifiers2Newt(event.getMetaState()), 
-                           androidKeyCode2Newt(event.getKeyCode()), event.getDisplayLabel());
+
+    public static com.jogamp.newt.event.WindowEvent createWindowEvent(final android.view.accessibility.AccessibilityEvent event, final com.jogamp.newt.Window newtSource) {
+        final int aType = event.getEventType();
+        final short nType = aAccessibilityEventType2Newt(aType);
+
+        if( (short)0 != nType) {
+            return new com.jogamp.newt.event.WindowEvent(nType, ((null==newtSource)?null:(Object)newtSource), event.getEventTime());
+        }
+        return null; // no mapping ..
+    }
+
+
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(final android.view.KeyEvent aEvent, final com.jogamp.newt.Window newtSource, final boolean inclSysKeys) {
+        final com.jogamp.newt.event.KeyEvent res;
+        final short newtType = aKeyEventType2NewtEventType(aEvent.getAction());
+        if( (short)0 != newtType) {
+            final short newtKeyCode = aKeyCode2NewtKeyCode(aEvent.getKeyCode(), inclSysKeys);
+            res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
+        } else {
+            res = null;
+        }
+        if(DEBUG_KEY_EVENT) {
+            System.err.println("createKeyEvent0: "+aEvent+" -> "+res);
+        }
+        return res;
+    }
+
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(final android.view.KeyEvent aEvent, final short newtType, final com.jogamp.newt.Window newtSource, final boolean inclSysKeys) {
+        final short newtKeyCode = aKeyCode2NewtKeyCode(aEvent.getKeyCode(), inclSysKeys);
+        final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
+        if(DEBUG_KEY_EVENT) {
+            System.err.println("createKeyEvent1: newtType "+NEWTEvent.toHexString(newtType)+", "+aEvent+" -> "+res);
+        }
+        return res;
+    }
+
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(final android.view.KeyEvent aEvent, final short newtKeyCode, final short newtType, final com.jogamp.newt.Window newtSource) {
+        final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
+        if(DEBUG_KEY_EVENT) {
+            System.err.println("createKeyEvent2: newtType "+NEWTEvent.toHexString(newtType)+", "+aEvent+" -> "+res);
+        }
+        return res;
+    }
+
+    private static com.jogamp.newt.event.KeyEvent createKeyEventImpl(final android.view.KeyEvent aEvent, final short newtType, final short newtKeyCode, final com.jogamp.newt.Window newtSource) {
+        if( (short)0 != newtType && com.jogamp.newt.event.KeyEvent.VK_UNDEFINED != newtKeyCode ) {
+            final Object src = null==newtSource ? null : newtSource;
+            final long unixTime = System.currentTimeMillis() + ( aEvent.getEventTime() - android.os.SystemClock.uptimeMillis() );
+            final int newtMods = aKeyModifiers2Newt(aEvent.getMetaState());
+
+            return com.jogamp.newt.event.KeyEvent.create(
+                                newtType, src, unixTime, newtMods, newtKeyCode, newtKeyCode, (char) aEvent.getUnicodeChar());
         }
         return null;
     }
 
-    public static final com.jogamp.newt.event.MouseEvent[] createMouseEvents(com.jogamp.newt.Window newtSource, android.view.MotionEvent event) {
-        if(Window.DEBUG_MOUSE_EVENT) {
-            System.err.println("createMouseEvent: "+toString(event));
-        }
-        int type = eventTypeANDROID2NEWT.get(event.getAction());
-        if(0xFFFFFFFF != type) {
-            int rotation = 0;
-            int clickCount = 1;
-            int modifiers = 0;
-            
-            int[] x = new int[event.getPointerCount()];
-            int[] y = new int[event.getPointerCount()];
-            float[] pressure = new float[event.getPointerCount()];
-            int[] pointers = new int[event.getPointerCount()];
-            int index = 0;
-            while(index < event.getPointerCount()) {
-                x[index] = (int)event.getX(index);
-                y[index] = (int)event.getY(index);
-                pressure[index] = event.getPressure(index);
-                pointers[index] = event.getPointerId(index);  
-                index++;
-            }
+    private static float maxPressure = 0.7f; // experienced maximum value (Amazon HD = 0.8f)
 
-            if(null!=newtSource) {
-                if(newtSource.isPointerConfined()) {
-                    modifiers |= InputEvent.CONFINED_MASK;
-                }
-                if(!newtSource.isPointerVisible()) {
-                    modifiers |= InputEvent.INVISIBLE_MASK;
-                }
-            }
-                                
-            com.jogamp.newt.event.MouseEvent res[];
-
-            com.jogamp.newt.event.MouseEvent me1 = 
-                    new com.jogamp.newt.event.MouseEvent(
-                           type, 
-                           (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
-                           modifiers, x, y, pressure, pointers, clickCount, 
-                           pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
-            
-            if(type == com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED) {
-                com.jogamp.newt.event.MouseEvent me2 =
-                    new com.jogamp.newt.event.MouseEvent(
-                           com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
-                           (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
-                           modifiers, x, y, pressure, pointers, clickCount, 
-                           pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
-                res = new com.jogamp.newt.event.MouseEvent[2];
-                res[0] = me1;
-                res[1] = me2;
-            } else {
-                res = new com.jogamp.newt.event.MouseEvent[1];
-                res[0] = me1;                
-            }
-            return res;
-        } 
-        return null; // no mapping ..
+    /**
+     * Dynamic calibration of maximum MotionEvent pressure, starting from 0.7f
+     * <p>
+     * Specification says no pressure is 0.0f and
+     * normal pressure is 1.0f, where &gt; 1.0f denominates very high pressure.
+     * </p>
+     * <p>
+     * Some devices exceed this spec, or better, most devices do.
+     * <ul>
+     *   <li>Asus TF2*: Pressure always &gt; 1.0f</li>
+     *   <li>Amazon HD: Pressure always &le; 0.8f</li>
+     * </ul>
+     * </p>
+     *
+     * @return
+     */
+    public static float getMaxPressure() {
+        return maxPressure;
     }
-    
-    
-    public static String toString(android.view.MotionEvent event) {
-        StringBuilder sb = new StringBuilder();
-        int action = event.getAction();
-        int actionCode = action & android.view.MotionEvent.ACTION_MASK;
-        sb.append("ACTION_" ).append(names[actionCode]);
-        if (actionCode == android.view.MotionEvent.ACTION_POINTER_DOWN
-                || actionCode == android.view.MotionEvent.ACTION_POINTER_UP) {
-            sb.append("(pid " ).append(
-                    action >> android.view.MotionEvent.ACTION_POINTER_ID_SHIFT);
-            sb.append(")" );
+
+    private final int touchSlop;
+    public AndroidNewtEventFactory(final android.content.Context context, final android.os.Handler handler) {
+        final android.view.ViewConfiguration configuration = android.view.ViewConfiguration.get(context);
+        touchSlop = configuration.getScaledTouchSlop();
+        final int doubleTapSlop = configuration.getScaledDoubleTapSlop();
+        if(DEBUG_MOUSE_EVENT) {
+            System.err.println("AndroidNewtEventFactory    scrollSlop (scaled) "+touchSlop);
+            System.err.println("AndroidNewtEventFactory doubleTapSlop (scaled) "+doubleTapSlop);
         }
-        sb.append("[" );
-        for (int i = 0; i < event.getPointerCount(); i++) {
-            sb.append("#" ).append(i);
-            sb.append("(pid " ).append(event.getPointerId(i));
-            sb.append(")=" ).append((int) event.getX(i));
-            sb.append("," ).append((int) event.getY(i));
-            if (i + 1 < event.getPointerCount())
-                sb.append(";" );
+    }
+
+    private static void collectPointerData(final MotionEvent e, final int count, final int[] x, final int[] y, final float[] pressure,
+                                           final short[] pointerIds, final MouseEvent.PointerType[] pointerTypes) {
+        for(int i=0; i < count; i++) {
+            x[i] = (int)e.getX(i);
+            y[i] = (int)e.getY(i);
+            pressure[i] = e.getPressure(i);
+            pointerIds[i] = (short)e.getPointerId(i);
+            if( pressure[i] > maxPressure ) {
+                maxPressure = pressure[i];
+            }
+            pointerTypes[i] = aToolType2PointerType( e.getToolType(i) );
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("createMouseEvent: ptr-data["+i+"] "+x[i]+"/"+y[i]+", pressure "+pressure[i]+", id "+pointerIds[i]+", type "+pointerTypes[i]);
+            }
         }
-        sb.append("]" );
-        return sb.toString();
-    }    
+    }
+
+    public boolean sendPointerEvent(final boolean enqueue, final boolean wait, final boolean setFocusOnDown, final boolean isOnTouchEvent,
+                                    final android.view.MotionEvent event, final jogamp.newt.driver.android.WindowDriver newtSource) {
+        if(DEBUG_MOUSE_EVENT) {
+            System.err.println("createMouseEvent: isOnTouchEvent "+isOnTouchEvent+", "+event);
+        }
+
+        if( event.getPressure() > maxPressure ) {
+            maxPressure = event.getPressure(); // write to static field intended
+        }
+
+        //
+        // Prefilter Android Event (Gesture, ..) and determine final type
+        //
+        final int aType = event.getActionMasked();
+        final short nType = aMotionEventType2Newt(aType);
+        final float rotationScale = touchSlop;
+        final float[] rotationXYZ = new float[] { 0f, 0f, 0f };
+
+        if( (short)0 != nType ) {
+            int modifiers = 0;
+
+            //
+            // Determine SDK 12 SCROLL, newt-button and whether dedicated pointer is pressed
+            //
+            final int pIndex;
+            final short button;
+            switch( aType ) {
+                case android.view.MotionEvent.ACTION_POINTER_DOWN:
+                case android.view.MotionEvent.ACTION_POINTER_UP: {
+                        pIndex = event.getActionIndex();
+                        final int b = event.getPointerId(pIndex) + 1; // FIXME: Assumption that Pointer-ID starts w/ 0 !
+                        if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
+                            button = (short)b;
+                        } else {
+                            button = com.jogamp.newt.event.MouseEvent.BUTTON1;
+                        }
+                    }
+                    break;
+
+                case ACTION_SCROLL:
+                    if( AndroidVersion.SDK_INT >= 12 ) { // API Level 12
+                        rotationXYZ[0] = event.getAxisValue(android.view.MotionEvent.AXIS_X) / rotationScale;
+                        rotationXYZ[1] = event.getAxisValue(android.view.MotionEvent.AXIS_Y) / rotationScale;
+
+                        if( rotationXYZ[0]*rotationXYZ[0] > rotationXYZ[1]*rotationXYZ[1] ) {
+                            // Horizontal
+                            modifiers |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
+                        }
+                        if(DEBUG_MOUSE_EVENT) {
+                            System.err.println("createMouseEvent: SDK-12 Scroll "+rotationXYZ[0]+"/"+rotationXYZ[1]+", "+rotationScale+", mods "+modifiers);
+                        }
+                    }
+                    // Fall through intended!
+
+                default: {
+                        pIndex = 0;
+                        button = com.jogamp.newt.event.MouseEvent.BUTTON1;
+                    }
+            }
+            final int pCount = event.getPointerCount(); // all
+
+            switch( aType ) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                case android.view.MotionEvent.ACTION_POINTER_DOWN:
+                    // modifier button-mask will be set on doPointerEvent(..)
+                    if( setFocusOnDown ) {
+                        newtSource.focusChanged(false, true);
+                    }
+            }
+
+            //
+            // Collect common data
+            //
+            final int[] x = new int[pCount];
+            final int[] y = new int[pCount];
+            final float[] pressure = new float[pCount];
+            final short[] pointerIds = new short[pCount];
+            final MouseEvent.PointerType[] pointerTypes = new MouseEvent.PointerType[pCount];
+            if( 0 < pCount ) {
+                if(DEBUG_MOUSE_EVENT) {
+                    System.err.println("createMouseEvent: collect ptr-data [0.."+(pCount-1)+", count "+pCount+", action "+pIndex+"], aType "+aType+", button "+button);
+                }
+                collectPointerData(event, pCount, x, y, pressure, pointerIds, pointerTypes);
+            }
+            newtSource.doPointerEvent(enqueue, wait, pointerTypes, nType, modifiers,
+                                      pIndex, pointerIds, button, x, y, pressure, maxPressure, rotationXYZ, rotationScale);
+            return true;
+        }
+        return false; // no mapping ..
+    }
 }
 

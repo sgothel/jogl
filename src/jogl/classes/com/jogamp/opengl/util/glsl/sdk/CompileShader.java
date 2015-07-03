@@ -2,8 +2,7 @@ package com.jogamp.opengl.util.glsl.sdk;
 
 import com.jogamp.common.util.IOUtil;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
+import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.glsl.*;
 
 import java.io.*;
@@ -31,7 +30,7 @@ public abstract class CompileShader {
 
     public abstract String getFragmentShaderCompiler();
 
-    public void processOneShader(String resourceName)
+    public void processOneShader(final String resourceName)
         throws IOException, UnsupportedEncodingException, InterruptedException
     {
         int type = -1;
@@ -50,31 +49,31 @@ public abstract class CompileShader {
             suffixLen = 4;
             type = GL2ES2.GL_VERTEX_SHADER;
         }
-        String justName = basename(resourceName);
+        final String justName = basename(resourceName);
         outName = justName.substring(0, justName.length() - suffixLen) +
                   ShaderCode.getFileSuffix(true, type);
-        URL resourceURL = IOUtil.getResource(null, resourceName);
-        String dirName = dirname(resourceURL.getPath());
+        final URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
+        final String dirName = dirname(resourceURL.getPath());
 
-        outName = dirName + File.separator + "bin" + File.separator + 
-                  ShaderCode.getBinarySubPath(getBinaryFormat()) + File.separator + 
+        outName = dirName + File.separator + "bin" + File.separator +
+                  ShaderCode.getBinarySubPath(getBinaryFormat()) + File.separator +
                   outName;
         processOneShader(resourceName, outName, type);
     }
 
-    public void processOneShader(String resourceName, String outName, int type)
+    public void processOneShader(final String resourceName, final String outName, final int type)
         throws IOException, UnsupportedEncodingException, InterruptedException
     {
-        URL resourceURL = IOUtil.getResource(null, resourceName);
-        String dirName = dirname(resourceURL.getPath());
+        final URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
+        final String dirName = dirname(resourceURL.getPath());
 
-        String shader = ShaderCode.readShaderSource(null, resourceName);
+        final CharSequence shader = ShaderCode.readShaderSource(null, resourceName, false);
         if(null==shader) {
             System.err.println("Can't find shader source " + resourceName + " - ignored");
             return;
         }
         System.err.println("Preprocessing: "+ resourceName+", in dir: "+dirName);
-        String justName = basename(resourceName);
+        final String justName = basename(resourceName);
         String processor;
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
@@ -86,38 +85,37 @@ public abstract class CompileShader {
             default:
                 throw new GLException("Unknown shader type: "+type);
         }
-        File outputFile = new File(outName);
+        final File outputFile = new File(outName);
 
         // Write shader to a file in java.io.tmpdir
-        File tmpDir = new File(dirName+File.separator+"tmp");
+        final File tmpDir = new File(dirName+File.separator+"tmp");
         tmpDir.mkdirs();
-        File tmpFile = new File(tmpDir, justName);
-        Writer writer = new BufferedWriter(new FileWriter(tmpFile));
-        writer.write(shader, 0, shader.length());
+        final File tmpFile = new File(tmpDir, justName);
+        final Writer writer = new BufferedWriter(new FileWriter(tmpFile));
+        writer.write(shader.toString(), 0, shader.length());
         writer.flush();
         writer.close();
         System.err.println("Preprocessed: "+ tmpFile.getAbsolutePath());
 
-        File processorDir = getSDKCompilerDir();
+        final File processorDir = getSDKCompilerDir();
 
         System.err.println("SDK: "+ processorDir.getAbsolutePath() + ", compiler: "+processor);
 
         System.err.println("Output: "+ outputFile.getAbsolutePath());
 
         // Run the tool
-        Process process = Runtime.getRuntime().exec(new String[] {
+        final Process process = Runtime.getRuntime().exec(new String[] {
                 processorDir.getAbsolutePath() + File.separator + processor,
                 tmpFile.getAbsolutePath(),
                 outputFile.getAbsolutePath()
             }); // , null, processorDir);
-        new StreamMonitor(process.getInputStream());
-        new StreamMonitor(process.getErrorStream());
+        new IOUtil.StreamMonitor( new InputStream[] { process.getInputStream(), process.getErrorStream() }, System.out, null );
         process.waitFor();
         // Delete the temporary file
         // tmpFile.delete();
     }
 
-    protected static String basename(String path) {
+    protected static String basename(final String path) {
         int lastSlash = path.lastIndexOf("/");
         if (lastSlash < 0) {
             lastSlash = path.lastIndexOf("\\");
@@ -131,57 +129,27 @@ public abstract class CompileShader {
         return basename;
     }
 
-    protected static String dirname(String path) {
+    protected static String dirname(final String path) {
         int lastSlash = path.lastIndexOf("/");
         if (lastSlash < 0) {
             lastSlash = path.lastIndexOf("\\");
         }
         String dirname;
         if (lastSlash < 0) {
-            dirname = new String();
+            dirname = "";
         } else {
             dirname = path.substring(0, lastSlash + 1);
         }
         return dirname;
     }
 
-    public void run(String[] args) {
+    public void run(final String[] args) {
         try {
             for (int i = 0; i < args.length; i++) {
                 processOneShader(args[i]);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private static class StreamMonitor implements Runnable {
-        private InputStream istream;
-        public StreamMonitor(InputStream stream) {
-            istream = stream;
-            new Thread(this, "Output Reader Thread").start();
-        }
-
-        public void run()
-        {
-            byte[] buffer = new byte[4096];
-            try {
-                int numRead = 0;
-                do {
-                    numRead = istream.read(buffer);
-                    if (numRead > 0) {
-                        System.out.write(buffer, 0, numRead);
-                        System.out.flush();
-                    }
-                } while (numRead >= 0);
-            }
-            catch (IOException e) {
-                try {
-                    istream.close();
-                } catch (IOException e2) {
-                }
-                // Should allow clean exit when process shuts down
-            }
         }
     }
 }

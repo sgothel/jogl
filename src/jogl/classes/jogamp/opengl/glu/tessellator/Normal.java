@@ -52,8 +52,8 @@
 */
 package jogamp.opengl.glu.tessellator;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.glu.*;
 
 class Normal {
     private Normal() {
@@ -83,11 +83,11 @@ class Normal {
         }
     }
 
-    private static double Dot(double[] u, double[] v) {
+    private static double Dot(final double[] u, final double[] v) {
         return (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]);
     }
 
-    static void Normalize(double[] v) {
+    static void Normalize(final double[] v) {
         double len = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 
         assert (len > 0);
@@ -97,7 +97,7 @@ class Normal {
         v[2] /= len;
     }
 
-    static int LongAxis(double[] v) {
+    static int LongAxis(final double[] v) {
         int i = 0;
 
         if (Math.abs(v[1]) > Math.abs(v[0])) {
@@ -109,12 +109,12 @@ class Normal {
         return i;
     }
 
-    static void ComputeNormal(GLUtessellatorImpl tess, double[] norm) {
+    static void ComputeNormal(final GLUtessellatorImpl tess, final double[] norm) {
         jogamp.opengl.glu.tessellator.GLUvertex v, v1, v2;
         double c, tLen2, maxLen2;
         double[] maxVal, minVal, d1, d2, tNorm;
         jogamp.opengl.glu.tessellator.GLUvertex[] maxVert, minVert;
-        jogamp.opengl.glu.tessellator.GLUvertex vHead = tess.mesh.vHead;
+        final jogamp.opengl.glu.tessellator.GLUvertex vHead = tess.mesh.vHead;
         int i;
 
         maxVal = new double[3];
@@ -192,10 +192,12 @@ class Normal {
         }
     }
 
-    static void CheckOrientation(GLUtessellatorImpl tess) {
+    static void CheckOrientation(final GLUtessellatorImpl tess) {
         double area;
-        jogamp.opengl.glu.tessellator.GLUface f, fHead = tess.mesh.fHead;
-        jogamp.opengl.glu.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
+        jogamp.opengl.glu.tessellator.GLUface f;
+        final jogamp.opengl.glu.tessellator.GLUface fHead = tess.mesh.fHead;
+        jogamp.opengl.glu.tessellator.GLUvertex v;
+        final jogamp.opengl.glu.tessellator.GLUvertex vHead = tess.mesh.vHead;
         jogamp.opengl.glu.tessellator.GLUhalfEdge e;
 
 /* When we compute the normal automatically, we choose the orientation
@@ -224,10 +226,11 @@ class Normal {
 /* Determine the polygon normal and project vertices onto the plane
  * of the polygon.
  */
-    public static void __gl_projectPolygon(GLUtessellatorImpl tess) {
-        jogamp.opengl.glu.tessellator.GLUvertex v, vHead = tess.mesh.vHead;
+    public static void __gl_projectPolygon(final GLUtessellatorImpl tess) {
+        jogamp.opengl.glu.tessellator.GLUvertex v;
+        final jogamp.opengl.glu.tessellator.GLUvertex vHead = tess.mesh.vHead;
         double w;
-        double[] norm = new double[3];
+        final double[] norm = new double[3];
         double[] sUnit, tUnit;
         int i;
         boolean computedNormal = false;

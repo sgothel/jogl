@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -19,8 +19,8 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class MaxpTable implements Table {
 
-    private DirectoryEntry de;
-    private int versionNumber;
+    private final DirectoryEntry de;
+    private final int versionNumber;
     private int numGlyphs;
     private int maxPoints;
     private int maxContours;
@@ -36,10 +36,10 @@ public class MaxpTable implements Table {
     private int maxComponentElements;
     private int maxComponentDepth;
 
-    protected MaxpTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected MaxpTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         versionNumber = di.readInt();
-        
+
         // CFF fonts use version 0.5, TrueType fonts use version 1.0
         if (versionNumber == 0x00005000) {
             numGlyphs = di.readUnsignedShort();
@@ -121,12 +121,14 @@ public class MaxpTable implements Table {
         return numGlyphs;
     }
 
+    @Override
     public int getType() {
         return maxp;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'maxp' Table - Maximum Profile\n------------------------------")
             .append("\n        'maxp' version:         ").append(Fixed.floatValue(versionNumber))
             .append("\n        numGlyphs:              ").append(numGlyphs);
@@ -149,15 +151,16 @@ public class MaxpTable implements Table {
         }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

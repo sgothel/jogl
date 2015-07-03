@@ -27,14 +27,34 @@
  */
 package com.jogamp.newt;
 
-import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.event.MonitorModeListener;
+
 import jogamp.newt.Debug;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.NativeWindowException;
 
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
+
+/**
+ * A screen may span multiple {@link MonitorDevice}s representing their combined virtual size.
+ * <p>
+ * All values of this interface are represented in pixel units, if not stated otherwise.
+ * </p>
+ *
+ * <a name="coordinateSystem"><h5>Coordinate System</h5></a>
+ * <p>
+ *  <ul>
+ *      <li>Screen space has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *      <li>{@link #getViewport() Virtual viewport} covers all {@link MonitorDevice}s {@link MonitorDevice#getViewport() viewports} and has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *  </ul>
+ * </p>
+*/
 public abstract class Screen {
 
     /**
@@ -46,21 +66,23 @@ public abstract class Screen {
     public static final boolean DEBUG = Debug.debug("Screen");
 
     /** return precomputed hashCode from FQN {@link #getFQName()} */
+    @Override
     public abstract int hashCode();
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
-    public boolean equals(Object obj) {
+    @Override
+    public boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Screen) {
-            Screen s = (Screen)obj;
+            final Screen s = (Screen)obj;
             return s.getFQName().equals(getFQName());
         }
         return false;
     }
 
     /**
-     * Manual trigger the native creation, if it is not done yet..<br>
-     * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsScreen}, via
+     * Manual trigger the native creation, if not done yet..<br>
+     * This is useful to be able to request the {@link com.jogamp.nativewindow.AbstractGraphicsScreen}, via
      * {@link #getGraphicsScreen()}.<br>
      * Otherwise the abstract device won't be available before the dependent component (Window) is realized.
      * <p>
@@ -89,13 +111,14 @@ public abstract class Screen {
     public abstract boolean isNativeValid();
 
     /**
-     * @return number of references by Window
+     * @return number of references
      */
     public abstract int getReferenceCount();
 
     /**
      * See {@link Display#addReference()}
      *
+     * @return number of references post operation
      * @throws NativeWindowException if the native creation failed.
      * @see #removeReference()
      * @see #setDestroyWhenUnused(boolean)
@@ -106,6 +129,7 @@ public abstract class Screen {
     /**
      * See {@link Display#removeReference()}
      *
+     * @return number of references post operation
      * @see #addReference()
      * @see #setDestroyWhenUnused(boolean)
      * @see #getDestroyWhenUnused()
@@ -120,81 +144,144 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
-     * @return the x position of the virtual top-left origin.
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
+     * @return the x position of the virtual viewport's top-left origin in pixel units.
      */
     public abstract int getX();
-    
+
     /**
-     * @return the y position of the virtual top-left origin.
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
+     * @return the y position of the virtual viewport's top-left origin in pixel units.
      */
     public abstract int getY();
-    
+
     /**
-     * @return the <b>rotated</b> virtual width.
+     * @return the <b>rotated</b> virtual viewport's width in pixel units.
      */
     public abstract int getWidth();
 
     /**
-     * @return the <b>rotated</b> virtual height.
+     * @return the <b>rotated</b> virtual viewport's height in pixel units.
      */
     public abstract int getHeight();
+
+    /**
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
+     * @return the <b>rotated</b> virtual viewport, i.e. top-left origin and size, in pixel units.
+     * @see #getViewportInWindowUnits()
+     */
+    public abstract RectangleImmutable getViewport();
+
+    /**
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
+     * @return the <b>rotated</b> virtual viewport, i.e. top-left origin and size, in window units.
+     * @see #getViewport()
+     */
+    public abstract RectangleImmutable getViewportInWindowUnits();
 
     /**
      * @return the associated Display
      */
     public abstract Display getDisplay();
 
-    /** 
-     * @return the screen fully qualified Screen name,
+    /**
+     * @return The screen fully qualified Screen name,
      * which is a key of {@link com.jogamp.newt.Display#getFQName()} + {@link #getIndex()}.
      */
     public abstract String getFQName();
 
     /**
-     * @param sml ScreenModeListener to be added for ScreenMode change events
-     */
-    public abstract void addScreenModeListener(ScreenModeListener sml);
-
-    /**
-     * @param sml ScreenModeListener to be removed from ScreenMode change events
-     */
-    public abstract void removeScreenModeListener(ScreenModeListener sml);
-
-    /** 
-     * Return a list of available {@link com.jogamp.newt.ScreenMode ScreenMode}s.
+     * Return a list of all {@link MonitorMode}s for all {@link MonitorDevice}s.
      * <p>
-     * If {@link com.jogamp.newt.ScreenMode ScreenMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns a list of size one with the current screen size.</p>
-     * 
-     * @return a shallow copy of the internal immutable {@link com.jogamp.newt.ScreenMode ScreenMode}s.
+     * The list is ordered in descending order,
+     * see {@link MonitorMode#compareTo(MonitorMode)}.
+     * </p>
      */
-    public abstract List<ScreenMode> getScreenModes();
+    public abstract List<MonitorMode> getMonitorModes();
 
     /**
-     * Return the original {@link com.jogamp.newt.ScreenMode}, as used at NEWT initialization.
-     * @return original ScreenMode which is element of the list {@link #getScreenModes()}.
+     * Return a list of available {@link MonitorDevice}s.
      */
-    public abstract ScreenMode getOriginalScreenMode();
+    public abstract List<MonitorDevice> getMonitorDevices();
 
     /**
-     * Return the current {@link com.jogamp.newt.ScreenMode}.
+     * Returns the windowing manager's primary {@link MonitorDevice},
+     * which holds the system menu bar, etc.
+     * @see MonitorDevice#isPrimary()
+     */
+    public abstract MonitorDevice getPrimaryMonitor();
+
+    /**
+     * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewportInWindowUnits() viewport}
+     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of the given rectangle in window units,
+     * which is not a {@link MonitorDevice#isClone() clone}.
      * <p>
-     * If {@link com.jogamp.newt.ScreenMode ScreenMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns one with the current screen size. </p>
-     * 
-     * @return current ScreenMode which is element of the list {@link #getScreenModes()}.
+     * If no coverage is detected the first {@link MonitorDevice} is returned.
+     * </p>
+     * @param r arbitrary rectangle in window units
      */
-    public abstract ScreenMode getCurrentScreenMode();
+    public final MonitorDevice getMainMonitor(final RectangleImmutable r) {
+        MonitorDevice res = null;
+        float maxCoverage = Float.MIN_VALUE;
+        final List<MonitorDevice> monitors = getMonitorDevices();
+        final int monitorCount = monitors.size();
+        for(int i=0; i<monitorCount; i++) {
+            final MonitorDevice monitor = monitors.get(i);
+            if( !monitor.isClone() ) {
+                final float coverage = monitor.getViewportInWindowUnits().coverage(r);
+                if( coverage > maxCoverage ) {
+                    maxCoverage = coverage;
+                    res = monitor;
+                }
+            }
+        }
+        if( maxCoverage > 0.0f && null != res ) {
+            return res;
+        }
+        return monitors.get(0);
+    }
+
+    public final MonitorDevice getMonitor(final int monitorId) {
+        final List<MonitorDevice> monitors = getMonitorDevices();
+        final int monitorCount = monitors.size();
+        for(int i=0; i<monitorCount; i++) {
+            final MonitorDevice monitor = monitors.get(i);
+            if( monitor.getId() == monitorId ) {
+                return monitor;
+            }
+        }
+        return null;
+    }
 
     /**
-     * Set the current {@link com.jogamp.newt.ScreenMode}.
-     * @param screenMode to be made current, must be element of the list {@link #getScreenModes()}.
-     * @return true if successful, otherwise false
+     * Calculates the union of all monitor's {@link MonitorDevice#getViewport() viewport} in pixel- and window units.
+     * <p>
+     * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},
+     * however, some native toolkits may choose a different virtual screen area.
+     * </p>
+     * @param viewport storage for result in pixel units, maybe null
+     * @param viewportInWindowUnits storage for result in window units, maybe null
      */
-    public abstract boolean setCurrentScreenMode(ScreenMode screenMode);
+    public final void unionOfMonitorViewports(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
+        MonitorDevice.unionOfViewports(viewport, viewportInWindowUnits, getMonitorDevices());
+    }
+
+    /**
+     * @param sml {@link MonitorModeListener} to be added for {@link MonitorEvent}
+     */
+    public abstract void addMonitorModeListener(MonitorModeListener sml);
+
+    /**
+     * @param sml {@link MonitorModeListener} to be removed from {@link MonitorEvent}
+     */
+    public abstract void removeMonitorModeListener(MonitorModeListener sml);
 
     // Global Screens
-    protected static ArrayList<Screen> screenList = new ArrayList<Screen>();
+    protected static final ArrayList<WeakReference<Screen>> screenList = new ArrayList<WeakReference<Screen>>();
     protected static int screensActive = 0;
 
     /**
@@ -204,7 +291,7 @@ public abstract class Screen {
      * @param fromIndex start index, then increasing until found or end of list     *
      * @return
      */
-    public static Screen getFirstScreenOf(Display display, int idx, int fromIndex) {
+    public static Screen getFirstScreenOf(final Display display, final int idx, final int fromIndex) {
         return getScreenOfImpl(display, idx, fromIndex, 1);
     }
 
@@ -215,29 +302,64 @@ public abstract class Screen {
      * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
      * @return
      */
-    public static Screen getLastScreenOf(Display display, int idx, int fromIndex) {
+    public static Screen getLastScreenOf(final Display display, final int idx, final int fromIndex) {
         return getScreenOfImpl(display, idx, fromIndex, -1);
     }
 
-    private static Screen getScreenOfImpl(Display display, int idx, int fromIndex, int incr) {
+    private static Screen getScreenOfImpl(final Display display, final int idx, final int fromIndex, final int incr) {
         synchronized(screenList) {
             int i = fromIndex >= 0 ? fromIndex : screenList.size() - 1 ;
             while( ( incr > 0 ) ? i < screenList.size() : i >= 0 ) {
-                Screen screen = (Screen) screenList.get(i);
-                if( screen.getDisplay().equals(display) &&
-                    screen.getIndex() == idx ) {
-                    return screen;
+                final Screen screen = screenList.get(i).get();
+                if( null == screen ) {
+                    // Clear GC'ed dead reference entry!
+                    screenList.remove(i);
+                    if( incr < 0 ) {
+                        // decrease
+                        i+=incr;
+                    } // else nop - remove shifted subsequent elements to the left
+                } else {
+                    if( screen.getDisplay().equals(display) &&
+                        screen.getIndex() == idx ) {
+                        return screen;
+                    }
+                    i+=incr;
                 }
-                i+=incr;
             }
         }
         return null;
     }
-    /** Returns the global display collection */
+
+    protected static void addScreen2List(final Screen screen) {
+        synchronized(screenList) {
+            // GC before add
+            int i=0;
+            while( i < screenList.size() ) {
+                if( null == screenList.get(i).get() ) {
+                    screenList.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            screenList.add(new WeakReference<Screen>(screen));
+        }
+    }
+
+    /** Returns the global screen collection */
     public static Collection<Screen> getAllScreens() {
         ArrayList<Screen> list;
         synchronized(screenList) {
-            list = (ArrayList<Screen>) screenList.clone();
+            list = new ArrayList<Screen>();
+            int i = 0;
+            while( i < screenList.size() ) {
+                final Screen s = screenList.get(i).get();
+                if( null == s ) {
+                    screenList.remove(i);
+                } else {
+                    list.add( screenList.get(i).get() );
+                    i++;
+                }
+            }
         }
         return list;
     }

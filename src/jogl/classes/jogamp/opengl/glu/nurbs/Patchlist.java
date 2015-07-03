@@ -52,17 +52,18 @@ public class Patchlist {
   private Patch patch;
 
   /**
-   * Makes new list of patches 
+   * Makes new list of patches
    * @param quilts list of quilts
    * @param pta low border
    * @param ptb high border
    */
-  public Patchlist(Quilt quilts, float[] pta, float[] ptb) {
+  public Patchlist(final Quilt quilts, final float[] pta, final float[] ptb) {
     // DONE
     patch = null;
 
     for (Quilt q = quilts; q != null; q = q.next)
       patch = new Patch(q, pta, ptb, patch);
+    pspec = new Pspec[2];
     pspec[0] = new Pspec();
     pspec[0].range[0] = pta[0];
     pspec[0].range[1] = ptb[0];
@@ -80,7 +81,7 @@ public class Patchlist {
    * @param param
    * @param mid
    */
-  public Patchlist(Patchlist patchlist, int param, float mid) {
+  public Patchlist(final Patchlist patchlist, final int param, final float mid) {
     // TODO Auto-generated constructor stub
     //            System.out.println("TODO patchlist.konstruktor 2");
   }
@@ -119,7 +120,7 @@ public class Patchlist {
    * @param i
    * @return false
    */
-  public boolean needsSubdivision(int i) {
+  public boolean needsSubdivision(final int i) {
     // TODO Auto-generated method stub
     //            System.out.println("TODO patchlist.needsSubdivision");
     return false;

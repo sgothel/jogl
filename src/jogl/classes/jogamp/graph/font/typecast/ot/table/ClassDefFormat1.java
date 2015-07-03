@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -18,12 +18,12 @@ import java.io.RandomAccessFile;
  */
 public class ClassDefFormat1 extends ClassDef {
 
-    private int startGlyph;
-    private int glyphCount;
-    private int[] classValues;
+    private final int startGlyph;
+    private final int glyphCount;
+    private final int[] classValues;
 
     /** Creates new ClassDefFormat1 */
-    public ClassDefFormat1(RandomAccessFile raf) throws IOException {
+    public ClassDefFormat1(final RandomAccessFile raf) throws IOException {
         startGlyph = raf.readUnsignedShort();
         glyphCount = raf.readUnsignedShort();
         classValues = new int[glyphCount];
@@ -32,6 +32,7 @@ public class ClassDefFormat1 extends ClassDef {
         }
     }
 
+    @Override
     public int getFormat() {
         return 1;
     }

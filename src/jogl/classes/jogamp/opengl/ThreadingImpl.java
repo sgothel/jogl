@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.opengl;
@@ -38,35 +38,40 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.util.*;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.Threading.Mode;
 
-/** Implementation of the {@link javax.media.opengl.Threading} class. */
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.ReflectionUtil;
+
+/** Implementation of the {@link com.jogamp.opengl.Threading} class. */
 
 public class ThreadingImpl {
-    public static final int AWT    = 1;
-    public static final int WORKER = 2;
-
     protected static final boolean DEBUG = Debug.debug("Threading");
 
-    private static boolean singleThreaded = true;
-    private static int mode;
+    private static boolean singleThreaded;
+    private static Mode mode;
     private static boolean hasAWT;
     // We need to know whether we're running on X11 platforms to change
     // our behavior when the Java2D/JOGL bridge is active
     private static boolean _isX11;
 
-    private static final ThreadingPlugin threadingPlugin;
-  
+    private static final ToolkitThreadingPlugin threadingPlugin;
+
     static {
-        Object threadingPluginTmp =
-            AccessController.doPrivileged(new PrivilegedAction() {
-                    public Object run() {
-                        String workaround = Debug.getProperty("jogl.1thread", true);
-                        ClassLoader cl = ThreadingImpl.class.getClassLoader();
+        threadingPlugin =
+            AccessController.doPrivileged(new PrivilegedAction<ToolkitThreadingPlugin>() {
+                    @Override
+                    public ToolkitThreadingPlugin run() {
+                        final String singleThreadProp;
+                        {
+                            final String w = PropertyAccess.getProperty("jogl.1thread", true);
+                            singleThreadProp = null != w ? w.toLowerCase() : null;
+                        }
+                        final ClassLoader cl = ThreadingImpl.class.getClassLoader();
                         // Default to using the AWT thread on all platforms except
                         // Windows. On OS X there is instability apparently due to
                         // using the JAWT on non-AWT threads. On X11 platforms there
@@ -77,58 +82,54 @@ public class ThreadingImpl {
                         // problems.
                         hasAWT = GLProfile.isAWTAvailable();
 
-                        String osType = NativeWindowFactory.getNativeWindowType(false);
-                        _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
+                        _isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false);
 
-                        int defaultMode = ( hasAWT ? AWT : WORKER );
-
-                        mode = defaultMode;
-                        if (workaround != null) {
-                            workaround = workaround.toLowerCase();
-                            if (workaround.equals("true") ||
-                                workaround.equals("auto")) {
-                                // Nothing to do; singleThreaded and mode already set up
-                            } else if (workaround.equals("worker")) {
-                                singleThreaded = true;
-                                mode = WORKER;
-                            } else if (hasAWT && workaround.equals("awt")) {
-                                singleThreaded = true;
-                                mode = AWT;
+                        if (singleThreadProp != null) {
+                            if (singleThreadProp.equals("true") ||
+                                singleThreadProp.equals("auto")) {
+                                mode  = ( hasAWT ? Mode.ST_AWT : Mode.MT );
+                            } else if (singleThreadProp.equals("worker")) {
+                                mode = Mode.ST_WORKER;
+                            } else if (hasAWT && singleThreadProp.equals("awt")) {
+                                mode = Mode.ST_AWT;
+                            } else if (singleThreadProp.equals("false")) {
+                                mode = Mode.MT;
                             } else {
-                                singleThreaded = false;
+                                throw new RuntimeException("Unsupported value for property jogl.1thread: "+singleThreadProp+", should be [true/auto, worker, awt or false]");
                             }
+                        } else {
+                            mode  = ( hasAWT ? Mode.ST_AWT : Mode.MT );
                         }
-                        printWorkaroundNotice();
+                        singleThreaded = Mode.MT != mode;
 
-                        Object threadingPluginObj=null;
+                        ToolkitThreadingPlugin threadingPlugin=null;
                         if(hasAWT) {
                             // try to fetch the AWTThreadingPlugin
                             Exception error=null;
                             try {
-                                threadingPluginObj = ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
-                            } catch (JogampRuntimeException jre) { error = jre; }
-                            if(AWT == mode && null==threadingPluginObj) {                                
+                                threadingPlugin = (ToolkitThreadingPlugin) ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
+                            } catch (final JogampRuntimeException jre) { error = jre; }
+                            if( Mode.ST_AWT == mode && null==threadingPlugin ) {
                                 throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
                             }
                         }
-                        return threadingPluginObj;
+                        if(DEBUG) {
+                            System.err.println("Threading: jogl.1thread "+singleThreadProp+", singleThreaded "+singleThreaded+", hasAWT "+hasAWT+", mode "+mode+", plugin "+threadingPlugin);
+                        }
+                        return threadingPlugin;
                     }
                 });
-        threadingPlugin = (ThreadingPlugin) threadingPluginTmp;
-        if(DEBUG) {
-            System.err.println("Threading: hasAWT "+hasAWT+", mode "+((mode==AWT)?"AWT":"WORKER")+", plugin "+threadingPlugin);
-        }
     }
 
     /** No reason to ever instantiate this class */
     private ThreadingImpl() {}
 
     public static boolean isX11() { return _isX11; }
-    public static int getMode() { return mode; }
+    public static Mode getMode() { return mode; }
 
-    /** If an implementation of the javax.media.opengl APIs offers a 
-        multithreading option but the default behavior is single-threading, 
-        this API provides a mechanism for end users to disable single-threading 
+    /** If an implementation of the com.jogamp.opengl APIs offers a
+        multithreading option but the default behavior is single-threading,
+        this API provides a mechanism for end users to disable single-threading
         in this implementation.  Users are strongly discouraged from
         calling this method unless they are aware of all of the
         consequences and are prepared to enforce some amount of
@@ -138,45 +139,56 @@ public class ThreadingImpl {
         GLPbuffer. Currently there is no supported way to re-enable it
         once disabled, partly to discourage careless use of this
         method. This method should be called as early as possible in an
-        application. */ 
-    public static void disableSingleThreading() {
-        singleThreaded = false;
-        if (Debug.verbose()) {
-            System.err.println("Application forced disabling of single-threading of javax.media.opengl implementation");
+        application. */
+    public static final void disableSingleThreading() {
+        if( Mode.MT != mode ) {
+            singleThreaded = false;
+            if (Debug.verbose()) {
+                System.err.println("Application forced disabling of single-threading of com.jogamp.opengl implementation");
+            }
         }
     }
 
     /** Indicates whether OpenGL work is being automatically forced to a
         single thread in this implementation. */
-    public static boolean isSingleThreaded() {
+    public static final boolean isSingleThreaded() {
         return singleThreaded;
     }
 
-    /** Indicates whether the current thread is the single thread on
-        which this implementation of the javax.media.opengl APIs
-        performs all of its OpenGL-related work. This method should only
-        be called if the single-thread model is in effect. */
-    public static boolean isOpenGLThread() throws GLException {
-        if (!isSingleThreaded()) {
-            throw new GLException("Should only call this in single-threaded mode");
-        }
-
-        if(null!=threadingPlugin) {
+    /**
+     * Indicates whether the current thread is capable of
+     * performing OpenGL-related work.
+     * <p>
+     * Method always returns <code>true</code>
+     * if {@link #getMode()} == {@link Mode#MT} or {@link #isSingleThreaded()} == <code>false</code>.
+     * </p>
+     */
+    public static final boolean isOpenGLThread() throws GLException {
+        if( Mode.MT == mode || !singleThreaded ) {
+            return true;
+        } else if( null != threadingPlugin ) {
             return threadingPlugin.isOpenGLThread();
-        }
-
-        switch (mode) {
-            case AWT:
-                throw new InternalError();
-            case WORKER:
-                return GLWorkerThread.isWorkerThread();
-            default:
-                throw new InternalError("Illegal single-threading mode " + mode);
+        } else {
+            switch (mode) {
+                case ST_AWT:
+                    throw new InternalError();
+                case ST_WORKER:
+                    return GLWorkerThread.isWorkerThread();
+                default:
+                    throw new InternalError("Illegal single-threading mode " + mode);
+            }
         }
     }
 
+    public static final boolean isToolkitThread() throws GLException {
+        if(null!=threadingPlugin) {
+            return threadingPlugin.isToolkitThread();
+        }
+        return false;
+    }
+
     /** Executes the passed Runnable on the single thread used for all
-        OpenGL work in this javax.media.opengl API implementation. It is
+        OpenGL work in this com.jogamp.opengl API implementation. It is
         not specified exactly which thread is used for this
         purpose. This method should only be called if the single-thread
         model is in use and if the current thread is not the OpenGL
@@ -184,33 +196,19 @@ public class ThreadingImpl {
         false). It is up to the end user to check to see whether the
         current thread is the OpenGL thread and either execute the
         Runnable directly or perform the work inside it. */
-    public static void invokeOnOpenGLThread(Runnable r) throws GLException {
-        if (!isSingleThreaded()) {
-            throw new GLException ("Should only call this in single-threaded mode");
-        }
-
-        if (isOpenGLThread()) {
-            throw new GLException ("Should only call this from other threads than the OpenGL thread");
-        }    
-
+    public static final void invokeOnOpenGLThread(final boolean wait, final Runnable r) throws GLException {
         if(null!=threadingPlugin) {
-            threadingPlugin.invokeOnOpenGLThread(r);
+            threadingPlugin.invokeOnOpenGLThread(wait, r);
             return;
         }
 
         switch (mode) {
-            case AWT:
-                throw new InternalError();
+            case ST_WORKER:
+                invokeOnWorkerThread(wait, r);
+                break;
 
-            case WORKER:
-                GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
-                try {
-                    GLWorkerThread.invokeAndWait(r);
-                } catch (InvocationTargetException e) {
-                    throw new GLException(e.getTargetException());
-                } catch (InterruptedException e) {
-                    throw new GLException(e);
-                }
+            case MT:
+                r.run();
                 break;
 
             default:
@@ -218,17 +216,14 @@ public class ThreadingImpl {
         }
     }
 
-    /** This is a workaround for AWT-related deadlocks which only seem
-        to show up in the context of applets */
-    public static boolean isAWTMode() {
-        return (mode == AWT);
-    }
-
-    private static void printWorkaroundNotice() {
-        if (singleThreaded && Debug.verbose()) {
-            System.err.println("Using " +
-                               (mode == AWT ? "AWT" : "OpenGL worker") +
-                               " thread for performing OpenGL work in javax.media.opengl implementation");
+    public static final void invokeOnWorkerThread(final boolean wait, final Runnable r) throws GLException {
+        GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
+        try {
+            GLWorkerThread.invoke(wait, r);
+        } catch (final InvocationTargetException e) {
+            throw new GLException(e.getTargetException());
+        } catch (final InterruptedException e) {
+            throw new GLException(e);
         }
     }
 }

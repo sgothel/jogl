@@ -1,0 +1,13 @@
+PNGJ Version 0.85  (1 April 2012)
+
+http://code.google.com/p/pngj/
+
+Merged code:
+  - Changed namespace ar.com.hjg.pngj -> jogamp.opengl.util.pngj
+    to avoid collision when using a different version of PNGJ.
+
+  - Removed test and lossy packages and helper classes
+    to reduce footprint.
+
+License information is added in main LICENSE.txt file.
+

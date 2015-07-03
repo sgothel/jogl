@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -19,21 +19,21 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class HheaTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private short ascender;
-    private short descender;
-    private short lineGap;
-    private short advanceWidthMax;
-    private short minLeftSideBearing;
-    private short minRightSideBearing;
-    private short xMaxExtent;
-    private short caretSlopeRise;
-    private short caretSlopeRun;
-    private short metricDataFormat;
-    private int numberOfHMetrics;
+    private final DirectoryEntry de;
+    private final int version;
+    private final short ascender;
+    private final short descender;
+    private final short lineGap;
+    private final short advanceWidthMax;
+    private final short minLeftSideBearing;
+    private final short minRightSideBearing;
+    private final short xMaxExtent;
+    private final short caretSlopeRise;
+    private final short caretSlopeRun;
+    private final short metricDataFormat;
+    private final int numberOfHMetrics;
 
-    protected HheaTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected HheaTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readInt();
         ascender = di.readShort();
@@ -92,6 +92,7 @@ public class HheaTable implements Table {
         return numberOfHMetrics;
     }
 
+    @Override
     public int getType() {
         return hhea;
     }
@@ -100,8 +101,9 @@ public class HheaTable implements Table {
         return xMaxExtent;
     }
 
+    @Override
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'hhea' Table - Horizontal Header\n--------------------------------")
             .append("\n        'hhea' version:       ").append(Fixed.floatValue(version))
             .append("\n        yAscender:            ").append(ascender)
@@ -122,15 +124,16 @@ public class HheaTable implements Table {
             .append("\n        numOf_LongHorMetrics: ").append(numberOfHMetrics)
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

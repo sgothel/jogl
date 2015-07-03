@@ -29,11 +29,19 @@ package jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 
 import com.jogamp.graph.font.Font;
 
 public interface FontConstructor {
-    Font create(File file) throws IOException ;
-    Font create(URL url) throws IOException ;
+    /**
+     * @param file The font file
+     */
+    Font create(final File file) throws IOException;
+
+    /**
+     * @param istream The font input stream
+     * @param streamLen the length of the font segment in the stream
+     */
+    Font create(final InputStream stream, int streamLen) throws IOException;
 }

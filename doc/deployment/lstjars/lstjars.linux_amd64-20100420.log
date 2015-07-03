@@ -128,9 +128,9 @@ all vs allparts delta
 -com/jogamp/test/junit/jogl/util/texture/gl2/TextureGL2ListenerDraw1.class
 -com/jogamp/test/junit/newt/TestWindows01NEWT.class
 -com/jogamp/test/junit/util/MiscUtils.class
- javax/media/nativewindow/AbstractGraphicsConfiguration.class
- javax/media/nativewindow/AbstractGraphicsDevice.class
- javax/media/nativewindow/AbstractGraphicsScreen.class
+ com/jogamp/nativewindow/AbstractGraphicsConfiguration.class
+ com/jogamp/nativewindow/AbstractGraphicsDevice.class
+ com/jogamp/nativewindow/AbstractGraphicsScreen.class
 JOGL Deployment Payload for jar
 
 JOGL ES1 NEWT CORE

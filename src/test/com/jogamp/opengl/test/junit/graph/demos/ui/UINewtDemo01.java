@@ -28,68 +28,64 @@
 
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.FPSCounter;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
  *  The output of this demo shows two identical shapes but the left one
- *  has some vertices with off-curve flag set to true, and the right allt he vertices 
- *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering 
+ *  has some vertices with off-curve flag set to true, and the right allt he vertices
+ *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering
  *
  */
 public class UINewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
-    
-    public static void main(String[] args) {
-        GLProfile glp = GLProfile.getGL2ES2();
-        GLCapabilities caps = new GLCapabilities(glp);
+
+    public static void main(final String[] args) {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
         System.out.println("Requested: " + caps);
-        
+
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        UIGLListener01 uiGLListener = new UIGLListener01 (rs, DEBUG, TRACE);
-        uiGLListener.attachInputListenerTo(window);        
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+        final UIGLListener01 uiGLListener = new UIGLListener01 (0, rs, DEBUG, TRACE);
+        uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
-
-        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         window.setVisible(true);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
-        
+
         window.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent arg0) {
+            public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
                     window.destroy();
                 }
             }
         });
         window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
+            public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
         });
-                
+
         animator.start();
-    }    
+    }
 }

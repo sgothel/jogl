@@ -30,26 +30,26 @@ import java.io.IOException;
  */
 public class ResourceType {
 
-    private int type;
-    private int count;
-    private int offset;
-    private ResourceReference[] references;
-    
+    private final int type;
+    private final int count;
+    private final int offset;
+    private final ResourceReference[] references;
+
     /** Creates new ResourceType */
-    protected ResourceType(DataInput di) throws IOException {
+    protected ResourceType(final DataInput di) throws IOException {
         type = di.readInt();
         count = di.readUnsignedShort() + 1;
         offset = di.readUnsignedShort();
         references = new ResourceReference[count];
     }
-    
-    protected void readRefs(DataInput di) throws IOException {
+
+    protected void readRefs(final DataInput di) throws IOException {
         for (int i = 0; i < count; i++) {
             references[i] = new ResourceReference(di);
         }
     }
 
-    protected void readNames(DataInput di) throws IOException {
+    protected void readNames(final DataInput di) throws IOException {
         for (int i = 0; i < count; i++) {
             references[i].readName(di);
         }
@@ -58,25 +58,25 @@ public class ResourceType {
     public int getType() {
         return type;
     }
-    
+
     public String getTypeAsString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append((char)((type>>24)&0xff))
             .append((char)((type>>16)&0xff))
             .append((char)((type>>8)&0xff))
             .append((char)((type)&0xff))
             .toString();
     }
-    
+
     public int getCount() {
         return count;
     }
-    
+
     public int getOffset() {
         return offset;
     }
 
-    public ResourceReference getReference(int i) {
+    public ResourceReference getReference(final int i) {
         return references[i];
     }
 }

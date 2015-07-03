@@ -35,7 +35,7 @@ package jogamp.opengl.glu.nurbs;
  */
 
 /**
- * Class holding rendering params 
+ * Class holding rendering params
  * @author Tomas Hrasky
  *
  */
@@ -85,7 +85,7 @@ public class Renderhints {
    * Set property value
    * @param prop property
    */
-  public void setProperty(Property prop) {
+  public void setProperty(final Property prop) {
     switch (prop.type) {
     case NurbsConsts.N_DISPLAY:
       display_method = (int) prop.value;

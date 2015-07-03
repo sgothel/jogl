@@ -29,62 +29,22 @@ package jogamp.graph.font.typecast;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
-import javax.media.opengl.GLException;
+import java.io.InputStream;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.font.Font;
 
 public class TypecastFontConstructor implements FontConstructor  {
 
+    @Override
     public Font create(final File ffile) throws IOException {
-        Object o = AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                OTFontCollection fontset;        
-                try {
-                    fontset = OTFontCollection.create(ffile);
-                    return new TypecastFont(fontset);
-                } catch (IOException e) {
-                    return e;
-                }
-            }
-        });
-        if(o instanceof Font) {
-            return (Font)o;
-        }
-        if(o instanceof IOException) {
-            throw (IOException)o;
-        }
-        throw new InternalError("Unexpected Object: "+o);
+        return new TypecastFont( OTFontCollection.create(ffile) );
     }
-    
-    public Font create(final URL furl) throws IOException {
-        return AccessController.doPrivileged(new PrivilegedAction<Font>() {
-            public Font run() {
-                File tf = null;
-                int len=0;
-                Font f = null;
-                try {         
-                    tf = IOUtil.createTempFile( "joglfont", ".ttf");
-                    len = IOUtil.copyURL2File(furl, tf);
-                    if(len==0) {
-                        tf.delete();
-                        throw new GLException("Font of stream "+furl+" was zero bytes");
-                    }
-                    f = create(tf);
-                    tf.delete();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return f;
-            }
-        });        
+
+    @Override
+    public Font create(final InputStream istream, final int streamLen) throws IOException {
+        return new TypecastFont( OTFontCollection.create(istream, streamLen) );
     }
-    
 }

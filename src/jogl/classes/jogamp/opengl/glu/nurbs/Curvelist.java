@@ -67,7 +67,7 @@ public class Curvelist {
    * @param pta range start
    * @param ptb range end
    */
-  public Curvelist(Quilt qlist, float[] pta, float[] ptb) {
+  public Curvelist(final Quilt qlist, final float[] pta, final float[] ptb) {
     // DONE
     curve = null;
     range = new float[3];

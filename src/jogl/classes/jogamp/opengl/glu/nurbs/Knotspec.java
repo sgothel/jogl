@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Knot vector specification
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class Knotspec {
 
@@ -175,7 +175,7 @@ public class Knotspec {
         break;
     }
 
-    CArrayOfFloats k = new CArrayOfFloats(kfirst);
+    final CArrayOfFloats k = new CArrayOfFloats(kfirst);
     k.mm();
 
     for (; k.getPointer() >= inkbegin.getPointer(); k.mm())
@@ -183,7 +183,7 @@ public class Knotspec {
         break;
     k.pp();
 
-    Breakpt[] bbeginArray = new Breakpt[(klast.getPointer() - kfirst
+    final Breakpt[] bbeginArray = new Breakpt[(klast.getPointer() - kfirst
                                          .getPointer()) + 1];
     for (int i = 0; i < bbeginArray.length; i++)
       bbeginArray[i] = new Breakpt();
@@ -218,7 +218,7 @@ public class Knotspec {
    */
   private void factors() {
     // DONE
-    CArrayOfFloats mid = new CArrayOfFloats(outkend.getArray(), (outkend
+    final CArrayOfFloats mid = new CArrayOfFloats(outkend.getArray(), (outkend
                                                                  .getPointer() - 1)
                                             - order + bend.get().multi);
 
@@ -226,18 +226,18 @@ public class Knotspec {
     if (sbegin != null)
       fptr = new CArrayOfFloats(sbegin);
 
-    for (CArrayOfBreakpts bpt = new CArrayOfBreakpts(bend); bpt
+    for (final CArrayOfBreakpts bpt = new CArrayOfBreakpts(bend); bpt
            .getPointer() >= bbegin.getPointer(); bpt.mm()) {
       mid.lessenPointerBy(bpt.get().multi);
-      int def = bpt.get().def - 1;
+      final int def = bpt.get().def - 1;
       if (def < 0)
         continue;
-      float kv = bpt.get().value;
+      final float kv = bpt.get().value;
 
-      CArrayOfFloats kf = new CArrayOfFloats(mid.getArray(), (mid
+      final CArrayOfFloats kf = new CArrayOfFloats(mid.getArray(), (mid
                                                               .getPointer() - def)
                                              + (order - 1));
-      for (CArrayOfFloats kl = new CArrayOfFloats(kf.getArray(), kf
+      for (final CArrayOfFloats kl = new CArrayOfFloats(kf.getArray(), kf
                                                   .getPointer()
                                                   + def); kl.getPointer() != kf.getPointer(); kl.mm()) {
         CArrayOfFloats kh, kt;
@@ -257,10 +257,10 @@ public class Knotspec {
    */
   private void knots() {
     // DONE
-    CArrayOfFloats inkpt = new CArrayOfFloats(kleft.getArray(), kleft
+    final CArrayOfFloats inkpt = new CArrayOfFloats(kleft.getArray(), kleft
                                               .getPointer()
                                               - order);
-    CArrayOfFloats inkend = new CArrayOfFloats(kright.getArray(), kright
+    final CArrayOfFloats inkend = new CArrayOfFloats(kright.getArray(), kright
                                                .getPointer()
                                                + bend.get().def);
 
@@ -279,8 +279,8 @@ public class Knotspec {
    */
   private void breakpoints() {
     // DONE
-    CArrayOfBreakpts ubpt = new CArrayOfBreakpts(bbegin);
-    CArrayOfBreakpts ubend = new CArrayOfBreakpts(bend);
+    final CArrayOfBreakpts ubpt = new CArrayOfBreakpts(bbegin);
+    final CArrayOfBreakpts ubend = new CArrayOfBreakpts(bend);
     int nfactors = 0;
 
     ubpt.get().value = ubend.get().value;
@@ -314,19 +314,19 @@ public class Knotspec {
 
   /**
    * Copies control points
-   * 
+   *
    * @param _inpt
    *            input control points
    * @param _outpt
    *            output control points
    */
-  public void copy(CArrayOfFloats _inpt, CArrayOfFloats _outpt) {
-    CArrayOfFloats inpt = new CArrayOfFloats(_inpt);
-    CArrayOfFloats outpt = new CArrayOfFloats(_outpt);
+  public void copy(final CArrayOfFloats _inpt, final CArrayOfFloats _outpt) {
+    final CArrayOfFloats inpt = new CArrayOfFloats(_inpt);
+    final CArrayOfFloats outpt = new CArrayOfFloats(_outpt);
 
     inpt.raisePointerBy(preoffset);
     if (next != null) {
-      for (CArrayOfFloats lpt = new CArrayOfFloats(outpt.getArray(),
+      for (final CArrayOfFloats lpt = new CArrayOfFloats(outpt.getArray(),
                                                    outpt.getPointer() + prewidth); outpt.getPointer() != lpt
              .getPointer(); outpt.raisePointerBy(poststride)) {
         next.copy(inpt, outpt);
@@ -334,7 +334,7 @@ public class Knotspec {
       }
 
     } else {
-      for (CArrayOfFloats lpt = new CArrayOfFloats(outpt.getArray(),
+      for (final CArrayOfFloats lpt = new CArrayOfFloats(outpt.getArray(),
                                                    outpt.getPointer() + prewidth); outpt.getPointer() != lpt
              .getPointer(); outpt.raisePointerBy(poststride)) {
         pt_io_copy(outpt, inpt);
@@ -346,13 +346,13 @@ public class Knotspec {
 
   /**
    * Copies one control point to other
-   * 
+   *
    * @param topt
    *            source control point
    * @param frompt
    *            destination control point
    */
-  private void pt_io_copy(CArrayOfFloats topt, CArrayOfFloats frompt) {
+  private void pt_io_copy(final CArrayOfFloats topt, final CArrayOfFloats frompt) {
     // DONE
     switch (ncoords) {
     case 4:
@@ -374,12 +374,12 @@ public class Knotspec {
 
   /**
    * Inserts a knot
-   * 
+   *
    * @param _p
    *            inserted knot
    */
-  public void transform(CArrayOfFloats _p) {
-    CArrayOfFloats p = new CArrayOfFloats(_p);
+  public void transform(final CArrayOfFloats _p) {
+    final CArrayOfFloats p = new CArrayOfFloats(_p);
     // DONE
     if (next != null) {//surface code
       if (this.equals(kspectotrans)) {
@@ -387,13 +387,13 @@ public class Knotspec {
       } else {
         if (istransformed) {
           p.raisePointerBy(postoffset);
-          for (CArrayOfFloats pend = new CArrayOfFloats(p.getArray(),
+          for (final CArrayOfFloats pend = new CArrayOfFloats(p.getArray(),
                             p.getPointer() + postwidth); p.getPointer() != pend
                  .getPointer(); p.raisePointerBy(poststride))
             next.transform(p);
 
         } else {
-          CArrayOfFloats pend = new CArrayOfFloats(p.getArray(), p
+          final CArrayOfFloats pend = new CArrayOfFloats(p.getArray(), p
                                                    .getPointer()
                                                    + prewidth);
           for (; p.getPointer() != pend.getPointer(); p
@@ -402,19 +402,19 @@ public class Knotspec {
         }
       }
 
-    } else {//code for curve 
+    } else {//code for curve
       if (this.equals(kspectotrans)) {
         insert(p);
       } else {
         if (istransformed) {
           p.raisePointerBy(postoffset);
-          for (CArrayOfFloats pend = new CArrayOfFloats(p.getArray(),
+          for (final CArrayOfFloats pend = new CArrayOfFloats(p.getArray(),
                             p.getPointer() + postwidth); p.getPointer() != pend
                  .getPointer(); p.raisePointerBy(poststride)) {
             kspectotrans.insert(p);
           }
         } else {
-          CArrayOfFloats pend = new CArrayOfFloats(p.getArray(), p
+          final CArrayOfFloats pend = new CArrayOfFloats(p.getArray(), p
                                                    .getPointer()
                                                    + prewidth);
           for (; p.getPointer() != pend.getPointer(); p
@@ -428,31 +428,31 @@ public class Knotspec {
 
   /**
    * Inserts a knot and computes new control points
-   * 
+   *
    * @param p
    *            inserted knot
    */
-  private void insert(CArrayOfFloats p) {
+  private void insert(final CArrayOfFloats p) {
     // DONE
     CArrayOfFloats fptr = null;
     if (sbegin != null)
       fptr = new CArrayOfFloats(sbegin);
-    CArrayOfFloats srcpt = new CArrayOfFloats(p.getArray(), p.getPointer()
+    final CArrayOfFloats srcpt = new CArrayOfFloats(p.getArray(), p.getPointer()
                                               + prewidth - poststride);
     // CArrayOfFloats srcpt = new CArrayOfFloats(p.getArray(), prewidth -
     // poststride);
-    CArrayOfFloats dstpt = new CArrayOfFloats(p.getArray(), p.getPointer()
+    final CArrayOfFloats dstpt = new CArrayOfFloats(p.getArray(), p.getPointer()
                                               + postwidth + postoffset - poststride);
     // CArrayOfFloats dstpt = new CArrayOfFloats(p.getArray(), postwidth +
     // postoffset - poststride);
-    CArrayOfBreakpts bpt = new CArrayOfBreakpts(bend);
+    final CArrayOfBreakpts bpt = new CArrayOfBreakpts(bend);
 
-    for (CArrayOfFloats pend = new CArrayOfFloats(srcpt.getArray(), srcpt
+    for (final CArrayOfFloats pend = new CArrayOfFloats(srcpt.getArray(), srcpt
                                                   .getPointer()
                                                   - poststride * bpt.get().def); srcpt.getPointer() != pend
            .getPointer(); pend.raisePointerBy(poststride)) {
-      CArrayOfFloats p1 = new CArrayOfFloats(srcpt);
-      for (CArrayOfFloats p2 = new CArrayOfFloats(srcpt.getArray(), srcpt
+      final CArrayOfFloats p1 = new CArrayOfFloats(srcpt);
+      for (final CArrayOfFloats p2 = new CArrayOfFloats(srcpt.getArray(), srcpt
                                                   .getPointer()
                                                   - poststride); p2.getPointer() != pend.getPointer(); p1
              .setPointer(p2.getPointer()), p2
@@ -469,15 +469,15 @@ public class Knotspec {
         dstpt.lessenPointerBy(poststride);
         srcpt.lessenPointerBy(poststride);
       }
-      for (CArrayOfFloats pend = new CArrayOfFloats(srcpt.getArray(),
+      for (final CArrayOfFloats pend = new CArrayOfFloats(srcpt.getArray(),
                                                     srcpt.getPointer() - poststride * bpt.get().def); srcpt
              .getPointer() != pend.getPointer(); pend
              .raisePointerBy(poststride), dstpt
              .lessenPointerBy(poststride)) {
         pt_oo_copy(dstpt, srcpt);
-        CArrayOfFloats p1 = new CArrayOfFloats(srcpt);
+        final CArrayOfFloats p1 = new CArrayOfFloats(srcpt);
 
-        for (CArrayOfFloats p2 = new CArrayOfFloats(srcpt.getArray(),
+        for (final CArrayOfFloats p2 = new CArrayOfFloats(srcpt.getArray(),
                                                     srcpt.getPointer() - poststride); p2.getPointer() != pend
                .getPointer(); p1.setPointer(p2.getPointer()), p2
                .lessenPointerBy(poststride)) {
@@ -490,13 +490,13 @@ public class Knotspec {
 
   /**
    * Copies one control point to another
-   * 
+   *
    * @param topt
    *            source ctrl point
    * @param frompt
    *            distance ctrl point
    */
-  private void pt_oo_copy(CArrayOfFloats topt, CArrayOfFloats frompt) {
+  private void pt_oo_copy(final CArrayOfFloats topt, final CArrayOfFloats frompt) {
     // DONE
     // this is a "trick" with case - "break" is omitted so it comes through all cases
     switch (ncoords) {
@@ -519,7 +519,7 @@ public class Knotspec {
 
   /**
    * Computes new control point
-   * 
+   *
    * @param x
    *            first point
    * @param y
@@ -531,8 +531,8 @@ public class Knotspec {
    * @param b
    *            1 - alpha
    */
-  private void pt_oo_sum(CArrayOfFloats x, CArrayOfFloats y,
-                         CArrayOfFloats z, float a, double b) {
+  private void pt_oo_sum(final CArrayOfFloats x, final CArrayOfFloats y,
+                         final CArrayOfFloats z, final float a, final double b) {
     // DONE
     switch (ncoords) {
     case 4:
@@ -549,7 +549,7 @@ public class Knotspec {
                                 * z.getRelative(0)));
       break;
     default:
-      //no need of default - see previous method and its case statement                
+      //no need of default - see previous method and its case statement
       //                System.out.println("TODO pt_oo_sum default");
       break;
     }

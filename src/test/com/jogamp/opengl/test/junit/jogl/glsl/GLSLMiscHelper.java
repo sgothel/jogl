@@ -30,43 +30,44 @@ package com.jogamp.opengl.test.junit.jogl.glsl;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLDrawable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLBufferStorage;
+import com.jogamp.opengl.GLDrawable;
 
 import org.junit.Assert;
 
 public class GLSLMiscHelper {
     public static final int frames_perftest = 600; // frames
     public static final int frames_warmup   = 100; // frames
-    
-    public static void validateGLArrayDataServerState(GL2ES2 gl, GLArrayDataServer data) {
-        final ShaderState st = ShaderState.getShaderState(gl);
-        int[] qi = new int[1];
-        if(null != st) {            
-            Assert.assertEquals(data, st.getAttribute(data.getName()));            
+
+    public static void validateGLArrayDataServerState(final GL2ES2 gl, final ShaderState st, final GLArrayDataServer data) {
+        final int[] qi = new int[1];
+        if(null != st) {
+            Assert.assertEquals(data, st.getAttribute(data.getName()));
             if(st.shaderProgram().linked()) {
                 Assert.assertEquals(data.getLocation(), st.getCachedAttribLocation(data.getName()));
                 Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data));
                 Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data.getName()));
-                Assert.assertEquals(data.getLocation(), gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));                
+                Assert.assertEquals(data.getLocation(), gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));
             }
         }
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_ENABLED, qi, 0);
         Assert.assertEquals(data.enabled()?GL.GL_TRUE:GL.GL_FALSE, qi[0]);
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
-        Assert.assertEquals(data.getVBOName(), qi[0]);  
-        Assert.assertEquals(data.getSizeInBytes(), gl.glGetBufferSize(data.getVBOName()));        
+        Assert.assertEquals(data.getVBOName(), qi[0]);
+        final GLBufferStorage glStore = gl.getBufferStorage(data.getVBOName());
+        Assert.assertEquals("GLBufferStorage size mismatch, storage "+glStore, data.getSizeInBytes(), null != glStore ? glStore.getSize() : -1);
     }
 
-    public static void pause(long ms) throws InterruptedException {
-        long t0 = System.currentTimeMillis();
+    public static void pause(final long ms) throws InterruptedException {
+        final long t0 = System.currentTimeMillis();
         while( System.currentTimeMillis() - t0 < ms) {
             Thread.sleep(ms);
-        }        
+        }
     }
-    
-    public static void displayVCArrays(GLDrawable drawable, GL2ES2 gl, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable, int num, long postDelay) throws InterruptedException {
+
+    public static void displayVCArrays(final GLDrawable drawable, final GL2ES2 gl, final ShaderState st, final boolean preEnable, final GLArrayDataServer vertices, final GLArrayDataServer colors, final boolean postDisable, final int num, final long postDelay) throws InterruptedException {
         System.err.println("screen #"+num);
         if(preEnable) {
             vertices.enableBuffer(gl, true);
@@ -80,11 +81,11 @@ public class GLSLMiscHelper {
         }
         Assert.assertTrue(vertices.enabled());
         Assert.assertTrue(colors.enabled());
-        
-        validateGLArrayDataServerState(gl, vertices);
-        validateGLArrayDataServerState(gl, colors);
+
+        validateGLArrayDataServerState(gl, st, vertices);
+        validateGLArrayDataServerState(gl, st, colors);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);        
+        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         if(postDisable) {
             vertices.enableBuffer(gl, false);
@@ -94,105 +95,115 @@ public class GLSLMiscHelper {
         }
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         drawable.swapBuffers();
-        if(postDelay>0) { pause(postDelay); }        
+        if(postDelay>0) { pause(postDelay); }
     }
-    
-    public static void displayVCArraysNoChecks(GLDrawable drawable, GL2ES2 gl, boolean preEnable, GLArrayDataServer vertices, GLArrayDataServer colors, boolean postDisable) throws InterruptedException {
+
+    public static void displayVCArraysNoChecks(final GLDrawable drawable, final GL2ES2 gl, final boolean preEnable, final GLArrayDataServer vertices, final GLArrayDataServer colors, final boolean postDisable) throws InterruptedException {
         if(preEnable) {
             vertices.enableBuffer(gl, true);
             colors.enableBuffer(gl, true);
         }
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);        
+        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         if(postDisable) {
             vertices.enableBuffer(gl, false);
             colors.enableBuffer(gl, false);
         }
         drawable.swapBuffers();
     }
-    
-    public static GLArrayDataServer createRSVertices0(GL2ES2 gl, int location) {
-        final ShaderState st = ShaderState.getShaderState(gl);
-        
-        // Allocate Vertex Array0
-        GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
-        if(0<=location) {
-            st.bindAttribLocation(gl, location, vertices0);
+
+    public static GLArrayDataServer createVertices(final GL2ES2 gl, final ShaderState st, final int shaderProgram, final int location, final float[] vertices) {
+        if(null != st && 0 != shaderProgram) {
+            throw new InternalError("Use either ShaderState _or_ shader-program, not both");
         }
-        Assert.assertTrue(vertices0.isVBO());
-        Assert.assertTrue(vertices0.isVertexAttribute());
-        Assert.assertTrue(!vertices0.isVBOWritten());
-        Assert.assertTrue(!vertices0.sealed());
-        vertices0.putf(-2); vertices0.putf(2);  vertices0.putf(0);
-        vertices0.putf(2);  vertices0.putf(2);  vertices0.putf(0);
-        vertices0.putf(-2); vertices0.putf(-2); vertices0.putf(0);
-        vertices0.putf(2);  vertices0.putf(-2); vertices0.putf(0);
-        vertices0.seal(gl, true);
-        Assert.assertTrue(vertices0.isVBOWritten());
-        Assert.assertTrue(vertices0.sealed());
-        Assert.assertEquals(4, vertices0.getElementCount());
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
-        Assert.assertEquals(vertices0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, vertices0);
-        return vertices0;
-    }
-        
-    public static GLArrayDataServer createRSVertices1(GL2ES2 gl) {            
-        GLArrayDataServer vertices1 = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW); 
-        Assert.assertTrue(vertices1.isVBO());
-        Assert.assertTrue(vertices1.isVertexAttribute());
-        Assert.assertTrue(!vertices1.isVBOWritten());
-        Assert.assertTrue(!vertices1.sealed());
-        vertices1.putf(-2); vertices1.putf(1);  vertices1.putf(0);
-        vertices1.putf(2);  vertices1.putf(1);  vertices1.putf(0);
-        vertices1.putf(-2); vertices1.putf(-1); vertices1.putf(0);
-        vertices1.putf(2);  vertices1.putf(-1); vertices1.putf(0);
-        vertices1.seal(gl, true);
-        Assert.assertTrue(vertices1.isVBOWritten());
-        Assert.assertTrue(vertices1.sealed());
-        Assert.assertEquals(4, vertices1.getElementCount());
+        if(null == st && 0 == shaderProgram) {
+            throw new InternalError("Pass a valid ShaderState _xor_ shader-program, not none");
+        }
+        // Allocate Vertex Array0
+        final GLArrayDataServer vDataArray = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        if(null != st) {
+            st.ownAttribute(vDataArray, true);
+            if(0<=location) {
+                st.bindAttribLocation(gl, location, vDataArray);
+            }
+        } else {
+            if(0<=location) {
+                vDataArray.setLocation(gl, shaderProgram, location);
+            } else {
+                vDataArray.setLocation(gl, shaderProgram);
+            }
+        }
+        Assert.assertTrue(vDataArray.isVBO());
+        Assert.assertTrue(vDataArray.isVertexAttribute());
+        Assert.assertTrue(!vDataArray.isVBOWritten());
+        Assert.assertTrue(!vDataArray.sealed());
+        int i=0;
+        vDataArray.putf(vertices[i++]); vDataArray.putf(vertices[i++]);  vDataArray.putf(vertices[i++]);
+        vDataArray.putf(vertices[i++]); vDataArray.putf(vertices[i++]);  vDataArray.putf(vertices[i++]);
+        vDataArray.putf(vertices[i++]); vDataArray.putf(vertices[i++]);  vDataArray.putf(vertices[i++]);
+        vDataArray.putf(vertices[i++]); vDataArray.putf(vertices[i++]);  vDataArray.putf(vertices[i++]);
+        vDataArray.seal(gl, true);
+        Assert.assertTrue(vDataArray.isVBOWritten());
+        Assert.assertTrue(vDataArray.sealed());
+        Assert.assertEquals(4, vDataArray.getElementCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(vertices1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, vertices1);
-        return vertices1;
+        Assert.assertEquals(0, gl.getBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
+        validateGLArrayDataServerState(gl, st, vDataArray);
+        return vDataArray;
     }
-        
-    public static GLArrayDataServer createRSColors0(GL2ES2 gl, int location) {
-        final ShaderState st = ShaderState.getShaderState(gl);
-        GLArrayDataServer colors0 = GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
-        if(0<=location) {
-            st.bindAttribLocation(gl, location, colors0);
-        }        
-        colors0.putf(1); colors0.putf(0); colors0.putf(0); colors0.putf(1);
-        colors0.putf(0); colors0.putf(0); colors0.putf(1); colors0.putf(1);
-        colors0.putf(1); colors0.putf(0); colors0.putf(0); colors0.putf(1);
-        colors0.putf(1); colors0.putf(0); colors0.putf(0); colors0.putf(1);
-        colors0.seal(gl, true);
-        Assert.assertTrue(colors0.isVBO());
-        Assert.assertTrue(colors0.isVertexAttribute());
-        Assert.assertTrue(colors0.isVBOWritten());
-        Assert.assertTrue(colors0.sealed());
+    public static final float[] vertices0 = new float[] { -2f,  2f, 0f,
+                                                           2f,  2f, 0f,
+                                                          -2f, -2f, 0f,
+                                                           2f, -2f, 0f };
+
+    public static final float[] vertices1 = new float[] { -2f,  1f, 0f,
+                                                           2f,  1f, 0f,
+                                                          -2f, -1f, 0f,
+                                                           2f, -1f, 0f };
+
+    public static GLArrayDataServer createColors(final GL2ES2 gl, final ShaderState st, final int shaderProgram, final int location, final float[] colors) {
+        if(null != st && 0 != shaderProgram) {
+            throw new InternalError("Use either ShaderState _or_ shader-program, not both");
+        }
+        if(null == st && 0 == shaderProgram) {
+            throw new InternalError("Pass a valid ShaderState _xor_ shader-program, not none");
+        }
+        final GLArrayDataServer cDataArray = GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
+        if(null != st) {
+            st.ownAttribute(cDataArray, true);
+            if(0<=location) {
+                st.bindAttribLocation(gl, location, cDataArray);
+            }
+        } else {
+            if(0<=location) {
+                cDataArray.setLocation(gl, shaderProgram, location);
+            } else {
+                cDataArray.setLocation(gl, shaderProgram);
+            }
+        }
+        int i=0;
+        cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]);
+        cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]);
+        cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]);
+        cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]); cDataArray.putf(colors[i++]);
+        cDataArray.seal(gl, true);
+        Assert.assertTrue(cDataArray.isVBO());
+        Assert.assertTrue(cDataArray.isVertexAttribute());
+        Assert.assertTrue(cDataArray.isVBOWritten());
+        Assert.assertTrue(cDataArray.sealed());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(colors0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, colors0);
-        return colors0;
+        Assert.assertEquals(0, gl.getBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
+        validateGLArrayDataServerState(gl, st, cDataArray);
+        return cDataArray;
     }
-    
-    public static GLArrayDataServer createRSColors1(GL2ES2 gl) {        
-        // Allocate Color Array1
-        GLArrayDataServer colors1 = GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
-        colors1.putf(1); colors1.putf(0); colors1.putf(1); colors1.putf(1);
-        colors1.putf(0); colors1.putf(1); colors1.putf(0); colors1.putf(1);
-        colors1.putf(1); colors1.putf(0); colors1.putf(1); colors1.putf(1);
-        colors1.putf(1); colors1.putf(0); colors1.putf(1); colors1.putf(1);
-        colors1.seal(gl, true);
-        Assert.assertTrue(colors1.isVBO());
-        Assert.assertTrue(colors1.isVertexAttribute());
-        Assert.assertTrue(colors1.isVBOWritten());
-        Assert.assertTrue(colors1.sealed());
-        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(colors1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
-        validateGLArrayDataServerState(gl, colors1);
-        return colors1;        
-    }    
+    public static final float[] colors0 = new float[] { 1f, 0f, 0f, 1f,
+                                                        0f, 0f, 1f, 1f,
+                                                        1f, 0f, 0f, 1f,
+                                                        1f, 0f, 1f, 1f };
+
+    public static final float[] colors1 = new float[] { 1f, 0f, 1f, 1f,
+                                                        0f, 1f, 0f, 1f,
+                                                        1f, 0f, 1f, 1f,
+                                                        1f, 0f, 1f, 1f };
+
 }

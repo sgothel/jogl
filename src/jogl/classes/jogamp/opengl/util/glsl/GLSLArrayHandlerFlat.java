@@ -28,8 +28,8 @@
 
 package jogamp.opengl.util.glsl;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 
 import jogamp.opengl.util.GLArrayHandlerFlat;
 
@@ -37,53 +37,67 @@ import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
- * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled 
+ * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled
  * separately and interleaves many arrays.
  */
 public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
-  private GLArrayDataWrapper ad;
+  private final GLArrayDataWrapper ad;
 
-  public GLSLArrayHandlerFlat(GLArrayDataWrapper ad) {
+  public GLSLArrayHandlerFlat(final GLArrayDataWrapper ad) {
     this.ad = ad;
   }
 
+  @Override
   public GLArrayDataWrapper getData() {
       return ad;
   }
-    
-  public final void syncData(GL gl, boolean enable, boolean force, Object ext) {
-    if(enable) {
-        final GL2ES2 glsl = gl.getGL2ES2();
-        final ShaderState st = (ShaderState) ext;
 
-        st.vertexAttribPointer(glsl, ad);
-        /**
-         * Due to probable application VBO switching, this might not make any sense ..
-         * 
-        if(force) {
-            st.vertexAttribPointer(glsl, ad);
-        } else if(st.getAttribLocation(glsl, ad) >= 0) {
-            final int[] qi = new int[1];
-            glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
-            if(ad.getVBOName() != qi[0]) {
-                System.err.println("XXX1: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
-                st.vertexAttribPointer(glsl, ad);
-            } else {
-                System.err.println("XXX0: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
-            }
-        }*/
+  @Override
+  public final void syncData(final GL gl, final Object ext) {
+    final GL2ES2 glsl = gl.getGL2ES2();
+    if( null != ext ) {
+        ((ShaderState)ext).vertexAttribPointer(glsl, ad);
+    } else {
+        if( 0 <= ad.getLocation() ) {
+            glsl.glVertexAttribPointer(ad);
+        }
     }
+    /**
+     * Due to probable application VBO switching, this might not make any sense ..
+     *
+    if(!written) {
+        st.vertexAttribPointer(glsl, ad);
+    } else if(st.getAttribLocation(glsl, ad) >= 0) {
+        final int[] qi = new int[1];
+        glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
+        if(ad.getVBOName() != qi[0]) {
+            System.err.println("XXX1: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
+            st.vertexAttribPointer(glsl, ad);
+        } else {
+            System.err.println("XXX0: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
+        }
+    }*/
   }
 
-  public final void enableState(GL gl, boolean enable, Object ext) {
+  @Override
+  public final void enableState(final GL gl, final boolean enable, final Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-    
-    if(enable) {
-        st.enableVertexAttribArray(glsl, ad);
+    if( null != ext ) {
+        final ShaderState st = (ShaderState)ext;
+        if(enable) {
+            st.enableVertexAttribArray(glsl, ad);
+        } else {
+            st.disableVertexAttribArray(glsl, ad);
+        }
     } else {
-        st.disableVertexAttribArray(glsl, ad);
+        final int location = ad.getLocation();
+        if( 0 <= location ) {
+            if(enable) {
+                glsl.glEnableVertexAttribArray(location);
+            } else {
+                glsl.glDisableVertexAttribArray(location);
+            }
+        }
     }
-  }  
+  }
 }
-

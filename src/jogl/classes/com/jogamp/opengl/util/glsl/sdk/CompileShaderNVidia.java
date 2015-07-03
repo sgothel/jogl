@@ -1,6 +1,6 @@
 package com.jogamp.opengl.util.glsl.sdk;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import java.io.*;
 
@@ -13,7 +13,7 @@ public class CompileShaderNVidia extends CompileShader {
     private static final String NVAPSDK;
 
     static {
-        String nvapSDKProp = System.getProperty("NVAPSDK");
+        final String nvapSDKProp = System.getProperty("NVAPSDK");
         if (nvapSDKProp != null) {
             NVAPSDK = nvapSDKProp;
         } else {
@@ -21,10 +21,12 @@ public class CompileShaderNVidia extends CompileShader {
         }
     }
 
+    @Override
     public int getBinaryFormat() {
         return GLES2.GL_NVIDIA_PLATFORM_BINARY_NV;
     }
 
+    @Override
     public File getSDKCompilerDir() {
         File compilerDir = new File( NVAPSDK + File.separator + "tools" + File.separator );
         File compilerFile = new File( compilerDir, getVertexShaderCompiler());
@@ -39,15 +41,17 @@ public class CompileShaderNVidia extends CompileShader {
         return compilerDir;
     }
 
+    @Override
     public String getVertexShaderCompiler() {
         return "glslv.bat";
     }
 
+    @Override
     public String getFragmentShaderCompiler() {
         return "glslf.bat";
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         new CompileShaderNVidia().run(args);
     }
 }

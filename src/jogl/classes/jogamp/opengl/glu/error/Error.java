@@ -6,9 +6,9 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
@@ -24,13 +24,13 @@
  * except that Section 2.2 and 11 are omitted.  Any differences between
  * the Alternative License and the SGI License are offered solely by Sun
  * and not by SGI.
- * 
+ *
  * Original Code. The Original Code is: OpenGL Sample Implementation,
  * Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -44,8 +44,8 @@
 
 package jogamp.opengl.glu.error;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.glu.GLU;
 import jogamp.opengl.glu.Glue;
 
 /**
@@ -53,7 +53,7 @@ import jogamp.opengl.glu.Glue;
  * @author  Administrator
  */
 public class Error {
-  
+
   private static String[] glErrorStrings = {
     "invalid enumerant",
     "invalid value",
@@ -63,7 +63,7 @@ public class Error {
     "out of memory",
     "invalid framebuffer operation"
   };
-  
+
   private static String[] gluErrorStrings = {
     "invalid enumerant",
     "invalid value",
@@ -71,12 +71,12 @@ public class Error {
     "",
     "invalid operation"
   };
-  
+
   /** Creates a new instance of Error */
   public Error() {
   }
-  
-  public static String gluErrorString( int errorCode ) {
+
+  public static String gluErrorString( final int errorCode ) {
     if( errorCode == 0 ) {
       return( "no error" );
     }

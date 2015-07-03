@@ -1,0 +1,22 @@
+// Copyright 2012 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform   mat4    mgl_PMVMatrix[2];
+// uniform  mat4  mgl_STMatrix;
+attribute vec4    mgl_Vertex;
+attribute vec4    mgl_Color;
+attribute vec4    mgl_MultiTexCoord;
+varying   vec4    frontColor;
+varying   vec2    mgl_texCoord;
+
+void main(void)
+{
+  frontColor=mgl_Color;
+  // mgl_texCoord = (mgl_STMatrix * mgl_MultiTexCoord).st;
+  mgl_texCoord = mgl_MultiTexCoord.st;
+  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * mgl_Vertex;
+}

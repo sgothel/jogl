@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
@@ -40,7 +42,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
@@ -52,6 +54,7 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting03AWT extends UITestCase {
     static Dimension glSize, fSize;
     static long durationPerTest = 1100;
@@ -66,27 +69,27 @@ public class TestParenting03AWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting1AWTOneNewtChilds01() throws InterruptedException, InvocationTargetException {
-        testWindowParenting1AWT(false);
+    public void test01AWTOneNewtChilds01() throws InterruptedException, InvocationTargetException {
+        testImpl(false);
     }
 
     @Test
-    public void testWindowParenting1AWTTwoNewtChilds01() throws InterruptedException, InvocationTargetException {
-        testWindowParenting1AWT(true);
+    public void test02AWTTwoNewtChilds01() throws InterruptedException, InvocationTargetException {
+        testImpl(true);
     }
-    
-    public void testWindowParenting1AWT(boolean use2nd) throws InterruptedException, InvocationTargetException {
+
+    public void testImpl(final boolean use2nd) throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("AWT Parent Frame");
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        final GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUpdateFPSFrames(1, null);
         final NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
         newtCanvasAWT1.setPreferredSize(glSize);
 
-        GLEventListener demo1 = new GearsES2(1);
+        final GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
-        GLAnimatorControl animator1 = new Animator(glWindow1);
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
+        final GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
         GLWindow glWindow2 = null;
@@ -97,11 +100,11 @@ public class TestParenting03AWT extends UITestCase {
             glWindow2.setUpdateFPSFrames(1, null);
             newtCanvasAWT2 = new NewtCanvasAWT(glWindow2);
             newtCanvasAWT2.setPreferredSize(glSize);
-    
-            GLEventListener demo2 = new GearsES2(1);
+
+            final GLEventListener demo2 = new GearsES2(1);
             setDemoFields(demo2, glWindow2, false);
             glWindow2.addGLEventListener(demo2);
-            glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2));
+            glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2, null));
             animator2 = new Animator(glWindow2);
             animator2.start();
         }
@@ -133,17 +136,17 @@ public class TestParenting03AWT extends UITestCase {
         frame1.add(new Button("CENTER"), BorderLayout.CENTER);
         frame1.add(new Button("SOUTH"), BorderLayout.SOUTH);
         frame1.add(cont1, BorderLayout.EAST);
-        frame1.setLocation(0, 0);
-        frame1.setSize(fSize);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 System.err.println("******* Frame setVisible");
-                frame1.validate();                
+                frame1.setLocation(0, 0);
+                frame1.setSize(fSize);
+                frame1.validate();
                 frame1.setVisible(true);
             }});
 
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
-        
+
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
@@ -154,7 +157,7 @@ public class TestParenting03AWT extends UITestCase {
             Assert.assertNotNull(animator2.getThread());
 
             Thread.sleep(waitAdd2nd);
-    
+
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame1.add(cont2, BorderLayout.WEST);
@@ -188,10 +191,10 @@ public class TestParenting03AWT extends UITestCase {
         }
     }
 
-    public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
+    public static void setDemoFields(final GLEventListener demo, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
         Assert.assertNotNull(glWindow);
-        Window window = glWindow.getDelegatedWindow();
+        final Window window = glWindow.getDelegatedWindow();
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -201,15 +204,15 @@ public class TestParenting03AWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -217,7 +220,7 @@ public class TestParenting03AWT extends UITestCase {
                 waitAdd2nd = atoi(args[++i]);
             }
         }
-        String tstname = TestParenting03AWT.class.getName();
+        final String tstname = TestParenting03AWT.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

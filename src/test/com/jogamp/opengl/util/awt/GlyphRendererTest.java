@@ -27,6 +27,11 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.texture.TextureCoords;
 
 import java.awt.Font;
@@ -39,11 +44,6 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.nio.ByteBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL3;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
 import org.junit.Test;

@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -42,7 +42,9 @@ package com.jogamp.opengl.util.texture.spi;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
-import javax.media.opengl.*;
+
+import com.jogamp.opengl.*;
+import com.jogamp.common.util.IOUtil;
 
 /**
  * Targa image reader and writer adapted from sources of the <a href =
@@ -69,12 +71,12 @@ import javax.media.opengl.*;
  */
 
 public class TGAImage {
-    private Header header;
+    private final Header header;
     private int    format;
     private int    bpp;
     private ByteBuffer data;
 
-    private TGAImage(Header header) {
+    private TGAImage(final Header header) {
         this.header = header;
     }
 
@@ -112,7 +114,7 @@ public class TGAImage {
         public final static int I_FOURWAY = 2;
 
         /** Type of this TGA file format */
-        private int tgaType;
+        private final int tgaType;
 
         /** initial TGA image data fields */
         private int idLength;         // byte value
@@ -140,13 +142,13 @@ public class TGAImage {
             tgaType = TYPE_OLD; // dont try and get footer.
         }
 
-        Header(LEDataInputStream in) throws IOException {
+        Header(final LEDataInputStream in) throws IOException {
             tgaType = TYPE_OLD; // dont try and get footer.
 
             // initial header fields
-            idLength = in.readUnsignedByte();    
+            idLength = in.readUnsignedByte();
             colorMapType = in.readUnsignedByte();
-            imageType = in.readUnsignedByte();    
+            imageType = in.readUnsignedByte();
 
             // color map header fields
             firstEntryIndex = in.readUnsignedShort();
@@ -197,6 +199,7 @@ public class TGAImage {
         public byte[] imageIDbuf()           { return imageIDbuf; }
         public String imageID()              { return imageID; }
 
+        @Override
         public String toString() {
             return "TGA Header " +
                 " id length: " + idLength +
@@ -217,24 +220,24 @@ public class TGAImage {
         public int size() { return 18 + idLength; }
 
         // buf must be in little-endian byte order
-        private void write(ByteBuffer buf) {
+        private void write(final ByteBuffer buf) {
             buf.put((byte) idLength);
             buf.put((byte) colorMapType);
             buf.put((byte) imageType);
             buf.putShort((short) firstEntryIndex);
             buf.putShort((short) colorMapLength);
-            buf.put((byte) colorMapEntrySize);
+            buf.put(colorMapEntrySize);
             buf.putShort((short) xOrigin);
             buf.putShort((short) yOrigin);
             buf.putShort((short) width);
             buf.putShort((short) height);
-            buf.put((byte) pixelDepth);
-            buf.put((byte) imageDescriptor);
+            buf.put(pixelDepth);
+            buf.put(imageDescriptor);
             if (idLength > 0) {
                 try {
-                    byte[] chars = imageID.getBytes("US-ASCII");
+                    final byte[] chars = imageID.getBytes("US-ASCII");
                     buf.put(chars);
-                } catch (UnsupportedEncodingException e) {
+                } catch (final UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -247,7 +250,7 @@ public class TGAImage {
      * it into the JimiImage structure. This was taken from the
      * prototype and modified for the new Jimi structure
      */
-    private void decodeImage(LEDataInputStream dIn) throws IOException {
+    private void decodeImage(final GLProfile glp, final LEDataInputStream dIn) throws IOException {
         switch (header.imageType()) {
         case Header.UCOLORMAPPED:
             throw new IOException("TGADecoder Uncompressed Colormapped images not supported");
@@ -259,7 +262,7 @@ public class TGAImage {
 
             case 24:
             case 32:
-                decodeRGBImageU24_32(dIn);
+                decodeRGBImageU24_32(glp, dIn);
                 break;
             }
             break;
@@ -271,23 +274,34 @@ public class TGAImage {
             throw new IOException("TGADecoder Compressed Colormapped images not supported");
 
         case Header.TRUECOLOR:
-            throw new IOException("TGADecoder Compressed True Color images not supported");
+            switch (header.pixelDepth) {
+            case 16:
+                throw new IOException("TGADecoder Compressed 16-bit True Color images not supported");
+
+            case 24:
+            case 32:
+                decodeRGBImageRLE24_32(glp, dIn);
+                break;
+            }
+            break;
 
         case Header.BLACKWHITE:
             throw new IOException("TGADecoder Compressed Grayscale images not supported");
         }
     }
-  
+
     /**
      * This assumes that the body is for a 24 bit or 32 bit for a
      * RGB or ARGB image respectively.
      */
-    private void decodeRGBImageU24_32(LEDataInputStream dIn) throws IOException {
+    private void decodeRGBImageU24_32(final GLProfile glp, final LEDataInputStream dIn) throws IOException {
+        setupImage24_32(glp);
+
         int i;    // row index
         int y;    // output row index
-        int rawWidth = header.width() * (header.pixelDepth() / 8);
-        byte[] rawBuf = new byte[rawWidth];
-        byte[] tmpData = new byte[rawWidth * header.height()];
+        final int rawWidth = header.width() * bpp;
+        final byte[] rawBuf = new byte[rawWidth];
+        final byte[] tmpData = new byte[rawWidth * header.height()];
 
         for (i = 0; i < header.height(); ++i) {
             dIn.readFully(rawBuf, 0, rawWidth);
@@ -300,31 +314,60 @@ public class TGAImage {
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
 
-        GL gl = GLContext.getCurrentGL();
-        if (header.pixelDepth() == 24) {
-            bpp=3;
-            if(gl.isGL2GL3()) {
-                format = GL2GL3.GL_BGR;
-            } else {
-                format = GL.GL_RGB;
-                swapBGR(tmpData, rawWidth, header.height(), bpp);
-            }
-        } else {
-            assert header.pixelDepth() == 32;
-            bpp=4;
-
-            if( gl.getContext().isTextureFormatBGRA8888Available() ) {
-                format = GL.GL_BGRA;
-            } else {
-                format = GL.GL_RGBA;
-                swapBGR(tmpData, rawWidth, header.height(), bpp);
-            }
-        }
-
+        if(format == GL.GL_RGB || format == GL.GL_RGBA)
+            swapBGR(tmpData, rawWidth, header.height(), bpp);
         data = ByteBuffer.wrap(tmpData);
     }
 
-    private static void swapBGR(byte[] data, int bWidth, int height, int bpp) {
+    /**
+     * This assumes that the body is for a 24 bit or 32 bit for a
+     * RGB or ARGB image respectively.
+     */
+    private void decodeRGBImageRLE24_32(final GLProfile glp, final LEDataInputStream dIn) throws IOException {
+        setupImage24_32(glp);
+
+        final byte[] pixel = new byte[bpp];
+        final int rawWidth = header.width() * bpp;
+        final byte[] tmpData = new byte[rawWidth * header.height()];
+        int i = 0, j;
+        int packet, len;
+        while (i < tmpData.length) {
+            packet = dIn.readUnsignedByte();
+            len = (packet & 0x7F) + 1;
+            if ((packet & 0x80) != 0) {
+                dIn.read(pixel);
+                for (j = 0; j < len; ++j)
+                    System.arraycopy(pixel, 0, tmpData, i + j * bpp, bpp);
+            } else
+                dIn.read(tmpData, i, len * bpp);
+            i += bpp * len;
+        }
+
+        if(format == GL.GL_RGB || format == GL.GL_RGBA)
+            swapBGR(tmpData, rawWidth, header.height(), bpp);
+        data = ByteBuffer.wrap(tmpData);
+    }
+
+    private void setupImage24_32(final GLProfile glp) {
+        bpp = header.pixelDepth / 8;
+        switch (header.pixelDepth) {
+        case 24:
+            format = glp.isGL2GL3() ? GL.GL_BGR : GL.GL_RGB;
+            break;
+        case 32:
+            boolean useBGRA = glp.isGL2GL3();
+            if(!useBGRA) {
+                final GLContext ctx = GLContext.getCurrent();
+                useBGRA = null != ctx && ctx.isTextureFormatBGRA8888Available();
+            }
+            format = useBGRA ? GL.GL_BGRA : GL.GL_RGBA;
+            break;
+        default:
+            assert false;
+        }
+    }
+
+    private static void swapBGR(final byte[] data, final int bWidth, final int height, final int bpp) {
         byte r,b;
         int k;
         for(int i=0; i<height; ++i) {
@@ -355,30 +398,30 @@ public class TGAImage {
     public ByteBuffer getData()  { return data; }
 
     /** Reads a Targa image from the specified file. */
-    public static TGAImage read(String filename) throws IOException {
-        return read(new FileInputStream(filename));
+    public static TGAImage read(final GLProfile glp, final String filename) throws IOException {
+        return read(glp, new FileInputStream(filename));
     }
 
     /** Reads a Targa image from the specified InputStream. */
-    public static TGAImage read(InputStream in) throws IOException {
-        LEDataInputStream dIn = new LEDataInputStream(new BufferedInputStream(in));
+    public static TGAImage read(final GLProfile glp, final InputStream in) throws IOException {
+        final LEDataInputStream dIn = new LEDataInputStream(new BufferedInputStream(in));
 
-        Header header = new Header(dIn);
-        TGAImage res = new TGAImage(header);
-        res.decodeImage(dIn);
+        final Header header = new Header(dIn);
+        final TGAImage res = new TGAImage(header);
+        res.decodeImage(glp, dIn);
         return res;
     }
 
     /** Writes the image in Targa format to the specified file name. */
-    public void write(String filename) throws IOException {
+    public void write(final String filename) throws IOException {
         write(new File(filename));
     }
 
     /** Writes the image in Targa format to the specified file. */
-    public void write(File file) throws IOException {
-        FileOutputStream stream = new FileOutputStream(file);
-        FileChannel chan = stream.getChannel();
-        ByteBuffer buf = ByteBuffer.allocate(header.size());
+    public void write(final File file) throws IOException {
+        final FileOutputStream stream = IOUtil.getFileOutputStream(file, true);
+        final FileChannel chan = stream.getChannel();
+        final ByteBuffer buf = ByteBuffer.allocate(header.size());
         buf.order(ByteOrder.LITTLE_ENDIAN);
         header.write(buf);
         buf.rewind();
@@ -394,19 +437,19 @@ public class TGAImage {
         data with the passed ByteBuffer. Assumes the data is already in
         the correct byte order for writing to disk, i.e., BGR or
         BGRA. */
-    public static TGAImage createFromData(int width,
-                                          int height,
-                                          boolean hasAlpha,
-                                          boolean topToBottom,
-                                          ByteBuffer data) {
-        Header header = new Header();
+    public static TGAImage createFromData(final int width,
+                                          final int height,
+                                          final boolean hasAlpha,
+                                          final boolean topToBottom,
+                                          final ByteBuffer data) {
+        final Header header = new Header();
         header.imageType = Header.UTRUECOLOR;
         header.width = width;
         header.height = height;
         header.pixelDepth = (byte) (hasAlpha ? 32 : 24);
         header.imageDescriptor = (byte) (topToBottom ? Header.ID_TOPTOBOTTOM : 0);
         // Note ID not supported
-        TGAImage ret = new TGAImage(header);
+        final TGAImage ret = new TGAImage(header);
         ret.data = data;
         return ret;
     }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt;
 
 
@@ -33,34 +33,37 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
-import javax.media.nativewindow.*;
+import com.jogamp.nativewindow.*;
 
 import com.jogamp.newt.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRemoteWindow01NEWT extends UITestCase {
     static int width, height;
     static String remoteDisplay = "localhost:0.0";
 
     @BeforeClass
     public static void initClass() {
-        NativeWindowFactory.initSingleton(true);
+        NativeWindowFactory.initSingleton();
         width  = 640;
         height = 480;
     }
 
-    static Window createWindow(Screen screen, Capabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static Window createWindow(final Screen screen, final Capabilities caps, final int width, final int height, final boolean onscreen, final boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
         // System.out.println("Requested: "+caps);
 
         //
         // Create native windowing resources .. X11/Win/OSX
-        // 
-        Window window = NewtFactory.createWindow(screen, caps);
+        //
+        final Window window = NewtFactory.createWindow(screen, caps);
         Assert.assertNotNull(window);
         window.setUndecorated(onscreen && undecorated);
         window.setSize(width, height);
@@ -74,10 +77,10 @@ public class TestRemoteWindow01NEWT extends UITestCase {
         // System.out.println("Created: "+window);
 
         //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
+        // Create native OpenGL resources .. XGL/WGL/CGL ..
         // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
-        CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getChosenCapabilities();
+        //
+        final CapabilitiesImmutable chosenCapabilities = window.getGraphicsConfiguration().getChosenCapabilities();
         Assert.assertNotNull(chosenCapabilities);
         Assert.assertTrue(chosenCapabilities.getGreenBits()>5);
         Assert.assertTrue(chosenCapabilities.getBlueBits()>5);
@@ -87,7 +90,7 @@ public class TestRemoteWindow01NEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Display display, Screen screen, Window window) {
+    static void destroyWindow(final Display display, final Screen screen, final Window window) {
         if(null!=window) {
             window.destroy();
         }
@@ -101,10 +104,10 @@ public class TestRemoteWindow01NEWT extends UITestCase {
 
     @Test
     public void testRemoteWindow01() throws InterruptedException {
-        Capabilities caps = new Capabilities();
-        Display display1 = NewtFactory.createDisplay(null); // local display
-        Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
-        Window window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */);
+        final Capabilities caps = new Capabilities();
+        final Display display1 = NewtFactory.createDisplay(null); // local display
+        final Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
+        final Window window1 = createWindow(screen1, caps, width, height, true /* onscreen */, false /* undecorated */);
         window1.setVisible(true);
 
         Assert.assertEquals(true,window1.isNativeValid());
@@ -112,16 +115,16 @@ public class TestRemoteWindow01NEWT extends UITestCase {
 
         // Remote Display/Device/Screen/Window ..
         Display display2;
-        AbstractGraphicsDevice device2;
+        final AbstractGraphicsDevice device2;
         Screen screen2;
         Window window2;
         try {
             display2 = NewtFactory.createDisplay(remoteDisplay);
-            display2.createNative(); 
+            display2.createNative();
             screen2  = NewtFactory.createScreen(display2, 0); // screen 0
             window2 = createWindow(screen2, caps, width, height, true /* onscreen */, false /* undecorated */);
             window2.setVisible(true);
-        } catch (NativeWindowException nwe) {
+        } catch (final NativeWindowException nwe) {
             System.err.println(nwe);
             Assume.assumeNoException(nwe);
             destroyWindow(display1, screen1, window1);
@@ -137,14 +140,14 @@ public class TestRemoteWindow01NEWT extends UITestCase {
         destroyWindow(display2, screen2, window2);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-display")) {
                 remoteDisplay = args[++i];
             }
         }
         System.out.println("display: "+remoteDisplay);
-        String tstname = TestRemoteWindow01NEWT.class.getName();
+        final String tstname = TestRemoteWindow01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

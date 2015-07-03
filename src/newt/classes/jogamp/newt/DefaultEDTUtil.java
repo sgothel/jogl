@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -38,10 +38,12 @@
 package jogamp.newt;
 
 import java.util.ArrayList;
-import javax.media.nativewindow.NativeWindowException;
+
+import com.jogamp.nativewindow.NativeWindowException;
 
 import jogamp.common.util.locks.LockDebugUtil;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.locks.Lock;
 import com.jogamp.newt.util.EDTUtil;
@@ -49,134 +51,192 @@ import com.jogamp.newt.util.EDTUtil;
 public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
-    private ThreadGroup threadGroup; 
-    private EventDispatchThread edt = null;
-    private Object edtLock = new Object(); // locking the EDT start/stop state
-    private String name;
-    int start_iter=0;
-    private Runnable dispatchMessages;
+    /** Used to implement {@link #invokeStop(boolean, Runnable)}. */
+    private static final Object TASK_ATTACHMENT_STOP = new Object();
+    /** Used to provoke an exception on the EDT while waiting / blocking. Merely exists to test code.*/
+    private static final Object TASK_ATTACHMENT_TEST_ERROR = new Object();
+
+    private final Object edtLock = new Object(); // locking the EDT start/stop state
+    private /* final */ ThreadGroup threadGroup;
+    private final String name;
+    private final Runnable dispatchMessages;
+    private NEDT edt = null;
+    private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
-    public DefaultEDTUtil(ThreadGroup tg, String name, Runnable dispatchMessages) {
+    public DefaultEDTUtil(final ThreadGroup tg, final String name, final Runnable dispatchMessages) {
         this.threadGroup = tg;
         this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
         this.dispatchMessages=dispatchMessages;
-        this.edt = new EventDispatchThread(threadGroup, name);
+        this.edt = new NEDT(threadGroup, name);
         this.edt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
+    @Override
     final public long getPollPeriod() {
         return pollPeriod;
     }
 
-    final public void setPollPeriod(long ms) {
-        pollPeriod = ms;
+    @Override
+    final public void setPollPeriod(final long ms) {
+        pollPeriod = ms; // writing to static field is intended
     }
-    
-    public final void reset() {
-        synchronized(edtLock) { 
-            waitUntilStopped();
+
+    @Override
+    public final void start() throws IllegalStateException {
+        synchronized(edtLock) {
+            if( edt.isRunning() ) {
+                throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", EDT "+edt.getName()+", isRunning "+edt.isRunning+", shouldStop "+edt.shouldStop);
+            }
             if(DEBUG) {
                 if(edt.tasks.size()>0) {
-                    System.err.println(Thread.currentThread()+": EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt);
-                    // Thread.dumpStack();
+                    System.err.println(Thread.currentThread()+": Default-EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt);
                 }
-                System.err.println(Thread.currentThread()+": EDT reset - edt: "+edt);
+                System.err.println(Thread.currentThread()+": Default-EDT reset - edt: "+edt);
             }
-            this.edt = new EventDispatchThread(threadGroup, name);
-            this.edt.setDaemon(true); // don't stop JVM from shutdown ..
+            if( edt.getState() != Thread.State.NEW ) {
+                if( null != threadGroup && threadGroup.isDestroyed() ) {
+                    // best thing we can do is to use this thread's TG
+                    threadGroup = Thread.currentThread().getThreadGroup();
+                }
+                edt = new NEDT(threadGroup, name);
+                edt.setDaemon(true); // don't stop JVM from shutdown ..
+            }
+            startImpl();
+        }
+        if( !edt.isRunning() ) {
+            throw new RuntimeException("EDT could not be started: "+edt);
         }
     }
 
-    public final void start() {
-        synchronized(edtLock) { 
-            if(!edt.isRunning() && !edt.shouldStop) {
-                if(edt.isAlive()) {
-                    throw new RuntimeException("EDT Thread.isAlive(): true, isRunning: "+edt.isRunning()+", edt: "+edt+", tasks: "+edt.tasks.size());
-                }
-                start_iter++;
-                edt.setName(name+start_iter);
-                edt.shouldStop = false;
-                if(DEBUG) {
-                    System.err.println(Thread.currentThread()+": EDT START - edt: "+edt);
-                    // Thread.dumpStack();
-                }
-                edt.start();
-            }
+    private final void startImpl() {
+        if(edt.isAlive()) {
+            throw new RuntimeException("Default-EDT Thread.isAlive(): true, isRunning: "+edt.isRunning+", shouldStop "+edt.shouldStop+", edt: "+edt+", tasks: "+edt.tasks.size());
         }
+        start_iter++;
+        edt.setName(name+start_iter);
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": Default-EDT START - edt: "+edt);
+        }
+        edt.start();
     }
 
+    @Override
     public final boolean isCurrentThreadEDT() {
-        return edt == Thread.currentThread();
+        return edt == Thread.currentThread(); // EDT == NEDT
     }
 
+    @Override
+    public final boolean isCurrentThreadNEDT() {
+        return edt == Thread.currentThread(); // EDT == NEDT
+    }
+
+    @Override
+    public final boolean isCurrentThreadEDTorNEDT() {
+        return edt == Thread.currentThread(); // EDT == NEDT
+    }
+
+    @Override
     public final boolean isRunning() {
         return edt.isRunning() ;
     }
 
-    public final void invokeStop(Runnable task) {
-        invokeImpl(true, task, true);
-    }
-
-    public final void invoke(boolean wait, Runnable task) {
-        invokeImpl(wait, task, false);
-    }
-
-    private void invokeImpl(boolean wait, Runnable task, boolean stop) {
-        if(task == null) {
-            throw new RuntimeException("Null Runnable");
+    @Override
+    public final boolean invokeStop(final boolean wait, final Runnable task) {
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
+            ExceptionUtils.dumpStack(System.err);
         }
+        return invokeImpl(wait, task, true /* stop */, false /* provokeError */);
+    }
+
+    public final boolean invokeAndWaitError(final Runnable task) {
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": Default-EDT.invokeAndWaitError");
+            ExceptionUtils.dumpStack(System.err);
+        }
+        return invokeImpl(true /* wait */, task, false /* stop */, true /* provokeError */);
+    }
+
+    @Override
+    public final boolean invoke(final boolean wait, final Runnable task) {
+        return invokeImpl(wait, task, false /* stop */, false /* provokeError */);
+    }
+
+    private static Runnable nullTask = new Runnable() {
+        @Override
+        public void run() { }
+    };
+
+    private final boolean invokeImpl(boolean wait, Runnable task, final boolean stop, final boolean provokeError) {
         Throwable throwable = null;
         RunnableTask rTask = null;
-        Object rTaskLock = new Object();
+        final Object rTaskLock = new Object();
         synchronized(rTaskLock) { // lock the optional task execution
             synchronized(edtLock) { // lock the EDT status
                 if( edt.shouldStop ) {
                     // drop task ..
+                    System.err.println(Thread.currentThread()+": Warning: Default-EDT about (1) to stop, won't enqueue new task: "+edt);
                     if(DEBUG) {
-                        System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+edt);
-                        Thread.dumpStack();
+                        ExceptionUtils.dumpStack(System.err);
                     }
-                    return; 
-                }
-                // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
-                // Thread.dumpStack();
-                if(stop) {
-                    edt.shouldStop = true;
-                    if(DEBUG) {
-                        System.err.println(Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - tasks: "+edt.tasks.size()+" - "+edt);
-                        // Thread.dumpStack();
-                    }
+                    return false;
                 }
                 if( isCurrentThreadEDT() ) {
-                    task.run();
+                    if(null != task) {
+                        task.run();
+                    }
                     wait = false; // running in same thread (EDT) -> no wait
-                    if(stop && edt.tasks.size()>0) {
-                        System.err.println("Warning: EDT about (2) to stop, having remaining tasks: "+edt.tasks.size()+" - "+edt);
-                        if(DEBUG) {
-                            Thread.dumpStack();
+                    if( stop ) {
+                        edt.shouldStop = true;
+                        if( edt.tasks.size()>0 ) {
+                            System.err.println(Thread.currentThread()+": Warning: Default-EDT about (2) to stop, task executed. Remaining tasks: "+edt.tasks.size()+" - "+edt);
+                            if(DEBUG) {
+                                ExceptionUtils.dumpStack(System.err);
+                            }
                         }
                     }
                 } else {
-                    synchronized(edt.tasks) {
-                        start(); // start if not started yet and !shouldStop
-                        wait = wait && edt.isRunning();
-                        rTask = new RunnableTask(task,
-                                                 wait ? rTaskLock : null,
-                                                 true /* always catch and report Exceptions, don't disturb EDT */);
-                        if(stop) {
-                            rTask.setAttachment(new Boolean(true)); // mark final task
+                    if( !edt.isRunning ) {
+                        if( null != task ) {
+                            if( stop ) {
+                                System.err.println(Thread.currentThread()+": Warning: Default-EDT is about (3) to stop and stopped already, dropping task. Remaining tasks: "+edt.tasks.size()+" - "+edt);
+                            } else {
+                                System.err.println(Thread.currentThread()+": Warning: Default-EDT is not running, dropping task. NEDT "+edt);
+                            }
+                            if(DEBUG) {
+                                ExceptionUtils.dumpStack(System.err);
+                            }
                         }
-                        // append task ..
-                        edt.tasks.add(rTask);
-                        edt.tasks.notifyAll();
+                        return false;
+                    } else if( stop && null == task ) {
+                        task = nullTask; // ensures execution triggering stop
+                    }
+
+                    if(null != task) {
+                        synchronized(edt.tasks) {
+                            rTask = new RunnableTask(task,
+                                                     wait ? rTaskLock : null,
+                                                     true /* always catch and report Exceptions, don't disturb EDT */,
+                                                     wait ? null : System.err);
+                            if(stop) {
+                                rTask.setAttachment(TASK_ATTACHMENT_STOP); // mark final task, will imply shouldStop:=true
+                            } else if(provokeError) {
+                                rTask.setAttachment(TASK_ATTACHMENT_TEST_ERROR);
+                            }
+                            // append task ..
+                            edt.tasks.add(rTask);
+                            edt.tasks.notifyAll();
+                        }
+                    } else {
+                        wait = false;
                     }
                 }
             }
             if( wait ) {
                 try {
                     rTaskLock.wait(); // free lock, allow execution of rTask
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -189,57 +249,66 @@ public class DefaultEDTUtil implements EDTUtil {
                     throw new RuntimeException(throwable);
                 }
             }
-        }
-        if(DEBUG && stop) {
-            System.err.println(Thread.currentThread()+": EDT signal STOP X edt: "+edt);
+            if(DEBUG) {
+                if( stop) {
+                    System.err.println(Thread.currentThread()+": Default-EDT signal STOP X edt: "+edt);
+                }
+            }
+            return true;
         }
     }
 
-    final public void waitUntilIdle() {
-        final EventDispatchThread _edt;
+    @Override
+    final public boolean waitUntilIdle() {
+        final NEDT _edt;
         synchronized(edtLock) {
             _edt = edt;
         }
-        if(!_edt.isRunning() || _edt == Thread.currentThread()) {
-            return;
+        if(!_edt.isRunning || _edt == Thread.currentThread()) {
+            return false;
         }
         synchronized(_edt.tasks) {
-            while(_edt.isRunning() && _edt.tasks.size()>0) {
+            while(_edt.isRunning && _edt.tasks.size()>0) {
                 try {
                     _edt.tasks.notifyAll();
                     _edt.tasks.wait();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+            return true;
         }
     }
 
-    final public void waitUntilStopped() {
+    @Override
+    final public boolean waitUntilStopped() {
         synchronized(edtLock) {
-            if(edt.isRunning() && edt != Thread.currentThread() ) {
-                while(edt.isRunning()) {
+            if(edt.isRunning && edt != Thread.currentThread() ) {
+                while( edt.isRunning ) {
                     try {
                         edtLock.wait();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                return true;
+            } else {
+                return false;
             }
         }
     }
 
-    class EventDispatchThread extends Thread {
+    class NEDT extends Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
-        ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
+        final ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
 
-        public EventDispatchThread(ThreadGroup tg, String name) {
+        public NEDT(final ThreadGroup tg, final String name) {
             super(tg, name);
         }
 
         final public boolean isRunning() {
-            return isRunning;
+            return isRunning && !shouldStop;
         }
 
         @Override
@@ -249,24 +318,24 @@ public class DefaultEDTUtil implements EDTUtil {
         }
 
         private final void validateNoRecursiveLocksHold() {
-            if(Lock.DEBUG) {
-                if(LockDebugUtil.getRecursiveLockTrace().size()>0) {
-                    LockDebugUtil.dumpRecursiveLockTrace(System.err);
-                    throw new InternalError("XXX");
-                }
+            if(LockDebugUtil.getRecursiveLockTrace().size()>0) {
+                LockDebugUtil.dumpRecursiveLockTrace(System.err);
+                throw new InternalError("XXX");
             }
         }
-        
-        /** 
+
+        /**
          * Utilizing locking only on tasks and its execution,
          * not for event dispatching.
          */
         @Override
         final public void run() {
             if(DEBUG) {
-                System.err.println(getName()+": EDT run() START "+ getName());
+                System.err.println(getName()+": Default-EDT run() START "+ getName());
             }
-            validateNoRecursiveLocksHold();
+            if(Lock.DEBUG) {
+                validateNoRecursiveLocksHold();
+            }
             RuntimeException error = null;
             try {
                 do {
@@ -281,7 +350,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         if(!shouldStop && tasks.size()==0) {
                             try {
                                 tasks.wait(pollPeriod);
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -289,58 +358,58 @@ public class DefaultEDTUtil implements EDTUtil {
                         if(tasks.size()>0) {
                             task = tasks.remove(0);
                             tasks.notifyAll();
+                            final Object attachment = task.getAttachment();
+                            if( TASK_ATTACHMENT_STOP == attachment ) {
+                                shouldStop = true;
+                            } else if( TASK_ATTACHMENT_TEST_ERROR == attachment ) {
+                                tasks.add(0, task);
+                                task = null;
+                                throw new RuntimeException("TASK_ATTACHMENT_TEST_ERROR");
+                            }
                         }
                     }
                     if(null!=task) {
                         task.run();
-                        validateNoRecursiveLocksHold();
+                        if(Lock.DEBUG) {
+                            validateNoRecursiveLocksHold();
+                        }
                         if(!task.hasWaiter() && null != task.getThrowable()) {
                             // at least dump stack-trace in case nobody waits for result
+                            System.err.println("DefaultEDT.run(): Caught exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
                             task.getThrowable().printStackTrace();
                         }
                     }
                 } while(!shouldStop) ;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 // handle errors ..
                 shouldStop = true;
                 if(t instanceof RuntimeException) {
                     error = (RuntimeException) t;
                 } else {
-                    error = new RuntimeException("Within EDT", t);
+                    error = new RuntimeException("Within Default-EDT", t);
                 }
             } finally {
+                final String msg = getName()+": Default-EDT finished w/ "+tasks.size()+" left";
                 if(DEBUG) {
-                    RunnableTask rt = ( tasks.size() > 0 ) ? tasks.get(0) : null ;
-                    System.err.println(getName()+": EDT run() END "+ getName()+", tasks: "+tasks.size()+", "+rt+", "+error); 
+                    System.err.println(msg+", "+error);
                 }
                 synchronized(edtLock) {
-                    if(null==error) {
-                        synchronized(tasks) {
-                            // drain remaining tasks (stop not on EDT), 
-                            // while having tasks and no previous-task, or previous-task is non final
-                            RunnableTask task = null;
-                            while ( ( null == task || task.getAttachment() == null ) && tasks.size() > 0 ) {
-                                task = tasks.remove(0);
-                                task.run();
-                                tasks.notifyAll();
-                            }
-                            if(DEBUG) {
-                                if(null!=task && task.getAttachment()==null) {
-                                    System.err.println(getName()+" Warning: EDT exit: Last task Not Final: "+tasks.size()+", "+task+" - "+edt);
-                                } else if(tasks.size()>0) {
-                                    System.err.println(getName()+" Warning: EDT exit: Remaining tasks Post Final: "+tasks.size());
-                                }
-                                Thread.dumpStack();
-                            }
+                    int i = 0;
+                    while( tasks.size() > 0 ) {
+                        // notify all waiter
+                        final String msg2 = msg+", task #"+i;
+                        final Throwable t = null != error ? new Throwable(msg2, error) : new Throwable(msg2);
+                        final RunnableTask rt = tasks.remove(0);
+                        if( null != rt ) {
+                            rt.flush(t);
+                            i++;
                         }
                     }
-                    isRunning = !shouldStop;
-                    if(!isRunning) {
-                        edtLock.notifyAll();
-                    }
+                    isRunning = false;
+                    edtLock.notifyAll();
                 }
                 if(DEBUG) {
-                    System.err.println(getName()+": EDT run() EXIT "+ getName()+", "+error);
+                    System.err.println(msg+" EXIT, exception: "+error);
                 }
                 if(null!=error) {
                     throw error;

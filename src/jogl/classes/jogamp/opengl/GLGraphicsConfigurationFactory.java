@@ -29,16 +29,16 @@
 package jogamp.opengl;
 
 import java.util.List;
-import javax.media.nativewindow.CapabilitiesChooser;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeWindowException;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.GraphicsConfigurationFactory;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
 
 public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
 
-    protected static int chooseCapabilities(CapabilitiesChooser chooser, CapabilitiesImmutable capsRequested,
-                                            List /*<CapabilitiesImmutable>*/ availableCaps, int recommendedIndex) {
+    protected static int chooseCapabilities(CapabilitiesChooser chooser, final CapabilitiesImmutable capsRequested,
+                                            final List<? extends CapabilitiesImmutable> availableCaps, final int recommendedIndex) {
         if (null == capsRequested) {
             throw new NativeWindowException("Null requested capabilities");
         }
@@ -69,7 +69,7 @@ public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurati
                 }
                 return chosenIndex;
             }
-        } catch (NativeWindowException e) {
+        } catch (final NativeWindowException e) {
             if (DEBUG) {
                 e.printStackTrace();
             }

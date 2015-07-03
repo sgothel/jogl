@@ -28,35 +28,79 @@
 
 package jogamp.nativewindow.windows;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
-import javax.media.nativewindow.ProxySurface;
+import jogamp.nativewindow.ProxySurfaceImpl;
+import jogamp.nativewindow.windows.GDI;
+
 
 /**
  * GDI Surface implementation which wraps an existing window handle
  * allowing the use of HDC via lockSurface()/unlockSurface() protocol.
  * The latter will get and release the HDC.
  * The size via getWidth()/getHeight() is invalid.
+ *
+ * @see ProxySurface
  */
-public class GDISurface extends ProxySurface {
-  protected long windowHandle;
-  protected long surfaceHandle;
+public class GDISurface extends ProxySurfaceImpl {
+  private long windowHandle;
+  private long surfaceHandle;
 
-  public GDISurface(AbstractGraphicsConfiguration cfg, long windowHandle) {
-    super(cfg);
-    if(0 == windowHandle) {
-        throw new NativeWindowException("Error hwnd 0, werr: "+GDI.GetLastError());
-    }
+  /**
+   * @param cfg the {@link AbstractGraphicsConfiguration} to be used
+   * @param windowHandle the wrapped pre-existing native window handle, maybe 0 if not yet determined
+   * @param upstream the {@link UpstreamSurfaceHook} to be used
+   * @param ownsDevice <code>true</code> if this {@link ProxySurface} instance
+   *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
+   *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
+   */
+  public GDISurface(final AbstractGraphicsConfiguration cfg, final long windowHandle, final UpstreamSurfaceHook upstream, final boolean ownsDevice) {
+    super(cfg, upstream, ownsDevice);
     this.windowHandle=windowHandle;
+    this.surfaceHandle=0;
   }
 
-  protected final void invalidateImpl() {
-    windowHandle=0;
-    surfaceHandle=0;
+  @Override
+  protected void invalidateImpl() {
+    if(0 != surfaceHandle) {
+        throw new NativeWindowException("didn't release surface Handle: "+this);
+    }
+    windowHandle = 0;
+    // surfaceHandle = 0;
   }
 
-  protected int lockSurfaceImpl() {
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Actually the window handle (HWND), since the surfaceHandle (HDC) is derived
+   * from it at {@link #lockSurface()}.
+   * </p>
+   */
+  @Override
+  public final void setSurfaceHandle(final long surfaceHandle) {
+      this.windowHandle = surfaceHandle;
+  }
+
+  /**
+   * Sets the window handle (HWND).
+   */
+  public final void setWindowHandle(final long windowHandle) {
+      this.windowHandle = windowHandle;
+  }
+
+  public final long getWindowHandle() {
+      return windowHandle;
+  }
+
+  @Override
+  final protected int lockSurfaceImpl() {
+    if (0 == windowHandle) {
+        throw new NativeWindowException("null window handle: "+this);
+    }
     if (0 != surfaceHandle) {
         throw new InternalError("surface not released");
     }
@@ -70,27 +114,29 @@ public class GDISurface extends ProxySurface {
     return (0 != surfaceHandle) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
   }
 
-  protected void unlockSurfaceImpl() {
-    if (0 == surfaceHandle) {
-        throw new InternalError("surface not acquired: "+this+", thread: "+Thread.currentThread().getName());
+  @Override
+  final protected void unlockSurfaceImpl() {
+    if (0 != surfaceHandle) {
+        if(0 == GDI.ReleaseDC(windowHandle, surfaceHandle)) {
+            throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());
+        }
+        surfaceHandle=0;
     }
-    if(0 == GDI.ReleaseDC(windowHandle, surfaceHandle)) {
-        throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());        
-    }
-    surfaceHandle=0;
   }
 
-  public long getSurfaceHandle() {
+  @Override
+  final public long getSurfaceHandle() {
     return surfaceHandle;
   }
 
-  public String toString() {
-    return "GDISurface[config "+getPrivateGraphicsConfiguration()+
-                ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
-                ", windowHandle 0x"+Long.toHexString(windowHandle)+
-                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", size "+getWidth()+"x"+getHeight()+
-                ", surfaceLock "+surfaceLock+"]";
+  @Override
+  public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+      return pixelUnitsAndResult; // no pixelScale factor
+  }
+
+  @Override
+  public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+      return windowUnitsAndResult; // no pixelScale factor
   }
 
 }

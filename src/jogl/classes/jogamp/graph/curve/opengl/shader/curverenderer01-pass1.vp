@@ -1,0 +1,33 @@
+//Copyright 2010 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+#include uniforms.glsl
+#include attributes.glsl
+#include varyings.glsl
+
+void main(void)
+{
+    gl_Position = gcu_PMVMatrix02[0] * gcu_PMVMatrix02[1] * gca_Vertices;
+#if 1
+    gcv_CurveParam = gca_CurveParams;
+#else
+    if( gcv_CurveParams.x <= -10.0 ) {
+        // vec4 tc = gcu_PMVMatrix02[0] * gcu_PMVMatrix02[1] * vec4(gca_CurveParams.xy, gca_Vertices.z, 1);
+        // gcv_CurveParams = vec3(tc.xy, gca_CurveParams.z);
+        gcv_CurveParam = gca_CurveParams;
+    } else {
+        gcv_CurveParam = gca_CurveParams;
+    }
+#endif
+#ifdef USE_COLOR_TEXTURE
+    vec2 dim = vec2(gcu_ColorTexBBox.z - gcu_ColorTexBBox.x, gcu_ColorTexBBox.w - gcu_ColorTexBBox.y);
+    gcv_ColorTexCoord = vec2(gca_Vertices.x - gcu_ColorTexBBox.x, gca_Vertices.y - gcu_ColorTexBBox.y) / dim;
+#endif
+#ifdef USE_COLOR_CHANNEL
+    gcv_Color = gca_Colors;
+#endif
+}

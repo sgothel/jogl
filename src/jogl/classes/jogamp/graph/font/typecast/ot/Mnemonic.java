@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot;
@@ -143,7 +143,7 @@ public class Mnemonic {
      * @param opcode The opcode for which the mnemonic is required
      * @return The mnemonic, with a description
      */
-    public static String getMnemonic(short opcode) {
+    public static String getMnemonic(final short opcode) {
         if (opcode >= MIRP) return "MIRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]";
         else if (opcode >= MDRP) return "MDRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]";
         else if (opcode >= PUSHW) return "PUSHW["+((opcode&7)+1)+"]";
@@ -269,7 +269,7 @@ public class Mnemonic {
         else return "????";
     }
 
-    public static String getComment(short opcode) {
+    public static String getComment(final short opcode) {
         if (opcode >= MIRP) return "MIRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]\t\tMove Indirect Relative Point";
         else if (opcode >= MDRP) return "MDRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]\t\tMove Direct Relative Point";
         else if (opcode >= PUSHW) return "PUSHW["+((opcode&7)+1)+"]";

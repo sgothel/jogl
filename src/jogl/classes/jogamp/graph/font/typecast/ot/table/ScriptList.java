@@ -61,16 +61,16 @@ import java.io.IOException;
 public class ScriptList {
 
     private int _scriptCount = 0;
-    private ScriptRecord[] _scriptRecords;
-    private Script[] _scripts;
-    
+    private final ScriptRecord[] _scriptRecords;
+    private final Script[] _scripts;
+
     /** Creates new ScriptList */
-    protected ScriptList(DataInputStream dis, int offset) throws IOException {
-        
+    protected ScriptList(final DataInputStream dis, final int offset) throws IOException {
+
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-        
+
         // Start reading
         _scriptCount = dis.readUnsignedShort();
         _scriptRecords = new ScriptRecord[_scriptCount];
@@ -86,20 +86,20 @@ public class ScriptList {
     public int getScriptCount() {
         return _scriptCount;
     }
-    
-    public ScriptRecord getScriptRecord(int i) {
+
+    public ScriptRecord getScriptRecord(final int i) {
         return _scriptRecords[i];
     }
-    
-    public Script getScript(int i) {
+
+    public Script getScript(final int i) {
         return _scripts[i];
     }
-    
-    public Script findScript(String tag) {
+
+    public Script findScript(final String tag) {
         if (tag.length() != 4) {
             return null;
         }
-        int tagVal = ((tag.charAt(0)<<24)
+        final int tagVal = ((tag.charAt(0)<<24)
             | (tag.charAt(1)<<16)
             | (tag.charAt(2)<<8)
             | tag.charAt(3));

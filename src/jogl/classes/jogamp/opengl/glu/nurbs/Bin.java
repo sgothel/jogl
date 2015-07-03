@@ -64,7 +64,7 @@ public class Bin {
    * Adds and arc to linked list
    * @param jarc added arc
    */
-  public void addarc(Arc jarc) {
+  public void addarc(final Arc jarc) {
     // DONE
     // if (head == null)
     // head = jarc;
@@ -93,7 +93,7 @@ public class Bin {
    */
   public Arc removearc() {
     // DONE
-    Arc jarc = head;
+    final Arc jarc = head;
     if (jarc != null)
       head = jarc.link;
     return jarc;
@@ -143,11 +143,11 @@ public class Bin {
   /**
    * Returns next arc in linked list
    * @return next arc
-   * 
+   *
    */
   private Arc nextarc() {
     // DONE
-    Arc jarc = current;
+    final Arc jarc = current;
     if (jarc != null)
       current = jarc.link;
     return jarc;

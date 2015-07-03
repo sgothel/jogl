@@ -69,17 +69,17 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
 
     protected GlyfTable _parentTable;
     private int _glyphIndex;
-    private int _numberOfContours;
-    private short _xMin;
-    private short _yMin;
-    private short _xMax;
-    private short _yMax;
+    private final int _numberOfContours;
+    private final short _xMin;
+    private final short _yMin;
+    private final short _xMax;
+    private final short _yMax;
 
     protected GlyfDescript(
-            GlyfTable parentTable,
-            int glyphIndex,
-            short numberOfContours,
-            DataInput di) throws IOException {
+            final GlyfTable parentTable,
+            final int glyphIndex,
+            final short numberOfContours,
+            final DataInput di) throws IOException {
         _parentTable = parentTable;
         _numberOfContours = numberOfContours;
         _xMin = di.readShort();
@@ -92,28 +92,34 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
         return _numberOfContours;
     }
 
+    @Override
     public int getGlyphIndex() {
         return _glyphIndex;
     }
 
+    @Override
     public short getXMaximum() {
         return _xMax;
     }
 
+    @Override
     public short getXMinimum() {
         return _xMin;
     }
 
+    @Override
     public short getYMaximum() {
         return _yMax;
     }
 
+    @Override
     public short getYMinimum() {
         return _yMin;
     }
-    
+
+    @Override
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("          numberOfContours: ").append(_numberOfContours)
             .append("\n          xMin:             ").append(_xMin)
             .append("\n          yMin:             ").append(_yMin)

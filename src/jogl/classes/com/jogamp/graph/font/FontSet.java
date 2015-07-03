@@ -32,31 +32,39 @@ import java.io.IOException;
 
 public interface FontSet {
 
-    /** Font family REGULAR **/
+    /** Font family REGULAR, {@value} **/
     public static final int FAMILY_REGULAR    = 0;
-    
-    /** Font family LIGHT **/
+
+    /** Font family LIGHT, {@value} **/
     public static final int FAMILY_LIGHT      = 1;
-    
-    /** Font family MEDIUM **/
+
+    /** Font family MEDIUM, {@value} **/
     public static final int FAMILY_MEDIUM     = 2;
-    
-    /** Font family CONDENSED **/
+
+    /** Font family CONDENSED, {@value} **/
     public static final int FAMILY_CONDENSED  = 3;
-    
-    /** Font family MONO **/
+
+    /** Font family MONO, {@value} **/
     public static final int FAMILY_MONOSPACED = 4;
-    
-    /** SERIF style/family bit flag. Fallback to Sans Serif. */
+
+    /** Zero style, {@value} */
+    public static final int STYLE_NONE        = 0;
+
+    /** SERIF style/family bit flag. Fallback to Sans Serif, {@value} */
     public static final int STYLE_SERIF       = 1 << 1;
-    
-    /** BOLD style bit flag */
+
+    /** BOLD style bit flag, {@value} */
     public static final int STYLE_BOLD        = 1 << 2;
-    
-    /** ITALIC style bit flag */
+
+    /** ITALIC style bit flag, {@value} */
     public static final int STYLE_ITALIC      = 1 << 3;
 
+    /**
+     * Returns the family {@link #FAMILY_REGULAR} with {@link #STYLE_NONE}
+     * as retrieved with {@link #get(int, int)}.
+     * @throws IOException
+     */
     Font getDefault() throws IOException ;
-    
+
     Font get(int family, int stylebits) throws IOException ;
 }

@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Application-Name: Java Bindings for OculusVR
+Specification-Title: Java Bindings for OculusVR API Specification
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp Community
+Implementation-Title: Java Bindings for OculusVR Runtime Environment
+Implementation-Version: @VERSION@
+Implementation-Build: @BUILD_VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
+Implementation-Vendor: JogAmp Community
+Implementation-URL: http://jogamp.org/
+Extension-Name: jogamp.nativetag.oculusvr
+Implementation-Vendor-Id: com.jogamp
+Trusted-Library: true
+Permissions: all-permissions
+Application-Library-Allowable-Codebase: *
+@JAR_CODEBASE_TAG@
+

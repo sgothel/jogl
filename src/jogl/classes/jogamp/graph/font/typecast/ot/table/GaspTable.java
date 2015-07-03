@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -18,13 +18,13 @@ import java.io.IOException;
  */
 public class GaspTable implements Table {
 
-    private DirectoryEntry de;
-    private int version;
-    private int numRanges;
-    private GaspRange[] gaspRange;
-    
+    private final DirectoryEntry de;
+    private final int version;
+    private final int numRanges;
+    private final GaspRange[] gaspRange;
+
     /** Creates new GaspTable */
-    protected GaspTable(DirectoryEntry de, DataInput di) throws IOException {
+    protected GaspTable(final DirectoryEntry de, final DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         version = di.readUnsignedShort();
         numRanges = di.readUnsignedShort();
@@ -34,12 +34,14 @@ public class GaspTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return gasp;
     }
 
+    @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'gasp' Table - Grid-fitting And Scan-conversion Procedure\n---------------------------------------------------------");
         sb.append("\n  'gasp' version:      ").append(version);
         sb.append("\n  numRanges:           ").append(numRanges);
@@ -49,15 +51,16 @@ public class GaspTable implements Table {
         }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

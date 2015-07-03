@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.util.awt;
 
-import javax.media.opengl.DebugGL3;
-import javax.media.opengl.GL3;
-import javax.media.opengl.GLAutoDrawable;
+import com.jogamp.opengl.DebugGL3;
+import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GLAutoDrawable;
 
 
 /**

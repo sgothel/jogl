@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,18 +20,18 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.lang.reflect.InvocationTargetException;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -45,6 +45,8 @@ import javax.swing.JFrame;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import static org.junit.Assume.*;
 import static javax.swing.SwingUtilities.*;
@@ -53,6 +55,7 @@ import static javax.swing.SwingUtilities.*;
  * Tests context creation + display on various kinds of Window implementations.
  * @author Michael Bien, et. al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSwingAWT01GLn extends UITestCase {
     private Window[] windows;
 
@@ -80,7 +83,7 @@ public class TestSwingAWT01GLn extends UITestCase {
             // final array as mutable container hack
             final GLCanvas[] glCanvas = new GLCanvas[1];
 
-            Runnable test = new Runnable() {
+            final Runnable test = new Runnable() {
                 public void run() {
                     glCanvas[0] = new GLCanvas(caps);
                     glCanvas[0].addGLEventListener(new GearsES2());
@@ -97,13 +100,13 @@ public class TestSwingAWT01GLn extends UITestCase {
                 }
             };
 
-            Runnable cleanup = new Runnable() {
+            final Runnable cleanup = new Runnable() {
                 public void run() {
                     System.out.println("cleaning up...");
                     window.setVisible(false);
                     try {
                         window.removeAll();
-                    } catch (Throwable t) {
+                    } catch (final Throwable t) {
                         assumeNoException(t);
                         t.printStackTrace();
                     }
@@ -115,7 +118,7 @@ public class TestSwingAWT01GLn extends UITestCase {
             // AWT / Swing on EDT..
             invokeAndWait(test);
 
-            Animator animator = new Animator(glCanvas[0]);
+            final Animator animator = new Animator(glCanvas[0]);
             animator.start();
             Thread.sleep(1000);
             animator.stop();
@@ -127,10 +130,10 @@ public class TestSwingAWT01GLn extends UITestCase {
 
     @Test
     public void test01GLDefault() throws InterruptedException, InvocationTargetException {
-        GLProfile glp = GLProfile.getDefault();
+        final GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile Default: "+glp);
         if(glp.isGL2ES2()) {
-            GLCapabilities caps = new GLCapabilities(glp);
+            final GLCapabilities caps = new GLCapabilities(glp);
             runTestGL(caps);
         } else {
             System.out.println("not a GL2ES2 profile");
@@ -140,16 +143,16 @@ public class TestSwingAWT01GLn extends UITestCase {
     @Test
     public void test02GL2() throws InterruptedException, InvocationTargetException {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
-            GLProfile glprofile = GLProfile.get(GLProfile.GL2);
+            final GLProfile glprofile = GLProfile.get(GLProfile.GL2);
             System.out.println( "GLProfile GL2: " + glprofile );
-            GLCapabilities caps = new GLCapabilities(glprofile);
+            final GLCapabilities caps = new GLCapabilities(glprofile);
             runTestGL(caps);
         } else {
             System.out.println("GL2 n/a");
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestSwingAWT01GLn.class.getName());
     }
 }

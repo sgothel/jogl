@@ -64,24 +64,27 @@ public class CmapFormat6 extends CmapFormat {
     private short _entryCount;
     private short[] _glyphIdArray;
 
-    protected CmapFormat6(DataInput di) throws IOException {
+    protected CmapFormat6(final DataInput di) throws IOException {
         super(di);
         _format = 6;
-        
+
         // HACK: As this is not yet implemented, we need to skip over the bytes
         // we should be consuming
         //di.skipBytes(_length - 4);
     }
 
+    @Override
     public int getRangeCount() {
         return 0;
     }
-    
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+
+    @Override
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }
 
-    public int mapCharCode(int charCode) {
+    @Override
+    public int mapCharCode(final int charCode) {
         return 0;
     }
 }

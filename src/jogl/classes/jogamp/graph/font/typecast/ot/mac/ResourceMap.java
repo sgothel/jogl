@@ -30,42 +30,41 @@ import java.io.IOException;
  */
 public class ResourceMap {
 
-    private byte[] headerCopy = new byte[16];
-    private int nextResourceMap;
-    private int fileReferenceNumber;
-    private int attributes;
-    private ResourceType[] types;
-    
+    private final byte[] headerCopy = new byte[16];
+    // private final int nextResourceMap;
+    // private final int fileReferenceNumber;
+    // private final int attributes;
+    private final ResourceType[] types;
+
     /** Creates new ResourceMap */
-    public ResourceMap(DataInput di) throws IOException {
+    public ResourceMap(final DataInput di) throws IOException {
         di.readFully(headerCopy);
-        nextResourceMap = di.readInt();
-        fileReferenceNumber = di.readUnsignedShort();
-        attributes = di.readUnsignedShort();
-        int typeOffset = di.readUnsignedShort();
-        int nameOffset = di.readUnsignedShort();
-        int typeCount = di.readUnsignedShort() + 1;
-        
+        /* nextResourceMap = */ di.readInt();
+        /* fileReferenceNumber = */ di.readUnsignedShort();
+        /* attributes = */ di.readUnsignedShort();
+        /* final int typeOffset = */ di.readUnsignedShort();
+        /* final int nameOffset = */ di.readUnsignedShort();
+        final int typeCount = di.readUnsignedShort() + 1;
+
         // Read types
         types = new ResourceType[typeCount];
         for (int i = 0; i < typeCount; i++) {
             types[i] = new ResourceType(di);
         }
-        
+
         // Read the references
         for (int i = 0; i < typeCount; i++) {
             types[i].readRefs(di);
         }
-        
+
         // Read the names
         for (int i = 0; i < typeCount; i++) {
             types[i].readNames(di);
         }
     }
 
-    public ResourceType getResourceType(String typeName) {
+    public ResourceType getResourceType(final String typeName) {
         for (int i = 0; i < types.length; i++) {
-            String s = types[i].getTypeAsString();
             if (types[i].getTypeAsString().equals(typeName)) {
                 return types[i];
             }
@@ -73,10 +72,10 @@ public class ResourceMap {
         return null;
     }
 
-    public ResourceType getResourceType(int i) {
+    public ResourceType getResourceType(final int i) {
         return types[i];
     }
-    
+
     public int getResourceTypeCount() {
         return types.length;
     }

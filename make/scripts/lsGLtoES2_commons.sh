@@ -7,7 +7,7 @@ if [ -z "$BUILDDIR" ] ; then
     exit 1
 fi
 
-idir=$BUILDDIR/jogl/gensrc/classes/javax/media/opengl
+idir=$BUILDDIR/jogl/gensrc/classes/com/jogamp/opengl
 
 echo GL to GL2ES2 to GLES2 enums
 sort $idir/GL.java $idir/GLES2.java $idir/GL2ES2.java | uniq -d | grep GL_ | awk ' { print $5 } '

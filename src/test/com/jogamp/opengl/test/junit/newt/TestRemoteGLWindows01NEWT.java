@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,20 +20,21 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
-import javax.media.opengl.*;
+import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 
@@ -44,21 +45,22 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRemoteGLWindows01NEWT extends UITestCase {
     static int width = 640, height = 480;
     static long durationPerTest = 100; // ms
     static String remoteDisplay = "localhost:0.0";
 
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, GLEventListener demo)
+    static GLWindow createWindow(final Screen screen, final GLCapabilities caps, final GLEventListener demo)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
         //
         // Create native windowing resources .. X11/Win/OSX
-        // 
+        //
         GLWindow glWindow;
         if(null!=screen) {
             glWindow = GLWindow.create(screen, caps);
@@ -67,7 +69,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
             glWindow = GLWindow.create(caps);
             Assert.assertNotNull(glWindow);
         }
-        
+
         glWindow.addGLEventListener(demo);
 
         glWindow.setSize(512, 512);
@@ -78,7 +80,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         return glWindow;
     }
 
-    static void destroyWindow(GLWindow glWindow) {
+    static void destroyWindow(final GLWindow glWindow) {
         if(null!=glWindow) {
             glWindow.destroy();
             Assert.assertEquals(false,glWindow.isNativeValid());
@@ -87,16 +89,16 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
 
     @Test
     public void testRemoteWindow01() throws InterruptedException {
-        Animator animator = new Animator();
-        GLProfile glpLocal = GLProfile.getGL2ES1();
+        final Animator animator = new Animator();
+        final GLProfile glpLocal = GLProfile.getGL2ES1();
         Assert.assertNotNull(glpLocal);
-        GLCapabilities capsLocal = new GLCapabilities(glpLocal);
+        final GLCapabilities capsLocal = new GLCapabilities(glpLocal);
         Assert.assertNotNull(capsLocal);
-        GearsES1 demoLocal = new GearsES1(1);
-        GLWindow windowLocal = createWindow(null, capsLocal, demoLocal); // local with vsync
+        final GearsES1 demoLocal = new GearsES1(1);
+        final GLWindow windowLocal = createWindow(null, capsLocal, demoLocal); // local with vsync
         Assert.assertEquals(true,windowLocal.isNativeValid());
         Assert.assertEquals(true,windowLocal.isVisible());
-        AbstractGraphicsDevice device1 = windowLocal.getScreen().getDisplay().getGraphicsDevice();
+        final AbstractGraphicsDevice device1 = windowLocal.getScreen().getDisplay().getGraphicsDevice();
 
         System.err.println("GLProfiles window1: "+device1.getConnection()+": "+GLProfile.glAvailabilityToString(device1));
 
@@ -118,14 +120,14 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
             GLProfile.initProfiles(deviceRemote); // just to make sure
             System.err.println();
             System.err.println("GLProfiles window2: "+deviceRemote.getConnection()+": "+GLProfile.glAvailabilityToString(deviceRemote));
-            GLProfile glpRemote = GLProfile.get(deviceRemote, GLProfile.GL2ES1);
+            final GLProfile glpRemote = GLProfile.get(deviceRemote, GLProfile.GL2ES1);
             Assert.assertNotNull(glpRemote);
-            GLCapabilities capsRemote = new GLCapabilities(glpRemote);
+            final GLCapabilities capsRemote = new GLCapabilities(glpRemote);
             Assert.assertNotNull(capsRemote);
             screenRemote  = NewtFactory.createScreen(displayRemote, 0); // screen 0
             demoRemote = new GearsES1(0);
             windowRemote = createWindow(screenRemote, capsRemote, demoRemote); // remote, no vsync
-        } catch (NativeWindowException nwe) {
+        } catch (final NativeWindowException nwe) {
             System.err.println(nwe);
             Assume.assumeNoException(nwe);
             destroyWindow(windowLocal);
@@ -136,7 +138,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,windowRemote.isVisible());
 
         animator.add(windowRemote);
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         animator.start();
 
         while(animator.getTotalFPSDuration()<durationPerTest) {
@@ -151,15 +153,15 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         destroyWindow(windowRemote);
     }
 
-    static int atoi(String a) {
+    static int atoi(final String a) {
         int i=0;
         try {
             i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (final Exception ex) { ex.printStackTrace(); }
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -169,7 +171,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
         }
         System.out.println("durationPerTest: "+durationPerTest);
         System.out.println("display: "+remoteDisplay);
-        String tstname = TestRemoteGLWindows01NEWT.class.getName();
+        final String tstname = TestRemoteGLWindows01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
