@@ -33,6 +33,7 @@ import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.awt.QuadPipeline.Quad;
 import com.jogamp.opengl.util.texture.TextureCoords;
@@ -724,7 +725,7 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
     protected QuadPipeline doCreateQuadPipeline(final GL gl) {
         final GL2 gl2 = gl.getGL2();
         if (useVertexArrays) {
-            if (gl2.isExtensionAvailable("GL_VERSION_1_5")) {
+            if (gl2.isExtensionAvailable(GLExtensions.VERSION_1_5)) {
                 return new QuadPipelineGL15(gl2);
             } else if (gl2.isExtensionAvailable("GL_VERSION_1_1")) {
                 return new QuadPipelineGL11(gl2);
