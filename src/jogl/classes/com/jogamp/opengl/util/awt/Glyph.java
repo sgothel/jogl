@@ -37,34 +37,36 @@ import java.awt.geom.Rectangle2D;
 /**
  * Representation of one or multiple unicode characters to be drawn.
  *
- * <p>The reason for the dual behavior is so that we can take in a sequence of
- * unicode characters and partition them into runs of individual glyphs, but if
- * we encounter complex text and/or unicode sequences we don't understand, we
- * can render them using the string-by-string method.
+ * <p>
+ * The reason for the dual behavior is so that we can take in a sequence of unicode characters and
+ * partition them into runs of individual glyphs, but if we encounter complex text and/or unicode
+ * sequences we don't understand, we can render them using the string-by-string method.
  *
- * <p><b>Positioning</b>
+ * <h1>Positioning</h1>
  *
- * <p>In an effort to make positioning glyphs more intuitive for both Java2D's
- * and OpenGL's coordinate systems, <i>Glyph</i> now stores its measurements
- * differently.  This new way is patterned off of HTML's box model.
+ * <p>
+ * In an effort to make positioning glyphs more intuitive for both Java2D's and OpenGL's coordinate
+ * systems, {@code Glyph} now stores its measurements differently.  This new way is patterned off
+ * of HTML's box model.
  *
- * <p>Of course, as expected each glyph maintains its width and height.  For
- * spacing however, rather than storing positions in Java2D space that must be
- * manipulated on a case-by-case basis, <i>Glyph</i> stores two separate
- * pre-computed boundaries representing space around the text.  Each of the
- * boundaries has separate top, bottom, left, and right components.  These
- * components should generally be considered positive, but negative values are
- * sometimes necessary in rare situations.
+ * <p>
+ * Of course, as expected each glyph maintains its width and height.  For spacing however, rather
+ * than storing positions in Java2D space that must be manipulated on a case-by-case basis,
+ * {@code Glyph} stores two separate pre-computed boundaries representing space around the text.
+ * Each of the boundaries has separate top, bottom, left, and right components.  These components
+ * should generally be considered positive, but negative values are sometimes necessary in rare
+ * situations.
  *
- * <p>The first boundary is called <i>padding</i>.  Padding is the space between
- * the actual glyph itself and its border.  It is included in the width and
- * height of the glyph.  The second boundary that a glyph stores is called
- * <i>margin</i>, which is extra space around the glyph's border.  The margin is
- * generally used for separating the glyph from other glyphs when it's stored.
+ * <p>
+ * The first boundary is called <i>padding</i>.  Padding is the space between the actual glyph
+ * itself and its border.  It is included in the width and height of the glyph.  The second
+ * boundary that a glyph stores is called <i>margin</i>, which is extra space around the glyph's
+ * border.  The margin is generally used for separating the glyph from other glyphs when it's
+ * stored.
  *
- * <p>The diagram below shows the boundaries of a glyph and how they relate to
- * its width and height.  The inner rectangle is the glyph's boundary, and the
- * outer rectangle is the edge of the margin.
+ * <p>
+ * The diagram below shows the boundaries of a glyph and how they relate to its width and height.
+ * The inner rectangle is the glyph's boundary, and the outer rectangle is the edge of the margin.
  *
  * <pre>
  * +--------------------------------------+
@@ -94,15 +96,15 @@ import java.awt.geom.Rectangle2D;
  * +--------------------------------------+
  * </pre>
  *
- * <p>In addition, <i>Glyph</i> also keeps a few other measurements useful for
- * positioning.  <i>Ascent</i> is the distance between the baseline and the top
- * border, while <i>descent</i> is the distance between the baseline and the
- * bottom border.  <i>Kerning</i> is the distance between the vertical baseline
- * and the left border.  Note that in some cases some of these fields can match
- * up with padding components, but in general they should be considered
- * separate.
+ * <p>
+ * In addition, {@code Glyph} also keeps a few other measurements useful for positioning.
+ * <i>Ascent</i> is the distance between the baseline and the top border, while <i>descent</i> is
+ * the distance between the baseline and the bottom border.  <i>Kerning</i> is the distance between
+ * the vertical baseline and the left border.  Note that in some cases some of these fields can
+ * match up with padding components, but in general they should be considered separate.
  *
- * <p>Below is a diagram showing ascent, descent, and kerning.
+ * <p>
+ * Below is a diagram showing ascent, descent, and kerning.
  *
  * <pre>
  * +--------------------+   -
@@ -126,67 +128,109 @@ import java.awt.geom.Rectangle2D;
  * |--| kerning
  * </pre>
  */
+/*@NotThreadSafe*/
 final class Glyph {
 
-    // Unicode ID if character, else -1
+    // TODO: Create separate Glyph implementations -- one for character one for string?
+
+    /**
+     * Unicode ID if this glyph represents a single character, otherwise -1.
+     */
+    /*@CheckForSigned*/
     final int id;
 
-    // Sequence if string, else null
+    /**
+     * String if this glyph represents multiple characters, otherwise null.
+     */
+    /*@CheckForNull*/
     final String str;
 
-    // Font's identifier of glyph
+    /**
+     * Font's identifier of glyph.
+     */
     final int code;
 
-    // Distance to next glyph
+    /**
+     * Distance to next glyph.
+     */
     final float advance;
 
-    // Actual character if a character
+    /**
+     * Java2D shape of glyph.
+     */
+    /*@Nonnull*/
+    final GlyphVector glyphVector;
+
+    /**
+     * Actual character if this glyph represents a single character, otherwise NUL.
+     */
     final char character;
 
-    // Width of text with inner padding
+    /**
+     * Width of text with inner padding.
+     */
     float width;
 
-    // Height of text with inner padding
+    /**
+     * Height of text with inner padding.
+     */
     float height;
 
-    // Length from baseline to top border
+    /**
+     * Length from baseline to top border.
+     */
     float ascent;
 
-    // Length from baseline to bottom border
+    /**
+     * Length from baseline to bottom border.
+     */
     float descent;
 
-    // Length from baseline to left padding
+    /**
+     * Length from baseline to left padding.
+     */
     float kerning;
 
-    // Outer boundary excluded from size
+    /**
+     * Outer boundary excluded from size.
+     */
+    /*@CheckForNull*/
     Boundary margin;
 
-    // Inner boundary included in size
+    /**
+     * Inner boundary included in size.
+     */
+    /*@CheckForNull*/
     Boundary padding;
 
-    // Position of glyph in larger area
+    /**
+     * Position of this glyph in texture.
+     */
+    /*@CheckForNull*/
     Rect location;
 
-    // Coordinates of glyph in larger area
+    /**
+     * Coordinates of this glyph in texture.
+     */
+    /*@CheckForNull*/
     TextureCoords coordinates;
 
-    // Java2D shape of glyph
-    GlyphVector glyphVector;
-
-    // Cached bounding box of glyph
+    /**
+     * Cached bounding box of glyph.
+     */
+    /*@CheckForNull*/
     Rectangle2D bounds;
 
     /**
-     * Constructs a glyph representing an individual Unicode character.
+     * Constructs a {@link Glyph} representing an individual Unicode character.
      *
-     * @param id Unicode ID of character
-     * @param gv Vector shape of character
-     * @throws AssertionError if id is negative or glyph vector is <tt>null</tt>
+     * @param id Unicode ID of character, not negative
+     * @param gv Vector shape of character, not null
      */
-    Glyph(final int id, final GlyphVector gv) {
+    Glyph(/*@Nonnegative*/ final int id, /*@Nonnull*/ final GlyphVector gv) {
 
-        assert (id >= 0);
-        assert (gv != null);
+        assert id >= 0 : "ID shouldn't be null";
+        assert gv != null : "Glyph vector shouldn't be null";
 
         this.id = id;
         this.str = null;
@@ -197,62 +241,64 @@ final class Glyph {
     }
 
     /**
-     * Constructs a glyph representing a sequence of characters.
+     * Constructs a {@link Glyph} representing a sequence of characters.
      *
-     * @param str Sequence of characters
-     * @param gv Vector shape of sequence
-     * @throws AssertionError if string or glyph vector is <tt>null</tt>
+     * @param str Sequence of characters, not null
+     * @param gv Vector shape of sequence, not null
      */
-    Glyph(final String str, final GlyphVector gv) {
+    Glyph(/*@Nonnull*/ final String str, /*@Nonnull*/ final GlyphVector gv) {
 
-        assert (str != null);
-        assert (gv != null);
+        assert str != null : "String shouldn't be null";
+        assert gv != null : "Glyph vector shouldn't be null";
 
         this.id = -1;
         this.str = str;
         this.code = -1;
         this.advance = 0;
-        this.character = '\0';
         this.glyphVector = gv;
+        this.character = '\0';
     }
 
-    /**
-     * Returns a string representation of the object.
-     */
+    /*@Nonnull*/
     @Override
     public String toString() {
         return (str != null) ? str : Character.toString(character);
     }
 
-    //------------------------------------------------------------------
-    // Nested classes
-    //
-
     /**
      * Space around a rectangle.
      */
-    static class Boundary {
-
-        // Space above rectangle
-        int top;
-
-        // Space below rectangle
-        int bottom;
-
-        // Space beside rectangle to left
-        int left;
-
-        // Space beside rectangle to right
-        int right;
+    /*@Immutable*/
+    static final class Boundary {
 
         /**
-         * Creates a boundary by computing distances between two rectangles.
+         * Space above rectangle.
+         */
+        final int top;
+
+        /**
+         * Space below rectangle.
+         */
+        final int bottom;
+
+        /**
+         * Space beside rectangle to left.
+         */
+        final int left;
+
+        /**
+         * Space beside rectangle to right.
+         */
+        final int right;
+
+        /**
+         * Constructs a {@link Boundary} by computing the distances between two rectangles.
          *
          * @param large Outer rectangle
          * @param small Inner rectangle
-         * @throws NullPointerException if either rectangle is <tt>null</tt>
+         * @throws NullPointerException if either rectangle is null
          */
-        Boundary(final Rectangle2D large, final Rectangle2D small) {
+        Boundary(/*@Nonnull*/ final Rectangle2D large, /*@Nonnull*/ final Rectangle2D small) {
             top = (int) (large.getMinY() - small.getMinY()) * -1;
             left = (int) (large.getMinX() - small.getMinX()) * -1;
             bottom = (int) (large.getMaxY() - small.getMaxY());

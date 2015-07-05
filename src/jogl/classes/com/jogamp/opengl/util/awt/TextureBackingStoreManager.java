@@ -42,47 +42,64 @@ import java.util.List;
 /**
  * Handler for allocating and reallocating texture backing stores.
  *
- * <p>When a backing store is no longer big enough a new backing store
- * needs to be created to replace it.  Accordingly, the data from the
- * old backing store should be copied to the new one.  Throughout this
- * process decisions may need to be made about getting rid of old
- * entries and handling failures.  <i>TextureBackingStoreManager</i>
- * handles these issues, although it delegates some actions to
- * observers by firing backing store events.
+ * <p>
+ * When a backing store is no longer big enough a new backing store needs to be created to replace
+ * it.  Accordingly, the data from the old backing store should be copied to the new one.
+ *
+ * <p>
+ * Throughout this process decisions may need to be made about getting rid of old entries and
+ * handling failures.  {@code TextureBackingStoreManager} handles these issues, although it
+ * delegates some actions to observers by firing backing store events.
  */
-class TextureBackingStoreManager implements BackingStoreManager {
+final class TextureBackingStoreManager implements BackingStoreManager {
 
-    // Whether or not texture backing store manager should print debugging information
+    /**
+     * Whether or not texture backing store manager should print debugging information.
+     */
     private static final boolean DEBUG = false;
 
-    // Observers of backing store events
+    /**
+     * Observers of backing store events.
+     */
+    /*@Nonnull*/
     private final List<EventListener> listeners;
 
-    // Style of text
+    /**
+     * Style of text.
+     */
+    /*@Nonnull*/
     private final Font font;
 
-    // True to render smooth edges
+    /**
+     * True to render smooth edges.
+     */
     private final boolean antialias;
 
-    // True to use subpixel accuracy
+    /**
+     * True to use subpixel accuracy.
+     */
     private final boolean subpixel;
 
-    // True for high quality texturing
+    /**
+     * True for high quality texturing.
+     */
     private final boolean mipmap;
 
-    // True to interpolate samples
+    /**
+     * True to interpolate samples.
+     */
     private boolean smooth;
 
     /**
-     * Creates a texture backing store manager.
+     * Constructs a {@link TextureBackingStoreManager}.
      *
      * @param font Style of text
-     * @param antialias <tt>true</tt> to render smooth edges
-     * @param subpixel <tt>true</tt> to use subpixel accuracy
-     * @param mipmap <tt>true</tt> for high quality texturing
-     * @throws AssertionError if font is <tt>null</tt>
+     * @param antialias True to render smooth edges
+     * @param subpixel True to use subpixel accuracy
+     * @param mipmap True for high quality texturing
+     * @throws AssertionError if font is null
      */
-    TextureBackingStoreManager(final Font font,
+    TextureBackingStoreManager(/*@Nonnull*/ final Font font,
                                final boolean antialias,
                                final boolean subpixel,
                                final boolean mipmap) {
@@ -100,18 +117,19 @@ class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * Performs an action when a rectangle cannot be added.
      *
-     * <p>Will happen if the backing store ever reaches its maximum size, which
-     * in this case is dictated by the maximum texture size supported by the
-     * video card.  Fires an event of type {@link EventType.FAILURE} so that an
-     * observer of the backing store can decide what to actually do.
+     * <p>
+     * Will happen if the backing store ever reaches its maximum size, which in this case is
+     * dictated by the maximum texture size supported by the video card.  Fires an event of type
+     * {@link EventType.FAILURE} so that an observer of the backing store can decide what to
+     * actually do.
      *
      * @param cause Rectangle that could not be added
      * @param attempt Number of times it has been tried so far
-     * @return <tt>false</tt> if can do nothing more to free space
-     * @throws AssertionError if cause is <tt>null</tt>
+     * @return False if can do nothing more to free space
+     * @throws AssertionError if cause is null
      */
     @Override
-    public boolean additionFailed(final Rect cause, final int attempt) {
+    public boolean additionFailed(/*@Nonnull*/ final Rect cause, final int attempt) {
 
         assert (cause != null);
 
@@ -132,15 +150,16 @@ class TextureBackingStoreManager implements BackingStoreManager {
      * Adds an object that wants to be notified of events.
      *
      * <p>The observer will be notified when:
+     *
      * <ul>
-     *   <li>a backing store needs to be expanded and
-     *   <li>an item cannot be added to the backing store.
+     * <li>a backing store needs to be expanded and
+     * <li>an item cannot be added to the backing store.
      * </ul>
      *
      * @param listener Observer of backing store events
-     * @throws AssertionError if listener is <tt>null</tt>
+     * @throws AssertionError if listener is null
      */
-    void addListener(final EventListener listener) {
+    void addListener(/*@Nonnull*/ final EventListener listener) {
         assert (listener != null);
         listeners.add(listener);
     }
@@ -150,10 +169,13 @@ class TextureBackingStoreManager implements BackingStoreManager {
      *
      * @param width Width of new backing store
      * @param height Height of new backing store
+     * @return New backing store, not null
      * @throws AssertionError if width or height is negative
      */
+    /*@Nonnull*/
     @Override
-    public Object allocateBackingStore(final int width, final int height) {
+    public Object allocateBackingStore(/*@Nonnegative*/ final int width,
+                                       /*@Nonnegative*/ final int height) {
 
         assert (width >= 0);
         assert (height >= 0);
@@ -185,9 +207,7 @@ class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * Determines if a backing store can be compacted.
      *
-     * <p>Always allows a backing store to be compacted.
-     *
-     * @return <tt>true</tt>
+     * @return True if backing store can be compacted
      */
     @Override
     public boolean canCompact() {
@@ -197,15 +217,16 @@ class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * Disposes of a backing store.
      *
-     * <p>Happens immediately before a backing store needs to be
-     * expanded, since the manager will actually make a new one.
+     * <p>
+     * Happens immediately before a backing store needs to be expanded, since the manager will
+     * actually make a new one.
      *
      * @param bs Backing store being deleted
-     * @throws AssertionError if backing store is <tt>null</tt>
-     * @throws AssertionError if backing store is not a <tt>TextureBackingStore</tt>
+     * @throws NullPointerException if backing store is null
+     * @throws IllegalArgumentException if backing store is not a {@code TextureBackingStore}
      */
     @Override
-    public void deleteBackingStore(final Object bs) {
+    public void deleteBackingStore(/*@Nonnull*/ final Object bs) {
 
         assert (bs != null);
         assert (bs.getClass() == TextureBackingStore.class);
@@ -219,16 +240,17 @@ class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * Finishes a copy from an old backing store to a new one.
      *
-     * <p>Marks all of the new backing store dirty.  The next time it is updated
-     * all of the new data will be copied to the texture.
+     * <p>
+     * Marks all of the new backing store dirty.  The next time it is updated all of the new data
+     * will be copied to the texture.
      *
      * @param obs Backing store being copied from
      * @param nbs Backing store being copied to
-     * @throws AssertionError if new backing store is <tt>null</tt>
-     * @throws AssertionError if new backing store is not a <tt>TextureBackingStore</tt>
+     * @throws NullPointerException if new backing store is null
+     * @throws IllegalArgumentException if new backing store is not a {@code TextureBackingStore}
      */
     @Override
-    public void endMovement(final Object obs, final Object nbs) {
+    public void endMovement(final Object obs, /*@Nonnull*/ final Object nbs) {
 
         assert (nbs != null);
         assert (nbs.getClass() == TextureBackingStore.class);
@@ -241,26 +263,46 @@ class TextureBackingStoreManager implements BackingStoreManager {
     }
 
     /**
+     * Sends an event to all listeners.
+     *
+     * @param type Type of event to send
+     * @throws AssertionError if event type is null
+     */
+    private void fireEvent(/*@Nonnull*/ final EventType type) {
+        assert (type != null);
+        for (final EventListener listener : listeners) {
+            listener.onBackingStoreEvent(type);
+        }
+    }
+
+    /**
+     * Returns true if is interpolating samples.
+     */
+    final boolean getUseSmoothing() {
+        return smooth;
+    }
+
+    /**
      * Copies part of an old backing store to a new one.
      *
-     * <p>This method is normally called when a backing store runs out of room
-     * and needs to be resized, but it can also be called when a backing store
-     * is compacted.  In that case <tt>obs</tt> will be equal to <tt>nbs</tt>.
-     * This situation may need to be handled differently.
+     * <p>
+     * This method is normally called when a backing store runs out of room and needs to be
+     * resized, but it can also be called when a backing store is compacted.  In that case
+     * <tt>obs</tt> will be equal to <tt>nbs</tt>.  This situation may need to be handled
+     * differently.
      *
      * @param obs Old backing store being copied from
      * @param ol Area of old backing store to copy
      * @param nbs New backing store being copied to
      * @param nl Area of new backing store to copy to
-     * @throws AssertionError if old backing store is <tt>null</tt>
-     * @throws AssertionError if old backing store is not a <tt>TextureBackingStore</tt>
-     * @throws AssertionError if area of old backing store is <tt>null</tt>
-     * @throws AssertionError if new backing store is <tt>null</tt>
-     * @throws AssertionError if new backing store is not a <tt>TextureBackingStore</tt>
-     * @throws AssertionError if area of new backing store is <tt>null</tt>
+     * @throws NullPointerException if either backing store or area is null
+     * @throws IllegalArgumentException if either backing store is not the right type
      */
     @Override
-    public void move(final Object obs, final Rect ol, final Object nbs, final Rect nl) {
+    public void move(/*@Nonnull*/ final Object obs,
+                     /*@Nonnull*/ final Rect ol,
+                     /*@Nonnull*/ final Object nbs,
+                     /*@Nonnull*/ final Rect nl) {
 
         assert (obs != null);
         assert (obs.getClass() == TextureBackingStore.class);
@@ -294,17 +336,17 @@ class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * Performs an action when a store needs to be expanded.
      *
-     * <p>Fires an event of type {@link EventType.REALLOCATE} so that an
-     * observer of the backing store can decide what to actually do.  This will
-     * only happen on the first attempt.
+     * <p>
+     * Fires an event of type {@link EventType.REALLOCATE} so that an observer of the backing store
+     * can decide what to actually do.  This will only happen on the first attempt.
      *
      * @param cause Rectangle that is being added
      * @param attempt Number of times it has been tried so far
-     * @return <tt>true</tt> if packer should retry addition
-     * @throws AssertionError if cause is <tt>null</tt>
+     * @return True if packer should retry addition
+     * @throws NullPointerException if cause is null
      */
     @Override
-    public boolean preExpand(final Rect cause, final int attempt) {
+    public boolean preExpand(/*@Nonnull*/ final Rect cause, final int attempt) {
 
         assert (cause != null);
 
@@ -321,40 +363,12 @@ class TextureBackingStoreManager implements BackingStoreManager {
         return false;
     }
 
-    //---------------------------------------------------------------
-    // Getters and setters
-    //
-
-    /**
-     * Returns <tt>true</tt> if is interpolating samples.
-     */
-    final boolean getUseSmoothing() {
-        return smooth;
-    }
-
     /**
      * Changes whether texture should interpolate samples.
      *
-     * @param useSmoothing <tt>true</tt> if texture should interpolate
+     * @param useSmoothing True if texture should interpolate
      */
     final void setUseSmoothing(final boolean useSmoothing) {
         this.smooth = useSmoothing;
-    }
-
-    //--------------------------------------------------
-    // Helpers
-    //
-
-    /**
-     * Sends an event to all listeners.
-     *
-     * @param type Type of event to send
-     * @throws AssertionError if event type is <tt>null</tt>
-     */
-    private void fireEvent(final EventType type) {
-        assert (type != null);
-        for (final EventListener listener : listeners) {
-            listener.onBackingStoreEvent(type);
-        }
     }
 }

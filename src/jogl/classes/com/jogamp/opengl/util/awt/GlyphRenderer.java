@@ -48,60 +48,71 @@ import java.util.List;
 interface GlyphRenderer {
 
     /**
-     * Adds a listener that will be notified of events.
+     * Registers an {@link EventListener} with this {@link GlyphRenderer}.
      *
-     * @param listener Object that wants to be notified of events
-     * @throws AssertionError if listener is <tt>null</tt>
+     * @param listener Listener to register
+     * @throws NullPointerException if listener is null
      */
-    void addListener(EventListener listener);
+    void addListener(/*@Nonnull*/ EventListener listener);
 
     /**
-     * Starts a render cycle.
+     * Starts a render cycle with this {@link GlyphRenderer}.
      *
      * @param gl Current OpenGL context
-     * @param ortho <tt>true</tt> if using orthographic projection
+     * @param ortho True if using orthographic projection
      * @param width Width of current OpenGL viewport
      * @param height Height of current OpenGL viewport
-     * @param disableDepthTest <tt>true</tt> if should ignore depth values
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @param disableDepthTest True if should ignore depth values
+     * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if width or height is negative
      * @throws GLException if context is unexpected version
-     * @throws AssertionError if width or height is negative
      */
-    void beginRendering(GL gl, boolean ortho, int width, int height, boolean disableDepthTest);
+    void beginRendering(/*@Nonnull*/ GL gl,
+                        boolean ortho,
+                        /*@Nonnegative*/ int width,
+                        /*@Nonnegative*/ int height,
+                        boolean disableDepthTest);
 
     /**
-     * Frees resources used by the renderer.
+     * Frees resources used by this {@link GlyphRenderer}.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      * @throws GLException if context is unexpected version
      */
-    void dispose(GL gl);
+    void dispose(/*@Nonnull*/ GL gl);
 
     /**
-     * Draws a glyph.
+     * Draws a glyph with this {@link GlyphRenderer}.
      *
      * @param gl Current OpenGL context
      * @param glyph Visual representation of a character
-     * @param x Position to draw on X axis
-     * @param y Position to draw on Y axis
-     * @param z Position to draw on Z axis
-     * @param scale Relative size of glyph
+     * @param x Position to draw on X axis, which may be negative
+     * @param y Position to draw on Y axis, which may be negative
+     * @param z Position to draw on Z axis, which may be negative
+     * @param scale Relative size of glyph, which may be negative
      * @param coords Texture coordinates of glyph
-     * @return Distance to next character
-     * @throws NullPointerException if context, glyph, or texture coordinate is <tt>null</tt>
+     * @return Distance to next character, which may be negative
+     * @throws NullPointerException if context, glyph, or texture coordinate is null
      * @throws GLException if context is unexpected version
      */
-    float drawGlyph(GL gl, Glyph glyph, float x, float y, float z, float scale, TextureCoords coords);
+    /*@CheckForSigned*/
+    float drawGlyph(/*@Nonnull*/ GL gl,
+                    /*@Nonnull*/ Glyph glyph,
+                    /*@CheckForSigned*/ float x,
+                    /*@CheckForSigned*/ float y,
+                    /*@CheckForSigned*/ float z,
+                    /*@CheckForSigned*/ float scale,
+                    /*@Nonnull*/ TextureCoords coords);
 
     /**
-     * Finishes a render cycle.
+     * Finishes a render cycle with this {@link GlyphRenderer}.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      * @throws GLException if context is unexpected version
      */
-    void endRendering(GL gl);
+    void endRendering(/*@Nonnull*/ GL gl);
 
     /**
      * Forces all stored text to be rendered.
@@ -111,11 +122,14 @@ interface GlyphRenderer {
      * @throws GLException if context is unexpected version
      * @throws IllegalStateException if not in a render cycle
      */
-    void flush(GL gl);
+    void flush(/*@Nonnull*/ GL gl);
 
-    //-----------------------------------------------------------------
-    // Getters and setters
-    //
+    /**
+     * Checks if this {@link GlyphRenderer} is using vertex arrays.
+     *
+     * @return True if this renderer is using vertex arrays
+     */
+    boolean getUseVertexArrays();
 
     /**
      * Changes the color used to draw the text.
@@ -132,16 +146,11 @@ interface GlyphRenderer {
      *
      * @param gl Current OpenGL context
      * @param value Matrix as float array
-     * @param transpose <tt>true</tt> if in row-major order
+     * @param transpose True if array is in in row-major order
      * @throws IndexOutOfBoundsException if value's length is less than sixteen
      * @throws IllegalStateException if in orthographic mode
      */
-    void setTransform(float[] value, boolean transpose);
-
-    /**
-     * Returns <tt>true</tt> if vertex arrays are in use.
-     */
-    boolean getUseVertexArrays();
+    void setTransform(/*@Nonnull*/ float[] value, boolean transpose);
 
     /**
      * Changes whether vertex arrays are in use.
@@ -150,14 +159,10 @@ interface GlyphRenderer {
      */
     void setUseVertexArrays(boolean useVertexArrays);
 
-    //-----------------------------------------------------------------
-    // Nested classes
-    //
-
     /**
-     * <i>Observer</i> of glyph renderer events.
+     * <i>Observer</i> of a {@link GlyphRenderer}.
      */
-    static interface EventListener {
+    interface EventListener {
 
         /**
          * Responds to an event from a glyph renderer.
@@ -174,15 +179,15 @@ interface GlyphRenderer {
     static enum EventType {
 
         /**
-         * Renderer is automatically flushing queued glyphs, e.g. when it's full or color is changed.
+         * Renderer is automatically flushing queued glyphs, e.g., when it's full or color changes.
          */
-        AUTOMATIC_FLUSH
-    };
+        AUTOMATIC_FLUSH;
+    }
 }
 
 
 /**
- * Abstract utility for drawing glyphs.
+ * Skeletal implementation of {@link GlyphRenderer}.
  */
 abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.EventListener {
 
@@ -192,80 +197,99 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     private static float DEFAULT_BLUE = 1.0f;
     private static float DEFAULT_ALPHA = 1.0f;
 
-    // Listeners to send events to
-    private final List<EventListener> listeners;
-
-    // Quad to send to pipeline
-    private final Quad quad;
-
-    // Buffer of quads
-    private QuadPipeline pipeline;
-    private boolean pipelineDirty;
-
-    // True if between begin and end calls
-    private boolean inRenderCycle;
-
-    // True if orthographic
-    private boolean orthoMode;
-
-    // Components of color, and whether it needs to be updated
-    private float r;
-    private float g;
-    private float b;
-    private float a;
-    private boolean colorDirty;
-
-    // Transformation matrix for 3D mode, and whether it needs to be updated
-    private final float[] transform;
-    private boolean transposed;
-    private boolean transformDirty;
+    /**
+     * Listeners to send events to.
+     */
+    /*@Nonnull*/
+    private final List<EventListener> listeners = new ArrayList<EventListener>();
 
     /**
-     * Constructs an abstract glyph renderer.
+     * Quad to send to pipeline.
+     */
+    /*@Nonnull*/
+    private final Quad quad = new Quad();
+
+    /**
+     * Buffer of quads.
+     */
+    /*@CheckForNull*/
+    private QuadPipeline pipeline = null;
+
+    /**
+     * Whether pipeline needs to be flushed.
+     */
+    private boolean pipelineDirty = true;
+
+    /**
+     * True if between begin and end calls.
+     */
+    private boolean inRenderCycle = false;
+
+    /**
+     * True if orthographic.
+     */
+    private boolean orthoMode = false;
+
+    /**
+     * Red component of color.
+     */
+    private float r = DEFAULT_RED;
+
+    /**
+     * Green component of color.
+     */
+    private float g = DEFAULT_GREEN;
+
+    /**
+     * Blue component of color.
+     */
+    private float b = DEFAULT_BLUE;
+
+    /**
+     * Alpha component of color.
+     */
+    private float a = DEFAULT_ALPHA;
+
+    /**
+     * True if color needs to be updated.
+     */
+    private boolean colorDirty = true;
+
+    /**
+     * Transformation matrix for 3D mode.
+     */
+    /*@Nonnull*/
+    private final float[] transform = new float[16];
+
+    /**
+     * Whether transformation matrix is in row-major order instead of column-major.
+     */
+    private boolean transposed = false;
+
+    // TODO: Should `transformDirty` start out as true?
+    /**
+     * Whether transformation matrix needs to be updated.
+     */
+    private boolean transformDirty = false;
+
+    /**
+     * Constructs an {@link AbstractGlyphRenderer}.
      */
     AbstractGlyphRenderer() {
-        this.listeners = new ArrayList<EventListener>();
-        this.quad = new Quad();
-        this.pipeline = null;
-        this.pipelineDirty = true;
-        this.inRenderCycle = false;
-        this.orthoMode = false;
-        this.r = DEFAULT_RED;
-        this.g = DEFAULT_GREEN;
-        this.b = DEFAULT_BLUE;
-        this.a = DEFAULT_ALPHA;
-        this.colorDirty = true;
-        this.transform = new float[16];
-        this.transposed = false;
-        this.transformDirty = false;
+        // empty
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws AssertionError {@inheritDoc}
-     */
     @Override
-    public final void addListener(final EventListener listener) {
-        assert (listener != null);
+    public final void addListener(/*@Nonnull*/ final EventListener listener) {
         listeners.add(listener);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException if {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     * @throws AssertionError {@inheritDoc}
-     */
     @Override
-    public final void beginRendering(final GL gl,
+    public final void beginRendering(/*@Nonnull*/ final GL gl,
                                      final boolean ortho,
-                                     final int width, final int height,
+                                     /*@Nonnegative*/ final int width,
+                                     /*@Nonnegative*/ final int height,
                                      final boolean disableDepthTest) {
-
-        assert (width >= 0);
-        assert (height >= 0);
 
         // Perform hook
         doBeginRendering(gl, ortho, width, height, disableDepthTest);
@@ -295,30 +319,134 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         }
     }
 
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
+
+    private static void checkState(final boolean condition,
+                                   /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalStateException(message);
+        }
+    }
+
     /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
+     * Requests that the pipeline be replaced on the next call to {@link #beginRendering}.
      */
+    protected final void dirtyPipeline() {
+        pipelineDirty = true;
+    }
+
     @Override
-    public final void dispose(final GL gl) {
+    public final void dispose(/*@Nonnull*/ final GL gl) {
         doDispose(gl);
         listeners.clear();
         pipeline.dispose(gl);
     }
 
     /**
-     * {@inheritDoc}
+     * Actually starts a render cycle.
      *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
+     * @param gl Current OpenGL context
+     * @param ortho True if using orthographic projection
+     * @param width Width of current OpenGL viewport
+     * @param height Height of current OpenGL viewport
+     * @param disableDepthTest True if should ignore depth values
+     * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if width or height is negative
+     * @throws GLException if context is unexpected version
      */
+    protected abstract void doBeginRendering(/*@Nonnull*/ final GL gl,
+                                             final boolean ortho,
+                                             /*@Nonnegative*/ final int width,
+                                             /*@Nonnegative*/ final int height,
+                                             final boolean disableDepthTest);
+
+    /**
+     * Actually creates the quad pipeline for rendering quads.
+     *
+     * @param gl Current OpenGL context
+     * @return Quad pipeline to render quads with
+     * @throws NullPointerException if context is null
+     */
+    protected abstract QuadPipeline doCreateQuadPipeline(/*@Nonnull*/ final GL gl);
+
+    /**
+     * Actually frees resources used by the renderer.
+     *
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
+     */
+    protected abstract void doDispose(/*@Nonnull*/ final GL gl);
+
+    /**
+     * Actually finishes a render cycle.
+     *
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
+     */
+    protected abstract void doEndRendering(/*@Nonnull*/ final GL gl);
+
+    /**
+     * Actually changes the color when user calls {@link #setColor}.
+     *
+     * @param gl Current OpenGL context
+     * @param r Red component of color
+     * @param g Green component of color
+     * @param b Blue component of color
+     * @param a Alpha component of color
+     * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
+     */
+    protected abstract void doSetColor(/*@Nonnull*/ final GL gl,
+                                       float r,
+                                       float g,
+                                       float b,
+                                       float a);
+
+    /**
+     * Actually changes the MVP matrix when using an arbitrary projection.
+     *
+     * @param gl Current OpenGL context
+     * @param value Matrix as float array
+     * @param transpose True if in row-major order
+     * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
+     * @throws IndexOutOfBoundsException if length of value is less than sixteen
+     */
+    protected abstract void doSetTransform3d(/*@Nonnull*/ GL gl,
+                                             /*@Nonnull*/ float[] value,
+                                             boolean transpose);
+
+    /**
+     * Actually changes the MVP matrix when using orthographic projection.
+     *
+     * @param gl Current OpenGL context
+     * @param width Width of viewport
+     * @param height Height of viewport
+     * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
+     * @throws IllegalArgumentException if width or height is negative
+     */
+    protected abstract void doSetTransformOrtho(/*@Nonnull*/ GL gl,
+                                                /*@Nonnegative*/ int width,
+                                                /*@Nonnegative*/ int height);
+
     @Override
-    public final float drawGlyph(final GL gl,
-                                 final Glyph glyph,
-                                 final float x, final float y, final float z,
-                                 final float scale, final TextureCoords coords) {
+    public final float drawGlyph(/*@Nonnull*/ final GL gl,
+                                 /*@Nonnull*/ final Glyph glyph,
+                                 /*@CheckForSigned*/ final float x,
+                                 /*@CheckForSigned*/ final float y,
+                                 /*@CheckForSigned*/ final float z,
+                                 /*@CheckForSigned*/ final float scale,
+                                 /*@Nonnull*/ final TextureCoords coords) {
 
         // Compute position and size
         quad.xl = x + (scale * glyph.kerning);
@@ -338,14 +466,8 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         return glyph.advance;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    public final void endRendering(final GL gl) {
+    public final void endRendering(/*@Nonnull*/ final GL gl) {
 
         // Store text renderer state
         inRenderCycle = false;
@@ -358,39 +480,27 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     }
 
     /**
-     * {@inheritDoc}
+     * Fires an event to all observers.
      *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     * @throws IllegalStateException {@inheritDoc}
+     * @param type Kind of event
+     * @throws NullPointerException if type is null
      */
-    @Override
-    public final void flush(final GL gl) {
-
-        if (!inRenderCycle) {
-            throw new IllegalStateException("Not in render cycle!");
+    protected final void fireEvent(/*@Nonnull*/ final EventType type) {
+        checkNotNull(type, "Event type cannot be null");
+        for (final EventListener listener : listeners) {
+            assert listener != null : "addListener rejects null";
+            listener.onGlyphRendererEvent(type);
         }
+    }
+
+    @Override
+    public final void flush(/*@Nonnull*/ final GL gl) {
+
+        checkState(inRenderCycle, "Must be in render cycle");
 
         pipeline.flush(gl);
         gl.glFlush();
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws AssertionError {@inheritDoc}
-     */
-    @Override
-    public final void onQuadPipelineEvent(final QuadPipeline.EventType type) {
-        assert (type != null);
-        if (type == QuadPipeline.EventType.AUTOMATIC_FLUSH) {
-            fireEvent(EventType.AUTOMATIC_FLUSH);
-        }
-    }
-
-    //------------------------------------------------------------------
-    // Getters and setters
-    //
 
     /**
      * Determines if a color is the same one that is stored.
@@ -399,15 +509,30 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
      * @param g Green component of color
      * @param b Blue component of color
      * @param a Alpha component of color
-     * @return <tt>true</tt> if each component matches
+     * @return True if each component matches
      */
     final boolean hasColor(final float r, final float g, final float b, final float a) {
         return (this.r == r) && (this.g == g) && (this.b == b) && (this.a == a);
     }
 
+    // TODO: Rename to `isOrthographic`?
     /**
-     * {@inheritDoc}
+     * Checks if this {@link GlyphRenderer} using an orthographic projection.
+     *
+     * @return True if this renderer is using an orthographic projection
      */
+    final boolean isOrthoMode() {
+        return orthoMode;
+    }
+
+    @Override
+    public final void onQuadPipelineEvent(/*@Nonnull*/ final QuadPipeline.EventType type) {
+        checkNotNull(type, "Event type cannot be null");
+        if (type == QuadPipeline.EventType.AUTOMATIC_FLUSH) {
+            fireEvent(EventType.AUTOMATIC_FLUSH);
+        }
+    }
+
     @Override
     public final void setColor(final float r, final float g, final float b, final float a) {
 
@@ -439,52 +564,36 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     }
 
     /**
-     * Returns <tt>true</tt> if using orthographic projection.
-     */
-    final boolean isOrthoMode() {
-        return orthoMode;
-    }
-
-    /**
-     * Requests that the pipeline be replaced on the next call to <i>beginRendering</i>.
-     */
-    protected final void dirtyPipeline() {
-        pipelineDirty = true;
-    }
-
-    /**
      * Changes the quad pipeline.
      *
      * @param gl Current OpenGL context
      * @param pipeline Quad pipeline to change to
-     * @throws NullPointerException if context or pipeline is <tt>null</tt>
+     * @throws NullPointerException if context or pipeline is null
      */
-    private final void setPipeline(final GL gl, final QuadPipeline pipeline) {
+    private final void setPipeline(/*@Nonnull*/ final GL gl,
+                                   /*@Nonnull*/ final QuadPipeline pipeline) {
 
-        assert (gl != null);
-        assert (pipeline != null);
+        assert gl != null;
+        assert pipeline != null;
+
+        final QuadPipeline oldPipeline = this.pipeline;
+        final QuadPipeline newPipeline = pipeline;
 
         // Remove the old pipeline
-        if (this.pipeline != null) {
-            this.pipeline.removeListener(this);
-            this.pipeline.dispose(gl);
+        if (oldPipeline != null) {
+            oldPipeline.removeListener(this);
+            oldPipeline.dispose(gl);
             this.pipeline = null;
         }
 
         // Store the new pipeline
-        this.pipeline = pipeline;
-        this.pipeline.addListener(this);
-        this.pipelineDirty = false;
+        newPipeline.addListener(this);
+        this.pipeline = newPipeline;
+        pipelineDirty = false;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws IllegalStateException {@inheritDoc}
-     * @throws IndexOutOfBoundsException {@inheritDoc}
-     */
     @Override
-    public final void setTransform(final float[] value, final boolean transpose) {
+    public final void setTransform(/*@Nonnull*/ final float[] value, final boolean transpose) {
 
         // Check if in wrong mode
         if (orthoMode) {
@@ -510,137 +619,15 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
             transformDirty = true;
         }
     }
-
-    //------------------------------------------------------------------
-    // Helpers
-    //
-
-    /**
-     * Fires an event to all observers.
-     *
-     * @param type Kind of event
-     * @throws AssertionError if type is <tt>null</tt>
-     */
-    protected final void fireEvent(final EventType type) {
-        assert (type != null);
-        for (final EventListener listener : listeners) {
-            listener.onGlyphRendererEvent(type);
-        }
-    }
-
-    //-----------------------------------------------------------------
-    // Hooks
-    //
-
-    /**
-     * Actually starts a render cycle.
-     *
-     * @param gl Current OpenGL context
-     * @param ortho <tt>true</tt> if using orthographic projection
-     * @param width Width of current OpenGL viewport
-     * @param height Height of current OpenGL viewport
-     * @param disableDepthTest <tt>true</tt> if should ignore depth values
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     * @throws AssertionError if width or height is negative
-     */
-    protected abstract void doBeginRendering(final GL gl,
-                                             final boolean ortho,
-                                             final int width, final int height,
-                                             final boolean disableDepthTest);
-
-    /**
-     * Actually creates the quad pipeline for rendering quads.
-     *
-     * @param gl Current OpenGL context
-     * @return Quad pipeline to render quads with
-     * @throws NullPointerException if context is <tt>null</tt>
-     */
-    protected abstract QuadPipeline doCreateQuadPipeline(final GL gl);
-
-    /**
-     * Actually frees resources used by the renderer.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     */
-    protected abstract void doDispose(final GL gl);
-
-    /**
-     * Actually finishes a render cycle.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     */
-    protected abstract void doEndRendering(final GL gl);
-
-    /**
-     * Actually changes color when user calls {@link #setColor}.
-     *
-     * @param gl Current OpenGL context
-     * @param r Red component of color
-     * @param g Green component of color
-     * @param b Blue component of color
-     * @param a Alpha component of color
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     */
-    protected abstract void doSetColor(final GL gl, float r, float g, float b, float a);
-
-    /**
-     * Actually changes MVP matrix when user calls {@link #setMVPMatrix}.
-     *
-     * @param gl Current OpenGL context
-     * @param value Matrix as float array
-     * @param transpose <tt>True</tt> if in row-major order
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     * @throws IndexOutOfBoundsException if length of value is less than sixteen
-     */
-    protected abstract void doSetTransform3d(GL gl, float[] value, boolean transpose);
-
-    /**
-     * Actually changes MVP matrix when using orthographic projection.
-     *
-     * @param gl Current OpenGL context
-     * @param width Width of viewport
-     * @param height Height of viewport
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     */
-    protected abstract void doSetTransformOrtho(GL gl, int width, int height);
 }
 
 
+// TODO: Rename to `GlyphRenderers`?
 /**
- * Utility for creating glyph renderers.
+ * Utility for creating {@link GlyphRenderer} instances.
  */
-class GlyphRendererFactory {
-
-    /**
-     * Creates a glyph renderer based on the current OpenGL context.
-     *
-     * @param gl Current OpenGL context
-     * @return {@link GlyphRendererGL2} or {@link GlyphRendererGL3}
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws UnsupportedOperationException if GL is unsupported
-     */
-    static GlyphRenderer createGlyphRenderer(final GL gl) {
-
-        final GLProfile profile = gl.getGLProfile();
-
-        if (profile.isGL3()) {
-            final GL3 gl3 = gl.getGL3();
-            return new GlyphRendererGL3(gl3);
-        } else if (profile.isGL2()) {
-            final GL2 gl2 = gl.getGL2();
-            return new GlyphRendererGL2(gl2);
-        } else {
-            throw new UnsupportedOperationException("Profile currently unsupported!");
-        }
-    }
+/*@ThreadSafe*/
+final class GlyphRendererFactory {
 
     /**
      * Prevents instantiation.
@@ -648,44 +635,56 @@ class GlyphRendererFactory {
     private GlyphRendererFactory() {
         // pass
     }
+
+    /**
+     * Creates a {@link GlyphRenderer} based on the current OpenGL context.
+     *
+     * @param gl Current OpenGL context
+     * @return New glyph renderer for the given context, not null
+     * @throws NullPointerException if context is null
+     * @throws UnsupportedOperationException if GL is unsupported
+     */
+    /*@Nonnull*/
+    static GlyphRenderer createGlyphRenderer(/*@Nonnull*/ final GL gl) {
+
+        final GLProfile profile = gl.getGLProfile();
+
+        if (profile.isGL3()) {
+            return new GlyphRendererGL3(gl.getGL3());
+        } else if (profile.isGL2()) {
+            return new GlyphRendererGL2();
+        } else {
+            throw new UnsupportedOperationException("Profile currently unsupported");
+        }
+    }
 }
 
 
 /**
- * Utility for drawing glyphs with OpenGL 2.
+ * {@link GlyphRenderer} for use with OpenGL 2.
  */
+/*@NotThreadSafe*/
 final class GlyphRendererGL2 extends AbstractGlyphRenderer {
 
-    // True if using vertex arrays
-    private boolean useVertexArrays;
+    /**
+     * True if using vertex arrays.
+     */
+    private boolean useVertexArrays = true;
 
     /**
-     * Constructs a glyph renderer for OpenGL 2.
-     *
-     * @param gl2 Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * Constructs a {@link GlyphRendererGL2}.
      */
-    GlyphRendererGL2(final GL2 gl2) {
-        useVertexArrays = true;
+    GlyphRendererGL2() {
+        // empty
     }
 
-    //-----------------------------------------------------------------
-    // Hooks
-    //
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doBeginRendering(final GL gl,
+    protected void doBeginRendering(/*@Nonnull*/ final GL gl,
                                     final boolean ortho,
-                                    final int width, final int height,
+                                    /*@Nonnull*/ final int width,
+                                    /*@Nonnull*/ final int height,
                                     final boolean disableDepthTest) {
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Change general settings
@@ -715,48 +714,31 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
         }
     }
 
-    /**
-     * Creates a quad pipeline for the current OpenGL context.
-     *
-     * @param gl Current OpenGL context
-     * @return Correct quad pipeline for version of OpenGL in use
-     * @throws NullPointerException if context is <tt>null</tt>
-     */
-    protected QuadPipeline doCreateQuadPipeline(final GL gl) {
+    /*@Nonnull*/
+    protected QuadPipeline doCreateQuadPipeline(/*@Nonnull*/ final GL gl) {
+
         final GL2 gl2 = gl.getGL2();
+
         if (useVertexArrays) {
             if (gl2.isExtensionAvailable(GLExtensions.VERSION_1_5)) {
                 return new QuadPipelineGL15(gl2);
             } else if (gl2.isExtensionAvailable("GL_VERSION_1_1")) {
-                return new QuadPipelineGL11(gl2);
+                return new QuadPipelineGL11();
             } else {
-                return new QuadPipelineGL10(gl2);
+                return new QuadPipelineGL10();
             }
         } else {
-            return new QuadPipelineGL10(gl2);
+            return new QuadPipelineGL10();
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    protected void doDispose(final GL gl) {
-        // pass
+    protected void doDispose(/*@Nonnull*/ final GL gl) {
+        // empty
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doEndRendering(final GL gl) {
+    protected void doEndRendering(/*@Nonnull*/ final GL gl) {
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Reset transformations
@@ -773,38 +755,30 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
         gl2.glPopAttrib();
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doSetColor(final GL gl, final float r, final float g, final float b, final float a) {
+    protected void doSetColor(/*@Nonnull*/ final GL gl,
+                              final float r,
+                              final float g,
+                              final float b,
+                              final float a) {
+
         final GL2 gl2 = gl.getGL2();
+
         gl2.glColor4f(r, g, b, a);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doSetTransform3d(final GL gl, final float[] value, final boolean transpose) {
+    protected void doSetTransform3d(/*@Nonnull*/ final GL gl,
+                                    /*@Nonnull*/ final float[] value,
+                                    final boolean transpose) {
         // FIXME: Could implement this...
-        throw new UnsupportedOperationException("Use standard GL instead.");
+        throw new UnsupportedOperationException("Use standard GL instead");
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doSetTransformOrtho(final GL gl, final int width, final int height) {
+    protected void doSetTransformOrtho(/*@Nonnull*/ final GL gl,
+                                       /*@Nonnegative*/ final int width,
+                                       /*@Nonnegative*/ final int height) {
 
         final GL2 gl2 = gl.getGL2();
 
@@ -817,14 +791,11 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
         gl2.glLoadIdentity();
     }
 
-    //-----------------------------------------------------------------
-    // Helpers
-    //
-
     /**
-     * Returns attribute bits for <i>glPushAttrib</i> calls.
+     * Returns attribute bits for {@code glPushAttrib} calls.
      *
-     * @param ortho <tt>true</tt> if using orthographic projection
+     * @param ortho True if using orthographic projection
+     * @return Attribute bits for {@code glPushAttrib} calls
      */
     private static int getAttribMask(final boolean ortho) {
         return GL2.GL_ENABLE_BIT |
@@ -833,21 +804,11 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
                (ortho ? (GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_TRANSFORM_BIT) : 0);
     }
 
-    //-----------------------------------------------------------------
-    // Getters and setters
-    //
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean getUseVertexArrays() {
         return useVertexArrays;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setUseVertexArrays(final boolean useVertexArrays) {
         if (useVertexArrays != this.useVertexArrays) {
@@ -861,89 +822,100 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
 /**
  * Utility for drawing glyphs with OpenGL 3.
  */
+/*@NotThreadSafe*/
 final class GlyphRendererGL3 extends AbstractGlyphRenderer {
 
-    // Source code of fragment shader source
-    private static String FRAG_SOURCE;
+    /**
+     * Source code of vertex shader.
+     */
+    /*@Nonnull*/
+    private static final String VERT_SOURCE =
+        "#version 130\n" +
+        "uniform mat4 MVPMatrix;\n" +
+        "in vec4 MCVertex;\n" +
+        "in vec2 TexCoord0;\n" +
+        "out vec2 Coord0;\n" +
+        "out vec4 gl_Position;\n" +
+        "void main() {\n" +
+        "   gl_Position = MVPMatrix * MCVertex;\n" +
+        "   Coord0 = TexCoord0;\n" +
+        "}\n";
 
-    // Source code of vertex shader source
-    private static String VERT_SOURCE;
+    /**
+     * Source code of fragment shader.
+     */
+    /*@Nonnull*/
+    private static final String FRAG_SOURCE =
+        "#version 130\n" +
+        "uniform sampler2D Texture;\n" +
+        "uniform vec4 Color=vec4(1,1,1,1);\n" +
+        "in vec2 Coord0;\n" +
+        "out vec4 FragColor;\n" +
+        "void main() {\n" +
+        "   float sample;\n" +
+        "   sample = texture(Texture,Coord0).r;\n" +
+        "   FragColor = Color * sample;\n" +
+        "}\n";
 
-    // True if blending needs to be reset
+    /**
+     * True if blending needs to be reset.
+     */
     private boolean restoreBlending;
 
-    // True if depth test needs to be reset
+    /**
+     * True if depth test needs to be reset.
+     */
     private boolean restoreDepthTest;
 
-    // Shader program
+    /**
+     * Shader program.
+     */
+    /*@Nonnegative*/
     private final int program;
 
-    // Width of last orthographic render
-    private int lastWidth;
-
-    // Height of last orthographic render
-    private int lastHeight;
-
-    // Uniform for modelview projection
-    private final UniformMatrix transform;
-
-    // Uniform for color of glyphs
-    private final UniformVector color;
-
     /**
-     * Initializes static fields.
+     * Uniform for modelview projection.
      */
-    static {
-        VERT_SOURCE =
-            "#version 130\n" +
-            "uniform mat4 MVPMatrix;\n" +
-            "in vec4 MCVertex;\n" +
-            "in vec2 TexCoord0;\n" +
-            "out vec2 Coord0;\n" +
-            "out vec4 gl_Position;\n" +
-            "void main() {\n" +
-            "   gl_Position = MVPMatrix * MCVertex;\n" +
-            "   Coord0 = TexCoord0;\n" +
-            "}\n";
-        FRAG_SOURCE =
-            "#version 130\n" +
-            "uniform sampler2D Texture;\n" +
-            "uniform vec4 Color=vec4(1,1,1,1);\n" +
-            "in vec2 Coord0;\n" +
-            "out vec4 FragColor;\n" +
-            "void main() {\n" +
-            "   float sample;\n" +
-            "   sample = texture(Texture,Coord0).r;\n" +
-            "   FragColor = Color * sample;\n" +
-            "}\n";
-    }
+    /*@Nonnull*/
+    private final Mat4Uniform transform;
 
     /**
-     * Constructs a glyph renderer for OpenGL 3.
+     * Uniform for color of glyphs.
      */
-    GlyphRendererGL3(final GL3 gl3) {
-        this.program = ShaderLoader.loadProgram(gl3, VERT_SOURCE, FRAG_SOURCE);
-        this.transform = new UniformMatrix(gl3, program, "MVPMatrix");
-        this.color = new UniformVector(gl3, program, "Color");
-    }
-
-    //-----------------------------------------------------------------
-    // Hooks
-    //
+    /*@Nonnull*/
+    private final Vec4Uniform color;
 
     /**
-     * {@inheritDoc}
+     * Width of last orthographic render.
+     */
+    /*@Nonnegative*/
+    private int lastWidth = 0;
+
+    /**
+     * Height of last orthographic render
+     */
+    /*@Nonnegative*/
+    private int lastHeight = 0;
+
+    /**
+     * Constructs a {@link GlyphRendererGL3}.
      *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
+     * @param gl3 Current OpenGL context
+     * @throws NullPointerException if context is null
      */
+    GlyphRendererGL3(/*@Nonnull*/ final GL3 gl3) {
+        this.program = ShaderLoader.loadProgram(gl3, VERT_SOURCE, FRAG_SOURCE);
+        this.transform = new Mat4Uniform(gl3, program, "MVPMatrix");
+        this.color = new Vec4Uniform(gl3, program, "Color");
+    }
+
     @Override
-    protected void doBeginRendering(final GL gl,
+    protected void doBeginRendering(/*@Nonnull*/ final GL gl,
                                     final boolean ortho,
-                                    final int width, final int height,
+                                    /*@Nonnegative*/ final int width,
+                                    /*@Nonnegative*/ final int height,
                                     final boolean disableDepthTest) {
 
-        // Get an OpenGL 3 profile
         final GL3 gl3 = gl.getGL3();
 
         // Activate program
@@ -969,36 +941,22 @@ final class GlyphRendererGL3 extends AbstractGlyphRenderer {
     }
 
     @Override
-    protected QuadPipeline doCreateQuadPipeline(final GL gl) {
+    protected QuadPipeline doCreateQuadPipeline(/*@Nonnull*/ final GL gl) {
         final GL3 gl3 = gl.getGL3();
         return new QuadPipelineGL30(gl3, program);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    protected void doDispose(final GL gl) {
+    protected void doDispose(/*@Nonnull*/ final GL gl) {
 
-        // Get an OpenGL 3 context
         final GL3 gl3 = gl.getGL3();
 
         gl3.glUseProgram(0);
         gl3.glDeleteProgram(program);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doEndRendering(final GL gl) {
+    protected void doEndRendering(/*@Nonnull*/ final GL gl) {
 
-        // Get an OpenGL 3 context
         final GL3 gl3 = gl.getGL3();
 
         // Deactivate program
@@ -1013,15 +971,15 @@ final class GlyphRendererGL3 extends AbstractGlyphRenderer {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doSetColor(final GL gl, final float r, final float g, final float b, final float a) {
+    protected void doSetColor(/*@Nonnull*/ final GL gl,
+                              final float r,
+                              final float g,
+                              final float b,
+                              final float a) {
+
         final GL3 gl3 = gl.getGL3();
+
         color.value[0] = r;
         color.value[1] = g;
         color.value[2] = b;
@@ -1029,28 +987,21 @@ final class GlyphRendererGL3 extends AbstractGlyphRenderer {
         color.update(gl3);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     * @throws IndexOutOfBoundsException {@inheritDoc}
-     */
     @Override
-    protected void doSetTransform3d(final GL gl, final float[] value, final boolean transpose) {
+    protected void doSetTransform3d(/*@Nonnull*/ final GL gl,
+                                    /*@Nonnull*/ final float[] value,
+                                    final boolean transpose) {
+
         final GL3 gl3 = gl.getGL3();
+
         gl3.glUniformMatrix4fv(transform.location, 1, transpose, value, 0);
         transform.dirty = true;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doSetTransformOrtho(final GL gl, final int width, final int height) {
+    protected void doSetTransformOrtho(/*@Nonnull*/ final GL gl,
+                                       /*@Nonnegative*/ final int width,
+                                       /*@Nonnegative*/ final int height) {
 
         final GL3 gl3 = gl.getGL3();
 
@@ -1070,24 +1021,14 @@ final class GlyphRendererGL3 extends AbstractGlyphRenderer {
         }
     }
 
-    //------------------------------------------------------------------
-    // Getters
-    //
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean getUseVertexArrays() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setUseVertexArrays(final boolean useVertexArrays) {
-        // pass
+        // empty
     }
 }
 
@@ -1095,7 +1036,15 @@ final class GlyphRendererGL3 extends AbstractGlyphRenderer {
 /**
  * Utility for computing projections.
  */
-class Projection {
+/*@NotThreadSafe*/
+final class Projection {
+
+    /**
+     * Prevents instantiation.
+     */
+    private Projection() {
+        // empty
+    }
 
     /**
      * Computes an orthographic projection matrix.
@@ -1104,10 +1053,12 @@ class Projection {
      * @param width Width of current OpenGL viewport
      * @param height Height of current OpenGL viewport
      */
-    static void orthographic(final float[] v, final int width, final int height) {
+    static void orthographic(/*@Nonnull*/ final float[] v,
+                             /*@Nonnegative*/ final int width,
+                             /*@Nonnegative*/ final int height) {
 
         // Zero out
-        for (int i=0; i<16; ++i) {
+        for (int i = 0; i < 16; ++i) {
             v[i] = 0;
         }
 
@@ -1125,14 +1076,19 @@ class Projection {
 
 
 /**
- * Uniform base class.
+ * Uniform variable in a shader.
  */
 abstract class Uniform {
 
-    // Index of uniform in shader
+    /**
+     * Index of uniform in shader.
+     */
+    /*@Nonnegative*/
     final int location;
 
-    // True if local value should be pushed
+    /**
+     * True if local value should be pushed.
+     */
     boolean dirty;
 
     /**
@@ -1141,9 +1097,11 @@ abstract class Uniform {
      * @param gl2gl3 Current OpenGL context
      * @param program OpenGL handle to shader program
      * @param name Name of the uniform in shader source code
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      */
-    Uniform(final GL2GL3 gl2gl3, final int program, final String name) {
+    Uniform(/*@Nonnull*/ final GL2GL3 gl2gl3,
+            /*@Nonnegative*/ final int program,
+            /*@Nonnull*/ final String name) {
         location = gl2gl3.glGetUniformLocation(program, name);
         if (location == -1) {
             throw new RuntimeException("Could not find uniform in program.");
@@ -1155,51 +1113,58 @@ abstract class Uniform {
      *
      * @param gl Current OpenGL context
      */
-    abstract void update(GL2GL3 gl);
+    abstract void update(/*@Nonnull*/ GL2GL3 gl);
 }
 
 
 /**
- * Uniform for a <tt>mat4</tt>.
+ * Uniform for a {@code mat4}.
  */
-final class UniformMatrix extends Uniform {
+/*@NotThreadSafe*/
+final class Mat4Uniform extends Uniform {
 
-    // Local copy of matrix values
-    final float[] value;
+    /**
+     * Local copy of matrix values.
+     */
+    final float[] value = new float[16];
 
-    // True if stored in row-major order
+    /**
+     * True if matrix is stored in row-major order.
+     */
     boolean transpose;
 
     /**
-     * Constructs a uniform matrix.
+     * Constructs a {@link UniformMatrix}.
      *
-     * @param gl2gl3 Current OpenGL context
+     * @param gl Current OpenGL context
      * @param program OpenGL handle to shader program
      * @param name Name of the uniform in shader source code
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      */
-    UniformMatrix(final GL2GL3 gl2gl3, final int program, final String name) {
+    Mat4Uniform(/*@Nonnull*/ final GL2GL3 gl,
+                /*@Nonnegative*/ final int program,
+                /*@Nonnull*/ final String name) {
         super(gl2gl3, program, name);
-        value = new float[16];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    void update(final GL2GL3 gl) {
+    void update(/*@Nonnull*/ final GL2GL3 gl) {
         gl.glUniformMatrix4fv(location, 1, transpose, value, 0);
     }
 }
 
 
 /**
- * Uniform vec4.
+ * Uniform for a {@code vec4}.
  */
-final class UniformVector extends Uniform {
+/*@NotThreadSafe*/
+final class Vec4Uniform extends Uniform {
 
-    // Local copy of vector values
-    float[] value;
+    /**
+     * Local copy of vector values.
+     */
+    /*@Nonnull*/
+    final float[] value = new float[4];
 
     /**
      * Constructs a uniform vector.
@@ -1207,18 +1172,16 @@ final class UniformVector extends Uniform {
      * @param gl2gl3 Current OpenGL context
      * @param program OpenGL handle to shader program
      * @param name Name of the uniform in shader source code
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      */
-    UniformVector(final GL2GL3 gl2gl3,final int program, final String name) {
-        super(gl2gl3, program, name);
-        value = new float[4];
+    Vec4Uniform(/*@Nonnull*/ final GL2GL3 gl,
+                /*@Nonnegative*/ final int program,
+                /*@Nonnull*/ final String name) {
+        super(gl, program, name);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    void update(final GL2GL3 gl) {
+    void update(/*@Nonnull*/ final GL2GL3 gl) {
         gl.glUniform4fv(location, 1, value, 0);
     }
 }

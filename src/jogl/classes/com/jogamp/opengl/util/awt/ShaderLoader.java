@@ -35,25 +35,92 @@ import com.jogamp.opengl.util.glsl.ShaderUtil;
 /**
  * Utility to load shaders from files, URLs, and strings.
  *
- * <p><i>ShaderLoader</i> is a simple utility for loading shaders.  It takes
- * shaders directly as strings.  It will create and compile the shaders, and
- * link them together into a program.  Both compiling and linking are verified.
- * If a problem occurs a {@link GLException} is thrown with the appropriate log
- * attached.
+ * <p>
+ * {@code ShaderLoader} is a simple utility for loading shaders.  It takes shaders directly as
+ * strings.  It will create and compile the shaders, and link them together into a program.  Both
+ * compiling and linking are verified.  If a problem occurs a {@link GLException} is thrown with
+ * the appropriate log attached.
  *
- * <p>In general most developers should be able to use one of the
- * <i>loadProgram</i> methods, which simply return the shader program for a pair
- * of vertex and fragment shader sources.  However, if the developer needs the
- * shader handles too it may be worth it to use the <i>loadShader</i> and
- * <i>loadProgram</i> methods separately.
- *
- * <p>Note it is highly recommended that if the developer passes the strings
- * directly to <i>ShaderLoader</i> that they contain newlines.  That way if any
- * errors do occur their line numbers will be reported correctly.  This means
- * that if the shader is to be embedded in Java code, a <i>\n</i> should be
- * appended to every line.
+ * <p>
+ * Note it is highly recommended that if the developer passes the strings directly to {@code
+ * ShaderLoader} that they contain newlines.  That way if any errors do occur their line numbers
+ * will be reported correctly.  This means that if the shader is to be embedded in Java code, a
+ * "\n" should be appended to every line.
  */
-class ShaderLoader {
+/*@ThreadSafe*/
+final class ShaderLoader {
+
+    /**
+     * Prevents instantiation.
+     */
+    private ShaderLoader() {
+        // empty
+    }
+
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
+
+    /**
+     * Checks that a shader was compiled correctly.
+     *
+     * @param gl OpenGL context that supports programmable shaders
+     * @param shader OpenGL handle to a shader
+     * @return True if shader was compiled without errors
+     */
+    private static boolean isShaderCompiled(/*@Nonnull*/ final GL2ES2 gl, final int shader) {
+        return ShaderUtil.isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS, null);
+    }
+
+    /**
+     * Checks that a shader program was linked successfully.
+     *
+     * @param gl OpenGL context that supports programmable shaders
+     * @param program OpenGL handle to a shader program
+     * @return True if program was linked successfully
+     */
+    private static boolean isProgramLinked(/*@Nonnull*/ final GL2ES2 gl, final int program) {
+        return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_LINK_STATUS);
+    }
+
+    /**
+     * Checks that a shader program was validated successfully.
+     *
+     * @param gl OpenGL context that supports programmable shaders
+     * @param program OpenGL handle to a shader program
+     * @return True if program was validated successfully
+     */
+    private static boolean isProgramValidated(/*@Nonnull*/ final GL2ES2 gl, final int program) {
+        return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_VALIDATE_STATUS);
+    }
+
+    /**
+     * Determines if a shader type is valid.
+     *
+     * @param type Type of a shader, which may be negative
+     * @return True if type is a valid shader type
+     */
+    private static boolean isValidType(/*@CheckForSigned*/ final int type) {
+        switch (type) {
+        case GL2ES2.GL_VERTEX_SHADER:
+        case GL2ES2.GL_FRAGMENT_SHADER:
+            return true;
+        default:
+            return false;
+        }
+    }
 
     /**
      * Loads a shader program from a pair of strings.
@@ -61,18 +128,15 @@ class ShaderLoader {
      * @param gl Current OpenGL context
      * @param vss Vertex shader source
      * @param fss Fragment shader source
-     * @return OpenGL handle to the shader program
-     * @throws AssertionError if context is <tt>null</tt>
-     * @throws AssertionError if vertex shader or fragment shader is <tt>null</tt> or empty
+     * @return OpenGL handle to the shader program, not negative
+     * @throws NullPointerException if context or either source is null
+     * @throws IllegalArgumentException if either source is empty
      * @throws GLException if program did not compile, link, or validate successfully
      */
-    static int loadProgram(final GL2ES2 gl, final String vss, final String fss) {
-
-        assert (gl != null);
-        assert (vss != null);
-        assert (!vss.isEmpty());
-        assert (fss != null);
-        assert (!fss.isEmpty());
+    /*@Nonnegative*/
+    static int loadProgram(/*@Nonnull*/ final GL2ES2 gl,
+                           /*@Nonnull*/ final String vss,
+                           /*@Nonnull*/ final String fss) {
 
         // Create the shaders
         final int vs = loadShader(gl, vss, GL2ES2.GL_VERTEX_SHADER);
@@ -95,104 +159,45 @@ class ShaderLoader {
         gl.glDeleteShader(vs);
         gl.glDeleteShader(fs);
 
-        // Return the program
         return program;
     }
 
-    //------------------------------------------------------------------
-    // Helpers
-    //
-
     /**
-     * Checks that a shader was compiled correctly.
-     *
-     * @param gl OpenGL context that supports programmable shaders
-     * @param shader OpenGL handle to a shader
-     * @return True if <tt>shader</tt> was compiled without errors
-     */
-    private static boolean isCompiled(final GL2ES2 gl, final int shader) {
-        return ShaderUtil.isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS, null);
-    }
-
-    /**
-     * Checks that a shader program was linked successfully.
-     *
-     * @param gl OpenGL context that supports programmable shaders
-     * @param program OpenGL handle to a shader program
-     * @return True if <tt>program</tt> was linked successfully
-     */
-    private static boolean isProgramLinked(final GL2ES2 gl, final int program) {
-        return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_LINK_STATUS);
-    }
-
-    /**
-     * Checks that a shader program was validated successfully.
-     *
-     * @param gl OpenGL context that supports programmable shaders
-     * @param program OpenGL handle to a shader program
-     * @return True if <tt>program</tt> was validated successfully
-     */
-    private static boolean isProgramValidated(final GL2ES2 gl, final int program) {
-        return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_VALIDATE_STATUS);
-    }
-
-    /**
-     * Determines if a shader type is valid.
-     *
-     * <p>Valid shader types are:
-     * <ul>
-     *   <li><i>GL_VERTEX_SHADER</i>
-     *   <li><i>GL_FRAGMENT_SHADER</i>
-     * </ul>
-     *
-     * @param type Type of a shader
-     * @return True if <tt>type</tt> is a valid shader type
-     */
-    private static boolean isValidType(final int type) {
-        switch (type) {
-        case GL2ES2.GL_VERTEX_SHADER:
-        case GL2ES2.GL_FRAGMENT_SHADER:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    /**
-     * Loads the source of a shader from a string.
+     * Loads a shader from a string.
      *
      * @param gl Current OpenGL context
      * @param source Source code of the shader as one long string
-     * @param type Either <i>GL_FRAGMENT_SHADER</i> or <i>GL_VERTEX_SHADER</i>
-     * @return OpenGL handle to the shader
-     * @throws AssertionError if context is <tt>null</tt>
-     * @throws AssertionError if source is empty
-     * @throws AssertionError if type is invalid
-     * @throws GLException if a GLSL-capable context is not active
-     * @throws GLException if could not compile shader
+     * @param type Type of shader
+     * @return OpenGL handle to the shader, not negative
+     * @throws NullPointerException if context or source is null
+     * @throws IllegalArgumentException if source is empty or type is invalid
+     * @throws GLException if a GLSL-capable context is not active or could not compile shader
      */
-    private static int loadShader(final GL2ES2 gl, final String source, final int type) {
+    /*@Nonnegative*/
+    private static int loadShader(/*@Nonnull*/ final GL2ES2 gl,
+                                  /*@Nonnull*/ final String source,
+                                  final int type) {
 
-        assert (gl != null);
-        assert (!source.isEmpty());
-        assert (isValidType(type));
+        checkNotNull(gl, "Context cannot be null");
+        checkNotNull(source, "Source cannot be null");
+        checkArgument(!source.isEmpty(), "Source cannot be empty");
+        checkArgument(isValidType(type), "Type is invalid");
 
         // Create and read source
         final int shader = gl.glCreateShader(type);
         gl.glShaderSource(
                 shader,                    // shader handle
                 1,                         // number of strings
-                new String[] {source},     // array of strings
+                new String[] { source },   // array of strings
                 null);                     // lengths of strings
 
         // Compile
         gl.glCompileShader(shader);
-        if (!isCompiled(gl, shader)) {
+        if (!isShaderCompiled(gl, shader)) {
             final String log = ShaderUtil.getShaderInfoLog(gl, shader);
             throw new GLException(log);
         }
 
-        // Return the shader
         return shader;
     }
 }

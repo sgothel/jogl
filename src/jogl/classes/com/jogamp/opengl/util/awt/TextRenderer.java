@@ -47,202 +47,230 @@ import java.util.List;
 /**
  * Utility for rendering bitmapped Java 2D text into an OpenGL window.
  *
- * <p>Has high performance, full Unicode support, and a simple API.  Performs
- * appropriate caching of text rendering results in an OpenGL texture internally
- * to avoid repeated font rasterization. The caching is completely automatic,
- * does not require any user intervention, and has no visible controls in the
- * public API.
+ * <p>
+ * {@code TextRenderer} has high performance, full Unicode support, and a simple API.  It performs
+ * appropriate caching of text rendering results in an OpenGL texture internally to avoid repeated
+ * font rasterization.  The caching is completely automatic, does not require any user
+ * intervention, and has no visible controls in the public API.
  *
- * <p>Using the TextRenderer is simple. Add a "{@code TextRenderer renderer;}"
- * field to your {@link com.jogamp.opengl.GLEventListener GLEventListener}. In
- * your {@link com.jogamp.opengl.GLEventListener#init init} method, add:
+ * <p>
+ * Using {@code TextRenderer} is simple.  Add a {@code TextRenderer} field to your {@code
+ * GLEventListener} and in your {@code init} method, add:
  *
- * <PRE>
+ * <pre>
  * renderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
- * </PRE>
+ * </pre>
  *
- * <p>In the {@link com.jogamp.opengl.GLEventListener#display display} method
- * of your {@link com.jogamp.opengl.GLEventListener GLEventListener}, add:
- * <PRE>
+ * <p>
+ * In the {@code display} method of your {@code GLEventListener}, add:
+ *
+ * <pre>
  * renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
  * // optionally set the color
  * renderer.setColor(1.0f, 0.2f, 0.2f, 0.8f);
  * renderer.draw("Text to draw", xPosition, yPosition);
  * // ... more draw commands, color changes, etc.
  * renderer.endRendering();
- * </PRE>
+ * </pre>
  *
- * <p>Unless you are sharing textures between OpenGL contexts, you do not need
- * to call the {@link #dispose dispose} method of the TextRenderer; the OpenGL
- * resources it uses internally will be cleaned up automatically when the OpenGL
- * context is destroyed.
+ * <p>
+ * Unless you are sharing textures between OpenGL contexts, you do not need to call the {@link
+ * #dispose dispose} method of the {@code TextRenderer}; the OpenGL resources it uses internally
+ * will be cleaned up automatically when the OpenGL context is destroyed.
  *
- * <p><b>Note</b> that the TextRenderer will cause the Vertex Array Object
- * binding to change, or to be unbound.
+ * <p>
+ * Note that a {@code TextRenderer} will cause the Vertex Array Object binding to change, or to be
+ * unbound.
  *
- * <p>Internally, the renderer uses a rectangle packing algorithm to pack both
- * glyphs and full Strings' rendering results (which are variable size) onto a
- * larger OpenGL texture. The internal backing store is maintained using a
- * {@link com.jogamp.opengl.util.awt.TextureRenderer TextureRenderer}. A least
- * recently used (LRU) algorithm is used to discard previously rendered strings;
- * the specific algorithm is undefined, but is currently implemented by flushing
- * unused Strings' rendering results every few hundred rendering cycles, where a
- * rendering cycle is defined as a pair of calls to {@link #beginRendering
- * beginRendering} / {@link #endRendering endRendering}.
+ * <p>
+ * Internally, the renderer uses a rectangle packing algorithm to pack both glyphs and full
+ * strings' rendering results (which are variable size) onto a larger OpenGL texture.  The internal
+ * backing store is maintained using a {@link com.jogamp.opengl.util.awt.TextureRenderer
+ * TextureRenderer}.  A least recently used (LRU) algorithm is used to discard previously rendered
+ * strings; the specific algorithm is undefined, but is currently implemented by flushing unused
+ * strings' rendering results every few hundred rendering cycles, where a rendering cycle is
+ * defined as a pair of calls to {@link #beginRendering beginRendering} / {@link #endRendering
+ * endRendering}.
  *
  * @author John Burkey
  * @author Kenneth Russell
  */
-/*@Notthreadsafe*/
+/*@NotThreadSafe*/
 public final class TextRenderer {
 
-    // True to print debugging information
+    /**
+     * True to print debugging information.
+     */
     static final boolean DEBUG = false;
 
-    // Common instance of the default render delegate
+    /**
+     * Common instance of the default render delegate.
+     */
+    /*@Nonnull*/
     private static final RenderDelegate DEFAULT_RENDER_DELEGATE = new DefaultRenderDelegate();
 
-    // Face, style, and size of text to render with
+    /**
+     * Face, style, and size of text to render with.
+     */
+    /*@Nonnull*/
     private final Font font;
 
-    // Delegate to store glyphs
+    /**
+     * Delegate to store glyphs.
+     */
+    /*@Nonnull*/
     private final GlyphCache glyphCache;
 
-    // Delegate to create glyphs
+    /**
+     * Delegate to create glyphs.
+     */
+    /*@Nonnull*/
     private final GlyphProducer glyphProducer;
 
-    // Delegate to draw glyphs
-    private final GlyphRenderer glyphRenderer;
-
-    // Observer coordinating components
-    private Mediator mediator;
+    /**
+     * Delegate to draw glyphs.
+     */
+    /*@Nonnull*/
+    private final GlyphRenderer glyphRenderer = new GlyphRendererProxy();
 
     /**
-     * Constructs a text renderer from a font.
+     * Mediator coordinating components.
+     */
+    /*@Nonnull*/
+    private final Mediator mediator = new Mediator();
+
+    /**
+     * True if this text renderer is ready to be used.
+     */
+    private boolean ready = false;
+
+    /**
+     * Constructs a {@link TextRenderer}.
      *
-     * <p>The resulting text renderer will use no antialiasing or fractional
-     * metrics, and the default render delegate.  It will not attempt to use
-     * OpenGL's automatic mipmap generation for better scaling.  All Unicode
-     * characters will be available.
+     * <p>
+     * The resulting {@code TextRenderer} will use no antialiasing or fractional metrics and the
+     * default render delegate.  It will not attempt to use OpenGL's automatic mipmap generation
+     * for better scaling.  All Unicode characters will be available.
      *
-     * @param font Face, style, and size of text to render with (non-null)
-     * @throws IllegalArgumentException if font is <tt>null</tt>
+     * @param font Font to render text with
+     * @throws NullPointerException if font is null
      */
     public TextRenderer(/*@Nonnull*/ final Font font) {
         this(font, false, false, null, false, null);
     }
 
     /**
-     * Constructs a text renderer from a font with mipmapping support.
+     * Constructs a {@link TextRenderer} with optional mipmapping.
      *
-     * <p>The resulting text renderer will use no antialiasing or fractional
-     * metrics, and the default render delegate.  If mipmapping is requested,
-     * the text renderer will attempt to use OpenGL's automatic mipmap
-     * generation for better scaling.  All Unicode characters will be available.
+     * <p>
+     * The resulting {@code TextRenderer} will use no antialiasing or fractional metrics, and the
+     * default render delegate.  If mipmapping is requested, the text renderer will attempt to use
+     * OpenGL's automatic mipmap generation for better scaling.  All Unicode characters will be
+     * available.
      *
-     * @param font Face, style, and size of text to render with (non-null)
-     * @param mipmap Whether to generate mipmaps to make the text scale better
-     * @throws IllegalArgumentException if font is <tt>null</tt>
+     * @param font Font to render text with
+     * @param mipmap True to generate mipmaps (to make the text scale better)
+     * @throws NullPointerException if font is null
      */
     public TextRenderer(/*@Nonnull*/ final Font font, final boolean mipmap) {
         this(font, false, false, null, mipmap, null);
     }
 
     /**
-     * Constructs a text renderer from a font and text properties.
+     * Constructs a {@link TextRenderer} with optional text properties.
      *
-     * <p>The resulting text renderer will use antialiasing and fractional
-     * metrics if requested, and the default render delegate.  It will not
-     * attempt to use OpenGL's automatic mipmap generation for better scaling.
-     * All Unicode characters will be available.
+     * <p>
+     * The resulting {@code TextRenderer} will use antialiasing and fractional metrics if
+     * requested, and the default render delegate.  It will not attempt to use OpenGL's automatic
+     * mipmap generation for better scaling.  All Unicode characters will be available.
      *
-     * @param font Face, style, and size of text to render with (non-null)
-     * @param antialias Whether to smooth edges of text
-     * @param subpixel Whether to use subpixel accuracy
-     * @throws IllegalArgumentException if font is <tt>null</tt>
+     * @param font Font to render text with
+     * @param antialias True to smooth edges of text
+     * @param subpixel True to use subpixel accuracy
+     * @throws NullPointerException if font is null
      */
-    public TextRenderer(/*@Nonnull*/ final Font font, final boolean antialias, final boolean subpixel) {
+    public TextRenderer(/*@Nonnull*/ final Font font,
+                        final boolean antialias,
+                        final boolean subpixel) {
         this(font, antialias, subpixel, null, false, null);
     }
 
     /**
-     * Constructs a text renderer from a font, text properties, and a render delegate.
+     * Constructs a {@link TextRenderer} with optional text properties and a render delegate.
      *
-     * <p>The resulting text renderer will use antialiasing and fractional
-     * metrics if requested.  The optional render delegate provides more control
-     * over the text rendered.  The text renderer will not attempt to use
-     * OpenGL's automatic mipmap generation for better scaling.  All Unicode
-     * characters will be available.
+     * <p>
+     * The resulting {@code TextRenderer} will use antialiasing and fractional metrics if
+     * requested.  The optional render delegate provides more control over the text rendered.  The
+     * {@code TextRenderer} will not attempt to use OpenGL's automatic mipmap generation for better
+     * scaling.  All Unicode characters will be available.
      *
-     * @param font Face, style, and size of text to render with (non-null)
-     * @param antialias Whether to smooth edges of text
-     * @param subpixel Whether to use subpixel accuracy
-     * @param rd Optional controller of rendering details (nullable)
-     * @throws IllegalArgumentException if font is <tt>null</tt>
-     * @throws UnsupportedOperationException if render delegate wants full color
+     * @param font Font to render text with
+     * @param antialias True to smooth edges of text
+     * @param subpixel True to use subpixel accuracy
+     * @param rd Optional controller of rendering details
+     * @throws NullPointerException if font is null
      */
     public TextRenderer(/*@Nonnull*/ final Font font,
                         final boolean antialias,
                         final boolean subpixel,
-                        /*@Nullable*/ final RenderDelegate rd) {
+                        /*@CheckForNull*/ final RenderDelegate rd) {
         this(font, antialias, subpixel, rd, false, null);
     }
 
     /**
-     * Constructs a text renderer from a font, text properties, a render delegate, and mipmapping.
+     * Constructs a {@link TextRenderer} with optional text properties, a render delegate, and
+     * mipmapping.
      *
-     * <p>The resulting text renderer will use antialiasing and fractional
-     * metrics if requested.  The optional render delegate provides more control
-     * over the text rendered.  If mipmapping is requested, the text renderer
-     * will attempt to use OpenGL's automatic mipmap generation for better
-     * scaling.  All Unicode characters will be available.
+     * <p>
+     * The resulting {@code TextRenderer} will use antialiasing and fractional metrics if
+     * requested.  The optional render delegate provides more control over the text rendered.  If
+     * mipmapping is requested, the {@code TextRenderer} will attempt to use OpenGL's automatic
+     * mipmap generation for better scaling.  All Unicode characters will be available.
      *
-     * @param font Face, style, and size of text to render with (non-null)
-     * @param antialias Whether to smooth edges of text
-     * @param subpixel Whether to use subpixel accuracy
-     * @param rd Optional controller of rendering details (nullable)
+     * @param font Font to render text with
+     * @param antialias True to smooth edges of text
+     * @param subpixel True to use subpixel accuracy
+     * @param rd Optional controller of rendering details
      * @param mipmap Whether to generate mipmaps to make the text scale better
-     * @throws IllegalArgumentException if font is <tt>null</tt>
-     * @throws UnsupportedOperationException if render delegate wants full color
+     * @throws NullPointerException if font is null
      */
     public TextRenderer(/*@Nonnull*/ final Font font,
                         final boolean antialias,
                         final boolean subpixel,
-                        /*Nullable*/ final RenderDelegate rd,
+                        /*CheckForNull*/ final RenderDelegate rd,
                         final boolean mipmap) {
         this(font, antialias, subpixel, rd, mipmap, null);
     }
 
     /**
-     * Constructs a text renderer from a font, text properties, a render delegate, mipmapping, and a range.
+     * Constructs a {@link TextRenderer} with optional text properties, a render delegate,
+     * mipmapping, and a range of characters.
      *
-     * <p>The resulting text renderer will use antialiasing and fractional
-     * metrics if requested.  The optional render delegate provides more control
-     * over the text rendered.  If mipmapping is requested, the text renderer
-     * will attempt to use OpenGL's automatic mipmap generation for better
-     * scaling.  If a character range is specified, the text renderer will limit
-     * itself to those characters to try to achieve better performance.
-     * Otherwise all Unicode characters will be available.
+     * <p>
+     * The resulting {@code TextRenderer} will use antialiasing and fractional metrics if
+     * requested.  The optional render delegate provides more control over the text rendered.  If
+     * mipmapping is requested, the text renderer will attempt to use OpenGL's automatic mipmap
+     * generation for better scaling.  If a character range is specified, the text renderer will
+     * limit itself to those characters to try to achieve better performance.  Otherwise all
+     * Unicode characters will be available.
      *
-     * @param font Face, style, and size of text to render with (non-null)
-     * @param antialias Whether to smooth edges of text
-     * @param subpixel Whether to use subpixel accuracy
-     * @param rd Optional controller of rendering details (nullable)
+     * @param font Font to render text with
+     * @param antialias True to smooth edges of text
+     * @param subpixel True to use subpixel accuracy
+     * @param rd Controller of rendering details, or null to use the default
      * @param mipmap Whether to generate mipmaps to make the text scale better
-     * @param ub Optional range of unicode characters to limit to, for better performance (nullable)
-     * @throws IllegalArgumentException if font is <tt>null</tt>
-     * @throws UnsupportedOperationException if render delegate wants full color
-     * @throws UnsupportedOperationException if unicode block unsupported
+     * @param ub Range of unicode characters, or null to use the default
+     * @throws NullPointerException if font is null
      */
     public TextRenderer(/*@Nonnull*/ final Font font,
                         final boolean antialias,
                         final boolean subpixel,
-                        /*@Nullable*/ RenderDelegate rd,
+                        /*@CheckForNull*/ RenderDelegate rd,
                         final boolean mipmap,
-                        /*@Nullable*/ final UnicodeBlock ub) {
+                        /*@CheckForNull*/ final UnicodeBlock ub) {
 
         if (font == null) {
-            throw new IllegalArgumentException("Font is null!");
+            throw new NullPointerException("Font cannot be null");
         } else if (rd == null) {
             rd = DEFAULT_RENDER_DELEGATE;
         }
@@ -250,73 +278,76 @@ public final class TextRenderer {
         this.font = font;
         this.glyphCache = GlyphCache.newInstance(font, rd, antialias, subpixel, mipmap);
         this.glyphProducer = GlyphProducerFactory.createGlyphProducer(font, rd, glyphCache.getFontRenderContext(), ub);
-        this.glyphRenderer = new GlyphRendererAdapter();
-        this.mediator = null;
     }
 
-   /**
-    * Starts a render cycle.
-    *
-    * <p>Sets up a two-dimensional orthographic projection with (0,0) as the
-    * lower-left coordinate and (width, height) as the upper-right coordinate.
-    * Binds and enables the internal OpenGL texture object, sets the texture
-    * environment mode to GL_MODULATE, and changes the current color to the last
-    * color set with this text drawer via {@link #setColor}.
-    *
-    * <p>This method disables the depth test and is equivalent to
-    * beginRendering(width, height, true).
-    *
-    * @param width Width of the current on-screen OpenGL drawable (non-negative)
-    * @param height Height of the current on-screen OpenGL drawable (non-negative)
-    * @throws GLException if an OpenGL context is not current
-    */
-    public void beginRendering(/*@Nonnegative*/ final int width, /*@Nonnegative*/ final int height) {
+    /**
+     * Starts a 3D render cycle.
+     *
+     * <p>
+     * Assumes the end user is responsible for setting up the modelview and projection matrices,
+     * and will render text using the {@link #draw3D} method.
+     *
+     * @throws GLException if an OpenGL context is not current
+     */
+    public void begin3DRendering() {
+        beginRendering(false, 0, 0, false);
+    }
+
+    /**
+     * Starts an orthographic render cycle.
+     *
+     * <p>
+     * Sets up a two-dimensional orthographic projection with (0,0) as the lower-left coordinate
+     * and (width, height) as the upper-right coordinate.  Binds and enables the internal OpenGL
+     * texture object, sets the texture environment mode to GL_MODULATE, and changes the current
+     * color to the last color set with this text drawer via {@link #setColor}.
+     *
+     * <p>
+     * This method disables the depth test and is equivalent to beginRendering(width, height,
+     * true).
+     *
+     * @param width Width of the current on-screen OpenGL drawable
+     * @param height Height of the current on-screen OpenGL drawable
+     * @throws GLException if an OpenGL context is not current
+     * @throws IllegalArgumentException if width or height is negative
+     */
+    public void beginRendering(/*@Nonnegative*/ final int width,
+                               /*@Nonnegative*/ final int height) {
         beginRendering(true, width, height, true);
     }
 
-   /**
-    * Starts a render cycle.
-    *
-    * <p>Sets up a two-dimensional orthographic projection with (0,0) as the
-    * lower-left coordinate and (width, height) as the upper-right coordinate.
-    * Binds and enables the internal OpenGL texture object, sets the texture
-    * environment mode to GL_MODULATE, and changes the current color to the last
-    * color set with this text drawer via {@link #setColor}.
-    *
-    * <p>Disables the depth test if the disableDepthTest argument is true.
-    *
-    * @param width Width of the current on-screen OpenGL drawable (non-negative)
-    * @param height Height of the current on-screen OpenGL drawable (non-negative)
-    * @param disableDepthTest Whether to disable the depth test
-    * @throws GLException if an OpenGL context is not current
-    */
+    /**
+     * Starts an orthographic render cycle.
+     *
+     * <p>
+     * Sets up a two-dimensional orthographic projection with (0,0) as the lower-left coordinate
+     * and (width, height) as the upper-right coordinate.  Binds and enables the internal OpenGL
+     * texture object, sets the texture environment mode to GL_MODULATE, and changes the current
+     * color to the last color set with this text drawer via {@link #setColor}.
+     *
+     * <p>
+     * Disables the depth test if requested.
+     *
+     * @param width Width of the current on-screen OpenGL drawable
+     * @param height Height of the current on-screen OpenGL drawable
+     * @param disableDepthTest True to disable the depth test
+     * @throws GLException if an OpenGL context is not current
+     * @throws IllegalArgumentException if width or height is negative
+     */
     public void beginRendering(/*@Nonnegative*/ final int width,
                                /*@Nonnegative*/ final int height,
                                final boolean disableDepthTest) {
         beginRendering(true, width, height, disableDepthTest);
     }
 
-   /**
-    * Starts a 3D render cycle.
-    *
-    * <p>Assumes the end user is responsible for setting up the modelview and
-    * projection matrices, and will render text using the {@link #draw3D}
-    * method.
-    *
-    * @throws GLException if an OpenGL context is not current
-    */
-    public void begin3DRendering() {
-        beginRendering(false, 0, 0, false);
-    }
-
     /**
      * Starts a render cycle.
      *
-     * @param ortho <tt>true</tt> to use orthographic projection
-     * @param width Width of the current OpenGL viewport (non-negative)
-     * @param height Height of the current OpenGL viewport (non-negative)
-     * @param disableDepthTest <tt>true</tt> to ignore depth values
-     * @throws GLException if no OpenGL context is current, or is unexpected version
+     * @param ortho True to use orthographic projection
+     * @param width Width of the current OpenGL viewport
+     * @param height Height of the current OpenGL viewport
+     * @param disableDepthTest True to ignore depth values
+     * @throws GLException if no OpenGL context is current or it's an unexpected version
      * @throws IllegalArgumentException if width or height is negative
      */
     private void beginRendering(final boolean ortho,
@@ -324,153 +355,38 @@ public final class TextRenderer {
                                 /*@Nonnegative*/ final int height,
                                 final boolean disableDepthTest) {
 
-        if (width < 0) {
-            throw new IllegalArgumentException("Width is negative!");
-        } else if (height < 0) {
-            throw new IllegalArgumentException("Height is negative!");
-        }
+        checkArgument(width >= 0, "Width cannot be negative");
+        checkArgument(height >= 0, "Height cannot be negative");
 
         // Get the current OpenGL context
         final GL gl = GLContext.getCurrentGL();
 
         // Make sure components are set up properly
-        if (mediator == null) {
-            mediator = new Mediator();
+        if (!ready) {
             glyphCache.addListener(mediator);
             glyphRenderer.addListener(mediator);
+            ready = true;
         }
 
-        // Set up components
+        // Delegate to components
         glyphCache.beginRendering(gl);
         glyphRenderer.beginRendering(gl, ortho, width, height, disableDepthTest);
     }
 
-   /**
-    * Draws a character sequence at a location.
-    *
-    * <p>The baseline of the leftmost character is at position (x, y) specified
-    * in OpenGL coordinates, where the origin is at the lower-left of the
-    * drawable and the Y coordinate increases in the upward direction.
-    *
-    * @param str Text to draw (non-null)
-    * @param x Position to draw on X axis
-    * @param y Position to draw on Y axis
-    * @throws GLException if an OpenGL context is not current, or is unexpected version
-    */
-    public void draw(/*@Nonnull*/ final CharSequence cs, final int x, final int y) {
-        draw3D(cs, x, y, 0, 1);
-    }
-
-   /**
-    * Draws a string at a location.
-    *
-    * <p>The baseline of the leftmost character is at position (x, y) specified
-    * in OpenGL coordinates, where the origin is at the lower-left of the
-    * drawable and the Y coordinate increases in the upward direction.
-    *
-    * @param str Text to draw (non-null)
-    * @param x Position to draw on X axis
-    * @param y Position to draw on Y axis
-    * @throws GLException if an OpenGL context is not current, or is unexpected version
-    */
-    public void draw(/*@Nonnull*/ final String str, final int x, final int y) {
-        draw3D(str, x, y, 0, 1);
-    }
-
-   /**
-    * Draws a character sequence at a location in 3D space.
-    *
-    * <p>The baseline of the leftmost character is placed at position (x, y, z)
-    * in the current coordinate system.
-    *
-    * @param str Text to draw (non-null)
-    * @param x X coordinate at which to draw
-    * @param y Y coordinate at which to draw
-    * @param z Z coordinate at which to draw
-    * @param scale Uniform scale applied to width and height of text
-    * @throws GLException if an OpenGL context is not current, or is unexpected version
-    */
-    public void draw3D(/*@Nonnull*/ final CharSequence cs,
-                       final float x, final float y, final float z,
-                       final float scale) {
-        draw3D(cs.toString(), x, y, z, scale);
-    }
-
-    /**
-     * Draws text at a location in 3D space.
-     *
-     * <p>Uses the renderer's current color.  The baseline of the leftmost
-     * character is placed at position (x, y, z) in the current coordinate
-     * system.
-     *
-     * @param str Text to draw (non-null)
-     * @param x Position to draw on X axis
-     * @param y Position to draw on Y axis
-     * @param z Position to draw on Z axis
-     * @param scale Uniform scale applied to width and height of text
-     * @throws GLException if no OpenGL context is current, or is unexpected version
-     * @throws NullPointerException if text is <tt>null</tt>
-     */
-    public void draw3D(/*@Nonnull*/ final String str,
-                       float x, final float y, final float z,
-                       final float scale) {
-
-        // Get the current OpenGL context
-        final GL gl = GLContext.getCurrentGL();
-
-        // Get all the glyphs for the string
-        final List<Glyph> glyphs = glyphProducer.createGlyphs(str);
-
-        // Render each glyph
-        for (final Glyph glyph : glyphs) {
-            if (glyph.location == null) {
-                glyphCache.upload(glyph);
-            }
-            final TextureCoords coords = glyphCache.find(glyph);
-            final float advance = glyphRenderer.drawGlyph(gl, glyph, x, y, z, scale, coords);
-            x += advance * scale;
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
         }
     }
 
-    /**
-     * Finishes a render cycle.
-     */
-    public void endRendering() {
-
-        // Get the current OpenGL context
-        final GL gl = GLContext.getCurrentGL();
-
-        // Tear down components
-        glyphCache.endRendering(gl);
-        glyphRenderer.endRendering(gl);
-    }
-
-    /**
-     * Finishes a 3D render cycle.
-     */
-    public void end3DRendering() {
-        endRendering();
-    }
-
-    /**
-     * Forces all stored text to be rendered.
-     *
-     * <p>This should be called after each call to draw() if you are setting
-     * OpenGL state such as the modelview matrix between calls to draw().
-     *
-     * @throws GLException if no OpenGL context is current, or is unexpected version
-     * @throws IllegalStateException if not in a render cycle
-     */
-    public void flush() {
-
-        // Get the current OpenGL context
-        final GL gl = GLContext.getCurrentGL();
-
-        // Make sure glyph cache is up to date
-        glyphCache.update(gl);
-
-        // Render outstanding glyphs
-        glyphRenderer.flush(gl);
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
     }
 
     /**
@@ -490,46 +406,187 @@ public final class TextRenderer {
         glyphRenderer.dispose(gl);
     }
 
-    //-----------------------------------------------------------------
-    // Utilities
-    //
-
     /**
-     * Determines the bounding box of text.
+     * Draws a character sequence at a location.
      *
-     * <p>Assumes it was rendered at the origin.
+     * <p>
+     * The baseline of the leftmost character is at position (x, y) specified in OpenGL
+     * coordinates, where the origin is at the lower-left of the drawable and the Y coordinate
+     * increases in the upward direction.
      *
-     * <p>The coordinate system of the returned rectangle is Java 2D's, with
-     * increasing Y coordinates in the downward direction.  The relative
-     * coordinate (0,0) in the returned rectangle corresponds to the baseline of
-     * the leftmost character of the rendered string, in similar fashion to the
-     * results returned by, for example, {@link GlyphVector#getVisualBounds
-     * getVisualBounds}.
-     *
-     * <p>Most applications will use only the width and height of the returned
-     * Rectangle for the purposes of centering or justifying the String.  It is
-     * not specified which Java 2D bounds ({@link GlyphVector#getVisualBounds
-     * getVisualBounds}, {@link GlyphVector#getPixelBounds getPixelBounds}, etc.)
-     * the returned bounds correspond to, although every effort is made to ensure
-     * an accurate bound.
-     *
-     * @param cs Text to get bounding box for (non-null)
-     * @return Rectangle surrounding the given string (non-null)
+     * @param text Text to draw
+     * @param x Position to draw on X axis
+     * @param y Position to draw on Y axis
+     * @throws NullPointerException if text is null
+     * @throws GLException if an OpenGL context is not current, or is unexpected version
      */
-    /*@Nonnull*/
-    public Rectangle2D getBounds(/*@Nonnull*/ final CharSequence cs) {
-        return getBounds(cs.toString());
+    public void draw(/*@Nonnull*/ final CharSequence text,
+                     /*@CheckForSigned*/ final int x,
+                     /*@CheckForSigned*/ final int y) {
+        draw3D(text, x, y, 0, 1);
     }
 
     /**
-     * Determines the bounding box of text.
+     * Draws a string at a location.
      *
-     * @param str Text to get bounding box for (non-null)
-     * @return Rectangle surrounding the given string (non-null)
+     * <p>
+     * The baseline of the leftmost character is at position (x, y) specified in OpenGL
+     * coordinates, where the origin is at the lower-left of the drawable and the Y coordinate
+     * increases in the upward direction.
+     *
+     * @param text Text to draw
+     * @param x Position to draw on X axis
+     * @param y Position to draw on Y axis
+     * @throws NullPointerException if text is null
+     * @throws GLException if an OpenGL context is not current, or is unexpected version
+     */
+    public void draw(/*@Nonnull*/ final String text,
+                     /*@CheckForSigned*/ final int x,
+                     /*@CheckForSigned*/ final int y) {
+        draw3D(text, x, y, 0, 1);
+    }
+
+    /**
+     * Draws a character sequence at a location in 3D space.
+     *
+     * <p>
+     * The baseline of the leftmost character is placed at position (x, y, z) in the current
+     * coordinate system.
+     *
+     * @param text Text to draw
+     * @param x X coordinate at which to draw
+     * @param y Y coordinate at which to draw
+     * @param z Z coordinate at which to draw
+     * @param scale Uniform scale applied to width and height of text
+     * @throws NullPointerException if text is null
+     * @throws GLException if an OpenGL context is not current, or is unexpected version
+     */
+    public void draw3D(/*@Nonnull*/ final CharSequence text,
+                       /*@CheckForSigned*/ final float x,
+                       /*@CheckForSigned*/ final float y,
+                       /*@CheckForSigned*/ final float z,
+                       /*@CheckForSigned*/ final float scale) {
+        draw3D(text.toString(), x, y, z, scale);
+    }
+
+    /**
+     * Draws text at a location in 3D space.
+     *
+     * <p>
+     * Uses the renderer's current color.  The baseline of the leftmost character is placed at
+     * position (x, y, z) in the current coordinate system.
+     *
+     * @param text Text to draw
+     * @param x Position to draw on X axis
+     * @param y Position to draw on Y axis
+     * @param z Position to draw on Z axis
+     * @param scale Uniform scale applied to width and height of text
+     * @throws GLException if no OpenGL context is current, or is unexpected version
+     * @throws NullPointerException if text is null
+     */
+    public void draw3D(/*@Nonnull*/ final String text,
+                       /*@CheckForSigned*/ float x,
+                       /*@CheckForSigned*/ final float y,
+                       /*@CheckForSigned*/ final float z,
+                       /*@CheckForSigned*/ final float scale) {
+
+        // Get the current OpenGL context
+        final GL gl = GLContext.getCurrentGL();
+
+        // Get all the glyphs for the string
+        final List<Glyph> glyphs = glyphProducer.createGlyphs(text);
+
+        // Render each glyph
+        for (final Glyph glyph : glyphs) {
+            if (glyph.location == null) {
+                glyphCache.upload(glyph);
+            }
+            final TextureCoords coords = glyphCache.find(glyph);
+            final float advance = glyphRenderer.drawGlyph(gl, glyph, x, y, z, scale, coords);
+            x += advance * scale;
+        }
+    }
+
+    /**
+     * Finishes a 3D render cycle.
+     */
+    public void end3DRendering() {
+        endRendering();
+    }
+
+    /**
+     * Finishes a render cycle.
+     */
+    public void endRendering() {
+
+        // Get the current OpenGL context
+        final GL gl = GLContext.getCurrentGL();
+
+        // Tear down components
+        glyphCache.endRendering(gl);
+        glyphRenderer.endRendering(gl);
+    }
+
+    /**
+     * Forces all stored text to be rendered.
+     *
+     * <p>
+     * This should be called after each call to {@code draw} if you are setting OpenGL state such
+     * as the modelview matrix between calls to {@code draw}.
+     *
+     * @throws GLException if no OpenGL context is current, or is unexpected version
+     * @throws IllegalStateException if not in a render cycle
+     */
+    public void flush() {
+
+        // Get the current OpenGL context
+        final GL gl = GLContext.getCurrentGL();
+
+        // Make sure glyph cache is up to date
+        glyphCache.update(gl);
+
+        // Render outstanding glyphs
+        glyphRenderer.flush(gl);
+    }
+
+    /**
+     * Determines the bounding box of a character sequence.
+     *
+     * <p>
+     * Assumes it was rendered at the origin.
+     *
+     * <p>
+     * The coordinate system of the returned rectangle is Java 2D's, with increasing Y coordinates
+     * in the downward direction.  The relative coordinate (0,0) in the returned rectangle
+     * corresponds to the baseline of the leftmost character of the rendered string, in similar
+     * fashion to the results returned by, for example, {@link GlyphVector#getVisualBounds
+     * getVisualBounds}.
+     *
+     * <p>
+     * Most applications will use only the width and height of the returned Rectangle for the
+     * purposes of centering or justifying the String.  It is not specified which Java 2D bounds
+     * ({@link GlyphVector#getVisualBounds getVisualBounds}, {@link GlyphVector#getPixelBounds
+     * getPixelBounds}, etc.) the returned bounds correspond to, although every effort is made to
+     * ensure an accurate bound.
+     *
+     * @param text Text to get bounding box for
+     * @return Rectangle surrounding the given text, not null
+     * @throws NullPointerException if text is null
      */
     /*@Nonnull*/
-    public Rectangle2D getBounds(/*@Nonnull*/ final String str) {
-        return glyphProducer.findBounds(str);
+    public Rectangle2D getBounds(/*@Nonnull*/ final CharSequence text) {
+        return getBounds(text.toString());
+    }
+
+    /**
+     * Determines the bounding box of a string.
+     *
+     * @param text Text to get bounding box for
+     * @return Rectangle surrounding the given text, not null
+     */
+    /*@Nonnull*/
+    public Rectangle2D getBounds(/*@Nonnull*/ final String text) {
+        return glyphProducer.findBounds(text);
     }
 
     /**
@@ -542,15 +599,41 @@ public final class TextRenderer {
         return glyphProducer.findAdvance(c);
     }
 
-    //------------------------------------------------------------------
-    // Getters and setters
-    //
+    /**
+     * Determines the font this {@link TextRenderer} is using.
+     *
+     * @return Font used by this text renderer, not null
+     */
+    /*@Nonnull*/
+    public Font getFont() {
+        return font;
+    }
 
     /**
-     * Changes current color.
+     * Checks if the backing texture is using linear interpolation.
      *
-     * @param color Color to use for rendering text (non-null)
-     * @throws NullPointerException if color is <tt>null</tt>
+     * @return True if the backing texture is using linear interpolation.
+     */
+    public boolean getSmoothing() {
+        return glyphCache.getUseSmoothing();
+    }
+
+    /**
+     * Checks if vertex arrays are in-use.
+     *
+     * <p>
+     * Indicates whether vertex arrays are being used internally for rendering, or whether text is
+     * rendered using the OpenGL immediate mode commands.  Defaults to true.
+     */
+    public boolean getUseVertexArrays() {
+        return glyphRenderer.getUseVertexArrays();
+    }
+
+    /**
+     * Specifies the current color of this {@link TextRenderer} using a {@link Color}.
+     *
+     * @param color Color to use for rendering text
+     * @throws NullPointerException if color is null
      * @throws GLException if an OpenGL context is not current
      */
     public void setColor(/*@Nonnull*/ final Color color) {
@@ -562,53 +645,38 @@ public final class TextRenderer {
     }
 
     /**
-     * Changes current color.
+     * Specifies the current color of this {@link TextRenderer} using individual components.
      *
-     * <p>Each component ranges from 0.0f to 1.0f. The alpha component, if
-     * used, does not need to be premultiplied into the color channels as
-     * described in the documentation for {@link
-     * com.jogamp.opengl.util.texture.Texture Texture}, although premultiplied
-     * colors are used internally.  The default color is opaque white.
+     * <p>
+     * Each component ranges from 0.0f to 1.0f.  The alpha component, if used, does not need to be
+     * premultiplied into the color channels as described in the documentation for {@link
+     * com.jogamp.opengl.util.texture.Texture Texture} (although premultiplied colors are used
+     * internally).  The default color is opaque white.
      *
      * @param r Red component of the new color
      * @param g Green component of the new color
      * @param b Blue component of the new color
      * @param a Alpha component of the new color
      */
-    public void setColor(final float r, final float g, final float b, final float a) {
+    public void setColor(/*@CheckForSigned*/ final float r,
+                         /*@CheckForSigned*/ final float g,
+                         /*@CheckForSigned*/ final float b,
+                         /*@CheckForSigned*/ final float a) {
         glyphRenderer.setColor(r, g, b, a);
     }
 
     /**
-     * Determines the face, style, and size of text.
+     * Specifies whether the backing texture will use linear interpolation.
      *
-     * @return Face, style, and size of text (non-null)
-     */
-    /*@Nonnull*/
-    public Font getFont() {
-        return font;
-    }
-
-    /**
-     * Determines if the backing texture is using linear interpolation.
+     * <p>
+     * If smoothing is enabled, {@code GL_LINEAR} will be used.  Otherwise it uses {@code
+     * GL_NEAREST}.
      *
-     * @return <tt>true</tt> if the backing texture is using linear interpolation.
-     */
-    public boolean getSmoothing() {
-        return glyphCache.getUseSmoothing();
-    }
-
-    /**
-     * Changes whether the backing texture will use linear interpolation.
+     * <p>
+     * Defaults to true.
      *
-     * <p>In other words, specifies the filtering of the texture that the text
-     * renderer is using.  If smoothing is enabled, <tt>GL_LINEAR</tt> will be used.
-     * Otherwise it uses <tt>GL_NEAREST</tt>.
-     *
-     * <p>Defaults to true.
-     *
-     * <p>A few graphics cards do not behave well when this is enabled,
-     * resulting in fuzzy text.
+     * <p>
+     * A few graphics cards do not behave well when this is enabled, resulting in fuzzy text.
      */
     public void setSmoothing(final boolean smoothing) {
         glyphCache.setUseSmoothing(smoothing);
@@ -617,8 +685,8 @@ public final class TextRenderer {
     /**
      * Changes the transformation matrix used for drawing text in 3D.
      *
-     * @param matrix Transformation matrix in column-major order (non-null)
-     * @throws NullPointerException if matrix is <tt>null</tt>
+     * @param matrix Transformation matrix in column-major order
+     * @throws NullPointerException if matrix is null
      * @throws IndexOutOfBoundsException if length of matrix is less than sixteen
      * @throws IllegalStateException if in orthographic mode
      */
@@ -627,99 +695,93 @@ public final class TextRenderer {
     }
 
     /**
-     * Returns <tt>true</tt> if vertex arrays are in use.
-     *
-     * <p>Indicates whether vertex arrays are being used internally for
-     * rendering, or whether text is rendered using the OpenGL immediate mode
-     * commands.  Defaults to <tt>true</tt>.
-     */
-    public boolean getUseVertexArrays() {
-        return glyphRenderer.getUseVertexArrays();
-    }
-
-    /**
      * Changes whether vertex arrays are in use.
      *
-     * <p>This is provided as a concession for certain graphics cards which have
-     * poor vertex array performance.  If passed <tt>true</tt>, the text
-     * renderer will use vertex arrays or a vertex buffer internally for
-     * rendering.  Otherwise it will use immediate mode commands.  Defaults to
-     * <tt>true</tt>.
+     * <p>
+     * This is provided as a concession for certain graphics cards which have poor vertex array
+     * performance.  If passed true, the text renderer will use vertex arrays or a vertex buffer
+     * internally for rendering.  Otherwise it will use immediate mode commands.  Defaults to
+     * true.
      *
-     * @param useVertexArrays <tt>true</tt> to render with vertex arrays
+     * @param useVertexArrays True to render with vertex arrays
      */
     public void setUseVertexArrays(final boolean useVertexArrays) {
         glyphRenderer.setUseVertexArrays(useVertexArrays);
     }
 
-    //------------------------------------------------------------------
-    // Nested classes
-    //
-
     /**
      * Utility supporting more full control over rendering the bitmapped text.
      *
-     * <p>Allows customization of whether the backing
-     * store text bitmap is full-color or intensity only, the size of
-     * each individual rendered text rectangle, and the contents of
-     * each individual rendered text string.
+     * <p>
+     * Allows customization of whether the backing store text bitmap is full-color or intensity
+     * only, the size of each individual rendered text rectangle, and the contents of each
+     * individual rendered text string.
      */
-    public static interface RenderDelegate {
+    public interface RenderDelegate {
 
         /**
          * Renders text into a graphics instance at a specific location.
          *
-         * <p>The surrounding region will already have been cleared to the RGB
-         * color (0, 0, 0) with zero alpha.  The initial drawing context of the
-         * passed Graphics2D will be set to use AlphaComposite.Src, the color
-         * white, the Font specified in the TextRenderer's constructor, and the
-         * rendering hints specified in the TextRenderer constructor.  Changes
-         * made by the end user may be visible in successive calls to this
-         * method, but are not guaranteed to be preserved.  Implementations
-         * should reset the Graphics2D's state to that desired each time this
-         * method is called, in particular those states which are not the
-         * defaults.
+         * <p>
+         * The surrounding region will already have been cleared to the RGB color (0, 0, 0) with
+         * zero alpha.  The initial drawing context of the passed Graphics2D will be set to use
+         * AlphaComposite.Src, the color white, the Font specified in the TextRenderer's
+         * constructor, and the rendering hints specified in the TextRenderer constructor.
+         *
+         * <p>
+         * Changes made by the end user may be visible in successive calls to this method, but are
+         * not guaranteed to be preserved.  Implementations should reset the Graphics2D's state to
+         * that desired each time this method is called, in particular those states which are not
+         * the defaults.
          *
          * @param g2d Graphics to render into
          * @param str Text to render
          * @param x Location on X axis to render at
          * @param y Location on Y axis to render at
-         * @throws NullPointerException if graphics or text is <tt>null</tt>
+         * @throws NullPointerException if graphics or text is null
          */
-        void draw(/*@Nonnull*/ Graphics2D g2d, /*@Nonnull*/ String str, int x, int y);
+        void draw(/*@Nonnull*/ Graphics2D g2d,
+                  /*@Nonnull*/ String str,
+                  /*@CheckForSigned*/ int x,
+                  /*@CheckForSigned*/ int y);
 
         /**
          * Renders a glyph into a graphics instance at a specific location.
          *
-         * <p>The surrounding region will already have been cleared to the RGB
-         * color (0, 0, 0) with zero alpha.  The initial drawing context of the
-         * passed Graphics2D will be set to use AlphaComposite.Src, the color
-         * white, the Font specified in the TextRenderer's constructor, and the
-         * rendering hints specified in the TextRenderer constructor.  Changes
-         * made by the end user may be visible in successive calls to this
-         * method, but are not guaranteed to be preserved.  Implementations
-         * should reset the Graphics2D's state to that desired each time this
-         * method is called, in particular those states which are not the
-         * defaults.
+         * <p>
+         * The surrounding region will already have been cleared to the RGB color (0, 0, 0) with
+         * zero alpha.  The initial drawing context of the passed Graphics2D will be set to use
+         * AlphaComposite.Src, the color white, the Font specified in the TextRenderer's
+         * constructor, and the rendering hints specified in the TextRenderer constructor.
+         *
+         * <p>
+         * Changes made by the end user may be visible in successive calls to this method, but are
+         * not guaranteed to be preserved.  Implementations should reset the Graphics2D's state to
+         * that desired each time this method is called, in particular those states which are not
+         * the defaults.
          *
          * @param g2d Graphics to render into
          * @param gv Glyph to render
          * @param x Location on X axis to render at
          * @param y Location on Y axis to render at
-         * @throws NullPointerException if graphics or glyph is <tt>null</tt>
+         * @throws NullPointerException if graphics or glyph is null
          */
-        void drawGlyphVector(/*@Nonnull*/ Graphics2D g2d, /*@Nonnull*/ GlyphVector gv, int x, int y);
+        void drawGlyphVector(/*@Nonnull*/ Graphics2D g2d,
+                             /*@Nonnull*/ GlyphVector gv,
+                             /*@CheckForSigned*/ int x,
+                             /*@CheckForSigned*/ int y);
 
         /**
          * Computes the bounds of a character sequence relative to the origin.
          *
-         * @param cs Text to compute bounds of (non-null)
-         * @param font Face, style, and size of font (non-null)
-         * @param frc Device-dependent details of how text should be rendered (non-null)
-         * @return Rectangle surrounding the text (non-null)
-         * @throws NullPointerException if text, font, or font render context is <tt>null</tt>
+         * @param text Text to compute bounds of
+         * @param font Font text renderer is using
+         * @param frc Device-dependent details of how text should be rendered
+         * @return Rectangle surrounding the text, not null
+         * @throws NullPointerException if text, font, or font render context is null
          */
-        Rectangle2D getBounds(/*@Nonnull*/ CharSequence cs,
+        /*@Nonnull*/
+        Rectangle2D getBounds(/*@Nonnull*/ CharSequence text,
                               /*@Nonnull*/ Font font,
                               /*@Nonnull*/ FontRenderContext frc);
 
@@ -729,29 +791,31 @@ public final class TextRenderer {
          * @param gv Glyph to compute bounds of (non-null)
          * @param frc Device-dependent details of how text should be rendered (non-null)
          * @return Rectangle surrounding the text (non-null)
-         * @throws NullPointerException if glyph or font render context is <tt>null</tt>
+         * @throws NullPointerException if glyph or font render context is null
          */
         Rectangle2D getBounds(/*@Nonnull*/ GlyphVector gv, /*@Nonnull*/ FontRenderContext frc);
 
         /**
          * Computes the bounds of a string relative to the origin.
          *
-         * @param str Text to compute bounds of (non-null)
-         * @param font Face, style, and size of font (non-null)
+         * @param text Text to compute bounds of
+         * @param font Font text renderer is using
          * @param frc Device-dependent details of how text should be rendered (non-null)
-         * @return Rectangle surrounding the text (non-null)
-         * @throws NullPointerException if text, font, or font render context is <tt>null</tt>
+         * @return Rectangle surrounding the text, not null
+         * @throws NullPointerException if text, font, or font render context is null
          */
-        Rectangle2D getBounds(/*@Nonnull*/ String str, /*@Nonnull*/ Font font, /*@Nonnull*/ FontRenderContext frc);
+        Rectangle2D getBounds(/*@Nonnull*/ String text,
+                              /*@Nonnull*/ Font font,
+                              /*@Nonnull*/ FontRenderContext frc);
 
         /**
          * Indicates whether the backing store should be intensity-only or full-color.
          *
-         * <p>Note that currently the text renderer does not support full-color.
-         * It will throw an {@link UnsupportedOperationException} if the render
-         * delegate requests full-color.
+         * <p>
+         * Note that currently the text renderer does not support full-color.  It will throw an
+         * {@link UnsupportedOperationException} if the render delegate requests full-color.
          *
-         * @return <tt>true</tt> if the backing store should be intensity-only
+         * @return True if the backing store should be intensity-only
          */
         boolean intensityOnly();
     }
@@ -759,31 +823,46 @@ public final class TextRenderer {
     /**
      * Simple render delegate if one is not specified by the user.
      */
+    /*@Immmutable*/
     public static class DefaultRenderDelegate implements RenderDelegate {
 
         @Override
-        public void draw(final Graphics2D g2d, final String str, final int x, final int y) {
+        public void draw(/*@Nonnull*/ final Graphics2D g2d,
+                         /*@Nonnull*/ final String str,
+                         /*@CheckForSigned*/ final int x,
+                         /*@CheckForSigned*/ final int y) {
             g2d.drawString(str, x, y);
         }
 
         @Override
-        public void drawGlyphVector(final Graphics2D g2d, final GlyphVector gv, final int x, final int y) {
+        public void drawGlyphVector(/*@Nonnull*/ final Graphics2D g2d,
+                                    /*@Nonnull*/ final GlyphVector gv,
+                                    /*@CheckForSigned*/ final int x,
+                                    /*@CheckForSigned*/ final int y) {
             g2d.drawGlyphVector(gv, x, y);
         }
 
+        /*@Nonnull*/
         @Override
-        public Rectangle2D getBounds(final CharSequence cs, final Font font, final FontRenderContext frc) {
-            return getBounds(cs.toString(), font, frc);
+        public Rectangle2D getBounds(/*@Nonnull*/ final CharSequence text,
+                                     /*@Nonnull*/ final Font font,
+                                     /*@Nonnull*/ final FontRenderContext frc) {
+            return getBounds(text.toString(), font, frc);
         }
 
+        /*@Nonnull*/
         @Override
-        public Rectangle2D getBounds(final GlyphVector gv, final FontRenderContext frc) {
+        public Rectangle2D getBounds(/*@Nonnull*/ final GlyphVector gv,
+                                     /*@Nonnull*/ final FontRenderContext frc) {
             return gv.getVisualBounds();
         }
 
+        /*@Nonnull*/
         @Override
-        public Rectangle2D getBounds(final String str, final Font font, final FontRenderContext frc) {
-            return getBounds(font.createGlyphVector(frc, str), frc);
+        public Rectangle2D getBounds(/*@Nonnull*/ final String text,
+                                     /*@Nonnull*/ final Font font,
+                                     /*@Nonnull*/ final FontRenderContext frc) {
+            return getBounds(font.createGlyphVector(frc, text), frc);
         }
 
         @Override
@@ -798,7 +877,8 @@ public final class TextRenderer {
     private final class Mediator implements GlyphCache.EventListener, GlyphRenderer.EventListener {
 
         @Override
-        public void onGlyphCacheEvent(final GlyphCache.EventType type, final Object data) {
+        public void onGlyphCacheEvent(/*@Nonnull*/ final GlyphCache.EventType type,
+                                      /*@Nonnull*/ final Object data) {
             switch (type) {
             case REALLOCATE:
                 flush();
@@ -813,7 +893,7 @@ public final class TextRenderer {
         }
 
         @Override
-        public void onGlyphRendererEvent(final GlyphRenderer.EventType type) {
+        public void onGlyphRendererEvent(/*@Nonnull*/ final GlyphRenderer.EventType type) {
             switch (type) {
             case AUTOMATIC_FLUSH:
                 final GL gl = GLContext.getCurrentGL();
@@ -824,44 +904,84 @@ public final class TextRenderer {
     }
 
     /**
-     * <i>Adapter</i> for a glyph renderer.
+     * <em>Proxy</em> for a {@link GlyphRenderer}.
      */
-    private static final class GlyphRendererAdapter implements GlyphRenderer {
+    /*@NotThreadSafe*/
+    private static final class GlyphRendererProxy implements GlyphRenderer {
 
-        // Delegate to actually render
+        /**
+         * Delegate to actually render.
+         */
+        /*@CheckForNull*/
         private GlyphRenderer delegate;
 
-        // Listeners added before a delegate is chosen
-        private final List<EventListener> listeners;
+        /**
+         * Listeners added before a delegate is chosen.
+         */
+        /*@Nonnull*/
+        private final List<EventListener> listeners = new ArrayList<EventListener>();
 
-        // Red, green, blue, and alpha components of color
+        /**
+         * Red component of color.
+         */
+        /*@CheckForSigned*/
         private Float r;
+
+        /**
+         * Green component of color.
+         */
+        /*@CheckForSigned*/
         private Float g;
+
+        /**
+         * Blue component of color.
+         */
+        /*@CheckForSigned*/
         private Float b;
+
+        /**
+         * Alpha component of color.
+         */
+        /*@CheckForSigned*/
         private Float a;
 
-        // Transform and whether it's transposed or not
+        /**
+         * Transform matrix.
+         */
+        /*@CheckForNull*/
         private float[] transform;
+
+        /**
+         * True if transform is transposed.
+         */
+        /*@CheckForNull*/
         private Boolean transposed;
 
-        // Whether to use vertex arrays or not
+        /**
+         * True to use vertex arrays.
+         */
         private boolean useVertexArrays = true;
 
-        GlyphRendererAdapter() {
-            this.listeners = new ArrayList<EventListener>();
+        GlyphRendererProxy() {
+            // empty
         }
 
         @Override
-        public void addListener(EventListener listener) {
-            if (delegate != null) {
-                delegate.addListener(listener);
-            } else {
+        public void addListener(/*@Nonnull*/ final EventListener listener) {
+            if (delegate == null) {
                 listeners.add(listener);
+            } else {
+                delegate.addListener(listener);
             }
         }
 
         @Override
-        public void beginRendering(GL gl, boolean ortho, int width, int height, boolean disableDepthTest) {
+        public void beginRendering(/*@Nonnull*/ final GL gl,
+                                   final boolean ortho,
+                                   /*@Nonnegative*/ final int width,
+                                   /*@Nonnegative*/ final int height,
+                                   final boolean disableDepthTest) {
+
             if (delegate == null) {
 
                 // Create the glyph renderer
@@ -872,93 +992,102 @@ public final class TextRenderer {
                     delegate.addListener(listener);
                 }
 
-                // Set the color
+                // Specify the color
                 if ((r != null) && (g != null) && (b != null) && (a != null)) {
                     delegate.setColor(r, g, b, a);
                 }
 
-                // Set the transform
+                // Specify the transform
                 if ((transform != null) && (transposed != null)) {
                     delegate.setTransform(transform, transposed);
                 }
 
-                // Set whether to use vertex arrays or not
+                // Specify whether to use vertex arrays or not
                 delegate.setUseVertexArrays(useVertexArrays);
             }
             delegate.beginRendering(gl, ortho, width, height, disableDepthTest);
         }
 
         @Override
-        public float drawGlyph(GL gl, Glyph glyph, float x, float y, float z, float scale, TextureCoords coords) {
-            if (delegate != null) {
-                return delegate.drawGlyph(gl, glyph, x, y, z, scale, coords);
-            } else {
-                throw new IllegalStateException("Must be in render cycle!");
-            }
-        }
-
-        @Override
-        public void endRendering(GL gl) {
-            if (delegate != null) {
-                delegate.endRendering(gl);
-            } else {
-                throw new IllegalStateException("Must be in render cycle!");
-            }
-        }
-
-        @Override
-        public void flush(GL gl) {
-            if (delegate != null) {
-                delegate.flush(gl);
-            } else {
-                throw new IllegalStateException("Must be in render cycle!");
-            }
-        }
-
-        @Override
-        public void dispose(GL gl) {
+        public void dispose(/*@Nonnull*/ final GL gl) {
             if (delegate != null) {
                 delegate.dispose(gl);
             }
         }
 
         @Override
-        public void setColor(float r, float g, float b, float a) {
-            if (delegate != null) {
-                delegate.setColor(r, g, b, a);
+        public float drawGlyph(/*@Nonnull*/ final GL gl,
+                               /*@Nonnull*/ final Glyph glyph,
+                               /*@CheckForSigned*/ final float x,
+                               /*@CheckForSigned*/ final float y,
+                               /*@CheckForSigned*/ final float z,
+                               /*@CheckForSigned*/ final float scale,
+                               /*@Nonnull*/ final TextureCoords coords) {
+            if (delegate == null) {
+                throw new IllegalStateException("Must be in render cycle!");
             } else {
-                this.r = r;
-                this.g = g;
-                this.b = b;
-                this.a = a;
+                return delegate.drawGlyph(gl, glyph, x, y, z, scale, coords);
             }
         }
 
         @Override
-        public void setTransform(float[] value, boolean transpose) {
-            if (delegate != null) {
-                delegate.setTransform(value, transpose);
+        public void endRendering(/*@Nonnull*/ final GL gl) {
+            if (delegate == null) {
+                throw new IllegalStateException("Must be in render cycle!");
             } else {
-                this.transform = Arrays.copyOf(value, value.length);
-                this.transposed = transpose;
+                delegate.endRendering(gl);
+            }
+        }
+
+        @Override
+        public void flush(/*@Nonnull*/ final GL gl) {
+            if (delegate == null) {
+                throw new IllegalStateException("Must be in render cycle!");
+            } else {
+                delegate.flush(gl);
             }
         }
 
         @Override
         public boolean getUseVertexArrays() {
-            if (delegate != null) {
-                return delegate.getUseVertexArrays();
-            } else {
+            if (delegate == null) {
                 return useVertexArrays;
+            } else {
+                return delegate.getUseVertexArrays();
             }
         }
 
         @Override
-        public void setUseVertexArrays(boolean useVertexArrays) {
-            if (delegate != null) {
-                delegate.setUseVertexArrays(useVertexArrays);
+        public void setColor(/*@CheckForSigned*/ final float r,
+                             /*@CheckForSigned*/ final float g,
+                             /*@CheckForSigned*/ final float b,
+                             /*@CheckForSigned*/ final float a) {
+            if (delegate == null) {
+                this.r = r;
+                this.g = g;
+                this.b = b;
+                this.a = a;
             } else {
+                delegate.setColor(r, g, b, a);
+            }
+        }
+
+        @Override
+        public void setTransform(/*@Nonnull*/ final float[] value, final boolean transpose) {
+            if (delegate == null) {
+                this.transform = Arrays.copyOf(value, value.length);
+                this.transposed = transpose;
+            } else {
+                delegate.setTransform(value, transpose);
+            }
+        }
+
+        @Override
+        public void setUseVertexArrays(final boolean useVertexArrays) {
+            if (delegate == null) {
                 this.useVertexArrays = useVertexArrays;
+            } else {
+                delegate.setUseVertexArrays(useVertexArrays);
             }
         }
     }

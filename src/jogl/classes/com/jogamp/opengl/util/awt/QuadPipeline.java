@@ -36,7 +36,7 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLProfile;
 
 import java.nio.FloatBuffer;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -46,141 +46,156 @@ import java.util.List;
 interface QuadPipeline {
 
     /**
-     * Adds an observer that will be notified of events.
+     * Registers an {@link EventListener} with this {@link QuadPipeline}.
      *
-     * @param listener Listener to add
-     * @throws AssertionError if listener is <tt>null</tt>
+     * @param listener Listener to register
+     * @throws NullPointerException if listener is null
      */
-    void addListener(EventListener listener);
+    void addListener(/*@Nonnull*/ EventListener listener);
 
     /**
-     * Adds a quad to the pipeline.
+     * Adds a quad to this {@link QuadPipeline}.
      *
      * @param gl Current OpenGL context
      * @param quad Quad to add to pipeline
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context or quad is null
      * @throws GLException if context is unexpected version
-     * @throws AssertionError if quad is <tt>null</tt>
      */
-    void addQuad(GL gl, Quad quad);
+    void addQuad(/*@Nonnull*/ GL gl, /*@Nonnull*/ Quad quad);
 
     /**
-     * Starts a render cycle.
+     * Starts a render cycle with this {@link QuadPipeline}.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      * @throws GLException if context is unexpected version
      */
-    void beginRendering(GL gl);
+    void beginRendering(/*@Nonnull*/ GL gl);
 
     /**
-     * Frees resources used by the pipeline.
+     * Frees resources used by this {@link QuadPipeline}.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      * @throws GLException if context is unexpected version
      */
-    void dispose(GL gl);
+    void dispose(/*@Nonnull*/ GL gl);
 
     /**
-     * Finishes a render cycle.
+     * Finishes a render cycle with this {@link QuadPipeline}.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      * @throws GLException if context is unexpected version
      */
-    void endRendering(GL gl);
+    void endRendering(/*@Nonnull*/ GL gl);
 
     /**
-     * Draws all vertices in the pipeline.
+     * Draws all vertices in this {@link QuadPipeline}.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      * @throws GLException if context is unexpected version
      */
-    void flush(GL gl);
+    void flush(/*@Nonnull*/ GL gl);
 
+    // TODO: Rename to `size`?
     /**
-     * Deregisters an observer that was previously registered.
+     * Returns number of quads in this {@link QuadPipeline}.
      *
-     * @param listener Listener to deregister
-     * @throws AssertionError if listener is <tt>null</tt>
+     * @return Number of quads in this pipeline, not negative
      */
-    void removeListener(EventListener listener);
-
-    //-----------------------------------------------------------------
-    // Getters
-    //
-
-    /**
-     * Returns number of quads in the pipeline.
-     */
+    /*@Nonnegative*/
     int getSize();
 
     /**
-     * Returns <tt>true</tt> if there is no data in pipeline.
+     * Checks if there aren't any quads in this {@link QuadPipeline}.
+     *
+     * @return True if there aren't any quads in this pipeline
      */
     boolean isEmpty();
 
-    //-----------------------------------------------------------------
-    // Nested classes
-    //
+    /**
+     * Deregisters an {@link EventListener} from this {@link QuadPipeline}.
+     *
+     * @param listener Listener to deregister, ignored if null or unregistered
+     */
+    void removeListener(/*@CheckForNull*/ EventListener listener);
 
     /**
-     * <i>Observer</i> of quad pipeline.
+     * <i>Observer</i> of a {@link QuadPipeline}.
      */
-    static interface EventListener {
+    interface EventListener {
 
         /**
-         * Responds to an event from a quad pipeline.
+         * Responds to an event from a {@link QuadPipeline}.
          *
          * @param type Type of event
-         * @throws AssertionError if event type is <tt>null</tt>
+         * @throws NullPointerException if event type is null
          */
-        void onQuadPipelineEvent(EventType type);
+        void onQuadPipelineEvent(/*@Nonnull*/ EventType type);
     }
 
     /**
      * Kind of event.
      */
-    static enum EventType {
+    enum EventType {
 
         /**
-         * Pipeline is automatically flushing all queued quads, e.g. when it's full.
+         * Pipeline is automatically flushing all queued quads, e.g., when it's full.
          */
-        AUTOMATIC_FLUSH
+        AUTOMATIC_FLUSH;
     }
 
     /**
      * Structure for points and coordinates.
      */
-    static class Quad {
+    /*@NotThreadSafe*/
+    static final class Quad {
 
-        /** Position of left side */
+        /**
+         * Position of left side.
+         */
         public float xl;
 
-        /** Position of right side */
+        /**
+         * Position of right side.
+         */
         public float xr;
 
-        /** Position of bottom */
+        /**
+         * Position of bottom side.
+         */
         public float yb;
 
-        /** Position of top */
+        /**
+         * Position of top side.
+         */
         public float yt;
 
-        /** Depth */
+        /**
+         * Depth.
+         */
         public float z;
 
-        /** Left texture coordinate */
+        /**
+         * Left texture coordinate.
+         */
         public float sl;
 
-        /** Right texture coordinate */
+        /**
+         * Right texture coordinate.
+         */
         public float sr;
 
-        /** Bottom texture coordinate */
+        /**
+         * Bottom texture coordinate.
+         */
         public float tb;
 
-        /** Top texture coordinate */
+        /**
+         * Top texture coordinate.
+         */
         public float tt;
     }
 }
@@ -191,86 +206,156 @@ interface QuadPipeline {
  */
 abstract class AbstractQuadPipeline implements QuadPipeline {
 
-    // Number of bytes in one float
+    /**
+     * Number of bytes in one float.
+     */
+    /*@Nonnegative*/
     static final int SIZEOF_FLOAT = 4;
 
-    // Number of bytes in one int
+    /**
+     * Number of bytes in one int.
+     */
+    /*@Nonnegative*/
     static final int SIZEOF_INT = 4;
 
-    // Maximum number of quads in the buffer
+    /**
+     * Maximum number of quads in the buffer.
+     */
+    /*@Nonnegative*/
     static final int QUADS_PER_BUFFER = 100;
 
-    // Number of components in a point attribute
+    /**
+     * Number of components in a point attribute.
+     */
+    /*@Nonnegative*/
     static final int FLOATS_PER_POINT = 3;
 
-    // Number of components in a texture coordinate attribute
+    /**
+     * Number of components in a texture coordinate attribute
+     */
+    /*@Nonnegative*/
     static final int FLOATS_PER_COORD = 2;
 
-    // Total components in vertex
+    /**
+     * Total components in vertex.
+     */
+    /*@Nonnegative*/
     static final int FLOATS_PER_VERT = FLOATS_PER_POINT + FLOATS_PER_COORD;
 
-    // Size of a point attribute in bytes
+    /**
+     * Size of a point attribute in bytes.
+     */
+    /*@Nonnegative*/
     static final int BYTES_PER_POINT = FLOATS_PER_POINT * SIZEOF_FLOAT;
 
-    // Size of a texture coordinate attribute in bytes
+    /**
+     * Size of a texture coordinate attribute in bytes.
+     */
+    /*@Nonnegative*/
     static final int BYTES_PER_COORD = FLOATS_PER_COORD * SIZEOF_FLOAT;
 
-    // Total size of a vertex in bytes
+    /**
+     * Total size of a vertex in bytes.
+     */
+    /*@Nonnegative*/
     static final int BYTES_PER_VERT = BYTES_PER_POINT + BYTES_PER_COORD;
 
-    // Number of bytes before first point attribute in buffer
+    /**
+     * Number of bytes before first point attribute in buffer.
+     */
+    /*@Nonnegative*/
     static final int POINT_OFFSET = 0;
 
-    // Number of bytes before first texture coordinate in buffer
+    /**
+     * Number of bytes before first texture coordinate in buffer.
+     */
+    /*@Nonnegative*/
     static final int COORD_OFFSET = BYTES_PER_POINT;
 
-    // Number of bytes between successive values for the same attribute
+    /**
+     * Number of bytes between successive values for the same attribute.
+     */
+    /*@Nonnegative*/
     static final int STRIDE = BYTES_PER_POINT + BYTES_PER_COORD;
 
-    // Maximum buffer size in floats
+    /**
+     * Maximum buffer size in floats.
+     */
+    /*@Nonnegative*/
     final int FLOATS_PER_BUFFER;
 
-    // Maximum buffer size in bytes
+    /**
+     * Maximum buffer size in bytes.
+     */
+    /*@Nonnegative*/
     final int BYTES_PER_BUFFER;
 
-    // Number of vertices per primitive
+    /**
+     * Number of vertices per primitive.
+     */
+    /*@Nonnegative*/
     final int VERTS_PER_PRIM;
 
-    // Maximum buffer size in primitives
+    /**
+     * Maximum buffer size in primitives.
+     */
+    /*@Nonnegative*/
     final int PRIMS_PER_BUFFER;
 
-    // Maximum buffer size in vertices
+    /**
+     * Maximum buffer size in vertices.
+     */
+    /*@Nonnegative*/
     final int VERTS_PER_BUFFER;
 
-    // Size of a quad in vertices
+    /**
+     * Size of a quad in vertices.
+     */
+    /*@Nonnegative*/
     final int VERTS_PER_QUAD;
 
-    // Size of a quad in bytes
+    /**
+     * Size of a quad in bytes.
+     */
+    /*@Nonnegative*/
     final int BYTES_PER_QUAD;
 
-    // Size of a quad in primitives
+    /**
+     * Size of a quad in primitives.
+     */
+    /*@Nonnegative*/
     final int PRIMS_PER_QUAD;
 
-    // Observers of events
-    private final List<EventListener> listeners;
+    /**
+     * Observers of events.
+     */
+    /*@Nonnull*/
+    private final List<EventListener> listeners = new ArrayList<EventListener>();
 
-    // Buffer of vertices
+    /**
+     * Buffer of vertices.
+     */
+    /*@Nonnull*/
     private final FloatBuffer data;
 
-    // Number of outstanding quads in the buffer
-    private int size;
+    /**
+     * Number of outstanding quads in the buffer.
+     */
+    /*@Nonnegative*/
+    private int size = 0;
 
     /**
      * Constructs an abstract quad pipeline.
      *
      * @param vertsPerPrim Number of vertices per primitive
      * @param primsPerQuad Number of primitives per quad
-     * @throws AssertionError if vertices per primitive or primitives per quad is less than one
+     * @throws IllegalArgumentException if vertices or primitives is less than one
      */
-    AbstractQuadPipeline(final int vertsPerPrim, final int primsPerQuad) {
+    AbstractQuadPipeline(/*@Nonnegative*/ final int vertsPerPrim,
+                         /*@Nonnegative*/ final int primsPerQuad) {
 
-        assert (vertsPerPrim > 0);
-        assert (primsPerQuad > 0);
+        checkArgument(vertsPerPrim > 0, "Vertices is less than one");
+        checkArgument(primsPerQuad > 0, "Vertices is less than one");
 
         VERTS_PER_PRIM = vertsPerPrim;
         PRIMS_PER_QUAD = primsPerQuad;
@@ -281,129 +366,8 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
         BYTES_PER_BUFFER = BYTES_PER_VERT * VERTS_PER_BUFFER;
         BYTES_PER_QUAD = BYTES_PER_VERT * VERTS_PER_QUAD;
 
-        this.listeners = new LinkedList<EventListener>();
         this.data = Buffers.newDirectFloatBuffer(FLOATS_PER_BUFFER);
-        this.size = 0;
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws AssertionError {@inheritDoc}
-     */
-    @Override
-    public final void addListener(final EventListener listener) {
-        assert (listener != null);
-        listeners.add(listener);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     * @throws AssertionError {@inheritDoc}
-     */
-    @Override
-    public final void addQuad(final GL gl, final Quad quad) {
-        assert (quad != null);
-        doAddQuad(quad);
-        if (++size >= QUADS_PER_BUFFER) {
-            fireEvent(EventType.AUTOMATIC_FLUSH);
-            flush(gl);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    public void beginRendering(final GL gl) {
-        // pass
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    public void dispose(final GL gl) {
-        listeners.clear();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    public void endRendering(final GL gl) {
-        flush(gl);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    public final void flush(final GL gl) {
-        if (size > 0) {
-            doFlush(gl);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws AssertionError {@inheritDoc}
-     */
-    @Override
-    public final void removeListener(final EventListener listener) {
-        assert (listener != null);
-        listeners.remove(listener);
-    }
-
-    //-----------------------------------------------------------------
-    // Hooks
-    //
-
-    /**
-     * Actually adds vertices from a quad to the buffer.
-     *
-     * @param q Quad to add
-     * @throws AssertionError if quad is <tt>null</tt>
-     */
-    protected void doAddQuad(final Quad q) {
-        assert (q != null);
-        addPoint(q.xr, q.yt, q.z);
-        addCoord(q.sr, q.tt);
-        addPoint(q.xl, q.yt, q.z);
-        addCoord(q.sl, q.tt);
-        addPoint(q.xl, q.yb, q.z);
-        addCoord(q.sl, q.tb);
-        addPoint(q.xr, q.yb, q.z);
-        addCoord(q.sr, q.tb);
-    }
-
-    /**
-     * Actually draws everything in the pipeline.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws GLException if context is unexpected version
-     */
-    protected abstract void doFlush(final GL gl);
-
-    //------------------------------------------------------------------
-    // Helpers
-    //
 
     /**
      * Adds a texture coordinate to the pipeline.
@@ -426,6 +390,46 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
         data.put(x).put(y).put(z);
     }
 
+    @Override
+    public final void addListener(/*@Nonnull*/ final EventListener listener) {
+        checkNotNull(listener, "Listener cannot be null");
+        listeners.add(listener);
+    }
+
+    @Override
+    public final void addQuad(/*@Nonnull*/ final GL gl, /*@Nonnull*/ final Quad quad) {
+
+        checkNotNull(gl, "Context cannot be null");
+        checkNotNull(quad, "Quad cannot be null");
+
+        doAddQuad(quad);
+        if (++size >= QUADS_PER_BUFFER) {
+            fireEvent(EventType.AUTOMATIC_FLUSH);
+            flush(gl);
+        }
+    }
+
+    @Override
+    public void beginRendering(/*@Nonnull*/ final GL gl) {
+        // empty
+    }
+
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
+
     /**
      * Rewinds the buffer and resets the number of outstanding quads.
      */
@@ -437,31 +441,70 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
     /**
      * Creates a vertex buffer object for use with a pipeline.
      *
-     * @param gl2gl3 Current OpenGL context
+     * @param gl Current OpenGL context
      * @param size Size in bytes of buffer
      * @return OpenGL handle to vertex buffer object
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws AssertionError if size is negative
+     * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if size is negative
      */
-    protected static int createVertexBufferObject(final GL2GL3 gl2gl3, final int size) {
+    /*@Nonnegative*/
+    protected static int createVertexBufferObject(/*@Nonnull*/ final GL2GL3 gl,
+                                                  /*@Nonnegative*/ final int size) {
 
-        assert (size >= 0);
+        checkNotNull(gl, "Context cannot be null");
+        checkArgument(size >= 0, "Size cannot be negative");
 
         // Generate
         final int[] handles = new int[1];
-        gl2gl3.glGenBuffers(1, handles, 0);
+        gl.glGenBuffers(1, handles, 0);
         final int vbo = handles[0];
 
         // Allocate
-        gl2gl3.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, vbo);
-        gl2gl3.glBufferData(
+        gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, vbo);
+        gl.glBufferData(
                 GL2GL3.GL_ARRAY_BUFFER, // target
                 size,                   // size
                 null,                   // data
                 GL2GL3.GL_STREAM_DRAW); // usage
-        gl2gl3.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, 0);
+        gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, 0);
 
         return vbo;
+    }
+
+    @Override
+    public void dispose(/*@Nonnull*/ final GL gl) {
+        listeners.clear();
+    }
+
+    /**
+     * Actually adds vertices from a quad to the buffer.
+     *
+     * @param quad Quad to add
+     * @throws NullPointerException if quad is null
+     */
+    protected void doAddQuad(/*@Nonnull*/ final Quad quad) {
+        addPoint(quad.xr, quad.yt, quad.z);
+        addCoord(quad.sr, quad.tt);
+        addPoint(quad.xl, quad.yt, quad.z);
+        addCoord(quad.sl, quad.tt);
+        addPoint(quad.xl, quad.yb, quad.z);
+        addCoord(quad.sl, quad.tb);
+        addPoint(quad.xr, quad.yb, quad.z);
+        addCoord(quad.sr, quad.tb);
+    }
+
+    /**
+     * Actually draws everything in the pipeline.
+     *
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
+     */
+    protected abstract void doFlush(/*@Nonnull*/ final GL gl);
+
+    @Override
+    public void endRendering(/*@Nonnull*/ final GL gl) {
+        flush(gl);
     }
 
     /**
@@ -477,15 +520,78 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
         }
     }
 
+    @Override
+    public final void flush(/*@Nonnull*/ final GL gl) {
+        if (size > 0) {
+            doFlush(gl);
+        }
+    }
+
     /**
-     * Changes the data's position.
+     * Returns NIO buffer backing the pipeline.
+     */
+    /*@Nonnull*/
+    protected final FloatBuffer getData() {
+        return data;
+    }
+
+    /**
+     * Returns next float in the pipeline.
+     */
+    /*@CheckForSigned*/
+    protected final float getFloat() {
+        return data.get();
+    }
+
+    /*@Nonnegative*/
+    @Override
+    public final int getSize() {
+        return size;
+    }
+
+    @Override
+    public final boolean isEmpty() {
+        return size == 0;
+    }
+
+    /**
+     * Returns size of vertices in the pipeline in bytes.
+     */
+    /*@Nonnegative*/
+    public final int getSizeInBytes() {
+        return size * BYTES_PER_QUAD;
+    }
+
+    /**
+     * Returns number of primitives in the pipeline.
+     */
+    /*@Nonnegative*/
+    public final int getSizeInPrimitives() {
+        return size * PRIMS_PER_QUAD;
+    }
+
+    /**
+     * Returns number of vertices in the pipeline.
+     */
+    /*@Nonnegative*/
+    public final int getSizeInVertices() {
+        return size * VERTS_PER_QUAD;
+    }
+
+    /**
+     * Changes the buffer's position.
      *
      * @param index Location in buffer to move to
-     * @throws AssertionError if index is negative
      */
-    protected final void position(final int index) {
-        assert (index >= 0);
+    protected final void position(/*@Nonnegative*/ final int index) {
         data.position(index);
+    }
+
+    @Override
+    public final void removeListener(/*@CheckForNull*/ final EventListener listener) {
+        if (listener != null) {
+            listeners.remove(listener);
+        }
     }
 
     /**
@@ -494,82 +600,53 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
     protected final void rewind() {
         data.rewind();
     }
-
-    //-----------------------------------------------------------------
-    // Getters and setters
-    //
-
-    /**
-     * Returns NIO buffer backing the pipeline.
-     */
-    protected final FloatBuffer getData() {
-        return data;
-    }
-
-    /**
-     * Returns next float in the pipeline.
-     */
-    protected final float getFloat() {
-        return data.get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final int getSize() {
-        return size;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final boolean isEmpty() {
-        return (size == 0);
-    }
-
-    /**
-     * Returns size of vertices in the pipeline in bytes.
-     */
-    public final int getSizeInBytes() {
-        return size * BYTES_PER_QUAD;
-    }
-
-    /**
-     * Returns number of primitives in the pipeline.
-     */
-    public final int getSizeInPrimitives() {
-        return size * PRIMS_PER_QUAD;
-    }
-
-    /**
-     * Returns number of vertices in the pipeline.
-     */
-    public final int getSizeInVertices() {
-        return size * VERTS_PER_QUAD;
-    }
 }
 
 
 /**
  * Utility for creating quad pipelines.
  */
+/*ThreadSafe*/
 final class QuadPipelineFactory {
+
+    /**
+     * Prevents instantiation.
+     */
+    private QuadPipelineFactory() {
+        // pass
+    }
+
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
 
     /**
      * Creates a quad pipeline based on the current OpenGL context.
      *
      * @param gl Current OpenGL context
-     * @param program Shader program to use, or <tt>0</tt> to use default
-     * @return Correct quad pipeline for the version of OpenGL in use
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @param program Shader program to use, or zero to use default
+     * @return Correct quad pipeline for the version of OpenGL in use, not null
+     * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if shader program is negative
      * @throws UnsupportedOperationException if GL is unsupported
-     * @throws AssertionError if shader program is negative
      */
-    QuadPipeline createQuadPipeline(final GL gl, final int program) {
+    /*@Nonnull*/
+    QuadPipeline createQuadPipeline(/*@Nonnull*/ final GL gl, /*@Nonnegative*/ final int program) {
 
-        assert (program >= 0);
+        checkNotNull(gl, "Context cannot be null");
+        checkArgument(program >= 0, "Program cannot be negative");
 
         final GLProfile profile = gl.getGLProfile();
 
@@ -581,54 +658,45 @@ final class QuadPipelineFactory {
             if (gl2.isExtensionAvailable(GLExtensions.VERSION_1_5)) {
                 return new QuadPipelineGL15(gl2);
             } else if (gl2.isExtensionAvailable("GL_VERSION_1_1")) {
-                return new QuadPipelineGL11(gl2);
+                return new QuadPipelineGL11();
             } else {
-                return new QuadPipelineGL10(gl2);
+                return new QuadPipelineGL10();
             }
         } else {
-            throw new UnsupportedOperationException("Profile currently unsupported!");
+            throw new UnsupportedOperationException("Profile currently unsupported");
         }
-    }
-
-    /**
-     * Prevents instantiation.
-     */
-    private QuadPipelineFactory() {
-        // pass
     }
 }
 
 
 /**
- * Utility for drawing quads with <i>OpenGL 1.0</i>.
+ * {@link QuadPipeline} for use with OpenGL 1.0.
  */
+/*@NotThreadSafe*/
 final class QuadPipelineGL10 extends AbstractQuadPipeline {
 
-    // Number of vertices per primitive
+    /**
+     * Number of vertices per primitive.
+     */
+    /*@Nonnegative*/
     private static final int VERTS_PER_PRIM = 4;
 
-    // Number of primitives per quad
+    /**
+     * Number of primitives per quad.
+     */
+    /*@Nonnegative*/
     private static final int PRIMS_PER_QUAD = 1;
 
     /**
-     * Constructs a quad pipeline for OpenGL 1.0.
-     *
-     * @param gl2 Current OpenGL context
+     * Constructs a {@link QuadPipelineGL10}.
      */
-    QuadPipelineGL10(final GL2 gl2) {
+    QuadPipelineGL10() {
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doFlush(final GL gl) {
+    protected void doFlush(/*@Nonnull*/ final GL gl) {
 
-        // Get an OpenGL context
         final GL2 gl2 = gl.getGL2();
 
         gl2.glBegin(GL2.GL_QUADS);
@@ -652,28 +720,39 @@ final class QuadPipelineGL10 extends AbstractQuadPipeline {
 
 
 /**
- * Utility for drawing quads for <i>OpenGL 1.1</i>.
+ * {@link QuadPipeline} for use with OpenGL 1.1.
  */
+/*@NotThreadSafe*/
 final class QuadPipelineGL11 extends AbstractQuadPipeline {
 
-    // Number of vertices per primitive
+    /**
+     * Number of vertices per primitive.
+     */
+    /*@Nonnegative*/
     private static final int VERTS_PER_PRIM = 4;
 
-    // Number of primitives per quad
+    /**
+     * Number of primitives per quad.
+     */
+    /*@Nonnegative*/
     private static final int PRIMS_PER_QUAD = 1;
 
-    // Vertex array for points
+    /**
+     * Vertex array for points.
+     */
+    /*@Nonnull*/
     private final FloatBuffer pointsArray;
 
-    // Vertex array for texture coordinates
+    /**
+     * Vertex array for texture coordinates.
+     */
+    /*@Nonnull*/
     private final FloatBuffer coordsArray;
 
     /**
-     * Constructs a quad pipeline for OpenGL 1.1.
-     *
-     * @param gl2 Current OpenGL context
+     * Constructs a {@link QuadPipelineGL11}.
      */
-    QuadPipelineGL11(final GL2 gl2) {
+    QuadPipelineGL11() {
 
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
 
@@ -681,18 +760,11 @@ final class QuadPipelineGL11 extends AbstractQuadPipeline {
         coordsArray = createFloatBufferView(getData(), COORD_OFFSET);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    public void beginRendering(final GL gl) {
+    public void beginRendering(/*@Nonnull*/ final GL gl) {
 
         super.beginRendering(gl);
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Push state
@@ -715,46 +787,21 @@ final class QuadPipelineGL11 extends AbstractQuadPipeline {
                 coordsArray);       // pointer
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    protected void doFlush(final GL gl) {
-
-        // Get an OpenGL 2 context
-        final GL2 gl2 = gl.getGL2();
-
-        gl2.glDrawArrays(
-                GL2.GL_QUADS,         // mode
-                0,                    // first
-                getSizeInVertices()); // count
-        clear();
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    public void endRendering(final GL gl) {
-
-        super.endRendering(gl);
-
-        // Get an OpenGL 2 context
-        final GL2 gl2 = gl.getGL2();
-
-        // Pop state
-        gl2.glPopClientAttrib();
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
     }
-
-    //-----------------------------------------------------------------
-    // Helpers
-    //
 
     /**
      * Makes a view of a float buffer at a certain position.
@@ -762,12 +809,15 @@ final class QuadPipelineGL11 extends AbstractQuadPipeline {
      * @param fb Original float buffer
      * @param position Index to start view at
      * @return Resulting float buffer
-     * @throws AssertionError if float buffer is <tt>null</tt>, or position is negative
+     * @throws NullPointerException if float buffer is null
+     * @throws IllegalArgumentException if position is negative
      */
-    private static FloatBuffer createFloatBufferView(final FloatBuffer fb, final int position) {
+    /*@Nonnull*/
+    private static FloatBuffer createFloatBufferView(/*@Nonnull*/ final FloatBuffer fb,
+                                                     /*@Nonnegative*/ final int position) {
 
-        assert (fb != null);
-        assert (position >= 0);
+        checkNotNull(fb, "Buffer cannot be null");
+        checkArgument(position >= 0, "Possition cannot be negative");
 
         // Store original position
         final int original = fb.position();
@@ -781,48 +831,74 @@ final class QuadPipelineGL11 extends AbstractQuadPipeline {
 
         return view;
     }
+
+    @Override
+    protected void doFlush(/*@Nonnull*/ final GL gl) {
+
+        final GL2 gl2 = gl.getGL2();
+
+        gl2.glDrawArrays(
+                GL2.GL_QUADS,         // mode
+                0,                    // first
+                getSizeInVertices()); // count
+        clear();
+    }
+
+    @Override
+    public void endRendering(/*@Nonnull*/ final GL gl) {
+
+        super.endRendering(gl);
+
+        final GL2 gl2 = gl.getGL2();
+
+        // Pop state
+        gl2.glPopClientAttrib();
+    }
 }
 
 
 /**
- * Utility for drawing quads for <i>OpenGL 1.5</i>.
+ * {@link QuadPipeline} for use with OpenGL 1.5.
  */
+/*@NotThreadSafe*/
 final class QuadPipelineGL15 extends AbstractQuadPipeline {
 
-    // Number of vertices per primitive
+    /**
+     * Number of vertices per primitive.
+     */
+    /*@Nonnegative*/
     private static final int VERTS_PER_PRIM = 4;
 
-    // Number of primitives per quad
+    /**
+     * Number of primitives per quad.
+     */
+    /*@Nonnegative*/
     private static final int PRIMS_PER_QUAD = 1;
 
-    // OpenGL handle to vertex buffer
+    /**
+     * OpenGL handle to vertex buffer.
+     */
+    /*@Nonnegative*/
     private final int vbo;
 
     /**
-     * Constructs a quad pipeline for OpenGL 1.5.
+     * Constructs a {@link QuadPipelineGL15}.
      *
      * @param gl2 Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      */
-    QuadPipelineGL15(final GL2 gl2) {
+    QuadPipelineGL15(/*@Nonnull*/ final GL2 gl2) {
 
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
 
         this.vbo = createVertexBufferObject(gl2, BYTES_PER_BUFFER);
     }
 
-    /**
-     * Starts a render cycle.
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    public void beginRendering(final GL gl) {
+    public void beginRendering(/*@Nonnull*/ final GL gl) {
 
         super.beginRendering(gl);
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Change state
@@ -846,18 +922,11 @@ final class QuadPipelineGL15 extends AbstractQuadPipeline {
                 COORD_OFFSET);      // offset
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    public void dispose(final GL gl) {
+    public void dispose(/*@Nonnull*/ final GL gl) {
 
         super.dispose(gl);
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Delete the vertex buffer object
@@ -865,16 +934,9 @@ final class QuadPipelineGL15 extends AbstractQuadPipeline {
         gl2.glDeleteBuffers(1, handles, 0);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    protected void doFlush(final GL gl) {
+    protected void doFlush(/*@Nonnull*/ final GL gl) {
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Upload data
@@ -890,21 +952,15 @@ final class QuadPipelineGL15 extends AbstractQuadPipeline {
                 GL2.GL_QUADS,         // mode
                 0,                    // first
                 getSizeInVertices()); // count
+
         clear();
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    public void endRendering(final GL gl) {
+    public void endRendering(/*@Nonnull*/ final GL gl) {
 
         super.endRendering(gl);
 
-        // Get an OpenGL 2 context
         final GL2 gl2 = gl.getGL2();
 
         // Restore state
@@ -915,70 +971,81 @@ final class QuadPipelineGL15 extends AbstractQuadPipeline {
 
 
 /**
- * Utility for drawing quads in <i>OpenGL 3</i>.
+ * {@link QuadPipeline} for use with OpenGL 3.
  *
- * <p><i>QuadPipelineGL30</i> draws quads using OpenGL 3 features.  It
- * uses a Vertex Buffer Object to store vertices in graphics memory and
- * a Vertex Array Object to quickly switch which vertex attributes are
- * enabled.
+ * <p>
+ * {@code QuadPipelineGL30} draws quads using OpenGL 3 features.  It uses a Vertex Buffer Object to
+ * store vertices in graphics memory and a Vertex Array Object to quickly switch which vertex
+ * attributes are enabled.
  *
- * <p>Since <tt>GL_QUAD</tt> has been deprecated in OpenGL 3, this
- * implementation uses two triangles to represent one quad.  An
- * alternative implementation using one <tt>GL_FAN</tt> per quad was
- * also tested, but proved slower in most cases.  Apparently the
- * penalty imposed by the extra work required by the driver outweighed
- * the benefit of transferring less vertices.
+ * <p>
+ * Since {@code GL_QUAD} has been deprecated in OpenGL 3, this implementation uses two triangles to
+ * represent one quad.  An alternative implementation using one {@code GL_FAN} per quad was also
+ * tested, but proved slower in most cases.  Apparently the penalty imposed by the extra work
+ * required by the driver outweighed the benefit of transferring less vertices.
  */
+/*@NotThreadSafe*/
 final class QuadPipelineGL30 extends AbstractQuadPipeline {
 
-    // Name of point attribute in shader program
+    /**
+     * Name of point attribute in shader program.
+     */
+    /*@Nonnull*/
     private static final String POINT_ATTRIB_NAME = "MCVertex";
 
-    // Name of texture coordinate attribute in shader program
+    /**
+     * Name of texture coordinate attribute in shader program.
+     */
+    /*@Nonnull*/
     private static final String COORD_ATTRIB_NAME = "TexCoord0";
 
-    // Number of vertices per primitive
+    /**
+     * Number of vertices per primitive.
+     */
+    /*@Nonnegative*/
     private static final int VERTS_PER_PRIM = 3;
 
-    // Number of primitives per quad
+    /**
+     * Number of primitives per quad.
+     */
+    /*@Nonnegative*/
     private static final int PRIMS_PER_QUAD = 2;
 
-    // Vertex Buffer Object with vertex data
+    /**
+     * Vertex Buffer Object with vertex data.
+     */
+    /*@Nonnegative*/
     private final int vbo;
 
-    // Vertex Array Object with vertex attribute state
+    /**
+     * Vertex Array Object with vertex attribute state.
+     */
+    /*@Nonnegative*/
     private final int vao;
 
     /**
-     * Constructs a quad pipeline for OpenGL 3.
+     * Constructs a {@link QuadPipelineGL30}.
      *
-     * @param gl3 Current OpenGL context
+     * @param gl Current OpenGL context
      * @param shaderProgram Shader program to render quads with
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws AssertionError if shader program is less than one
+     * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if shader program is less than one
      */
-    QuadPipelineGL30(final GL3 gl3, final int shaderProgram) {
+    QuadPipelineGL30(/*@Nonnull*/ final GL3 gl, /*@Nonnegative*/ final int shaderProgram) {
 
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
 
-        assert (shaderProgram > 0);
+        checkArgument(shaderProgram > 0, "Shader program cannot be less than one");
 
-        this.vbo = createVertexBufferObject(gl3, BYTES_PER_BUFFER);
-        this.vao = createVertexArrayObject(gl3, shaderProgram, vbo);
+        this.vbo = createVertexBufferObject(gl, BYTES_PER_BUFFER);
+        this.vao = createVertexArrayObject(gl, shaderProgram, vbo);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
     @Override
-    public void beginRendering(final GL gl) {
+    public void beginRendering(/*@Nonnull*/ final GL gl) {
 
         super.beginRendering(gl);
 
-        // Get an OpenGL 3 context
         final GL3 gl3 = gl.getGL3();
 
         // Bind the VBO and VAO
@@ -986,105 +1053,12 @@ final class QuadPipelineGL30 extends AbstractQuadPipeline {
         gl3.glBindVertexArray(vao);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    public void dispose(final GL gl) {
-
-        super.dispose(gl);
-
-        // Get an OpenGL 3 context
-        final GL3 gl3 = gl.getGL3();
-
-        // Delete VBO and VAO
-        final int[] handles = new int[1];
-        handles[0] = vbo;
-        gl3.glDeleteBuffers(1, handles, 0);
-        handles[0] = vao;
-        gl3.glDeleteVertexArrays(1, handles, 0);
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws AssertionError {@inheritDoc}
-     */
-    @Override
-    protected void doAddQuad(final Quad q) {
-
-        assert (q != null);
-
-        // Add upper-left triangle
-        addPoint(q.xr, q.yt, q.z);
-        addCoord(q.sr, q.tt);
-        addPoint(q.xl, q.yt, q.z);
-        addCoord(q.sl, q.tt);
-        addPoint(q.xl, q.yb, q.z);
-        addCoord(q.sl, q.tb);
-
-        // Add lower-right triangle
-        addPoint(q.xr, q.yt, q.z);
-        addCoord(q.sr, q.tt);
-        addPoint(q.xl, q.yb, q.z);
-        addCoord(q.sl, q.tb);
-        addPoint(q.xr, q.yb, q.z);
-        addCoord(q.sr, q.tb);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    protected void doFlush(final GL gl) {
-
-        // Get an OpenGL 3 context
-        final GL3 gl3 = gl.getGL3();
-
-        // Upload data
-        rewind();
-        gl3.glBufferSubData(
-                GL3.GL_ARRAY_BUFFER, // target
-                0,                   // offset
-                getSizeInBytes(),    // size
-                getData());          // data
-
-        // Draw
-        gl3.glDrawArrays(
-                GL3.GL_TRIANGLES,     // mode
-                0,                    // first
-                getSizeInVertices()); // count
-        clear();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     * @throws GLException {@inheritDoc}
-     */
-    @Override
-    public void endRendering(final GL gl) {
-
-        super.endRendering(gl);
-
-        // Get an OpenGL 3 context
-        final GL3 gl3 = gl.getGL3();
-
-        // Unbind the VBO and VAO
-        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
-        gl3.glBindVertexArray(0);
-    }
-
-    //------------------------------------------------------------------
-    // Helpers
-    //
 
     /**
      * Creates a vertex array object for use with the pipeline.
@@ -1093,14 +1067,17 @@ final class QuadPipelineGL30 extends AbstractQuadPipeline {
      * @param program OpenGL handle to the shader program
      * @param vbo OpenGL handle to VBO holding vertices
      * @return OpenGL handle to resulting VAO
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws AssertionError if program or VBO handle is less than one
+     * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if program or VBO handle is less than one
      * @throws IllegalStateException if could not find attribute locations in program
      */
-    private static int createVertexArrayObject(final GL3 gl3, final int program, final int vbo) {
+    /*@Nonnegative*/
+    private static int createVertexArrayObject(/*@Nonnull*/ final GL3 gl3,
+                                               /*@Nonnegative*/ final int program,
+                                               /*@Nonnegative*/ final int vbo) {
 
-        assert (program > 0);
-        assert (vbo > 0);
+        checkArgument(program > 0, "Shader Program cannot be less than one");
+        checkArgument(vbo > 0, "Vertex Buffer Object cannot be less than one");
 
         // Generate
         final int[] handles = new int[1];
@@ -1144,5 +1121,73 @@ final class QuadPipelineGL30 extends AbstractQuadPipeline {
         gl3.glBindVertexArray(0);
 
         return vao;
+    }
+
+    @Override
+    public void dispose(/*@Nonnull*/ final GL gl) {
+
+        super.dispose(gl);
+
+        final GL3 gl3 = gl.getGL3();
+
+        // Delete VBO and VAO
+        final int[] handles = new int[1];
+        handles[0] = vbo;
+        gl3.glDeleteBuffers(1, handles, 0);
+        handles[0] = vao;
+        gl3.glDeleteVertexArrays(1, handles, 0);
+    }
+
+    @Override
+    protected void doAddQuad(/*@Nonnull*/ final Quad quad) {
+
+        // Add upper-left triangle
+        addPoint(quad.xr, quad.yt, quad.z);
+        addCoord(quad.sr, quad.tt);
+        addPoint(quad.xl, quad.yt, quad.z);
+        addCoord(quad.sl, quad.tt);
+        addPoint(quad.xl, quad.yb, quad.z);
+        addCoord(quad.sl, quad.tb);
+
+        // Add lower-right triangle
+        addPoint(quad.xr, quad.yt, quad.z);
+        addCoord(quad.sr, quad.tt);
+        addPoint(quad.xl, quad.yb, quad.z);
+        addCoord(quad.sl, quad.tb);
+        addPoint(quad.xr, quad.yb, quad.z);
+        addCoord(quad.sr, quad.tb);
+    }
+
+    @Override
+    protected void doFlush(/*@Nonnull*/ final GL gl) {
+
+        final GL3 gl3 = gl.getGL3();
+
+        // Upload data
+        rewind();
+        gl3.glBufferSubData(
+                GL3.GL_ARRAY_BUFFER, // target
+                0,                   // offset
+                getSizeInBytes(),    // size
+                getData());          // data
+
+        // Draw
+        gl3.glDrawArrays(
+                GL3.GL_TRIANGLES,     // mode
+                0,                    // first
+                getSizeInVertices()); // count
+        clear();
+    }
+
+    @Override
+    public void endRendering(/*@Nonnull*/ final GL gl) {
+
+        super.endRendering(gl);
+
+        final GL3 gl3 = gl.getGL3();
+
+        // Unbind the VBO and VAO
+        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+        gl3.glBindVertexArray(0);
     }
 }

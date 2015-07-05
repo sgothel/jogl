@@ -66,38 +66,52 @@ interface GlyphProducer {
      *
      * @param str Text as a string
      * @return View of glyphs valid until next call
-     * @throws NullPointerException if string is <tt>null</tt>
+     * @throws NullPointerException if string is null
      */
-    List<Glyph> createGlyphs(String str);
+    /*@Nonnull*/
+    List<Glyph> createGlyphs(/*@Nonnull*/ String str);
 
     /**
      * Determines the distance to the next character after a glyph.
      *
      * @param c Character to find advance of
+     * @return Distance to the next character after a glyph, which may be negative
      */
+    /*@CheckForSigned*/
     float findAdvance(char c);
 
     /**
      * Determines the visual bounds of a string with padding added.
      *
      * @param str Text to find visual bounds of
-     * @throws NullPointerException if string is <tt>null</tt>
+     * @return Visual bounds of string with padding added, not null
+     * @throws NullPointerException if string is null
      */
-    Rectangle2D findBounds(String str);
+    /*@Nonnull*/
+    Rectangle2D findBounds(/*@Nonnull*/ String str);
 
     /**
      * Deletes a single stored glyph.
      *
-     * @param glyph Previously created glyph
+     * @param glyph Previously created glyph, ignored if null
      */
-    void removeGlyph(Glyph glyph);
+    void removeGlyph(/*@CheckForNull*/ Glyph glyph);
 }
 
 
+// TODO: Rename to `GlyphProducers`?
 /**
  * Utility for creating glyph producers.
  */
-class GlyphProducerFactory {
+/*@ThreadSafe*/
+final class GlyphProducerFactory {
+
+    /**
+     * Prevents instantiation.
+     */
+    private GlyphProducerFactory() {
+        // empty
+    }
 
     /**
      * Creates correct glyph producer for a subset of Unicode.
@@ -106,13 +120,14 @@ class GlyphProducerFactory {
      * @param rd Controller of rendering details
      * @param frc Details on how fonts are rendered
      * @param ub Range of characters to support
-     * @return Correct glyph producer for unicode block
+     * @return Correct glyph producer for unicode block, not null
      * @throws UnsupportedOperationException if unicode block unsupported
      */
-    static GlyphProducer createGlyphProducer(final Font font,
-                                             final RenderDelegate rd,
-                                             final FontRenderContext frc,
-                                             final UnicodeBlock ub) {
+    /*@Nonnull*/
+    static GlyphProducer createGlyphProducer(/*@Nonnull*/ final Font font,
+                                             /*@Nonnull*/ final RenderDelegate rd,
+                                             /*@Nonnull*/ final FontRenderContext frc,
+                                             /*@CheckForNull*/ final UnicodeBlock ub) {
         if (ub == null) {
             return new UnicodeGlyphProducer(font, rd, frc);
         } else if (ub == UnicodeBlock.BASIC_LATIN) {
@@ -120,13 +135,6 @@ class GlyphProducerFactory {
         } else {
             throw new UnsupportedOperationException("Unicode block unsupported!");
         }
-    }
-
-    /**
-     * Prevents instantiation.
-     */
-    private GlyphProducerFactory() {
-        // pass
     }
 }
 
@@ -136,26 +144,47 @@ class GlyphProducerFactory {
  */
 abstract class AbstractGlyphProducer implements GlyphProducer {
 
-    // Reusable array
-    private final char[] character;
+    /**
+     * Reusable array for creating glyph vectors for a single character.
+     */
+    /*@Nonnull*/
+    private final char[] characters = new char[1];
 
-    // Font glyphs made from
+    /**
+     * Font glyphs made from.
+     */
+    /*@Nonnull*/
     private final Font font;
 
-    // Rendering controller
+    /**
+     * Rendering controller.
+     */
+    /*@Nonnull*/
     private final RenderDelegate renderDelegate;
 
-    // Font render details
+    /**
+     * Font render details.
+     */
+    /*@Nonnull*/
     private final FontRenderContext fontRenderContext;
 
-    // Cached glyph vectors
-    private final Map<String,GlyphVector> glyphVectors;
+    /**
+     * Cached glyph vectors.
+     */
+    /*@Nonnull*/
+    private final Map<String, GlyphVector> glyphVectors = new HashMap<String, GlyphVector>();
 
-    // Returned glyphs
-    private final List<Glyph> output;
+    /**
+     * Returned glyphs.
+     */
+    /*@Nonnull*/
+    private final List<Glyph> output = new ArrayList<Glyph>();
 
-    // View of glyphs
-    private final List<Glyph> outputView;
+    /**
+     * View of glyphs.
+     */
+    /*@Nonnull*/
+    private final List<Glyph> outputView = Collections.unmodifiableList(output);
 
     /**
      * Constructs an abstract glyph producer.
@@ -163,85 +192,44 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * @param font Font glyphs will be made from
      * @param rd Object for controlling rendering
      * @param frc Details on how to render fonts
-     * @throws AssertionError if font, render delegate, or font render context is <tt>null</tt>
+     * @throws NullPointerException if font, render delegate, or font render context is null
      */
-    AbstractGlyphProducer(final Font font, final RenderDelegate rd, final FontRenderContext frc) {
+    AbstractGlyphProducer(/*@Nonnull*/ final Font font,
+                          /*@Nonnull*/ final RenderDelegate rd,
+                          /*@Nonnull*/ final FontRenderContext frc) {
 
-        assert (font != null);
-        assert (rd != null);
-        assert (frc != null);
+        checkNotNull(font, "Font cannot be null");
+        checkNotNull(rd, "Render delegate cannot be null");
+        checkNotNull(frc, "Font render context cannot be null");
 
         this.font = font;
         this.renderDelegate = rd;
         this.fontRenderContext = frc;
-        this.character = new char[1];
-        this.glyphVectors = new HashMap<String,GlyphVector>();
-        this.output = new ArrayList<Glyph>();
-        this.outputView = Collections.unmodifiableList(output);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final float findAdvance(final char c) {
-
-        // Check producer's inventory first
-        final Glyph glyph = createGlyph(c);
-        if (glyph != null) {
-            return glyph.advance;
-        }
-
-        // Otherwise create the glyph vector
-        final GlyphVector gv = createGlyphVector(c);
-        final GlyphMetrics gm = gv.getGlyphMetrics(0);
-        return gm.getAdvance();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     */
-    @Override
-    public final Rectangle2D findBounds(final String str) {
-
-        final List<Glyph> glyphs = createGlyphs(str);
-
-        // Check if already computed bounds
-        if (glyphs.size() == 1) {
-            final Glyph glyph = glyphs.get(0);
-            return glyph.bounds;
-        }
-
-        // Otherwise just recompute it
-        return addPaddingTo(renderDelegate.getBounds(str, font, fontRenderContext));
-    }
-
-    //-----------------------------------------------------------------
-    // Helpers
-    //
 
     /**
      * Adds outer space around a rectangle.
      *
-     * <p>Formally normalize().
+     * <p>
+     * This method was formally called "normalize."
      *
-     * <p>Give ourselves a boundary around each entity on the backing store in
-     * order to prevent bleeding of nearby Strings due to the fact that we use
-     * linear filtering
+     * <p>
+     * Give ourselves a boundary around each entity on the backing store in order to prevent
+     * bleeding of nearby Strings due to the fact that we use linear filtering
      *
-     * <p>NOTE that this boundary is quite heuristic and is related to how far
-     * away in 3D we may view the text -- heuristically, 1.5% of the font's
-     * height.
+     * <p>
+     * Note that this boundary is quite heuristic and is related to how far away in 3D we may view
+     * the text -- heuristically, 1.5% of the font's height.
      *
      * @param src Original rectangle
      * @param font Font being used to create glyphs
      * @return Rectangle with margin added
-     * @throws NullPointerException if rectangle is <tt>null</tt>
-     * @throws NullPointerException if font is <tt>null</tt>
+     * @throws NullPointerException if rectangle is null
+     * @throws NullPointerException if font is null
      */
-    private static Rectangle2D addMarginTo(final Rectangle2D src, final Font font) {
+    /*@Nonnull*/
+    private static Rectangle2D addMarginTo(/*@Nonnull*/ final Rectangle2D src,
+                                           /*@Nonnull*/ final Font font) {
 
         final int boundary = (int) Math.max(1, 0.015 * font.getSize());
         final int x = (int) Math.floor(src.getMinX() - boundary);
@@ -255,19 +243,22 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
     /**
      * Adds inner space to a rectangle.
      *
-     * <p>Formally preNormalize().
+     * <p>
+     * This method was formally called "preNormalize."
      *
-     * <p>Need to round to integer coordinates.
+     * <p>
+     * Need to round to integer coordinates.
      *
-     * <p>Also give ourselves a little slop around the reported bounds of
-     * glyphs because it looks like neither the visual nor the pixel bounds
-     * works perfectly well.
+     * <p>
+     * Also give ourselves a little slop around the reported bounds of glyphs because it looks like
+     * neither the visual nor the pixel bounds works perfectly well.
      *
      * @param src Original rectangle
      * @return Rectangle with padding added
-     * @throws NullPointerException if rectangle is <tt>null</tt>
+     * @throws NullPointerException if rectangle is null
      */
-    private static Rectangle2D addPaddingTo(final Rectangle2D src) {
+    /*@Nonnull*/
+    private static Rectangle2D addPaddingTo(/*@Nonnull*/ final Rectangle2D src) {
 
         final int minX = (int) Math.floor(src.getMinX()) - 1;
         final int minY = (int) Math.floor(src.getMinY()) - 1;
@@ -281,11 +272,20 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * Adds a glyph to the reusable list for output.
      *
      * @param glyph Glyph to add to output
-     * @throws AssertionError if glyph is <tt>null</tt>
+     * @throws NullPointerException if glyph is null
      */
-    protected final void addToOutput(final Glyph glyph) {
-        assert (glyph != null);
+    protected final void addToOutput(/*@Nonnull*/ final Glyph glyph) {
+        checkNotNull(glyph, "Glyph cannot be null");
         output.add(glyph);
+    }
+
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
     }
 
     /**
@@ -299,11 +299,12 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * Makes a glyph vector for a character.
      *
      * @param c Character to create glyph vector from
-     * @return Glyph vector for the character
+     * @return Glyph vector for the character, not null
      */
+    /*@Nonnull*/
     protected final GlyphVector createGlyphVector(final char c) {
-        character[0] = c;
-        return font.createGlyphVector(fontRenderContext, character);
+        characters[0] = c;
+        return font.createGlyphVector(fontRenderContext, characters);
     }
 
     /**
@@ -312,10 +313,11 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * @param font Style of text
      * @param frc Details on how to render font
      * @param str Text as a string
-     * @return Glyph vector for the string
-     * @throws NullPointerException if string is <tt>null</tt>
+     * @return Glyph vector for the string, not null
+     * @throws NullPointerException if string is null
      */
-    protected final GlyphVector createGlyphVector(final String str) {
+    /*@Nonnull*/
+    protected final GlyphVector createGlyphVector(/*@Nonnull*/ final String str) {
 
         GlyphVector gv = glyphVectors.get(str);
 
@@ -332,53 +334,105 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
         return gv;
     }
 
+    /*@CheckForSigned*/
+    @Override
+    public final float findAdvance(final char c) {
+
+        // Check producer's inventory first
+        final Glyph glyph = createGlyph(c);
+        if (glyph != null) {
+            return glyph.advance;
+        }
+
+        // Otherwise create the glyph vector
+        final GlyphVector gv = createGlyphVector(c);
+        final GlyphMetrics gm = gv.getGlyphMetrics(0);
+        return gm.getAdvance();
+    }
+
+    /*@Nonnull*/
+    @Override
+    public final Rectangle2D findBounds(/*@Nonnull*/ final String str) {
+
+        final List<Glyph> glyphs = createGlyphs(str);
+
+        // Check if already computed bounds
+        if (glyphs.size() == 1) {
+            final Glyph glyph = glyphs.get(0);
+            return glyph.bounds;
+        }
+
+        // Otherwise just recompute it
+        return addPaddingTo(renderDelegate.getBounds(str, font, fontRenderContext));
+    }
+
+    /**
+     * Returns the font used to create glyphs.
+     *
+     * @return Font used to create glyphs, not null
+     */
+    /*@Nonnull*/
+    protected final Font getFont() {
+        return font;
+    }
+
+    /**
+     * Returns a read-only view of this producer's reusable list for output.
+     *
+     * @return Read-only view of reusable list, not null
+     */
+    /*@Nonnull*/
+    protected final List<Glyph> getOutput() {
+        return outputView;
+    }
+
     /**
      * Checks if any characters in a string require full layout.
      *
-     * <p>The process of creating and laying out glyph vectors is relatively
-     * complex and can slow down text rendering significantly.  This method is
-     * intended to increase performance by not creating glyph vectors for
-     * strings with characters that can be treated independently.
+     * <p>
+     * The process of creating and laying out glyph vectors is relatively complex and can slow down
+     * text rendering significantly.  This method is intended to increase performance by not
+     * creating glyph vectors for strings with characters that can be treated independently.
      *
-     * <p>Currently the decision is very simple.  It just treats any characters
-     * above the <i>IPA Extensions</i> block as complex.  This is convenient
-     * because most Latin characters are treated as simple but <i>Spacing
-     * Modifier Letters</i> and <i>Combining Diacritical Marks</i> are not.
-     * Ideally it would also be nice to have a few other blocks included,
-     * especially <i>Greek</i> and maybe symbols, but that is perhaps best left
-     * for later work.
+     * <p>
+     * Currently the decision is very simple.  It just treats any characters above the <i>IPA
+     * Extensions</i> block as complex.  This is convenient because most Latin characters are
+     * treated as simple but <i>Spacing Modifier Letters</i> and <i>Combining Diacritical Marks</i>
+     * are not.  Ideally it would also be nice to have a few other blocks included, especially
+     * <i>Greek</i> and maybe symbols, but that is perhaps best left for later work.
      *
-     * <p>A truly correct implementation may require a lot of research or
-     * developers with more experience in the area.  However, the following
-     * Unicode blocks are known to require full layout in some form:
+     * <p>
+     * A truly correct implementation may require a lot of research or developers with more
+     * experience in the area.  However, the following Unicode blocks are known to require full
+     * layout in some form:
      *
      * <ul>
-     *   <li>Spacing Modifier Letters (02B0-02FF)</li>
-     *   <li>Combining Diacritical Marks (0300-036F)</li>
-     *   <li>Hebrew (0590-05FF)</li>
-     *   <li>Arabic (0600-06FF)</li>
-     *   <li>Arabic Supplement (0750-077F)</li>
-     *   <li>Combining Diacritical Marks Supplement (1DC0-1FFF)</li>
-     *   <li>Combining Diacritical Marks for Symbols (20D0-20FF)</li>
-     *   <li>Arabic Presentation Forms-A (FB50–FDFF)</li>
-     *   <li>Combining Half Marks (FE20–FE2F)</li>
-     *   <li>Arabic Presentation Forms-B (FE70–FEFF)</li>
+     * <li>Spacing Modifier Letters (02B0-02FF)
+     * <li>Combining Diacritical Marks (0300-036F)
+     * <li>Hebrew (0590-05FF)
+     * <li>Arabic (0600-06FF)
+     * <li>Arabic Supplement (0750-077F)
+     * <li>Combining Diacritical Marks Supplement (1DC0-1FFF)
+     * <li>Combining Diacritical Marks for Symbols (20D0-20FF)
+     * <li>Arabic Presentation Forms-A (FB50–FDFF)
+     * <li>Combining Half Marks (FE20–FE2F)
+     * <li>Arabic Presentation Forms-B (FE70–FEFF)
      * </ul>
      *
-     * <p>Asian scripts will also have letters that combine together, but it
-     * appears that the input method may take care of that so it may not be
-     * necessary to check for them here.
+     * <p>
+     * Asian scripts will also have letters that combine together, but it appears that the input
+     * method may take care of that so it may not be necessary to check for them here.
      *
-     * <p>Finally, it should be noted that even Latin has characters that can
-     * combine into glyphs called ligatures.  The classic example is an 'f' and
-     * an 'i'.  Java however will not make the replacements itself so we do not
-     * need to consider that here.
+     * <p>
+     * Finally, it should be noted that even Latin has characters that can combine into glyphs
+     * called ligatures.  The classic example is an 'f' and an 'i'.  Java however will not make the
+     * replacements itself so we do not need to consider that here.
      *
      * @param str Text of unknown character types
-     * @return <tt>true</tt> if a complex character is found
-     * @throws NullPointerException if string is <tt>null</tt>
+     * @return True if a complex character is found
+     * @throws NullPointerException if string is null
      */
-    protected static boolean hasComplexCharacters(final String str) {
+    protected static boolean hasComplexCharacters(/*@Nonnull*/ final String str) {
         final int len = str.length();
         for (int i = 0; i < len; ++i) {
             if (str.charAt(i) > 0x2AE) {
@@ -389,103 +443,88 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
     }
 
     /**
-     * Measures a glyph.
-     *
-     * <p>Sets all the measurements in a glyph after it's created.
-     *
-     * @param glyph Visual representation of a character
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    protected final void measure(final Glyph glyph) {
-
-        // Compute visual boundary
-        final Rectangle2D visBox;
-        if (glyph.str != null) {
-            visBox = renderDelegate.getBounds(glyph.str, font, fontRenderContext);
-        } else {
-            visBox = renderDelegate.getBounds(glyph.glyphVector, fontRenderContext);
-        }
-
-        // Compute rectangles
-        final Rectangle2D padBox = addPaddingTo(visBox);
-        final Rectangle2D marBox = addMarginTo(padBox, font);
-
-        // Set parameters
-        glyph.padding = new Glyph.Boundary(padBox, visBox);
-        glyph.margin = new Glyph.Boundary(marBox, padBox);
-        glyph.width = (float) padBox.getWidth();
-        glyph.height = (float) padBox.getHeight();
-        glyph.ascent = (float) padBox.getMinY() * -1;
-        glyph.descent = (float) padBox.getMaxY();
-        glyph.kerning = (float) padBox.getMinX();
-        glyph.bounds = padBox;
-    }
-
-    /**
      * Checks if a glyph vector is complex.
      *
-     * @param gv Glyph vector to check
-     * @return <tt>true</tt> if glyph vector is complex
-     * @throws NullPointerException if glyph vector is <tt>null</tt>
+     * @param gv Glyph vector to check, which may be null
+     * @return True if glyph vector is complex
      */
-    protected static boolean isComplex(final GlyphVector gv) {
+    protected static boolean isComplex(/*@CheckForNull*/ final GlyphVector gv) {
+
+        if (gv == null) {
+            return false;
+        }
+
         return gv.getLayoutFlags() != 0;
     }
 
-    //-----------------------------------------------------------------
-    // Getters
-    //
-
     /**
-     * Returns font used to create glyphs.
+     * Measures a glyph.
+     *
+     * <p>
+     * Sets all the measurements in a glyph after it's created.
+     *
+     * @param glyph Visual representation of a character
+     * @throws NullPointerException if glyph is null
      */
-    protected final Font getFont() {
-        return font;
-    }
+    protected final void measure(/*@Nonnull*/ final Glyph glyph) {
 
-    /**
-     * Returns read-only view of reusable list for output.
-     */
-    protected final List<Glyph> getOutput() {
-        return outputView;
+        // Compute visual boundary
+        final Rectangle2D visualBox;
+        if (glyph.str != null) {
+            visualBox = renderDelegate.getBounds(glyph.str, font, fontRenderContext);
+        } else {
+            visualBox = renderDelegate.getBounds(glyph.glyphVector, fontRenderContext);
+        }
+
+        // Compute rectangles
+        final Rectangle2D paddingBox = addPaddingTo(visualBox);
+        final Rectangle2D marginBox = addMarginTo(paddingBox, font);
+
+        // Set fields
+        glyph.padding = new Glyph.Boundary(paddingBox, visualBox);
+        glyph.margin = new Glyph.Boundary(marginBox, paddingBox);
+        glyph.width = (float) paddingBox.getWidth();
+        glyph.height = (float) paddingBox.getHeight();
+        glyph.ascent = (float) paddingBox.getMinY() * -1;
+        glyph.descent = (float) paddingBox.getMaxY();
+        glyph.kerning = (float) paddingBox.getMinX();
+        glyph.bounds = paddingBox;
     }
 }
 
 
 /**
- * Producer that creates glyphs in the ASCII range.
+ * {@link GlyphProducer} that creates glyphs in the ASCII range.
  */
+/*@NotThreadSafe*/
 final class AsciiGlyphProducer extends AbstractGlyphProducer {
 
-    // Storage of glyphs
-    private final Glyph[] inventory;
+    /**
+     * Storage for glyphs.
+     */
+    /*@Nonnull*/
+    private final Glyph[] inventory = new Glyph[128];
 
     /**
-     * Creates an ASCII glyph producer.
+     * Constructs an {@link AsciiGlyphProducer}.
      *
-     * @param font Font glyphs will be made of
-     * @param rd Object for controlling rendering
+     * @param font Font glyphs will be made from
+     * @param rd Delegate for controlling rendering
      * @param frc Details on how to render fonts
-     * @throws AssertionError if font, render delegate, or font render context is <tt>null</tt>
+     * @throws NullPointerException if font, render delegate, or font render context is null
      */
-    AsciiGlyphProducer(final Font font, final RenderDelegate rd, final FontRenderContext frc) {
-
+    AsciiGlyphProducer(/*@Nonnull*/ final Font font,
+                       /*@Nonnull*/ final RenderDelegate rd,
+                       /*@Nonnull*/ final FontRenderContext frc) {
         super(font, rd, frc);
-
-        inventory = new Glyph[128];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void clearGlyphs() {
-        // pass
+        // empty
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /*@Nonnull*/
     @Override
     public Glyph createGlyph(char c) {
 
@@ -510,12 +549,8 @@ final class AsciiGlyphProducer extends AbstractGlyphProducer {
         return glyph;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     */
-    public List<Glyph> createGlyphs(final String str) {
+    /*@Nonnull*/
+    public List<Glyph> createGlyphs(/*@Nonnull*/ final String str) {
 
         // Clear the output
         clearOutput();
@@ -532,66 +567,83 @@ final class AsciiGlyphProducer extends AbstractGlyphProducer {
         return getOutput();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void removeGlyph(final Glyph glyph) {
-        // pass
+    public void removeGlyph(/*@CheckForNull*/ final Glyph glyph) {
+        // empty
     }
 }
 
 
 /**
- * Producer for creating glyphs of all characters in basic unicode block.
+ * {@link GlyphProducer} for creating glyphs of all characters in the basic unicode block.
  */
+/*@NotThreadSafe*/
 final class UnicodeGlyphProducer extends AbstractGlyphProducer {
 
-    // Storage of glyphs
-    private final GlyphMap glyphMap;
+    /**
+     * Storage for glyphs.
+     */
+    /*@Nonnull*/
+    private final GlyphMap glyphMap = new GlyphMap();
 
     /**
-     * Constructs a unicode glyph producer.
+     * Constructs a {@link UnicodeGlyphProducer}.
      *
      * @param font Font glyphs will be made of
      * @param rd Object for controlling rendering
      * @param frc Details on how to render fonts
-     * @throws AssertionError if font, render delegate, or font render context is <tt>null</tt>
+     * @throws NullPointerException if font, render delegate, or font render context is null
      */
-    UnicodeGlyphProducer(final Font font, final RenderDelegate rd, final FontRenderContext frc) {
-
+    UnicodeGlyphProducer(/*@Nonnull*/ final Font font,
+                         /*@Nonnull*/ final RenderDelegate rd,
+                         /*@Nonnull*/ final FontRenderContext frc) {
         super(font, rd, frc);
-
-        glyphMap = new GlyphMap();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public void clearGlyphs() {
         glyphMap.clear();
     }
 
     /**
-     * {@inheritDoc}
+     * Creates a single glyph from text with a complex layout.
+     *
+     * @param str Text with a complex layout
+     * @param gv Glyph vector of entire text
+     * @return Read-only pointer to list of glyphs valid until next call
+     * @throws NullPointerException if string is null
+     * @throws NullPointerException if glyph vector is null
      */
+    /*@Nonnull*/
+    private List<Glyph> createComplexGlyph(/*@Nonnull*/ final String str,
+                                           /*@Nonnull*/ final GlyphVector gv) {
+
+        clearOutput();
+
+        // Create the glyph and add it to output
+        Glyph glyph = glyphMap.get(str);
+        if (glyph == null) {
+            glyph = new Glyph(str, gv);
+            measure(glyph);
+            glyphMap.put(str, glyph);
+        }
+        addToOutput(glyph);
+
+        return getOutput();
+    }
+
+    /*@Nonnull*/
     @Override
     public Glyph createGlyph(final char c) {
         Glyph glyph = glyphMap.get(c);
         if (glyph == null) {
-            glyph = doCreateGlyph(c);
+            glyph = createGlyphImpl(c);
         }
         return glyph;
     }
 
-    /**
-     * Actually makes a glyph for a single character.
-     *
-     * @param c Character
-     * @param frc Details on how to render fonts
-     * @return Reused instance of a glyph
-     */
-    private Glyph doCreateGlyph(final char c) {
+    /*@Nonnull*/
+    private Glyph createGlyphImpl(final char c) {
 
         // Create a glyph from the glyph vector
         final GlyphVector gv = createGlyphVector(c);
@@ -604,45 +656,15 @@ final class UnicodeGlyphProducer extends AbstractGlyphProducer {
         return glyph;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
-     */
-    public List<Glyph> createGlyphs(final String str) {
+    /*@Nonnull*/
+    @Override
+    public List<Glyph> createGlyphs(/*@Nonnull*/ final String str) {
         if (!hasComplexCharacters(str)) {
-            return doCreateSimpleGlyphs(str);
+            return createSimpleGlyphs(str);
         } else {
             final GlyphVector gv = createGlyphVector(str);
-            return isComplex(gv) ?  doCreateComplexGlyph(str, gv) : doCreateSimpleGlyphs(str);
+            return isComplex(gv) ?  createComplexGlyph(str, gv) : createSimpleGlyphs(str);
         }
-    }
-
-    /**
-     * Creates a single glyph from text with a complex layout.
-     *
-     * @param str Text with a complex layout
-     * @param gv Glyph vector of entire text
-     * @return Read-only pointer to list of glyphs valid until next call
-     * @throws NullPointerException if string is <tt>null</tt>
-     * @throws NullPointerException if glyph vector is <tt>null</tt>
-     */
-    private List<Glyph> doCreateComplexGlyph(final String str, final GlyphVector gv) {
-
-        // Clear the output
-        clearOutput();
-
-        // Create the glyph and add it to output
-        Glyph glyph = glyphMap.get(str);
-        if (glyph == null) {
-            glyph = new Glyph(str, gv);
-            measure(glyph);
-            glyphMap.put(str, glyph);
-        }
-        addToOutput(glyph);
-
-        // Return the output
-        return getOutput();
     }
 
     /**
@@ -650,29 +672,26 @@ final class UnicodeGlyphProducer extends AbstractGlyphProducer {
      *
      * @param str Text with a simple layout
      * @return Read-only pointer to list of glyphs valid until next call
-     * @throws NullPointerException if string is <tt>null</tt>
+     * @throws NullPointerException if string is null
      */
-    private List<Glyph> doCreateSimpleGlyphs(final String str) {
+    /*@Nonnull*/
+    private List<Glyph> createSimpleGlyphs(/*@Nonnull*/ final String str) {
 
-        // Clear the output
         clearOutput();
 
         // Create the glyphs and add them to the output
-        int len = str.length();
+        final int len = str.length();
         for (int i = 0; i < len; ++i) {
             final char c = str.charAt(i);
             final Glyph glyph = createGlyph(c);
             addToOutput(glyph);
         }
 
-        // Return the output
         return getOutput();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void removeGlyph(final Glyph glyph) {
+    @Override
+    public void removeGlyph(/*@CheckForNull*/ final Glyph glyph) {
         glyphMap.remove(glyph);
     }
 }
@@ -681,57 +700,93 @@ final class UnicodeGlyphProducer extends AbstractGlyphProducer {
 /**
  * Utility for mapping text to glyphs.
  */
+/*@NotThreadSafe*/
 final class GlyphMap {
 
-    // Fast map for ASCII chars
-    private final Glyph[] ascii;
+    /**
+     * Fast map for ASCII chars.
+     */
+    /*@Nonnull*/
+    private final Glyph[] ascii = new Glyph[128];
 
-    // Map from char to code
-    private final Map<Character,Integer> codes;
+    /**
+     * Map from char to code.
+     */
+    /*@Nonnull*/
+    private final Map<Character, Integer> codes = new HashMap<Character, Integer>();
 
-    // Map from code to glyph
-    private final Map<Integer,Glyph> unicode;
+    /**
+     * Map from code to glyph.
+     */
+    /*@Nonnull*/
+    private final Map<Integer, Glyph> unicode = new HashMap<Integer, Glyph>();
 
-    // Glyphs with layout flags
-    private final Map<String,Glyph> complex;
+    /**
+     * Glyphs with layout flags.
+     */
+    /*@Nonnull*/
+    private final Map<String, Glyph> complex = new HashMap<String, Glyph>();
 
     /**
      * Constructs a glyph map.
      */
     GlyphMap() {
-        ascii = new Glyph[128];
-        codes = new HashMap<Character,Integer>();
-        unicode = new HashMap<Integer,Glyph>();
-        complex = new HashMap<String,Glyph>();
+        // empty
     }
+
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
+
 
     /**
      * Deletes all glyphs stored in the map.
      */
     void clear() {
         Arrays.fill(ascii, null);
+        codes.clear();
         unicode.clear();
         complex.clear();
     }
 
     /**
      * Returns a glyph for a character.
+     *
+     * @param c Character to get glyph for
+     * @return Glyph for the character, or null if it wasn't found
      */
+    /*@CheckForNull*/
     Glyph get(final char c) {
         return (c < 128) ? ascii[c] : unicode.get(codes.get(c));
     }
 
     /**
      * Returns a glyph for a string.
+     *
+     * @param str String to get glyph for, which may be null
+     * @return Glyph for the string, or null if it wasn't found
      */
-    Glyph get(final String str) {
+    /*@CheckForNull*/
+    Glyph get(/*@CheckForNull*/ final String str) {
         return complex.get(str);
     }
 
     /**
      * Stores a simple glyph in the map.
+     *
+     * @param c Character glyph represents
+     * @param glyph Glyph to store
+     * @throws NullPointerException if glyph is null
      */
-    void put(final char c, final Glyph glyph) {
+    void put(final char c, /*@Nonnull*/ final Glyph glyph) {
+
+        checkNotNull(glyph, "Glyph cannot be null");
+
         if (c < 128) {
             ascii[c] = glyph;
         } else {
@@ -742,15 +797,25 @@ final class GlyphMap {
 
     /**
      * Stores a complex glyph in the map.
+     *
+     * @param str String glyph represents
+     * @param glyph Glyph to store
+     * @throws NullPointerException if string or glyph is null
      */
-    void put(final String str, final Glyph glyph) {
+    void put(/*@Nonnull*/ final String str, /*@Nonnull*/ final Glyph glyph) {
+
+        checkNotNull(str, "String cannot be null");
+        checkNotNull(glyph, "Glyph cannot be null");
+
         complex.put(str, glyph);
     }
 
     /**
-     * Deletes a single glyph from the map.
+     * Deletes a simple glyph from this {@link GlyphMap}.
+     *
+     * @param c Character of glyph to remove
      */
-    void remove(final char c) {
+    private void remove(final char c) {
         if (c < 128) {
             ascii[c] = null;
         } else {
@@ -762,21 +827,30 @@ final class GlyphMap {
     }
 
     /**
-     * Deletes a single glyph from the map.
+     * Deletes a single glyph from this {@link GlyphMap}.
+     *
+     * @param glyph Glyph to remove, ignored if null
      */
-    void remove(final String str) {
-        complex.remove(str);
-    }
+    void remove(/*@CheckForNull*/ final Glyph glyph) {
 
-    /**
-     * Deletes a single glyph from the map.
-     */
-    void remove(final Glyph glyph) {
+        if (glyph == null) {
+            return;
+        }
+
         if (glyph.str != null) {
             remove(glyph.str);
         } else {
             remove(glyph.character);
         }
+    }
+
+    /**
+     * Deletes a complex glyph from this {@link GlyphMap}.
+     *
+     * @param str Text of glyph to remove, ignored if null
+     */
+    private void remove(/*@CheckForNull*/ final String str) {
+        complex.remove(str);
     }
 }
 

@@ -45,152 +45,161 @@ import java.util.List;
 /**
  * Storage of glyphs in an OpenGL texture.
  *
- * <p>Handles storing glyphs in a 2D texture and retrieving their coordinates.
+ * <p>
+ * {@code GlyphCache} andles storing glyphs in a 2D texture and retrieving their coordinates.
  *
- * <p>The first step in using a <i>GlyphCache</i> is to make sure it's set up by
- * calling {@link #beginRendering(GL)}.  Then glyphs can be added using {@link
- * #upload(Glyph)}.  Each glyph will be packed efficiently into the texture with
- * a small amount of space around it using {@link RectanglePacker}.  When all
- * glyphs have been added, be sure to call {@link #update(GL)} or {@link
- * #endRendering(GL)} before trying to render with the texture, as the glyphs
- * are not actually drawn into the texture right away in order to increase
- * performance.  Texture coordinates of individual glyphs can be determined with
- * {@link #find(Glyph)}.  When reusing the glyph cache, {@link #contains(Glyph)}
- * should be called to make sure a glyph is not already stored.
+ * <p>
+ * The first step in using a {@code GlyphCache} is to make sure it's set up by calling {@link
+ * #beginRendering(GL)}.  Then glyphs can be added using {@link #upload(Glyph)}.  Each glyph will
+ * be packed efficiently into the texture with a small amount of space around it using {@link
+ * RectanglePacker}.  When all glyphs have been added, be sure to call {@link #update(GL)} or
+ * {@link #endRendering(GL)} before trying to render with the texture, as the glyphs are not
+ * actually drawn into the texture right away in order to increase performance.  Texture
+ * coordinates of individual glyphs can be determined with {@link #find(Glyph)}.  When reusing the
+ * glyph cache, {@link #contains(Glyph)} should be called to make sure a glyph is not already
+ * stored.
  *
- * <p><em>Events fired when:</em>
+ * <p>
+ * <em>Events fired when:</em>
  * <ul>
- *   <li>a glyph has not been used recently (CLEAN, glyph)
- *   <li>the backing store is going to be flushed
+ *   <li>A glyph has not been used recently (CLEAN, glyph);
+ *   <li>The backing store is going to be flushed.
  * </ul>
  *
- * <p>GlyphCache is compatible with GL2 or GL3.
+ * <p>
+ * GlyphCache is compatible with GL2 or GL3.
  *
  * @see TextureBackingStore
  */
+/*@NotThreadSafe*/
 final class GlyphCache implements TextureBackingStore.EventListener {
 
-    // Whether or not glyph cache should print debugging information
+    /**
+     * Whether or not glyph cache should print debugging information.
+     */
     private static final boolean DEBUG = false;
 
-    // Number used to determine size of cache based on font size
+    /**
+     * Number used to determine size of cache based on font size.
+     */
+    /*@Nonnegative*/
     private static final int FONT_SIZE_MULTIPLIER = 5;
 
-    // How much fragmentation to allow before compacting
+    /**
+     * How much fragmentation to allow before compacting.
+     */
+    /*@Nonnegative*/
     private static final float MAX_VERTICAL_FRAGMENTATION = 0.7f;
 
-    // Number of render cycles before clearing unused entries
+    /**
+     * Number of render cycles before clearing unused entries.
+     */
+    /*@Nonnegative*/
     private static final int CYCLES_PER_FLUSH = 100;
 
-    // Minimum size of backing store in pixels
+    /**
+     * Minimum size of backing store in pixels.
+     */
+    /*@Nonnegative*/
     private static final int MIN_BACKING_STORE_SIZE = 256;
 
-    // Delegate to render text
+    /**
+     * Delegate to render text.
+     */
+    /*@Nonnull*/
     private final RenderDelegate renderDelegate;
 
-    // Observers of glyph cache
-    private final List<EventListener> listeners;
+    /**
+     * Observers of glyph cache.
+     */
+    /*@Nonnull*/
+    private final List<EventListener> listeners = new ArrayList<EventListener>();
 
-    // Delegate to create textures
+    /**
+     * Delegate to create textures.
+     */
+    /*@Nonnull*/
     private final TextureBackingStoreManager manager;
 
-    // Delegate to position glyphs
+    /**
+     * Delegate to position glyphs.
+     */
+    /*@Nonnull*/
     private final RectanglePacker packer;
 
-    // Texture to draw into
+    /**
+     * Texture to draw into.
+     *
+     * <p>
+     * This will be null until {@link #beginRendering} is called.
+     */
+    /*@CheckForNull*/
     private TextureBackingStore backingStore;
 
-    // Times cache has been used
-    private int numRenderCycles;
-
-    // True if done initializing
-    private boolean ready;
+    /**
+     * Times cache has been used.
+     */
+    /*@Nonnegative*/
+    private int numRenderCycles = 0;
 
     /**
-     * Creates a glyph cache.
+     * True if done initializing.
+     */
+    private boolean ready = false;
+
+    /**
+     * Constructs a {@link GlyphCache}.
      *
      * @param font Font that was used to create glyphs that will be stored
      * @param rd Controller of rendering bitmapped text
-     * @param antialias Whether to render glyphs with smooth edges
-     * @param subpixel Whether to consider subpixel positioning
-     * @param mipmap Whether to create multiple sizes for texture
-     * @return New glyph cache instance
-     * @throws UnsupportedOperationException if render delegate wants full color
-     * @throws IllegalArgumentException if font or render delegate is <tt>null</tt>
+     * @param antialias True to render glyphs with smooth edges
+     * @param subpixel True to consider subpixel positioning
+     * @param mipmap True to create multiple sizes of texture
+     * @throws NullPointerException if font or render delegate is null
+     * @throws IllegalArgumentException if render delegate wants full color
+     * @see #newInstance
      */
-    static GlyphCache newInstance(final Font font,
-                                  final RenderDelegate rd,
-                                  final boolean antialias,
-                                  final boolean subpixel,
-                                  final boolean mipmap) {
-
-        if (font == null) {
-            throw new IllegalArgumentException("Font is null!");
-        } else if (rd == null) {
-            throw new IllegalArgumentException("Render delegate is null!");
-        } else if (!rd.intensityOnly()) {
-            throw new UnsupportedOperationException("Does not support full color!");
-        }
-
-        final GlyphCache gc = new GlyphCache(font, rd, antialias, subpixel, mipmap);
-        gc.manager.addListener(gc);
-        return gc;
-    }
-
-    /**
-     * Constructs a glyph cache.
-     *
-     * @param font Font that was used to create glyphs that will be stored
-     * @param rd Controller of rendering bitmapped text
-     * @param antialias Whether to render glyphs with smooth edges
-     * @param subpixel Whether to consider subpixel positioning
-     * @param mipmap Whether to create multiple sizes of texture
-     * @throws AssertionError if font or render delegate is <tt>null</tt>
-     */
-    private GlyphCache(final Font font,
-                       final RenderDelegate rd,
+    private GlyphCache(/*@Nonnull*/ final Font font,
+                       /*@Nonnull*/ final RenderDelegate rd,
                        final boolean antialias,
                        final boolean subpixel,
                        final boolean mipmap) {
 
-        assert (font != null);
-        assert (rd != null);
-        assert (rd.intensityOnly());
+        checkNotNull(font, "Font cannot be null");
+        checkNotNull(rd, "Render delegate cannot be null");
+        checkArgument(rd.intensityOnly(), "Render delegate must be intensity only");
 
         this.renderDelegate = rd;
-        this.listeners = new ArrayList<EventListener>();
         this.manager = new TextureBackingStoreManager(font, antialias, subpixel, mipmap);
         this.packer = createPacker(font, manager);
-        this.ready = false;
     }
 
     /**
-     * Adds an observer that will be notified of cache events.
+     * Registers an {@link EventListener} with this {@link GlyphCache}.
      *
-     * @param listener Observer that wants to be notified of cache events
-     * @throws AssertionError if listener is <tt>null</tt>
+     * @param listener Listener to register
+     * @throws NullPointerException if listener is null
      */
-    void addListener(final EventListener listener) {
-        assert (listener != null);
+    void addListener(/*@Nonnull*/ final EventListener listener) {
+        checkNotNull(listener, "Listener cannot be null");
         listeners.add(listener);
     }
 
     /**
      * Sets up the cache for rendering.
      *
-     * <p>After calling this method the texture storing the glyphs will
-     * be bound.
+     * <p>
+     * After calling this method the texture storing the glyphs will be bound.
      *
      * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws UnsupportedOperationException if render delegate wants more than intensity
-     * @throws GLException if glPixelStorei not fully supported
+     * @throws NullPointerException if context is null
      */
-    void beginRendering(final GL gl) {
+    void beginRendering(/*@Nonnull*/ final GL gl) {
+
+        checkNotNull(gl, "Context cannot be null");
 
         // Set up if first time rendering
         if (!ready) {
-            validate(gl);
             setMaxSize(gl);
             ready = true;
         }
@@ -200,129 +209,94 @@ final class GlyphCache implements TextureBackingStore.EventListener {
         bs.bind(gl, GL.GL_TEXTURE0);
     }
 
-    /**
-     * Determines if a glyph is stored in the cache.
-     *
-     * @param glyph Glyph that may or may not be in cache
-     * @return <tt>True</tt> if <tt>glyph</tt> is in the cache
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    boolean contains(final Glyph glyph) {
-        return glyph.location != null;
-    }
-
-    /**
-     * Destroys resources used by the cache.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     */
-    void dispose(final GL gl) {
-        packer.dispose();
-        if (backingStore != null) {
-            backingStore.dispose(gl);
-            backingStore = null;
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
         }
     }
 
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
+
     /**
-     * Finishes setting up the cache for rendering.
-     *
-     * <p>After calling this method, all uploaded glyphs will be
-     * guaranteed to be present in the underlying OpenGL texture.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
+     * Clears all the texture coordinates stored in glyphs.
      */
-    void endRendering(final GL gl) {
+    private void clearTextureCoordinates() {
 
-        // Update
-        update(gl);
+        log("Clearing texture coordinates");
 
-        // Check if reached render cycle limit
-        if (++numRenderCycles >= CYCLES_PER_FLUSH) {
-            numRenderCycles = 0;
-            if (DEBUG) {
-                System.err.println("Reached cycle limit.");
+        packer.visit(new RectVisitor() {
+
+            @Override
+            public void visit(/*@Nonnull*/ final Rect rect) {
+                final Glyph glyph = ((TextData) rect.getUserData()).glyph;
+                glyph.coordinates = null;
             }
-            clearUnusedEntries();
-        }
+        });
     }
 
     /**
-     * Determines the texture coordinates of a glyph in the cache.
-     *
-     * <p><b>Notes:</b>
-     * <ul>
-     *   <li>Texture coordinates are in the range 0 to 1
-     *   <li>Automatically marks the glyph as being used recently
-     *   <li>If cache has been resized, coordinates are recalculated
-     * </ul>
-     *
-     * @param glyph Glyph already in cache
-     * @return Texture coordinates of glyph in the cache
-     * @throws NullPointerException if glyph is <tt>null</tt>
+     * Clears entries that haven't been used in awhile.
      */
-    TextureCoords find(final Glyph glyph) {
+    private void clearUnusedEntries() {
 
-        // Mark the glyph as being used
-        markGlyphLocationUsed(glyph);
+        log("Trying to clear unused entries...");
 
-        // Find the coordinates, recalculating if necessary
-        if (glyph.coordinates == null) {
-            computeCoordinates(glyph);
-        }
-        return glyph.coordinates;
-    }
+        // Find rectangles in backing store that haven't been used recently
+        final List<Rect> deadRects = new ArrayList<Rect>();
+        packer.visit(new RectVisitor() {
 
-    /**
-     * Forces the cache to update the underlying OpenGL texture.
-     *
-     * <p>After calling this method, all uploaded glyphs will be guaranteed to
-     * be present in the underlying OpenGL texture.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     */
-    void update(final GL gl) {
+            @Override
+            public void visit(/*@Nonnull*/ final Rect rect) {
+                final TextData data = (TextData) rect.getUserData();
+                if (data.used()) {
+                    data.clearUsed();
+                } else {
+                    deadRects.add(rect);
+                }
+            }
+        });
+
+        // Remove each of those rectangles
         final TextureBackingStore bs = getBackingStore();
-        bs.update(gl);
+        for (final Rect rect : deadRects) {
+            packer.remove(rect);
+            final Glyph glyph = ((TextData) rect.getUserData()).glyph;
+            glyph.location = null;
+            fireEvent(EventType.CLEAN, glyph);
+            log("Cleared rectangle for glyph: %s", glyph);
+            if (DEBUG) {
+                bs.clear(rect.x(), rect.y(), rect.w(), rect.h());
+            }
+        }
+
+        // If we removed dead rectangles this cycle, try to do a compaction
+        final float frag = packer.verticalFragmentationRatio();
+        if (!deadRects.isEmpty() && (frag > MAX_VERTICAL_FRAGMENTATION)) {
+            log("Compacting due to fragmentation %s", frag);
+            packer.compact();
+        }
+
+        // Force the backing store to update
+        if (DEBUG) {
+            bs.mark(0, 0, bs.getWidth(), bs.getHeight());
+        }
     }
 
     /**
-     * Stores a glyph in the cache.
-     *
-     * <p>Determines a place to put the glyph in the underlying OpenGL texture,
-     * computes the glyph's texture coordinates for that position, and requests
-     * the glyph be drawn into the texture.  (Note however that to increase
-     * performance the glyph is not guaranteed to actually be in the texture
-     * until {@link #update(GL)} or {@link #endRendering(GL)} is called.)
-     *
-     * @param glyph Glyph not already stored in cache
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    void upload(final Glyph glyph) {
-
-        // Perform upload steps
-        findLocation(glyph);
-        computeCoordinates(glyph);
-        drawInBackingStore(glyph);
-
-        // Make sure it's marked as used
-        markGlyphLocationUsed(glyph);
-    }
-
-    //------------------------------------------------------------------
-    // Helpers
-    //
-
-    /**
-     * Computes the normalized coordinates of the glyph's location.
+     * Computes the normalized coordinates of a glyph's location.
      *
      * @param glyph Glyph being uploaded
-     * @throws NullPointerException if glyph is <tt>null</tt>
+     * @throws NullPointerException if glyph is null
      */
-    private void computeCoordinates(final Glyph glyph) {
+    private void computeCoordinates(/*@Nonnull*/ final Glyph glyph) {
 
         // Determine dimensions in pixels
         final int cacheWidth = getWidth();
@@ -341,24 +315,57 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     }
 
     /**
+     * Checks if a glyph is stored in this {@link GlyphCache}.
+     *
+     * @param glyph Glyph to check for, which may be null
+     * @return True if glyph is in the cache
+     */
+    boolean contains(/*@CheckForNull*/ final Glyph glyph) {
+
+        if (glyph == null) {
+            return false;
+        }
+
+        return glyph.location != null;
+    }
+
+    /**
      * Makes a packer for positioning glyphs.
      *
      * @param font Font used to make glyphs being stored
-     * @param bsm Handler of packer events
-     * @return Resulting packer
-     * @throws NullPointerException if font is <tt>null</tt>
+     * @param manager Handler of packer events
+     * @return Resulting packer, not null
+     * @throws NullPointerException if font is null
      */
-    private static RectanglePacker createPacker(final Font font, final BackingStoreManager bsm) {
+    /*@Nonnull*/
+    private static RectanglePacker createPacker(/*@Nonnull*/ final Font font,
+                                                final BackingStoreManager manager) {
         final int size = findBackingStoreSizeForFont(font);
-        RectanglePacker packer = new RectanglePacker(bsm, size, size, 1f);
-        return packer;
+        return new RectanglePacker(manager, size, size, 1f);
+    }
+
+    /**
+     * Destroys resources used by this {@link GlyphCache}.
+     *
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
+     */
+    void dispose(/*@Nonnull*/ final GL gl) {
+
+        checkNotNull(gl, "Context cannot be null");
+
+        packer.dispose();
+        if (backingStore != null) {
+            backingStore.dispose(gl);
+            backingStore = null;
+        }
     }
 
     /**
      * Draws a glyph into the backing store.
      *
      * @param glyph Glyph being uploaded
-     * @throws NullPointerException if glyph is <tt>null</tt>
+     * @throws NullPointerException if glyph is null
      */
     private void drawInBackingStore(final Glyph glyph) {
 
@@ -385,22 +392,75 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     }
 
     /**
-     * Returns initial size of cache for a font.
+     * Finishes setting up the cache for rendering.
+     *
+     * <p>
+     * After calling this method, all uploaded glyphs will be guaranteed to be present in the
+     * underlying OpenGL texture.
+     *
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
+     */
+    void endRendering(/*@Nonnull*/ final GL gl) {
+
+        checkNotNull(gl, "Context cannot be null");
+
+        update(gl);
+
+        // Check if reached render cycle limit
+        if (++numRenderCycles >= CYCLES_PER_FLUSH) {
+            numRenderCycles = 0;
+            log("Reached cycle limit.");
+            clearUnusedEntries();
+        }
+    }
+
+    /**
+     * Determines the texture coordinates of a glyph in the cache.
+     *
+     * <p>
+     * <b>Notes:</b>
+     * <ul>
+     * <li>Texture coordinates are in the range 0 to 1
+     * <li>Automatically marks the glyph as being used recently
+     * <li>If cache has been resized, coordinates are recalculated
+     * </ul>
+     *
+     * @param glyph Glyph already in cache
+     * @return Texture coordinates of glyph in the cache, not null
+     * @throws NullPointerException if glyph is null
+     */
+    /*@Nonnull*/
+    TextureCoords find(/*@Nonnull*/ final Glyph glyph) {
+
+        // Mark the glyph as being used
+        markGlyphLocationUsed(glyph);
+
+        // Find the coordinates, recalculating if necessary
+        if (glyph.coordinates == null) {
+            computeCoordinates(glyph);
+        }
+        return glyph.coordinates;
+    }
+
+    /**
+     * Returns the initial size of a {@link GlyphCache} for a font.
      *
      * @param font Font to create glyphs from
-     * @throws NullPointerException if font is <tt>null</tt>
+     * @throws NullPointerException if font is null
      */
-    private static int findBackingStoreSizeForFont(final Font font) {
+    /*@Nonnegative*/
+    private static int findBackingStoreSizeForFont(/*@Nonnull*/ final Font font) {
         return Math.max(MIN_BACKING_STORE_SIZE, font.getSize() * FONT_SIZE_MULTIPLIER);
     }
 
     /**
-     * Finds a location in the backing store for the glyph.
+     * Finds a location in the backing store for a glyph.
      *
      * @param glyph Glyph being uploaded
-     * @throws NullPointerException if glyph is <tt>null</tt>
+     * @throws NullPointerException if glyph is null
      */
-    private void findLocation(final Glyph glyph) {
+    private void findLocation(/*@Nonnull*/ final Glyph glyph) {
 
         // Compute a rectangle that includes glyph's margin
         final int x = 0;
@@ -416,185 +476,16 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     }
 
     /**
-     * Determines the maximum texture size supported.
+     * Determines the maximum texture size supported by OpenGL.
      *
      * @param gl Current OpenGL context
      * @return Maximum texture size
-     * @throws NullPointerException if context is <tt>null</tt>
+     * @throws NullPointerException if context is null
      */
-    private static int findMaxSize(final GL gl) {
+    private static int findMaxSize(/*@Nonnull*/ final GL gl) {
         final int[] size = new int[1];
         gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, size, 0);
         return size[0];
-    }
-
-    /**
-     * Determines the location of a glyph's bottom baseline.
-     *
-     * @param g Glyph
-     * @return Location of <tt>g</tt>'s bottom baseline
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    private int getBottomBaselineLocation(final Glyph g) {
-        return (int) (g.location.y() + g.margin.top + g.ascent);
-    }
-
-    /**
-     * Determines the location of a glyph's bottom border.
-     *
-     * @param g Glyph
-     * @return Location of <tt>g</tt>'s bottom border
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    private int getBottomBorderLocation(final Glyph g) {
-        return (int) (g.location.y() + g.margin.top + g.height);
-    }
-
-    /**
-     * Determines the location of a glyph's left baseline.
-     *
-     * @param g Glyph
-     * @return Location of <tt>g</tt>'s left baseline
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    private int getLeftBaselineLocation(final Glyph g) {
-        return (int) (g.location.x() + g.margin.left - g.kerning);
-    }
-
-    /**
-     * Determines the location of a glyph's left border.
-     *
-     * @param g Glyph
-     * @return Location of <tt>g</tt>'s left border
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    private int getLeftBorderLocation(final Glyph g) {
-        return g.location.x() + g.margin.left;
-    }
-
-    /**
-     * Returns <tt>true</tt> if Non-Power-Of-Two textures are available.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     */
-    static boolean isNpotTextureAvailable(final GL gl) {
-        final String name = "GL_ARB_texture_non_power_of_two";
-        return gl.isExtensionAvailable(name);
-    }
-
-    /**
-     * Marks a glyph's location as used.
-     *
-     * @param glyph Glyph with location
-     * @throws NullPointerException if glyph is <tt>null</tt>
-     */
-    static void markGlyphLocationUsed(final Glyph glyph) {
-        ((TextData) glyph.location.getUserData()).markUsed();
-    }
-
-    /**
-     * Changes the maximum size of the packer.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     */
-    private void setMaxSize(final GL gl) {
-        final int maxSize = findMaxSize(gl);
-        packer.setMaxSize(maxSize, maxSize);
-    }
-
-    /**
-     * Makes sure input is OK and required hardware features are available.
-     *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws UnsupportedOperationException if render delegate wants more than intensity
-     * @throws GLException if glPixelStorei not fully supported
-     */
-    private void validate(final GL gl) {
-
-        // Check the render delegate
-        if (!renderDelegate.intensityOnly()) {
-            throw new UnsupportedOperationException("Currently only supports intensity.");
-        }
-    }
-
-    //------------------------------------------------------------------
-    // Event processing
-    //
-
-    /**
-     * Clears all the texture coordinates stored in glyphs.
-     */
-    private void clearTextureCoordinates() {
-
-        if (DEBUG) {
-            System.err.println("Clearing texture coordinates");
-        }
-
-        packer.visit(new RectVisitor() {
-            public void visit(final Rect rect) {
-                final Glyph glyph = ((TextData) rect.getUserData()).glyph;
-                glyph.coordinates = null;
-            }
-        });
-    }
-
-    /**
-     * Clears entries that haven't been used in awhile.
-     */
-    private void clearUnusedEntries() {
-
-        // Notify
-        if (DEBUG) {
-            System.err.println("Trying to clear unused entries...");
-        }
-
-        // Find rectangles in backing store that haven't been used recently
-        final List<Rect> deadRects = new ArrayList<Rect>();
-        packer.visit(new RectVisitor() {
-            public void visit(final Rect rect) {
-                final TextData data = (TextData) rect.getUserData();
-                if (data.used()) {
-                    data.clearUsed();
-                } else {
-                    deadRects.add(rect);
-                }
-            }
-        });
-
-        // Remove each of those rectangles and notify we're doing it
-        final TextureBackingStore bs = getBackingStore();
-        for (final Rect rect : deadRects) {
-            packer.remove(rect);
-            final Glyph glyph = ((TextData) rect.getUserData()).glyph;
-            glyph.location = null;
-            fireEvent(EventType.CLEAN, glyph);
-            if (DEBUG) {
-                System.err.print("Cleared rectangle for glyph: ");
-                if (glyph.str != null) {
-                    System.err.println(glyph.str);
-                } else {
-                    System.err.println(glyph.character);
-                }
-                bs.clear(rect.x(), rect.y(), rect.w(), rect.h());
-            }
-        }
-
-        // If we removed dead rectangles this cycle, try to do a compaction
-        final float frag = packer.verticalFragmentationRatio();
-        if (!deadRects.isEmpty() && (frag > MAX_VERTICAL_FRAGMENTATION)) {
-            if (DEBUG) {
-                System.err.println("Compacting due to fragmentation " + frag);
-            }
-            packer.compact();
-        }
-
-        // Force the backing store to update
-        if (DEBUG) {
-            bs.mark(0, 0, bs.getWidth(), bs.getHeight());
-        }
     }
 
     /**
@@ -605,20 +496,175 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws AssertionError if type or data is <tt>null</tt>
      */
     private void fireEvent(final EventType type, final Object data) {
-        assert (type != null);
-        assert (data != null);
+
+        assert type != null : "Type shouldn't be null";
+        assert data != null : "Data shouldn't be null";
+
         for (final EventListener listener : listeners) {
+            assert listener != null : "addListener rejects null";
             listener.onGlyphCacheEvent(type, data);
         }
     }
 
     /**
-     * Handles events coming from the backing store.
+     * Returns object actually storing the rasterized glyphs.
+     */
+    TextureBackingStore getBackingStore() {
+        return (TextureBackingStore) packer.getBackingStore();
+    }
+
+    /**
+     * Determines the location of a glyph's bottom baseline.
+     *
+     * @param glyph Glyph to determine bottom baseline for
+     * @return Location of glyph's bottom baseline
+     * @throws NullPointerException if glyph is null
+     */
+    private int getBottomBaselineLocation(/*@Nonnull*/ final Glyph glyph) {
+        return (int) (glyph.location.y() + glyph.margin.top + glyph.ascent);
+    }
+
+    /**
+     * Determines the location of a glyph's bottom border.
+     *
+     * @param glyph Glyph to determine bottom border for
+     * @return Location of glyph's bottom border
+     * @throws NullPointerException if glyph is null
+     */
+    private int getBottomBorderLocation(/*@Nonnull*/ final Glyph glyph) {
+        return (int) (glyph.location.y() + glyph.margin.top + glyph.height);
+    }
+
+    /**
+     * Returns the font render context used for text size computations by this {@link GlyphCache}.
+     *
+     * <p>
+     * This object should be considered transient and may become invalidated between {@link
+     * #beginRendering} and {@link #endRendering} pairs.
+     */
+    /*@Nonnull*/
+    FontRenderContext getFontRenderContext() {
+        return getBackingStore().getGraphics().getFontRenderContext();
+    }
+
+    /**
+     * Returns the height of this {@link GlyphCache}.
+     *
+     * @return Height of this cache, not negative
+     */
+    /*@Nonnegative*/
+    int getHeight() {
+        return getBackingStore().getHeight();
+    }
+
+    /**
+     * Determines the location of a glyph's left baseline.
+     *
+     * @param glyph Glyph to determine left baseline for
+     * @return Location of glyph's left baseline
+     * @throws NullPointerException if glyph is null
+     */
+    /*@CheckForSigned*/
+    private int getLeftBaselineLocation(/*@Nonnull*/ final Glyph glyph) {
+        return (int) (glyph.location.x() + glyph.margin.left - glyph.kerning);
+    }
+
+    /**
+     * Determines the location of a glyph's left border.
+     *
+     * @param glyph Glyph to determine left border for
+     * @return Location of glyph's left border
+     * @throws NullPointerException if glyph is null
+     */
+    /*@CheckForSigned*/
+    private int getLeftBorderLocation(/*@Nonnull*/ final Glyph glyph) {
+        return glyph.location.x() + glyph.margin.left;
+    }
+
+    /**
+     * Checks if this {@link GlyphCache} is interpolating when sampling.
+     *
+     * @return True if this glyph cache is interpolating when it samples
+     */
+    boolean getUseSmoothing() {
+        return ((TextureBackingStoreManager) manager).getUseSmoothing();
+    }
+
+    /**
+     * Returns the width of this {@link GlyphCache}.
+     *
+     * @return Width of this cache, not negative
+     */
+    /*@Nonnegative*/
+    int getWidth() {
+        return getBackingStore().getWidth();
+    }
+
+    /**
+     * Checks if Non-Power-Of-Two textures are available.
+     *
+     * @param gl Current OpenGL context
+     * @return True if NPOT textures are available
+     * @throws NullPointerException if context is null
+     */
+    static boolean isNpotTextureAvailable(/*@Nonnull*/ final GL gl) {
+        return gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
+    }
+
+    private static void log(/*@CheckForNull*/ final String message) {
+        if (DEBUG) {
+            System.err.println(message);
+        }
+    }
+
+    private static void log(/*@CheckForNull*/ final String message,
+                            /*@CheckForNull*/ final Object arg) {
+        if (DEBUG) {
+            System.err.println(String.format(message, arg));
+        }
+    }
+
+    /**
+     * Marks a glyph's location as used.
+     *
+     * @param glyph Glyph to mark
+     * @throws NullPointerException if glyph is null
+     */
+    static void markGlyphLocationUsed(/*@Nonnull*/ final Glyph glyph) {
+        ((TextData) glyph.location.getUserData()).markUsed();
+    }
+
+    /**
+     * Creates a new {@link GlyphCache}.
+     *
+     * @param font Font that was used to create glyphs that will be stored
+     * @param rd Controller of rendering bitmapped text
+     * @param antialias Whether to render glyphs with smooth edges
+     * @param subpixel Whether to consider subpixel positioning
+     * @param mipmap Whether to create multiple sizes for texture
+     * @return New glyph cache instance
+     * @throws NullPointerException if font or render delegate is null
+     * @throws IllegalArgumentException if render delegate wants full color
+     */
+    /*@Nonnull*/
+    static GlyphCache newInstance(/*@Nonnull*/ final Font font,
+                                  /*@Nonnull*/ final RenderDelegate rd,
+                                  final boolean antialias,
+                                  final boolean subpixel,
+                                  final boolean mipmap) {
+        final GlyphCache gc = new GlyphCache(font, rd, antialias, subpixel, mipmap);
+        gc.manager.addListener(gc);
+        return gc;
+    }
+
+    /**
+     * Responds to an event from the backing store.
      *
      * @param type Kind of backing store event
+     * @throws NullPointerException if type is null
      */
     @Override
-    public void onBackingStoreEvent(final TextureBackingStore.EventType type) {
+    public void onBackingStoreEvent(/*@Nonnull*/ final TextureBackingStore.EventType type) {
         switch (type) {
         case REALLOCATE:
             onBackingStoreReallocate();
@@ -630,9 +676,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     }
 
     /**
-     * Handles when a backing store could not be reallocated.
-     *
-     * <p>Clears the cache and notifies observers.
+     * Responds to the backing store failing (reallocation).
      */
     private void onBackingStoreFailure() {
         packer.clear();
@@ -642,24 +686,22 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Handles when a backing store is reallocated.
      *
-     * <p>First notifies observers, then tries to remove any unused entries, and
-     * finally erases the texture coordinates of each entry since the width and
-     * height of the total texture has changed.  Note that since the backing
-     * store is just expanded without moving any entries, only the texture
-     * coordinates need to be recalculated.  The locations will still be the
-     * same.
+     * <p>
+     * First notifies observers, then tries to remove any unused entries, and finally erases the
+     * texture coordinates of each entry since the width and height of the total texture has
+     * changed.  Note that since the backing store is just expanded without moving any entries,
+     * only the texture coordinates need to be recalculated.  The locations will still be the same.
      *
-     * <p>This heuristic and the fact that it clears the used bit of all entries
-     * seems to cause cycling of entries in some situations, where the backing
-     * store becomes small compared to the amount of text on the screen (see the
-     * TextFlow demo) and the entries continually cycle in and out of the
-     * backing store, decreasing performance.  If we added a little age
-     * information to the entries, and only cleared out entries above a certain
-     * age, this behavior would be eliminated.  However, it seems the system
-     * usually stabilizes itself, so for now we'll just keep things simple.
-     * Note that if we don't clear the used bit here, the backing store tends to
-     * increase very quickly to its maximum size, at least with the TextFlow
-     * demo when the text is being continually re-laid out.
+     * <p>
+     * This heuristic and the fact that it clears the used bit of all entries seems to cause
+     * cycling of entries in some situations, where the backing store becomes small compared to the
+     * amount of text on the screen (see the TextFlow demo) and the entries continually cycle in
+     * and out of the backing store, decreasing performance.  If we added a little age information
+     * to the entries, and only cleared out entries above a certain age, this behavior would be
+     * eliminated.  However, it seems the system usually stabilizes itself, so for now we'll just
+     * keep things simple.  Note that if we don't clear the used bit here, the backing store tends
+     * to increase very quickly to its maximum size, at least with the TextFlow demo when the text
+     * is being continually re-laid out.
      */
     private void onBackingStoreReallocate() {
         fireEvent(EventType.REALLOCATE, null);
@@ -667,46 +709,21 @@ final class GlyphCache implements TextureBackingStore.EventListener {
         clearTextureCoordinates();
     }
 
-    //------------------------------------------------------------------
-    // Getters and setters
-    //
-
     /**
-     * Returns object actually storing the rasterized glyphs.
-     */
-    TextureBackingStore getBackingStore() {
-        return (TextureBackingStore) packer.getBackingStore();
-    }
-
-    /**
-     * Returns font render context used for text size computations.
+     * Changes the maximum size of this {@link GlyphCache}'s rectangle packer.
      *
-     * <p>This object should be considered transient and may become
-     * invalidated between {@link #beginRendering} and {@link
-     * #endRendering} pairs.
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
      */
-    FontRenderContext getFontRenderContext() {
-        return getBackingStore().getGraphics().getFontRenderContext();
+    private void setMaxSize(/*@Nonnull*/ final GL gl) {
+        final int maxSize = findMaxSize(gl);
+        packer.setMaxSize(maxSize, maxSize);
     }
 
     /**
-     * Returns height of the entire cache.
-     */
-    int getHeight() {
-        return getBackingStore().getHeight();
-    }
-
-    /**
-     * Returns <tt>true</tt> if texture is interpolating when sampling.
-     */
-    boolean getUseSmoothing() {
-        return ((TextureBackingStoreManager) manager).getUseSmoothing();
-    }
-
-    /**
-     * Changes whether texture should interpolate when sampling.
+     * Changes whether this {@link GlyphCache}'s texture should interpolate when sampling.
      *
-     * @param useSmoothing <tt>true</tt> to use linear interpolation
+     * @param useSmoothing True to use linear interpolation
      */
     void setUseSmoothing(boolean useSmoothing) {
         ((TextureBackingStoreManager) manager).setUseSmoothing(useSmoothing);
@@ -714,35 +731,64 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     }
 
     /**
-     * Returns width of the entire cache.
+     * Forces the cache to update the underlying OpenGL texture.
+     *
+     * <p>
+     * After calling this method, all uploaded glyphs will be guaranteed to be present in the
+     * underlying OpenGL texture.
+     *
+     * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
      */
-    int getWidth() {
-        return getBackingStore().getWidth();
+    void update(/*@Nonnull*/ final GL gl) {
+        final TextureBackingStore bs = getBackingStore();
+        bs.update(gl);
     }
 
-    //-----------------------------------------------------------------
-    // Nested classes
-    //
+    /**
+     * Stores a glyph in the cache.
+     *
+     * <p>
+     * Determines a place to put the glyph in the underlying OpenGL texture, computes the glyph's
+     * texture coordinates for that position, and requests the glyph be drawn into the texture.
+     * (Note however that to increase performance the glyph is not guaranteed to actually be in the
+     * texture until {@link #update(GL)} or {@link #endRendering(GL)} is called.)
+     *
+     * @param glyph Glyph not already stored in cache
+     * @throws NullPointerException if glyph is null
+     */
+    void upload(/*@Nonnull*/ final Glyph glyph) {
+
+        checkNotNull(glyph, "Glyph cannot be null");
+
+        // Perform upload steps
+        findLocation(glyph);
+        computeCoordinates(glyph);
+        drawInBackingStore(glyph);
+
+        // Make sure it's marked as used
+        markGlyphLocationUsed(glyph);
+    }
 
     /**
      * Object that wants to be notified of cache events.
      */
-    static interface EventListener {
+    interface EventListener {
 
         /**
-         * Responds to an event from a glyph cache.
+         * Responds to an event from a {@link GlyphCache}.
          *
          * @param type Type of event
-         * @param data Object that triggered the event, i.e. a glyph
-         * @throws NullPointerException if event type or data is <tt>null</tt>
+         * @param data Object that triggered the event, i.e., a glyph
+         * @throws NullPointerException if event type or data is null (optional)
          */
-        public void onGlyphCacheEvent(EventType type, Object data);
+        void onGlyphCacheEvent(/*@Nonnull*/ EventType type, /*@Nonnull*/ Object data);
     }
 
     /**
      * Type of event fired from the cache.
      */
-    public static enum EventType {
+    public enum EventType {
 
         /**
          * All entries were removed from cache.
@@ -757,40 +803,45 @@ final class GlyphCache implements TextureBackingStore.EventListener {
         /**
          * Backing store changed size.
          */
-        REALLOCATE
-    };
+        REALLOCATE;
+    }
 
     /**
      * Data associated with each rectangle of text.
      */
+    /*@NotThreadSafe*/
     static final class TextData {
 
-        // Visual representation of text
-        Glyph glyph;
+        /**
+         * Visual representation of text.
+         */
+        /*@Nonnull*/
+        final Glyph glyph;
 
-        // True if text was used recently
+        /**
+         * True if text was used recently.
+         */
         private boolean used;
 
         /**
-         * Constructs a text data from a glyph.
+         * Constructs a {@link TextData} from a glyph.
          *
          * @param glyph Visual representation of text
-         * @throws AssertionError if glyph is <tt>null</tt>
+         * @throws NullPointerException if glyph is null
          */
-        TextData(final Glyph glyph) {
-            assert (glyph != null);
-            this.glyph = glyph;
+        TextData(/*@Nonnull*/ final Glyph glyph) {
+            this.glyph = checkNotNull(glyph, "Glyph cannot be null");
         }
 
         /**
-         * Indicates the text data is no longer being used.
+         * Indicates this {@link TextData} is no longer being used.
          */
         void clearUsed() {
             used = false;
         }
 
         /**
-         * Indicates the text data was just used.
+         * Indicates this {@link TextData} was just used.
          */
         void markUsed() {
             used = true;
@@ -799,12 +850,13 @@ final class GlyphCache implements TextureBackingStore.EventListener {
         /**
          * Returns the actual text stored with a rectangle.
          */
+        /*@CheckForNull*/
         String string() {
             return glyph.str;
         }
 
         /**
-         * Returns <tt>true</tt> if text has been used recently.
+         * Returns true if text has been used recently.
          */
         boolean used() {
             return used;
