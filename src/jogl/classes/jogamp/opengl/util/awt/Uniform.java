@@ -25,62 +25,48 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
-import com.jogamp.opengl.GLAutoDrawable;
-import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GL2GL3;
 
 
 /**
- * Skeletal implementation of {@link GLEventListener}.
+ * Uniform variable in a shader.
  */
-abstract class GLEventAdapter implements GLEventListener  {
+abstract class Uniform {
 
     /**
-     * Handles initialize events.
-     *
-     * @param drawable Surface being initialized
-     * @throws NullPointerException if drawable is <tt>null</tt>
+     * Index of uniform in shader.
      */
-    @Override
-    public void init(final GLAutoDrawable drawable) {
-        // pass
+    /*@Nonnegative*/
+    final int location;
+
+    /**
+     * True if local value should be pushed.
+     */
+    boolean dirty;
+
+    /**
+     * Constructs a uniform.
+     *
+     * @param gl2gl3 Current OpenGL context
+     * @param program OpenGL handle to shader program
+     * @param name Name of the uniform in shader source code
+     * @throws NullPointerException if context is null
+     */
+    Uniform(/*@Nonnull*/ final GL2GL3 gl2gl3,
+            /*@Nonnegative*/ final int program,
+            /*@Nonnull*/ final String name) {
+        location = gl2gl3.glGetUniformLocation(program, name);
+        if (location == -1) {
+            throw new RuntimeException("Could not find uniform in program.");
+        }
     }
 
     /**
-     * Handles display events.
+     * Pushes the local value to the shader program.
      *
-     * @param drawable Surface being drawn to
-     * @throws NullPointerException if drawable is <tt>null</tt>
+     * @param gl Current OpenGL context
      */
-    @Override
-    public void display(final GLAutoDrawable drawable) {
-        // pass
-    }
-
-    /**
-     * Handles dispose events.
-     *
-     * @param drawable Surface being disposed of
-     * @throws NullPointerException if drawable is <tt>null</tt>
-     */
-    @Override
-    public void dispose(final GLAutoDrawable drawable) {
-        // pass
-    }
-
-    /**
-     * Handles window resizing events and invokes {@link #doReshape}.
-     *
-     * @param drawable Surface being reshaped
-     * @param x Left side of viewport
-     * @param y Top of viewport
-     * @param width Width of viewport
-     * @param height Height of viewport
-     * @throws NullPointerException if drawable is <tt>null</tt>
-     */
-    @Override
-    public void reshape(final GLAutoDrawable drawable, final int x, int y, final int width, int height) {
-        // pass
-    }
+    abstract void update(/*@Nonnull*/ GL2GL3 gl);
 }

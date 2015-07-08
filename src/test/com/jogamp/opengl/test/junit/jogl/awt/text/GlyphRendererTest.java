@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package com.jogamp.opengl.test.junit.jogl.awt.text;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -43,6 +43,11 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.nio.ByteBuffer;
+
+import jogamp.opengl.util.awt.Glyph;
+import jogamp.opengl.util.awt.GlyphRenderer;
+import jogamp.opengl.util.awt.GlyphRendererGL2;
+import jogamp.opengl.util.awt.GlyphRendererGL3;
 
 import javax.swing.JFrame;
 
@@ -114,7 +119,7 @@ public class GlyphRendererTest {
             public void doInit(final GL2 gl) {
 
                 // Set up glyph renderer
-                glyphRenderer = new GlyphRendererGL2(gl);
+                glyphRenderer = new GlyphRendererGL2();
                 glyphRenderer.addListener(new GlyphRenderer.EventListener() {
                     @Override
                     public void onGlyphRendererEvent(GlyphRenderer.EventType type) {

@@ -25,25 +25,45 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLProfile;
 
 
+// TODO: Rename to `GlyphRenderers`?
 /**
- * Skeletal implementation of {@link GLEventListener} for OpenGL 2 with debugging.
+ * Utility for creating {@link GlyphRenderer} instances.
  */
-abstract class GL2EventAdapter extends AbstractGL2EventAdapter {
+/*@ThreadSafe*/
+public final class GlyphRendererFactory {
 
     /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
+     * Prevents instantiation.
      */
-    @Override
-    public final void init(final GLAutoDrawable drawable) {
-        final GL2 gl = drawable.getGL().getGL2();
-        doInit(gl);
+    private GlyphRendererFactory() {
+        // pass
+    }
+
+    /**
+     * Creates a {@link GlyphRenderer} based on the current OpenGL context.
+     *
+     * @param gl Current OpenGL context
+     * @return New glyph renderer for the given context, not null
+     * @throws NullPointerException if context is null
+     * @throws UnsupportedOperationException if GL is unsupported
+     */
+    /*@Nonnull*/
+    public static GlyphRenderer createGlyphRenderer(/*@Nonnull*/ final GL gl) {
+
+        final GLProfile profile = gl.getGLProfile();
+
+        if (profile.isGL3()) {
+            return new GlyphRendererGL3(gl.getGL3());
+        } else if (profile.isGL2()) {
+            return new GlyphRendererGL2();
+        } else {
+            throw new UnsupportedOperationException("Profile currently unsupported");
+        }
     }
 }

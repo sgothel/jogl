@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package com.jogamp.opengl.test.junit.jogl.awt.text;
 
 import static org.junit.Assert.*;
 
@@ -33,9 +33,16 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.awt.QuadPipeline.Quad;
 
 import javax.swing.JFrame;
+
+import jogamp.opengl.util.awt.Quad;
+import jogamp.opengl.util.awt.QuadPipeline;
+import jogamp.opengl.util.awt.QuadPipelineGL10;
+import jogamp.opengl.util.awt.QuadPipelineGL11;
+import jogamp.opengl.util.awt.QuadPipelineGL15;
+import jogamp.opengl.util.awt.QuadPipelineGL30;
+import jogamp.opengl.util.awt.ShaderLoader;
 
 import org.junit.Test;
 
@@ -111,7 +118,7 @@ public class QuadPipelineTest {
 
             @Override
             public void doInit(final GL2 gl) {
-                pipeline = new QuadPipelineGL10(gl);
+                pipeline = new QuadPipelineGL10();
                 quad = createQuad();
             }
 
@@ -158,7 +165,7 @@ public class QuadPipelineTest {
 
             @Override
             public void doInit(final GL2 gl) {
-                pipeline = new QuadPipelineGL11(gl);
+                pipeline = new QuadPipelineGL11();
                 quad = createQuad();
             }
 

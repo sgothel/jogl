@@ -25,25 +25,63 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
-import com.jogamp.opengl.GL3;
-import com.jogamp.opengl.GLAutoDrawable;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 
 /**
- * Skeletal implementation of {@link GLEventListener} for OpenGL 3 with debugging enabled.
+ * Utility for creating glyphs.
  */
-abstract class GL3EventAdapter extends AbstractGL3EventAdapter {
+public interface GlyphProducer {
 
     /**
-     * {@inheritDoc}
-     *
-     * @throws NullPointerException {@inheritDoc}
+     * Deletes all stored glyphs.
      */
-    @Override
-    public final void init(final GLAutoDrawable drawable) {
-        final GL3 gl = drawable.getGL().getGL3();
-        doInit(gl);
-    }
+    void clearGlyphs();
+
+    /**
+     * Makes a glyph for a single character.
+     *
+     * @param c Character
+     * @return Reused instance of a glyph
+     */
+    Glyph createGlyph(char c);
+
+    /**
+     * Makes a glyph for each character in a string.
+     *
+     * @param str Text as a string
+     * @return View of glyphs valid until next call
+     * @throws NullPointerException if string is null
+     */
+    /*@Nonnull*/
+    List<Glyph> createGlyphs(/*@Nonnull*/ String str);
+
+    /**
+     * Determines the distance to the next character after a glyph.
+     *
+     * @param c Character to find advance of
+     * @return Distance to the next character after a glyph, which may be negative
+     */
+    /*@CheckForSigned*/
+    float findAdvance(char c);
+
+    /**
+     * Determines the visual bounds of a string with padding added.
+     *
+     * @param str Text to find visual bounds of
+     * @return Visual bounds of string with padding added, not null
+     * @throws NullPointerException if string is null
+     */
+    /*@Nonnull*/
+    Rectangle2D findBounds(/*@Nonnull*/ String str);
+
+    /**
+     * Deletes a single stored glyph.
+     *
+     * @param glyph Previously created glyph, ignored if null
+     */
+    void removeGlyph(/*@CheckForNull*/ Glyph glyph);
 }

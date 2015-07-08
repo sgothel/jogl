@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLException;
@@ -72,7 +72,7 @@ import java.util.List;
  * @see TextureBackingStore
  */
 /*@NotThreadSafe*/
-final class GlyphCache implements TextureBackingStore.EventListener {
+public final class GlyphCache implements TextureBackingStore.EventListener {
 
     /**
      * Whether or not glyph cache should print debugging information.
@@ -180,7 +180,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @param listener Listener to register
      * @throws NullPointerException if listener is null
      */
-    void addListener(/*@Nonnull*/ final EventListener listener) {
+    public void addListener(/*@Nonnull*/ final EventListener listener) {
         checkNotNull(listener, "Listener cannot be null");
         listeners.add(listener);
     }
@@ -194,7 +194,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @param gl Current OpenGL context
      * @throws NullPointerException if context is null
      */
-    void beginRendering(/*@Nonnull*/ final GL gl) {
+    public void beginRendering(/*@Nonnull*/ final GL gl) {
 
         checkNotNull(gl, "Context cannot be null");
 
@@ -350,7 +350,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @param gl Current OpenGL context
      * @throws NullPointerException if context is null
      */
-    void dispose(/*@Nonnull*/ final GL gl) {
+    public void dispose(/*@Nonnull*/ final GL gl) {
 
         checkNotNull(gl, "Context cannot be null");
 
@@ -401,7 +401,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @param gl Current OpenGL context
      * @throws NullPointerException if context is null
      */
-    void endRendering(/*@Nonnull*/ final GL gl) {
+    public void endRendering(/*@Nonnull*/ final GL gl) {
 
         checkNotNull(gl, "Context cannot be null");
 
@@ -431,7 +431,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws NullPointerException if glyph is null
      */
     /*@Nonnull*/
-    TextureCoords find(/*@Nonnull*/ final Glyph glyph) {
+    public TextureCoords find(/*@Nonnull*/ final Glyph glyph) {
 
         // Mark the glyph as being used
         markGlyphLocationUsed(glyph);
@@ -543,7 +543,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * #beginRendering} and {@link #endRendering} pairs.
      */
     /*@Nonnull*/
-    FontRenderContext getFontRenderContext() {
+    public FontRenderContext getFontRenderContext() {
         return getBackingStore().getGraphics().getFontRenderContext();
     }
 
@@ -586,7 +586,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      *
      * @return True if this glyph cache is interpolating when it samples
      */
-    boolean getUseSmoothing() {
+    public boolean getUseSmoothing() {
         return ((TextureBackingStoreManager) manager).getUseSmoothing();
     }
 
@@ -647,11 +647,11 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws IllegalArgumentException if render delegate wants full color
      */
     /*@Nonnull*/
-    static GlyphCache newInstance(/*@Nonnull*/ final Font font,
-                                  /*@Nonnull*/ final RenderDelegate rd,
-                                  final boolean antialias,
-                                  final boolean subpixel,
-                                  final boolean mipmap) {
+    public static GlyphCache newInstance(/*@Nonnull*/ final Font font,
+                                         /*@Nonnull*/ final RenderDelegate rd,
+                                         final boolean antialias,
+                                         final boolean subpixel,
+                                         final boolean mipmap) {
         final GlyphCache gc = new GlyphCache(font, rd, antialias, subpixel, mipmap);
         gc.manager.addListener(gc);
         return gc;
@@ -725,7 +725,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      *
      * @param useSmoothing True to use linear interpolation
      */
-    void setUseSmoothing(boolean useSmoothing) {
+    public void setUseSmoothing(boolean useSmoothing) {
         ((TextureBackingStoreManager) manager).setUseSmoothing(useSmoothing);
         getBackingStore().setUseSmoothing(useSmoothing);
     }
@@ -740,7 +740,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @param gl Current OpenGL context
      * @throws NullPointerException if context is null
      */
-    void update(/*@Nonnull*/ final GL gl) {
+    public void update(/*@Nonnull*/ final GL gl) {
         final TextureBackingStore bs = getBackingStore();
         bs.update(gl);
     }
@@ -757,7 +757,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      * @param glyph Glyph not already stored in cache
      * @throws NullPointerException if glyph is null
      */
-    void upload(/*@Nonnull*/ final Glyph glyph) {
+    public void upload(/*@Nonnull*/ final Glyph glyph) {
 
         checkNotNull(glyph, "Glyph cannot be null");
 
@@ -773,7 +773,7 @@ final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Object that wants to be notified of cache events.
      */
-    interface EventListener {
+    public interface EventListener {
 
         /**
          * Responds to an event from a {@link GlyphCache}.

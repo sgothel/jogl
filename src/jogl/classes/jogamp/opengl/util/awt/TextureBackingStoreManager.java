@@ -25,18 +25,19 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLContext;
-import com.jogamp.opengl.util.awt.TextureBackingStore.EventListener;
-import com.jogamp.opengl.util.awt.TextureBackingStore.EventType;
 import com.jogamp.opengl.util.packrect.BackingStoreManager;
 import com.jogamp.opengl.util.packrect.Rect;
 
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
+
+import jogamp.opengl.util.awt.TextureBackingStore.EventListener;
+import jogamp.opengl.util.awt.TextureBackingStore.EventType;
 
 
 /**

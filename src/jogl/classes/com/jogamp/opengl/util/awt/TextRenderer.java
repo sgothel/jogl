@@ -43,6 +43,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import jogamp.opengl.util.awt.Glyph;
+import jogamp.opengl.util.awt.GlyphCache;
+import jogamp.opengl.util.awt.GlyphProducer;
+import jogamp.opengl.util.awt.GlyphProducerFactory;
+import jogamp.opengl.util.awt.GlyphRenderer;
+import jogamp.opengl.util.awt.GlyphRendererFactory;
+
 
 /**
  * Utility for rendering bitmapped Java 2D text into an OpenGL window.

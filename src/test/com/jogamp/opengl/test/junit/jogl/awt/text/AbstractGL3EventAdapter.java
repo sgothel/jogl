@@ -25,16 +25,16 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package com.jogamp.opengl.test.junit.jogl.awt.text;
 
-import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.GLAutoDrawable;
 
 
 /**
- * Skeletal implementation of {@link GLEventListener} for OpenGL 2.
+ * Skeletal implementation of {@link GLEventListener} for OpenGL 3.
  */
-abstract class AbstractGL2EventAdapter extends GLEventAdapter {
+abstract class AbstractGL3EventAdapter extends GLEventAdapter {
 
     /**
      * {@inheritDoc}
@@ -43,7 +43,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
      */
     @Override
     public final void display(final GLAutoDrawable drawable) {
-        final GL2 gl = drawable.getGL().getGL2();
+        final GL3 gl = drawable.getGL().getGL3();
         doDisplay(gl);
     }
 
@@ -54,7 +54,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
      */
     @Override
     public final void dispose(final GLAutoDrawable drawable) {
-        final GL2 gl = drawable.getGL().getGL2();
+        final GL3 gl = drawable.getGL().getGL3();
         doDispose(gl);
     }
 
@@ -67,7 +67,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
     public final void reshape(final GLAutoDrawable drawable,
                               final int x, final int y,
                               final int width, final int height) {
-        final GL2 gl = drawable.getGL().getGL2();
+        final GL3 gl = drawable.getGL().getGL3();
         doReshape(gl, x, y, width, height);
     }
 
@@ -81,7 +81,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
      * @param gl OpenGL context from drawable
      * @throws NullPointerException if context is <tt>null</tt>
      */
-    protected void doInit(GL2 gl) {
+    protected void doInit(GL3 gl) {
         // pass
     }
 
@@ -91,7 +91,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
      * @param gl OpenGL context from drawable
      * @throws NullPointerException if context is <tt>null</tt>
      */
-    protected void doDisplay(GL2 gl) {
+    protected void doDisplay(GL3 gl) {
         // pass
     }
 
@@ -101,7 +101,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
      * @param gl OpenGL context from drawable
      * @throws NullPointerException if context is <tt>null</tt>
      */
-    protected void doDispose(GL2 gl) {
+    protected void doDispose(GL3 gl) {
         // pass
     }
 
@@ -115,7 +115,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
      * @param height Height of viewport
      * @throws NullPointerException if context is <tt>null</tt>
      */
-    protected void doReshape(GL2 gl, int x, int y, int width, int height) {
+    protected void doReshape(GL3 gl, int x, int y, int width, int height) {
         // pass
     }
 }

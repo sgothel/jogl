@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
@@ -47,8 +47,9 @@ import com.jogamp.opengl.util.glsl.ShaderUtil;
  * will be reported correctly.  This means that if the shader is to be embedded in Java code, a
  * "\n" should be appended to every line.
  */
+/*@VisibleForTesting*/
 /*@ThreadSafe*/
-final class ShaderLoader {
+public final class ShaderLoader {
 
     /**
      * Prevents instantiation.
@@ -134,9 +135,9 @@ final class ShaderLoader {
      * @throws GLException if program did not compile, link, or validate successfully
      */
     /*@Nonnegative*/
-    static int loadProgram(/*@Nonnull*/ final GL2ES2 gl,
-                           /*@Nonnull*/ final String vss,
-                           /*@Nonnull*/ final String fss) {
+    public static int loadProgram(/*@Nonnull*/ final GL2ES2 gl,
+                                  /*@Nonnull*/ final String vss,
+                                  /*@Nonnull*/ final String fss) {
 
         // Create the shaders
         final int vs = loadShader(gl, vss, GL2ES2.GL_VERTEX_SHADER);

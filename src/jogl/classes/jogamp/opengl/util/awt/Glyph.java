@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt;
 
 import com.jogamp.opengl.util.packrect.Rect;
 import com.jogamp.opengl.util.texture.TextureCoords;
@@ -129,7 +129,7 @@ import java.awt.geom.Rectangle2D;
  * </pre>
  */
 /*@NotThreadSafe*/
-final class Glyph {
+public final class Glyph {
 
     // TODO: Create separate Glyph implementations -- one for character one for string?
 
@@ -169,12 +169,14 @@ final class Glyph {
     /**
      * Width of text with inner padding.
      */
-    float width;
+    /*@VisibleForTesting*/
+    public float width;
 
     /**
      * Height of text with inner padding.
      */
-    float height;
+    /*@VisibleForTesting*/
+    public float height;
 
     /**
      * Length from baseline to top border.
@@ -207,7 +209,7 @@ final class Glyph {
      * Position of this glyph in texture.
      */
     /*@CheckForNull*/
-    Rect location;
+    public Rect location;
 
     /**
      * Coordinates of this glyph in texture.
@@ -227,7 +229,7 @@ final class Glyph {
      * @param id Unicode ID of character, not negative
      * @param gv Vector shape of character, not null
      */
-    Glyph(/*@Nonnegative*/ final int id, /*@Nonnull*/ final GlyphVector gv) {
+    public Glyph(/*@Nonnegative*/ final int id, /*@Nonnull*/ final GlyphVector gv) {
 
         assert id >= 0 : "ID shouldn't be null";
         assert gv != null : "Glyph vector shouldn't be null";
@@ -246,7 +248,7 @@ final class Glyph {
      * @param str Sequence of characters, not null
      * @param gv Vector shape of sequence, not null
      */
-    Glyph(/*@Nonnull*/ final String str, /*@Nonnull*/ final GlyphVector gv) {
+    public Glyph(/*@Nonnull*/ final String str, /*@Nonnull*/ final GlyphVector gv) {
 
         assert str != null : "String shouldn't be null";
         assert gv != null : "Glyph vector shouldn't be null";
