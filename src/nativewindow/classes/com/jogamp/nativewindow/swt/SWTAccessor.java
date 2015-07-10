@@ -114,9 +114,9 @@ public class SWTAccessor {
 
     private static VersionNumber GTK_VERSION(final int version) {
         // return (major << 16) + (minor << 8) + micro;
-        final int micro = ( version       ) & 0x0f;
-        final int minor = ( version >>  8 ) & 0x0f;
-        final int major = ( version >> 16 ) & 0x0f;
+        final int micro = ( version       ) & 0xff;
+        final int minor = ( version >>  8 ) & 0xff;
+        final int major = ( version >> 16 ) & 0xff;
         return new VersionNumber(major, minor, micro);
     }
 
