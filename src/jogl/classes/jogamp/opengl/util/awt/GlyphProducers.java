@@ -34,22 +34,21 @@ import java.awt.font.FontRenderContext;
 import java.lang.Character.UnicodeBlock;
 
 
-// TODO: Rename to `GlyphProducers`?
 /**
- * Utility for creating glyph producers.
+ * Utility for working with {@link GlyphProducer}'s.
  */
 /*@ThreadSafe*/
-public final class GlyphProducerFactory {
+public final class GlyphProducers {
 
     /**
      * Prevents instantiation.
      */
-    private GlyphProducerFactory() {
+    private GlyphProducers() {
         // empty
     }
 
     /**
-     * Creates correct glyph producer for a subset of Unicode.
+     * Creates a {@link GlyphProducer} based on a range of characters.
      *
      * @param font Style of text
      * @param rd Controller of rendering details
@@ -59,10 +58,10 @@ public final class GlyphProducerFactory {
      * @throws UnsupportedOperationException if unicode block unsupported
      */
     /*@Nonnull*/
-    public static GlyphProducer createGlyphProducer(/*@Nonnull*/ final Font font,
-                                                    /*@Nonnull*/ final RenderDelegate rd,
-                                                    /*@Nonnull*/ final FontRenderContext frc,
-                                                    /*@CheckForNull*/ final UnicodeBlock ub) {
+    public static GlyphProducer get(/*@Nonnull*/ final Font font,
+                                    /*@Nonnull*/ final RenderDelegate rd,
+                                    /*@Nonnull*/ final FontRenderContext frc,
+                                    /*@CheckForNull*/ final UnicodeBlock ub) {
         if (ub == null) {
             return new UnicodeGlyphProducer(font, rd, frc);
         } else if (ub == UnicodeBlock.BASIC_LATIN) {

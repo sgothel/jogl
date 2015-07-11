@@ -28,72 +28,39 @@
 package jogamp.opengl.util.awt;
 
 import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.GL3;
-import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLProfile;
 
 
 /**
- * Utility for creating quad pipelines.
+ * Utility for working with {@link GlyphRenderer}'s.
  */
-/*ThreadSafe*/
-public final class QuadPipelineFactory {
+/*@ThreadSafe*/
+public final class GlyphRenderers {
 
     /**
      * Prevents instantiation.
      */
-    private QuadPipelineFactory() {
+    private GlyphRenderers() {
         // pass
     }
 
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
     /**
-     * Creates a quad pipeline based on the current OpenGL context.
+     * Creates a {@link GlyphRenderer} based on the current OpenGL context.
      *
      * @param gl Current OpenGL context
-     * @param program Shader program to use, or zero to use default
-     * @return Correct quad pipeline for the version of OpenGL in use, not null
+     * @return New glyph renderer for the given context, not null
      * @throws NullPointerException if context is null
-     * @throws IllegalArgumentException if shader program is negative
      * @throws UnsupportedOperationException if GL is unsupported
      */
     /*@Nonnull*/
-    public QuadPipeline createQuadPipeline(/*@Nonnull*/ final GL gl,
-                                           /*@Nonnegative*/ final int program) {
-
-        checkNotNull(gl, "Context cannot be null");
-        checkArgument(program >= 0, "Program cannot be negative");
+    public static GlyphRenderer get(/*@Nonnull*/ final GL gl) {
 
         final GLProfile profile = gl.getGLProfile();
 
         if (profile.isGL3()) {
-            final GL3 gl3 = gl.getGL3();
-            return new QuadPipelineGL30(gl3, program);
+            return new GlyphRendererGL3(gl.getGL3());
         } else if (profile.isGL2()) {
-            final GL2 gl2 = gl.getGL2();
-            if (gl2.isExtensionAvailable(GLExtensions.VERSION_1_5)) {
-                return new QuadPipelineGL15(gl2);
-            } else if (gl2.isExtensionAvailable("GL_VERSION_1_1")) {
-                return new QuadPipelineGL11();
-            } else {
-                return new QuadPipelineGL10();
-            }
+            return new GlyphRendererGL2();
         } else {
             throw new UnsupportedOperationException("Profile currently unsupported");
         }

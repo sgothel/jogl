@@ -46,9 +46,9 @@ import java.util.List;
 import jogamp.opengl.util.awt.Glyph;
 import jogamp.opengl.util.awt.GlyphCache;
 import jogamp.opengl.util.awt.GlyphProducer;
-import jogamp.opengl.util.awt.GlyphProducerFactory;
+import jogamp.opengl.util.awt.GlyphProducers;
 import jogamp.opengl.util.awt.GlyphRenderer;
-import jogamp.opengl.util.awt.GlyphRendererFactory;
+import jogamp.opengl.util.awt.GlyphRenderers;
 
 
 /**
@@ -284,7 +284,7 @@ public final class TextRenderer {
 
         this.font = font;
         this.glyphCache = GlyphCache.newInstance(font, rd, antialias, subpixel, mipmap);
-        this.glyphProducer = GlyphProducerFactory.createGlyphProducer(font, rd, glyphCache.getFontRenderContext(), ub);
+        this.glyphProducer = GlyphProducers.get(font, rd, glyphCache.getFontRenderContext(), ub);
     }
 
     /**
@@ -992,7 +992,7 @@ public final class TextRenderer {
             if (delegate == null) {
 
                 // Create the glyph renderer
-                delegate = GlyphRendererFactory.createGlyphRenderer(gl);
+                delegate = GlyphRenderers.get(gl);
 
                 // Add the event listeners
                 for (EventListener listener : listeners) {
