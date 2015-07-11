@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2012 JogAmp Community. All rights reserved.
  *
@@ -26,43 +25,46 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
-
-import com.jogamp.opengl.GL2GL3;
+package jogamp.opengl.util.awt.text;
 
 
 /**
- * Uniform for a {@code mat4}.
+ * Utility for computing projections.
  */
 /*@NotThreadSafe*/
-final class Mat4Uniform extends Uniform {
+final class Projection {
 
     /**
-     * Local copy of matrix values.
+     * Prevents instantiation.
      */
-    final float[] value = new float[16];
-
-    /**
-     * True if matrix is stored in row-major order.
-     */
-    boolean transpose;
-
-    /**
-     * Constructs a {@link UniformMatrix}.
-     *
-     * @param gl Current OpenGL context
-     * @param program OpenGL handle to shader program
-     * @param name Name of the uniform in shader source code
-     * @throws NullPointerException if context is null
-     */
-    Mat4Uniform(/*@Nonnull*/ final GL2GL3 gl,
-                /*@Nonnegative*/ final int program,
-                /*@Nonnull*/ final String name) {
-        super(gl, program, name);
+    private Projection() {
+        // empty
     }
 
-    @Override
-    void update(/*@Nonnull*/ final GL2GL3 gl) {
-        gl.glUniformMatrix4fv(location, 1, transpose, value, 0);
+    /**
+     * Computes an orthographic projection matrix.
+     *
+     * @param v Computed matrix values, in row-major order
+     * @param width Width of current OpenGL viewport
+     * @param height Height of current OpenGL viewport
+     */
+    static void orthographic(/*@Nonnull*/ final float[] v,
+                             /*@Nonnegative*/ final int width,
+                             /*@Nonnegative*/ final int height) {
+
+        // Zero out
+        for (int i = 0; i < 16; ++i) {
+            v[i] = 0;
+        }
+
+        // Translate to origin
+        v[3] = -1;
+        v[7] = -1;
+
+        // Scale to unit cube
+        v[0] = 2f / width;
+        v[5] = 2f / height;
+        v[10] = -1;
+        v[15] = 1;
     }
 }

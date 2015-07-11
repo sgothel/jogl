@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt.text;
 
 import com.jogamp.opengl.util.awt.TextRenderer.RenderDelegate;
 

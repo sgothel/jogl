@@ -25,46 +25,43 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt.text;
+
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL3;
 
 
 /**
- * Utility for computing projections.
+ * Two-dimensional, grayscale OpenGL texture.
  */
-/*@NotThreadSafe*/
-final class Projection {
+final class GrayTexture2D extends Texture2D {
 
     /**
-     * Prevents instantiation.
+     * Creates a two-dimensional, grayscale texture.
+     *
+     * @param gl Current OpenGL context
+     * @param width Size of texture on X axis
+     * @param height Size of texture on Y axis
+     * @param smooth True to interpolate samples
+     * @param mipmap True for high quality
+     * @throws NullPointerException if context is null
      */
-    private Projection() {
-        // empty
+    GrayTexture2D(/*@Nonnull*/ final GL gl,
+                  /*@Nonnegative*/ final int width,
+                  /*@Nonnegative*/ final int height,
+                  final boolean smooth,
+                  final boolean mipmap) {
+        super(gl, width, height, smooth, mipmap);
     }
 
-    /**
-     * Computes an orthographic projection matrix.
-     *
-     * @param v Computed matrix values, in row-major order
-     * @param width Width of current OpenGL viewport
-     * @param height Height of current OpenGL viewport
-     */
-    static void orthographic(/*@Nonnull*/ final float[] v,
-                             /*@Nonnegative*/ final int width,
-                             /*@Nonnegative*/ final int height) {
+    @Override
+    protected int getFormat(/*@Nonnull*/ final GL gl) {
+        return gl.getGLProfile().isGL2() ? GL2.GL_LUMINANCE : GL3.GL_RED;
+    }
 
-        // Zero out
-        for (int i = 0; i < 16; ++i) {
-            v[i] = 0;
-        }
-
-        // Translate to origin
-        v[3] = -1;
-        v[7] = -1;
-
-        // Scale to unit cube
-        v[0] = 2f / width;
-        v[5] = 2f / height;
-        v[10] = -1;
-        v[15] = 1;
+    @Override
+    protected int getInternalFormat(/*@Nonnull*/ final GL gl) {
+        return gl.getGLProfile().isGL2() ? GL2.GL_INTENSITY : GL3.GL_RED;
     }
 }

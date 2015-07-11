@@ -25,43 +25,48 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt.text;
 
-import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GL2GL3;
 
 
 /**
- * Two-dimensional, grayscale OpenGL texture.
+ * Uniform variable in a shader.
  */
-final class GrayTexture2D extends Texture2D {
+abstract class Uniform {
 
     /**
-     * Creates a two-dimensional, grayscale texture.
+     * Index of uniform in shader.
+     */
+    /*@Nonnegative*/
+    final int location;
+
+    /**
+     * True if local value should be pushed.
+     */
+    boolean dirty;
+
+    /**
+     * Constructs a uniform.
      *
-     * @param gl Current OpenGL context
-     * @param width Size of texture on X axis
-     * @param height Size of texture on Y axis
-     * @param smooth True to interpolate samples
-     * @param mipmap True for high quality
+     * @param gl2gl3 Current OpenGL context
+     * @param program OpenGL handle to shader program
+     * @param name Name of the uniform in shader source code
      * @throws NullPointerException if context is null
      */
-    GrayTexture2D(/*@Nonnull*/ final GL gl,
-                  /*@Nonnegative*/ final int width,
-                  /*@Nonnegative*/ final int height,
-                  final boolean smooth,
-                  final boolean mipmap) {
-        super(gl, width, height, smooth, mipmap);
+    Uniform(/*@Nonnull*/ final GL2GL3 gl2gl3,
+            /*@Nonnegative*/ final int program,
+            /*@Nonnull*/ final String name) {
+        location = gl2gl3.glGetUniformLocation(program, name);
+        if (location == -1) {
+            throw new RuntimeException("Could not find uniform in program.");
+        }
     }
 
-    @Override
-    protected int getFormat(/*@Nonnull*/ final GL gl) {
-        return gl.getGLProfile().isGL2() ? GL2.GL_LUMINANCE : GL3.GL_RED;
-    }
-
-    @Override
-    protected int getInternalFormat(/*@Nonnull*/ final GL gl) {
-        return gl.getGLProfile().isGL2() ? GL2.GL_INTENSITY : GL3.GL_RED;
-    }
+    /**
+     * Pushes the local value to the shader program.
+     *
+     * @param gl Current OpenGL context
+     */
+    abstract void update(/*@Nonnull*/ GL2GL3 gl);
 }

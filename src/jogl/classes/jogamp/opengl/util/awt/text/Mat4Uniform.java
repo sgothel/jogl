@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2012 JogAmp Community. All rights reserved.
  *
@@ -25,48 +26,43 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt.text;
 
 import com.jogamp.opengl.GL2GL3;
 
 
 /**
- * Uniform variable in a shader.
+ * Uniform for a {@code mat4}.
  */
-abstract class Uniform {
+/*@NotThreadSafe*/
+final class Mat4Uniform extends Uniform {
 
     /**
-     * Index of uniform in shader.
+     * Local copy of matrix values.
      */
-    /*@Nonnegative*/
-    final int location;
+    final float[] value = new float[16];
 
     /**
-     * True if local value should be pushed.
+     * True if matrix is stored in row-major order.
      */
-    boolean dirty;
+    boolean transpose;
 
     /**
-     * Constructs a uniform.
+     * Constructs a {@link UniformMatrix}.
      *
-     * @param gl2gl3 Current OpenGL context
+     * @param gl Current OpenGL context
      * @param program OpenGL handle to shader program
      * @param name Name of the uniform in shader source code
      * @throws NullPointerException if context is null
      */
-    Uniform(/*@Nonnull*/ final GL2GL3 gl2gl3,
-            /*@Nonnegative*/ final int program,
-            /*@Nonnull*/ final String name) {
-        location = gl2gl3.glGetUniformLocation(program, name);
-        if (location == -1) {
-            throw new RuntimeException("Could not find uniform in program.");
-        }
+    Mat4Uniform(/*@Nonnull*/ final GL2GL3 gl,
+                /*@Nonnegative*/ final int program,
+                /*@Nonnull*/ final String name) {
+        super(gl, program, name);
     }
 
-    /**
-     * Pushes the local value to the shader program.
-     *
-     * @param gl Current OpenGL context
-     */
-    abstract void update(/*@Nonnull*/ GL2GL3 gl);
+    @Override
+    void update(/*@Nonnull*/ final GL2GL3 gl) {
+        gl.glUniformMatrix4fv(location, 1, transpose, value, 0);
+    }
 }

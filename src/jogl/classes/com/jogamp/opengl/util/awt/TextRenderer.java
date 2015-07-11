@@ -43,12 +43,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jogamp.opengl.util.awt.Glyph;
-import jogamp.opengl.util.awt.GlyphCache;
-import jogamp.opengl.util.awt.GlyphProducer;
-import jogamp.opengl.util.awt.GlyphProducers;
-import jogamp.opengl.util.awt.GlyphRenderer;
-import jogamp.opengl.util.awt.GlyphRenderers;
+import jogamp.opengl.util.awt.text.Glyph;
+import jogamp.opengl.util.awt.text.GlyphCache;
+import jogamp.opengl.util.awt.text.GlyphProducer;
+import jogamp.opengl.util.awt.text.GlyphProducers;
+import jogamp.opengl.util.awt.text.GlyphRenderer;
+import jogamp.opengl.util.awt.text.GlyphRenderers;
 
 
 /**

@@ -25,63 +25,58 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
-
-import java.awt.geom.Rectangle2D;
-import java.util.List;
+package jogamp.opengl.util.awt.text;
 
 
 /**
- * Utility for creating glyphs.
+ * Structure for points and coordinates.
  */
-public interface GlyphProducer {
+/*@VisibleForTesting*/
+/*@NotThreadSafe*/
+public final class Quad {
 
     /**
-     * Deletes all stored glyphs.
+     * Position of left side.
      */
-    void clearGlyphs();
+    public float xl;
 
     /**
-     * Makes a glyph for a single character.
-     *
-     * @param c Character
-     * @return Reused instance of a glyph
+     * Position of right side.
      */
-    Glyph createGlyph(char c);
+    public float xr;
 
     /**
-     * Makes a glyph for each character in a string.
-     *
-     * @param str Text as a string
-     * @return View of glyphs valid until next call
-     * @throws NullPointerException if string is null
+     * Position of bottom side.
      */
-    /*@Nonnull*/
-    List<Glyph> createGlyphs(/*@Nonnull*/ String str);
+    public float yb;
 
     /**
-     * Determines the distance to the next character after a glyph.
-     *
-     * @param c Character to find advance of
-     * @return Distance to the next character after a glyph, which may be negative
+     * Position of top side.
      */
-    /*@CheckForSigned*/
-    float findAdvance(char c);
+    public float yt;
 
     /**
-     * Determines the visual bounds of a string with padding added.
-     *
-     * @param str Text to find visual bounds of
-     * @return Visual bounds of string with padding added, not null
-     * @throws NullPointerException if string is null
+     * Depth.
      */
-    /*@Nonnull*/
-    Rectangle2D findBounds(/*@Nonnull*/ String str);
+    public float z;
 
     /**
-     * Deletes a single stored glyph.
-     *
-     * @param glyph Previously created glyph, ignored if null
+     * Left texture coordinate.
      */
-    void removeGlyph(/*@CheckForNull*/ Glyph glyph);
+    public float sl;
+
+    /**
+     * Right texture coordinate.
+     */
+    public float sr;
+
+    /**
+     * Bottom texture coordinate.
+     */
+    public float tb;
+
+    /**
+     * Top texture coordinate.
+     */
+    public float tt;
 }

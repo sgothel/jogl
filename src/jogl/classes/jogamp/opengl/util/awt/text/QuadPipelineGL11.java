@@ -25,19 +25,20 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.awt;
+package jogamp.opengl.util.awt.text;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 
+import java.nio.FloatBuffer;
 
 
 /**
- * {@link QuadPipeline} for use with OpenGL 1.5.
+ * {@link QuadPipeline} for use with OpenGL 1.1.
  */
 /*@VisibleForTesting*/
 /*@NotThreadSafe*/
-public final class QuadPipelineGL15 extends AbstractQuadPipeline {
+public final class QuadPipelineGL11 extends AbstractQuadPipeline {
 
     /**
      * Number of vertices per primitive.
@@ -52,23 +53,27 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
     private static final int PRIMS_PER_QUAD = 1;
 
     /**
-     * OpenGL handle to vertex buffer.
+     * Vertex array for points.
      */
-    /*@Nonnegative*/
-    private final int vbo;
+    /*@Nonnull*/
+    private final FloatBuffer pointsArray;
 
     /**
-     * Constructs a {@link QuadPipelineGL15}.
-     *
-     * @param gl2 Current OpenGL context
-     * @throws NullPointerException if context is null
+     * Vertex array for texture coordinates.
+     */
+    /*@Nonnull*/
+    private final FloatBuffer coordsArray;
+
+    /**
+     * Constructs a {@link QuadPipelineGL11}.
      */
     /*@VisibleForTesting*/
-    public QuadPipelineGL15(/*@Nonnull*/ final GL2 gl2) {
+    public QuadPipelineGL11() {
 
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
 
-        this.vbo = createVertexBufferObject(gl2, BYTES_PER_BUFFER);
+        pointsArray = createFloatBufferView(getData(), POINT_OFFSET);
+        coordsArray = createFloatBufferView(getData(), COORD_OFFSET);
     }
 
     @Override
@@ -78,9 +83,8 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
 
         final GL2 gl2 = gl.getGL2();
 
-        // Change state
+        // Push state
         gl2.glPushClientAttrib((int) GL2.GL_ALL_CLIENT_ATTRIB_BITS);
-        gl2.glBindBuffer(GL2.GL_ARRAY_BUFFER, vbo);
 
         // Points
         gl2.glEnableClientState(GL2.GL_VERTEX_ARRAY);
@@ -88,7 +92,7 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
                 FLOATS_PER_POINT,   // size
                 GL2.GL_FLOAT,       // type
                 STRIDE,             // stride
-                POINT_OFFSET);      // offset
+                pointsArray);       // pointer
 
         // Coordinates
         gl2.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
@@ -96,19 +100,52 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
                 FLOATS_PER_COORD,   // size
                 GL2.GL_FLOAT,       // type
                 STRIDE,             // stride
-                COORD_OFFSET);      // offset
+                coordsArray);       // pointer
     }
 
-    @Override
-    public void dispose(/*@Nonnull*/ final GL gl) {
+    private static void checkArgument(final boolean condition,
+                                      /*@CheckForNull*/ final String message) {
+        if (!condition) {
+            throw new IllegalArgumentException(message);
+        }
+    }
 
-        super.dispose(gl);
+    /*@Nonnull*/
+    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
+                                      /*@CheckForNull*/ final String message) {
+        if (obj == null) {
+            throw new NullPointerException(message);
+        }
+        return obj;
+    }
 
-        final GL2 gl2 = gl.getGL2();
+    /**
+     * Makes a view of a float buffer at a certain position.
+     *
+     * @param fb Original float buffer
+     * @param position Index to start view at
+     * @return Resulting float buffer
+     * @throws NullPointerException if float buffer is null
+     * @throws IllegalArgumentException if position is negative
+     */
+    /*@Nonnull*/
+    private static FloatBuffer createFloatBufferView(/*@Nonnull*/ final FloatBuffer fb,
+                                                     /*@Nonnegative*/ final int position) {
 
-        // Delete the vertex buffer object
-        final int[] handles = new int[] { vbo };
-        gl2.glDeleteBuffers(1, handles, 0);
+        checkNotNull(fb, "Buffer cannot be null");
+        checkArgument(position >= 0, "Possition cannot be negative");
+
+        // Store original position
+        final int original = fb.position();
+
+        // Make a view at desired position
+        fb.position(position);
+        final FloatBuffer view = fb.asReadOnlyBuffer();
+
+        // Reset buffer to original position
+        fb.position(original);
+
+        return view;
     }
 
     @Override
@@ -116,20 +153,10 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
 
         final GL2 gl2 = gl.getGL2();
 
-        // Upload data
-        rewind();
-        gl2.glBufferSubData(
-                GL2.GL_ARRAY_BUFFER, // target
-                0,                   // offset
-                getSizeInBytes(),    // size
-                getData());          // data
-
-        // Draw
         gl2.glDrawArrays(
                 GL2.GL_QUADS,         // mode
                 0,                    // first
                 getSizeInVertices()); // count
-
         clear();
     }
 
@@ -140,8 +167,7 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
 
         final GL2 gl2 = gl.getGL2();
 
-        // Restore state
-        gl2.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
+        // Pop state
         gl2.glPopClientAttrib();
     }
 }
