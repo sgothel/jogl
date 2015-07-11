@@ -130,6 +130,9 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
 
     @Override
     public final void addListener(/*@Nonnull*/ final EventListener listener) {
+
+        Check.notNull(listener, "Listener cannot be null");
+
         listeners.add(listener);
     }
 
@@ -139,6 +142,10 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
                                      /*@Nonnegative*/ final int width,
                                      /*@Nonnegative*/ final int height,
                                      final boolean disableDepthTest) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         // Perform hook
         doBeginRendering(gl, ortho, width, height, disableDepthTest);
@@ -168,22 +175,6 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         }
     }
 
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
-    private static void checkState(final boolean condition,
-                                   /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalStateException(message);
-        }
-    }
-
     /**
      * Requests that the pipeline be replaced on the next call to {@link #beginRendering}.
      */
@@ -193,6 +184,9 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
 
     @Override
     public final void dispose(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         doDispose(gl);
         listeners.clear();
         pipeline.dispose(gl);
@@ -222,6 +216,7 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
      * @param gl Current OpenGL context
      * @return Quad pipeline to render quads with
      * @throws NullPointerException if context is null
+     * @throws GLException if context is unexpected version
      */
     protected abstract QuadPipeline doCreateQuadPipeline(/*@Nonnull*/ final GL gl);
 
@@ -297,6 +292,10 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
                                  /*@CheckForSigned*/ final float scale,
                                  /*@Nonnull*/ final TextureCoords coords) {
 
+        Check.notNull(gl, "GL cannot be null");
+        Check.notNull(glyph, "Glyph cannot be null");
+        Check.notNull(coords, "Texture coordinates cannot be null");
+
         // Compute position and size
         quad.xl = x + (scale * glyph.kerning);
         quad.xr = quad.xl + (scale * glyph.width);
@@ -318,6 +317,8 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     @Override
     public final void endRendering(/*@Nonnull*/ final GL gl) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         // Store text renderer state
         inRenderCycle = false;
 
@@ -335,7 +336,9 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
      * @throws NullPointerException if type is null
      */
     protected final void fireEvent(/*@Nonnull*/ final EventType type) {
-        checkNotNull(type, "Event type cannot be null");
+
+        Check.notNull(type, "Event type cannot be null");
+
         for (final EventListener listener : listeners) {
             assert listener != null : "addListener rejects null";
             listener.onGlyphRendererEvent(type);
@@ -345,7 +348,8 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     @Override
     public final void flush(/*@Nonnull*/ final GL gl) {
 
-        checkState(inRenderCycle, "Must be in render cycle");
+        Check.notNull(gl, "GL cannot be null");
+        Check.state(inRenderCycle, "Must be in render cycle");
 
         pipeline.flush(gl);
         gl.glFlush();
@@ -376,7 +380,9 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
 
     @Override
     public final void onQuadPipelineEvent(/*@Nonnull*/ final QuadPipeline.EventType type) {
-        checkNotNull(type, "Event type cannot be null");
+
+        Check.notNull(type, "Event type cannot be null");
+
         if (type == QuadPipeline.EventType.AUTOMATIC_FLUSH) {
             fireEvent(EventType.AUTOMATIC_FLUSH);
         }
@@ -417,13 +423,12 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
      *
      * @param gl Current OpenGL context
      * @param pipeline Quad pipeline to change to
-     * @throws NullPointerException if context or pipeline is null
      */
     private final void setPipeline(/*@Nonnull*/ final GL gl,
                                    /*@Nonnull*/ final QuadPipeline pipeline) {
 
-        assert gl != null;
-        assert pipeline != null;
+        assert gl != null : "GL should not be null";
+        assert pipeline != null : "Pipeline should not be null";
 
         final QuadPipeline oldPipeline = this.pipeline;
         final QuadPipeline newPipeline = pipeline;
@@ -444,10 +449,8 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     @Override
     public final void setTransform(/*@Nonnull*/ final float[] value, final boolean transpose) {
 
-        // Check if in wrong mode
-        if (orthoMode) {
-            throw new IllegalStateException("Must be in 3D mode!");
-        }
+        Check.notNull(value, "Transform value cannot be null");
+        Check.state(!orthoMode, "Must be in 3D mode");
 
         // Render any outstanding quads first
         if (!pipeline.isEmpty()) {

@@ -79,6 +79,9 @@ final class UnicodeGlyphProducer extends AbstractGlyphProducer {
     private List<Glyph> createComplexGlyph(/*@Nonnull*/ final String str,
                                            /*@Nonnull*/ final GlyphVector gv) {
 
+        Check.notNull(str, "String cannot be null");
+        Check.notNull(gv, "Glyph vector be null");
+
         clearOutput();
 
         // Create the glyph and add it to output
@@ -120,6 +123,9 @@ final class UnicodeGlyphProducer extends AbstractGlyphProducer {
     /*@Nonnull*/
     @Override
     public List<Glyph> createGlyphs(/*@Nonnull*/ final String str) {
+
+        Check.notNull(str, "String cannot be null");
+
         if (!hasComplexCharacters(str)) {
             return createSimpleGlyphs(str);
         } else {
@@ -137,6 +143,8 @@ final class UnicodeGlyphProducer extends AbstractGlyphProducer {
      */
     /*@Nonnull*/
     private List<Glyph> createSimpleGlyphs(/*@Nonnull*/ final String str) {
+
+        Check.notNull(str, "String cannot be null");
 
         clearOutput();
 

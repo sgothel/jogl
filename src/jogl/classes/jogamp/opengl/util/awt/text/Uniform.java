@@ -47,19 +47,25 @@ abstract class Uniform {
     boolean dirty;
 
     /**
-     * Constructs a uniform.
+     * Constructs a {@link Uniform}.
      *
-     * @param gl2gl3 Current OpenGL context
+     * @param gl Current OpenGL context
      * @param program OpenGL handle to shader program
      * @param name Name of the uniform in shader source code
-     * @throws NullPointerException if context is null
+     * @throws NullPointerException if context or name is null
+     * @throws IllegalArgumentException if program is negative
      */
-    Uniform(/*@Nonnull*/ final GL2GL3 gl2gl3,
+    Uniform(/*@Nonnull*/ final GL2GL3 gl,
             /*@Nonnegative*/ final int program,
             /*@Nonnull*/ final String name) {
-        location = gl2gl3.glGetUniformLocation(program, name);
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.notNull(name, "Name cannot be null");
+        Check.argument(program >= 0, "Program cannot be negative");
+
+        location = gl.glGetUniformLocation(program, name);
         if (location == -1) {
-            throw new RuntimeException("Could not find uniform in program.");
+            throw new IllegalStateException("Could not find uniform in program");
         }
     }
 
@@ -67,6 +73,7 @@ abstract class Uniform {
      * Pushes the local value to the shader program.
      *
      * @param gl Current OpenGL context
+     * @throws NullPointerException if context is null
      */
     abstract void update(/*@Nonnull*/ GL2GL3 gl);
 }

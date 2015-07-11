@@ -113,14 +113,17 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
     /**
      * Constructs a {@link GlyphRendererGL3}.
      *
-     * @param gl3 Current OpenGL context
+     * @param gl Current OpenGL context
      * @throws NullPointerException if context is null
      */
     /*@VisibleForTesting*/
-    public GlyphRendererGL3(/*@Nonnull*/ final GL3 gl3) {
-        this.program = ShaderLoader.loadProgram(gl3, VERT_SOURCE, FRAG_SOURCE);
-        this.transform = new Mat4Uniform(gl3, program, "MVPMatrix");
-        this.color = new Vec4Uniform(gl3, program, "Color");
+    public GlyphRendererGL3(/*@Nonnull*/ final GL3 gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
+        this.program = ShaderLoader.loadProgram(gl, VERT_SOURCE, FRAG_SOURCE);
+        this.transform = new Mat4Uniform(gl, program, "MVPMatrix");
+        this.color = new Vec4Uniform(gl, program, "Color");
     }
 
     @Override
@@ -129,6 +132,10 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
                                     /*@Nonnegative*/ final int width,
                                     /*@Nonnegative*/ final int height,
                                     final boolean disableDepthTest) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         final GL3 gl3 = gl.getGL3();
 
@@ -156,11 +163,16 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
 
     @Override
     protected QuadPipeline doCreateQuadPipeline(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         final GL3 gl3 = gl.getGL3();
         return new QuadPipelineGL30(gl3, program);
     }
 
     protected void doDispose(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
 
         final GL3 gl3 = gl.getGL3();
 
@@ -170,6 +182,8 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
 
     @Override
     protected void doEndRendering(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
 
         final GL3 gl3 = gl.getGL3();
 
@@ -192,6 +206,8 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
                               final float b,
                               final float a) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final GL3 gl3 = gl.getGL3();
 
         color.value[0] = r;
@@ -206,6 +222,9 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
                                     /*@Nonnull*/ final float[] value,
                                     final boolean transpose) {
 
+        Check.notNull(gl, "GL cannot be null");
+        Check.notNull(value, "Value cannot be null");
+
         final GL3 gl3 = gl.getGL3();
 
         gl3.glUniformMatrix4fv(transform.location, 1, transpose, value, 0);
@@ -216,6 +235,10 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
     protected void doSetTransformOrtho(/*@Nonnull*/ final GL gl,
                                        /*@Nonnegative*/ final int width,
                                        /*@Nonnegative*/ final int height) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         final GL3 gl3 = gl.getGL3();
 

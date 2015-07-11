@@ -103,22 +103,6 @@ public final class QuadPipelineGL11 extends AbstractQuadPipeline {
                 coordsArray);       // pointer
     }
 
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
     /**
      * Makes a view of a float buffer at a certain position.
      *
@@ -132,8 +116,8 @@ public final class QuadPipelineGL11 extends AbstractQuadPipeline {
     private static FloatBuffer createFloatBufferView(/*@Nonnull*/ final FloatBuffer fb,
                                                      /*@Nonnegative*/ final int position) {
 
-        checkNotNull(fb, "Buffer cannot be null");
-        checkArgument(position >= 0, "Possition cannot be negative");
+        Check.notNull(fb, "Buffer cannot be null");
+        Check.argument(position >= 0, "Possition cannot be negative");
 
         // Store original position
         final int original = fb.position();
@@ -151,6 +135,8 @@ public final class QuadPipelineGL11 extends AbstractQuadPipeline {
     @Override
     protected void doFlush(/*@Nonnull*/ final GL gl) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final GL2 gl2 = gl.getGL2();
 
         gl2.glDrawArrays(
@@ -162,6 +148,8 @@ public final class QuadPipelineGL11 extends AbstractQuadPipeline {
 
     @Override
     public void endRendering(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
 
         super.endRendering(gl);
 

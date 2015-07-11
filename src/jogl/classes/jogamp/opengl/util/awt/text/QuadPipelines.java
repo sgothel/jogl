@@ -47,22 +47,6 @@ public final class QuadPipelines {
         // pass
     }
 
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
     /**
      * Creates a {@link QuadPipeline} based on the current OpenGL context.
      *
@@ -77,8 +61,8 @@ public final class QuadPipelines {
     public QuadPipeline get(/*@Nonnull*/ final GL gl,
                             /*@Nonnegative*/ final int program) {
 
-        checkNotNull(gl, "Context cannot be null");
-        checkArgument(program >= 0, "Program cannot be negative");
+        Check.notNull(gl, "Context cannot be null");
+        Check.argument(program >= 0, "Program cannot be negative");
 
         final GLProfile profile = gl.getGLProfile();
 

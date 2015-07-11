@@ -63,6 +63,7 @@ final class Mat4Uniform extends Uniform {
 
     @Override
     void update(/*@Nonnull*/ final GL2GL3 gl) {
+        Check.notNull(gl, "GL cannot be null");
         gl.glUniformMatrix4fv(location, 1, transpose, value, 0);
     }
 }

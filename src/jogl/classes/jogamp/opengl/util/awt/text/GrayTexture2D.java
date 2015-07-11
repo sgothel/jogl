@@ -46,6 +46,7 @@ final class GrayTexture2D extends Texture2D {
      * @param smooth True to interpolate samples
      * @param mipmap True for high quality
      * @throws NullPointerException if context is null
+     * @throws IllegalArgumentException if width or height is negative
      */
     GrayTexture2D(/*@Nonnull*/ final GL gl,
                   /*@Nonnegative*/ final int width,
@@ -57,11 +58,13 @@ final class GrayTexture2D extends Texture2D {
 
     @Override
     protected int getFormat(/*@Nonnull*/ final GL gl) {
+        Check.notNull(gl, "GL cannot be null");
         return gl.getGLProfile().isGL2() ? GL2.GL_LUMINANCE : GL3.GL_RED;
     }
 
     @Override
     protected int getInternalFormat(/*@Nonnull*/ final GL gl) {
+        Check.notNull(gl, "GL cannot be null");
         return gl.getGLProfile().isGL2() ? GL2.GL_INTENSITY : GL3.GL_RED;
     }
 }

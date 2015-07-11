@@ -143,9 +143,9 @@ final class TextureBackingStore {
                         final boolean smooth,
                         final boolean mipmap) {
 
-        assert (width >= 0);
-        assert (height >= 0);
-        assert (font != null);
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
+        Check.notNull(font, "Font cannot be null");
 
         this.width = width;
         this.height = height;
@@ -162,12 +162,12 @@ final class TextureBackingStore {
      * @param gl Current OpenGL context
      * @param unit OpenGL enumeration for a texture unit (e.g., {@code GL_TEXTURE0})
      * @throws NullPointerException if context is null
-     * @throws IllegalArgumentException if unit is less than {@code GL_TEXTURE0}
+     * @throws IllegalArgumentException if unit is invalid
      */
     void bind(/*@Nonnull*/ final GL gl, final int unit) {
 
-        assert (gl != null);
-        assert (unit >= GL.GL_TEXTURE0);
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(unit >= GL.GL_TEXTURE0, "Unit is invalid");
 
         ensureTexture(gl);
         texture.bind(gl, unit);
@@ -187,8 +187,10 @@ final class TextureBackingStore {
                /*@Nonnegative*/ final int width,
                /*@Nonnegative*/ final int height) {
 
-        assert ((x >= 0) || (y >= 0));
-        assert ((width >= 0) || (height >= 0));
+        Check.argument(x >= 0, "X cannot be negative");
+        Check.argument(y >= 0, "Y cannot be negative");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         g2d.setComposite(AlphaComposite.Clear);
         g2d.fillRect(x, y, width, height);
@@ -198,8 +200,8 @@ final class TextureBackingStore {
     /**
      * Creates a graphics for a backing store.
      *
-     * @param image Backing store's local copy of data
-     * @param font Style of text
+     * @param image Backing store's local copy of data, assumed not null
+     * @param font Style of text, assumed not null
      * @param antialias True to smooth edges
      * @param subpixel True to use subpixel accuracy
      * @return Graphics2D for rendering into image, not null
@@ -236,7 +238,7 @@ final class TextureBackingStore {
      */
     void dispose(/*@Nonnull*/ final GL gl) {
 
-        assert (gl != null);
+        Check.notNull(gl, "GL cannot be null");
 
         // Dispose of image
         if (image != null) {
@@ -252,7 +254,7 @@ final class TextureBackingStore {
     /**
      * Makes sure the texture has been created.
      *
-     * @param gl Current OpenGL context
+     * @param gl Current OpenGL context, assumed not null
      */
     private void ensureTexture(/*@Nonnull*/ final GL gl) {
         if (texture == null) {
@@ -261,7 +263,9 @@ final class TextureBackingStore {
     }
 
     /**
-     * Returns Java2D Graphics2D object for drawing into the store.
+     * Returns Java2D Graphics2D object for drawing into this store.
+     *
+     * @return Java2D graphics for drawing into this store, not null
      */
     /*@Nonnull*/
     final Graphics2D getGraphics() {
@@ -270,6 +274,8 @@ final class TextureBackingStore {
 
     /**
      * Returns height of the underlying image and texture.
+     *
+     * @return Height of the underlying image, not negative
      */
     /*@Nonnegative*/
     final int getHeight() {
@@ -278,6 +284,8 @@ final class TextureBackingStore {
 
     /**
      * Returns local copy of texture.
+     *
+     * @return Local copy of texture, not null
      */
     /*@Nonnull*/
     final BufferedImage getImage() {
@@ -287,8 +295,8 @@ final class TextureBackingStore {
     /**
      * Retrieves the underlying pixels of a buffered image.
      *
-     * @param image Image with underlying pixel buffer
-     * @return Pixel data of the image as a byte buffer
+     * @param image Image with underlying pixel buffer, assumed not null
+     * @return Pixel data of the image as a byte buffer, not null
      * @throws IllegalStateException if image is not stored as bytes
      */
     /*@Nonnull*/
@@ -307,6 +315,8 @@ final class TextureBackingStore {
 
     /**
      * Returns true if texture is interpolating samples.
+     *
+     * @return True if texture is interpolating samples
      */
     final boolean getUseSmoothing() {
         return smooth;
@@ -314,6 +324,8 @@ final class TextureBackingStore {
 
     /**
      * Returns width of the underlying image and texture.
+     *
+     * @return Width of the underlying image, not negative
      */
     /*@Nonnegative*/
     final int getWidth() {
@@ -330,15 +342,17 @@ final class TextureBackingStore {
      * @param y Position of area's top edge
      * @param width Width of area
      * @param height Height of area
-     * @throws IllegalArgumentException if x, y, width, or height
+     * @throws IllegalArgumentException if x, y, width, or height is negative
      */
     void mark(/*@Nonnegative*/ final int x,
               /*@Nonnegative*/ final int y,
               /*@Nonnegative*/ final int width,
               /*@Nonnegative*/ final int height) {
 
-        assert ((x >= 0) || (y >= 0));
-        assert ((width >= 0) || (height >= 0));
+        Check.argument(x >= 0, "X cannot be negative");
+        Check.argument(y >= 0, "Y cannot be negative");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         final Rectangle region = new Rectangle(x, y, width, height);
         if (dirtyRegion == null) {
@@ -364,7 +378,7 @@ final class TextureBackingStore {
      */
     void update(/*@Nonnull*/ final GL gl) {
 
-        assert (gl != null);
+        Check.notNull(gl, "GL cannot be null");
 
         // Make sure texture is created
         ensureTexture(gl);
@@ -391,7 +405,7 @@ final class TextureBackingStore {
          * Responds to an event from a texture backing store.
          *
          * @param type Type of event
-         * @throws NullPointerException if event type is null
+         * @throws NullPointerException if event type is null (optional)
          */
         public void onBackingStoreEvent(/*@Nonnull*/ EventType type);
     }

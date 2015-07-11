@@ -226,13 +226,15 @@ public final class Glyph {
     /**
      * Constructs a {@link Glyph} representing an individual Unicode character.
      *
-     * @param id Unicode ID of character, not negative
-     * @param gv Vector shape of character, not null
+     * @param id Unicode ID of character
+     * @param gv Vector shape of character
+     * @throws IllegalArgumentException if ID is negative
+     * @throws NullPointerException if glyph is null
      */
     public Glyph(/*@Nonnegative*/ final int id, /*@Nonnull*/ final GlyphVector gv) {
 
-        assert id >= 0 : "ID shouldn't be null";
-        assert gv != null : "Glyph vector shouldn't be null";
+        Check.argument(id >= 0, "ID cannot be negative");
+        Check.notNull(gv, "Glyph vector cannot be null");
 
         this.id = id;
         this.str = null;
@@ -245,13 +247,14 @@ public final class Glyph {
     /**
      * Constructs a {@link Glyph} representing a sequence of characters.
      *
-     * @param str Sequence of characters, not null
-     * @param gv Vector shape of sequence, not null
+     * @param str Sequence of characters
+     * @param gv Vector shape of sequence
+     * @throws NullPointerException if string or glyph vector is null
      */
     public Glyph(/*@Nonnull*/ final String str, /*@Nonnull*/ final GlyphVector gv) {
 
-        assert str != null : "String shouldn't be null";
-        assert gv != null : "Glyph vector shouldn't be null";
+        Check.notNull(str, "String cannot be null");
+        Check.notNull(gv, "Glyph vector cannot be null");
 
         this.id = -1;
         this.str = str;
@@ -301,6 +304,10 @@ public final class Glyph {
          * @throws NullPointerException if either rectangle is null
          */
         Boundary(/*@Nonnull*/ final Rectangle2D large, /*@Nonnull*/ final Rectangle2D small) {
+
+            Check.notNull(large, "Large rectangle cannot be null");
+            Check.notNull(small, "Small rectangle cannot be null");
+
             top = (int) (large.getMinY() - small.getMinY()) * -1;
             left = (int) (large.getMinX() - small.getMinX()) * -1;
             bottom = (int) (large.getMaxY() - small.getMaxY());

@@ -60,15 +60,17 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
     /**
      * Constructs a {@link QuadPipelineGL15}.
      *
-     * @param gl2 Current OpenGL context
+     * @param gl Current OpenGL context
      * @throws NullPointerException if context is null
      */
     /*@VisibleForTesting*/
-    public QuadPipelineGL15(/*@Nonnull*/ final GL2 gl2) {
+    public QuadPipelineGL15(/*@Nonnull*/ final GL2 gl) {
 
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
 
-        this.vbo = createVertexBufferObject(gl2, BYTES_PER_BUFFER);
+        Check.notNull(gl, "GL cannot be null");
+
+        this.vbo = createVertexBufferObject(gl, BYTES_PER_BUFFER);
     }
 
     @Override
@@ -113,6 +115,8 @@ public final class QuadPipelineGL15 extends AbstractQuadPipeline {
 
     @Override
     protected void doFlush(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
 
         final GL2 gl2 = gl.getGL2();
 

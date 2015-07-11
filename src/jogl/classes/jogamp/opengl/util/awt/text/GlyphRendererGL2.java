@@ -55,9 +55,13 @@ public final class GlyphRendererGL2 extends AbstractGlyphRenderer {
     @Override
     protected void doBeginRendering(/*@Nonnull*/ final GL gl,
                                     final boolean ortho,
-                                    /*@Nonnull*/ final int width,
-                                    /*@Nonnull*/ final int height,
+                                    /*@Nonnegative*/ final int width,
+                                    /*@Nonnegative*/ final int height,
                                     final boolean disableDepthTest) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         final GL2 gl2 = gl.getGL2();
 
@@ -91,6 +95,8 @@ public final class GlyphRendererGL2 extends AbstractGlyphRenderer {
     /*@Nonnull*/
     protected QuadPipeline doCreateQuadPipeline(/*@Nonnull*/ final GL gl) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final GL2 gl2 = gl.getGL2();
 
         if (useVertexArrays) {
@@ -107,11 +113,13 @@ public final class GlyphRendererGL2 extends AbstractGlyphRenderer {
     }
 
     protected void doDispose(/*@Nonnull*/ final GL gl) {
-        // empty
+        Check.notNull(gl, "GL cannot be null");
     }
 
     @Override
     protected void doEndRendering(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
 
         final GL2 gl2 = gl.getGL2();
 
@@ -136,6 +144,8 @@ public final class GlyphRendererGL2 extends AbstractGlyphRenderer {
                               final float b,
                               final float a) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final GL2 gl2 = gl.getGL2();
 
         gl2.glColor4f(r, g, b, a);
@@ -145,6 +155,10 @@ public final class GlyphRendererGL2 extends AbstractGlyphRenderer {
     protected void doSetTransform3d(/*@Nonnull*/ final GL gl,
                                     /*@Nonnull*/ final float[] value,
                                     final boolean transpose) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.notNull(value, "Value cannot be null");
+
         // FIXME: Could implement this...
         throw new UnsupportedOperationException("Use standard GL instead");
     }
@@ -153,6 +167,10 @@ public final class GlyphRendererGL2 extends AbstractGlyphRenderer {
     protected void doSetTransformOrtho(/*@Nonnull*/ final GL gl,
                                        /*@Nonnegative*/ final int width,
                                        /*@Nonnegative*/ final int height) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         final GL2 gl2 = gl.getGL2();
 

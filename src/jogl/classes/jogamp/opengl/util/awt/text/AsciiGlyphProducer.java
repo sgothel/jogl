@@ -95,6 +95,8 @@ final class AsciiGlyphProducer extends AbstractGlyphProducer {
     @Override
     public List<Glyph> createGlyphs(/*@Nonnull*/ final String str) {
 
+        Check.notNull(str, "String cannot be null");
+
         // Clear the output
         clearOutput();
 

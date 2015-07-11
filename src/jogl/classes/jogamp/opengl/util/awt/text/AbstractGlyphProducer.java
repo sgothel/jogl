@@ -100,9 +100,9 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
                           /*@Nonnull*/ final RenderDelegate rd,
                           /*@Nonnull*/ final FontRenderContext frc) {
 
-        checkNotNull(font, "Font cannot be null");
-        checkNotNull(rd, "Render delegate cannot be null");
-        checkNotNull(frc, "Font render context cannot be null");
+        Check.notNull(font, "Font cannot be null");
+        Check.notNull(rd, "Render delegate cannot be null");
+        Check.notNull(frc, "Font render context cannot be null");
 
         this.font = font;
         this.renderDelegate = rd;
@@ -125,9 +125,8 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      *
      * @param src Original rectangle
      * @param font Font being used to create glyphs
-     * @return Rectangle with margin added
-     * @throws NullPointerException if rectangle is null
-     * @throws NullPointerException if font is null
+     * @return Rectangle with margin added, not null
+     * @throws NullPointerException if rectangle or font is null
      */
     /*@Nonnull*/
     private static Rectangle2D addMarginTo(/*@Nonnull*/ final Rectangle2D src,
@@ -156,7 +155,7 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * neither the visual nor the pixel bounds works perfectly well.
      *
      * @param src Original rectangle
-     * @return Rectangle with padding added
+     * @return Rectangle with padding added, not null
      * @throws NullPointerException if rectangle is null
      */
     /*@Nonnull*/
@@ -177,17 +176,8 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * @throws NullPointerException if glyph is null
      */
     protected final void addToOutput(/*@Nonnull*/ final Glyph glyph) {
-        checkNotNull(glyph, "Glyph cannot be null");
+        Check.notNull(glyph, "Glyph cannot be null");
         output.add(glyph);
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
     }
 
     /**
@@ -220,6 +210,8 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      */
     /*@Nonnull*/
     protected final GlyphVector createGlyphVector(/*@Nonnull*/ final String str) {
+
+        Check.notNull(str, "String cannot be null");
 
         GlyphVector gv = glyphVectors.get(str);
 
@@ -255,6 +247,8 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
     /*@Nonnull*/
     @Override
     public final Rectangle2D findBounds(/*@Nonnull*/ final String str) {
+
+        Check.notNull(str, "String cannot be null");
 
         final List<Glyph> glyphs = createGlyphs(str);
 
@@ -335,6 +329,9 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * @throws NullPointerException if string is null
      */
     protected static boolean hasComplexCharacters(/*@Nonnull*/ final String str) {
+
+        Check.notNull(str, "String cannot be null");
+
         final int len = str.length();
         for (int i = 0; i < len; ++i) {
             if (str.charAt(i) > 0x2AE) {
@@ -347,14 +344,13 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
     /**
      * Checks if a glyph vector is complex.
      *
-     * @param gv Glyph vector to check, which may be null
+     * @param gv Glyph vector to check
      * @return True if glyph vector is complex
+     * @throws NullPointerException if glyph vector is null
      */
     protected static boolean isComplex(/*@CheckForNull*/ final GlyphVector gv) {
 
-        if (gv == null) {
-            return false;
-        }
+        Check.notNull(gv, "Glyph vector cannot be null");
 
         return gv.getLayoutFlags() != 0;
     }
@@ -369,6 +365,8 @@ abstract class AbstractGlyphProducer implements GlyphProducer {
      * @throws NullPointerException if glyph is null
      */
     protected final void measure(/*@Nonnull*/ final Glyph glyph) {
+
+        Check.notNull(glyph, "Glyph cannot be null");
 
         // Compute visual boundary
         final Rectangle2D visualBox;

@@ -58,26 +58,10 @@ public final class ShaderLoader {
         // empty
     }
 
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
     /**
      * Checks that a shader was compiled correctly.
      *
-     * @param gl OpenGL context that supports programmable shaders
+     * @param gl OpenGL context, assumed not null
      * @param shader OpenGL handle to a shader
      * @return True if shader was compiled without errors
      */
@@ -88,7 +72,7 @@ public final class ShaderLoader {
     /**
      * Checks that a shader program was linked successfully.
      *
-     * @param gl OpenGL context that supports programmable shaders
+     * @param gl OpenGL context, assumed not null
      * @param program OpenGL handle to a shader program
      * @return True if program was linked successfully
      */
@@ -99,28 +83,12 @@ public final class ShaderLoader {
     /**
      * Checks that a shader program was validated successfully.
      *
-     * @param gl OpenGL context that supports programmable shaders
+     * @param gl OpenGL context, assumed not null
      * @param program OpenGL handle to a shader program
      * @return True if program was validated successfully
      */
     private static boolean isProgramValidated(/*@Nonnull*/ final GL2ES2 gl, final int program) {
         return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_VALIDATE_STATUS);
-    }
-
-    /**
-     * Determines if a shader type is valid.
-     *
-     * @param type Type of a shader, which may be negative
-     * @return True if type is a valid shader type
-     */
-    private static boolean isValidType(/*@CheckForSigned*/ final int type) {
-        switch (type) {
-        case GL2ES2.GL_VERTEX_SHADER:
-        case GL2ES2.GL_FRAGMENT_SHADER:
-            return true;
-        default:
-            return false;
-        }
     }
 
     /**
@@ -138,6 +106,12 @@ public final class ShaderLoader {
     public static int loadProgram(/*@Nonnull*/ final GL2ES2 gl,
                                   /*@Nonnull*/ final String vss,
                                   /*@Nonnull*/ final String fss) {
+
+        Check.notNull(gl, "GL cannot be null");
+        Check.notNull(vss, "Vertex shader source cannot be null");
+        Check.notNull(fss, "Fragment shader source cannot be null");
+        Check.argument(!vss.isEmpty(), "Vertex shader source cannot be empty");
+        Check.argument(!fss.isEmpty(), "Fragment shader source cannot be empty");
 
         // Create the shaders
         final int vs = loadShader(gl, vss, GL2ES2.GL_VERTEX_SHADER);
@@ -166,23 +140,16 @@ public final class ShaderLoader {
     /**
      * Loads a shader from a string.
      *
-     * @param gl Current OpenGL context
-     * @param source Source code of the shader as one long string
-     * @param type Type of shader
+     * @param gl Current OpenGL context, assumed not null
+     * @param source Source code of the shader as one long string, assumed not null or empty
+     * @param type Type of shader, assumed valid
      * @return OpenGL handle to the shader, not negative
-     * @throws NullPointerException if context or source is null
-     * @throws IllegalArgumentException if source is empty or type is invalid
      * @throws GLException if a GLSL-capable context is not active or could not compile shader
      */
     /*@Nonnegative*/
     private static int loadShader(/*@Nonnull*/ final GL2ES2 gl,
                                   /*@Nonnull*/ final String source,
                                   final int type) {
-
-        checkNotNull(gl, "Context cannot be null");
-        checkNotNull(source, "Source cannot be null");
-        checkArgument(!source.isEmpty(), "Source cannot be empty");
-        checkArgument(isValidType(type), "Type is invalid");
 
         // Create and read source
         final int shader = gl.glCreateShader(type);

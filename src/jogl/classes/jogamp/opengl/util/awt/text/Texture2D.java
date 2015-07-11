@@ -66,9 +66,8 @@ abstract class Texture2D extends Texture {
 
         super(gl, GL.GL_TEXTURE_2D, mipmap);
 
-        assert (gl != null);
-        assert (width >= 0);
-        assert (height >= 0);
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         // Copy parameters
         this.width = width;
@@ -83,9 +82,9 @@ abstract class Texture2D extends Texture {
     /**
      * Allocates a 2D texture for use with a backing store.
      *
-     * @param gl Current OpenGL context
-     * @param width Width of texture
-     * @param height Height of texture
+     * @param gl Current OpenGL context, assumed not null
+     * @param width Width of texture, assumed not negative
+     * @param height Height of texture, assumed not negative
      */
     private void allocate(/*@Nonnull*/ final GL gl) {
         gl.glTexImage2D(
@@ -105,6 +104,7 @@ abstract class Texture2D extends Texture {
      *
      * @param gl Current OpenGL context
      * @return Texture format enumeration for OpenGL context
+     * @throws NullPointerException if context is null (optional)
      */
     protected abstract int getFormat(/*@Nonnull*/ GL gl);
 
@@ -113,6 +113,7 @@ abstract class Texture2D extends Texture {
      *
      * @param gl Current OpenGL context
      * @return Internal texture format enumeration for OpenGL context
+     * @throws NullPointerException if context is null (optional)
      */
     protected abstract int getInternalFormat(/*@Nonnull*/ GL gl);
 
@@ -132,9 +133,9 @@ abstract class Texture2D extends Texture {
                 /*@Nonnull*/ final ByteBuffer pixels,
                 /*@Nonnull*/ final Rectangle area) {
 
-        assert (gl != null);
-        assert (pixels != null);
-        assert (area != null);
+        Check.notNull(gl, "GL cannot be null");
+        Check.notNull(pixels, "Pixels cannot be null");
+        Check.notNull(area, "Area cannot be null");
 
         final int parameters[] = new int[4];
 

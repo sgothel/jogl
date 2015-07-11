@@ -61,6 +61,8 @@ public final class QuadPipelineGL10 extends AbstractQuadPipeline {
     @Override
     protected void doFlush(/*@Nonnull*/ final GL gl) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final GL2 gl2 = gl.getGL2();
 
         gl2.glBegin(GL2.GL_QUADS);

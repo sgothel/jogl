@@ -63,8 +63,8 @@ abstract class Texture {
      */
     Texture(/*@Nonnull*/ final GL gl, final int type, final boolean mipmap) {
 
-        assert (gl != null);
-        assert (isValidTextureType(type));
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(isValidTextureType(type), "Texture type is invalid");
 
         this.handle = generate(gl);
         this.type = type;
@@ -81,8 +81,8 @@ abstract class Texture {
      */
     void bind(/*@Nonnull*/ final GL gl, final int unit) {
 
-        assert (gl != null);
-        assert (isValidTextureUnit(unit));
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(isValidTextureUnit(unit), "Texture unit is invalid");
 
         gl.glActiveTexture(unit);
         gl.glBindTexture(type, handle);
@@ -96,7 +96,7 @@ abstract class Texture {
      */
     void dispose(/*@Nonnull*/ final GL gl) {
 
-        assert (gl != null);
+        Check.notNull(gl, "GL cannot be null");
 
         final int[] handles = new int[] { handle };
         gl.glDeleteTextures(1, handles, 0);
@@ -105,9 +105,8 @@ abstract class Texture {
     /**
      * Generates an OpenGL texture object.
      *
-     * @param gl Current OpenGL context
+     * @param gl Current OpenGL context, assumed not null
      * @return Handle to the OpenGL texture
-     * @throws NullPointerException if context is null
      */
     private static int generate(/*@Nonnull*/ final GL gl) {
         final int[] handles = new int[1];
@@ -151,6 +150,8 @@ abstract class Texture {
      */
     void setFiltering(/*@Nonnull*/ final GL gl, final boolean smooth) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final int mag;
         final int min;
         if (smooth) {
@@ -160,6 +161,7 @@ abstract class Texture {
             mag = GL.GL_NEAREST;
             min = mipmap ? GL.GL_NEAREST_MIPMAP_NEAREST : GL.GL_NEAREST;
         }
+
         setParameter(gl, GL.GL_TEXTURE_MAG_FILTER, mag);
         setParameter(gl, GL.GL_TEXTURE_MIN_FILTER, min);
     }
@@ -167,9 +169,9 @@ abstract class Texture {
     /**
      * Changes a texture parameter for a 2D texture.
      *
-     * @param gl Current OpenGL context
-     * @param name Name of the parameter (assumed valid)
-     * @param value Value of the parameter (assumed valid)
+     * @param gl Current OpenGL context, assumed not null
+     * @param name Name of the parameter, assumed valid
+     * @param value Value of the parameter, assumed valid
      */
     private void setParameter(/*@Nonnull*/ final GL gl, final int name, final int value) {
         gl.glTexParameteri(type, name, value);

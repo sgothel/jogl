@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import jogamp.opengl.util.awt.text.Check;
 import jogamp.opengl.util.awt.text.Glyph;
 import jogamp.opengl.util.awt.text.GlyphCache;
 import jogamp.opengl.util.awt.text.GlyphProducer;
@@ -276,9 +277,8 @@ public final class TextRenderer {
                         final boolean mipmap,
                         /*@CheckForNull*/ final UnicodeBlock ub) {
 
-        if (font == null) {
-            throw new NullPointerException("Font cannot be null");
-        } else if (rd == null) {
+        Check.notNull(font, "Font cannot be null");
+        if (rd == null) {
             rd = DEFAULT_RENDER_DELEGATE;
         }
 
@@ -362,8 +362,8 @@ public final class TextRenderer {
                                 /*@Nonnegative*/ final int height,
                                 final boolean disableDepthTest) {
 
-        checkArgument(width >= 0, "Width cannot be negative");
-        checkArgument(height >= 0, "Height cannot be negative");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         // Get the current OpenGL context
         final GL gl = GLContext.getCurrentGL();
@@ -378,22 +378,6 @@ public final class TextRenderer {
         // Delegate to components
         glyphCache.beginRendering(gl);
         glyphRenderer.beginRendering(gl, ortho, width, height, disableDepthTest);
-    }
-
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
     }
 
     /**
@@ -497,6 +481,8 @@ public final class TextRenderer {
                        /*@CheckForSigned*/ final float z,
                        /*@CheckForSigned*/ final float scale) {
 
+        Check.notNull(text, "Text cannot be null");
+
         // Get the current OpenGL context
         final GL gl = GLContext.getCurrentGL();
 
@@ -582,6 +568,7 @@ public final class TextRenderer {
      */
     /*@Nonnull*/
     public Rectangle2D getBounds(/*@Nonnull*/ final CharSequence text) {
+        Check.notNull(text, "Text cannot be null");
         return getBounds(text.toString());
     }
 
@@ -590,9 +577,11 @@ public final class TextRenderer {
      *
      * @param text Text to get bounding box for
      * @return Rectangle surrounding the given text, not null
+     * @throws NullPointerException if text is null
      */
     /*@Nonnull*/
     public Rectangle2D getBounds(/*@Nonnull*/ final String text) {
+        Check.notNull(text, "Text cannot be null");
         return glyphProducer.findBounds(text);
     }
 
@@ -644,6 +633,9 @@ public final class TextRenderer {
      * @throws GLException if an OpenGL context is not current
      */
     public void setColor(/*@Nonnull*/ final Color color) {
+
+        Check.notNull(color, "Color cannot be null");
+
         final float r = ((float) color.getRed()) / 255f;
         final float g = ((float) color.getGreen()) / 255f;
         final float b = ((float) color.getBlue()) / 255f;
@@ -698,6 +690,7 @@ public final class TextRenderer {
      * @throws IllegalStateException if in orthographic mode
      */
     public void setTransform(/*@Nonnull*/ final float matrix[]) {
+        Check.notNull(matrix, "Matrix cannot be null");
         glyphRenderer.setTransform(matrix, false);
     }
 
@@ -838,6 +831,10 @@ public final class TextRenderer {
                          /*@Nonnull*/ final String str,
                          /*@CheckForSigned*/ final int x,
                          /*@CheckForSigned*/ final int y) {
+
+            Check.notNull(g2d, "Graphics cannot be null");
+            Check.notNull(str, "String cannot be null");
+
             g2d.drawString(str, x, y);
         }
 
@@ -846,6 +843,10 @@ public final class TextRenderer {
                                     /*@Nonnull*/ final GlyphVector gv,
                                     /*@CheckForSigned*/ final int x,
                                     /*@CheckForSigned*/ final int y) {
+
+            Check.notNull(g2d, "Graphics cannot be null");
+            Check.notNull(gv, "Glyph vector cannot be null");
+
             g2d.drawGlyphVector(gv, x, y);
         }
 
@@ -854,6 +855,11 @@ public final class TextRenderer {
         public Rectangle2D getBounds(/*@Nonnull*/ final CharSequence text,
                                      /*@Nonnull*/ final Font font,
                                      /*@Nonnull*/ final FontRenderContext frc) {
+
+            Check.notNull(text, "Text cannot be null");
+            Check.notNull(font, "Font cannot be null");
+            Check.notNull(frc, "Font render context cannot be null");
+
             return getBounds(text.toString(), font, frc);
         }
 
@@ -861,6 +867,10 @@ public final class TextRenderer {
         @Override
         public Rectangle2D getBounds(/*@Nonnull*/ final GlyphVector gv,
                                      /*@Nonnull*/ final FontRenderContext frc) {
+
+            Check.notNull(gv, "Glyph vector cannot be null");
+            Check.notNull(frc, "Font render context cannot be null");
+
             return gv.getVisualBounds();
         }
 
@@ -869,6 +879,11 @@ public final class TextRenderer {
         public Rectangle2D getBounds(/*@Nonnull*/ final String text,
                                      /*@Nonnull*/ final Font font,
                                      /*@Nonnull*/ final FontRenderContext frc) {
+
+            Check.notNull(text, "Text cannot be null");
+            Check.notNull(font, "Font cannot be null");
+            Check.notNull(frc, "Font render context cannot be null");
+
             return getBounds(font.createGlyphVector(frc, text), frc);
         }
 
@@ -886,6 +901,10 @@ public final class TextRenderer {
         @Override
         public void onGlyphCacheEvent(/*@Nonnull*/ final GlyphCache.EventType type,
                                       /*@Nonnull*/ final Object data) {
+
+            Check.notNull(type, "Event type cannot be null");
+            Check.notNull(data, "Data cannot be null");
+
             switch (type) {
             case REALLOCATE:
                 flush();
@@ -901,6 +920,9 @@ public final class TextRenderer {
 
         @Override
         public void onGlyphRendererEvent(/*@Nonnull*/ final GlyphRenderer.EventType type) {
+
+            Check.notNull(type, "Event type cannot be null");
+
             switch (type) {
             case AUTOMATIC_FLUSH:
                 final GL gl = GLContext.getCurrentGL();
@@ -975,6 +997,9 @@ public final class TextRenderer {
 
         @Override
         public void addListener(/*@Nonnull*/ final EventListener listener) {
+
+            Check.notNull(listener, "Listener cannot be null");
+
             if (delegate == null) {
                 listeners.add(listener);
             } else {
@@ -988,6 +1013,10 @@ public final class TextRenderer {
                                    /*@Nonnegative*/ final int width,
                                    /*@Nonnegative*/ final int height,
                                    final boolean disableDepthTest) {
+
+            Check.notNull(gl, "GL cannot be null");
+            Check.argument(width >= 0, "Width cannot be negative");
+            Check.argument(height >= 0, "Height cannot be negative");
 
             if (delegate == null) {
 
@@ -1017,6 +1046,9 @@ public final class TextRenderer {
 
         @Override
         public void dispose(/*@Nonnull*/ final GL gl) {
+
+            Check.notNull(gl, "GL cannot be null");
+
             if (delegate != null) {
                 delegate.dispose(gl);
             }
@@ -1030,6 +1062,11 @@ public final class TextRenderer {
                                /*@CheckForSigned*/ final float z,
                                /*@CheckForSigned*/ final float scale,
                                /*@Nonnull*/ final TextureCoords coords) {
+
+            Check.notNull(gl, "GL cannot be null");
+            Check.notNull(glyph, "Glyph cannot be null");
+            Check.notNull(coords, "Texture coordinates cannot be null");
+
             if (delegate == null) {
                 throw new IllegalStateException("Must be in render cycle!");
             } else {
@@ -1039,6 +1076,9 @@ public final class TextRenderer {
 
         @Override
         public void endRendering(/*@Nonnull*/ final GL gl) {
+
+            Check.notNull(gl, "GL cannot be null");
+
             if (delegate == null) {
                 throw new IllegalStateException("Must be in render cycle!");
             } else {
@@ -1048,6 +1088,9 @@ public final class TextRenderer {
 
         @Override
         public void flush(/*@Nonnull*/ final GL gl) {
+
+            Check.notNull(gl, "GL cannot be null");
+
             if (delegate == null) {
                 throw new IllegalStateException("Must be in render cycle!");
             } else {
@@ -1081,6 +1124,9 @@ public final class TextRenderer {
 
         @Override
         public void setTransform(/*@Nonnull*/ final float[] value, final boolean transpose) {
+
+            Check.notNull(value, "Value cannot be null");
+
             if (delegate == null) {
                 this.transform = Arrays.copyOf(value, value.length);
                 this.transposed = transpose;

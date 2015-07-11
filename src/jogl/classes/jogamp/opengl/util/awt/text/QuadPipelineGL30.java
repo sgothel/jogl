@@ -98,7 +98,8 @@ public final class QuadPipelineGL30 extends AbstractQuadPipeline {
 
         super(VERTS_PER_PRIM, PRIMS_PER_QUAD);
 
-        checkArgument(shaderProgram > 0, "Shader program cannot be less than one");
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(shaderProgram > 0, "Shader program cannot be less than one");
 
         this.vbo = createVertexBufferObject(gl, BYTES_PER_BUFFER);
         this.vao = createVertexArrayObject(gl, shaderProgram, vbo);
@@ -116,48 +117,35 @@ public final class QuadPipelineGL30 extends AbstractQuadPipeline {
         gl3.glBindVertexArray(vao);
     }
 
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
     /**
      * Creates a vertex array object for use with the pipeline.
      *
-     * @param gl3 Current OpenGL context
-     * @param program OpenGL handle to the shader program
-     * @param vbo OpenGL handle to VBO holding vertices
+     * @param gl Current OpenGL context, assumed not null
+     * @param program OpenGL handle to the shader program, assumed not negative
+     * @param vbo OpenGL handle to VBO holding vertices, assumed not negative
      * @return OpenGL handle to resulting VAO
-     * @throws NullPointerException if context is null
-     * @throws IllegalArgumentException if program or VBO handle is less than one
-     * @throws IllegalStateException if could not find attribute locations in program
      */
     /*@Nonnegative*/
-    private static int createVertexArrayObject(/*@Nonnull*/ final GL3 gl3,
+    private static int createVertexArrayObject(/*@Nonnull*/ final GL3 gl,
                                                /*@Nonnegative*/ final int program,
                                                /*@Nonnegative*/ final int vbo) {
 
-        checkArgument(program > 0, "Shader Program cannot be less than one");
-        checkArgument(vbo > 0, "Vertex Buffer Object cannot be less than one");
-
         // Generate
         final int[] handles = new int[1];
-        gl3.glGenVertexArrays(1, handles, 0);
+        gl.glGenVertexArrays(1, handles, 0);
         final int vao = handles[0];
 
         // Bind
-        gl3.glBindVertexArray(vao);
-        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, vbo);
+        gl.glBindVertexArray(vao);
+        gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vbo);
 
         // Points
-        final int pointLoc = gl3.glGetAttribLocation(program, POINT_ATTRIB_NAME);
+        final int pointLoc = gl.glGetAttribLocation(program, POINT_ATTRIB_NAME);
         if (pointLoc == -1) {
             throw new IllegalStateException("Could not find point attribute location!");
         } else {
-            gl3.glEnableVertexAttribArray(pointLoc);
-            gl3.glVertexAttribPointer(
+            gl.glEnableVertexAttribArray(pointLoc);
+            gl.glVertexAttribPointer(
                     pointLoc,            // location
                     FLOATS_PER_POINT,    // number of components
                     GL3.GL_FLOAT,        // type
@@ -167,10 +155,10 @@ public final class QuadPipelineGL30 extends AbstractQuadPipeline {
         }
 
         // Coords
-        final int coordLoc = gl3.glGetAttribLocation(program, COORD_ATTRIB_NAME);
+        final int coordLoc = gl.glGetAttribLocation(program, COORD_ATTRIB_NAME);
         if (coordLoc != -1) {
-            gl3.glEnableVertexAttribArray(coordLoc);
-            gl3.glVertexAttribPointer(
+            gl.glEnableVertexAttribArray(coordLoc);
+            gl.glVertexAttribPointer(
                     coordLoc,            // location
                     FLOATS_PER_COORD,    // number of components
                     GL3.GL_FLOAT,        // type
@@ -180,8 +168,8 @@ public final class QuadPipelineGL30 extends AbstractQuadPipeline {
         }
 
         // Unbind
-        gl3.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
-        gl3.glBindVertexArray(0);
+        gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+        gl.glBindVertexArray(0);
 
         return vao;
     }
@@ -204,6 +192,8 @@ public final class QuadPipelineGL30 extends AbstractQuadPipeline {
     @Override
     protected void doAddQuad(/*@Nonnull*/ final Quad quad) {
 
+        Check.notNull(quad, "Quad cannot be null");
+
         // Add upper-left triangle
         addPoint(quad.xr, quad.yt, quad.z);
         addCoord(quad.sr, quad.tt);
@@ -223,6 +213,8 @@ public final class QuadPipelineGL30 extends AbstractQuadPipeline {
 
     @Override
     protected void doFlush(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
 
         final GL3 gl3 = gl.getGL3();
 

@@ -47,10 +47,16 @@ final class Projection {
      * @param v Computed matrix values, in row-major order
      * @param width Width of current OpenGL viewport
      * @param height Height of current OpenGL viewport
+     * @throws NullPointerException if array is null
+     * @throws IllegalArgumentException if width or height is negative
      */
     static void orthographic(/*@Nonnull*/ final float[] v,
                              /*@Nonnegative*/ final int width,
                              /*@Nonnegative*/ final int height) {
+
+        Check.notNull(v, "Matrix cannot be null");
+        Check.argument(width >= 0, "Width cannot be negative");
+        Check.argument(height >= 0, "Height cannot be negative");
 
         // Zero out
         for (int i = 0; i < 16; ++i) {

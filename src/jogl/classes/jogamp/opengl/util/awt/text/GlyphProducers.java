@@ -55,19 +55,22 @@ public final class GlyphProducers {
      * @param frc Details on how fonts are rendered
      * @param ub Range of characters to support
      * @return Correct glyph producer for unicode block, not null
-     * @throws UnsupportedOperationException if unicode block unsupported
+     * @throws NullPointerException if font, render delegate, or render context is null
      */
     /*@Nonnull*/
     public static GlyphProducer get(/*@Nonnull*/ final Font font,
                                     /*@Nonnull*/ final RenderDelegate rd,
                                     /*@Nonnull*/ final FontRenderContext frc,
                                     /*@CheckForNull*/ final UnicodeBlock ub) {
-        if (ub == null) {
-            return new UnicodeGlyphProducer(font, rd, frc);
-        } else if (ub == UnicodeBlock.BASIC_LATIN) {
+
+        Check.notNull(font, "Font cannot be null");
+        Check.notNull(rd, "Render delegate cannot be null");
+        Check.notNull(frc, "Font render context cannot be null");
+
+        if (ub == UnicodeBlock.BASIC_LATIN) {
             return new AsciiGlyphProducer(font, rd, frc);
         } else {
-            throw new UnsupportedOperationException("Unicode block unsupported!");
+            return new UnicodeGlyphProducer(font, rd, frc);
         }
     }
 }

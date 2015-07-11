@@ -189,8 +189,8 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
     AbstractQuadPipeline(/*@Nonnegative*/ final int vertsPerPrim,
                          /*@Nonnegative*/ final int primsPerQuad) {
 
-        checkArgument(vertsPerPrim > 0, "Vertices is less than one");
-        checkArgument(primsPerQuad > 0, "Vertices is less than one");
+        Check.argument(vertsPerPrim > 0, "Number of vertices is less than one");
+        Check.argument(primsPerQuad > 0, "Number of primitives is less than one");
 
         VERTS_PER_PRIM = vertsPerPrim;
         PRIMS_PER_QUAD = primsPerQuad;
@@ -227,15 +227,17 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
 
     @Override
     public final void addListener(/*@Nonnull*/ final EventListener listener) {
-        checkNotNull(listener, "Listener cannot be null");
+
+        Check.notNull(listener, "Listener cannot be null");
+
         listeners.add(listener);
     }
 
     @Override
     public final void addQuad(/*@Nonnull*/ final GL gl, /*@Nonnull*/ final Quad quad) {
 
-        checkNotNull(gl, "Context cannot be null");
-        checkNotNull(quad, "Quad cannot be null");
+        Check.notNull(gl, "Context cannot be null");
+        Check.notNull(quad, "Quad cannot be null");
 
         doAddQuad(quad);
         if (++size >= QUADS_PER_BUFFER) {
@@ -246,23 +248,7 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
 
     @Override
     public void beginRendering(/*@Nonnull*/ final GL gl) {
-        // empty
-    }
-
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
+        Check.notNull(gl, "GL cannot be null");
     }
 
     /**
@@ -286,8 +272,8 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
     protected static int createVertexBufferObject(/*@Nonnull*/ final GL2GL3 gl,
                                                   /*@Nonnegative*/ final int size) {
 
-        checkNotNull(gl, "Context cannot be null");
-        checkArgument(size >= 0, "Size cannot be negative");
+        Check.notNull(gl, "GL cannot be null");
+        Check.argument(size >= 0, "Size cannot be negative");
 
         // Generate
         final int[] handles = new int[1];
@@ -308,6 +294,9 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
 
     @Override
     public void dispose(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         listeners.clear();
     }
 
@@ -318,6 +307,9 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
      * @throws NullPointerException if quad is null
      */
     protected void doAddQuad(/*@Nonnull*/ final Quad quad) {
+
+        Check.notNull(quad, "Quad cannot be null");
+
         addPoint(quad.xr, quad.yt, quad.z);
         addCoord(quad.sr, quad.tt);
         addPoint(quad.xl, quad.yt, quad.z);
@@ -339,6 +331,9 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
 
     @Override
     public void endRendering(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         flush(gl);
     }
 
@@ -346,17 +341,23 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
      * Fires an event to all observers.
      *
      * @param type Type of event to send to observers
-     * @throws AssertionError if type is <tt>null</tt>
+     * @throws NullPointerException if type is null
      */
-    protected final void fireEvent(final EventType type) {
-        assert (type != null);
+    protected final void fireEvent(/*@Nonnull*/ final EventType type) {
+
+        Check.notNull(type, "Type cannot be null");
+
         for (final EventListener listener : listeners) {
+            assert listener != null : "addListener rejects null";
             listener.onQuadPipelineEvent(type);
         }
     }
 
     @Override
     public final void flush(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         if (size > 0) {
             doFlush(gl);
         }
@@ -416,10 +417,11 @@ abstract class AbstractQuadPipeline implements QuadPipeline {
     /**
      * Changes the buffer's position.
      *
-     * @param index Location in buffer to move to
+     * @param position Location in buffer to move to
+     * @throws IllegalArgumentException if position is out-of-range
      */
-    protected final void position(/*@Nonnegative*/ final int index) {
-        data.position(index);
+    protected final void position(/*@Nonnegative*/ final int position) {
+        data.position(position);
     }
 
     @Override

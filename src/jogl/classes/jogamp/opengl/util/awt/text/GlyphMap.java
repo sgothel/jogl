@@ -69,16 +69,6 @@ final class GlyphMap {
         // empty
     }
 
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
-
     /**
      * Deletes all glyphs stored in the map.
      */
@@ -120,7 +110,7 @@ final class GlyphMap {
      */
     void put(final char c, /*@Nonnull*/ final Glyph glyph) {
 
-        checkNotNull(glyph, "Glyph cannot be null");
+        Check.notNull(glyph, "Glyph cannot be null");
 
         if (c < 128) {
             ascii[c] = glyph;
@@ -139,8 +129,8 @@ final class GlyphMap {
      */
     void put(/*@Nonnull*/ final String str, /*@Nonnull*/ final Glyph glyph) {
 
-        checkNotNull(str, "String cannot be null");
-        checkNotNull(glyph, "Glyph cannot be null");
+        Check.notNull(str, "String cannot be null");
+        Check.notNull(glyph, "Glyph cannot be null");
 
         complex.put(str, glyph);
     }

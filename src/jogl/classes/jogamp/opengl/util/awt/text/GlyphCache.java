@@ -150,13 +150,11 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Constructs a {@link GlyphCache}.
      *
-     * @param font Font that was used to create glyphs that will be stored
-     * @param rd Controller of rendering bitmapped text
+     * @param font Font that was used to create glyphs that will be stored, assumed not null
+     * @param rd Controller of rendering bitmapped text, assumed not null
      * @param antialias True to render glyphs with smooth edges
      * @param subpixel True to consider subpixel positioning
      * @param mipmap True to create multiple sizes of texture
-     * @throws NullPointerException if font or render delegate is null
-     * @throws IllegalArgumentException if render delegate wants full color
      * @see #newInstance
      */
     private GlyphCache(/*@Nonnull*/ final Font font,
@@ -164,11 +162,6 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
                        final boolean antialias,
                        final boolean subpixel,
                        final boolean mipmap) {
-
-        checkNotNull(font, "Font cannot be null");
-        checkNotNull(rd, "Render delegate cannot be null");
-        checkArgument(rd.intensityOnly(), "Render delegate must be intensity only");
-
         this.renderDelegate = rd;
         this.manager = new TextureBackingStoreManager(font, antialias, subpixel, mipmap);
         this.packer = createPacker(font, manager);
@@ -181,7 +174,9 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws NullPointerException if listener is null
      */
     public void addListener(/*@Nonnull*/ final EventListener listener) {
-        checkNotNull(listener, "Listener cannot be null");
+
+        Check.notNull(listener, "Listener cannot be null");
+
         listeners.add(listener);
     }
 
@@ -196,7 +191,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      */
     public void beginRendering(/*@Nonnull*/ final GL gl) {
 
-        checkNotNull(gl, "Context cannot be null");
+        Check.notNull(gl, "Context cannot be null");
 
         // Set up if first time rendering
         if (!ready) {
@@ -207,22 +202,6 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
         // Bind the backing store
         final TextureBackingStore bs = getBackingStore();
         bs.bind(gl, GL.GL_TEXTURE0);
-    }
-
-    private static void checkArgument(final boolean condition,
-                                      /*@CheckForNull*/ final String message) {
-        if (!condition) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /*@Nonnull*/
-    private static <T> T checkNotNull(/*@Nullable*/ final T obj,
-                                      /*@CheckForNull*/ final String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
     }
 
     /**
@@ -293,8 +272,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Computes the normalized coordinates of a glyph's location.
      *
-     * @param glyph Glyph being uploaded
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph being uploaded, assumed not null
      */
     private void computeCoordinates(/*@Nonnull*/ final Glyph glyph) {
 
@@ -332,14 +310,13 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Makes a packer for positioning glyphs.
      *
-     * @param font Font used to make glyphs being stored
-     * @param manager Handler of packer events
+     * @param font Font used to make glyphs being stored, assumed not null
+     * @param manager Handler of packer events, assumed not null
      * @return Resulting packer, not null
-     * @throws NullPointerException if font is null
      */
     /*@Nonnull*/
     private static RectanglePacker createPacker(/*@Nonnull*/ final Font font,
-                                                final BackingStoreManager manager) {
+                                                /*@Nonnull*/ final BackingStoreManager manager) {
         final int size = findBackingStoreSizeForFont(font);
         return new RectanglePacker(manager, size, size, 1f);
     }
@@ -352,7 +329,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      */
     public void dispose(/*@Nonnull*/ final GL gl) {
 
-        checkNotNull(gl, "Context cannot be null");
+        Check.notNull(gl, "Context cannot be null");
 
         packer.dispose();
         if (backingStore != null) {
@@ -364,10 +341,9 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Draws a glyph into the backing store.
      *
-     * @param glyph Glyph being uploaded
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph being uploaded, assumed not null
      */
-    private void drawInBackingStore(final Glyph glyph) {
+    private void drawInBackingStore(/*@Nonnull*/ final Glyph glyph) {
 
         // Get the backing store
         final TextureBackingStore bs = getBackingStore();
@@ -403,7 +379,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      */
     public void endRendering(/*@Nonnull*/ final GL gl) {
 
-        checkNotNull(gl, "Context cannot be null");
+        Check.notNull(gl, "Context cannot be null");
 
         update(gl);
 
@@ -433,6 +409,8 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /*@Nonnull*/
     public TextureCoords find(/*@Nonnull*/ final Glyph glyph) {
 
+        Check.notNull(glyph, "Glyph cannot be null");
+
         // Mark the glyph as being used
         markGlyphLocationUsed(glyph);
 
@@ -446,8 +424,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Returns the initial size of a {@link GlyphCache} for a font.
      *
-     * @param font Font to create glyphs from
-     * @throws NullPointerException if font is null
+     * @param font Font to create glyphs from, assumed not null
      */
     /*@Nonnegative*/
     private static int findBackingStoreSizeForFont(/*@Nonnull*/ final Font font) {
@@ -457,8 +434,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Finds a location in the backing store for a glyph.
      *
-     * @param glyph Glyph being uploaded
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph being uploaded, assumed not null
      */
     private void findLocation(/*@Nonnull*/ final Glyph glyph) {
 
@@ -478,9 +454,8 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Determines the maximum texture size supported by OpenGL.
      *
-     * @param gl Current OpenGL context
+     * @param gl Current OpenGL context, assumed not null
      * @return Maximum texture size
-     * @throws NullPointerException if context is null
      */
     private static int findMaxSize(/*@Nonnull*/ final GL gl) {
         final int[] size = new int[1];
@@ -491,15 +466,10 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Sends an event to all the listeners.
      *
-     * @param type Kind of event
-     * @param data Information to send with event
-     * @throws AssertionError if type or data is <tt>null</tt>
+     * @param type Kind of event, assumed not null
+     * @param data Information to send with event, assumed not null
      */
-    private void fireEvent(final EventType type, final Object data) {
-
-        assert type != null : "Type shouldn't be null";
-        assert data != null : "Data shouldn't be null";
-
+    private void fireEvent(/*@Nonnull*/ final EventType type, /*@Nonnull*/ final Object data) {
         for (final EventListener listener : listeners) {
             assert listener != null : "addListener rejects null";
             listener.onGlyphCacheEvent(type, data);
@@ -508,7 +478,10 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
 
     /**
      * Returns object actually storing the rasterized glyphs.
+     *
+     * @return Object actually storing the rasterized glyphs, not null
      */
+    /*@Nonnull*/
     TextureBackingStore getBackingStore() {
         return (TextureBackingStore) packer.getBackingStore();
     }
@@ -516,10 +489,10 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Determines the location of a glyph's bottom baseline.
      *
-     * @param glyph Glyph to determine bottom baseline for
-     * @return Location of glyph's bottom baseline
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph to determine bottom baseline for, assumed not null
+     * @return Location of glyph's bottom baseline, which may be negative
      */
+    /*@CheckForSigned*/
     private int getBottomBaselineLocation(/*@Nonnull*/ final Glyph glyph) {
         return (int) (glyph.location.y() + glyph.margin.top + glyph.ascent);
     }
@@ -527,10 +500,10 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Determines the location of a glyph's bottom border.
      *
-     * @param glyph Glyph to determine bottom border for
-     * @return Location of glyph's bottom border
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph to determine bottom border for, assumed not null
+     * @return Location of glyph's bottom border, which may be negative
      */
+    /*@CheckForSigned*/
     private int getBottomBorderLocation(/*@Nonnull*/ final Glyph glyph) {
         return (int) (glyph.location.y() + glyph.margin.top + glyph.height);
     }
@@ -541,6 +514,8 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      * <p>
      * This object should be considered transient and may become invalidated between {@link
      * #beginRendering} and {@link #endRendering} pairs.
+     *
+     * @return Font render context used for text size computations, not null
      */
     /*@Nonnull*/
     public FontRenderContext getFontRenderContext() {
@@ -560,9 +535,8 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Determines the location of a glyph's left baseline.
      *
-     * @param glyph Glyph to determine left baseline for
-     * @return Location of glyph's left baseline
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph to determine left baseline for, assumed not null
+     * @return Location of glyph's left baseline, which may be negative
      */
     /*@CheckForSigned*/
     private int getLeftBaselineLocation(/*@Nonnull*/ final Glyph glyph) {
@@ -572,9 +546,8 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Determines the location of a glyph's left border.
      *
-     * @param glyph Glyph to determine left border for
-     * @return Location of glyph's left border
-     * @throws NullPointerException if glyph is null
+     * @param glyph Glyph to determine left border for, assumed not null
+     * @return Location of glyph's left border, which may be negative
      */
     /*@CheckForSigned*/
     private int getLeftBorderLocation(/*@Nonnull*/ final Glyph glyph) {
@@ -608,16 +581,19 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws NullPointerException if context is null
      */
     static boolean isNpotTextureAvailable(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         return gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
     }
 
-    private static void log(/*@CheckForNull*/ final String message) {
+    private static void log(/*@Nonnull*/ final String message) {
         if (DEBUG) {
             System.err.println(message);
         }
     }
 
-    private static void log(/*@CheckForNull*/ final String message,
+    private static void log(/*@Nonnull*/ final String message,
                             /*@CheckForNull*/ final Object arg) {
         if (DEBUG) {
             System.err.println(String.format(message, arg));
@@ -631,6 +607,9 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws NullPointerException if glyph is null
      */
     static void markGlyphLocationUsed(/*@Nonnull*/ final Glyph glyph) {
+
+        Check.notNull(glyph, "Glyph cannot be null");
+
         ((TextData) glyph.location.getUserData()).markUsed();
     }
 
@@ -642,7 +621,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      * @param antialias Whether to render glyphs with smooth edges
      * @param subpixel Whether to consider subpixel positioning
      * @param mipmap Whether to create multiple sizes for texture
-     * @return New glyph cache instance
+     * @return New glyph cache instance, not null
      * @throws NullPointerException if font or render delegate is null
      * @throws IllegalArgumentException if render delegate wants full color
      */
@@ -652,6 +631,10 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
                                          final boolean antialias,
                                          final boolean subpixel,
                                          final boolean mipmap) {
+
+        Check.notNull(font, "Font cannot be null");
+        Check.notNull(rd, "Render delegate cannot be null");
+
         final GlyphCache gc = new GlyphCache(font, rd, antialias, subpixel, mipmap);
         gc.manager.addListener(gc);
         return gc;
@@ -665,6 +648,9 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      */
     @Override
     public void onBackingStoreEvent(/*@Nonnull*/ final TextureBackingStore.EventType type) {
+
+        Check.notNull(type, "Event type cannot be null");
+
         switch (type) {
         case REALLOCATE:
             onBackingStoreReallocate();
@@ -712,8 +698,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
     /**
      * Changes the maximum size of this {@link GlyphCache}'s rectangle packer.
      *
-     * @param gl Current OpenGL context
-     * @throws NullPointerException if context is null
+     * @param gl Current OpenGL context, assumed not null
      */
     private void setMaxSize(/*@Nonnull*/ final GL gl) {
         final int maxSize = findMaxSize(gl);
@@ -741,6 +726,9 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      * @throws NullPointerException if context is null
      */
     public void update(/*@Nonnull*/ final GL gl) {
+
+        Check.notNull(gl, "GL cannot be null");
+
         final TextureBackingStore bs = getBackingStore();
         bs.update(gl);
     }
@@ -759,7 +747,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
      */
     public void upload(/*@Nonnull*/ final Glyph glyph) {
 
-        checkNotNull(glyph, "Glyph cannot be null");
+        Check.notNull(glyph, "Glyph cannot be null");
 
         // Perform upload steps
         findLocation(glyph);
@@ -830,7 +818,7 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
          * @throws NullPointerException if glyph is null
          */
         TextData(/*@Nonnull*/ final Glyph glyph) {
-            this.glyph = checkNotNull(glyph, "Glyph cannot be null");
+            this.glyph = Check.notNull(glyph, "Glyph cannot be null");
         }
 
         /**
@@ -849,6 +837,8 @@ public final class GlyphCache implements TextureBackingStore.EventListener {
 
         /**
          * Returns the actual text stored with a rectangle.
+         *
+         * @return Actual text stored with a rectangle, not null
          */
         /*@CheckForNull*/
         String string() {

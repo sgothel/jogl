@@ -55,6 +55,8 @@ public final class GlyphRenderers {
     /*@Nonnull*/
     public static GlyphRenderer get(/*@Nonnull*/ final GL gl) {
 
+        Check.notNull(gl, "GL cannot be null");
+
         final GLProfile profile = gl.getGLProfile();
 
         if (profile.isGL3()) {

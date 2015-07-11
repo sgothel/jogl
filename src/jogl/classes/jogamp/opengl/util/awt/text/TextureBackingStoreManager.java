@@ -63,7 +63,7 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      * Observers of backing store events.
      */
     /*@Nonnull*/
-    private final List<EventListener> listeners;
+    private final List<EventListener> listeners = new ArrayList<EventListener>();
 
     /**
      * Style of text.
@@ -89,7 +89,7 @@ final class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * True to interpolate samples.
      */
-    private boolean smooth;
+    private boolean smooth = false;
 
     /**
      * Constructs a {@link TextureBackingStoreManager}.
@@ -98,21 +98,19 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      * @param antialias True to render smooth edges
      * @param subpixel True to use subpixel accuracy
      * @param mipmap True for high quality texturing
-     * @throws AssertionError if font is null
+     * @throws NullPointerException if font is null
      */
     TextureBackingStoreManager(/*@Nonnull*/ final Font font,
                                final boolean antialias,
                                final boolean subpixel,
                                final boolean mipmap) {
 
-        assert (font != null);
+        Check.notNull(font, "Font cannot be null");
 
-        this.listeners = new ArrayList<EventListener>();
         this.font = font;
         this.antialias = antialias;
         this.subpixel = subpixel;
         this.mipmap = mipmap;
-        this.smooth = false;
     }
 
     /**
@@ -127,12 +125,12 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      * @param cause Rectangle that could not be added
      * @param attempt Number of times it has been tried so far
      * @return False if can do nothing more to free space
-     * @throws AssertionError if cause is null
+     * @throws NullPointerException if cause is null
      */
     @Override
     public boolean additionFailed(/*@Nonnull*/ final Rect cause, final int attempt) {
 
-        assert (cause != null);
+        Check.notNull(cause, "Cause cannot be null");
 
         // Print debugging information
         if (DEBUG) {
@@ -158,10 +156,12 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      * </ul>
      *
      * @param listener Observer of backing store events
-     * @throws AssertionError if listener is null
+     * @throws NullPointerException if listener is null
      */
     void addListener(/*@Nonnull*/ final EventListener listener) {
-        assert (listener != null);
+
+        Check.notNull(listener, "Listener cannot be null");
+
         listeners.add(listener);
     }
 
@@ -171,15 +171,15 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      * @param width Width of new backing store
      * @param height Height of new backing store
      * @return New backing store, not null
-     * @throws AssertionError if width or height is negative
+     * @throws IllegalArgumentException if width or height is negative
      */
     /*@Nonnull*/
     @Override
     public Object allocateBackingStore(/*@Nonnegative*/ final int width,
                                        /*@Nonnegative*/ final int height) {
 
-        assert (width >= 0);
-        assert (height >= 0);
+        Check.argument(width >= 0, "Width is negative");
+        Check.argument(height >= 0, "Height is negative");
 
         // Print debugging information
         if (DEBUG) {
@@ -202,7 +202,7 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      */
     @Override
     public void beginMovement(final Object obs, final Object nbs) {
-        // pass
+        // empty
     }
 
     /**
@@ -224,13 +224,12 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      *
      * @param bs Backing store being deleted
      * @throws NullPointerException if backing store is null
-     * @throws IllegalArgumentException if backing store is not a {@code TextureBackingStore}
+     * @throws ClassCastException if backing store is not a {@code TextureBackingStore}
      */
     @Override
     public void deleteBackingStore(/*@Nonnull*/ final Object bs) {
 
-        assert (bs != null);
-        assert (bs.getClass() == TextureBackingStore.class);
+        Check.notNull(bs, "Backing store cannot be null");
 
         // Dispose the backing store
         final GL gl = GLContext.getCurrentGL();
@@ -248,13 +247,12 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      * @param obs Backing store being copied from
      * @param nbs Backing store being copied to
      * @throws NullPointerException if new backing store is null
-     * @throws IllegalArgumentException if new backing store is not a {@code TextureBackingStore}
+     * @throws ClassCastException if new backing store is not a {@code TextureBackingStore}
      */
     @Override
     public void endMovement(final Object obs, /*@Nonnull*/ final Object nbs) {
 
-        assert (nbs != null);
-        assert (nbs.getClass() == TextureBackingStore.class);
+        Check.notNull(nbs, "Backing store cannot be null");
 
         // Mark the entire backing store as dirty
         final TextureBackingStore ntbs = (TextureBackingStore) nbs;
@@ -266,12 +264,11 @@ final class TextureBackingStoreManager implements BackingStoreManager {
     /**
      * Sends an event to all listeners.
      *
-     * @param type Type of event to send
-     * @throws AssertionError if event type is null
+     * @param type Type of event to send, assumed not null
      */
     private void fireEvent(/*@Nonnull*/ final EventType type) {
-        assert (type != null);
         for (final EventListener listener : listeners) {
+            assert listener != null : "addListener rejects null";
             listener.onBackingStoreEvent(type);
         }
     }
@@ -288,16 +285,15 @@ final class TextureBackingStoreManager implements BackingStoreManager {
      *
      * <p>
      * This method is normally called when a backing store runs out of room and needs to be
-     * resized, but it can also be called when a backing store is compacted.  In that case
-     * <tt>obs</tt> will be equal to <tt>nbs</tt>.  This situation may need to be handled
-     * differently.
+     * resized, but it can also be called when a backing store is compacted.  In that case {@code
+     * obs} will be equal to {@code nbs}.  This situation may need to be handled differently.
      *
      * @param obs Old backing store being copied from
      * @param ol Area of old backing store to copy
      * @param nbs New backing store being copied to
      * @param nl Area of new backing store to copy to
      * @throws NullPointerException if either backing store or area is null
-     * @throws IllegalArgumentException if either backing store is not the right type
+     * @throws ClassCastException if either backing store is not the right type
      */
     @Override
     public void move(/*@Nonnull*/ final Object obs,
@@ -305,12 +301,10 @@ final class TextureBackingStoreManager implements BackingStoreManager {
                      /*@Nonnull*/ final Object nbs,
                      /*@Nonnull*/ final Rect nl) {
 
-        assert (obs != null);
-        assert (obs.getClass() == TextureBackingStore.class);
-        assert (ol != null);
-        assert (nbs != null);
-        assert (nbs.getClass() == TextureBackingStore.class);
-        assert (nl != null);
+        Check.notNull(obs, "Old backing store cannot be null");
+        Check.notNull(ol, "Old location cannot be null");
+        Check.notNull(nbs, "New backing store cannot be null");
+        Check.notNull(nl, "New location cannot be null");
 
         final TextureBackingStore otbs = (TextureBackingStore) obs;
         final TextureBackingStore ntbs = (TextureBackingStore) nbs;
@@ -349,7 +343,7 @@ final class TextureBackingStoreManager implements BackingStoreManager {
     @Override
     public boolean preExpand(/*@Nonnull*/ final Rect cause, final int attempt) {
 
-        assert (cause != null);
+        Check.notNull(cause, "Cause cannot be null");
 
         // Print debugging information
         if (DEBUG) {
