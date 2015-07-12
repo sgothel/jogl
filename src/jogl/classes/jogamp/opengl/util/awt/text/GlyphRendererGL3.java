@@ -43,12 +43,11 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
      */
     /*@Nonnull*/
     private static final String VERT_SOURCE =
-        "#version 130\n" +
+        "#version 140\n" +
         "uniform mat4 MVPMatrix;\n" +
         "in vec4 MCVertex;\n" +
         "in vec2 TexCoord0;\n" +
         "out vec2 Coord0;\n" +
-        "out vec4 gl_Position;\n" +
         "void main() {\n" +
         "   gl_Position = MVPMatrix * MCVertex;\n" +
         "   Coord0 = TexCoord0;\n" +
@@ -59,7 +58,7 @@ public final class GlyphRendererGL3 extends AbstractGlyphRenderer {
      */
     /*@Nonnull*/
     private static final String FRAG_SOURCE =
-        "#version 130\n" +
+        "#version 140\n" +
         "uniform sampler2D Texture;\n" +
         "uniform vec4 Color=vec4(1,1,1,1);\n" +
         "in vec2 Coord0;\n" +

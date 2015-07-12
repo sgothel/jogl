@@ -76,15 +76,14 @@ public class QuadPipelineTest {
      */
     static {
         VERT_SOURCE =
-            "#version 130\n" +
+            "#version 140\n" +
             "uniform mat4 MVPMatrix=mat4(1);\n" +
             "in vec4 MCVertex;\n" +
-            "out vec4 gl_Position;\n" +
             "void main() {\n" +
             "   gl_Position = MVPMatrix * MCVertex;\n" +
             "}\n";
         FRAG_SOURCE =
-            "#version 130\n" +
+            "#version 140\n" +
             "uniform vec4 Color=vec4(1,1,1,1);\n" +
             "out vec4 FragColor;\n" +
             "void main() {\n" +
