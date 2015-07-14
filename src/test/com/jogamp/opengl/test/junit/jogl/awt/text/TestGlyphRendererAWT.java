@@ -57,7 +57,7 @@ import org.junit.Test;
 /**
  * Test for {@link GlyphRenderer}.
  */
-public class GlyphRendererTest {
+public class TestGlyphRendererAWT {
 
     // Amount of time to wait before closing window
     private static final int WAIT_TIME = 1000;
@@ -66,20 +66,13 @@ public class GlyphRendererTest {
     private static Font FONT = new Font("Sans-serif", Font.PLAIN, 256);
 
     // Glyph to render
-    private final Glyph glyph;
+    private final Glyph glyph = createGlyph('G');
 
     // Glyph renderer implementation
     private GlyphRenderer glyphRenderer;
 
     // Utility for making canvases
     private final GLCanvasFactory canvasFactory = new GLCanvasFactory();
-
-    /**
-     * Creates a glyph renderer test.
-     */
-    public GlyphRendererTest() {
-        glyph = createGlyph('G');
-    }
 
     /**
      * Test for {@link GlyphRendererGL2}.

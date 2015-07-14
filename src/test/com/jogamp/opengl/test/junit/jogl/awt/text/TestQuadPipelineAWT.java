@@ -50,7 +50,7 @@ import org.junit.Test;
 /**
  * Test for {@link QuadPipeline}.
  */
-public class QuadPipelineTest {
+public class TestQuadPipelineAWT {
 
     // Amount of time to wait before closing the window
     private static final int WAIT_TIME = 1000;

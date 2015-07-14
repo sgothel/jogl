@@ -47,9 +47,9 @@ import org.junit.Test;
 
 
 /**
- * Test for {@link RasterTextRenderer}.
+ * Test for {@link TextRenderer}.
  */
-public class TextRendererTest {
+public class TestTextRendererAWT {
 
     // Font to render with
     private static final Font FONT = new Font("Monospace", Font.PLAIN, 110);
@@ -59,21 +59,13 @@ public class TextRendererTest {
     private static final int SHORT_WAIT_TIME = 1000;
 
     // Random collection of words to render
-    private WordBank wordBank;
+    private final WordBank wordBank = new WordBank();
 
     // Instance to render with
-    private TextRenderer textRenderer;
+    private TextRenderer textRenderer = null;
 
     // Utility for making canvases
     private final GLCanvasFactory canvasFactory = new GLCanvasFactory();
-
-    /**
-     * Constructs a raster text renderer test.
-     */
-    public TextRendererTest() {
-        wordBank = new WordBank();
-        textRenderer = null;
-    }
 
     /**
      * Ensures the text renderer can draw text properly with an OpenGL 2 context.
