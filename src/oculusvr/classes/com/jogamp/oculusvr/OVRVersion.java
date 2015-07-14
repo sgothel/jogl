@@ -41,6 +41,16 @@ import java.util.jar.Manifest;
 
 public class OVRVersion extends JogampVersion {
 
+    /**
+     * Default init-params for {@link OVR#ovr_Initialize(ovrInitParams)},
+     * w/ flags {@link OVR#ovrInit_ServerOptional}.
+     */
+    public static final ovrInitParams defaultInitParams;
+    static {
+        defaultInitParams = ovrInitParams.create();
+        defaultInitParams.setFlags(OVR.ovrInit_ServerOptional);
+    }
+
     protected static volatile OVRVersion jogampCommonVersionInfo;
 
     protected OVRVersion(final String packageName, final Manifest mf) {
@@ -64,7 +74,7 @@ public class OVRVersion extends JogampVersion {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        if( !OVR.ovr_Initialize() ) { // recursive ..
+        if( !OVR.ovr_Initialize(defaultInitParams) ) { // recursive ..
             sb.append("\tOVR not available").append(Platform.getNewline());
         } else {
             final ovrHmdDesc hmdDesc = OVR.ovrHmd_Create(ovrHmdIndex);

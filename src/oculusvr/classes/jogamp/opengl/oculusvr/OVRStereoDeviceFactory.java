@@ -36,9 +36,8 @@ import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 
 public class OVRStereoDeviceFactory extends StereoDeviceFactory {
-
     public static boolean isAvailable() {
-        if( OVR.ovr_Initialize() ) { // recursive ..
+        if( OVR.ovr_Initialize(OVRVersion.defaultInitParams) ) { // recursive ..
             boolean res = false;
             final int count = OVR.ovrHmd_Detect();
             System.err.println("Detect.0: ovrHmd_Detect() -> "+count);
