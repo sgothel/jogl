@@ -485,11 +485,11 @@
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_HSWDisplay.cpp"/ -->
 
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Display.cpp"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Linux_Display.cpp"             if="isLinux"/>
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Linux_Display.cpp"         if="isLinux"/ -->
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Linux_SDKWindow.cpp"       if="isLinux"/ -->
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_OSX_Display.cpp"               if="isOSX"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_Display.cpp"             if="isWindows"/>
-            <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_FocusReader.cpp"         if="isWindows"/>
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_OSX_Display.cpp"           if="isOSX"/ -->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_Display.cpp"         if="isWindows"/ -->
+            <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_FocusReader.cpp"     if="isWindows"/ -->
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_RenderShim.cpp"      if="isWindows"/ -->
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Displays/OVR_Win32_ShimFunctions.cpp"   if="isWindows"/ -->
 
@@ -514,9 +514,8 @@
 
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/Vision/SensorFusion/Vision_SensorStateReader.cpp"/>
 
-            <include name="${rootrel.oculusvr.sdk}/3rdParty/TinyXml/tinyxml2.cpp"/>
-
-            <include name="${rootrel.oculusvr.sdk}/3rdParty/EDID/edid.cpp"                                if="isLinux"/>
+            <!-- include name="${rootrel.oculusvr.sdk}/3rdParty/TinyXml/tinyxml2.cpp"/ -->
+            <!-- include name="${rootrel.oculusvr.sdk}/3rdParty/EDID/edid.cpp"                            if="isLinux"/ -->
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
