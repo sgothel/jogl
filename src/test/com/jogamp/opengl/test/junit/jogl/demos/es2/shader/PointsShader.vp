@@ -4,12 +4,18 @@
   #define varying out
 #endif
 
+#ifdef GL_ES
+  #define MEDIUMP mediump
+#else
+  #define MEDIUMP
+#endif
+
 uniform vec4 mgl_ColorStatic;
 uniform mat4 mgl_PMVMatrix[4]; // P, Mv, Mvi and Mvit (transpose(inverse(ModelView)) == normalMatrix)
 
 // [0].rgba: 0, smooth, attnMinSz, attnMaxSz
 // [1].rgba: attnCoeff(3), attnFadeTs
-uniform vec4 mgl_PointParams[2]; 
+uniform MEDIUMP vec4 mgl_PointParams[2]; 
 
 #define pointSmooth                 (mgl_PointParams[0].g)
 #define pointSizeMin                (mgl_PointParams[0].b)

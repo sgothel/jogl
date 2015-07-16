@@ -409,7 +409,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWTNoARBCtx $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
 # Stereo
@@ -547,7 +547,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestX11DefaultDisplay $*
