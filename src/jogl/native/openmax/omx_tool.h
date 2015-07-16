@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 // FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
 #define EGLIMAGE_MAX_BUFFERS 4

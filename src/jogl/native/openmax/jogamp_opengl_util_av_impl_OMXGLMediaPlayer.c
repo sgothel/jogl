@@ -39,7 +39,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer_init
 
     jclass c;
     if (omxGLMediaPlayerClazz != NULL) {
-        return;
+        return JNI_FALSE;
     }
 
     c = (*env)->FindClass(env, ClazzNameOMXGLMediaPlayer);
