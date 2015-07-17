@@ -40,6 +40,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.util.PNGPixelRect;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
@@ -52,6 +53,7 @@ public class DisplayDriver extends DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();
+        GLProfile.initSingleton();
 
         if (!DisplayDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize bcm.vc.iv Display jmethodIDs");
