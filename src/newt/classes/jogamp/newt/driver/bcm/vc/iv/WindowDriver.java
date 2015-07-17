@@ -37,7 +37,8 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
-
+import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.event.MouseEvent;
@@ -61,6 +62,57 @@ public class WindowDriver extends WindowImpl {
         layer = -1;
         nativeWindowHandle = 0;
         windowHandleClose = 0;
+    }
+
+    /**
+     * Clamp given rectangle to given screen bounds.
+     *
+     * @param screen
+     * @param rect the {@link RectangleImmutable} in pixel units
+     * @return If position or size has been clamped a new {@link RectangleImmutable} instance w/ clamped values
+     *         will be returned, otherwise the given {@code rect} is returned.
+     */
+    private RectangleImmutable clampRect(final ScreenDriver screen, final RectangleImmutable rect) {
+        int x = rect.getX();
+        int y = rect.getY();
+        int w = rect.getWidth();
+        int h = rect.getHeight();
+        final int s_w = screen.getWidth();
+        final int s_h = screen.getHeight();
+        boolean mod = false;
+        if( 0 > x ) {
+            x = 0;
+            mod = true;
+        }
+        if( 0 > y ) {
+            y = 0;
+            mod = true;
+        }
+        if( s_w < x + w ) {
+            if( 0 < x ) {
+                x = 0;
+                mod = true;
+            }
+            if( s_w < w ) {
+                w = s_w;
+                mod = true;
+            }
+        }
+        if( s_h < y + h ) {
+            if( 0 < y ) {
+                y = 0;
+                mod = true;
+            }
+            if( s_h < h ) {
+                h = s_h;
+                mod = true;
+            }
+        }
+        if( mod ) {
+            return new Rectangle(x, y, w, h);
+        } else {
+            return rect;
+        }
     }
 
     @Override
@@ -110,7 +162,10 @@ public class WindowDriver extends WindowImpl {
             chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
         }
         setGraphicsConfiguration(cfg);
-        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), layer, getX(), getY(), getWidth(), getHeight(),
+        // CreateWindow0 will issue position/size changed event if clamped and required
+        final RectangleImmutable rect = clampRect(screen, new Rectangle(getX(), getY(), getWidth(), getHeight()));
+        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), layer,
+                                           rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(),
                                            chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+cfg);
@@ -155,7 +210,9 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
-        reconfigure0(nativeWindowHandle, x, y, width, height, flags);
+        final RectangleImmutable rect = clampRect((ScreenDriver) getScreen(), new Rectangle(x, y, width, height));
+        // reconfigure0 will issue position/size changed events if required
+        reconfigure0(nativeWindowHandle, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), flags);
         return true;
     }
 

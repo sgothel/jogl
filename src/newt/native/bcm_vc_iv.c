@@ -402,6 +402,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
    vc_dispmanx_update_submit_sync( dispman_update );
 
    (*env)->CallVoidMethod(env, obj, visibleChangedID, JNI_FALSE, JNI_TRUE); // FIXME: or defer=true ?
+   (*env)->CallVoidMethod(env, obj, positionChangedID, JNI_FALSE, x, y); // always report pos-change (clamping) 
+   (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, width, height, JNI_FALSE); // always report size-change (clamping) 
 
    DBG_PRINT( "BCM.Display Window.Create.X %p, element %p\n", 
     (void*)(intptr_t)dispman_display, (void*)(intptr_t)p->handle);
@@ -457,7 +459,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_reconfigur
         (*env)->CallVoidMethod(env, obj, positionChangedID, JNI_FALSE, x, y);
     }
     if( sizeChanged ) {
-        (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, (jint) width, (jint) height, JNI_FALSE);
+        (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, width, height, JNI_FALSE);
     }
 }
 
