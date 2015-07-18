@@ -126,7 +126,7 @@ public class ShaderCode {
      * @param source CharSequence array containing the shader sources, organized as <code>source[count][strings-per-shader]</code>.
      *               May be either an immutable <code>String</code> - or mutable <code>StringBuilder</code> array.
      *
-     * @throws IllegalArgumentException if <code>count</count> and <code>source.length</code> do not match
+     * @throws IllegalArgumentException if <code>count</code> and <code>source.length</code> do not match
      */
     public ShaderCode(final int type, final int count, final CharSequence[][] source) {
         if(source.length != count) {
@@ -197,7 +197,7 @@ public class ShaderCode {
      *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
      *                        at no additional costs.
      *
-     * @throws IllegalArgumentException if <code>count</count> and <code>sourceFiles.length</code> do not match
+     * @throws IllegalArgumentException if <code>count</code> and <code>sourceFiles.length</code> do not match
      * @see #readShaderSource(Class, String)
      */
     public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context, final String[] sourceFiles, final boolean mutableStringBuilder) {
@@ -389,7 +389,7 @@ public class ShaderCode {
      *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
      *                        at no additional costs.
      *
-     * @throws IllegalArgumentException if <code>count</count> and <code>srcBasenames.length</code> do not match
+     * @throws IllegalArgumentException if <code>count</code> and <code>srcBasenames.length</code> do not match
      *
      * @see #create(GL2ES2, int, int, Class, String[])
      * @see #create(int, int, Class, int, String)
@@ -495,7 +495,7 @@ public class ShaderCode {
      *                        If <code>false</code> method returns an immutable <code>String</code> instance,
      *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
      *                        at no additional costs.
-     * @throws IllegalArgumentException if <code>count</count> is not 1
+     * @throws IllegalArgumentException if <code>count</code> is not 1
      *
      * @see #create(GL2ES2, int, int, Class, String, String[], String, String)
      */
