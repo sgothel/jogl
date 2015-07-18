@@ -189,7 +189,7 @@ public class ShaderCode {
      *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source location
-     * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code>
+     * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code> -> <code>shaderSources[count][1]</code>
      * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
      *                        which can be edited later on at the costs of a String conversion when passing to
      *                        {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}.
@@ -200,7 +200,8 @@ public class ShaderCode {
      * @throws IllegalArgumentException if <code>count</code> and <code>sourceFiles.length</code> do not match
      * @see #readShaderSource(Class, String)
      */
-    public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context, final String[] sourceFiles, final boolean mutableStringBuilder) {
+    public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context,
+                                    final String[] sourceFiles, final boolean mutableStringBuilder) {
         if(null != gl && !ShaderUtil.isShaderCompilerAvailable(gl)) {
             return null;
         }
@@ -214,6 +215,53 @@ public class ShaderCode {
                     shaderSources[i][0] = readShaderSource(context, sourceFiles[i], mutableStringBuilder);
                 } catch (final IOException ioe) {
                     throw new RuntimeException("readShaderSource("+sourceFiles[i]+") error: ", ioe);
+                }
+                if(null == shaderSources[i][0]) {
+                    shaderSources = null;
+                }
+            }
+        }
+        if(null==shaderSources) {
+            return null;
+        }
+        return new ShaderCode(type, count, shaderSources);
+    }
+
+    /**
+     * Creates a complete {@link ShaderCode} object while reading all shader sources from {@link Uri} <code>sourceLocations</code>
+     * via {@link #readShaderSource(Uri, boolean)}.
+     *
+     * @param gl current GL object to determine whether a shader compiler is available. If null, no validation is performed.
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     * @param count number of shaders
+     * @param sourceLocations array of {@link Uri} source locations, organized as <code>sourceFiles[count]</code> -> <code>shaderSources[count][1]</code>
+     * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
+     *                        which can be edited later on at the costs of a String conversion when passing to
+     *                        {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}.
+     *                        If <code>false</code> method returns an immutable <code>String</code> instance,
+     *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
+     *                        at no additional costs.
+     *
+     * @throws IllegalArgumentException if <code>count</code> and <code>sourceFiles.length</code> do not match
+     * @see #readShaderSource(Uri, boolean)
+     * @since 2.3.2
+     */
+    public static ShaderCode create(final GL2ES2 gl, final int type, final int count,
+                                    final Uri[] sourceLocations, final boolean mutableStringBuilder) {
+        if(null != gl && !ShaderUtil.isShaderCompilerAvailable(gl)) {
+            return null;
+        }
+
+        CharSequence[][] shaderSources = null;
+        if(null!=sourceLocations) {
+            // sourceFiles.length and count is validated in ctor
+            shaderSources = new CharSequence[sourceLocations.length][1];
+            for(int i=0; i<sourceLocations.length; i++) {
+                try {
+                    shaderSources[i][0] = readShaderSource(sourceLocations[i], mutableStringBuilder);
+                } catch (final IOException ioe) {
+                    throw new RuntimeException("readShaderSource("+sourceLocations[i]+") error: ", ioe);
                 }
                 if(null == shaderSources[i][0]) {
                     shaderSources = null;
@@ -247,6 +295,37 @@ public class ShaderCode {
                 shaderBinary = readShaderBinary(context, binaryFile);
             } catch (final IOException ioe) {
                 throw new RuntimeException("readShaderBinary("+binaryFile+") error: ", ioe);
+            }
+            if(null == shaderBinary) {
+                binFormat = -1;
+            }
+        }
+        if(null==shaderBinary) {
+            return null;
+        }
+        return new ShaderCode(type, count, binFormat, shaderBinary);
+    }
+
+    /**
+     * Creates a complete {@link ShaderCode} object while reading the shader binary from {@link Uri} <code>binLocations</code>
+     * via {@link #readShaderBinary(Uri)}.
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     * @param count number of shaders
+     * @param binFormat a valid native binary format as they can be queried by {@link ShaderUtil#getShaderBinaryFormats(GL)}.
+     * @param binLocations {@link Uri} binary location
+     *
+     * @see #readShaderBinary(Uri)
+     * @see ShaderUtil#getShaderBinaryFormats(GL)
+     * @since 2.3.2
+     */
+    public static ShaderCode create(final int type, final int count, int binFormat, final Uri binLocation) {
+        ByteBuffer shaderBinary = null;
+        if(null!=binLocation && 0<=binFormat) {
+            try {
+                shaderBinary = readShaderBinary(binLocation);
+            } catch (final IOException ioe) {
+                throw new RuntimeException("readShaderBinary("+binLocation+") error: ", ioe);
             }
             if(null == shaderBinary) {
                 binFormat = -1;
@@ -327,6 +406,143 @@ public class ShaderCode {
      * whatever is available first.
      * <p>
      * The source and binary location names are expected w/o suffixes which are
+     * resolved and appended using the given {@code srcSuffixOpt} and {@code binSuffixOpt}
+     * if not {@code null}, otherwise {@link #getFileSuffix(boolean, int)} determines the suffixes.
+     * </p>
+     * <p>
+     * Additionally, the binary resource is expected within a subfolder of <code>binRoot</code>
+     * which reflects the vendor specific binary format, see {@link #getBinarySubPath(int)}.
+     * All {@link ShaderUtil#getShaderBinaryFormats(GL)} are being iterated
+     * using the binary subfolder, the first existing resource is being used.
+     * </p>
+     *
+     * Example:
+     * <pre>
+     *   Your std JVM layout (plain or within a JAR):
+     *
+     *      org/test/glsl/MyShaderTest.class
+     *      org/test/glsl/shader/vertex.vp
+     *      org/test/glsl/shader/fragment.fp
+     *      org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *
+     *   Your Android APK layout:
+     *
+     *      classes.dex
+     *      assets/org/test/glsl/shader/vertex.vp
+     *      assets/org/test/glsl/shader/fragment.fp
+     *      assets/org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      assets/org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *      ...
+     *
+     *   Your invocation in org/test/glsl/MyShaderTest.java:
+     *
+     *      ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
+     *                                         "shader", new String[] { "vertex" }, null,
+     *                                         "shader/bin", "vertex", null, true);
+     *      ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
+     *                                         "shader", new String[] { "vertex" }, null,
+     *                                         "shader/bin", "fragment", null, true);
+     *      ShaderProgram sp0 = new ShaderProgram();
+     *      sp0.add(gl, vp0, System.err);
+     *      sp0.add(gl, fp0, System.err);
+     *      st.attachShaderProgram(gl, sp0, true);
+     * </pre>
+     * A simplified entry point is {@link #create(GL2ES2, int, Class, String, String, String, boolean)}.
+     *
+     * <p>
+     * The location is finally being resolved using the <code>context</code> class, see {@link #readShaderBinary(Class, String)}.
+     * </p>
+     *
+     * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
+     *           or to determine the shader binary format (if <code>binary</code> is used).
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     * @param count number of shaders
+     * @param context class used to help resolving the source and binary location
+     * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code> optional
+     * @param srcBasenames basenames w/o path or suffix relative to <code>srcRoot</code> for the shader's source code
+     * @param srcSuffixOpt optional custom suffix for shader's source file,
+     *                     if {@code null} {@link #getFileSuffix(boolean, int)} is being used.
+     * @param binRoot relative <i>root</i> path for <code>binBasenames</code>
+     * @param binBasename basename w/o path or suffix relative to <code>binRoot</code> for the shader's binary code
+     * @param binSuffixOpt optional custom suffix for shader's binary file,
+     *                     if {@code null} {@link #getFileSuffix(boolean, int)} is being used.
+     * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
+     *                        which can be edited later on at the costs of a String conversion when passing to
+     *                        {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}.
+     *                        If <code>false</code> method returns an immutable <code>String</code> instance,
+     *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
+     *                        at no additional costs.
+     *
+     * @throws IllegalArgumentException if <code>count</code> and <code>srcBasenames.length</code> do not match
+     *
+     * @see #create(GL2ES2, int, int, Class, String[])
+     * @see #create(int, int, Class, int, String)
+     * @see #readShaderSource(Class, String)
+     * @see #getFileSuffix(boolean, int)
+     * @see ShaderUtil#getShaderBinaryFormats(GL)
+     * @see #getBinarySubPath(int)
+     *
+     * @since 2.3.2
+     */
+    public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context,
+                                    final String srcRoot, final String[] srcBasenames, final String srcSuffixOpt,
+                                    final String binRoot, final String binBasename, final String binSuffixOpt,
+                                    final boolean mutableStringBuilder) {
+        ShaderCode res = null;
+        final String srcPath[];
+        String srcPathString = null;
+        String binFileName = null;
+
+        if( null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl) ) {
+            srcPath = new String[srcBasenames.length];
+            final String srcSuffix = null != srcSuffixOpt ? srcSuffixOpt : getFileSuffix(false, type);
+            if( null != srcRoot && srcRoot.length() > 0 ) {
+                for(int i=0; i<srcPath.length; i++) {
+                    srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
+                }
+            } else {
+                for(int i=0; i<srcPath.length; i++) {
+                    srcPath[i] = srcBasenames[i] + "." + srcSuffix;
+                }
+            }
+            res = create(gl, type, count, context, srcPath, mutableStringBuilder);
+            if(null!=res) {
+                return res;
+            }
+            srcPathString = Arrays.toString(srcPath);
+        } else {
+            srcPath = null;
+        }
+        if( null!=binBasename ) {
+            final Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
+            final String binSuffix = null != binSuffixOpt ? binSuffixOpt : getFileSuffix(true, type);
+            for(final Iterator<Integer> iter=binFmts.iterator(); iter.hasNext(); ) {
+                final int bFmt = iter.next().intValue();
+                final String bFmtPath = getBinarySubPath(bFmt);
+                if(null==bFmtPath) continue;
+                binFileName = binRoot + '/' + bFmtPath + '/' + binBasename + "." + binSuffix;
+                res = create(type, count, context, bFmt, binFileName);
+                if(null!=res) {
+                    return res;
+                }
+            }
+        }
+        throw new GLException("No shader code found (source nor binary) for src: "+srcPathString+
+                              ", bin: "+binFileName);
+    }
+
+    /**
+     * Simplified variation of {@link #create(GL2ES2, int, int, Class, String, String[], String, String, String, String, boolean)}.
+     * <p>
+     * Convenient creation method for instantiating a complete {@link ShaderCode} object
+     * either from source code using {@link #create(GL2ES2, int, int, Class, String[])},
+     * or from a binary code using {@link #create(int, int, Class, int, String)},
+     * whatever is available first.
+     * </p>
+     * <p>
+     * The source and binary location names are expected w/o suffixes which are
      * resolved and appended using {@link #getFileSuffix(boolean, int)}.
      * </p>
      * <p>
@@ -358,9 +574,9 @@ public class ShaderCode {
      *   Your invocation in org/test/glsl/MyShaderTest.java:
      *
      *      ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
-     *                                         "shader", new String[] { "vertex" }, "shader/bin", "vertex");
+     *                                         "shader", new String[] { "vertex" }, "shader/bin", "vertex", true);
      *      ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
-     *                                         "shader", new String[] { "vertex" }, "shader/bin", "fragment");
+     *                                         "shader", new String[] { "vertex" }, "shader/bin", "fragment", true);
      *      ShaderProgram sp0 = new ShaderProgram();
      *      sp0.add(gl, vp0, System.err);
      *      sp0.add(gl, fp0, System.err);
@@ -391,61 +607,22 @@ public class ShaderCode {
      *
      * @throws IllegalArgumentException if <code>count</code> and <code>srcBasenames.length</code> do not match
      *
-     * @see #create(GL2ES2, int, int, Class, String[])
-     * @see #create(int, int, Class, int, String)
+     * @see #create(GL2ES2, int, int, Class, String, String[], String, String, String, String, boolean)
      * @see #readShaderSource(Class, String)
      * @see #getFileSuffix(boolean, int)
      * @see ShaderUtil#getShaderBinaryFormats(GL)
      * @see #getBinarySubPath(int)
      */
     public static ShaderCode create(final GL2ES2 gl, final int type, final int count, final Class<?> context,
-                                    final String srcRoot, final String[] srcBasenames, final String binRoot, final String binBasename,
+                                    final String srcRoot, final String[] srcBasenames,
+                                    final String binRoot, final String binBasename,
                                     final boolean mutableStringBuilder) {
-        ShaderCode res = null;
-        final String srcPath[];
-        String srcPathString = null;
-        String binFileName = null;
-
-        if( null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl) ) {
-            srcPath = new String[srcBasenames.length];
-            final String srcSuffix = getFileSuffix(false, type);
-            if( null != srcRoot && srcRoot.length() > 0 ) {
-                for(int i=0; i<srcPath.length; i++) {
-                    srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
-                }
-            } else {
-                for(int i=0; i<srcPath.length; i++) {
-                    srcPath[i] = srcBasenames[i] + "." + srcSuffix;
-                }
-            }
-            res = create(gl, type, count, context, srcPath, mutableStringBuilder);
-            if(null!=res) {
-                return res;
-            }
-            srcPathString = Arrays.toString(srcPath);
-        } else {
-            srcPath = null;
-        }
-        if( null!=binBasename ) {
-            final Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
-            final String binSuffix = getFileSuffix(true, type);
-            for(final Iterator<Integer> iter=binFmts.iterator(); iter.hasNext(); ) {
-                final int bFmt = iter.next().intValue();
-                final String bFmtPath = getBinarySubPath(bFmt);
-                if(null==bFmtPath) continue;
-                binFileName = binRoot + '/' + bFmtPath + '/' + binBasename + "." + binSuffix;
-                res = create(type, count, context, bFmt, binFileName);
-                if(null!=res) {
-                    return res;
-                }
-            }
-        }
-        throw new GLException("No shader code found (source nor binary) for src: "+srcPathString+
-                              ", bin: "+binFileName);
+            return create(gl, type, count, context, srcRoot, srcBasenames, null,
+                          binRoot, binBasename, null, mutableStringBuilder);
     }
 
     /**
-     * Simplified variation of {@link #create(GL2ES2, int, int, Class, String, String[], String, String, boolean)}.
+     * Simplified variation of {@link #create(GL2ES2, int, int, Class, String, String[], String, String, String, String, boolean)}.
      * <p>
      * Example:
      * <pre>
@@ -469,9 +646,76 @@ public class ShaderCode {
      *   Your invocation in org/test/glsl/MyShaderTest.java:
      *
      *      ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
-     *                                         "shader", "shader/bin", "vertex");
+     *                                         "shader", "shader/bin", "vertex", null, null, true);
      *      ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
-     *                                         "shader", "shader/bin", "fragment");
+     *                                         "shader", "shader/bin", "fragment", null, null, true);
+     *      ShaderProgram sp0 = new ShaderProgram();
+     *      sp0.add(gl, vp0, System.err);
+     *      sp0.add(gl, fp0, System.err);
+     *      st.attachShaderProgram(gl, sp0, true);
+     * </pre>
+     * </p>
+     *
+     * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
+     *           or to determine the shader binary format (if <code>binary</code> is used).
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     * @param context class used to help resolving the source and binary location
+     * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
+     * @param binRoot relative <i>root</i> path for <code>basename</code>
+     * @param basename basename w/o path or suffix relative to <code>srcRoot</code> and <code>binRoot</code>
+     *                 for the shader's source and binary code.
+     * @param srcSuffixOpt optional custom suffix for shader's source file,
+     *                     if {@code null} {@link #getFileSuffix(boolean, int)} is being used.
+     * @param binSuffixOpt optional custom suffix for shader's binary file,
+     *                     if {@code null} {@link #getFileSuffix(boolean, int)} is being used.
+     * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
+     *                        which can be edited later on at the costs of a String conversion when passing to
+     *                        {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}.
+     *                        If <code>false</code> method returns an immutable <code>String</code> instance,
+     *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
+     *                        at no additional costs.
+     * @throws IllegalArgumentException if <code>count</code> is not 1
+     *
+     * @see #create(GL2ES2, int, int, Class, String, String[], String, String, String, String, boolean)
+     * @since 2.3.2
+     */
+    public static ShaderCode create(final GL2ES2 gl, final int type, final Class<?> context,
+                                    final String srcRoot, final String binRoot,
+                                    final String basename, final String srcSuffixOpt, final String binSuffixOpt,
+                                    final boolean mutableStringBuilder) {
+        return create(gl, type, 1, context, srcRoot, new String[] { basename }, srcSuffixOpt,
+                                            binRoot, basename, binSuffixOpt, mutableStringBuilder );
+    }
+
+    /**
+     * Simplified variation of {@link #create(GL2ES2, int, Class, String, String, String, String, String, boolean)}.
+     * <p>
+     * Example:
+     * <pre>
+     *   Your std JVM layout (plain or within a JAR):
+     *
+     *      org/test/glsl/MyShaderTest.class
+     *      org/test/glsl/shader/vertex.vp
+     *      org/test/glsl/shader/fragment.fp
+     *      org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *
+     *   Your Android APK layout:
+     *
+     *      classes.dex
+     *      assets/org/test/glsl/shader/vertex.vp
+     *      assets/org/test/glsl/shader/fragment.fp
+     *      assets/org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      assets/org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *      ...
+     *
+     *   Your invocation in org/test/glsl/MyShaderTest.java:
+     *
+     *      ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
+     *                                         "shader", "shader/bin", "vertex", true);
+     *      ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
+     *                                         "shader", "shader/bin", "fragment", true);
      *      ShaderProgram sp0 = new ShaderProgram();
      *      sp0.add(gl, vp0, System.err);
      *      sp0.add(gl, fp0, System.err);
@@ -496,12 +740,11 @@ public class ShaderCode {
      *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
      *                        at no additional costs.
      * @throws IllegalArgumentException if <code>count</code> is not 1
-     *
-     * @see #create(GL2ES2, int, int, Class, String, String[], String, String)
      */
     public static ShaderCode create(final GL2ES2 gl, final int type, final Class<?> context,
-                                    final String srcRoot, final String binRoot, final String basename, final boolean mutableStringBuilder) {
-        return create(gl, type, 1, context, srcRoot, new String[] { basename }, binRoot, basename, mutableStringBuilder );
+                                    final String srcRoot, final String binRoot, final String basename,
+                                    final boolean mutableStringBuilder) {
+        return ShaderCode.create(gl, type, context, srcRoot, binRoot, basename, null, null, mutableStringBuilder);
     }
 
     /**
@@ -815,7 +1058,6 @@ public class ShaderCode {
         }
     }
 
-    @SuppressWarnings("resource")
     private static int readShaderSource(final Class<?> context, final URLConnection conn, final StringBuilder result, int lineno) throws IOException  {
         if(DEBUG_CODE) {
             if(0 == lineno) {
@@ -858,10 +1100,11 @@ public class ShaderCode {
     }
 
     /**
+     * Reads shader source located in <code>conn</code>.
      *
-     * @param context
-     * @param conn
-     * @param result
+     * @param context class used to help resolve the source location, may be {@code null}
+     * @param conn the {@link URLConnection} of the shader source
+     * @param result {@link StringBuilder} sink for the resulting shader source code
      * @throws IOException
      */
     public static void readShaderSource(final Class<?> context, final URLConnection conn, final StringBuilder result) throws IOException {
@@ -899,6 +1142,28 @@ public class ShaderCode {
     }
 
     /**
+     * Reads shader source located from {@link Uri#absolute} {@link Uri} <code>sourceLocation</code>.
+     * @param sourceLocation {@link Uri} location of shader source
+     * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
+     *                        which can be edited later on at the costs of a String conversion when passing to
+     *                        {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}.
+     *                        If <code>false</code> method returns an immutable <code>String</code> instance,
+     *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
+     *                        at no additional costs.
+     * @throws IOException
+     * @since 2.3.2
+     */
+    public static CharSequence readShaderSource(final Uri sourceLocation, final boolean mutableStringBuilder) throws IOException {
+        final URLConnection conn = IOUtil.openURL(sourceLocation.toURL(), "ShaderCode ");
+        if (conn == null) {
+            return null;
+        }
+        final StringBuilder result = new StringBuilder();
+        readShaderSource(null, conn, result);
+        return mutableStringBuilder ? result : result.toString();
+    }
+
+    /**
      * Reads shader binary located in <code>path</code>,
      * either relative to the <code>context</code> class or absolute <i>as-is</i>.
      * <p>
@@ -914,6 +1179,25 @@ public class ShaderCode {
      */
     public static ByteBuffer readShaderBinary(final Class<?> context, final String path) throws IOException {
         final URLConnection conn = IOUtil.getResource(context, path);
+        if (conn == null) {
+            return null;
+        }
+        final BufferedInputStream bis = new BufferedInputStream( conn.getInputStream() );
+        try {
+            return IOUtil.copyStream2ByteBuffer( bis );
+        } finally {
+            IOUtil.close(bis, false);
+        }
+    }
+
+    /**
+     * Reads shader binary located from {@link Uri#absolute} {@link Uri} <code>binLocation</code>.
+     * @param binLocation {@link Uri} location of shader binary
+     * @throws IOException
+     * @since 2.3.2
+     */
+    public static ByteBuffer readShaderBinary(final Uri binLocation) throws IOException {
+        final URLConnection conn = IOUtil.openURL(binLocation.toURL(), "ShaderCode ");
         if (conn == null) {
             return null;
         }
