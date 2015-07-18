@@ -43,7 +43,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.stereo.EyeParameter;
-import com.jogamp.opengl.util.stereo.EyePose;
+import com.jogamp.opengl.util.stereo.ViewerPose;
 import com.jogamp.opengl.util.stereo.StereoGLEventListener;
 
 import java.nio.FloatBuffer;
@@ -407,9 +407,11 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
     private final float[] vec3Tmp2 = new float[3];
     private final float[] vec3Tmp3 = new float[3];
 
+    private static final float[] vec3ScalePos = new float[] { 20f, 20f, 20f };
+
     @Override
     public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
-                              final EyeParameter eyeParam, final EyePose eyePose) {
+                              final EyeParameter eyeParam, final ViewerPose viewerPose) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
@@ -426,10 +428,11 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         final Quaternion rollPitchYaw = new Quaternion();
         // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
         // rollPitchYaw.rotateByAngleY(eyeYaw);
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyePose.position, 0);
+        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
+        VectorUtil.scaleVec3(shiftedEyePos, shiftedEyePos, vec3ScalePos); // amplify viewerPose position
         VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
 
-        rollPitchYaw.mult(eyePose.orientation);
+        rollPitchYaw.mult(viewerPose.orientation);
         final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
         final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
         final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);

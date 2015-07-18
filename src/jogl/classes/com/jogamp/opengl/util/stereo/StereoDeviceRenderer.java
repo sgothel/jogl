@@ -42,10 +42,10 @@ import com.jogamp.opengl.math.FovHVHalves;
  * <ul>
  *   <li>device.{@link #beginFrame(GL)}</li>
  *   <li>For both eyes:<ul>
- *     <li>device.{@link #updateEyePose(int)}</li>
+ *     <li>device.{@link #updateViewerPose(int)}</li>
  *     <li>if device.{@link #ppAvailable()}: Set the render target, e.g. FBO</li>
  *     <li>Set the viewport using {@link Eye#getViewport()}</li>
- *     <li>{@link StereoGLEventListener#reshapeForEye(com.jogamp.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream.reshapeEye(..)}</li>
+ *     <li>{@link StereoGLEventListener#reshapeForEye(com.jogamp.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, ViewerPose) upstream.reshapeEye(..)}</li>
  *     <li>{@link StereoGLEventListener#display(com.jogamp.opengl.GLAutoDrawable, int) upstream.display(..)}.</li>
  *   </ul></li>
  *   <li>Reset the viewport</li>
@@ -89,7 +89,7 @@ public interface StereoDeviceRenderer {
 
     /**
      * Distortion Bit: Timewarp distortion technique to predict
-     *                 {@link EyePose} movement to reduce latency.
+     *                 {@link ViewerPose} movement to reduce latency.
      * <p>
      * FIXME: Explanation needs refinement!
      * </p>
@@ -113,10 +113,6 @@ public interface StereoDeviceRenderer {
          * Returns the {@link EyeParameter} of this eye.
          */
         public EyeParameter getEyeParameter();
-        /**
-         * Returns the last {@link EyePose} of this eye.
-         */
-        public EyePose getLastEyePose();
     }
 
     /**
@@ -125,10 +121,14 @@ public interface StereoDeviceRenderer {
     public Eye getEye(final int eyeNum);
 
     /**
-     * Updates the {@link Eye#getLastEyePose()}
-     * for the denoted <code>eyeNum</code>.
+     * Updates the {@link ViewerPose} and returns it.
      */
-    public EyePose updateEyePose(final int eyeNum);
+    public ViewerPose updateViewerPose();
+
+    /**
+     * Returns the last {@link ViewerPose}.
+     */
+    public ViewerPose getLastViewerPose();
 
     /**
      * Returns used distortion compensation bits, e.g. {@link #DISTORTION_BARREL},
@@ -219,7 +219,7 @@ public interface StereoDeviceRenderer {
     /**
      * Begin stereoscopic post-processing, see {@link #ppAvailable()}.
      * <p>
-     * {@link #updateEyePose(int)} for both eyes must be called upfront
+     * {@link #updateViewerPose(int)} for both eyes must be called upfront
      * when rendering upstream {@link StereoGLEventListener}.
      * </p>
      *

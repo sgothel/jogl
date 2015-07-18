@@ -49,7 +49,7 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.stereo.EyeParameter;
-import com.jogamp.opengl.util.stereo.EyePose;
+import com.jogamp.opengl.util.stereo.ViewerPose;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 import com.jogamp.opengl.util.stereo.StereoUtil;
@@ -82,7 +82,6 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
 
         private final EyeParameter eyeParameter;
 
-        private final EyePose eyePose;
 
         @Override
         public final RectangleImmutable getViewport() { return viewport; }
@@ -90,12 +89,9 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
         @Override
         public final EyeParameter getEyeParameter() { return eyeParameter; }
 
-        @Override
-        public final EyePose getLastEyePose() { return eyePose; }
-
-        private GenericEye(final GenericStereoDevice device, final int distortionBits,
-                         final float[] eyePositionOffset, final EyeParameter eyeParam,
-                         final DimensionImmutable textureSize, final RectangleImmutable eyeViewport) {
+        /* pp */ GenericEye(final GenericStereoDevice device, final int distortionBits,
+                            final float[] eyePositionOffset, final EyeParameter eyeParam,
+                            final DimensionImmutable textureSize, final RectangleImmutable eyeViewport) {
             this.eyeName = eyeParam.number;
             this.distortionBits = distortionBits;
             this.viewport = eyeViewport;
@@ -122,10 +118,6 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
             }
 
             this.eyeParameter = eyeParam;
-
-            this.eyePose = new EyePose(eyeName);
-
-            updateEyePose(device); // 1st init
 
             // Setup: eyeToSourceUVScale, eyeToSourceUVOffset
             if( usePP ) {
@@ -333,18 +325,18 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
             indices.enableBuffer(gl, false);
         }
 
-        private void dispose(final GL2ES2 gl) {
+        /* pp */ void dispose(final GL2ES2 gl) {
             if( null == iVBO ) return;
             iVBO.destroy(gl);
             indices.destroy(gl);
         }
-        private void enableVBO(final GL2ES2 gl, final boolean enable) {
+        /* pp */ void enableVBO(final GL2ES2 gl, final boolean enable) {
             if( null == iVBO ) return;
             iVBO.enableBuffer(gl, enable);
             indices.bindBuffer(gl, enable); // keeps VBO binding if enable:=true
         }
 
-        private void updateUniform(final GL2ES2 gl, final ShaderProgram sp) {
+        /* pp */ void updateUniform(final GL2ES2 gl, final ShaderProgram sp) {
             if( null == iVBO ) return;
             gl.glUniform(eyeToSourceUVScale);
             gl.glUniform(eyeToSourceUVOffset);
@@ -352,15 +344,6 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
                 gl.glUniform(eyeRotationStart);
                 gl.glUniform(eyeRotationEnd);
             }
-        }
-
-        /**
-         * Updates {@link #ovrEyePose} and it's extracted
-         * {@link #eyeRenderPoseOrientation} and {@link #eyeRenderPosePosition}.
-         * @param hmdCtx used get the {@link #ovrEyePose} via {@link OVR#ovrHmd_GetEyePose(OvrHmdContext, int)}
-         */
-        private EyePose updateEyePose(final GenericStereoDevice hmdCtx) {
-            return eyePose;
         }
 
         @Override
@@ -373,12 +356,13 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
                         ", "+eyeParameter+
                         ", vertices "+vertexCount+", indices "+indexCount+
                         ppTxt+
-                        ", desc"+eyeParameter+", "+eyePose+"]";
+                        ", desc "+eyeParameter+"]";
         }
     }
 
     private final GenericStereoDevice device;
     private final GenericEye[] eyes;
+    private final ViewerPose viewerPose;
     private final int distortionBits;
     private final int textureCount;
     private final DimensionImmutable[] eyeTextureSizes;
@@ -445,9 +429,11 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
             this.totalTextureSize = zeroSize;
             texUnit0 = null;
         }
+        viewerPose = new ViewerPose();
         for(int i=0; i<eyeParam.length; i++) {
             eyes[i] = new GenericEye(context, this.distortionBits, eyePositionOffset, eyeParam[i], textureSizes[i], eyeViewports[i]);
         }
+
         sp = null;
     }
 
@@ -559,8 +545,14 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     }
 
     @Override
-    public final EyePose updateEyePose(final int eyeNum) {
-        return eyes[eyeNum].updateEyePose(device);
+    public final ViewerPose updateViewerPose() {
+        // NOP
+        return viewerPose;
+    }
+
+    @Override
+    public final ViewerPose getLastViewerPose() {
+        return viewerPose;
     }
 
     @Override

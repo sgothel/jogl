@@ -97,23 +97,51 @@ public class StereoUtil {
         return sb.toString();
     }
 
+    /** See {@link StereoDevice#getSupportedSensorBits()} and {@link StereoDevice#getEnabledSensorBits()}. */
+    public static boolean usesOrientationSensor(final int sensorBits) { return 0 != ( sensorBits & StereoDevice.SENSOR_ORIENTATION ) ; }
+    /** See {@link StereoDevice#getSupportedSensorBits()} and {@link StereoDevice#getEnabledSensorBits()}. */
+    public static boolean usesYawCorrectionSensor(final int sensorBits) { return 0 != ( sensorBits & StereoDevice.SENSOR_YAW_CORRECTION ) ; }
+    /** See {@link StereoDevice#getSupportedSensorBits()} and {@link StereoDevice#getEnabledSensorBits()}. */
+    public static boolean usesPositionSensor(final int sensorBits) { return 0 != ( sensorBits & StereoDevice.SENSOR_POSITION ) ; }
+
+    /** See {@link StereoDevice#getSupportedSensorBits()} and {@link StereoDevice#getEnabledSensorBits()}. */
+    public static String sensorBitsToString(final int sensorBits) {
+        boolean appendComma = false;
+        final StringBuilder sb = new StringBuilder();
+        if( usesOrientationSensor(sensorBits) ) {
+            if( appendComma ) { sb.append(", "); };
+            sb.append("orientation"); appendComma=true;
+        }
+        if( usesYawCorrectionSensor(sensorBits) ) {
+            if( appendComma ) { sb.append(", "); };
+            sb.append("yaw-corr"); appendComma=true;
+        }
+        if( usesPositionSensor(sensorBits) ) {
+            if( appendComma ) { sb.append(", "); };
+            sb.append("position"); appendComma=true;
+        }
+        return sb.toString();
+    }
+
     /**
      * Calculates the <i>Side By Side</i>, SBS, projection- and modelview matrix for one eye.
      * <p>
-     * {@link #updateEyePose(int)} must be called upfront.
+     * {@link #updateViewerPose(int)} must be called upfront.
      * </p>
      * <p>
      * This method merely exist as an example implementation to compute the matrices,
      * which shall be adopted by the
-     * {@link CustomGLEventListener#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
+     * {@link CustomGLEventListener#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, ViewerPose) upstream client code}.
      * </p>
-     * @param eyeNum eye denominator
+     * @param viewerPose
+     * @param eye
      * @param zNear frustum near value
      * @param zFar frustum far value
      * @param mat4Projection float[16] projection matrix result
      * @param mat4Modelview float[16] modelview matrix result
      */
-    public static void getSBSUpstreamPMV(final Eye eye, final float zNear, final float zFar,
+    public static void getSBSUpstreamPMV(final ViewerPose viewerPose, final Eye eye,
+                                         final float zNear, final float zFar,
                                          final float[] mat4Projection, final float[] mat4Modelview) {
         final float[] mat4Tmp1 = new float[16];
         final float[] mat4Tmp2 = new float[16];
@@ -122,7 +150,6 @@ public class StereoUtil {
         final float[] vec3Tmp3 = new float[3];
 
         final EyeParameter eyeParam = eye.getEyeParameter();
-        final EyePose eyePose = eye.getLastEyePose();
 
         //
         // Projection
@@ -135,10 +162,10 @@ public class StereoUtil {
         final Quaternion rollPitchYaw = new Quaternion();
         // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
         // rollPitchYaw.rotateByAngleY(eyeYaw);
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyePose.position, 0);
+        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
         VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
 
-        rollPitchYaw.mult(eyePose.orientation);
+        rollPitchYaw.mult(viewerPose.orientation);
         final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
         final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
         final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);

@@ -189,10 +189,7 @@ public class StereoClientRenderer implements GLEventListener {
         final int[] eyeOrder = deviceRenderer.getDevice().getEyeRenderOrder();
         final int eyeCount = eyeOrder.length;
 
-        // Update eye pos upfront to have same (almost) results
-        for(int eyeNum=0; eyeNum<eyeCount; eyeNum++) {
-            deviceRenderer.updateEyePose(eyeNum);
-        }
+        final ViewerPose viewerPose = deviceRenderer.updateViewerPose();
 
         if( 1 == fboCount ) {
             fbos[0].bind(gl);
@@ -213,7 +210,7 @@ public class StereoClientRenderer implements GLEventListener {
                 public void run(final GLAutoDrawable drawable, final GLEventListener listener) {
                     final StereoGLEventListener sl = (StereoGLEventListener) listener;
                     sl.reshapeForEye(drawable, viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight(),
-                                     eye.getEyeParameter(), eye.getLastEyePose());
+                                     eye.getEyeParameter(), viewerPose);
                     sl.display(drawable, displayFlags);
                 }  };
             helper.runForAllGLEventListener(drawable, reshapeDisplayAction);

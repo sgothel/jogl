@@ -41,10 +41,30 @@ public interface StereoDevice {
     public static final boolean DEBUG = Debug.debug("StereoDevice");
     public static final boolean DUMP_DATA = Debug.isPropertyDefined("jogl.debug.StereoDevice.DumpData", true);
 
+    /**
+     * Sensor Bit: Orientation tracking
+     */
+    public static final int SENSOR_ORIENTATION    = 1 << 0;
+
+    /**
+     * Sensor Bit: Yaw correction
+     */
+    public static final int SENSOR_YAW_CORRECTION = 1 << 1;
+
+    /**
+     * Sensor Bit: Positional tracking
+     */
+    public static final int SENSOR_POSITION = 1 << 2;
+
     /** Return the factory used to create this device. */
     public StereoDeviceFactory getFactory();
 
-    /** Disposes this {@link StereoDevice}, if {@link #isValid() valid}. */
+    /**
+     * Disposes this {@link StereoDevice}, if {@link #isValid() valid}.
+     * <p>
+     * Implementation shall {@link #stopSensors() stop sensors} and free all resources.
+     * </p>
+     */
     public void dispose();
 
     /**
@@ -96,11 +116,57 @@ public interface StereoDevice {
      */
     public FovHVHalves[] getDefaultFOV();
 
-    /** Start or stop sensors. Returns true if action was successful, otherwise false. */
-    public boolean startSensors(boolean start);
+    /**
+     * Start desired and required sensors. Returns true if action was successful, otherwise false.
+     * <p>
+     * Method fails if required sensors are not {@link #getSupportedSensorBits() supported}.
+     * </p>
+     * @param desiredSensorBits the desired optional sensors
+     * @param requiredSensorBits the required sensors
+     * @see #stopSensors()
+     * @see #getSensorsStarted()
+     * @see #getSupportedSensorBits()
+     * @see #getEnabledSensorBits()
+     */
+    public boolean startSensors(int desiredSensorBits, int requiredSensorBits);
 
-    /** Return true if sensors have been started, false otherwise */
+    /**
+     * Stop sensors. Returns true if action was successful, otherwise false.
+     * @see #startSensors(int, int)
+     * @see #getSensorsStarted()
+     * @see #getSupportedSensorBits()
+     * @see #getEnabledSensorBits()
+     */
+    public boolean stopSensors();
+
+    /**
+     * Return true if sensors have been started, false otherwise.
+     * @see #startSensors(int, int)
+     * @see #stopSensors()
+     * @see #getSupportedSensorBits()
+     * @see #getEnabledSensorBits()
+     */
     public boolean getSensorsStarted();
+
+    /**
+     * Returns the supported sensor capability bits, e.g. {@link #SENSOR_ORIENTATION}, {@link #SENSOR_POSITION}
+     * of the {@link StereoDevice}.
+     * @see #startSensors(int, int)
+     * @see #stopSensors()
+     * @see #getSensorsStarted()
+     * @see #getEnabledSensorBits()
+     */
+    public int getSupportedSensorBits();
+
+    /**
+     * Returns the actual used sensor capability bits, e.g. {@link #SENSOR_ORIENTATION}, {@link #SENSOR_POSITION}
+     * in case the {@link #getSupportedSensorBits() device supports} them and if they are enabled.
+     * @see #startSensors(int, int)
+     * @see #stopSensors()
+     * @see #getSensorsStarted()
+     * @see #getSupportedSensorBits()
+     */
+    public int getEnabledSensorBits();
 
     /**
      * Returns an array of the preferred eye rendering order.
@@ -112,7 +178,7 @@ public interface StereoDevice {
     public int[] getEyeRenderOrder();
 
     /**
-     * Returns the supported distortion compensation by the {@link StereoDeviceRenderer},
+     * Returns the supported distortion compensation of the {@link StereoDeviceRenderer},
      * e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL}, {@link StereoDeviceRenderer#DISTORTION_CHROMATIC}, etc.
      * @see StereoDeviceRenderer#getDistortionBits()
      * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)

@@ -46,6 +46,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -71,7 +72,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.stereo.EyeParameter;
-import com.jogamp.opengl.util.stereo.EyePose;
+import com.jogamp.opengl.util.stereo.ViewerPose;
 import com.jogamp.opengl.util.stereo.StereoClientRenderer;
 import com.jogamp.opengl.util.stereo.StereoGLEventListener;
 import com.jogamp.opengl.util.texture.Texture;
@@ -415,7 +416,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                            ", "+drawable.getClass().getName()+", "+drawable);
 
         if(waitForKey) {
-            UITestCase.waitForKey("Init>");
+            JunitTracer.waitForKey("Init>");
         }
         final Texture tex;
         try {
@@ -639,9 +640,11 @@ public class MovieSBSStereo implements StereoGLEventListener {
 
     GLArrayDataServer interleavedVBOCurrent = null;
 
+    private static final float[] vec3ScalePos = new float[] { 4f, 4f, 4f };
+
     @Override
     public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
-                              final EyeParameter eyeParam, final EyePose eyePose) {
+                              final EyeParameter eyeParam, final ViewerPose viewerPose) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         interleavedVBOCurrent = 0 == eyeParam.number ? interleavedVBOLeft : interleavedVBORight;
 
@@ -657,10 +660,11 @@ public class MovieSBSStereo implements StereoGLEventListener {
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         final Quaternion rollPitchYaw = new Quaternion();
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyePose.position, 0);
+        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
+        VectorUtil.scaleVec3(shiftedEyePos, shiftedEyePos, vec3ScalePos); // amplify viewerPose position
         VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
 
-        rollPitchYaw.mult(eyePose.orientation);
+        rollPitchYaw.mult(viewerPose.orientation);
         final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
         final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
         final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);

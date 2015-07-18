@@ -38,6 +38,7 @@ import com.jogamp.oculusvr.ovrEyeRenderDesc;
 import com.jogamp.oculusvr.ovrFovPort;
 import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.oculusvr.ovrSizei;
+import com.jogamp.oculusvr.ovrTrackingState;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
@@ -54,7 +55,11 @@ public class OVRStereoDevice implements StereoDevice {
 
     public ovrHmdDesc hmdDesc;
     public OvrHmdContext handle;
+
+    private final int supportedSensorBits;
+    private int usedSensorBits;
     private boolean sensorsStarted = false;
+
     private final int[] eyeRenderOrder;
     private final int supportedDistortionBits, recommendedDistortionBits, minimumDistortionBits;
 
@@ -84,8 +89,11 @@ public class OVRStereoDevice implements StereoDevice {
         eyeRenderOrder = new int[ovrHmdDesc.getEyeRenderOrderArrayLength()];
         hmdDesc.getEyeRenderOrder(0, eyeRenderOrder);
         supportedDistortionBits = OVRUtil.ovrDistCaps2DistBits(hmdDesc.getDistortionCaps());
-        recommendedDistortionBits = supportedDistortionBits & ~StereoDeviceRenderer.DISTORTION_TIMEWARP;
+        recommendedDistortionBits = supportedDistortionBits; //  & ~StereoDeviceRenderer.DISTORTION_TIMEWARP;
         minimumDistortionBits = StereoDeviceRenderer.DISTORTION_BARREL;
+
+        usedSensorBits = 0;
+        supportedSensorBits = OVRUtil.ovrTrackingCaps2SensorBits(hmdDesc.getTrackingCaps());
 
         // DK1 delivers unrotated resolution in target orientation
         // DK2 delivers rotated resolution in target orientation, monitor screen is rotated 90deg clockwise
@@ -122,13 +130,16 @@ public class OVRStereoDevice implements StereoDevice {
         sb.append(", surfacePos "+getPosition());
         sb.append(", distortionBits[supported ["+StereoUtil.distortionBitsToString(getSupportedDistortionBits())+
                       "], recommended ["+StereoUtil.distortionBitsToString(getRecommendedDistortionBits())+
-                      "], minimum ["+StereoUtil.distortionBitsToString(getMinimumDistortionBits())+"]]]");
+                      "], minimum ["+StereoUtil.distortionBitsToString(getMinimumDistortionBits())+"]]");
+        sb.append(", sensorBits[supported ["+StereoUtil.sensorBitsToString(getSupportedSensorBits())+
+                      "], enabled ["+StereoUtil.sensorBitsToString(getEnabledSensorBits())+"]]]");
         return sb.toString();
     }
 
     @Override
     public final void dispose() {
        if( isValid() ) {
+           stopSensors();
            OVR.ovrHmd_Destroy(hmdDesc);
            hmdDesc = null;
            handle = null;
@@ -158,25 +169,69 @@ public class OVRStereoDevice implements StereoDevice {
         return defaultEyeFov;
     }
 
+    public void updateUsedSensorBits(final ovrTrackingState trackingState) {
+        final int pre = usedSensorBits;
+        if( sensorsStarted && null != trackingState ) {
+            usedSensorBits = StereoDevice.SENSOR_ORIENTATION |
+                             OVRUtil.ovrTrackingStats2SensorBits(trackingState.getStatusFlags());
+        } else {
+            usedSensorBits = 0;
+        }
+        if( StereoDevice.DEBUG ) {
+            if( pre != usedSensorBits ) {
+                System.err.println("XXX: Sensor Change: "+
+                        ": pre["+StereoUtil.sensorBitsToString(pre)+"]"+
+                        " -> now["+StereoUtil.sensorBitsToString(usedSensorBits)+"]");
+            }
+        }
+    }
+
     @Override
-    public final boolean startSensors(final boolean start) {
-        if( start && !sensorsStarted ) {
-            // Start the sensor which provides the Rift’s pose and motion.
-            final int requiredTrackingCaps = 0;
-            final int supportedTrackingCaps = requiredTrackingCaps |
-                                            OVR.ovrTrackingCap_Orientation |
-                                            OVR.ovrTrackingCap_MagYawCorrection |
-                                            OVR.ovrTrackingCap_Position;
-            if( OVR.ovrHmd_ConfigureTracking(hmdDesc, supportedTrackingCaps, requiredTrackingCaps) ) {
-                sensorsStarted = true;
-                return true;
-            } else {
-                sensorsStarted = false;
+    public final boolean startSensors(final int desiredSensorBits, final int requiredSensorBits) {
+        if( !sensorsStarted ) {
+            if( requiredSensorBits != ( supportedSensorBits & requiredSensorBits ) ) {
+                // required sensors not available
+                if( StereoDevice.DEBUG ) {
+                    System.err.println("XXX: startSensors failed: n/a required sensors ["+StereoUtil.sensorBitsToString(requiredSensorBits)+"]");
+                }
                 return false;
             }
-        } else if( sensorsStarted ) {
+            if( 0 == ( supportedSensorBits & ( requiredSensorBits | desiredSensorBits ) ) ) {
+                // no sensors available
+                if( StereoDevice.DEBUG ) {
+                    System.err.println("XXX: startSensors failed: n/a any sensors");
+                }
+                return false;
+            }
+            // Start the sensor which provides the Rift’s pose and motion.
+            final int requiredTrackingCaps = OVRUtil.sensorBits2TrackingCaps(requiredSensorBits);
+            final int desiredTrackingCaps = requiredTrackingCaps | OVRUtil.sensorBits2TrackingCaps(desiredSensorBits);
+            final boolean res;
+            if( OVR.ovrHmd_ConfigureTracking(hmdDesc, desiredTrackingCaps, requiredTrackingCaps) ) {
+                sensorsStarted = true;
+                updateUsedSensorBits(OVR.ovrHmd_GetTrackingState(hmdDesc, 0.0));
+                res = true;
+            } else {
+                res = false;
+            }
+            if( StereoDevice.DEBUG ) {
+                System.err.println("XXX: startSensors: "+res+", started "+sensorsStarted+
+                        ": required["+StereoUtil.sensorBitsToString(requiredSensorBits)+"]"+
+                        ", desired["+StereoUtil.sensorBitsToString(desiredSensorBits)+"]"+
+                        ", enabled["+StereoUtil.sensorBitsToString(usedSensorBits)+"]");
+            }
+            return res;
+        } else {
+            // No state change -> Success
+            return true;
+        }
+    }
+    @Override
+    public final boolean stopSensors() {
+        if( sensorsStarted ) {
             OVR.ovrHmd_ConfigureTracking(hmdDesc, 0, 0); // STOP
             sensorsStarted = false;
+            usedSensorBits = 0;
             return true;
         } else {
             // No state change -> Success
@@ -185,6 +240,16 @@ public class OVRStereoDevice implements StereoDevice {
     }
     @Override
     public final boolean getSensorsStarted() { return sensorsStarted; }
+
+    @Override
+    public final int getSupportedSensorBits() {
+        return supportedSensorBits;
+    }
+
+    @Override
+    public final int getEnabledSensorBits() {
+        return usedSensorBits;
+    }
 
     @Override
     public final int[] getEyeRenderOrder() {

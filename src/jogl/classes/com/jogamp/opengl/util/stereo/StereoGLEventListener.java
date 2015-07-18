@@ -51,7 +51,7 @@ public interface StereoGLEventListener extends CustomGLEventListener {
      * </p>
      * <p>
      * The client shall also update it's projection- and modelview matrices according
-     * to the given {@link EyeParameter} and {@link EyePose}.
+     * to the given {@link EyeParameter} and {@link ViewerPose}.
      * </p>
      * <p>
      * For efficiency the GL viewport has already been updated
@@ -64,11 +64,11 @@ public interface StereoGLEventListener extends CustomGLEventListener {
      * @param width viewport width in pixel units
      * @param height viewport height in pixel units
      * @param eyeParam constant eye parameter, i.e. FOV and IPD
-     * @param eyePose current eye position and orientation
+     * @param viewerPose current viewer position and orientation
      * @see FloatUtil#makePerspective(float[], int, boolean, com.jogamp.opengl.math.FloatUtil.FovHVHalves, float, float)
      */
     public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
-                              final EyeParameter eyeParam, final EyePose eyePose);
+                              final EyeParameter eyeParam, final ViewerPose viewerPose);
 
 
 }

@@ -44,6 +44,7 @@ import com.jogamp.oculusvr.ovrVector2i;
 import com.jogamp.oculusvr.ovrVector3f;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 
 /**
@@ -146,6 +147,42 @@ public class OVRUtil {
         return bits;
     }
 
+    public static int ovrTrackingCaps2SensorBits(final int ovrTrackingCaps) {
+        int bits = 0;
+        if( 0 != ( OVR.ovrTrackingCap_Orientation & ovrTrackingCaps ) ) {
+            bits |= StereoDevice.SENSOR_ORIENTATION;
+        }
+        if( 0 != ( OVR.ovrTrackingCap_MagYawCorrection & ovrTrackingCaps ) ) {
+            bits |= StereoDevice.SENSOR_YAW_CORRECTION;
+        }
+        if( 0 != ( OVR.ovrTrackingCap_Position & ovrTrackingCaps ) ) {
+            bits |= StereoDevice.SENSOR_POSITION;
+        }
+        return bits;
+    }
+    public static int ovrTrackingStats2SensorBits(final int ovrTrackingCaps) {
+        int bits = 0;
+        if( 0 != ( OVR.ovrStatus_OrientationTracked & ovrTrackingCaps ) ) {
+            bits |= StereoDevice.SENSOR_ORIENTATION;
+        }
+        if( 0 != ( OVR.ovrStatus_PositionTracked & ovrTrackingCaps ) ) {
+            bits |= StereoDevice.SENSOR_POSITION;
+        }
+        return bits;
+    }
+    public static int sensorBits2TrackingCaps(final int sensorBits) {
+        int caps = 0;
+        if( 0 != ( StereoDevice.SENSOR_ORIENTATION  & sensorBits ) ) {
+            caps |= OVR.ovrTrackingCap_Orientation;
+        }
+        if( 0 != ( StereoDevice.SENSOR_YAW_CORRECTION & sensorBits ) ) {
+            caps |= OVR.ovrTrackingCap_MagYawCorrection;
+        }
+        if( 0 != ( StereoDevice.SENSOR_POSITION & sensorBits ) ) {
+            caps |= OVR.ovrTrackingCap_Position;
+        }
+        return caps;
+    }
 
     public static String toString(final ovrFovPort fov) {
         return "["+fov.getLeftTan()+" l, "+fov.getRightTan()+" r, "+

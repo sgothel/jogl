@@ -310,7 +310,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
-    #D_ARGS="-Djogl.debug.StereoDevice"
+    D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.debug.Screen"
@@ -414,7 +414,7 @@ function testawtswt() {
 #
 # Stereo
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI
@@ -547,7 +547,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
 
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestX11DefaultDisplay $*

@@ -245,7 +245,7 @@ public class StereoDemo01 {
         System.err.println("StereoDevice "+stereoDevice);
 
         // Start the sensor which provides the Rift’s pose and motion.
-        if( !stereoDevice.startSensors(true) ) {
+        if( !stereoDevice.startSensors(stereoDevice.getSupportedSensorBits(), 0) ) {
             System.err.println("Could not start sensors on device "+deviceIndex);
         }
 
@@ -335,7 +335,11 @@ public class StereoDemo01 {
                 }
                 switch(e.getKeySymbol()) {
                     case KeyEvent.VK_R: {
-                        stereoDevice.startSensors(!stereoDevice.getSensorsStarted());
+                        if( stereoDevice.getSensorsStarted() ) {
+                            stereoDevice.stopSensors();
+                        } else {
+                            stereoDevice.startSensors(stereoDevice.getSupportedSensorBits(), 0);
+                        }
                         break;
                     }
                 }

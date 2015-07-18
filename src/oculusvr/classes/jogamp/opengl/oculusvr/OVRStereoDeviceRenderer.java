@@ -54,6 +54,7 @@ import com.jogamp.oculusvr.ovrMatrix4f;
 import com.jogamp.oculusvr.ovrPosef;
 import com.jogamp.oculusvr.ovrRecti;
 import com.jogamp.oculusvr.ovrSizei;
+import com.jogamp.oculusvr.ovrTrackingState;
 import com.jogamp.oculusvr.ovrVector2f;
 import com.jogamp.oculusvr.ovrVector3f;
 import com.jogamp.opengl.JoglVersion;
@@ -62,7 +63,7 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.stereo.EyeParameter;
-import com.jogamp.opengl.util.stereo.EyePose;
+import com.jogamp.opengl.util.stereo.ViewerPose;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 import com.jogamp.opengl.util.stereo.StereoUtil;
@@ -93,12 +94,11 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         private final GLArrayData vboPos, vboParams, vboTexCoordsR, vboTexCoordsG, vboTexCoordsB;
         private final GLArrayDataServer indices;
 
-        private final ovrEyeRenderDesc ovrEyeDesc;
+        /* pp */ final ovrEyeRenderDesc ovrEyeDesc;
         private final ovrFovPort ovrEyeFov;
         private final EyeParameter eyeParameter;
 
-        private ovrPosef ovrEyePose;
-        private final EyePose eyePose;
+        private final ovrMatrix4f[] timeWarpMatrices;
 
         @Override
         public final RectangleImmutable getViewport() { return viewport; }
@@ -106,12 +106,9 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         @Override
         public final EyeParameter getEyeParameter() { return eyeParameter; }
 
-        @Override
-        public final EyePose getLastEyePose() { return eyePose; }
-
-        private OVREye(final ovrHmdDesc hmdDesc, final int distortionBits,
-                       final float[] eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
-                       final ovrSizei ovrTextureSize, final RectangleImmutable eyeViewport) {
+        /* pp */ OVREye(final ovrHmdDesc hmdDesc, final int distortionBits,
+                        final float[] eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
+                        final ovrSizei ovrTextureSize, final RectangleImmutable eyeViewport) {
             this.eyeName = eyeDesc.getEye();
             this.distortionBits = distortionBits;
             this.viewport = eyeViewport;
@@ -125,9 +122,13 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             if( usesTimewarp ) {
                 eyeRotationStart = new GLUniformData("ovr_EyeRotationStart", 4, 4, Buffers.slice2Float(fstash, 4, 16));
                 eyeRotationEnd = new GLUniformData("ovr_EyeRotationEnd", 4, 4, Buffers.slice2Float(fstash, 20, 16));
+                timeWarpMatrices = new ovrMatrix4f[2];
+                timeWarpMatrices[0] = ovrMatrix4f.create();
+                timeWarpMatrices[1] = ovrMatrix4f.create();
             } else {
                 eyeRotationStart = null;
                 eyeRotationEnd = null;
+                timeWarpMatrices = null;
             }
 
             this.ovrEyeDesc = eyeDesc;
@@ -137,14 +138,10 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             this.eyeParameter = new EyeParameter(eyeName, eyePositionOffset, OVRUtil.getFovHV(ovrEyeFov),
                                                  eyeViewAdjust.getX(), eyeViewAdjust.getY(), eyeViewAdjust.getZ());
 
-            this.eyePose = new EyePose(eyeName);
-
-            updateEyePose(hmdDesc); // 1st init
-
             // Setup: eyeToSourceUVScale, eyeToSourceUVOffset
             {
                 final ovrVector2f[] uvScaleOffsetOut = new ovrVector2f[2];
-                uvScaleOffsetOut[0] = ovrVector2f.create(); // FIXME: remove ctor / double check
+                uvScaleOffsetOut[0] = ovrVector2f.create();
                 uvScaleOffsetOut[1] = ovrVector2f.create();
 
                 final ovrRecti ovrEyeRenderViewport = OVRUtil.createOVRRecti(eyeViewport);
@@ -194,7 +191,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             /** 2+2+2+2+2: { vec2 position, vec2 color, vec2 texCoordR, vec2 texCoordG, vec2 texCoordB } */
             final FloatBuffer iVBOFB = (FloatBuffer)iVBO.getBuffer();
             final ovrDistortionVertex[] ovRes = new ovrDistortionVertex[1];
-            ovRes[0] = ovrDistortionVertex.create(); // FIXME: remove ctor / double check
+            ovRes[0] = ovrDistortionVertex.create();
 
             for ( int vertNum = 0; vertNum < vertexCount; vertNum++ ) {
                 final ovrDistortionVertex ov = meshData.getPVertexData(vertNum, ovRes)[0];
@@ -275,7 +272,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             OVR.ovrHmd_DestroyDistortionMesh(meshData);
         }
 
-        private void linkData(final GL2ES2 gl, final ShaderProgram sp) {
+        /* pp */  void linkData(final GL2ES2 gl, final ShaderProgram sp) {
             if( 0 > vboPos.setLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+vboPos);
             }
@@ -313,16 +310,16 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             indices.enableBuffer(gl, false);
         }
 
-        private void dispose(final GL2ES2 gl) {
+        /* pp */  void dispose(final GL2ES2 gl) {
             iVBO.destroy(gl);
             indices.destroy(gl);
         }
-        private void enableVBO(final GL2ES2 gl, final boolean enable) {
+        /* pp */  void enableVBO(final GL2ES2 gl, final boolean enable) {
             iVBO.enableBuffer(gl, enable);
             indices.bindBuffer(gl, enable); // keeps VBO binding if enable:=true
         }
 
-        private void updateUniform(final GL2ES2 gl, final ShaderProgram sp) {
+        /* pp */ void updateUniform(final GL2ES2 gl, final ShaderProgram sp) {
             gl.glUniform(eyeToSourceUVScale);
             gl.glUniform(eyeToSourceUVOffset);
             if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
@@ -331,10 +328,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             }
         }
 
-        private void updateTimewarp(final ovrHmdDesc hmdDesc, final ovrPosef eyeRenderPose, final float[] mat4Tmp1, final float[] mat4Tmp2) {
-            final ovrMatrix4f[] timeWarpMatrices = new ovrMatrix4f[2];
-            timeWarpMatrices[0] = ovrMatrix4f.create(); // FIXME: remove ctor / double check
-            timeWarpMatrices[1] = ovrMatrix4f.create();
+        /* pp */ void updateTimewarp(final ovrHmdDesc hmdDesc, final ovrPosef eyeRenderPose, final float[] mat4Tmp1, final float[] mat4Tmp2) {
             OVR.ovrHmd_GetEyeTimewarpMatrices(hmdDesc, eyeName, eyeRenderPose, timeWarpMatrices);
 
             final float[] eyeRotationStartM = FloatUtil.transposeMatrix(timeWarpMatrices[0].getM(0, mat4Tmp1), mat4Tmp2);
@@ -348,19 +342,6 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             eyeRotationEndU.rewind();
         }
 
-        /**
-         * Updates {@link #ovrEyePose} and it's extracted
-         * {@link #eyeRenderPoseOrientation} and {@link #eyeRenderPosePosition}.
-         * @param hmdCtx used get the {@link #ovrEyePose} via {@link OVR#ovrHmd_GetHmdPosePerEye(ovrHmdDesc, int)}
-         */
-        private EyePose updateEyePose(final ovrHmdDesc hmdDesc) {
-            ovrEyePose = OVR.ovrHmd_GetHmdPosePerEye(hmdDesc, eyeName);
-            final ovrVector3f pos = ovrEyePose.getPosition();
-            eyePose.setPosition(pos.getX(), pos.getY(), pos.getZ());
-            OVRUtil.copyToQuaternion(ovrEyePose.getOrientation(), eyePose.orientation);
-            return eyePose;
-        }
-
         @Override
         public String toString() {
             return "Eye["+eyeName+", viewport "+viewport+
@@ -368,12 +349,16 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
                         ", vertices "+vertexCount+", indices "+indexCount+
                         ", uvScale["+eyeToSourceUVScale.floatBufferValue().get(0)+", "+eyeToSourceUVScale.floatBufferValue().get(1)+
                         "], uvOffset["+eyeToSourceUVOffset.floatBufferValue().get(0)+", "+eyeToSourceUVOffset.floatBufferValue().get(1)+
-                        "], desc"+OVRUtil.toString(ovrEyeDesc)+", "+eyePose+"]";
+                        "], desc"+OVRUtil.toString(ovrEyeDesc)+"]";
         }
     }
 
     private final OVRStereoDevice context;
     private final OVREye[] eyes;
+    private final ovrPosef[] ovrEyePoses;
+    private final ovrVector3f[] hmdToEyeViewOffset;
+    private final ViewerPose eyePoses;
+    private final ovrTrackingState trackingState;
     private final int distortionBits;
     private final int textureCount;
     private final DimensionImmutable[] eyeTextureSizes;
@@ -439,6 +424,16 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         }
         eyes[0] = new OVREye(context.hmdDesc, this.distortionBits, eyePositionOffset, eyeRenderDescs[0], ovrTexture0Size, eyeViewports[0]);
         eyes[1] = new OVREye(context.hmdDesc, this.distortionBits, eyePositionOffset, eyeRenderDescs[1], ovrTexture1Size, eyeViewports[1]);
+
+        ovrEyePoses = new ovrPosef[2];
+        ovrEyePoses[0] = ovrPosef.create();
+        ovrEyePoses[1] = ovrPosef.create();
+        hmdToEyeViewOffset = new ovrVector3f[2];
+        hmdToEyeViewOffset[0] = eyes[0].ovrEyeDesc.getHmdToEyeViewOffset();
+        hmdToEyeViewOffset[1] = eyes[1].ovrEyeDesc.getHmdToEyeViewOffset();
+        eyePoses = new ViewerPose();
+        trackingState = ovrTrackingState.create();
+
         sp = null;
         frameTiming = null;
         frameCount = 0;
@@ -546,13 +541,29 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     }
 
     @Override
-    public final EyePose updateEyePose(final int eyeNum) {
-        return eyes[eyeNum].updateEyePose(context.hmdDesc);
+    public final ViewerPose updateViewerPose() {
+        final ovrTrackingState trackingState;
+        trackingState = this.trackingState;
+        OVR.ovrHmd_GetEyePoses(context.hmdDesc, frameCount, hmdToEyeViewOffset, ovrEyePoses, trackingState);
+        context.updateUsedSensorBits(trackingState);
+
+        // Use headPose of tracking state, since it points to the viewer
+        // where ovrEyePoses already have hmdToEyeViewOffset applied (IPD .. etc).
+        final ovrPosef pose = trackingState.getHeadPose().getThePose();
+        final ovrVector3f pos = pose.getPosition();
+        eyePoses.setPosition(pos.getX(), pos.getY(), pos.getZ());
+        OVRUtil.copyToQuaternion(pose.getOrientation(), eyePoses.orientation);
+        return eyePoses;
+    }
+
+    @Override
+    public final ViewerPose getLastViewerPose() {
+        return eyePoses;
     }
 
     @Override
     public final void beginFrame(final GL gl) {
-        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.hmdDesc, 0); // ovrHmd_GetFrameTiming not used, otherwise: frameCount);
+        frameTiming = OVR.ovrHmd_BeginFrameTiming(context.hmdDesc, frameCount); // ovrHmd_GetFrameTiming not used, otherwise: frameCount);
     }
 
     @Override
@@ -574,7 +585,9 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             throw new IllegalStateException("beginFrame not called");
         }
         if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
+            // minimize latency
             OVR.ovr_WaitTillTime(frameTiming.getTimewarpPointSeconds());
+            // {@link OVREye#updateTimewarp(ovrHmdDesc, ovrPosef, float[], float[])} will be called in {@link #ppOneEye}
         }
         final GL2ES2 gl2es2 = gl.getGL2ES2();
 
@@ -599,7 +612,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     public final void ppOneEye(final GL gl, final int eyeNum) {
         final OVREye eye = eyes[eyeNum];
         if( StereoUtil.usesTimewarpDistortion(distortionBits) ) {
-            eye.updateTimewarp(context.hmdDesc, eye.ovrEyePose, mat4Tmp1, mat4Tmp2);
+            eye.updateTimewarp(context.hmdDesc, ovrEyePoses[eyeNum], mat4Tmp1, mat4Tmp2);
         }
         final GL2ES2 gl2es2 = gl.getGL2ES2();
 

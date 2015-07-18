@@ -39,6 +39,7 @@ import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
+import com.jogamp.opengl.util.stereo.StereoUtil;
 import com.jogamp.opengl.util.stereo.generic.GenericStereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.generic.GenericStereoDeviceFactory;
 
@@ -117,6 +118,7 @@ public class GenericStereoDevice implements StereoDevice {
     public final Point surfacePos;
     private final FovHVHalves[] defaultEyeFov;
 
+    private int usedSensorBits;
     private boolean sensorsStarted = false;
 
     public GenericStereoDevice(final StereoDeviceFactory factory, final int deviceIndex, final StereoDeviceConfig customConfig) {
@@ -137,6 +139,9 @@ public class GenericStereoDevice implements StereoDevice {
         for(int i=0; i<defaultEyeFov.length; i++) {
             defaultEyeFov[i] = config.defaultEyeParam[i].fovhv;
         }
+
+        // default
+        usedSensorBits = 0;
     }
 
     @Override
@@ -144,7 +149,8 @@ public class GenericStereoDevice implements StereoDevice {
 
     @Override
     public String toString() {
-        return "GenericStereoDevice["+config+", surfacePos "+surfacePos+"]";
+        return "GenericStereoDevice["+config+", surfacePos "+surfacePos+
+                ", sensorBits[enabled ["+StereoUtil.sensorBitsToString(getEnabledSensorBits())+"]]]";
     }
 
     public void setSurfacePosition(final int x, final int y) {
@@ -153,7 +159,7 @@ public class GenericStereoDevice implements StereoDevice {
 
     @Override
     public final void dispose() {
-        // NOP
+        stopSensors();
     }
 
     @Override
@@ -184,21 +190,20 @@ public class GenericStereoDevice implements StereoDevice {
     }
 
     @Override
-    public final boolean startSensors(final boolean start) {
-        if( start && !sensorsStarted ) {
-            if( startSensorsImpl(true) ) {
-                sensorsStarted = true;
-                return true;
-            } else {
-                sensorsStarted = false;
+    public final boolean startSensors(final int desiredSensorBits, final int requiredSensorBits) {
+        if( !sensorsStarted ) {
+            if( requiredSensorBits != ( config.supportedSensorBits & requiredSensorBits ) ) {
+                // required sensors not available
                 return false;
             }
-        } else if( sensorsStarted ) {
-            if( startSensorsImpl(false) ) {
-                sensorsStarted = false;
+            if( 0 == ( config.supportedSensorBits & ( requiredSensorBits | desiredSensorBits ) ) ) {
+                // no sensors available
+                return false;
+            }
+            if( startSensorsImpl(true, desiredSensorBits, requiredSensorBits) ) {
+                sensorsStarted = true;
                 return true;
             } else {
-                sensorsStarted = true;
                 return false;
             }
         } else {
@@ -206,10 +211,41 @@ public class GenericStereoDevice implements StereoDevice {
             return true;
         }
     }
-    private boolean startSensorsImpl(final boolean start) { return start; }
+    protected boolean startSensorsImpl(final boolean start, final int desiredSensorBits, final int requiredSensorBits) {
+        // TODO: Add SPI for sensors
+        // TODO: start sensors in override / or SPI
+        // TODO: set usedSensorBits
+        return false;
+    }
+
+    @Override
+    public final boolean stopSensors() {
+        if( sensorsStarted ) {
+            if( startSensorsImpl(false, 0, 0) ) {
+                sensorsStarted = false;
+                usedSensorBits = 0;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            // No state change -> Success
+            return true;
+        }
+    }
 
     @Override
     public boolean getSensorsStarted() { return sensorsStarted; }
+
+    @Override
+    public final int getSupportedSensorBits() {
+        return config.supportedSensorBits;
+    }
+
+    @Override
+    public final int getEnabledSensorBits() {
+        return usedSensorBits;
+    }
 
     @Override
     public int[] getEyeRenderOrder() { return config.eyeRenderOrder; }

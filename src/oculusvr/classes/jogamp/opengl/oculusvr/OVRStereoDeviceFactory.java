@@ -40,7 +40,9 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
         if( OVR.ovr_Initialize(OVRVersion.defaultInitParams) ) { // recursive ..
             boolean res = false;
             final int count = OVR.ovrHmd_Detect();
-            System.err.println("Detect.0: ovrHmd_Detect() -> "+count);
+            if( StereoDevice.DEBUG ) {
+                System.err.println("Detect.0: ovrHmd_Detect() -> "+count);
+            }
             if( 0 < count ) {
                 res = true;
             } else {
@@ -53,6 +55,10 @@ public class OVRStereoDeviceFactory extends StereoDeviceFactory {
                         System.err.println("Detect.1: hmdDesc: "+hmdDesc.getProductNameAsString());
                     }
                     OVR.ovrHmd_Destroy(hmdDesc);
+                } else {
+                    if( StereoDevice.DEBUG ) {
+                        System.err.println("Detect.1: hmdDesc: null");
+                    }
                 }
             }
             return res;

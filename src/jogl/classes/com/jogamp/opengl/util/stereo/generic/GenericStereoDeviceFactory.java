@@ -70,6 +70,7 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
                                              // degrees: 45/2 l, 45/2 r, 45/2 * aspect t, 45/2 * aspect b
                                              FovHVHalves.byFovyRadianAndAspect(45f*d2r, 1280f / 800f),
                                              0f /* distNoseToPupil */, 0f /* verticalDelta */, 0f /* eyeReliefInMeters */) },
+                        0,      // supported sensor bits
                         null, // mash producer distortion bits
                         0,    // supported distortion bits
                         0,    // recommended distortion bits
@@ -114,6 +115,7 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
                                           interpupillaryDistanceInMeters/2f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */),
                             new EyeParameter(1, defaultEyePositionOffset, defaultSBSEyeFovRight,
                                          -interpupillaryDistanceInMeters/2f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */) },
+                        0,      // supported sensor bits
                         null,   // mash producer distortion bits
                         0,      // supported distortion bits
                         0,      // recommended distortion bits
@@ -171,6 +173,7 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
                                           interpupillaryDistanceInMeters/2f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */),
                             new EyeParameter(1, defaultEyePositionOffset, defaultSBSEyeFovRight,
                                          -interpupillaryDistanceInMeters/2f /* distNoseToPupil */, 0f /* verticalDelta */, 0.010f /* eyeReliefInMeters */) },
+                        0,      // supported sensor bits
                         lenseDistMeshProduce,
                         // supported distortion bits
                         StereoDeviceRenderer.DISTORTION_BARREL | StereoDeviceRenderer.DISTORTION_CHROMATIC | StereoDeviceRenderer.DISTORTION_VIGNETTE,

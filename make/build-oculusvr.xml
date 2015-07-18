@@ -170,8 +170,8 @@
                  config="${config.oculusvr}/oculusvr.cfg"
                  literalInclude="${stub.includes.gluegen.gg},${stub.includes.all.ovr}"
                  emitter="com.jogamp.gluegen.JavaEmitter"
-                 debug="true"
-                 dumpCPP="true">
+                 debug="false"
+                 dumpCPP="false">
             <classpath refid="gluegen.classpath" />
         </gluegen>
         <!--

@@ -37,6 +37,7 @@ import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
 import com.jogamp.opengl.util.stereo.StereoUtil;
+import com.jogamp.opengl.util.stereo.StereoDevice;
 
 /**
  * Configuration for {@link GenericStereoDevice}s.
@@ -54,6 +55,7 @@ public class GenericStereoDeviceConfig extends StereoDeviceConfig {
                   final float interpupillaryDistanceInMeters,
                   final int[] eyeRenderOrder,
                   final EyeParameter[] defaultEyeParam,
+                  final int supportedSensorBits,
                   final DistortionMesh.Producer distortionMeshProducer,
                   final int supportedDistortionBits,
                   final int recommendedDistortionBits,
@@ -71,6 +73,7 @@ public class GenericStereoDeviceConfig extends StereoDeviceConfig {
         this.interpupillaryDistanceInMeters = interpupillaryDistanceInMeters;
         this.eyeRenderOrder = eyeRenderOrder;
         this.defaultEyeParam = defaultEyeParam;
+        this.supportedSensorBits = supportedSensorBits;
         this.distortionMeshProducer = distortionMeshProducer;
         this.supportedDistortionBits = supportedDistortionBits;
         this.recommendedDistortionBits = recommendedDistortionBits;
@@ -92,6 +95,7 @@ public class GenericStereoDeviceConfig extends StereoDeviceConfig {
         this.interpupillaryDistanceInMeters = source.interpupillaryDistanceInMeters;
         this.eyeRenderOrder = source.eyeRenderOrder;
         this.defaultEyeParam = source.defaultEyeParam;
+        this.supportedSensorBits = source.supportedSensorBits;
         this.distortionMeshProducer = source.distortionMeshProducer;
         this.supportedDistortionBits = source.supportedDistortionBits;
         this.recommendedDistortionBits = source.recommendedDistortionBits;
@@ -141,7 +145,8 @@ public class GenericStereoDeviceConfig extends StereoDeviceConfig {
                                " [m], eyeParam "+Arrays.toString(defaultEyeParam)+
                                ", distortionBits[supported ["+StereoUtil.distortionBitsToString(supportedDistortionBits)+
                                               "], recommended ["+StereoUtil.distortionBitsToString(recommendedDistortionBits)+
-                                              "], minimum ["+StereoUtil.distortionBitsToString(minimumDistortionBits)+"]]]";
+                                              "], minimum ["+StereoUtil.distortionBitsToString(minimumDistortionBits)+"]]"+
+                               ", sensorBits[supported ["+StereoUtil.sensorBitsToString(supportedSensorBits)+"]]]";
     }
 
     /** Configuration Name */
@@ -164,9 +169,13 @@ public class GenericStereoDeviceConfig extends StereoDeviceConfig {
     public final float[/*per-eye*/][/*xy*/] pupilCenterFromTopLeft;
     public final int[] eyeRenderOrder;
     public final EyeParameter[] defaultEyeParam;
+
+    /** Supported sensor bits, see {@link StereoDevice#SENSOR_ORIENTATION}. */
+    public final int supportedSensorBits;
+
     public final DistortionMesh.Producer distortionMeshProducer;
 
-    /** Supported distortion bits, see {@link StereoDeviceRenderer.DISTORTION_BARREL}. */
+    /** Supported distortion bits, see {@link StereoDeviceRenderer#DISTORTION_BARREL}. */
     public final int supportedDistortionBits;
     /** Recommended distortion bits, see {@link StereoDeviceRenderer.DISTORTION_BARREL}. */
     public final int recommendedDistortionBits;

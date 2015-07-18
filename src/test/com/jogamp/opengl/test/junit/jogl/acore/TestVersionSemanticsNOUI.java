@@ -56,12 +56,12 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
     static final Set<String> excludesDefault;
-    static final Set<String> excludesV230V23X;
+    static final Set<String> excludesStereoPackage;
     static {
         excludesDefault = new HashSet<String>();
         excludesDefault.add("^\\Qjogamp/\\E.*$");
-        excludesV230V23X = new HashSet<String>(excludesDefault);
-        excludesV230V23X.add("^\\Qcom/jogamp/opengl/util/stereo/\\E.*$");
+        excludesStereoPackage = new HashSet<String>(excludesDefault);
+        excludesStereoPackage.add("^\\Qcom/jogamp/opengl/util/stereo/\\E.*$");
     }
 
 
@@ -138,7 +138,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
         VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
                                          previousJar, preVersionNumber,
                                          curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludesV230V23X);
+                                         excludesStereoPackage);
     }
 
     public static void main(final String args[]) throws IOException {

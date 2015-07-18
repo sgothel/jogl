@@ -30,29 +30,34 @@ package com.jogamp.opengl.util.stereo;
 import com.jogamp.opengl.math.Quaternion;
 
 /**
- * Position and orientation of one eye.
+ * Position and orientation of viewer.
  */
-public final class EyePose {
-    /** Eye number, <code>0</code> for the left eye and <code>1</code> for the right eye. */
-    public final int number;
-
-    /** float[3] eye position vector. */
+public final class ViewerPose {
+    /**
+     * float[3] position of viewer in meter.
+     * <p>
+     * Apply the following to resolve the actual eye position:
+     * <ul>
+     * <li>{@link EyeParameter#positionOffset positionOffset} for head.</li>
+     * <li>[{@link EyeParameter#distNoseToPupilX distNoseToPupilX}, {@link EyeParameter#distMiddleToPupilY distMiddleToPupilY}, {@link EyeParameter#eyeReliefZ eyeReliefZ}] for pupil</li>
+     * </ul>
+     * </p>
+     */
     public final float[] position;
 
-    /** Eye orientation */
+    /** Orientation of viewer. */
     public final Quaternion orientation;
 
-    public EyePose(final int number) {
-        this.number = number;
+    public ViewerPose() {
         this.position = new float[3];
         this.orientation = new Quaternion();
     }
-    public EyePose(final int number, final float[] position, final Quaternion orientation) {
-        this(number);
+    public ViewerPose(final float[] position, final Quaternion orientation) {
+        this();
         set(position, orientation);
     }
 
-    /** Set position and orientation of this instance. */
+    /** Set {@link #position} and {@link #orientation}. */
     public final void set(final float[] position, final Quaternion orientation) {
         System.arraycopy(position, 0, this.position, 0, 3);
         this.orientation.set(orientation);
@@ -64,6 +69,6 @@ public final class EyePose {
         position[2] = posZ;
     }
     public final String toString() {
-        return "EyePose[num "+number+", pos["+position[0]+", "+position[1]+", "+position[2]+"], "+orientation+"]";
+        return "ViewerPose[pos["+position[0]+", "+position[1]+", "+position[2]+"], "+orientation+"]";
     }
 }
