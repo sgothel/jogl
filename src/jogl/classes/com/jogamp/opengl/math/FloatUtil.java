@@ -35,6 +35,7 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.math.geom.Frustum;
 
 /**
  * Basic Float math utility functions.
@@ -491,18 +492,18 @@ public final class FloatUtil {
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
-   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0,
-   *         or if left == right, or bottom == top, or zNear == zFar.
+   * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+   *                     or {@code left == right}, or {@code bottom == top}.
    */
   public static float[] makeFrustum(final float[] m, final int m_offset, final boolean initM,
                                     final float left, final float right,
                                     final float bottom, final float top,
                                     final float zNear, final float zFar) throws GLException {
-      if( zNear <= 0.0f || zFar < 0.0f ) {
-          throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
+      if( zNear <= 0.0f || zFar <= zNear ) {
+          throw new GLException("Requirements zNear > 0 and zFar > zNear, but zNear "+zNear+", zFar "+zFar);
       }
-      if( left == right || top == bottom || zNear == zFar ) {
-          throw new GLException("GL_INVALID_VALUE: top,bottom and left,right and zNear,zFar must not be equal");
+      if( left == right || top == bottom) {
+          throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
       }
       if( initM ) {
           // m[m_offset+0+4*0] = 1f;
@@ -565,14 +566,15 @@ public final class FloatUtil {
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
-   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
+   * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+   * @see #makeFrustum(float[], int, boolean, float, float, float, float, float, float)
    */
   public static float[] makePerspective(final float[] m, final int m_off, final boolean initM,
                                         final float fovy_rad, final float aspect, final float zNear, final float zFar) throws GLException {
       final float top    =  tan(fovy_rad/2f) * zNear; // use tangent of half-fov !
-      final float bottom =  -1.0f * top;
-      final float left   = aspect * bottom;
-      final float right  = aspect * top;
+      final float bottom =  -1.0f * top;    //          -1f * fovhvTan.top * zNear
+      final float left   = aspect * bottom; // aspect * -1f * fovhvTan.top * zNear
+      final float right  = aspect * top;    // aspect * fovhvTan.top * zNear
       return makeFrustum(m, m_off, initM, left, right, bottom, top, zNear, zFar);
   }
 
@@ -591,7 +593,9 @@ public final class FloatUtil {
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
-   * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
+   * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+   * @see #makeFrustum(float[], int, boolean, float, float, float, float, float, float)
+   * @see Frustum#updateByFovDesc(float[], int, boolean, Frustum.FovDesc)
    */
   public static float[] makePerspective(final float[] m, final int m_offset, final boolean initM,
                                         final FovHVHalves fovhv, final float zNear, final float zFar) throws GLException {

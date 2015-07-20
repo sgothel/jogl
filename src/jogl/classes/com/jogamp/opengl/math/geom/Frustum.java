@@ -30,6 +30,8 @@ package com.jogamp.opengl.math.geom;
 import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.FovHVHalves;
 
 /**
  * Providing frustum {@link #getPlanes() planes} derived by different inputs
@@ -77,6 +79,35 @@ import com.jogamp.common.os.Platform;
  * </p>
  */
 public class Frustum {
+    /**
+     * {@link Frustum} description by {@link #fovhv} and {@link #zNear}, {@link #zFar}.
+     */
+    public static class FovDesc {
+        /** Field of view in both directions, may not be centered, either {@link FovHVHalves#inTangents} or radians. */
+        public final FovHVHalves fovhv;
+        /** Near Z */
+        public final float zNear;
+        /** Far Z */
+        public final float zFar;
+        /**
+         * @param fovhv field of view in both directions, may not be centered, either {@link FovHVHalves#inTangents} or radians
+         * @param zNear
+         * @param zFar
+         * @throws IllegalArgumentException if {@code zNear <= 0} or {@code zFar <= zNear}.
+         */
+        public FovDesc(final FovHVHalves fovhv, final float zNear, final float zFar) throws IllegalArgumentException {
+            if( zNear <= 0.0f || zFar <= zNear ) {
+                throw new IllegalArgumentException("Requirements zNear > 0 and zFar > zNear, but zNear "+zNear+", zFar "+zFar);
+            }
+            this.fovhv = fovhv;
+            this.zNear = zNear;
+            this.zFar = zFar;
+        }
+        public final String toString() {
+            return "FrustumFovDesc["+fovhv.toStringInDegrees()+", Z["+zNear+" - "+zFar+"]]";
+        }
+    }
+
     /** Normalized planes[l, r, b, t, n, f] */
 	protected final Plane[] planes = new Plane[6];
 
@@ -176,15 +207,43 @@ public class Frustum {
      */
     public final void updateByPlanes(final Plane[] src) {
         for (int i = 0; i < 6; ++i) {
-            final Plane p0 = planes[i];
-            final float[] p0_n = p0.n;
-            final Plane p1 = src[i];
-            final float[] p1_n = p1.n;
-            p0_n[0] = p1_n[0];
-            p0_n[1] = p1_n[1];
-            p0_n[2] = p1_n[2];
-            p0.d = p1.d;
+            final Plane pD = planes[i];
+            final Plane pS = src[i];
+            pD.d = pS.d;
+            System.arraycopy(pS.n, 0, pD.n, 0, 3);
         }
+    }
+
+    /**
+     * Calculate the frustum planes in world coordinates
+     * using the passed {@link FovDesc}.
+     * <p>
+     * Operation Details:
+     * <ul>
+     *   <li>The given {@link FovDesc} will be transformed
+     *       into the given float[16] as a perspective matrix (column major order) first,
+     *       see {@link FloatUtil#makePerspective(float[], int, boolean, FovHVHalves, float, float)}.</li>
+     *   <li>Then the float[16] perspective matrix is used to {@link #updateByPMV(float[], int)} this instance.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Frustum plane's normals will point to the inside of the viewing frustum,
+     * as required by this class.
+     * </p>
+     *
+     * @param m 4x4 matrix in column-major order (also result)
+     * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+     * @param initM if true, given matrix will be initialized w/ identity matrix,
+     *              otherwise only the frustum fields are set.
+     * @param fovDesc {@link Frustum} {@link FovDesc}
+     * @return given matrix for chaining
+     * @see FloatUtil#makePerspective(float[], int, boolean, FovHVHalves, float, float)
+     */
+    public float[] updateByFovDesc(final float[] m, final int m_offset, final boolean initM,
+                                   final FovDesc fovDesc) {
+        FloatUtil.makePerspective(m, m_offset, initM, fovDesc.fovhv, fovDesc.zNear, fovDesc.zFar);
+        updateByPMV(m, 0);
+        return m;
     }
 
     /**

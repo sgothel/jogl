@@ -663,8 +663,9 @@ public final class PMVMatrix implements GLMatrixFunc {
     /**
      * {@inheritDoc}
      *
-     * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0,
-     *         or if left == right, or bottom == top, or zNear == zFar.
+     * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+     *                     or {@code left == right}, or {@code bottom == top}.
+     * @see FloatUtil#makeFrustum(float[], int, boolean, float, float, float, float, float, float)
      */
     @Override
     public final void glFrustumf(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) throws GLException {
@@ -682,7 +683,8 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @param aspect aspect ratio width / height
      * @param zNear
      * @param zFar
-     * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
+     * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+     * @see FloatUtil#makePerspective(float[], int, boolean, float, float, float, float)
      */
     public final void gluPerspective(final float fovy_deg, final float aspect, final float zNear, final float zFar) throws GLException {
       glMultMatrixf( FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_deg * FloatUtil.PI / 180.0f, aspect, zNear, zFar), 0 );

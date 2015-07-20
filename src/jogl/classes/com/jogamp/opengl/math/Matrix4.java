@@ -147,8 +147,9 @@ public class Matrix4 {
      * @param top
      * @param zNear
      * @param zFar
-     * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0,
-     *         or if left == right, or bottom == top, or zNear == zFar.
+     * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+     *                     or {@code left == right}, or {@code bottom == top}.
+     * @see FloatUtil#makeFrustum(float[], int, boolean, float, float, float, float, float, float)
      */
     public final void makeFrustum(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) throws GLException {
         multMatrix( FloatUtil.makeFrustum(mat4Tmp1, 0, true, left, right, bottom, top, zNear, zFar) );
@@ -159,7 +160,8 @@ public class Matrix4 {
      * @param aspect
      * @param zNear
      * @param zFar
-     * @throws GLException with GL_INVALID_VALUE if zNear is <= 0, or zFar < 0, or if zNear == zFar.
+     * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
+     * @see FloatUtil#makePerspective(float[], int, boolean, float, float, float, float)
      */
     public final void makePerspective(final float fovy_rad, final float aspect, final float zNear, final float zFar) throws GLException {
         multMatrix( FloatUtil.makePerspective(mat4Tmp1, 0, true, fovy_rad, aspect, zNear, zFar) );

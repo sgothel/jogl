@@ -35,13 +35,13 @@ package com.jogamp.opengl.math;
  * </p>
  */
 public final class FovHVHalves {
-    /** Half horizontal FOV from center to left. */
+    /** Half horizontal FOV from center to left, either in {@link #inTangents} or radians. */
     public final float left;
-    /** Half horizontal FOV from center to right. */
+    /** Half horizontal FOV from center to right, either in {@link #inTangents} or radians. */
     public final float right;
-    /** Half vertical FOV from center to top. */
+    /** Half vertical FOV from center to top, either in {@link #inTangents} or radians. */
     public final float top;
-    /** Half vertical FOV from center to bottom. */
+    /** Half vertical FOV from center to bottom, either in {@link #inTangents} or radians. */
     public final float bottom;
     /** If true, values are in tangent, otherwise radians.*/
     public final boolean inTangents;
@@ -67,7 +67,7 @@ public final class FovHVHalves {
     }
 
     /**
-     * Returns a symmetrical centered {@link FovHVHalves} instance in tangents, using:
+     * Returns a symmetrical centered {@link FovHVHalves} instance in {@link #inTangents}, using:
      * <pre>
         halfHorizFovTan = tan( horizontalFov / 2f );
         halfVertFovTan  = tan( verticalFov / 2f );
@@ -82,7 +82,7 @@ public final class FovHVHalves {
     }
 
     /**
-     * Returns a symmetrical centered {@link FovHVHalves} instance in tangents, using:
+     * Returns a symmetrical centered {@link FovHVHalves} instance in {@link #inTangents}, using:
      * <pre>
         top  = bottom = tan( verticalFov / 2f );
         left =  right = aspect * top;
@@ -99,7 +99,7 @@ public final class FovHVHalves {
     }
 
     /**
-     * Returns a custom symmetry {@link FovHVHalves} instance in tangents, using:
+     * Returns a custom symmetry {@link FovHVHalves} instance {@link #inTangents}, using:
      * <pre>
         left   = tan( horizontalFov * horizCenterFromLeft )
         right  = tan( horizontalFov * ( 1f - horizCenterFromLeft ) )
@@ -121,7 +121,7 @@ public final class FovHVHalves {
     }
 
     /**
-     * Returns a custom symmetry {@link FovHVHalves} instance in tangents,
+     * Returns a custom symmetry {@link FovHVHalves} instance {@link #inTangents},
      * via computing the <code>horizontalFov</code> using:
      * <pre>
         halfVertFovTan  = tan( verticalFov / 2f );
@@ -157,10 +157,10 @@ public final class FovHVHalves {
         }
     }
 
-    /** Returns the full horizontal FOV, i.e. {@link #left} + {@link #right}. */
+    /** Returns the full horizontal FOV, i.e. {@link #left} + {@link #right}, either in {@link #inTangents} or radians. */
     public final float horzFov() { return left+right; }
 
-    /** Returns the full vertical FOV, i.e. {@link #top} + {@link #bottom}. */
+    /** Returns the full vertical FOV, i.e. {@link #top} + {@link #bottom}, either in {@link #inTangents} or radians. */
     public final float vertFov() { return top+bottom; }
 
     public final String toString() {
