@@ -553,6 +553,10 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         final ovrVector3f pos = pose.getPosition();
         viewerPose.setPosition(pos.getX(), pos.getY(), pos.getZ());
         OVRUtil.copyToQuaternion(pose.getOrientation(), viewerPose.orientation);
+
+        // System.err.println("Viewer: "+OVRUtil.toString(pos));
+        // System.err.println("Camera: "+OVRUtil.toString(trackingState.getCameraPose().getPosition()));
+        // System.err.println("Leveld: "+OVRUtil.toString(trackingState.getLeveledCameraPose().getPosition()));
         return viewerPose;
     }
 

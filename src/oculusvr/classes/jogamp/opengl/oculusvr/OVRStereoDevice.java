@@ -86,14 +86,6 @@ public class OVRStereoDevice implements StereoDevice {
         this.deviceIndex = deviceIndex;
         this.hmdDesc = hmdDesc;
 
-        {
-            final FovHVHalves posFov = FovHVHalves.byRadians(hmdDesc.getCameraFrustumHFovInRadians(),
-                                                             hmdDesc.getCameraFrustumVFovInRadians());
-            final float posZNear = hmdDesc.getCameraFrustumNearZInMeters();
-            final float posZFar = hmdDesc.getCameraFrustumFarZInMeters();
-            locationSensorParams = new LocationSensorParameter(new Frustum.FovDesc(posFov, posZNear, posZFar));
-        }
-
         final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[ovrHmdDesc.getEyeRenderOrderArrayLength()]);
         defaultEyeFov = new FovHVHalves[defaultOVREyeFov.length];
         for(int i=0; i<defaultEyeFov.length; i++) {
@@ -107,6 +99,21 @@ public class OVRStereoDevice implements StereoDevice {
 
         usedSensorBits = 0;
         supportedSensorBits = OVRUtil.ovrTrackingCaps2SensorBits(hmdDesc.getTrackingCaps());
+
+        LocationSensorParameter _locationSensorParams = null;
+        if( StereoUtil.usesPositionSensor(supportedSensorBits)) {
+            try {
+                final FovHVHalves posFov = FovHVHalves.byRadians(hmdDesc.getCameraFrustumHFovInRadians(),
+                                                                 hmdDesc.getCameraFrustumVFovInRadians());
+                final float posZNear = hmdDesc.getCameraFrustumNearZInMeters();
+                final float posZFar = hmdDesc.getCameraFrustumFarZInMeters();
+                _locationSensorParams = new LocationSensorParameter(new Frustum.FovDesc(posFov, posZNear, posZFar));
+            } catch (final IllegalArgumentException iae) {
+                // probably zNear/zFar issue ..
+                System.err.println(iae.getMessage());
+            }
+        }
+        locationSensorParams = _locationSensorParams;
 
         // DK1 delivers unrotated resolution in target orientation
         // DK2 delivers rotated resolution in target orientation, monitor screen is rotated 90deg clockwise

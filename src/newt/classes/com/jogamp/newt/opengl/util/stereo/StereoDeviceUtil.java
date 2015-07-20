@@ -90,6 +90,8 @@ public class StereoDeviceUtil {
                 System.err.println("StereoDevice Set Mode: "+newMode);
                 monitor.setCurrentMode(newMode);
             }
+            final MonitorMode queriedMode = monitor.queryCurrentMode();
+            System.err.println("StereoDevice Post-Set Mode: "+queriedMode);
         } else {
             System.err.println("StereoDevice Keeps Mode: "+currentMode);
         }

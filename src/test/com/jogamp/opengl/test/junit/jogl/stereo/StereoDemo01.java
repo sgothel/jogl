@@ -246,11 +246,6 @@ public class StereoDemo01 {
         }
         System.err.println("StereoDevice "+stereoDevice);
 
-        // Start the sensor which provides the Rift’s pose and motion.
-        if( !stereoDevice.startSensors(stereoDevice.getSupportedSensorBits(), 0) ) {
-            System.err.println("Could not start sensors on device "+deviceIndex);
-        }
-
         //
         //
         //
@@ -261,6 +256,11 @@ public class StereoDemo01 {
 
         final MonitorDevice monitor = StereoDeviceUtil.getMonitorDevice(stereoDevice, true);
         final Screen screen = monitor.getScreen();
+
+        // Start the sensor which provides the Rift’s pose and motion.
+        if( !stereoDevice.startSensors(stereoDevice.getSupportedSensorBits(), 0) ) {
+            System.err.println("Could not start sensors on device "+deviceIndex);
+        }
 
         final GLCapabilities caps = new GLCapabilities(GLProfile.getMaxProgrammable(true /* favorHardwareRasterizer */));
         final GLWindow window = GLWindow.create(screen, caps);
