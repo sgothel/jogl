@@ -34,8 +34,10 @@ import java.util.Arrays;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
 
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 
@@ -334,6 +336,24 @@ public class StereoDemo01 {
                     return;
                 }
                 switch(e.getKeySymbol()) {
+                    case KeyEvent.VK_O: {
+                        window.invoke(false, new GLRunnable() {
+                            @Override
+                            public boolean run(final GLAutoDrawable drawable) {
+                                stereoDevice.resetLocationSensorOrigin();
+                                return true;
+                            } });
+                        break;
+                    }
+                    case KeyEvent.VK_P: {
+                        window.invoke(false, new GLRunnable() {
+                            @Override
+                            public boolean run(final GLAutoDrawable drawable) {
+                                System.err.println(stereoDeviceRenderer.getLastViewerPose());
+                                return true;
+                            } });
+                        break;
+                    }
                     case KeyEvent.VK_R: {
                         if( stereoDevice.getSensorsStarted() ) {
                             stereoDevice.stopSensors();

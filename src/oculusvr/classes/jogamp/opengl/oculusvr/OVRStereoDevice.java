@@ -40,6 +40,8 @@ import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.oculusvr.ovrTrackingState;
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.geom.Frustum;
+import com.jogamp.opengl.util.stereo.LocationSensorParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
@@ -69,6 +71,8 @@ public class OVRStereoDevice implements StereoDevice {
     private final PointImmutable position;
     private final int dkVersion;
 
+    private final LocationSensorParameter locationSensorParams;
+
     public OVRStereoDevice(final StereoDeviceFactory factory, final ovrHmdDesc hmdDesc, final int deviceIndex) {
         if( null == hmdDesc ) {
             throw new IllegalArgumentException("Passed null hmdDesc");
@@ -81,6 +85,15 @@ public class OVRStereoDevice implements StereoDevice {
         this.handle = nativeContext;
         this.deviceIndex = deviceIndex;
         this.hmdDesc = hmdDesc;
+
+        {
+            final FovHVHalves posFov = FovHVHalves.byRadians(hmdDesc.getCameraFrustumHFovInRadians(),
+                                                             hmdDesc.getCameraFrustumVFovInRadians());
+            final float posZNear = hmdDesc.getCameraFrustumNearZInMeters();
+            final float posZFar = hmdDesc.getCameraFrustumFarZInMeters();
+            locationSensorParams = new LocationSensorParameter(new Frustum.FovDesc(posFov, posZNear, posZFar));
+        }
+
         final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[ovrHmdDesc.getEyeRenderOrderArrayLength()]);
         defaultEyeFov = new FovHVHalves[defaultOVREyeFov.length];
         for(int i=0; i<defaultEyeFov.length; i++) {
@@ -132,7 +145,8 @@ public class OVRStereoDevice implements StereoDevice {
                       "], recommended ["+StereoUtil.distortionBitsToString(getRecommendedDistortionBits())+
                       "], minimum ["+StereoUtil.distortionBitsToString(getMinimumDistortionBits())+"]]");
         sb.append(", sensorBits[supported ["+StereoUtil.sensorBitsToString(getSupportedSensorBits())+
-                      "], enabled ["+StereoUtil.sensorBitsToString(getEnabledSensorBits())+"]]]");
+                      "], enabled ["+StereoUtil.sensorBitsToString(getEnabledSensorBits())+"]]");
+        sb.append(", "+locationSensorParams+"]");
         return sb.toString();
     }
 
@@ -164,6 +178,15 @@ public class OVRStereoDevice implements StereoDevice {
 
     @Override
     public final FovHVHalves[] getDefaultFOV() { return defaultEyeFov; }
+
+    @Override
+    public final LocationSensorParameter getLocationSensorParams() { return locationSensorParams; }
+
+    @Override
+    public final void resetLocationSensorOrigin() {
+        if( isValid() && sensorsStarted && StereoUtil.usesPositionSensor(supportedSensorBits)) {
+            OVR.ovrHmd_RecenterPose(hmdDesc);
+        }
     }
 
     /* pp */ void updateUsedSensorBits(final ovrTrackingState trackingState) {

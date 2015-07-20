@@ -107,20 +107,23 @@ public class OVRVersion extends JogampVersion {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        sb.append("\thmd."+ovrHmdIndex+".productName:\t"+hmdDesc.getProductNameAsString()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".vendorName:\t"+hmdDesc.getManufacturerAsString()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".deviceName:\t"+hmdDesc.getDisplayDeviceNameAsString()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".productId:\t0x"+Integer.toHexString(hmdDesc.getProductId())).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".vendorId:\t0x"+Integer.toHexString(hmdDesc.getVendorId())).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".serial:\t"+hmdDesc.getSerialNumberAsString()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".type:\t"+hmdDesc.getType()).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".hmdCaps:\t"+toHexString(hmdDesc.getHmdCaps())).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".distorCaps:\t"+toHexString(hmdDesc.getDistortionCaps())).append(Platform.getNewline());
-        sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+toHexString(hmdDesc.getTrackingCaps())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".productName: "+hmdDesc.getProductNameAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".vendorName: "+hmdDesc.getManufacturerAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".deviceName: "+hmdDesc.getDisplayDeviceNameAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".productId: 0x"+Integer.toHexString(hmdDesc.getProductId())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".vendorId: 0x"+Integer.toHexString(hmdDesc.getVendorId())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".serial: "+hmdDesc.getSerialNumberAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".firmware: "+hmdDesc.getFirmwareMajor()+"."+hmdDesc.getFirmwareMinor()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".type: "+hmdDesc.getType()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".hmdCaps: "+toHexString(hmdDesc.getHmdCaps())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".distorCaps: "+toHexString(hmdDesc.getDistortionCaps())).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".sensorCaps: "+toHexString(hmdDesc.getTrackingCaps())).append(Platform.getNewline());
         final ovrSizei resolution = hmdDesc.getResolution();
-        sb.append("\thmd."+ovrHmdIndex+".resolution:\t"+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".resolution: "+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
         final ovrVector2i winPos = hmdDesc.getWindowsPos();
-        sb.append("\thmd."+ovrHmdIndex+".winPos:\t"+winPos.getX()+" / "+winPos.getY()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".winPos: "+winPos.getX()+" / "+winPos.getY()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".cameraFrustum.Z: "+hmdDesc.getCameraFrustumNearZInMeters()+" - "+hmdDesc.getCameraFrustumFarZInMeters()+" meter").append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".cameraFrustum.Fov: H "+hmdDesc.getCameraFrustumHFovInRadians()+" rad, V "+hmdDesc.getCameraFrustumVFovInRadians()+" rad").append(Platform.getNewline());
         return sb;
     }
     private static String toHexString(final int v) { return "0x"+Integer.toHexString(v); }

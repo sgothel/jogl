@@ -117,6 +117,23 @@ public interface StereoDevice {
     public FovHVHalves[] getDefaultFOV();
 
     /**
+     * Returns the {@link LocationSensorParameter} of the device
+     * if {@link #SENSOR_POSITION} is {@link #getSupportedSensorBits() supported},
+     * otherwise returns {@code null}.
+     */
+    public LocationSensorParameter getLocationSensorParams();
+
+
+    /**
+     * Sets the location sensor's origin of this device to the current position.
+     * <p>
+     * In case {@link #SENSOR_POSITION} is not {@link #getSupportedSensorBits() supported},
+     * this method is a no-op.
+     * </p>
+     */
+    public void resetLocationSensorOrigin();
+
+    /**
      * Start desired and required sensors. Returns true if action was successful, otherwise false.
      * <p>
      * Method fails if required sensors are not {@link #getSupportedSensorBits() supported}.

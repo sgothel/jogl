@@ -36,6 +36,7 @@ import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.EyeParameter;
+import com.jogamp.opengl.util.stereo.LocationSensorParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer;
@@ -179,6 +180,11 @@ public class GenericStereoDevice implements StereoDevice {
     @Override
     public final FovHVHalves[] getDefaultFOV() { return defaultEyeFov; }
 
+    @Override
+    public final LocationSensorParameter getLocationSensorParams() { return null; }
+
+    @Override
+    public final void resetLocationSensorOrigin() { }
 
     @Override
     public final boolean startSensors(final int desiredSensorBits, final int requiredSensorBits) {
