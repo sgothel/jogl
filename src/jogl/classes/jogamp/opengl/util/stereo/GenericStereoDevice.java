@@ -163,31 +163,22 @@ public class GenericStereoDevice implements StereoDevice {
     }
 
     @Override
-    public boolean isValid() {
-        return true;
-    }
+    public boolean isValid() { return true; }
 
     @Override
-    public final PointImmutable getPosition() {
-        return surfacePos;
-    }
+    public final PointImmutable getPosition() { return surfacePos; }
 
     @Override
-    public final DimensionImmutable getSurfaceSize() {
-        return config.surfaceSizeInPixels;
-    }
+    public final DimensionImmutable getSurfaceSize() { return config.surfaceSizeInPixels; }
     @Override
     public int getRequiredRotation() { return 0; }
 
     @Override
-    public float[] getDefaultEyePositionOffset() {
-        return config.defaultEyeParam[0].positionOffset;
-    }
+    public float[] getDefaultEyePositionOffset() { return config.defaultEyeParam[0].positionOffset; }
 
     @Override
-    public final FovHVHalves[] getDefaultFOV() {
-        return defaultEyeFov;
-    }
+    public final FovHVHalves[] getDefaultFOV() { return defaultEyeFov; }
+
 
     @Override
     public final boolean startSensors(final int desiredSensorBits, final int requiredSensorBits) {

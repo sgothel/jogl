@@ -357,7 +357,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     private final OVREye[] eyes;
     private final ovrPosef[] ovrEyePoses;
     private final ovrVector3f[] hmdToEyeViewOffset;
-    private final ViewerPose eyePoses;
+    private final ViewerPose viewerPose;
     private final ovrTrackingState trackingState;
     private final int distortionBits;
     private final int textureCount;
@@ -431,7 +431,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         hmdToEyeViewOffset = new ovrVector3f[2];
         hmdToEyeViewOffset[0] = eyes[0].ovrEyeDesc.getHmdToEyeViewOffset();
         hmdToEyeViewOffset[1] = eyes[1].ovrEyeDesc.getHmdToEyeViewOffset();
-        eyePoses = new ViewerPose();
+        viewerPose = new ViewerPose();
         trackingState = ovrTrackingState.create();
 
         sp = null;
@@ -551,14 +551,14 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         // where ovrEyePoses already have hmdToEyeViewOffset applied (IPD .. etc).
         final ovrPosef pose = trackingState.getHeadPose().getThePose();
         final ovrVector3f pos = pose.getPosition();
-        eyePoses.setPosition(pos.getX(), pos.getY(), pos.getZ());
-        OVRUtil.copyToQuaternion(pose.getOrientation(), eyePoses.orientation);
-        return eyePoses;
+        viewerPose.setPosition(pos.getX(), pos.getY(), pos.getZ());
+        OVRUtil.copyToQuaternion(pose.getOrientation(), viewerPose.orientation);
+        return viewerPose;
     }
 
     @Override
     public final ViewerPose getLastViewerPose() {
-        return eyePoses;
+        return viewerPose;
     }
 
     @Override

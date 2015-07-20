@@ -160,16 +160,13 @@ public class OVRStereoDevice implements StereoDevice {
     public int getRequiredRotation() { return requiredRotation; }
 
     @Override
-    public float[] getDefaultEyePositionOffset() {
-        return DEFAULT_EYE_POSITION_OFFSET;
-    }
+    public float[] getDefaultEyePositionOffset() { return DEFAULT_EYE_POSITION_OFFSET; }
 
     @Override
-    public final FovHVHalves[] getDefaultFOV() {
-        return defaultEyeFov;
+    public final FovHVHalves[] getDefaultFOV() { return defaultEyeFov; }
     }
 
-    public void updateUsedSensorBits(final ovrTrackingState trackingState) {
+    /* pp */ void updateUsedSensorBits(final ovrTrackingState trackingState) {
         final int pre = usedSensorBits;
         if( sensorsStarted && null != trackingState ) {
             usedSensorBits = StereoDevice.SENSOR_ORIENTATION |
@@ -188,7 +185,7 @@ public class OVRStereoDevice implements StereoDevice {
 
     @Override
     public final boolean startSensors(final int desiredSensorBits, final int requiredSensorBits) {
-        if( !sensorsStarted ) {
+        if( isValid() && !sensorsStarted ) {
             if( requiredSensorBits != ( supportedSensorBits & requiredSensorBits ) ) {
                 // required sensors not available
                 if( StereoDevice.DEBUG ) {
@@ -228,7 +225,7 @@ public class OVRStereoDevice implements StereoDevice {
     }
     @Override
     public final boolean stopSensors() {
-        if( sensorsStarted ) {
+        if( isValid() && sensorsStarted ) {
             OVR.ovrHmd_ConfigureTracking(hmdDesc, 0, 0); // STOP
             sensorsStarted = false;
             usedSensorBits = 0;

@@ -30,7 +30,7 @@ package com.jogamp.opengl.util.stereo;
 import com.jogamp.opengl.math.FovHVHalves;
 
 /**
- * Constant parameter for one eye.
+ * Constant single eye parameter of the viewer, relative to its {@link ViewerPose}.
  */
 public final class EyeParameter {
     /** Eye number, <code>0</code> for the left eye and <code>1</code> for the right eye. */
@@ -39,7 +39,7 @@ public final class EyeParameter {
     /** float[3] eye position vector used to define eye height in meter relative to <i>actor</i>. */
     public final float[] positionOffset;
 
-    /** Field of view in both directions, may not be centered, either in radians or tangent. */
+    /** Field of view in both directions, may not be centered, either {@link FovHVHalves#inTangents} or radians. */
     public final FovHVHalves fovhv;
 
     /** IPD related horizontal distance from nose to pupil in meter. */

@@ -428,7 +428,8 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         final Quaternion rollPitchYaw = new Quaternion();
         // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
         // rollPitchYaw.rotateByAngleY(eyeYaw);
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
+        // final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
+        final float[] shiftedEyePos = VectorUtil.copyVec3(vec3Tmp1, 0, viewerPose.position, 0);
         VectorUtil.scaleVec3(shiftedEyePos, shiftedEyePos, vec3ScalePos); // amplify viewerPose position
         VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
 

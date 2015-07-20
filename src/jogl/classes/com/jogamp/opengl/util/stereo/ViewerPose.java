@@ -30,7 +30,7 @@ package com.jogamp.opengl.util.stereo;
 import com.jogamp.opengl.math.Quaternion;
 
 /**
- * Position and orientation of viewer.
+ * {@link #position} and {@link #orientation} of viewer.
  */
 public final class ViewerPose {
     /**
