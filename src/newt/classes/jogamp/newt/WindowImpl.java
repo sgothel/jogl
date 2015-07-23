@@ -2997,8 +2997,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final MouseEvent e;
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_CLICKED:
-                e = null;
-                break;
+                // swallow CLICK event
+                return;
 
             case MouseEvent.EVENT_MOUSE_PRESSED:
                 if( 0 >= pPressure[0] ) {
@@ -3062,6 +3062,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID,
                                    pX, pY, pPressure, maxPressure, button, (short)0, rotationXYZ, rotationScale);
         }
+
         doEvent(enqueue, wait, e); // actual mouse event
     }
 
