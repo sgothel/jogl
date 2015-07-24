@@ -422,7 +422,7 @@ public abstract class GLContextImpl extends GLContext {
               lastCtxReleaseStack = new Throwable(msg);
               if( TRACE_SWITCH ) {
                   System.err.println(msg);
-                  // ExceptionUtils.dumpStackTrace(System.err, 0, 10);
+                  // ExceptionUtils.dumpStack(System.err, 0, 10);
               }
           }
       }
@@ -773,7 +773,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         if ( DEBUG_TRACE_SWITCH ) {
             System.err.println(getThreadName() + ": Create GL context "+(created?"OK":"FAILED")+": For " + getClass().getName()+" - "+getGLVersion()+" - "+getTraceSwitchMsg());
-            // ExceptionUtils.dumpStackTrace(System.err, 0, 10);
+            // ExceptionUtils.dumpStack(System.err, 0, 10);
         }
         if(!created) {
             return CONTEXT_NOT_CURRENT;
