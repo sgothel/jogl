@@ -14,6 +14,8 @@ import javax.swing.Timer;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.test.junit.util.DumpGLInfo;
 
@@ -26,7 +28,7 @@ import com.jogamp.opengl.test.junit.util.DumpGLInfo;
  */
 public class TestSharedExternalContextAWT {
 
-  private static final int LATCH_COUNT = 5;
+  static final int LATCH_COUNT = 5;
 
   private void doTest(final boolean aUseEDT) throws Exception {
     final CountDownLatch latch = new CountDownLatch(LATCH_COUNT);
@@ -69,7 +71,7 @@ public class TestSharedExternalContextAWT {
     doTest(true);
   }
 
-  // @Test
+  @Test
   public void test02OnExecutorThread() throws Exception {
     doTest(false);
   }
@@ -79,9 +81,10 @@ public class TestSharedExternalContextAWT {
    * sharing between the two.
    */
   private static class MyGLEventListener implements GLEventListener {
-    private GLOffscreenAutoDrawable fOffscreenDrawable;
-    private final boolean fUseEDT;
-    private final CountDownLatch fLatch;
+    GLOffscreenAutoDrawable fOffscreenDrawable;
+    final boolean fUseEDT;
+    final CountDownLatch fLatch;
+    final RecursiveLock masterLock = LockFactory.createRecursiveLock();
 
     private Exception fException = null;
 
@@ -92,100 +95,141 @@ public class TestSharedExternalContextAWT {
 
     @Override
     public void init(final GLAutoDrawable drawable) {
-      final GL2 gl = drawable.getGL().getGL2();
-      gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-      gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+      // FIXME: We actually need to hook into GLContext make-current lock
+      masterLock.lock();
+      try {
+          final GL2 gl = drawable.getGL().getGL2();
+          gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+          gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 
-      final GLContext master = drawable.getContext();
-      System.err.println("Master (orig) Ct: "+master);
-
-      // Create the external context on the caller thread.
-      final GLContext ext = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
-      System.err.println("External Context: "+ext);
-
-      // This runnable creates an offscreen drawable which shares with the external context.
-      final Runnable initializer = new Runnable() {
-        public void run() {
-          fOffscreenDrawable = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
-              GLProfile.getDefaultDevice(),
-              new GLCapabilities(GLProfile.getDefault()),
-              new DefaultGLCapabilitiesChooser(),
-              512, 512
-          );
-          // fOffscreenDrawable.setSharedContext(ext);
-          fOffscreenDrawable.setSharedContext(master);
-          // Causes GLException on NVidia driver if using EDT (see below)
-          try {
-            fOffscreenDrawable.display();
-          } catch (final GLException e) {
-            fException = e;
-            throw e;
+          final GLContext master;
+          if( false ) {
+              // just dead test code ..
+              master = drawable.getContext();
+              System.err.println("Master (orig) Ct: "+master);
+          } else {
+              // Create the external context on the caller thread.
+              master = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
+              System.err.println("External Context: "+master);
           }
-        }
-      };
 
-      /**
-       * Depending on the test case, invoke the initialization on the EDT or on an
-       * executor thread. The test also displays the offscreen drawable a few times
-       * before finishing.
-       */
-      if (fUseEDT) {
-        // Initialize using invokeAndWait().
-        try {
-          EventQueue.invokeAndWait(initializer);
-        } catch (final InterruptedException e) {
-          fException = e;
-        } catch (final InvocationTargetException e) {
-          fException = e;
-        }
+          // This runnable creates an offscreen drawable which shares with the external context.
+          final Runnable initializer = new Runnable() {
+            public void run() {
+                // FIXME: We actually need to hook into GLContext make-current lock
+                masterLock.lock();
+                try {
+                    fOffscreenDrawable = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
+                            GLProfile.getDefaultDevice(),
+                            new GLCapabilities(GLProfile.getDefault()),
+                            new DefaultGLCapabilitiesChooser(),
+                            512, 512
+                            );
+                    fOffscreenDrawable.setSharedContext(master);
+                    try {
+                        fOffscreenDrawable.display();
+                    } catch (final GLException e) {
+                        fException = e;
+                        throw e;
+                    }
+                } finally {
+                    masterLock.unlock();
+                }
+            }
+          };
 
-        // Display using a Swing timer, i.e. also on the EDT.
-        final Timer t = new Timer(200, new ActionListener() {
-          int i = 0;
-
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            if (++i > LATCH_COUNT) {
-              return;
+          /**
+           * Depending on the test case, invoke the initialization on the EDT or on an
+           * executor thread. The test also displays the offscreen drawable a few times
+           * before finishing.
+           */
+          if (fUseEDT) {
+            // Initialize using invokeLater().
+            try {
+              // We cannot use EventQueue.invokeAndWait(..) since it will
+              // block this will block the current thread, holding the context!
+              // The whole issue w/ an external shared context is make-current
+              // synchronization. JOGL attempts to lock the surface/drawable
+              // of the master context to avoid concurrent usage.
+              // The semantic constraints of a shared context are not well defined,
+              // i.e. some driver may allow creating a shared context w/ a master context
+              // to be in use - others don't.
+              // Hence it is up to the user to sync the external master context in this case,
+              // see 'masterLock' of in this code!
+              //    EventQueue.invokeAndWait(initializer);
+              EventQueue.invokeLater(initializer);
+            } catch (final Exception e) {
+              fException = e;
             }
 
-            System.err.println("Update on EDT");
-            fOffscreenDrawable.display();
-            fLatch.countDown();
-          }
-        });
-        t.start();
-      } else {
-        // Initialize and display using a single-threaded executor.
-        final ScheduledExecutorService exe = Executors.newSingleThreadScheduledExecutor();
-        exe.submit(initializer);
-        exe.scheduleAtFixedRate(new Runnable() {
-          int i = 0;
+            // Display using a Swing timer, i.e. also on the EDT.
+            final Timer t = new Timer(200, new ActionListener() {
+              int i = 0;
 
-          @Override
-          public void run() {
-            if (++i > LATCH_COUNT) {
-              return;
-            }
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                if (++i > LATCH_COUNT) {
+                  return;
+                }
 
-            System.err.println("Update on Executor thread");
-            fOffscreenDrawable.display();
-            fLatch.countDown();
+                System.err.println("Update on EDT");
+                fOffscreenDrawable.display();
+                fLatch.countDown();
+              }
+            });
+            t.start();
+          } else {
+            // Initialize and display using a single-threaded executor.
+            final ScheduledExecutorService exe = Executors.newSingleThreadScheduledExecutor();
+            exe.submit(initializer);
+            exe.scheduleAtFixedRate(new Runnable() {
+              int i = 0;
+
+              @Override
+              public void run() {
+                if (++i > LATCH_COUNT) {
+                  return;
+                }
+
+                System.err.println("Update on Executor thread");
+                fOffscreenDrawable.display();
+                fLatch.countDown();
+              }
+            }, 0, 200, TimeUnit.MILLISECONDS);
           }
-        }, 0, 200, TimeUnit.MILLISECONDS);
+      } finally {
+          masterLock.unlock();
       }
     }
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
+      // FIXME: We actually need to hook into GLContext make-current lock
+      masterLock.lock();
+      try {
+      } finally {
+          masterLock.unlock();
+      }
     }
 
     @Override
     public void display(final GLAutoDrawable drawable) {
+      // FIXME: We actually need to hook into GLContext make-current lock
+      masterLock.lock();
+      try {
+      } finally {
+          masterLock.unlock();
+      }
     }
 
     @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+      // FIXME: We actually need to hook into GLContext make-current lock
+      masterLock.lock();
+      try {
+      } finally {
+          masterLock.unlock();
+      }
     }
   }
 
