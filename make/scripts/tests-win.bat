@@ -93,6 +93,8 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAO %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug1146GLContextDialogToolTipAWT %*
+
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimNEWT %*
@@ -221,4 +223,4 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewt
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 %*

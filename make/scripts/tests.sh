@@ -310,7 +310,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
-    D_ARGS="-Djogl.debug.StereoDevice"
+    #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.debug.Screen"
@@ -414,7 +414,7 @@ function testawtswt() {
 #
 # Stereo
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #
 # HiDPI
@@ -593,6 +593,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestNEWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1146GLContextDialogToolTipAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*

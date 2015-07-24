@@ -129,7 +129,14 @@ public class JoglVersion extends JogampVersion {
     public static StringBuilder getGLInfo(final GL gl, final StringBuilder sb) {
         return getGLInfo(gl, sb, false);
     }
-    public static StringBuilder getGLInfo(final GL gl, StringBuilder sb, final boolean withCapabilitiesAndExtensionInfo) {
+    public static StringBuilder getGLInfo(final GL gl, final StringBuilder sb, final boolean withCapabilitiesAndExtensionInfo) {
+        return getGLInfo(gl, sb, true, withCapabilitiesAndExtensionInfo, withCapabilitiesAndExtensionInfo);
+    }
+
+    public static StringBuilder getGLInfo(final GL gl, StringBuilder sb,
+                                          final boolean withAvailabilityInfo,
+                                          final boolean withCapabilitiesInfo,
+                                          final boolean withExtensionInfo) {
         final AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
                                             .getGraphicsConfiguration().getScreen().getDevice();
         if(null==sb) {
@@ -139,12 +146,14 @@ public class JoglVersion extends JogampVersion {
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         sb.append(device.getClass().getSimpleName()).append("[type ")
                 .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ").append(Platform.getNewline());
-        GLProfile.glAvailabilityToString(device, sb, "\t", 1);
+        if( withAvailabilityInfo ) {
+            GLProfile.glAvailabilityToString(device, sb, "\t", 1);
+        }
         sb.append(Platform.getNewline());
 
-        sb = getGLStrings(gl, sb, withCapabilitiesAndExtensionInfo);
+        sb = getGLStrings(gl, sb, withExtensionInfo);
 
-        if( withCapabilitiesAndExtensionInfo ) {
+        if( withCapabilitiesInfo ) {
             sb = getAllAvailableCapabilitiesInfo(device, sb);
         }
         return sb;

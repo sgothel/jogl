@@ -36,7 +36,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.awt.AWTException;
 import java.awt.EventQueue;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Robot;
+import java.awt.event.InputEvent;
 
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowFactory;
@@ -577,6 +580,25 @@ public class AWTRobotUtil {
 
         if(DEBUG) { System.err.println("KC3.0: "+counter); }
         Assert.assertEquals("Wrong key count", typeCount, counter.getCount()-c0);
+    }
+
+    public static void mouseMove(final Robot robot, final Point destination, final int iter, final int delay) {
+        final Point origin = MouseInfo.getPointerInfo().getLocation();
+        for (int i = 1; i <= iter; i++) {
+            final float alpha = i / (float) iter;
+            robot.mouseMove((int) (origin.x * (1 - alpha) + destination.x * alpha),
+                            (int) (origin.y * (1 - alpha) + destination.y * alpha));
+            robot.delay(delay);
+        }
+    }
+    public static void mouseClick(final Robot robot, final Point pos, final int moveIter, final int moveDelay, final int actionDelay) {
+        robot.delay(actionDelay);
+        mouseMove(robot, pos, moveIter, moveDelay);
+
+        robot.delay(actionDelay);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        robot.delay(actionDelay);
     }
 
     static int mouseClick(final int i, final Robot robot, final int mouseButton,

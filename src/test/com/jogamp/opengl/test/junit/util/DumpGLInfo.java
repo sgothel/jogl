@@ -34,10 +34,32 @@ import com.jogamp.opengl.JoglVersion;
 
 
 public class DumpGLInfo implements GLEventListener {
+    final String header;
+    final boolean withGLAvailability;
+    final boolean withCapabilities;
+    final boolean withExtensions;
+
+    public DumpGLInfo(final String header, final boolean withGLAvailability, final boolean withCapabilities, final boolean withExtensions) {
+        this.header = header;
+        this.withGLAvailability = withGLAvailability;
+        this.withCapabilities = withCapabilities;
+        this.withExtensions = withExtensions;
+    }
+    public DumpGLInfo() {
+        this.header = null;
+        this.withGLAvailability = true;
+        this.withCapabilities = true;
+        this.withExtensions = true;
+    }
 
     public void init(final GLAutoDrawable drawable) {
         final GL gl = drawable.getGL();
-        System.err.println(JoglVersion.getGLInfo(gl, null, true));
+        if( null != header ) {
+            System.err.println(header);
+        }
+        System.err.println(JoglVersion.getGLInfo(gl, null, withGLAvailability, withCapabilities, withExtensions));
+        System.err.println("Drawable: "+drawable.getDelegatedDrawable().getClass().getSimpleName());
+        System.err.println(drawable.getChosenGLCapabilities());
     }
 
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
