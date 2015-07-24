@@ -59,6 +59,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedConte
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT %*
@@ -93,7 +94,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAO %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug1146GLContextDialogToolTipAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug1146GLContextDialogToolTipAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT %*

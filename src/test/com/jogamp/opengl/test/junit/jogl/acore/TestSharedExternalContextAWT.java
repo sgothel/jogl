@@ -1,4 +1,4 @@
-package com.jogamp.opengl.test.junit.jogl.offscreen;
+package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -13,20 +13,23 @@ import javax.swing.Timer;
 
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.*;
+import com.jogamp.opengl.test.junit.util.DumpGLInfo;
 
 /**
+ * Bug 1160.
  * Test for context sharing with an external context. Creates an external GL context, then
  * sets up an offscreen drawable which shares with it. The test contains two cases: one
  * which creates and repaints the offscreen drawable on the EDT, and one which does so on
  * a dedicated thread. On Windows+NVidia, the former fails.
  */
-public class ShareWithExternalContextTest {
+public class TestSharedExternalContextAWT {
 
   private static final int LATCH_COUNT = 5;
 
-  private void doTest(boolean aUseEDT) throws Exception {
-    CountDownLatch latch = new CountDownLatch(LATCH_COUNT);
+  private void doTest(final boolean aUseEDT) throws Exception {
+    final CountDownLatch latch = new CountDownLatch(LATCH_COUNT);
     final MyGLEventListener listener = new MyGLEventListener(aUseEDT, latch);
 
     /**
@@ -34,39 +37,40 @@ public class ShareWithExternalContextTest {
      * an external GL context. In the actual application, the external context
      * represents a GL context which lives outside the JVM.
      */
-    Runnable runnable = new Runnable() {
+    final Runnable runnable = new Runnable() {
       public void run() {
-        GLProfile glProfile = GLProfile.getDefault();
-        GLCapabilities caps = new GLCapabilities(glProfile);
-        GLAutoDrawable buffer = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
+        final GLProfile glProfile = GLProfile.getDefault();
+        final GLCapabilities caps = new GLCapabilities(glProfile);
+        final GLAutoDrawable buffer = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
             GLProfile.getDefaultDevice(), caps, null, 512, 512
         );
         // The listener will set up the context sharing in its init() method.
+        buffer.addGLEventListener(new DumpGLInfo(Platform.getNewline()+Platform.getNewline()+"Root GLContext", false, false, false));
         buffer.addGLEventListener(listener);
         buffer.display();
       }
     };
 
     // Wait for test to finish.
-    Thread thread = new Thread(runnable);
+    final Thread thread = new Thread(runnable);
     thread.start();
     thread.join();
     latch.await(3, TimeUnit.SECONDS);
 
     // If exceptions occurred, fail.
-    Exception e = listener.fException;
+    final Exception e = listener.fException;
     if (e != null) {
       throw e;
     }
   }
 
   @Test
-  public void testOnEDT() throws Exception {
+  public void test01OnEDT() throws Exception {
     doTest(true);
   }
 
-  @Test
-  public void testOnExecutorThread() throws Exception {
+  // @Test
+  public void test02OnExecutorThread() throws Exception {
     doTest(false);
   }
 
@@ -76,27 +80,31 @@ public class ShareWithExternalContextTest {
    */
   private static class MyGLEventListener implements GLEventListener {
     private GLOffscreenAutoDrawable fOffscreenDrawable;
-    private boolean fUseEDT;
-    private CountDownLatch fLatch;
+    private final boolean fUseEDT;
+    private final CountDownLatch fLatch;
 
     private Exception fException = null;
 
-    public MyGLEventListener(boolean aUseEDT, CountDownLatch aLatch) {
+    public MyGLEventListener(final boolean aUseEDT, final CountDownLatch aLatch) {
       fUseEDT = aUseEDT;
       fLatch = aLatch;
     }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
-      GL2 gl = drawable.getGL().getGL2();
+    public void init(final GLAutoDrawable drawable) {
+      final GL2 gl = drawable.getGL().getGL2();
       gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
       gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 
+      final GLContext master = drawable.getContext();
+      System.err.println("Master (orig) Ct: "+master);
+
       // Create the external context on the caller thread.
       final GLContext ext = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
+      System.err.println("External Context: "+ext);
 
       // This runnable creates an offscreen drawable which shares with the external context.
-      Runnable initializer = new Runnable() {
+      final Runnable initializer = new Runnable() {
         public void run() {
           fOffscreenDrawable = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
               GLProfile.getDefaultDevice(),
@@ -104,11 +112,12 @@ public class ShareWithExternalContextTest {
               new DefaultGLCapabilitiesChooser(),
               512, 512
           );
-          fOffscreenDrawable.setSharedContext(ext);
+          // fOffscreenDrawable.setSharedContext(ext);
+          fOffscreenDrawable.setSharedContext(master);
           // Causes GLException on NVidia driver if using EDT (see below)
           try {
             fOffscreenDrawable.display();
-          } catch (GLException e) {
+          } catch (final GLException e) {
             fException = e;
             throw e;
           }
@@ -124,21 +133,23 @@ public class ShareWithExternalContextTest {
         // Initialize using invokeAndWait().
         try {
           EventQueue.invokeAndWait(initializer);
-        } catch (InterruptedException | InvocationTargetException e) {
+        } catch (final InterruptedException e) {
+          fException = e;
+        } catch (final InvocationTargetException e) {
           fException = e;
         }
 
         // Display using a Swing timer, i.e. also on the EDT.
-        Timer t = new Timer(200, new ActionListener() {
+        final Timer t = new Timer(200, new ActionListener() {
           int i = 0;
 
           @Override
-          public void actionPerformed(ActionEvent e) {
+          public void actionPerformed(final ActionEvent e) {
             if (++i > LATCH_COUNT) {
               return;
             }
 
-            System.out.println("Update on EDT");
+            System.err.println("Update on EDT");
             fOffscreenDrawable.display();
             fLatch.countDown();
           }
@@ -146,7 +157,7 @@ public class ShareWithExternalContextTest {
         t.start();
       } else {
         // Initialize and display using a single-threaded executor.
-        ScheduledExecutorService exe = Executors.newSingleThreadScheduledExecutor();
+        final ScheduledExecutorService exe = Executors.newSingleThreadScheduledExecutor();
         exe.submit(initializer);
         exe.scheduleAtFixedRate(new Runnable() {
           int i = 0;
@@ -157,7 +168,7 @@ public class ShareWithExternalContextTest {
               return;
             }
 
-            System.out.println("Update on Executor thread");
+            System.err.println("Update on Executor thread");
             fOffscreenDrawable.display();
             fLatch.countDown();
           }
@@ -166,15 +177,20 @@ public class ShareWithExternalContextTest {
     }
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void dispose(final GLAutoDrawable drawable) {
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
     }
+  }
+
+  public static void main(final String[] pArgs)
+  {
+      org.junit.runner.JUnitCore.main(TestSharedExternalContextAWT.class.getName());
   }
 }
