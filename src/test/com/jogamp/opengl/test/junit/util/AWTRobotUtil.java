@@ -39,7 +39,6 @@ import java.awt.EventQueue;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
-import java.awt.event.InputEvent;
 
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowFactory;
@@ -596,8 +595,8 @@ public class AWTRobotUtil {
         mouseMove(robot, pos, moveIter, moveDelay);
 
         robot.delay(actionDelay);
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mousePress(java.awt.event.InputEvent.BUTTON1_MASK);
+        robot.mouseRelease(java.awt.event.InputEvent.BUTTON1_MASK);
         robot.delay(actionDelay);
     }
 

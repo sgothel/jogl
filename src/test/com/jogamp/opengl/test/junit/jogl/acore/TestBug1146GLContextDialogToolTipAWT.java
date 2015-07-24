@@ -139,7 +139,8 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
                     final AbstractButton approveButton = findButton(0, fileChooser, approveButtonText);
                     if( null != approveButton ) {
                         approveButtonPos = approveButton.getLocationOnScreen();
-                        approveButtonPos.translate(2, 2);
+                        final Dimension approveButtonSize = approveButton.getSize();
+                        approveButtonPos.translate(approveButtonSize.width/2, approveButtonSize.height/2);
                         System.err.println("OK Button: "+approveButton.getClass().getSimpleName()+"; "+approveButton+", "+approveButtonPos);
                     } else {
                         System.err.println("OK Button: NULL");
@@ -149,7 +150,8 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
                     final AbstractButton cancelButton = findButton(0, fileChooser, cancelButtonText);
                     if( null != approveButton ) {
                         cancelButtonPos = cancelButton.getLocationOnScreen();
-                        cancelButtonPos.translate(2, 2);
+                        final Dimension cancelButtonSize = cancelButton.getSize();
+                        cancelButtonPos.translate(cancelButtonSize.width/2, cancelButtonSize.height/2);
                         System.err.println("CANCEL Button: "+cancelButton.getClass().getSimpleName()+"; "+cancelButton+", "+cancelButtonPos);
                     } else {
                         cancelButtonPos = null;
@@ -219,7 +221,8 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
         Assert.assertEquals(1, glelc2.initCount);
     }
 
-    @Test
+
+    @Test(timeout=180000) // TO 3 min
     public void test01() {
         final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         for (int i = 0; i < NB_TEST; i++) {
