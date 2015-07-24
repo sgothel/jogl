@@ -50,279 +50,305 @@ import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 
 /**
- * UnderlayTracker can be used as input for
- * WM that only provide undecorated overlays.
+ * UnderlayTracker can be used as input for WM that only provide undecorated
+ * overlays.
  * 
- * The UnderlayTracker enable move and resize
- * manipulation of the overlays.
+ * The UnderlayTracker enable move and resize manipulation of the overlays.
  * 
  * A NEWT window may use the UnderlayTracker by calling
  * <code>addWindowListener(X11UnderlayTracker.getSingleton())</code>
  */
-public class X11UnderlayTracker implements WindowListener, KeyListener, MouseListener, MouseTracker, KeyTracker {
+public class X11UnderlayTracker implements WindowListener, KeyListener,
+        MouseListener, MouseTracker, KeyTracker {
 
     private static final X11UnderlayTracker tracker;
-    private static Window window;
+    private static Window underlayWindow;
     private volatile WindowImpl focusedWindow = null;
-	private volatile MouseEvent lastMouse;
+    private volatile MouseEvent lastMouse;
 
     static {
-    	tracker = new X11UnderlayTracker();
+        tracker = new X11UnderlayTracker();
     }
 
     public static X11UnderlayTracker getSingleton() {
         return tracker;
     }
-    
+
     private X11UnderlayTracker() {
-    	
-    	/* 
-    	 * X11UnderlayTracker is intended to be used on systems where
-    	 * X11 is not the default WM.
-    	 * We must explicitly initialize all X11 dependencies
-    	 * to make sure they are available.
-    	 */
-    	X11Util.initSingleton();
-    	GraphicsConfigurationFactory.initSingleton();
-    	try {
-             ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory",
-                                             "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());
+
+        /*
+         * X11UnderlayTracker is intended to be used on systems where X11 is not
+         * the default WM. We must explicitly initialize all X11 dependencies to
+         * make sure they are available.
+         */
+        X11Util.initSingleton();
+        GraphicsConfigurationFactory.initSingleton();
+        try {
+            ReflectionUtil.callStaticMethod(
+                    "jogamp.nativewindow.x11.X11GraphicsConfigurationFactory",
+                    "registerFactory", null, null,
+                    GraphicsConfigurationFactory.class.getClassLoader());
         } catch (final Exception e) {
-                throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
-    	
-    	/*
-    	 * Initialize the X11 window.
-    	 */
-    	Capabilities caps = new Capabilities();
+
+        /*
+         * Initialize the X11 underlay tracker window.
+         */
+        Capabilities caps = new Capabilities();
+
+        /* 1178 cc6: if you render the overlay window transparent -> caps.setBackgroundOpaque(false);
+         *      then you will see that the underlay tracker window newer repaints -> looks a bit like a mess.
+         * Attempted fix 1178 cc6: x11 underlay tracker window can be set transparent as well.
+         * FIXME: The underlay tracker window is still filled with opaque garbage.
+         */
+        caps.setBackgroundOpaque(false);
+
         final Display display = NewtFactory.createDisplay(NativeWindowFactory.TYPE_X11, null, false);
-        final Screen screen  = NewtFactory.createScreen(display, 0);
-             	
-    	window = WindowImpl.create(null, 0, screen, caps);
-        //window.setSize(200, 140);
-        //window.setPosition(300, 400);
-        window.setVisible(false, true);
-        
-    	window.addKeyListener(this);
-        window.addMouseListener(this);
-        window.addWindowListener(this);
+        final Screen screen = NewtFactory.createScreen(display, 0);
+
+        underlayWindow = WindowImpl.create(null, 0, screen, caps);
+
+        /* 1178 cc4: another window overlaps NEWT underlay window -> overlay window is still on top.
+         * Fix 1178 cc4: we can request the NEWT underlay window to use always on top.
+         */
+        underlayWindow.setAlwaysOnTop(true);
+
+        underlayWindow.setVisible(false, true);
+
+        underlayWindow.addKeyListener(this);
+        underlayWindow.addMouseListener(this);
+        underlayWindow.addWindowListener(this);
     }
-
-
 
     @Override
     public void windowResized(final WindowEvent e) {
-    	final Object s = e.getSource();
-    	
-    	if(s instanceof WindowImpl) {
-    		if(window == s) {
-    			if(focusedWindow!=null){
-    				focusedWindow.setSize(window.getSurfaceWidth(),window.getSurfaceHeight());
-    				// workaround bvm.vc.iv possition gets moved during setSize
-    				focusedWindow.setPosition(window.getX(),window.getY());
-    			}
-    		} else {
-    			// FIXME null check here used as a workaround to prevent event avalance
-    			// fixing it will allow the user to resize the NEWT window using code
-    			// after it has gained focus.
-    			if(focusedWindow==null){
-    				WindowImpl sourceWindow = (WindowImpl) s;
-    				window.setSize(sourceWindow.getSurfaceWidth(),sourceWindow.getSurfaceHeight());
-    			}
-    		}
+        final Object s = e.getSource();
+
+        if (s instanceof WindowImpl) {
+            if (underlayWindow == s) {
+                if (focusedWindow != null) {
+                    focusedWindow.setSize(underlayWindow.getSurfaceWidth(),
+                                          underlayWindow.getSurfaceHeight());
+                    // Attempted workaround, bvm.vc.iv position gets moved during setSize
+                    focusedWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
+                }
+            } else {
+                // FIXME null check here used as a workaround to prevent event
+                // avalanche. Fixing it will allow the user to resize the
+                // NEWT window using code after it has gained focus.
+                if (focusedWindow == null) {
+                    WindowImpl sourceWindow = (WindowImpl) s;
+                    underlayWindow.setSize(sourceWindow.getSurfaceWidth(),
+                                   sourceWindow.getSurfaceHeight());
+                }
+            }
         }
     }
 
     @Override
     public void windowMoved(final WindowEvent e) {
-    	final Object s = e.getSource();
-    	if(s instanceof WindowImpl) {
-    		if(window == s) {
-    			if(focusedWindow!=null){
-    				//focusedWindow.setSize(window.getSurfaceWidth(),window.getSurfaceHeight());
-    				focusedWindow.setPosition(window.getX(), window.getY());
-    			}
-    		} else {
-    			// FIXME null check here used as a workaround to prevent event avalance
-    			// fixing it will allow the user to move the NEWT window using code
-    			// after it has gained focus.
-    			if(focusedWindow==null){
-    				WindowImpl sourceWindow = (WindowImpl) s;
-    				window.setPosition(sourceWindow.getX(), sourceWindow.getY());
-    			}
-    		}
+        final Object s = e.getSource();
+        if (s instanceof WindowImpl) {
+            if (underlayWindow == s) {
+                if (focusedWindow != null) {
+                    focusedWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
+                }
+            } else {
+                // FIXME null check here used as a workaround to prevent event
+                // avalanche. Fixing it will allow the user to resize the
+                // NEWT window using code after it has gained focus.
+                if (focusedWindow == null) {
+                    WindowImpl sourceWindow = (WindowImpl) s;
+                    underlayWindow.setPosition(sourceWindow.getX(), sourceWindow.getY());
+                }
+            }
         }
     }
 
     @Override
     public void windowDestroyNotify(final WindowEvent e) {
         final Object s = e.getSource();
-        
-        if(window == s) {
-    		if(focusedWindow!=null){
-    			focusedWindow.destroy();
-    			focusedWindow = null;
-    		}
-    	} else {
-    		if(focusedWindow == s) {
-    			focusedWindow = null;
-    			window.setVisible(false, false);
-    			window.destroy();
-    		}
-    	}
+
+        if (underlayWindow == s) {
+            if (focusedWindow != null) {
+                focusedWindow.destroy();
+                focusedWindow = null;
+            }
+        } else {
+            if (focusedWindow == s) {
+                focusedWindow = null;
+                underlayWindow.setVisible(false, false);
+                underlayWindow.destroy();
+            }
+        }
     }
 
     @Override
-    public void windowDestroyed(final WindowEvent e) { }
+    public void windowDestroyed(final WindowEvent e) {
+    }
 
     @Override
     public void windowGainedFocus(final WindowEvent e) {
         final Object s = e.getSource();
-        if(s instanceof WindowImpl) {
-        	if(window == s) {
-        		// do nothing
-        	} else {
-        		if(focusedWindow==null) {
-        			// hack that initially make the tracking window the same size as the overlay
-        			WindowImpl sourceWindow = (WindowImpl) s;
-            		window.setSize(sourceWindow.getSurfaceWidth(),sourceWindow.getSurfaceHeight());
-            		window.setPosition(sourceWindow.getX(), sourceWindow.getY());
-        		}
-        		focusedWindow = (WindowImpl) s;
-        	}
+        if (s instanceof WindowImpl) {
+            if (underlayWindow == s) {
+                // do nothing
+            } else {
+                if (focusedWindow == null) {
+                    // hack that initially make the tracking window the same
+                    // size as the overlay
+                    WindowImpl sourceWindow = (WindowImpl) s;
+                    underlayWindow.setSize(sourceWindow.getSurfaceWidth(),
+                                   sourceWindow.getSurfaceHeight());
+                    underlayWindow.setPosition(sourceWindow.getX(), sourceWindow.getY());
+                }
+                focusedWindow = (WindowImpl) s;
+            }
         }
     }
 
     @Override
     public void windowLostFocus(final WindowEvent e) {
         final Object s = e.getSource();
-    	if(window == s) {
-    		// do nothing
-    	} else {
-    		if(focusedWindow == s) {
-    			focusedWindow = null;
-    		}
-    	}
+        if (underlayWindow == s) {
+            // do nothing
+        } else {
+            if (focusedWindow == s) {
+                focusedWindow = null;
+            }
+        }
     }
 
     @Override
-    public void windowRepaint(final WindowUpdateEvent e) { }
-    
-    public static void main(String[] args) throws InterruptedException{
-    	X11UnderlayTracker.getSingleton();
-        
-    	Thread.sleep(25000);
+    public void windowRepaint(final WindowUpdateEvent e) {
     }
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    public static void main(String[] args) throws InterruptedException {
+        X11UnderlayTracker.getSingleton();
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+        Thread.sleep(25000);
+    }
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_EXITED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-            //e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    @Override
+    public void mouseExited(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_EXITED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    @Override
+    public void mousePressed(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void mouseWheelMoved(MouseEvent e) {
-		lastMouse = e;
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_WHEEL_MOVED, 0, e.getX(), e.getY(), (short)0, 0 );
-		}
-	}
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void keyPressed(KeyEvent e) {
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(), e.getKeyCode(), e.getKeyCode(), (char)e.getKeySymbol());
-		}
-	}
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public void keyReleased(KeyEvent e) {
-		if(focusedWindow != null){
-			//e.setConsumed(false);
-			//focusedWindow.consumeEvent(e);
-			focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(), e.getKeyCode(), e.getKeyCode(), (char)e.getKeySymbol());
-		}
-	}
+    @Override
+    public void mouseWheelMoved(MouseEvent e) {
+        lastMouse = e;
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_WHEEL_MOVED, 0,
+                                         e.getX(), e.getY(), (short) 0, 0);
+        }
+    }
 
-	@Override
-	public int getLastY() {
-        if(lastMouse!=null)
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(),
+                                       e.getKeyCode(), e.getKeyCode(), (char) e.getKeySymbol());
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (focusedWindow != null) {
+            // e.setConsumed(false);
+            // focusedWindow.consumeEvent(e);
+            focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(),
+                                       e.getKeyCode(), e.getKeyCode(), (char) e.getKeySymbol());
+        }
+    }
+
+    @Override
+    public int getLastY() {
+        if (lastMouse != null)
             return lastMouse.getY();
-		return 0;
-	}
+        return 0;
+    }
 
-	@Override
-	public int getLastX() {
-        if(lastMouse!=null)
-            return lastMouse.getX();	
-		return 0;
-	}
+    @Override
+    public int getLastX() {
+        if (lastMouse != null)
+            return lastMouse.getX();
+        return 0;
+    }
 }
