@@ -31,8 +31,10 @@ public class TestSharedExternalContextAWT {
   static final int LATCH_COUNT = 5;
 
   private void doTest(final boolean aUseEDT) throws Exception {
-    final CountDownLatch latch = new CountDownLatch(LATCH_COUNT);
-    final MyGLEventListener listener = new MyGLEventListener(aUseEDT, latch);
+    final CountDownLatch testLatch = new CountDownLatch(1);
+    final CountDownLatch masterLatch = new CountDownLatch(1);
+    final CountDownLatch slaveLatch = new CountDownLatch(LATCH_COUNT);
+    final MyGLEventListener listener = new MyGLEventListener(aUseEDT, slaveLatch);
 
     /**
      * For the purpose of this test, this offscreen drawable will be used to create
@@ -41,23 +43,42 @@ public class TestSharedExternalContextAWT {
      */
     final Runnable runnable = new Runnable() {
       public void run() {
+        System.err.println("Master Thread Start: "+Thread.currentThread().getName());
         final GLProfile glProfile = GLProfile.getDefault();
         final GLCapabilities caps = new GLCapabilities(glProfile);
         final GLAutoDrawable buffer = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
             GLProfile.getDefaultDevice(), caps, null, 512, 512
         );
         // The listener will set up the context sharing in its init() method.
-        buffer.addGLEventListener(new DumpGLInfo(Platform.getNewline()+Platform.getNewline()+"Root GLContext", false, false, false));
+        buffer.addGLEventListener(new DumpGLInfo(Platform.getNewline()+Platform.getNewline()+"Master GLContext", false, false, false));
         buffer.addGLEventListener(listener);
         buffer.display();
+        masterLatch.countDown();
+
+        // wait until test has finished
+        try {
+            testLatch.await();
+        } catch (final InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.err.println("Master Thread End: "+Thread.currentThread().getName());
       }
     };
 
-    // Wait for test to finish.
+    // Kick off thread creating the actual external context
+    // which is suppose to lie outside of the JVM.
+    // The thread is kept alive, since this detail
+    // may be required for the OpenGL driver implementation.
     final Thread thread = new Thread(runnable);
+    thread.setDaemon(true);
     thread.start();
-    thread.join();
-    latch.await(3, TimeUnit.SECONDS);
+    masterLatch.await(3, TimeUnit.SECONDS);
+
+    // Wait for slave to finish.
+    slaveLatch.await(3, TimeUnit.SECONDS);
+
+    // signal master test has finished
+    testLatch.countDown();
 
     // If exceptions occurred, fail.
     final Exception e = listener.fException;
@@ -102,38 +123,38 @@ public class TestSharedExternalContextAWT {
           gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
           gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 
-          final GLContext master;
-          if( false ) {
-              // just dead test code ..
-              master = drawable.getContext();
-              System.err.println("Master (orig) Ct: "+master);
-          } else {
-              // Create the external context on the caller thread.
-              master = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
-              System.err.println("External Context: "+master);
-          }
+          System.err.println(); System.err.println();
+          System.err.println("Master (orig) Ct: "+drawable.getContext());
+          // Create the external context on the caller thread.
+          final GLContext master = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
+          System.err.println(); System.err.println();
+          System.err.println("External Context: "+master);
 
           // This runnable creates an offscreen drawable which shares with the external context.
           final Runnable initializer = new Runnable() {
             public void run() {
                 // FIXME: We actually need to hook into GLContext make-current lock
-                masterLock.lock();
+                // masterLock.lock();
                 try {
                     fOffscreenDrawable = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
                             GLProfile.getDefaultDevice(),
                             new GLCapabilities(GLProfile.getDefault()),
-                            new DefaultGLCapabilitiesChooser(),
+                            null, // new DefaultGLCapabilitiesChooser(),
                             512, 512
                             );
                     fOffscreenDrawable.setSharedContext(master);
+                    fOffscreenDrawable.addGLEventListener(new DumpGLInfo(Platform.getNewline()+Platform.getNewline()+"Slave GLContext", false, false, false));
+
                     try {
+                        System.err.println(); System.err.println();
+                        System.err.println("Current: "+GLContext.getCurrent());
                         fOffscreenDrawable.display();
                     } catch (final GLException e) {
                         fException = e;
                         throw e;
                     }
                 } finally {
-                    masterLock.unlock();
+                    // masterLock.unlock();
                 }
             }
           };
