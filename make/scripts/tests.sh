@@ -512,6 +512,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLException01NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 
@@ -594,7 +595,7 @@ function testawtswt() {
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestNEWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1146GLContextDialogToolTipAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1146GLContextDialogToolTipAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*

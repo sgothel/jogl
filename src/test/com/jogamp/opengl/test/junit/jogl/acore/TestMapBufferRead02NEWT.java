@@ -53,13 +53,13 @@ import org.junit.runners.MethodSorters;
  * Verifies content of buffer storage's content
  * as well as general buffer- and buffer-storage tracking.
  * <p>
- * Implementation uses ByteBuffer and Buffers or NIO API.
+ * Implementation uses FloatBuffer and Buffers or NIO API.
  * </p>
  *
  * @author Luz, et.al.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestMapBufferRead01NEWT extends UITestCase {
+public class TestMapBufferRead02NEWT extends UITestCase {
     static final boolean DEBUG = false;
 
     @Test
@@ -68,7 +68,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
-        testWriteRead01(createVerticesBB(false), false /* useRange */);
+        testWriteRead01(createVerticesFB(false), false /* useRange */);
     }
     @Test
     public void testWriteRead01bMap() throws InterruptedException {
@@ -76,7 +76,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
-        testWriteRead01(createVerticesBB(true), false /* useRange */);
+        testWriteRead01(createVerticesFB(true), false /* useRange */);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL3 or GLES3 profile.");
             return;
         }
-        testWriteRead01(createVerticesBB(false), true/* useRange */);
+        testWriteRead01(createVerticesFB(false), true/* useRange */);
     }
     @Test
     public void testWriteRead02bMapRange() throws InterruptedException {
@@ -93,42 +93,39 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             System.err.println("Test requires GL3 or GLES3 profile.");
             return;
         }
-        testWriteRead01(createVerticesBB(true), true /* useRange */);
+        testWriteRead01(createVerticesFB(true), true /* useRange */);
     }
 
     static final float[] vertexData = new float[] { -0.3f, -0.2f, -0.1f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };
 
-    static ByteBuffer createVerticesBB(final boolean useBuffersAPI) {
-        final ByteBuffer res;
+    static FloatBuffer createVerticesFB(final boolean useBuffersAPI) {
+        final FloatBuffer res;
         if( useBuffersAPI ) {
-            res = Buffers.newDirectByteBuffer(Buffers.SIZEOF_FLOAT*vertexData.length);
-            final FloatBuffer resF = res.asFloatBuffer();
-            resF.put(vertexData, 0, vertexData.length).rewind();
+            res = Buffers.newDirectFloatBuffer(vertexData);
         } else {
-            res = ByteBuffer.allocate(Buffers.SIZEOF_FLOAT*vertexData.length);
-            res.order(ByteOrder.nativeOrder());
+            res = FloatBuffer.allocate(vertexData.length);
             for(int i=0; i<vertexData.length; i++) {
-                res.putFloat(vertexData[i]);
+                res.put(vertexData[i]);
             }
             res.rewind();
         }
         if(DEBUG) {
             System.err.println("java "+res);
-            for(int i=0; i < res.capacity(); i+=4) {
-                System.err.println("java ["+i+"]: "+res.getFloat(i));
+            for(int i=0; i < res.remaining(); i+=4) {
+                System.err.println("java ["+i+"]: "+res.get(i));
             }
         }
         return res;
     }
 
-    private void testWriteRead01(final ByteBuffer verticiesBB, final boolean useRange) throws InterruptedException {
+    private void testWriteRead01(final FloatBuffer verticiesFB, final boolean useRange) throws InterruptedException {
         // Validate incoming ByteBuffer first
-        assertEquals(0, verticiesBB.position());
-        assertEquals(Buffers.SIZEOF_FLOAT*vertexData.length, verticiesBB.limit());
-        assertEquals(Buffers.SIZEOF_FLOAT*vertexData.length, verticiesBB.capacity());
-        assertEquals(Buffers.SIZEOF_FLOAT*vertexData.length, verticiesBB.remaining());
-        assertEquals(-0.3f, verticiesBB.getFloat(Buffers.SIZEOF_FLOAT*0), 0.05f);
-        assertEquals( 0.6f, verticiesBB.getFloat(Buffers.SIZEOF_FLOAT*8), 0.05f);
+        assertEquals(0, verticiesFB.position());
+        assertEquals(vertexData.length, verticiesFB.limit());
+        assertEquals(vertexData.length, verticiesFB.capacity());
+        assertEquals(vertexData.length, verticiesFB.remaining());
+        assertEquals(-0.3f, verticiesFB.get(0), 0.05f);
+        assertEquals( 0.6f, verticiesFB.get(8), 0.05f);
 
         final GLProfile glp = GLProfile.getMaxProgrammable(true);
         final GLCapabilities caps = new GLCapabilities(glp);
@@ -144,8 +141,8 @@ public class TestMapBufferRead01NEWT extends UITestCase {
 
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer[0]);
 
-            gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL2ES3.GL_STATIC_READ);
-            // gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_DRAW);
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, Buffers.SIZEOF_FLOAT*verticiesFB.remaining(), verticiesFB, GL2ES3.GL_STATIC_READ);
+            // gl.glBufferData(GL.GL_ARRAY_BUFFER, Buffers.SIZEOF_FLOAT*verticiesBB.remaining(), verticiesBB, GL.GL_STATIC_DRAW);
 
             final int bufferName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
             final GLBufferStorage bufferStorage = gl.getBufferStorage(bufferName);
@@ -157,12 +154,12 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             if( useRange ) {
                 floatOffset = 3;
                 byteOffset = Buffers.SIZEOF_FLOAT*floatOffset;
-                mapByteLength = verticiesBB.capacity()-byteOffset;
+                mapByteLength = Buffers.SIZEOF_FLOAT*verticiesFB.remaining()-byteOffset;
                 bb = gl.glMapBufferRange(GL.GL_ARRAY_BUFFER, byteOffset, mapByteLength, GL.GL_MAP_READ_BIT);
             } else {
                 floatOffset = 0;
                 byteOffset = 0;
-                mapByteLength = verticiesBB.capacity();
+                mapByteLength = Buffers.SIZEOF_FLOAT*verticiesFB.remaining();
                 bb = gl.glMapBuffer(GL.GL_ARRAY_BUFFER, GL2ES3.GL_READ_ONLY);
             }
             System.err.println("gpu-02 mapped GL_ARRAY_BUFFER, floatOffset "+floatOffset+", byteOffset "+byteOffset+", mapByteLength "+mapByteLength+" -> "+bb);
@@ -170,16 +167,16 @@ public class TestMapBufferRead01NEWT extends UITestCase {
             Assert.assertNotNull(bb);
             Assert.assertEquals("BufferStorage size less byteOffset not equals buffer storage size", bufferStorage.getSize()-byteOffset, bb.capacity());
             Assert.assertEquals("BufferStorage's bytes-buffer not equal with mapped bytes-buffer", bufferStorage.getMappedBuffer(), bb);
-            Assert.assertEquals("Buffer storage size not equals mapByteLength", mapByteLength, bb.capacity());
+            Assert.assertEquals("Buffer storage size not equals mapByteLength", mapByteLength, bb.remaining());
 
             if(DEBUG) {
                 System.err.println("floatOffset "+floatOffset+", byteOffset "+byteOffset);
-                for(int i=0; i < bb.capacity(); i+=4) {
+                for(int i=0; i < bb.remaining(); i+=4) {
                     System.err.println("gpu "+i+": "+bb.getFloat(i));
                 }
             }
-            for(int i=0; i < bb.capacity(); i+=4) {
-                Assert.assertEquals(verticiesBB.getFloat(byteOffset+i), bb.getFloat(i), 0.0001f);
+            for(int i=0; i < bb.remaining(); i+=4) {
+                Assert.assertEquals(verticiesFB.get( (byteOffset+i) / Buffers.SIZEOF_FLOAT ), bb.getFloat(i), 0.0001f);
             }
             gl.glUnmapBuffer(GL.GL_ARRAY_BUFFER);
             Assert.assertEquals("Buffer storage's bytes-buffer not null after unmap", null, bufferStorage.getMappedBuffer());
@@ -188,7 +185,7 @@ public class TestMapBufferRead01NEWT extends UITestCase {
         }
     }
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestMapBufferRead01NEWT.class.getName();
+        final String tstname = TestMapBufferRead02NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }
