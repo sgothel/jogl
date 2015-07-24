@@ -271,7 +271,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
                                       final int x, final int y, final short button, final float[] rotationXYZ, final float rotationScale) {
-        if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
+        if( MouseEvent.EVENT_MOUSE_MOVED == eventType || MouseEvent.EVENT_MOUSE_DRAGGED == eventType ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             display.moveActivePointerIcon(getX() + x, getY() + y);
         }
