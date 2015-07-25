@@ -33,6 +33,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.MouseTracker;
 import jogamp.newt.driver.KeyTracker;
 
+import com.jogamp.common.util.ArrayHashMap;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.Capabilities;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
@@ -58,24 +59,16 @@ import com.jogamp.newt.event.WindowUpdateEvent;
  * A NEWT window may use the UnderlayTracker by calling
  * <code>addWindowListener(X11UnderlayTracker.getSingleton())</code>
  */
-public class X11UnderlayTracker implements WindowListener, KeyListener,
-        MouseListener, MouseTracker, KeyTracker {
+public class X11UnderlayTracker implements WindowListener, KeyListener, MouseListener,
+                                           MouseTracker, KeyTracker {
 
     private static final X11UnderlayTracker tracker;
-    private static Window underlayWindow;
-    private volatile WindowImpl focusedWindow = null;
+    private volatile WindowImpl focusedWindow = null; // Mouse & Key events is sent to the focusedWindow
     private volatile MouseEvent lastMouse;
+    private volatile static ArrayHashMap<WindowImpl, WindowImpl> underlayWindowMap = new ArrayHashMap<WindowImpl, WindowImpl>(false, ArrayHashMap.DEFAULT_INITIAL_CAPACITY, ArrayHashMap.DEFAULT_LOAD_FACTOR);
+    private volatile static ArrayHashMap<WindowImpl, WindowImpl> overlayWindowMap = new ArrayHashMap<WindowImpl, WindowImpl>(false, ArrayHashMap.DEFAULT_INITIAL_CAPACITY, ArrayHashMap.DEFAULT_LOAD_FACTOR);
 
     static {
-        tracker = new X11UnderlayTracker();
-    }
-
-    public static X11UnderlayTracker getSingleton() {
-        return tracker;
-    }
-
-    private X11UnderlayTracker() {
-
         /*
          * X11UnderlayTracker is intended to be used on systems where X11 is not
          * the default WM. We must explicitly initialize all X11 dependencies to
@@ -91,56 +84,32 @@ public class X11UnderlayTracker implements WindowListener, KeyListener,
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }
+        tracker = new X11UnderlayTracker();
+    }
 
-        /*
-         * Initialize the X11 underlay tracker window.
-         */
-        Capabilities caps = new Capabilities();
-
-        /* 1178 cc6: if you render the overlay window transparent -> caps.setBackgroundOpaque(false);
-         *      then you will see that the underlay tracker window newer repaints -> looks a bit like a mess.
-         * Attempted fix 1178 cc6: x11 underlay tracker window can be set transparent as well.
-         * FIXME: The underlay tracker window is still filled with opaque garbage.
-         */
-        caps.setBackgroundOpaque(false);
-
-        final Display display = NewtFactory.createDisplay(NativeWindowFactory.TYPE_X11, null, false);
-        final Screen screen = NewtFactory.createScreen(display, 0);
-
-        underlayWindow = WindowImpl.create(null, 0, screen, caps);
-
-        /* 1178 cc4: another window overlaps NEWT underlay window -> overlay window is still on top.
-         * Fix 1178 cc4: we can request the NEWT underlay window to use always on top.
-         */
-        underlayWindow.setAlwaysOnTop(true);
-
-        underlayWindow.setVisible(false, true);
-
-        underlayWindow.addKeyListener(this);
-        underlayWindow.addMouseListener(this);
-        underlayWindow.addWindowListener(this);
+    public static X11UnderlayTracker getSingleton() {
+        return tracker;
     }
 
     @Override
     public void windowResized(final WindowEvent e) {
         final Object s = e.getSource();
-
         if (s instanceof WindowImpl) {
-            if (underlayWindow == s) {
-                if (focusedWindow != null) {
-                    focusedWindow.setSize(underlayWindow.getSurfaceWidth(),
-                                          underlayWindow.getSurfaceHeight());
-                    // Attempted workaround, bvm.vc.iv position gets moved during setSize
-                    focusedWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
+            if (underlayWindowMap.containsKey(s)) {
+                WindowImpl underlayWindow = (WindowImpl)s;
+                WindowImpl overlayWindow = underlayWindowMap.get(s);
+                if(overlayWindow.getSurfaceWidth() != underlayWindow.getSurfaceWidth() ||
+                   overlayWindow.getSurfaceHeight() != underlayWindow.getSurfaceHeight()) {
+                   overlayWindow.setSize(underlayWindow.getSurfaceWidth(),
+                                         underlayWindow.getSurfaceHeight());
                 }
-            } else {
-                // FIXME null check here used as a workaround to prevent event
-                // avalanche. Fixing it will allow the user to resize the
-                // NEWT window using code after it has gained focus.
-                if (focusedWindow == null) {
-                    WindowImpl sourceWindow = (WindowImpl) s;
-                    underlayWindow.setSize(sourceWindow.getSurfaceWidth(),
-                                   sourceWindow.getSurfaceHeight());
+            } else if (overlayWindowMap.containsKey(s)){
+                WindowImpl overlayWindow = (WindowImpl)s;
+                WindowImpl underlayWindow = overlayWindowMap.get(s);
+                if(overlayWindow.getSurfaceWidth() != underlayWindow.getSurfaceWidth() ||
+                   overlayWindow.getSurfaceHeight() != underlayWindow.getSurfaceHeight()) {
+                    underlayWindow.setSize(overlayWindow.getSurfaceWidth(),
+                                           overlayWindow.getSurfaceHeight());
                 }
             }
         }
@@ -150,17 +119,19 @@ public class X11UnderlayTracker implements WindowListener, KeyListener,
     public void windowMoved(final WindowEvent e) {
         final Object s = e.getSource();
         if (s instanceof WindowImpl) {
-            if (underlayWindow == s) {
-                if (focusedWindow != null) {
-                    focusedWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
+            if (underlayWindowMap.containsKey(s)) {
+                WindowImpl underlayWindow = (WindowImpl)s;
+                WindowImpl overlayWindow = underlayWindowMap.get(s);
+                if(overlayWindow.getX()!=underlayWindow.getX() ||
+                   overlayWindow.getY()!=underlayWindow.getY()) {
+                    overlayWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
                 }
-            } else {
-                // FIXME null check here used as a workaround to prevent event
-                // avalanche. Fixing it will allow the user to resize the
-                // NEWT window using code after it has gained focus.
-                if (focusedWindow == null) {
-                    WindowImpl sourceWindow = (WindowImpl) s;
-                    underlayWindow.setPosition(sourceWindow.getX(), sourceWindow.getY());
+            } else if (overlayWindowMap.containsKey(s)) {
+                WindowImpl overlayWindow = (WindowImpl)s;
+                WindowImpl underlayWindow = overlayWindowMap.get(s);
+                if(overlayWindow.getX()!=underlayWindow.getX() ||
+                   overlayWindow.getY()!=underlayWindow.getY()) {
+                    underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
                 }
             }
         }
@@ -169,18 +140,24 @@ public class X11UnderlayTracker implements WindowListener, KeyListener,
     @Override
     public void windowDestroyNotify(final WindowEvent e) {
         final Object s = e.getSource();
-
-        if (underlayWindow == s) {
-            if (focusedWindow != null) {
-                focusedWindow.destroy();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl underlayWindow = (WindowImpl)s;
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindowMap.remove(overlayWindow);
+            underlayWindowMap.remove(underlayWindow);
+            if (focusedWindow == overlayWindow) {
                 focusedWindow = null;
             }
-        } else {
-            if (focusedWindow == s) {
+            overlayWindow.destroy();
+        } else if (overlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = (WindowImpl)s;
+            WindowImpl underlayWindow = overlayWindowMap.get(s);
+            overlayWindowMap.remove(overlayWindow);
+            underlayWindowMap.remove(underlayWindow);
+            if (focusedWindow == overlayWindow) {
                 focusedWindow = null;
-                underlayWindow.setVisible(false, false);
-                underlayWindow.destroy();
             }
+            underlayWindow.destroy();
         }
     }
 
@@ -192,17 +169,53 @@ public class X11UnderlayTracker implements WindowListener, KeyListener,
     public void windowGainedFocus(final WindowEvent e) {
         final Object s = e.getSource();
         if (s instanceof WindowImpl) {
-            if (underlayWindow == s) {
-                // do nothing
+            if (underlayWindowMap.containsKey(s)) {
+                WindowImpl overlayWindow = underlayWindowMap.get(s);
+                focusedWindow = overlayWindow;
+            } else if (overlayWindowMap.containsKey(s)) {
+                focusedWindow = (WindowImpl) s;
             } else {
-                if (focusedWindow == null) {
-                    // hack that initially make the tracking window the same
-                    // size as the overlay
-                    WindowImpl sourceWindow = (WindowImpl) s;
-                    underlayWindow.setSize(sourceWindow.getSurfaceWidth(),
-                                   sourceWindow.getSurfaceHeight());
-                    underlayWindow.setPosition(sourceWindow.getX(), sourceWindow.getY());
-                }
+                /*
+                 * Initialize the X11 under-lay tracker window.
+                 * when a new overlay gain focus.
+                 */
+                WindowImpl overlayWindow = (WindowImpl) s;
+                Capabilities caps = new Capabilities();
+
+                /* 1178 cc6: if you render the overlay window transparent -> caps.setBackgroundOpaque(false);
+                 *      then you will see that the under-lay tracker window newer repaints -> looks a bit like a mess.
+                 * Attempted fix 1178 cc6: x11 under-lay tracker window can be set transparent as well.
+                 * FIXME: The under-lay tracker window is still filled with opaque garbage.
+                 */
+                caps.setBackgroundOpaque(false);
+
+                final Display display = NewtFactory.createDisplay(NativeWindowFactory.TYPE_X11, null, false);
+                final Screen screen = NewtFactory.createScreen(display, 0);
+                WindowImpl underlayWindow = WindowImpl.create(null, 0, screen, caps);                
+
+                /*
+                 * Register overlay and under-lay window in the map's before generating events.
+                 */
+                underlayWindowMap.put(underlayWindow, overlayWindow);
+                overlayWindowMap.put(overlayWindow, underlayWindow);
+
+                /* 1178 cc4: another window overlaps NEWT under-lay window -> overlay window is still on top.
+                 * Fix 1178 cc4: we can request the NEWT under-lay window to use always on top.
+                 */
+                underlayWindow.setAlwaysOnTop(true);
+
+                underlayWindow.setTitle(overlayWindow.getTitle());
+
+                underlayWindow.addKeyListener(this);
+                underlayWindow.addMouseListener(this);
+                underlayWindow.addWindowListener(this);
+
+                underlayWindow.setSize(overlayWindow.getSurfaceWidth(),
+                                       overlayWindow.getSurfaceHeight());
+                underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
+
+                underlayWindow.setVisible(false, true);
+
                 focusedWindow = (WindowImpl) s;
             }
         }
@@ -211,8 +224,11 @@ public class X11UnderlayTracker implements WindowListener, KeyListener,
     @Override
     public void windowLostFocus(final WindowEvent e) {
         final Object s = e.getSource();
-        if (underlayWindow == s) {
-            // do nothing
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            if (focusedWindow == overlayWindow) {
+                focusedWindow = null;
+            }
         } else {
             if (focusedWindow == s) {
                 focusedWindow = null;
@@ -225,7 +241,20 @@ public class X11UnderlayTracker implements WindowListener, KeyListener,
     }
 
     public static void main(String[] args) throws InterruptedException {
-        X11UnderlayTracker.getSingleton();
+        Capabilities caps = new Capabilities();
+        caps.setBackgroundOpaque(false);
+
+        Window w = NewtFactory.createWindow(caps);
+        w.setUndecorated(true);
+        w.addWindowListener(X11UnderlayTracker.getSingleton());
+        w.setTitle("1");
+        w.setVisible(true);
+
+        w = NewtFactory.createWindow(caps);
+        w.setUndecorated(true);
+        w.addWindowListener(X11UnderlayTracker.getSingleton());
+        w.setTitle("2");
+        w.setVisible(true);
 
         Thread.sleep(25000);
     }
