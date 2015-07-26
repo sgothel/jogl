@@ -63,7 +63,7 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
                                            MouseTracker, KeyTracker {
 
     private static final X11UnderlayTracker tracker;
-    private volatile WindowImpl focusedWindow = null; // Mouse & Key events is sent to the focusedWindow
+    private volatile WindowImpl focusedWindow = null; // Key events is sent to the focusedWindow
     private volatile MouseEvent lastMouse;
     private volatile static ArrayHashMap<WindowImpl, WindowImpl> underlayWindowMap = new ArrayHashMap<WindowImpl, WindowImpl>(false, ArrayHashMap.DEFAULT_INITIAL_CAPACITY, ArrayHashMap.DEFAULT_LOAD_FACTOR);
     private volatile static ArrayHashMap<WindowImpl, WindowImpl> overlayWindowMap = new ArrayHashMap<WindowImpl, WindowImpl>(false, ArrayHashMap.DEFAULT_INITIAL_CAPACITY, ArrayHashMap.DEFAULT_LOAD_FACTOR);
@@ -94,23 +94,21 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void windowResized(final WindowEvent e) {
         final Object s = e.getSource();
-        if (s instanceof WindowImpl) {
-            if (underlayWindowMap.containsKey(s)) {
-                WindowImpl underlayWindow = (WindowImpl)s;
-                WindowImpl overlayWindow = underlayWindowMap.get(s);
-                if(overlayWindow.getSurfaceWidth() != underlayWindow.getSurfaceWidth() ||
-                   overlayWindow.getSurfaceHeight() != underlayWindow.getSurfaceHeight()) {
-                   overlayWindow.setSize(underlayWindow.getSurfaceWidth(),
-                                         underlayWindow.getSurfaceHeight());
-                }
-            } else if (overlayWindowMap.containsKey(s)){
-                WindowImpl overlayWindow = (WindowImpl)s;
-                WindowImpl underlayWindow = overlayWindowMap.get(s);
-                if(overlayWindow.getSurfaceWidth() != underlayWindow.getSurfaceWidth() ||
-                   overlayWindow.getSurfaceHeight() != underlayWindow.getSurfaceHeight()) {
-                    underlayWindow.setSize(overlayWindow.getSurfaceWidth(),
-                                           overlayWindow.getSurfaceHeight());
-                }
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl underlayWindow = (WindowImpl)s;
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            if(overlayWindow.getSurfaceWidth() != underlayWindow.getSurfaceWidth() ||
+               overlayWindow.getSurfaceHeight() != underlayWindow.getSurfaceHeight()) {
+               overlayWindow.setSize(underlayWindow.getSurfaceWidth(),
+                                     underlayWindow.getSurfaceHeight());
+            }
+        } else if (overlayWindowMap.containsKey(s)){
+            WindowImpl overlayWindow = (WindowImpl)s;
+            WindowImpl underlayWindow = overlayWindowMap.get(s);
+            if(overlayWindow.getSurfaceWidth() != underlayWindow.getSurfaceWidth() ||
+               overlayWindow.getSurfaceHeight() != underlayWindow.getSurfaceHeight()) {
+                underlayWindow.setSize(overlayWindow.getSurfaceWidth(),
+                                       overlayWindow.getSurfaceHeight());
             }
         }
     }
@@ -118,21 +116,19 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void windowMoved(final WindowEvent e) {
         final Object s = e.getSource();
-        if (s instanceof WindowImpl) {
-            if (underlayWindowMap.containsKey(s)) {
-                WindowImpl underlayWindow = (WindowImpl)s;
-                WindowImpl overlayWindow = underlayWindowMap.get(s);
-                if(overlayWindow.getX()!=underlayWindow.getX() ||
-                   overlayWindow.getY()!=underlayWindow.getY()) {
-                    overlayWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
-                }
-            } else if (overlayWindowMap.containsKey(s)) {
-                WindowImpl overlayWindow = (WindowImpl)s;
-                WindowImpl underlayWindow = overlayWindowMap.get(s);
-                if(overlayWindow.getX()!=underlayWindow.getX() ||
-                   overlayWindow.getY()!=underlayWindow.getY()) {
-                    underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
-                }
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl underlayWindow = (WindowImpl)s;
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            if(overlayWindow.getX()!=underlayWindow.getX() ||
+               overlayWindow.getY()!=underlayWindow.getY()) {
+                overlayWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
+            }
+        } else if (overlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = (WindowImpl)s;
+            WindowImpl underlayWindow = overlayWindowMap.get(s);
+            if(overlayWindow.getX()!=underlayWindow.getX() ||
+               overlayWindow.getY()!=underlayWindow.getY()) {
+                underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
             }
         }
     }
@@ -191,7 +187,7 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
 
                 final Display display = NewtFactory.createDisplay(NativeWindowFactory.TYPE_X11, null, false);
                 final Screen screen = NewtFactory.createScreen(display, 0);
-                WindowImpl underlayWindow = WindowImpl.create(null, 0, screen, caps);                
+                WindowImpl underlayWindow = WindowImpl.create(null, 0, screen, caps);
 
                 /*
                  * Register overlay and under-lay window in the map's before generating events.
@@ -262,10 +258,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseClicked(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -273,10 +269,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseEntered(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -284,10 +280,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseExited(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_EXITED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_EXITED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -295,10 +291,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mousePressed(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -306,10 +302,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseReleased(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -317,10 +313,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseMoved(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -328,10 +324,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseDragged(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
@@ -339,10 +335,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void mouseWheelMoved(MouseEvent e) {
         lastMouse = e;
-        if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
-            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_WHEEL_MOVED, 0,
+        final Object s = e.getSource();
+        if (underlayWindowMap.containsKey(s)) {
+            WindowImpl overlayWindow = underlayWindowMap.get(s);
+            overlayWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_WHEEL_MOVED, 0,
                                          e.getX(), e.getY(), (short) 0, 0);
         }
     }
