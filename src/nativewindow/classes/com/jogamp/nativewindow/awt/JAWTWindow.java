@@ -137,7 +137,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
 
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
-        private boolean isShowing;
+        private volatile boolean isShowing;
 
         private String str(final Object obj) {
             if( null == obj ) {
@@ -178,6 +178,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             AWTEDTExecutor.singleton.invoke(false, new Runnable() { // Bug 952: Avoid deadlock via AWTTreeLock acquisition ..
                 @Override
                 public void run() {
+                    isShowing = component.isShowing(); // Bug 1161: Runnable might be deferred, hence need to update
                     if(DEBUG) {
                         System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
                     }
@@ -247,7 +248,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 final java.awt.Component changed = e.getChanged();
                 final boolean displayable = changed.isDisplayable();
                 final boolean showing = changed.isShowing();
-                System.err.println(jawtStr()+".hierarchyChanged: action "+action+", displayable "+displayable+", showing [changed "+showing+", comp "+isShowing+"], "+s(e));
+                System.err.println(jawtStr()+".hierarchyChanged: action "+action+", displayable "+displayable+", showing [changed "+showing+", comp "+wasShowing+" -> "+isShowing+"], "+s(e));
             }
         }
   }
