@@ -202,6 +202,10 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
 
                 underlayWindow.setTitle(overlayWindow.getTitle());
 
+                if(overlayWindow.isUndecorated()){
+                    underlayWindow.setUndecorated(true);
+                }
+
                 underlayWindow.addKeyListener(this);
                 underlayWindow.addMouseListener(this);
                 underlayWindow.addWindowListener(this);
@@ -247,7 +251,7 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
         w.setVisible(true);
 
         w = NewtFactory.createWindow(caps);
-        w.setUndecorated(true);
+        w.setUndecorated(false);
         w.addWindowListener(X11UnderlayTracker.getSingleton());
         w.setTitle("2");
         w.setVisible(true);

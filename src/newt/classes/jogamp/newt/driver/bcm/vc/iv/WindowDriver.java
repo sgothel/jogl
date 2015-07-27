@@ -63,25 +63,24 @@ public class WindowDriver extends WindowImpl {
 
     public WindowDriver() {
         
-    	/* Try use X11 as input for bcm.vc.iv
-    	 * if X11 fail to initialize then
-    	 * track using the /dev/event files directly
-    	 * using the LinuxMouseTracker
-    	 */
+        /* Try use X11 as input for bcm.vc.iv
+         * if X11 fail to initialize then
+         * track using the /dev/event files directly
+         * using the LinuxMouseTracker
+         */
         try{
             x11UnderlayTracker = X11UnderlayTracker.getSingleton();
 
             mouseTracker = x11UnderlayTracker;
             keyTracker = x11UnderlayTracker;
-        } catch(ExceptionInInitializerError e){
+        } catch(ExceptionInInitializerError e) {
             linuxMouseTracker = LinuxMouseTracker.getSingleton();
             linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
 
             mouseTracker = linuxMouseTracker;
             keyTracker = linuxEventDeviceTracker;
         }
-        
-        
+
         layer = -1;
         nativeWindowHandle = 0;
         windowHandleClose = 0;
