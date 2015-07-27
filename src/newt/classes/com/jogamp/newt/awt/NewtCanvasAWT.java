@@ -37,6 +37,7 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import java.awt.KeyboardFocusManager;
 import java.awt.geom.NoninvertibleTransformException;
 import java.beans.Beans;
@@ -47,6 +48,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Set;
 
+import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.OffscreenLayerOption;
 import com.jogamp.nativewindow.WindowClosingProtocol;
@@ -71,6 +73,7 @@ import jogamp.opengl.awt.AWTTilePainter;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
@@ -101,7 +104,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     public static final boolean DEBUG = Debug.debug("Window");
 
     private final Object sync = new Object();
-    private JAWTWindow jawtWindow = null;
+    private volatile JAWTWindow jawtWindow = null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
     private boolean isApplet = false;
     private boolean shallUseOffscreenLayer = false;
     private Window newtChild = null;
@@ -111,6 +114,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final AWTParentWindowAdapter awtWinAdapter;
     private final AWTAdapter awtMouseAdapter;
     private final AWTAdapter awtKeyAdapter;
+
+    private volatile AWTGraphicsConfiguration awtConfig;
 
     /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy(). */
     private boolean destroyJAWTPending = false;
@@ -452,13 +457,141 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
+    private void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
+        // Cache awtConfig
+        awtConfig = config;
+        if( null != jawtWindow ) {
+            // Notify JAWTWindow ..
+            jawtWindow.setAWTGraphicsConfiguration(config);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Overridden to choose a {@link GraphicsConfiguration} from a parent container's
+     * {@link GraphicsDevice}.
+     * </p>
+     * <p>
+     * Method also intercepts {@link GraphicsConfiguration} changes regarding to
+     * its capabilities and its {@link GraphicsDevice}. This may happen in case
+     * the display changes its configuration or the component is moved to another screen.
+     * </p>
+     */
+    @Override
+    public GraphicsConfiguration getGraphicsConfiguration() {
+        /**
+         * parentGC will be null unless:
+         *   - A native peer has assigned it. This means we have a native
+         *     peer, and are already committed to a graphics configuration.
+         *   - This canvas has been added to a component hierarchy and has
+         *     an ancestor with a non-null GC, but the native peer has not
+         *     yet been created. This means we can still choose the GC on
+         *     all platforms since the peer hasn't been created.
+         */
+        final GraphicsConfiguration parentGC = super.getGraphicsConfiguration();
+
+        if( Beans.isDesignTime() ) {
+            return parentGC;
+        }
+        final GraphicsConfiguration oldGC =  null != awtConfig ? awtConfig.getAWTGraphicsConfiguration() : null;
+
+        if ( null != parentGC && null != oldGC && !oldGC.equals(parentGC) ) {
+            // Previous oldGC != parentGC of native peer
+
+            if ( !oldGC.getDevice().getIDstring().equals(parentGC.getDevice().getIDstring()) ) {
+                // Previous oldGC's GraphicsDevice != parentGC's GraphicsDevice of native peer
+
+                /**
+                 * Here we select a GraphicsConfiguration on the alternate device.
+                 * In case the new configuration differs (-> !equalCaps),
+                 * we might need a reconfiguration,
+                 */
+                final AWTGraphicsConfiguration newConfig = AWTGraphicsConfiguration.create(parentGC,
+                        awtConfig.getChosenCapabilities(),
+                        awtConfig.getRequestedCapabilities());
+                final GraphicsConfiguration newGC = newConfig.getAWTGraphicsConfiguration();
+                final boolean equalCaps = newConfig.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": getGraphicsConfiguration() Info: Changed GC and GD");
+                    System.err.println("Created Config (n): Old     GC "+oldGC);
+                    System.err.println("Created Config (n): Old     GD "+oldGC.getDevice().getIDstring());
+                    System.err.println("Created Config (n): Parent  GC "+parentGC);
+                    System.err.println("Created Config (n): Parent  GD "+parentGC.getDevice().getIDstring());
+                    System.err.println("Created Config (n): New     GC "+newGC);
+                    System.err.println("Created Config (n): Old     CF "+awtConfig);
+                    System.err.println("Created Config (n): New     CF "+newConfig);
+                    System.err.println("Created Config (n): EQUALS CAPS "+equalCaps);
+                    // Thread.dumpStack();
+                }
+                if ( null != newGC ) {
+                    setAWTGraphicsConfiguration(newConfig);
+                    /**
+                     * Return the newGC, which covers the desired capabilities and is compatible
+                     * with the available GC's of its devices.
+                     */
+                    if(DEBUG) {
+                        System.err.println(getThreadName()+": Info: getGraphicsConfiguration - end.01: newGC "+newGC);
+                    }
+                    return newGC;
+                } else {
+                    if(DEBUG) {
+                        System.err.println(getThreadName()+": Info: getGraphicsConfiguration - end.00: oldGC "+oldGC);
+                    }
+                }
+            }
+            /**
+             * If a new GC was _not_ found/defined above,
+             * method returns oldGC as selected in the constructor or first addNotify().
+             * This may cause an exception in Component.checkGD when adding to a
+             * container, and is the desired behavior.
+             */
+            return oldGC;
+        } else if (null == parentGC) {
+            /**
+             * The parentGC is null, which means we have no native peer, and are not
+             * part of a (realized) component hierarchy. So we return the
+             * desired visual that was selected in the constructor (possibly
+             * null).
+             */
+            return oldGC;
+        } else {
+            /**
+             * Otherwise we have not explicitly selected a GC in the constructor, so
+             * just return what Canvas would have.
+             */
+            return parentGC;
+        }
+    }
+    private static String getThreadName() { return Thread.currentThread().getName(); }
+
     @Override
     public void addNotify() {
         if( Beans.isDesignTime() ) {
             super.addNotify();
         } else {
+            /**
+             * 'super.addNotify()' determines the GraphicsConfiguration,
+             * while calling this class's overridden 'getGraphicsConfiguration()' method
+             * after which it creates the native peer.
+             * Hence we have to set the 'awtConfig' before since it's GraphicsConfiguration
+             * is being used in getGraphicsConfiguration().
+             * This code order also allows recreation, ie re-adding the GLCanvas.
+             */
             // before native peer is valid: X11
             disableBackgroundErase();
+
+            // Query AWT GraphicsDevice from parent tree, default
+            final GraphicsConfiguration gc = super.getGraphicsConfiguration();
+            if(null==gc) {
+                throw new GLException("Error: NULL AWT GraphicsConfiguration");
+            }
+            final CapabilitiesImmutable capsReq = null != newtChild ? newtChild.getRequestedCapabilities() : null;
+            final AWTGraphicsConfiguration awtConfig = AWTGraphicsConfiguration.create(gc, null, capsReq);
+            if(null==awtConfig) {
+                throw new GLException("Error: NULL AWTGraphicsConfiguration");
+            }
+            setAWTGraphicsConfiguration(awtConfig);
 
             // creates the native peer
             super.addNotify();
@@ -472,7 +605,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     System.err.println("NewtCanvasAWT.addNotify.0 - isApplet "+isApplet+", addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
                     ExceptionUtils.dumpStack(System.err);
                 }
-                jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, null != newtChild ? newtChild.getRequestedCapabilities() : null);
+                jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, awtConfig);
                 jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
                 // enforce initial lock on AWT-EDT, allowing acquisition of pixel-scale
                 jawtWindow.lockSurface();

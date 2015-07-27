@@ -49,7 +49,6 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
-import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
@@ -91,10 +90,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   // lifetime: forever
   protected final Component component;
   private final AppContextInfo appContextInfo;
-  private final AWTGraphicsConfiguration config; // control access due to delegation
   private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
   private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
   private final JAWTComponentListener jawtComponentListener;
+  private volatile AWTGraphicsConfiguration awtConfig; // control access through delegation
 
   // lifetime: valid after lock but may change with each 1st lock, purges after invalidate
   private boolean isApplet;
@@ -128,9 +127,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     }
     appContextInfo = new AppContextInfo("<init>");
     this.component = (Component)comp;
-    this.config = (AWTGraphicsConfiguration) config;
     this.jawtComponentListener = new JAWTComponentListener();
     invalidate();
+    this.awtConfig = (AWTGraphicsConfiguration) config;
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
   }
@@ -265,6 +264,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     }
     invalidateNative();
     jawt = null;
+    awtConfig = null;
     isOffscreenLayerSurface = false;
     drawable= 0;
     drawable_old = 0;
@@ -279,6 +279,34 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     hasPixelScaleChanged = false;
   }
   protected abstract void invalidateNative();
+
+  /**
+   * Set a new {@link AWTGraphicsConfiguration} instance,
+   * as required if {@link #getAWTComponent() upstream component}'s {@link GraphicsConfiguration} has been changed
+   * due to reconfiguration, e.g. moving to a different monitor or changed capabilities.
+   * <p>
+   * {@link #getAWTComponent() Upstream component} shall override {@link Component#getGraphicsConfiguration()},
+   * which shall call this method if detecting a reconfiguration.
+   * See JOGL's GLCanvas and NewtCanvasAWT.
+   * </p>
+   * @param config the new {@link AWTGraphicsConfiguration}
+   * @see #getAWTGraphicsConfiguration()
+   */
+  public final void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
+    if(DEBUG) {
+        System.err.println(jawtStr()+".setAWTGraphicsConfiguration(): "+this.awtConfig+" -> "+config);
+        // Thread.dumpStack();
+    }
+    this.awtConfig = config;
+  }
+  /**
+   * Return the current {@link AWTGraphicsConfiguration} instance,
+   * which also holds its {@link #getAWTComponent() upstream component}'s {@link GraphicsConfiguration}
+   * @see #setAWTGraphicsConfiguration(AWTGraphicsConfiguration)
+   */
+  public final AWTGraphicsConfiguration getAWTGraphicsConfiguration() {
+    return awtConfig;
+  }
 
   @Override
   public boolean setSurfaceScale(final float[] pixelScale) {
@@ -527,7 +555,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public final void setChosenCapabilities(final CapabilitiesImmutable caps) {
       ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
-      config.setChosenCapabilities(caps);
+      awtConfig.setChosenCapabilities(caps);
   }
 
   @Override
@@ -706,7 +734,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   @Override
   public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
-    return config.getNativeGraphicsConfiguration();
+    return awtConfig.getNativeGraphicsConfiguration();
   }
 
   @Override
@@ -877,7 +905,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
              "], pixels[scale "+getPixelScaleX()+", "+getPixelScaleY()+" -> "+getSurfaceWidth()+"x"+getSurfaceHeight()+"]"+
               ", visible "+component.isVisible());
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
-              ",\n\tconfig "+config+
+              ",\n\tconfig "+awtConfig+
               ",\n\tawtComponent "+getAWTComponent()+
               ",\n\tsurfaceLock "+surfaceLock+"]");
 

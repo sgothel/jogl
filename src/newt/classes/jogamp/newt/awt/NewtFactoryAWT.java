@@ -28,8 +28,6 @@
 
 package jogamp.newt.awt;
 
-import java.awt.GraphicsDevice;
-
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
@@ -57,6 +55,8 @@ public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
   /**
+   * @deprecated Use {@link #getNativeWindow(java.awt.Component, AWTGraphicsConfiguration)}
+   *
    * Wraps an AWT component into a {@link com.jogamp.nativewindow.NativeWindow} utilizing the {@link com.jogamp.nativewindow.NativeWindowFactory},<br>
    * using a configuration agnostic dummy {@link com.jogamp.nativewindow.DefaultGraphicsConfiguration}.<br>
    * <p>
@@ -78,9 +78,37 @@ public class NewtFactoryAWT extends NewtFactory {
       return getNativeWindow( (java.awt.Component) awtCompObject, capsRequested );
   }
 
+  /**
+   * @deprecated Use {@link #getNativeWindow(java.awt.Component, AWTGraphicsConfiguration)}
+   * @param awtComp
+   * @param capsRequested
+   * @return
+   */
   public static JAWTWindow getNativeWindow(final java.awt.Component awtComp, final CapabilitiesImmutable capsRequested) {
-      final AWTGraphicsConfiguration config = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
-      final NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, config); // a JAWTWindow
+      final AWTGraphicsConfiguration awtConfig = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
+      return getNativeWindow(awtComp, awtConfig);
+  }
+
+  /**
+   * Wraps an AWT component into a {@link com.jogamp.nativewindow.NativeWindow} utilizing the {@link com.jogamp.nativewindow.NativeWindowFactory},<br>
+   * using the given {@link AWTGraphicsConfiguration}.
+   * <p>
+   * The actual wrapping implementation is {@link com.jogamp.nativewindow.awt.JAWTWindow}.
+   * </p>
+   * <p>
+   * The required {@link AWTGraphicsConfiguration} may be constructed via
+   * {@link AWTGraphicsConfiguration#create(java.awt.GraphicsConfiguration, CapabilitiesImmutable, CapabilitiesImmutable)}
+   * </p>
+   * <p>
+   * Purpose of this wrapping is to access the AWT window handle,<br>
+   * not to actually render into it.
+   * </p>
+   *
+   * @param awtComp {@link java.awt.Component}
+   * @param awtConfig {@link AWTGraphicsConfiguration} reflecting the used {@link java.awt.GraphicsConfiguration}
+   */
+  public static JAWTWindow getNativeWindow(final java.awt.Component awtComp, final AWTGraphicsConfiguration awtConfig) {
+      final NativeWindow nw = NativeWindowFactory.getNativeWindow(awtComp, awtConfig); // a JAWTWindow
       if(! ( nw instanceof JAWTWindow ) ) {
           throw new NativeWindowException("Not an AWT NativeWindow: "+nw);
       }
@@ -101,13 +129,15 @@ public class NewtFactoryAWT extends NewtFactory {
    * @throws IllegalArgumentException if {@code awtComp} is not {@link java.awt.Component#isDisplayable() displayable}
    *                                  or has {@code null} {@link java.awt.Component#getGraphicsConfiguration() GraphicsConfiguration}.
    */
-  private static void checkComponentValid(final java.awt.Component awtComp) throws IllegalArgumentException {
+  private static java.awt.GraphicsConfiguration checkComponentValid(final java.awt.Component awtComp) throws IllegalArgumentException {
       if( !awtComp.isDisplayable() ) {
           throw new IllegalArgumentException("Given AWT-Component is not displayable: "+awtComp);
       }
-      if( null == awtComp.getGraphicsConfiguration() ) {
+      final java.awt.GraphicsConfiguration gc = awtComp.getGraphicsConfiguration();
+      if( null == gc ) {
           throw new IllegalArgumentException("Given AWT-Component has no GraphicsConfiguration set: "+awtComp);
       }
+      return gc;
   }
 
   /**
@@ -120,8 +150,8 @@ public class NewtFactoryAWT extends NewtFactory {
    * @see #getAbstractGraphicsScreen(java.awt.Component)
    */
   public static Display createDisplay(final java.awt.Component awtComp, final boolean reuse) throws IllegalArgumentException {
-      checkComponentValid(awtComp);
-      final GraphicsDevice device = awtComp.getGraphicsConfiguration().getDevice();
+      final java.awt.GraphicsConfiguration gc = checkComponentValid(awtComp);
+      final java.awt.GraphicsDevice device = gc.getDevice();
 
       final String displayConnection;
       final String nwt = NativeWindowFactory.getNativeWindowType(true);
@@ -174,13 +204,13 @@ public class NewtFactoryAWT extends NewtFactory {
    * @see #createScreen(java.awt.Component, boolean)
    */
   public static MonitorDevice getMonitorDevice(final Screen screen, final java.awt.Component awtComp) throws IllegalArgumentException {
-      checkComponentValid(awtComp);
+      final java.awt.GraphicsConfiguration gc = checkComponentValid(awtComp);
       final String nwt = NativeWindowFactory.getNativeWindowType(true);
       MonitorDevice res = null;
       screen.addReference();
       try {
           if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
-              res = screen.getMonitor( JAWTUtil.getMonitorDisplayID( awtComp.getGraphicsConfiguration().getDevice() ) );
+              res = screen.getMonitor( JAWTUtil.getMonitorDisplayID( gc.getDevice() ) );
           }
           if( null == res ) {
               // Fallback, use AWT component coverage

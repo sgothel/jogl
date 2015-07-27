@@ -73,19 +73,42 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   /**
+   * @deprecated Use {@link #create(GraphicsConfiguration, CapabilitiesImmutable, CapabilitiesImmutable)}
+   * Method constructs a new {@link AWTGraphicsConfiguration} primarily based
+   * on the given {@link Component}'s {@link GraphicsConfiguration}.
+   * @param awtComp the {@link Component}, which {@link GraphicsConfiguration} is used for the resulting {@link AWTGraphicsConfiguration}
    * @param capsChosen if null, <code>capsRequested</code> is copied and aligned
    *        with the graphics {@link Capabilities} of the AWT Component to produce the chosen {@link Capabilities}.
    *        Otherwise the <code>capsChosen</code> is used.
    * @param capsRequested if null, default {@link Capabilities} are used, otherwise the given values.
    */
-  public static AWTGraphicsConfiguration create(final Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
-      final GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
-      if(null==awtGfxConfig) {
-          throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsConfiguration @ "+awtComp);
+  public static AWTGraphicsConfiguration create(final Component awtComp, final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested) {
+      if(null==awtComp) {
+          throw new IllegalArgumentException("Null AWT Component");
       }
-      final GraphicsDevice awtGraphicsDevice = awtGfxConfig.getDevice();
+      final GraphicsConfiguration gc = awtComp.getGraphicsConfiguration();
+      if( null == gc ) {
+          throw new NativeWindowException("Null AWT GraphicsConfiguration @ "+awtComp);
+      }
+      return create(gc, capsChosen, capsRequested);
+  }
+
+  /**
+   * Method constructs a new {@link AWTGraphicsConfiguration} primarily based
+   * on the given {@link GraphicsConfiguration}.
+   * @param gc the {@link GraphicsConfiguration} for the resulting {@link AWTGraphicsConfiguration}
+   * @param capsChosen if null, <code>capsRequested</code> is copied and aligned
+   *        with the graphics {@link Capabilities} of the AWT Component to produce the chosen {@link Capabilities}.
+   *        Otherwise the <code>capsChosen</code> is used.
+   * @param capsRequested if null, default {@link Capabilities} are used, otherwise the given values.
+   */
+  public static AWTGraphicsConfiguration create(final GraphicsConfiguration gc, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
+      if(null==gc) {
+          throw new IllegalArgumentException("Null AWT GraphicsConfiguration");
+      }
+      final GraphicsDevice awtGraphicsDevice = gc.getDevice();
       if(null==awtGraphicsDevice) {
-          throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsDevice @ "+awtGfxConfig);
+          throw new NativeWindowException("Null AWT GraphicsDevice @ "+gc);
       }
 
       // Create Device/Screen
@@ -96,7 +119,6 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
           capsRequested = new Capabilities();
       }
       if(null==capsChosen) {
-          final GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
           capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsRequested, gc);
       }
       final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(awtDevice, capsChosen);
@@ -105,7 +127,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
           return (AWTGraphicsConfiguration) config;
       }
       // System.err.println("Info: AWTGraphicsConfiguration.create: Expected AWTGraphicsConfiguration got: "+config.getClass()+" w/ factory "+factory.getClass()+" - Unable to encapsulate native GraphicsConfiguration.");
-      return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, awtGfxConfig);
+      return new AWTGraphicsConfiguration(awtScreen, capsChosen, capsRequested, gc);
   }
 
   // open access to superclass method

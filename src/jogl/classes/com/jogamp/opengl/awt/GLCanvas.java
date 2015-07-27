@@ -173,7 +173,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private final RecursiveLock lock = LockFactory.createRecursiveLock();
   private final GLDrawableHelper helper = new GLDrawableHelper();
-  private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
   private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private volatile GLContextImpl context; // volatile: avoid locking for read-only access
@@ -187,9 +186,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final GLCapabilitiesImmutable capsReqUser;
   private final GLCapabilitiesChooser chooser;
   private int additionalCtxCreationFlags = 0;
-  private final GraphicsDevice device;
   private boolean shallUseOffscreenLayer = false;
 
+  private volatile GraphicsDevice awtDeviceReq; // one time user req.
+  private volatile AWTGraphicsConfiguration awtConfig;
   private volatile boolean isShowing;
   private final HierarchyListener hierarchyListener = new HierarchyListener() {
       @Override
@@ -270,16 +270,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         setShallUseOffscreenLayer(true); // trigger offscreen layer - if supported
     }
 
-    if(null==device) {
-        final GraphicsConfiguration gc = super.getGraphicsConfiguration();
-        if(null!=gc) {
-            this.device = gc.getDevice();
-        } else {
-            this.device = null;
-        }
-    } else {
-        this.device = device;
-    }
+    // One time user AWT GraphicsDevice request
+    awtDeviceReq = device;
 
     // instantiation will be issued in addNotify()
     this.chooser = chooser;
@@ -330,124 +322,111 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
 
   /**
-   * Overridden to choose a GraphicsConfiguration on a parent container's
-   * GraphicsDevice because both devices
+   * {@inheritDoc}
+   * <p>
+   * Overridden to choose a {@link GraphicsConfiguration} from a parent container's
+   * {@link GraphicsDevice}.
+   * </p>
+   * <p>
+   * Method also intercepts {@link GraphicsConfiguration} changes regarding to
+   * its capabilities and its {@link GraphicsDevice}. This may happen in case
+   * the display changes its configuration or the component is moved to another screen.
+   * </p>
    */
   @Override
   public GraphicsConfiguration getGraphicsConfiguration() {
-    /*
-     * Workaround for problems with Xinerama and java.awt.Component.checkGD
-     * when adding to a container on a different graphics device than the
-     * one that this Canvas is associated with.
-     *
-     * GC will be null unless:
-     *   - A native peer has assigned it. This means we have a native
-     *     peer, and are already comitted to a graphics configuration.
-     *   - This canvas has been added to a component hierarchy and has
-     *     an ancestor with a non-null GC, but the native peer has not
-     *     yet been created. This means we can still choose the GC on
-     *     all platforms since the peer hasn't been created.
-     */
-    final GraphicsConfiguration gc = super.getGraphicsConfiguration();
-
-    if( Beans.isDesignTime() ) {
-        return gc;
-    }
-
-    /*
-     * chosen is only non-null on platforms where the GLDrawableFactory
-     * returns a non-null GraphicsConfiguration (in the GLCanvas
-     * constructor).
-     *
-     * if gc is from this Canvas' native peer then it should equal chosen,
-     * otherwise it is from an ancestor component that this Canvas is being
-     * added to, and we go into this block.
-     */
-    GraphicsConfiguration chosen =  null != awtConfig ? awtConfig.getAWTGraphicsConfiguration() : null;
-
-    if (gc != null && chosen != null && !chosen.equals(gc)) {
-      /*
-       * Check for compatibility with gc. If they differ by only the
-       * device then return a new GCconfig with the super-class' GDevice
-       * (and presumably the same visual ID in Xinerama).
-       *
+      /**
+       * parentGC will be null unless:
+       *   - A native peer has assigned it. This means we have a native
+       *     peer, and are already committed to a graphics configuration.
+       *   - This canvas has been added to a component hierarchy and has
+       *     an ancestor with a non-null GC, but the native peer has not
+       *     yet been created. This means we can still choose the GC on
+       *     all platforms since the peer hasn't been created.
        */
-      if (!chosen.getDevice().getIDstring().equals(gc.getDevice().getIDstring())) {
-        /*
-         * Here we select a GraphicsConfiguration on the alternate
-         * device that is presumably identical to the chosen
-         * configuration, but on the other device.
-         *
-         * Should really check to ensure that we select a configuration
-         * with the same X visual ID for Xinerama screens, otherwise the
-         * GLDrawable may have the wrong visual ID (I don't think this
-         * ever gets updated). May need to add a method to
-         * X11GLDrawableFactory to do this in a platform specific
-         * manner.
-         *
-         * However, on platforms where we can actually get into this
-         * block, both devices should have the same visual list, and the
-         * same configuration should be selected here.
-         */
-        final AWTGraphicsConfiguration config = chooseGraphicsConfiguration( (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities(),
-                                                                       (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities(),
-                                                                       chooser, gc.getDevice());
-        final GraphicsConfiguration compatible = config.getAWTGraphicsConfiguration();
-        final boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
-        if(DEBUG) {
-            System.err.println(getThreadName()+": Info:");
-            System.err.println("Created Config (n): HAVE    GC "+chosen);
-            System.err.println("Created Config (n): THIS    GC "+gc);
-            System.err.println("Created Config (n): Choosen GC "+compatible);
-            System.err.println("Created Config (n): HAVE    CF "+awtConfig);
-            System.err.println("Created Config (n): Choosen CF "+config);
-            System.err.println("Created Config (n): EQUALS CAPS "+equalCaps);
-            // Thread.dumpStack();
-        }
+      final GraphicsConfiguration parentGC = super.getGraphicsConfiguration();
 
-        if (compatible != null) {
-          /*
-           * Save the new GC for equals test above, and to return to
-           * any outside callers of this method.
-           */
-          chosen = compatible;
-
-          if( !equalCaps && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) {
-              // complete destruction!
-              destroyImpl( true );
-              // recreation!
-              awtConfig = config;
-              createJAWTDrawableAndContext();
-              validateGLDrawable();
-          } else {
-              awtConfig = config;
-          }
-        }
+      if( Beans.isDesignTime() ) {
+          return parentGC;
       }
+      final GraphicsConfiguration oldGC =  null != awtConfig ? awtConfig.getAWTGraphicsConfiguration() : null;
 
-      /*
-       * If a compatible GC was not found in the block above, this will
-       * return the GC that was selected in the constructor (and might
-       * cause an exception in Component.checkGD when adding to a
-       * container, but in this case that would be the desired behavior).
-       *
-       */
-      return chosen;
-    } else if (gc == null) {
-      /*
-       * The GC is null, which means we have no native peer, and are not
-       * part of a (realized) component hierarchy. So we return the
-       * desired visual that was selected in the constructor (possibly
-       * null).
-       */
-      return chosen;
-    }
+      if ( null != parentGC && null != oldGC && !oldGC.equals(parentGC) ) {
+          // Previous oldGC != parentGC of native peer
 
-    /*
-     * Otherwise we have not explicitly selected a GC in the constructor, so
-     * just return what Canvas would have.
-     */
-    return gc;
+          if ( !oldGC.getDevice().getIDstring().equals(parentGC.getDevice().getIDstring()) ) {
+              // Previous oldGC's GraphicsDevice != parentGC's GraphicsDevice of native peer
+
+              /**
+               * Here we select a GraphicsConfiguration on the alternate device.
+               * In case the new configuration differs (-> !equalCaps),
+               * we might need a reconfiguration,
+               */
+              final AWTGraphicsConfiguration newConfig = chooseGraphicsConfiguration( (GLCapabilitiesImmutable)awtConfig.getChosenCapabilities(),
+                      (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities(),
+                      chooser, parentGC.getDevice());
+              final GraphicsConfiguration newGC = newConfig.getAWTGraphicsConfiguration();
+              final boolean equalCaps = newConfig.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
+              if(DEBUG) {
+                  System.err.println(getThreadName()+": getGraphicsConfiguration() Info: Changed GC and GD");
+                  System.err.println("Created Config (n): Old     GC "+oldGC);
+                  System.err.println("Created Config (n): Old     GD "+oldGC.getDevice().getIDstring());
+                  System.err.println("Created Config (n): Parent  GC "+parentGC);
+                  System.err.println("Created Config (n): Parent  GD "+parentGC.getDevice().getIDstring());
+                  System.err.println("Created Config (n): New     GC "+newGC);
+                  System.err.println("Created Config (n): New     GD "+newGC.getDevice().getIDstring());
+                  System.err.println("Created Config (n): Old     CF "+awtConfig);
+                  System.err.println("Created Config (n): New     CF "+newConfig);
+                  System.err.println("Created Config (n): EQUALS CAPS "+equalCaps);
+                  // Thread.dumpStack();
+              }
+              if ( null != newGC ) {
+                  if( !equalCaps && GLAutoDrawable.SCREEN_CHANGE_ACTION_ENABLED ) {
+                      // complete destruction!
+                      destroyImpl( true );
+                      // recreation!
+                      setAWTGraphicsConfiguration(newConfig);
+                      createJAWTDrawableAndContext();
+                      validateGLDrawable();
+                  } else {
+                      setAWTGraphicsConfiguration(newConfig);
+                  }
+                  /**
+                   * Return the newGC, which covers the desired capabilities and is compatible
+                   * with the available GC's of its devices.
+                   */
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: getGraphicsConfiguration - end.01: newGC "+newGC);
+                  }
+                  return newGC;
+              } else {
+                  if(DEBUG) {
+                      System.err.println(getThreadName()+": Info: getGraphicsConfiguration - end.00: oldGC "+oldGC);
+                  }
+              }
+          }
+          /**
+           * If a new GC was _not_ found/defined above,
+           * method returns oldGC as selected in the constructor or first addNotify().
+           * This may cause an exception in Component.checkGD when adding to a
+           * container, and is the desired behavior.
+           */
+          return oldGC;
+      } else if (null == parentGC) {
+          /**
+           * The parentGC is null, which means we have no native peer, and are not
+           * part of a (realized) component hierarchy. So we return the
+           * desired visual that was selected in the constructor (possibly
+           * null).
+           */
+          return oldGC;
+      } else {
+          /**
+           * Otherwise we have not explicitly selected a GC in the constructor, so
+           * just return what Canvas would have.
+           */
+          return parentGC;
+      }
   }
 
   @Override
@@ -606,19 +585,34 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         } else {
             /**
              * 'super.addNotify()' determines the GraphicsConfiguration,
-             * while calling this class's overriden 'getGraphicsConfiguration()' method
+             * while calling this class's overridden 'getGraphicsConfiguration()' method
              * after which it creates the native peer.
              * Hence we have to set the 'awtConfig' before since it's GraphicsConfiguration
              * is being used in getGraphicsConfiguration().
              * This code order also allows recreation, ie re-adding the GLCanvas.
              */
-            awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, device);
-            if(null==awtConfig) {
-                throw new GLException("Error: NULL AWTGraphicsConfiguration");
-            }
 
             // before native peer is valid: X11
             disableBackgroundErase();
+
+            final GraphicsDevice awtDevice;
+            if(null==awtDeviceReq) {
+                // Query AWT GraphicsDevice from parent tree, default
+                final GraphicsConfiguration gc = super.getGraphicsConfiguration();
+                if(null==gc) {
+                    throw new GLException("Error: NULL AWT GraphicsConfiguration");
+                }
+                awtDevice = gc.getDevice();
+            } else {
+                // Use one time user AWT GraphicsDevice request
+                awtDevice = awtDeviceReq;
+                awtDeviceReq = null;
+            }
+            final AWTGraphicsConfiguration awtConfig = chooseGraphicsConfiguration(capsReqUser, capsReqUser, chooser, awtDevice);
+            if(null==awtConfig) {
+                throw new GLException("Error: NULL AWTGraphicsConfiguration");
+            }
+            setAWTGraphicsConfiguration(awtConfig);
 
             // issues getGraphicsConfiguration() and creates the native peer
             super.addNotify();
@@ -773,6 +767,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           return res;
       }
       return false;
+  }
+
+  private void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
+    // Cache awtConfig
+    awtConfig = config;
+    if( null != jawtWindow ) {
+        // Notify JAWTWindow ..
+        jawtWindow.setAWTGraphicsConfiguration(config);
+    }
   }
 
   /** <p>Overridden to track when this component is removed from a
@@ -1394,7 +1397,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 System.err.println(getThreadName()+": GLCanvas.disposeJAWTWindowAndAWTDeviceOnEDT(): post GraphicsDevice: "+adeviceMsg+", result: "+closed);
             }
         }
-        awtConfig=null;
+        awtConfig = null;
     }
   };
 
@@ -1546,10 +1549,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     if( Beans.isDesignTime() ) {
       return null;
     }
-
-    final AbstractGraphicsScreen aScreen = null != device ?
-            AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT):
-            AWTGraphicsScreen.createDefault();
+    if( null == device ) {
+        throw new GLException("Error: NULL AWT GraphicsDevice");
+    }
+    final AbstractGraphicsScreen aScreen = AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT);
     AWTGraphicsConfiguration config = null;
 
     if( EventQueue.isDispatchThread() || Thread.holdsLock(getTreeLock()) ) {
