@@ -626,8 +626,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             }
         }
     }
-    private final boolean updatePixelScale() {
-        if( jawtWindow.updatePixelScale(true) ) {
+    private final boolean updatePixelScale(final GraphicsConfiguration gc) {
+        if( jawtWindow.updatePixelScale(gc, true) ) {
             final Window cWin = newtChild;
             final Window dWin = cWin.getDelegatedWindow();
             if( dWin instanceof WindowImpl ) {
@@ -718,6 +718,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 } else {
                     NewtFactoryAWT.destroyNativeWindow(jawtWindow);
                     jawtWindow=null;
+                    awtConfig=null;
                     destroyJAWTPending = false;
                 }
             }
@@ -747,7 +748,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     System.err.println("NewtCanvasAWT.reshape: "+x+"/"+y+" "+width+"x"+height);
                 }
                 if( validateComponent(true) ) {
-                    if( !printActive && updatePixelScale() ) {
+                    if( !printActive && updatePixelScale(getGraphicsConfiguration()) ) {
                         // NOP
                     } else {
                         // newtChild.setSize(width, height);

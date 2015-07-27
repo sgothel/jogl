@@ -340,9 +340,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   /**
    * Updates bounds and pixelScale
+   * @param gc GraphicsConfiguration for {@link #updatePixelScale(GraphicsConfiguration, boolean)}
    * @return true if bounds or pixelScale has changed, otherwise false
    */
-  protected final boolean updateLockedData(final JAWT_Rectangle jawtBounds) {
+  protected final boolean updateLockedData(final JAWT_Rectangle jawtBounds, final GraphicsConfiguration gc) {
     final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
     final boolean changedBounds = !bounds.equals(jb);
 
@@ -358,29 +359,31 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
     }
 
-    updatePixelScale(false);
+    updatePixelScale(gc, false);
     return hasPixelScaleChanged || changedBounds;
   }
 
   /**
    * Updates the minimum and maximum pixel-scale values
    * and returns {@code true} if they were updated.
+   * @param gc pre-fetched {@link GraphicsConfiguration} instance of {@link #getAWTComponent() upstream component},
+   *           caller may use cached {@link #getAWTGraphicsConfiguration()}'s {@link AWTGraphicsConfiguration#getAWTGraphicsConfiguration() GC}
+   *           or a {@link Component#getGraphicsConfiguration()}.
    * @param clearFlag if {@code true}, the {@code hasPixelScaleChanged} flag will be cleared
    * @return {@code true} if values were updated, otherwise {@code false}.
    * @see #hasPixelScaleChanged()
+   * @see #getAWTGraphicsConfiguration()
+   * @see Component#getGraphicsConfiguration()
    */
-  public final boolean updatePixelScale(final boolean clearFlag) {
-      // Using GraphicsConfiguration from component, which may change by moving to diff monitor
-      if( EventQueue.isDispatchThread() || Thread.holdsLock(component.getTreeLock()) ) {
-          if( JAWTUtil.getPixelScale(component.getGraphicsConfiguration(), minPixelScale, maxPixelScale) ) {
-              hasPixelScaleChanged = true;
-              if( DEBUG ) {
-                  System.err.println("JAWTWindow.updatePixelScale: updated req["+
-                          reqPixelScale[0]+", "+reqPixelScale[1]+"], min["+
-                          minPixelScale[0]+", "+minPixelScale[1]+"], max["+
-                          maxPixelScale[0]+", "+maxPixelScale[1]+"], has["+
-                          hasPixelScale[0]+", "+hasPixelScale[1]+"]");
-              }
+  public final boolean updatePixelScale(final GraphicsConfiguration gc, final boolean clearFlag) {
+      if( JAWTUtil.getPixelScale(gc, minPixelScale, maxPixelScale) ) {
+          hasPixelScaleChanged = true;
+          if( DEBUG ) {
+              System.err.println("JAWTWindow.updatePixelScale: updated req["+
+                      reqPixelScale[0]+", "+reqPixelScale[1]+"], min["+
+                      minPixelScale[0]+", "+minPixelScale[1]+"], max["+
+                      maxPixelScale[0]+", "+maxPixelScale[1]+"], has["+
+                      hasPixelScale[0]+", "+hasPixelScale[1]+"]");
           }
       }
       if( clearFlag ) {
@@ -390,6 +393,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       } else {
           return hasPixelScaleChanged;
       }
+  }
+  /**
+   * @deprecated Use {@link #updatePixelScale(GraphicsConfiguration, boolean)}.
+   */
+  public final boolean updatePixelScale(final boolean clearFlag) {
+      return updatePixelScale(awtConfig.getAWTGraphicsConfiguration(), clearFlag);
   }
 
   /**
@@ -414,7 +423,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @return true if pixelScale has changed, otherwise false
    */
   protected final boolean setReqPixelScale() {
-    updatePixelScale(true);
+    updatePixelScale(awtConfig.getAWTGraphicsConfiguration(), true);
     return SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG ? getClass().getSimpleName() : null);
   }
 
@@ -619,7 +628,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @throws NativeWindowException
    */
   protected abstract JAWT fetchJAWTImpl() throws NativeWindowException;
-  protected abstract int lockSurfaceImpl() throws NativeWindowException;
+  protected abstract int lockSurfaceImpl(GraphicsConfiguration gc) throws NativeWindowException;
 
   protected void dumpJAWTInfo() {
       System.err.println(jawt2String(null).toString());
@@ -640,6 +649,19 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 ExceptionUtils.dumpStack(System.err);
             }
         } else {
+            final GraphicsConfiguration gc;
+            if( EventQueue.isDispatchThread() || Thread.holdsLock(component.getTreeLock()) ) {
+                /**
+                 * Trigger detection of possible reconfiguration before 'sun.awt.SunToolkit.awtLock()',
+                 * which maybe triggered via adevice.lock() below (X11).
+                 * See setAWTGraphicsConfiguration(..).
+                 */
+                gc = component.getGraphicsConfiguration();
+            } else {
+                // Reuse cached instance
+                gc = awtConfig.getAWTGraphicsConfiguration();
+            }
+
             determineIfApplet();
             try {
                 final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
@@ -649,7 +671,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                         jawt = fetchJAWTImpl();
                         isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
                     }
-                    res = lockSurfaceImpl();
+                    res = lockSurfaceImpl(gc);
                     if(LOCK_SUCCESS == res && drawable_old != drawable) {
                         res = LOCK_SURFACE_CHANGED;
                         if(DEBUG) {

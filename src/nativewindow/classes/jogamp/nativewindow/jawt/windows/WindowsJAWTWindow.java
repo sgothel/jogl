@@ -40,6 +40,8 @@
 
 package jogamp.nativewindow.jawt.windows;
 
+import java.awt.GraphicsConfiguration;
+
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindow;
@@ -72,7 +74,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
   }
 
   @Override
-  protected int lockSurfaceImpl() throws NativeWindowException {
+  protected int lockSurfaceImpl(final GraphicsConfiguration gc) throws NativeWindowException {
     int ret = NativeSurface.LOCK_SUCCESS;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
@@ -99,7 +101,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    updateLockedData(dsi.getBounds());
+    updateLockedData(dsi.getBounds(), gc);
     win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo(getJAWT());
     if (win32dsi == null) {
       unlockSurfaceImpl();

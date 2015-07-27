@@ -41,6 +41,7 @@
 package jogamp.nativewindow.jawt.macosx;
 
 import java.awt.Component;
+import java.awt.GraphicsConfiguration;
 import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -242,7 +243,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  protected int lockSurfaceImpl() throws NativeWindowException {
+  protected int lockSurfaceImpl(final GraphicsConfiguration gc) throws NativeWindowException {
     int ret = NativeSurface.LOCK_SURFACE_NOT_READY;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
@@ -279,7 +280,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       unlockSurfaceImpl();
       return NativeSurface.LOCK_SURFACE_NOT_READY;
     }
-    updateLockedData(dsi.getBounds());
+    updateLockedData(dsi.getBounds(), gc);
     if (DEBUG && firstLock ) {
       dumpInfo();
     }
