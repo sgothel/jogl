@@ -128,7 +128,9 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
             WindowImpl underlayWindow = overlayWindowMap.get(s);
             if(overlayWindow.getX()!=underlayWindow.getX() ||
                overlayWindow.getY()!=underlayWindow.getY()) {
-                underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
+                //FIXME: Pressing Maximize on the underlay X11
+                //with this line enabled locks-up the NEWT EDT while using the BCM.VC.IV
+                //underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
             }
         }
     }
