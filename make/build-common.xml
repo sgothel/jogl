@@ -180,7 +180,10 @@
         <echo message="swt.jar=${swt.jar}" />
 
         <property name="plugin3.jar" value="${project.root}/make/lib/plugin3/plugin3-public.jar"/>
-        <echo message="plugin3.jar=${plugin3.jar}" />
+        <condition property="plugin3-jars.available">
+            <available file="${plugin3.jar}"/>
+        </condition>
+        <echo message="plugin3-jars.available: ${plugin3-jars.available} ${plugin3.jar}" />
 
         <condition property="isSWTRuntimeAvailable">
           <or>
@@ -241,6 +244,7 @@
         <condition property="oculusvr.sdk.available">
             <available file="${rel.oculusvr.sdk}/LibOVR/Include/OVR_CAPI.h"/>
         </condition>
+        <echo message="oculusvr.sdk.available: ${oculusvr.sdk.available}" />
 
         <property name="results.test"               value="${build}/test/results" />
         <property name="build.test"                 value="${build}/test/build" />

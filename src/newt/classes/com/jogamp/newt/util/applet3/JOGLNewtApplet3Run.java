@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.newt.util.applet;
+package com.jogamp.newt.util.applet3;
 
 import java.util.Locale;
 
@@ -48,6 +48,7 @@ import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.util.applet.JOGLNewtAppletBase;
 
 /**
  * Simple GLEventListener deployment as an applet using JOGL. This demo must be

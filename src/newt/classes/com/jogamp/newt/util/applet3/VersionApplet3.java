@@ -1,4 +1,4 @@
-package com.jogamp.newt.util.applet;
+package com.jogamp.newt.util.applet3;
 
 import com.jogamp.plugin.applet.Applet3;
 import com.jogamp.plugin.applet.Applet3Context;
