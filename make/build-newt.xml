@@ -114,6 +114,9 @@
         <property name="java.part.swt"
                   value="com/jogamp/newt/swt/** jogamp/newt/swt/**"/>
 
+        <property name="java.part.applet3"
+                  value="com/jogamp/newt/util/applet3/**"/>
+
         <property name="java.part.driver.linux"
                   value="jogamp/newt/driver/linux/**"/>
 
@@ -153,11 +156,18 @@
            <isset property="setup.noSWT"/> 
         </condition>
 
+        <condition property="java.excludes.applet3"
+                   value="${java.part.applet3}">
+           <not>
+               <isset property="plugin3-jars.available"/> 
+           </not>
+        </condition>
+
         <condition property="java.excludes.opengl" value="${java.part.opengl}">
            <isset property="setup.noOpenGL"/>
         </condition>
 
-        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.swt}, ${java.excludes.opengl}" />
+        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.swt}, ${java.excludes.applet3}, ${java.excludes.opengl}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
     </target>
