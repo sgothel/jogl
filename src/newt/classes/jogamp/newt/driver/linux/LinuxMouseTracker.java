@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import jogamp.newt.WindowImpl;
+import jogamp.newt.driver.MouseTracker;
 
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -48,7 +49,7 @@ import com.jogamp.newt.event.WindowUpdateEvent;
  * just reading <code>/dev/input/mice</code>
  * within it's own polling thread.
  */
-public class LinuxMouseTracker implements WindowListener {
+public class LinuxMouseTracker implements WindowListener, MouseTracker {
 
     private static final LinuxMouseTracker lmt;
 

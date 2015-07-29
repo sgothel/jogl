@@ -40,6 +40,7 @@ import java.lang.Thread;
 import java.nio.ByteBuffer;
 
 import jogamp.newt.WindowImpl;
+import jogamp.newt.driver.KeyTracker;
 
 import com.jogamp.common.nio.StructAccessor;
 import com.jogamp.newt.Window;
@@ -55,7 +56,7 @@ import com.jogamp.newt.event.KeyEvent;
  * within it's own polling thread.
  */
 
-public class LinuxEventDeviceTracker implements WindowListener {
+public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
 
     private static final LinuxEventDeviceTracker ledt;
 

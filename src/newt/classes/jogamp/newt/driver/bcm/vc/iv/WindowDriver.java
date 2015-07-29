@@ -34,6 +34,7 @@ import com.jogamp.nativewindow.Capabilities;
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowException;
+
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
@@ -41,12 +42,16 @@ import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+
 import com.jogamp.newt.event.MouseEvent;
 
 import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
+import jogamp.newt.driver.KeyTracker;
+import jogamp.newt.driver.MouseTracker;
 import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
+import jogamp.newt.driver.x11.X11UnderlayTracker;
 import jogamp.opengl.egl.EGLDisplayUtil;
 
 public class WindowDriver extends WindowImpl {
@@ -57,8 +62,25 @@ public class WindowDriver extends WindowImpl {
     }
 
     public WindowDriver() {
-        linuxMouseTracker = LinuxMouseTracker.getSingleton();
-        linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
+        
+        /* Try use X11 as input for bcm.vc.iv
+         * if X11 fail to initialize then
+         * track using the /dev/event files directly
+         * using the LinuxMouseTracker
+         */
+        try{
+            x11UnderlayTracker = X11UnderlayTracker.getSingleton();
+
+            mouseTracker = x11UnderlayTracker;
+            keyTracker = x11UnderlayTracker;
+        } catch(ExceptionInInitializerError e) {
+            linuxMouseTracker = LinuxMouseTracker.getSingleton();
+            linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
+
+            mouseTracker = linuxMouseTracker;
+            keyTracker = linuxEventDeviceTracker;
+        }
+
         layer = -1;
         nativeWindowHandle = 0;
         windowHandleClose = 0;
@@ -192,8 +214,10 @@ public class WindowDriver extends WindowImpl {
         }
         windowHandleClose = nativeWindowHandle;
 
-        addWindowListener(linuxEventDeviceTracker);
-        addWindowListener(linuxMouseTracker);
+        addWindowListener(keyTracker);
+        addWindowListener(mouseTracker);
+
+        
         focusChanged(false, true);
     }
 
@@ -202,8 +226,8 @@ public class WindowDriver extends WindowImpl {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
 
-        removeWindowListener(linuxMouseTracker);
-        removeWindowListener(linuxEventDeviceTracker);
+        removeWindowListener(mouseTracker);
+        removeWindowListener(keyTracker);
 
         if(0!=windowHandleClose) {
             CloseWindow0(display.getBCMHandle(), windowHandleClose);
@@ -229,6 +253,7 @@ public class WindowDriver extends WindowImpl {
         final RectangleImmutable rect = clampRect((ScreenDriver) getScreen(), new Rectangle(x, y, width, height), false);
         // reconfigure0 will issue position/size changed events if required
         reconfigure0(nativeWindowHandle, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), flags);
+        
         return true;
     }
 
@@ -245,7 +270,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
                                       final int x, final int y, final short button, final float[] rotationXYZ, final float rotationScale) {
-        if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
+        if( MouseEvent.EVENT_MOUSE_MOVED == eventType || MouseEvent.EVENT_MOUSE_DRAGGED == eventType ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             display.moveActivePointerIcon(getX() + x, getY() + y);
         }
@@ -255,21 +280,25 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-        display.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, linuxMouseTracker.getLastX(), linuxMouseTracker.getLastY());
+        display.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
     }
 
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-        display.setActivePointerIconVisible(pointerVisible, linuxMouseTracker.getLastX(), linuxMouseTracker.getLastY());
+        display.setActivePointerIconVisible(pointerVisible, mouseTracker.getLastX(), mouseTracker.getLastY());
         return true;
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //
-    private final LinuxMouseTracker linuxMouseTracker;
-    private final LinuxEventDeviceTracker linuxEventDeviceTracker;
+    private LinuxMouseTracker linuxMouseTracker;
+    private LinuxEventDeviceTracker linuxEventDeviceTracker;
+    private X11UnderlayTracker x11UnderlayTracker;
+    
+    private MouseTracker mouseTracker;
+    private KeyTracker keyTracker;
 
     protected static native boolean initIDs();
     private        native long CreateWindow0(long bcmDisplay, int layer, int x, int y, int width, int height, boolean opaque, int alphaBits);
