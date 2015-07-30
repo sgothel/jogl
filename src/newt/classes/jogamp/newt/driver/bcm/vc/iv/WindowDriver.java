@@ -40,7 +40,7 @@ import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
-import com.jogamp.common.util.IntBitfield;
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 import com.jogamp.newt.event.MouseEvent;
@@ -62,7 +62,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     public WindowDriver() {
-        
+
         /* Try use X11 as input for bcm.vc.iv
          * if X11 fail to initialize then
          * track using the /dev/event files directly
@@ -73,7 +73,7 @@ public class WindowDriver extends WindowImpl {
 
             mouseTracker = x11UnderlayTracker;
             keyTracker = x11UnderlayTracker;
-        } catch(ExceptionInInitializerError e) {
+        } catch(final ExceptionInInitializerError e) {
             linuxMouseTracker = LinuxMouseTracker.getSingleton();
             linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
 
@@ -217,7 +217,7 @@ public class WindowDriver extends WindowImpl {
         addWindowListener(keyTracker);
         addWindowListener(mouseTracker);
 
-        
+
         focusChanged(false, true);
     }
 
@@ -253,7 +253,7 @@ public class WindowDriver extends WindowImpl {
         final RectangleImmutable rect = clampRect((ScreenDriver) getScreen(), new Rectangle(x, y, width, height), false);
         // reconfigure0 will issue position/size changed events if required
         reconfigure0(nativeWindowHandle, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), flags);
-        
+
         return true;
     }
 
@@ -296,7 +296,7 @@ public class WindowDriver extends WindowImpl {
     private LinuxMouseTracker linuxMouseTracker;
     private LinuxEventDeviceTracker linuxEventDeviceTracker;
     private X11UnderlayTracker x11UnderlayTracker;
-    
+
     private MouseTracker mouseTracker;
     private KeyTracker keyTracker;
 
@@ -312,6 +312,6 @@ public class WindowDriver extends WindowImpl {
     private static int nextLayer = 0;
     private static int layerCount = 0;
     private static final int MAX_LAYERS = 32;
-    private static final IntBitfield usedLayers = new IntBitfield(MAX_LAYERS);
+    private static final Bitfield usedLayers = Bitfield.Factory.create(MAX_LAYERS);
     private static final Object layerSync = new Object();
 }

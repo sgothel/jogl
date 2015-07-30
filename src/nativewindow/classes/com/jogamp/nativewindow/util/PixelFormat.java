@@ -30,7 +30,7 @@ package com.jogamp.nativewindow.util;
 
 import java.util.Arrays;
 
-import com.jogamp.common.util.IntBitfield;
+import com.jogamp.common.util.Bitfield;
 
 /**
  * Basic pixel formats
@@ -575,7 +575,7 @@ public enum PixelFormat {
             boolean uniform = true;
             for(int i = componentMask.length-1; i>=0; i--) {
                 final int cmask = componentMask[i];
-                final int bitCount = IntBitfield.getBitCount(cmask);
+                final int bitCount = Bitfield.Util.getBitCount(cmask);
                 bpp += bitCount;
                 this.compBitCount[i] = bitCount;
                 if( i > 0 && uniform ) {

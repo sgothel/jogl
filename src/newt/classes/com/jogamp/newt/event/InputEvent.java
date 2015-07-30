@@ -34,7 +34,7 @@
 
 package com.jogamp.newt.event;
 
-import com.jogamp.common.util.IntBitfield;
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.newt.Window;
 
 @SuppressWarnings("serial")
@@ -188,11 +188,11 @@ public abstract class InputEvent extends NEWTEvent
   * <p>
   * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
   * </p>
-  * @see IntBitfield#getBitCount(int)
+  * @see Bitfield.Util#getBitCount(int)
   * @see #BUTTONALL_MASK
   */
  public final int getButtonDownCount() {
-     return IntBitfield.getBitCount(modifiers & BUTTONALL_MASK);
+     return Bitfield.Util.getBitCount(modifiers & BUTTONALL_MASK);
  }
 
  /**
@@ -203,7 +203,7 @@ public abstract class InputEvent extends NEWTEvent
   * <p>
   * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
   * </p>
-  * @see IntBitfield#getBitCount(int)
+  * @see Bitfield.Util#getBitCount(int)
   * @see #BUTTONALL_MASK
   */
  public final boolean isAnyButtonDown() {

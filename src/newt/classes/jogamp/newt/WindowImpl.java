@@ -65,7 +65,7 @@ import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ArrayHashSet;
-import com.jogamp.common.util.IntBitfield;
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.locks.LockFactory;
@@ -3448,7 +3448,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // KeyListener/Event Support
     //
     private static final int keyTrackingRange = 255;
-    private final IntBitfield keyPressedState = new IntBitfield( keyTrackingRange + 1 );
+    private final Bitfield keyPressedState = Bitfield.Factory.create( keyTrackingRange + 1 );
 
     protected final boolean isKeyCodeTracked(final short keyCode) {
         return ( 0xFFFF & keyCode ) <= keyTrackingRange;
