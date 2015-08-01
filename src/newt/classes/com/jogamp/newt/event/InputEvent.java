@@ -188,11 +188,11 @@ public abstract class InputEvent extends NEWTEvent
   * <p>
   * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
   * </p>
-  * @see Bitfield.Util#getBitCount(int)
+  * @see Bitfield.Util#bitCount(int)
   * @see #BUTTONALL_MASK
   */
  public final int getButtonDownCount() {
-     return Bitfield.Util.getBitCount(modifiers & BUTTONALL_MASK);
+     return Bitfield.Util.bitCount(modifiers & BUTTONALL_MASK);
  }
 
  /**
@@ -203,7 +203,7 @@ public abstract class InputEvent extends NEWTEvent
   * <p>
   * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
   * </p>
-  * @see Bitfield.Util#getBitCount(int)
+  * @see Bitfield.Util#bitCount(int)
   * @see #BUTTONALL_MASK
   */
  public final boolean isAnyButtonDown() {

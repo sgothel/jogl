@@ -141,7 +141,7 @@ public class KeyEvent extends InputEvent
             // Validate flags
             //
             final int pma_bits = flags & ( F_PRINTABLE_MASK | F_MODIFIER_MASK | F_ACTION_MASK ) ;
-            final int pma_count = Bitfield.Util.getBitCount(pma_bits);
+            final int pma_count = Bitfield.Util.bitCount(pma_bits);
             if ( 1 != pma_count ) {
                 throw new InternalError("Key must be either of type printable, modifier or action - but it is of "+pma_count+" types: "+this);
             }

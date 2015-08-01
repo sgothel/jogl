@@ -575,7 +575,7 @@ public enum PixelFormat {
             boolean uniform = true;
             for(int i = componentMask.length-1; i>=0; i--) {
                 final int cmask = componentMask[i];
-                final int bitCount = Bitfield.Util.getBitCount(cmask);
+                final int bitCount = Bitfield.Util.bitCount(cmask);
                 bpp += bitCount;
                 this.compBitCount[i] = bitCount;
                 if( i > 0 && uniform ) {
