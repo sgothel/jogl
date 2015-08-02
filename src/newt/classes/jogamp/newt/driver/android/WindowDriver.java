@@ -266,8 +266,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     public final SurfaceView getAndroidView() { return androidView; }
 
     @Override
-    protected final void instantiationFinished() {
-        Log.d(MD.TAG, "instantiationFinished() - "+Thread.currentThread().getName());
+    protected final void instantiationFinishedImpl() {
+        Log.d(MD.TAG, "instantiationFinishedImpl() - "+Thread.currentThread().getName());
 
         final Context ctx = StaticContext.getContext();
         if(null == ctx) {

@@ -129,7 +129,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected final void instantiationFinished() {
+    protected final void instantiationFinishedImpl() {
         updatePixelScaleByDisplayID(false /* sendEvent*/);
     }
 

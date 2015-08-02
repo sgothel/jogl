@@ -167,7 +167,7 @@ public class WindowDriver extends WindowImpl {
             for(int i=0; 0 > layer && i<MAX_LAYERS; i++) {
                 if( !usedLayers.get(nextLayer) ) {
                     layer = nextLayer;
-                    usedLayers.put(layer, true);
+                    usedLayers.set(layer);
                     layerCount++;
                 }
                 nextLayer++;
@@ -236,7 +236,7 @@ public class WindowDriver extends WindowImpl {
         eglDevice.close();
 
         synchronized( layerSync ) {
-            usedLayers.put(layer, false);
+            usedLayers.clear(layer);
             layerCount--;
             layer = -1;
             // System.err.println("XXX.Close capacity "+usedLayers.capacity()+", count "+usedLayers.getBitCount());
