@@ -3755,7 +3755,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         for(remaining = timeOut; 0 < remaining && _visible != visible; remaining-=10 ) {
             try { Thread.sleep(10); } catch (final InterruptedException ie) {}
             display.dispatchMessagesNative(); // status up2date
-            _visible = stateMask.get(STATE_VISIBLE)
+            _visible = stateMask.get(STATE_VISIBLE);
         }
         if( visible != _visible ) {
             final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+_visible;
