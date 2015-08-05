@@ -275,7 +275,6 @@ class RandR13 implements RandR {
 
     private static native int[] getAvailableRotations0(long monitorInfo);
     private static native int[] getMonitorViewport0(long monitorInfo);
-    private static native int[] getMonitorCurrentMode0(long monitorInfo);
 
     private static native int[] getMonitorMode0(long screenResources, int mode_index);
     private static native int[] getMonitorCurrentMode0(long screenResources, long monitorInfo);

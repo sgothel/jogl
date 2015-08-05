@@ -121,7 +121,7 @@ public class ScreenDriver extends ScreenImpl {
             if( rAndR.beginInitialQuery(device.getHandle(), this) ) {
                 try {
                     final int[] crt_ids = rAndR.getMonitorDeviceIds(device.getHandle(), this);
-                    final int crtCount = crt_ids.length;
+                    final int crtCount = null != crt_ids ? crt_ids.length : 0;
 
                     // Gather all available rotations
                     final ArrayHashSet<Integer> availableRotations = new ArrayHashSet<Integer>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
@@ -173,9 +173,13 @@ public class ScreenDriver extends ScreenImpl {
         device.lock();
         try {
             final int[] viewportProps = rAndR.getMonitorDeviceViewport(device.getHandle(), this, monitor.getId());
-            viewportPU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
-            viewportWU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]); // equal window-units and pixel-units
-            return true;
+            if( null != viewportProps ) {
+                viewportPU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
+                viewportWU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]); // equal window-units and pixel-units
+                return true;
+            } else {
+                return false;
+            }
         } finally {
             device.unlock();
         }
@@ -189,7 +193,11 @@ public class ScreenDriver extends ScreenImpl {
             @Override
             public MonitorMode run(final long dpy) {
                 final int[] currentModeProps = rAndR.getCurrentMonitorModeProps(dpy, ScreenDriver.this, monitor.getId());
-                return MonitorModeProps.streamInMonitorMode(null, null, currentModeProps, 0);
+                if( null != currentModeProps ) {
+                    return MonitorModeProps.streamInMonitorMode(null, null, currentModeProps, 0);
+                } else {
+                    return null;
+                }
             } } );
     }
 
