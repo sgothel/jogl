@@ -284,40 +284,44 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
             // Setup: eglGLnDynamicLookupHelper
             if( null == eglGLnDynamicLookupHelper ) {
-                GLDynamicLookupHelper tmp=null;
-                try {
-                    tmp = new GLDynamicLookupHelper(new EGLGLnDynamicLibraryBundleInfo());
-                } catch (final GLException gle) {
-                    if(DEBUG) {
-                        gle.printStackTrace();
-                    }
-                }
-                if( null != tmp && tmp.isLibComplete() ) {
-                    final boolean ok;
-                    final long _eglInitializeAddress;
-                    if( !eglTableReset ) {
-                        if( true == ( eglTableReset = EGLAcc.resetProcAddressTable(tmp) ) ) {
-                            _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
-                            eglInitializeAddress = _eglInitializeAddress;
-                            ok = true;
-                        } else {
-                            _eglInitializeAddress = 0;
-                            ok = false;
+                if( !GLProfile.disableOpenGLDesktop ) {
+                    GLDynamicLookupHelper tmp=null;
+                    try {
+                        tmp = new GLDynamicLookupHelper(new EGLGLnDynamicLibraryBundleInfo());
+                    } catch (final GLException gle) {
+                        if(DEBUG) {
+                            gle.printStackTrace();
                         }
-                    } else {
-                        _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
-                        ok = _eglInitializeAddress == eglInitializeAddress;
                     }
-                    if( ok ) {
-                        eglGLnDynamicLookupHelper = tmp;
-                        if (DEBUG || GLProfile.DEBUG) {
-                            System.err.println("Info: EGLDrawableFactory: EGL GLn - OK (eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
+                    if( null != tmp && tmp.isLibComplete() ) {
+                        final boolean ok;
+                        final long _eglInitializeAddress;
+                        if( !eglTableReset ) {
+                            if( true == ( eglTableReset = EGLAcc.resetProcAddressTable(tmp) ) ) {
+                                _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                                eglInitializeAddress = _eglInitializeAddress;
+                                ok = true;
+                            } else {
+                                _eglInitializeAddress = 0;
+                                ok = false;
+                            }
+                        } else {
+                            _eglInitializeAddress = tmp.dynamicLookupFunction(eglInitializeFuncName);
+                            ok = _eglInitializeAddress == eglInitializeAddress;
+                        }
+                        if( ok ) {
+                            eglGLnDynamicLookupHelper = tmp;
+                            if (DEBUG || GLProfile.DEBUG) {
+                                System.err.println("Info: EGLDrawableFactory: EGL GLn - OK (eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
+                            }
+                        } else if (DEBUG || GLProfile.DEBUG) {
+                            System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE (GLn proc, eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
                         }
                     } else if (DEBUG || GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE (GLn proc, eglTableReset "+eglTableReset+", eglInitialize 0x"+Long.toHexString(_eglInitializeAddress)+")");
+                        System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE (GLn lib)");
                     }
-                } else if (DEBUG || GLProfile.DEBUG) {
-                    System.err.println("Info: EGLDrawableFactory: EGL GLn - NOPE (GLn lib)");
+                } else if( DEBUG || GLProfile.DEBUG ) {
+                    System.err.println("Info: EGLDrawableFactory: EGL Gln - disabled!");
                 }
             }
             if( null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper || null != eglGLnDynamicLookupHelper ) {

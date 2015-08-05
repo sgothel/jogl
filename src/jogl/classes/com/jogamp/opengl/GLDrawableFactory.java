@@ -144,23 +144,29 @@ public abstract class GLDrawableFactory {
           }
         }
     }
-    if (null != factoryClassName && !GLProfile.disableOpenGLDesktop) {
-      if (DEBUG || GLProfile.DEBUG) {
-          System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nwt+": "+factoryClassName);
-      }
-      try {
-          tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
-      } catch (final Exception jre) {
-          if (DEBUG || GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
-              jre.printStackTrace();
-          }
-      }
+    if ( !GLProfile.disableOpenGLDesktop ) {
+        if ( null != factoryClassName ) {
+            if (DEBUG || GLProfile.DEBUG) {
+                System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nwt+": "+factoryClassName);
+            }
+            try {
+                tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
+            } catch (final Exception jre) {
+                if (DEBUG || GLProfile.DEBUG) {
+                    System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
+                    jre.printStackTrace();
+                }
+            }
+            if(null != tmp && tmp.isComplete()) {
+                nativeOSFactory = tmp;
+            }
+            tmp = null;
+        } else if( DEBUG || GLProfile.DEBUG ) {
+            System.err.println("Info: GLDrawableFactory.static - Desktop GLDrawableFactory unspecified!");
+        }
+    } else if( DEBUG || GLProfile.DEBUG ) {
+        System.err.println("Info: GLDrawableFactory.static - Desktop GLDrawableFactory - disabled!");
     }
-    if(null != tmp && tmp.isComplete()) {
-        nativeOSFactory = tmp;
-    }
-    tmp = null;
 
     if(!GLProfile.disableOpenGLES) {
         try {
