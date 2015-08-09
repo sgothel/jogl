@@ -37,6 +37,15 @@ import java.io.InputStream;
  */
 public class ImageIOUtil {
 
+	/**
+	 * Determines the file suffix (i.e the image format) of the given InputStream. The given
+	 * InputStream must return true from markSupported() and support a minimum of 32 bytes 
+	 * of read-ahead.
+	 * 
+	 * @param stream stream to check
+	 * @return the file suffix if any, otherwise <code>null</code>
+	 * @throws java.io.IOException if an I/O exception occurred
+	 */
 	public static String getFileSuffix(InputStream stream) throws IOException {
 		if (stream == null) {
             throw new IOException("Stream was null");
@@ -61,6 +70,14 @@ public class ImageIOUtil {
 		
 	}
 	
+	/**
+	 * Determines the file suffix (i.e the image format) of the given bytes from the header 
+	 * of a file.
+	 * 
+	 * @param stream stream to check
+	 * @return the file suffix if any, otherwise <code>null</code>
+	 * @throws java.io.IOException if an I/O exception occurred
+	 */
     public static String getFileSuffix(final byte[] b) {
     	/**
          * http://www.faqs.org/faqs/jpeg-faq/part1/
