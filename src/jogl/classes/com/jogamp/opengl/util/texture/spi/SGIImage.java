@@ -40,8 +40,9 @@
 package com.jogamp.opengl.util.texture.spi;
 
 import java.io.*;
-import com.jogamp.opengl.*;
 
+import com.jogamp.opengl.*;
+import com.jogamp.opengl.util.texture.ImageIOUtil;
 import com.jogamp.common.util.IOUtil;
 
 /** <p> Reads and writes SGI RGB/RGBA images. </p>
@@ -190,11 +191,15 @@ public class SGIImage {
         return image;
     }
 
-    /** Determines from the magic number whether the given InputStream
-        points to an SGI RGB image. The given InputStream must return
-        true from markSupported() and support a minimum of two bytes
-        of read-ahead. */
-    public static boolean isSGIImage(InputStream in) throws IOException {
+	/**
+	 * Determines from the magic number whether the given InputStream points to
+	 * an SGI RGB image. The given InputStream must return true from
+	 * markSupported() and support a minimum of two bytes of read-ahead.
+	 * 
+	 * @deprecated rather call {@link ImageIOUtil#getFileSuffix(InputStream)}
+	 */
+	@Deprecated
+	public static boolean isSGIImage(InputStream in) throws IOException {
         if (!(in instanceof BufferedInputStream)) {
             in = new BufferedInputStream(in);
         }
