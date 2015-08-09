@@ -895,7 +895,7 @@ public class TextureIO {
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
             if (DDS.equals(fileSuffix) ||
-                DDSImage.isDDSImage(stream)) {
+                DDS.equals(ImageIOUtil.getFileSuffix(stream))) {
                 final byte[] data = IOUtil.copyStream2ByteArray(stream);
                 final ByteBuffer buf = ByteBuffer.wrap(data);
                 final DDSImage image = DDSImage.read(buf);
@@ -1052,7 +1052,8 @@ public class TextureIO {
                                           final String fileSuffix) throws IOException {
             if (SGI.equals(fileSuffix) ||
                 SGI_RGB.equals(fileSuffix) ||
-                SGIImage.isSGIImage(stream)) {
+                SGI.equals(ImageIOUtil.getFileSuffix(stream)) ||
+                SGI_RGB.equals(ImageIOUtil.getFileSuffix(stream))) {
                 final SGIImage image = SGIImage.read(stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getFormat();
@@ -1124,7 +1125,8 @@ public class TextureIO {
                                           int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (PNG.equals(fileSuffix)) {
+            if (PNG.equals(fileSuffix) ||
+            	PNG.equals(ImageIOUtil.getFileSuffix(stream))) {
                 final PNGPixelRect image = PNGPixelRect.read(stream, null, true /* directBuffer */, 0 /* destMinStrideInBytes */, true /* destIsGLOriented */);
                 final GLPixelAttributes glpa = new GLPixelAttributes(glp, image.getPixelformat(), false /* pack */);
                 if ( 0 == pixelFormat ) {
@@ -1164,7 +1166,8 @@ public class TextureIO {
                                           int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (JPG.equals(fileSuffix)) {
+            if (JPG.equals(fileSuffix) ||
+            	JPG.equals(ImageIOUtil.getFileSuffix(stream))) {
                 final JPEGImage image = JPEGImage.read(/*glp, */ stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getGLFormat();
