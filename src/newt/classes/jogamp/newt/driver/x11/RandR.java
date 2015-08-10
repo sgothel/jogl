@@ -55,7 +55,7 @@ public interface RandR {
      *   <li>{@link #getMonitorDeviceIds(long, ScreenDriver)}</li>
      *   <li>{@link #getAvailableRotations(long, ScreenDriver, int)}</li>
      *   <li>{@link #getMonitorModeProps(long, ScreenDriver, int)}</li>
-     *   <li>{@link #getCurrentMonitorModeProps(long, ScreenDriver, int)</li>
+     *   <li>{@link #getCurrentMonitorModeProps(long, ScreenDriver, int)}</li>
      *   <li>{@link #getMonitorDeviceProps(long, ScreenDriver, List, int, MonitorMode)}</li>
      * </ul>
      * <p>

@@ -202,7 +202,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_dumpInfo0
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
  * Method:    getMonitorDeviceIds0
- * Signature: (J)I
+ * Signature: (J)[I
  */
 JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDeviceIds0
   (JNIEnv *env, jclass clazz, jlong screenResources)
@@ -256,7 +256,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_freeMonitorInfoHandle
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
  * Method:    getAvailableRotations0
- * Signature: (J)I
+ * Signature: (J)[I
  */
 JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getAvailableRotations0
   (JNIEnv *env, jclass clazz, jlong monitorInfo)
