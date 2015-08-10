@@ -67,6 +67,8 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     private volatile MouseEvent lastMouse;
     private volatile static ArrayHashMap<WindowImpl, WindowImpl> underlayWindowMap = new ArrayHashMap<WindowImpl, WindowImpl>(false, ArrayHashMap.DEFAULT_INITIAL_CAPACITY, ArrayHashMap.DEFAULT_LOAD_FACTOR);
     private volatile static ArrayHashMap<WindowImpl, WindowImpl> overlayWindowMap = new ArrayHashMap<WindowImpl, WindowImpl>(false, ArrayHashMap.DEFAULT_INITIAL_CAPACITY, ArrayHashMap.DEFAULT_LOAD_FACTOR);
+    private final Display display;
+    private final Screen screen;
 
     static {
         /*
@@ -89,6 +91,20 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
 
     public static X11UnderlayTracker getSingleton() {
         return tracker;
+    }
+
+    private X11UnderlayTracker() {
+        /* 1178 cc10: Fix regression caused by the fix for cc7.
+         * We no longer throw an ExceptionInInitializerError
+         * when X11 is not available.
+         *
+         * Fix 1178 cc10: We need to use an X11 resource in the constructor
+         * in order to throw an ExceptionInInitializerError if X11 is not available.
+         * We can resolve this by query for the
+         * X11 display and screen inside the constructor.
+         */
+        display = NewtFactory.createDisplay(NativeWindowFactory.TYPE_X11, null, false);
+        screen = NewtFactory.createScreen(display, 0);
     }
 
     @Override
@@ -187,8 +203,6 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
                  */
                 caps.setBackgroundOpaque(false);
 
-                final Display display = NewtFactory.createDisplay(NativeWindowFactory.TYPE_X11, null, false);
-                final Screen screen = NewtFactory.createScreen(display, 0);
                 WindowImpl underlayWindow = WindowImpl.create(null, 0, screen, caps);
 
                 /*
