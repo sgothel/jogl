@@ -1131,7 +1131,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 stateMask.set(STATE_BIT_VISIBLE);
             } else if(stateMask.get(STATE_BIT_VISIBLE) != visible) {
                 if(isNativeValid()) {
-                    setVisibleImpl(visible /* visible */, false /* fast */, getX(), getY(), getWidth(), getHeight());
+                    // Skip WM if child-window!
+                    setVisibleImpl(visible /* visible */, isChildWindow() /* fast */, getX(), getY(), getWidth(), getHeight());
                     WindowImpl.this.waitForVisible(visible, false);
                     madeVisible = visible;
                 } else {

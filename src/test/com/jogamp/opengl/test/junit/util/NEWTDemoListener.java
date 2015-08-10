@@ -300,7 +300,7 @@ public class NEWTDemoListener extends MouseAdapter implements KeyListener {
                             printlnState("[set visible post]");
                             glWindow.setExclusiveContextThread(t);
                         }
-                        if( wasVisible ) {
+                        if( wasVisible && !e.isControlDown() ) {
                             try {
                                 Thread.sleep(5000);
                             } catch (final InterruptedException e) {

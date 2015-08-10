@@ -689,9 +689,11 @@ static Bool WaitForUnmapNotify( Display *dpy, XEvent *event, XPointer arg ) {
     return (event->type == UnmapNotify) && (event->xmap.window == (Window) arg);
 }
 
-static void NewtWindows_setVisible(Display *dpy, Window root, JavaWindow* jw, Bool visible, Bool useWM, Bool waitForMapNotify) {
+static void NewtWindows_setVisible(Display *dpy, Window root, JavaWindow* jw, Bool visible, Bool useWM, Bool waitForNotify) {
     XEvent event;
     if( !visible && useWM && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
+        DBG_PRINT( "X11: setVisible -> %d, method: IconicState, wait %d, window %p\n", (int)visible, (int)waitForNotify, (void*)jw->window);
+        // It has been experienced that UnmapNotify is not sent for child windows when using IconicState!
         XEvent xev;
         memset ( &xev, 0, sizeof(xev) );
         xev.type = ClientMessage;
@@ -701,18 +703,19 @@ static void NewtWindows_setVisible(Display *dpy, Window root, JavaWindow* jw, Bo
         xev.xclient.data.l[0] = IconicState;
         XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
         // NewtWindows_sendNET_WM_STATE(dpy, root, jw, _NET_WM_STATE_HIDDEN_IDX, 0, !visible);
-        if(waitForMapNotify) {
+        if(waitForNotify) {
             XIfEvent( dpy, &event, WaitForUnmapNotify, (XPointer) jw->window );
         }
     } else {
+        DBG_PRINT( "X11: setVisible -> %d, method: Map/Unmap, wait %d, window %p\n", (int)visible, (int)waitForNotify, (void*)jw->window);
         if( visible ) {
             XMapRaised(dpy, jw->window);
-            if(waitForMapNotify) {
+            if(waitForNotify) {
                 XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) jw->window );
             }
         } else {
             XUnmapWindow(dpy, jw->window);
-            if(waitForMapNotify) {
+            if(waitForNotify) {
                 XIfEvent( dpy, &event, WaitForUnmapNotify, (XPointer) jw->window );
             }
         }
@@ -1193,7 +1196,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         NewtWindows_setVisible(dpy, root, jw, True /* visible */, False /* useWM */, True /* wait */);
         // no need to notify the java side .. just temp change
     } else if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
-        Bool useWM = TST_FLAG_CHANGE_VISIBILITY_FAST(flags) ? False : True;
+        Bool useWM = ( TST_FLAG_CHANGE_VISIBILITY_FAST(flags) || TST_FLAG_IS_CHILD(flags) ) ? False : True;
         if( TST_FLAG_IS_VISIBLE(flags) ) {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE ON\n");
             NewtWindows_setVisible(dpy, root, jw, True /* visible */, useWM, False /* wait */);
