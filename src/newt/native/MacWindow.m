@@ -1438,6 +1438,30 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
 
 /*
  * Class:     jogamp_newt_driver_macosx_WindowDriver
+ * Method:    setAlwaysOnBottom0
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnBottom0
+  (JNIEnv *env, jobject unused, jlong window, jboolean abottom)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "setAlwaysOnBottom0 - window: %p, abottom %d (START)\n", win, (int)abottom);
+
+    if(abottom) {
+        [win setLevel:NSScreenSaverWindowLevel]; // ??
+    } else {
+        [win setLevel:NSNormalWindowLevel];
+    }
+
+    DBG_PRINT( "setAlwaysOnBottom0 - window: %p, abottom %d (END)\n", win, (int)abottom);
+
+    [pool release];
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    getLocationOnScreen0
  * Signature: (JII)Lcom/jogamp/nativewindow/util/Point;
  */

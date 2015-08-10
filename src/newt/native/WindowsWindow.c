@@ -2297,9 +2297,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 #endif
 
 
-    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d, isChild %d, isFullscreen %d\n",
+    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d, isChild %d, isFullscreen %d\n",
         parent, window, x, y, width, height,
-        TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_HAS_PARENT(flags),
+        TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_IS_CHILD(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),

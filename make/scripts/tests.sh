@@ -108,6 +108,7 @@ function jrun() {
 
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
     #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
+    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogl.debug.GLContext"
     #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
     #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogl.glu.nojava=true"
 
@@ -137,7 +138,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
-    D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
@@ -181,7 +182,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
-    #D_ARGS="-Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
@@ -420,10 +421,10 @@ function testawtswt() {
 # HiDPI
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*

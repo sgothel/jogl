@@ -173,30 +173,224 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     private List<MonitorDevice> fullscreenMonitors = null;
 
+    private final RectangleImmutable undefSize = new Rectangle(0, 0, 0, 0);
+    private final Rectangle minmax_size = new Rectangle(undefSize); // current min/max size or undef
     private int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
     private NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
     private String title = "Newt Window";
     private PointerIconImpl pointerIcon = null;
     private LifecycleHook lifecycleHook = null;
 
-    /* pp */ static final int STATE_AUTOPOSITION = 0; // default: true (allow WM to choose top-level position, if not set by user)
-    /* pp */ static final int STATE_VISIBLE = 1; // lifecycle critical
-    /* pp */ static final int STATE_FOCUSED = 2;
-    /* pp */ static final int STATE_FOCUS_CHANGE_BROKEN = 3;
-    /* pp */ static final int STATE_UNDECORATED = 4;
-    /* pp */ static final int STATE_ALWAYSONTOP = 5;
-    /* pp */ static final int STATE_FULLSCREEN = 6;
-    /* pp */ static final int STATE_FULLSCREEN_MAINMONITOR = 7; // true
-    /* pp */ static final int STATE_FULLSCREEN_NFS_ALWAYSONTOP = 8; // non fullscreen alwaysOnTop setting
-    /* pp */ static final int STATE_POINTERVISIBLE = 9; // true
-    /* pp */ static final int STATE_POINTERCONFINED = 10;
+    //
+    // State Mask
+    //
+
+    /**
+     * Number of all public state bits, {@value}.
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    protected static final int STATE_BIT_COUNT_ALL_PUBLIC = 15;
+    /** Bitmask for {@link #STATE_BIT_COUNT_ALL_PUBLIC} */
+    protected static final int STATE_MASK_ALL_PUBLIC = ( 1 << STATE_BIT_COUNT_ALL_PUBLIC ) - 1;
+
+    //
+    // Additional private state-mask bits and mask values
+    //
+    /**
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    /* pp */ static final int STATE_BIT_FULLSCREEN_SPAN = 12;
+    /* pp */ static final int PSTATE_BIT_MINMAXSIZE_SET = 27;
+    /* pp */ static final int PSTATE_BIT_FOCUS_CHANGE_BROKEN = 28;
+    /* pp */ static final int PSTATE_BIT_FULLSCREEN_MAINMONITOR = 29; // true
+    /* pp */ static final int PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP = 30; // non fullscreen alwaysOnTop setting
+    /* pp */ static final int PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE = 31; // non fullscreen resizable setting
+
+    /** Bitmask for {@link #STATE_BIT_FULLSCREEN_SPAN}, {@value}. */
+    /* pp */ static final int STATE_MASK_FULLSCREEN_SPAN = 1 << STATE_BIT_FULLSCREEN_SPAN;
+    /* pp */ static final int PSTATE_MASK_FOCUS_CHANGE_BROKEN = 1 << PSTATE_BIT_FOCUS_CHANGE_BROKEN;
+    /* pp */ static final int PSTATE_MASK_FULLSCREEN_MAINMONITOR = 1 << PSTATE_BIT_FULLSCREEN_MAINMONITOR;
+    /* pp */ static final int PSTATE_MASK_FULLSCREEN_NFS_ALWAYSONTOP = 1 << PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP;
+    /* pp */ static final int PSTATE_MASK_FULLSCREEN_NFS_RESIZABLE = 1 << PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE;
+
+    /**
+     * Reconfig mask for createNativeImpl(..) taking out from {@link #getStateMask()}:
+     * <ul>
+     *   <li>{@link #STATE_MASK_VISIBLE}</li>
+     *   <li>{@link #STATE_MASK_FULLSCREEN}</li>
+     *   <li>{@link #STATE_MASK_POINTERVISIBLE}</li>
+     *   <li>{@link #STATE_MASK_POINTERCONFINED}</li>
+     * </ul>
+     * Above taken out states are achieved from caller createNative() 'manually'.
+     */
+    protected final int STATE_MASK_CREATENATIVE = STATE_MASK_UNDECORATED |
+                                                  STATE_MASK_ALWAYSONTOP |
+                                                  STATE_MASK_ALWAYSONBOTTOM |
+                                                  STATE_MASK_STICKY |
+                                                  STATE_MASK_RESIZABLE |
+                                                  STATE_MASK_MAXIMIZED_VERT |
+                                                  STATE_MASK_MAXIMIZED_HORZ;
+    //
+    // Additional private state-mask mask values for reconfiguration only
+    // (keep in sync w/ src/newt/native/Window.h)
+    //
+    protected static final int CHANGE_MASK_VISIBILITY      = 1 << 31;
+    protected static final int CHANGE_MASK_VISIBILITY_FAST = 1 << 30; // fast visibility change, i.e. skip WM
+    protected static final int CHANGE_MASK_PARENTING       = 1 << 29;
+    protected static final int CHANGE_MASK_DECORATION      = 1 << 28;
+    protected static final int CHANGE_MASK_ALWAYSONTOP     = 1 << 27;
+    protected static final int CHANGE_MASK_ALWAYSONBOTTOM  = 1 << 26;
+    protected static final int CHANGE_MASK_STICKY          = 1 << 25;
+    protected static final int CHANGE_MASK_RESIZABLE       = 1 << 24;
+    protected static final int CHANGE_MASK_MAXIMIZED_VERT  = 1 << 23;
+    protected static final int CHANGE_MASK_MAXIMIZED_HORZ  = 1 << 22;
+    protected static final int CHANGE_MASK_FULLSCREEN      = 1 << 21;
 
     /* pp */ final Bitfield stateMask = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
     /* pp */ final void resetStateMask() {
         stateMask.clearField(false);
-        stateMask.set(STATE_AUTOPOSITION);
-        stateMask.set(STATE_FULLSCREEN_MAINMONITOR);
-        stateMask.set(STATE_POINTERVISIBLE);
+        stateMask.set(STATE_BIT_AUTOPOSITION);
+        stateMask.put(STATE_BIT_CHILDWIN, null != parentWindow);
+        stateMask.set(STATE_BIT_RESIZABLE);
+        stateMask.set(STATE_BIT_POINTERVISIBLE);
+        stateMask.set(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
+        stateMask.set(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
+    }
+
+    @Override
+    public final int getStatePublicBitCount() {
+        return STATE_BIT_COUNT_ALL_PUBLIC;
+    }
+    @Override
+    public final int getStatePublicBitmask() {
+        return STATE_MASK_ALL_PUBLIC;
+    }
+
+    @Override
+    public final int getStateMask() {
+        return stateMask.get32(0, STATE_BIT_COUNT_ALL_PUBLIC);
+    }
+    @Override
+    public final String getStateMaskString() {
+        return appendStateBits(new StringBuilder(), stateMask.get32(0, STATE_BIT_COUNT_ALL_PUBLIC), false).toString();
+    }
+
+    protected static StringBuilder appendStateBits(final StringBuilder sb, final int mask, final boolean showChangeFlags) {
+        sb.append("[");
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_VISIBILITY & mask) ) {
+            sb.append("*");
+            if( 0 != ( CHANGE_MASK_VISIBILITY_FAST & mask) ) {
+                sb.append("*");
+            }
+        }
+        sb.append((0 != ( STATE_MASK_VISIBLE & mask))?"visible":"invisible");
+        sb.append(", ");
+
+        sb.append((0 != ( STATE_MASK_AUTOPOSITION & mask))?"autopos, ":"");
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_PARENTING & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_CHILDWIN & mask))?"child":"top");
+            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_CHILDWIN & mask) ) {
+            sb.append("child");
+            sb.append(", ");
+        }
+
+        sb.append((0 != ( STATE_MASK_FOCUSED & mask))?"focused, ":"");
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_DECORATION & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_UNDECORATED & mask))?"undecor":"decor");
+            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_UNDECORATED & mask) ) {
+            sb.append("undecor");
+            sb.append(", ");
+        }
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_ALWAYSONTOP & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_ALWAYSONTOP & mask))?"aontop":"!aontop");
+            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_ALWAYSONTOP & mask) ) {
+            sb.append("aontop");
+            sb.append(", ");
+        }
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_ALWAYSONBOTTOM & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_ALWAYSONBOTTOM & mask))?"aonbottom":"!aonbottom");
+            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_ALWAYSONBOTTOM & mask) ) {
+            sb.append("aonbottom");
+            sb.append(", ");
+        }
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_STICKY & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_STICKY & mask))?"sticky":"unsticky");
+            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_STICKY & mask) ) {
+            sb.append("sticky");
+            sb.append(", ");
+        }
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_RESIZABLE & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_RESIZABLE & mask))?"resizable":"unresizable");
+            sb.append(", ");
+        } else if( 0 == ( STATE_MASK_RESIZABLE & mask) ) {
+            sb.append("unresizable");
+            sb.append(", ");
+        }
+
+        if( showChangeFlags && 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & mask) ) {
+            sb.append("max=");
+            if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
+                sb.append("h");
+            }
+            if( 0 != ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
+                sb.append("v");
+            }
+            sb.append(", ");
+        } else if( 0 != ( ( STATE_MASK_MAXIMIZED_HORZ | STATE_MASK_MAXIMIZED_VERT ) & mask) ) {
+            sb.append("max=");
+            if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
+                sb.append("h");
+            }
+            if( 0 != ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
+                sb.append("v");
+            }
+            sb.append(", ");
+        }
+
+        if( showChangeFlags && 0 != ( CHANGE_MASK_FULLSCREEN & mask) ) {
+            sb.append("*");
+            sb.append((0 != ( STATE_MASK_FULLSCREEN & mask))?"fullscreen":"window");
+            sb.append((0 != ( STATE_MASK_FULLSCREEN_SPAN & mask))?"[span]":"[]");
+            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_FULLSCREEN & mask) ) {
+            sb.append("fullscreen");
+            sb.append(", ");
+        }
+
+        if( 0 == ( ( STATE_MASK_POINTERVISIBLE | STATE_MASK_POINTERCONFINED ) & mask) ) {
+            sb.append("pointer[");
+            if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
+                sb.append("invisible");
+                sb.append(", ");
+            }
+            if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
+                sb.append("confined");
+            }
+            sb.append("]");
+        }
+        sb.append("]");
+        return sb;
     }
 
     private Runnable windowDestroyNotifyAction = null;
@@ -434,7 +628,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final boolean hasParent = null != parentWindow || 0 != this.parentWindowHandle;
 
         // child window: position defaults to 0/0, no auto position, no negative position
-        if( hasParent && ( stateMask.get(STATE_AUTOPOSITION) || 0>getX() || 0>getY() ) ) {
+        if( hasParent && ( stateMask.get(STATE_BIT_AUTOPOSITION) || 0>getX() || 0>getY() ) ) {
             definePosition(0, 0);
         }
         boolean postParentlockFocus = false;
@@ -447,7 +641,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(canCreateNativeImpl()) {
                     final int wX, wY;
                     final boolean usePosition;
-                    if( stateMask.get(STATE_AUTOPOSITION) ) {
+                    if( stateMask.get(STATE_BIT_AUTOPOSITION) ) {
                         wX = 0;
                         wY = 0;
                         usePosition = false;
@@ -461,20 +655,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
                     setPointerIconIntern(pointerIcon);
-                    setPointerVisibleIntern(stateMask.get(STATE_POINTERVISIBLE));
-                    confinePointerImpl(stateMask.get(STATE_POINTERCONFINED));
+                    setPointerVisibleIntern(stateMask.get(STATE_BIT_POINTERVISIBLE));
+                    confinePointerImpl(stateMask.get(STATE_BIT_POINTERCONFINED));
                     setKeyboardVisible(keyboardVisible);
                     final long remainingV = waitForVisible(true, false);
                     if( 0 <= remainingV ) {
                         if(isFullscreen()) {
                             synchronized(fullScreenAction) {
-                                stateMask.clear(STATE_FULLSCREEN); // trigger a state change
+                                stateMask.clear(STATE_BIT_FULLSCREEN); // trigger a state change
                                 fullScreenAction.init(true);
                                 fullScreenAction.run();
                             }
-                        } else if ( !hasParent ) {
-                            // Wait until position is reached within tolerances, either auto-position or custom position.
-                            waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
+                        } else {
+                            if ( !hasParent ) {
+                                // Wait until position is reached within tolerances, either auto-position or custom position.
+                                waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
+                            }
                         }
                         if (DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.createNative(): elapsed "+(System.currentTimeMillis()-t0)+" ms");
@@ -513,8 +709,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(null!=parentWindow) {
             parentWindowHandle = getNativeWindowHandle(parentWindow);
             return 0 != parentWindowHandle ;
+        } else {
+            return true;
         }
-        return true;
     }
 
     private static long getNativeWindowHandle(final NativeWindow nativeWindow) {
@@ -631,19 +828,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract void requestFocusImpl(boolean force);
 
-    public static final int FLAG_CHANGE_PARENTING       = 1 <<  0;
-    public static final int FLAG_CHANGE_DECORATION      = 1 <<  1;
-    public static final int FLAG_CHANGE_FULLSCREEN      = 1 <<  2;
-    public static final int FLAG_CHANGE_ALWAYSONTOP     = 1 <<  3;
-    public static final int FLAG_CHANGE_VISIBILITY      = 1 <<  4;
-
-    public static final int FLAG_HAS_PARENT             = 1 <<  8;
-    public static final int FLAG_IS_UNDECORATED         = 1 <<  9;
-    public static final int FLAG_IS_FULLSCREEN          = 1 << 10;
-    public static final int FLAG_IS_FULLSCREEN_SPAN     = 1 << 11;
-    public static final int FLAG_IS_ALWAYSONTOP         = 1 << 12;
-    public static final int FLAG_IS_VISIBLE             = 1 << 13;
-
     /**
      * The native implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.
@@ -667,62 +851,23 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Tests whether a single reconfigure flag is supported by implementation.
      * <p>
-     * Default is all but {@link #FLAG_IS_FULLSCREEN_SPAN}
+     * Default is all but {@link #STATE_MASK_FULLSCREEN_SPAN}
      * </p>
      */
-    protected boolean isReconfigureFlagSupported(final int changeFlags) {
-        return 0 == ( changeFlags & FLAG_IS_FULLSCREEN_SPAN );
+    protected boolean isReconfigureMaskSupported(final int changeFlags) {
+        return 0 == ( changeFlags & STATE_MASK_FULLSCREEN_SPAN );
     }
 
-    protected int getReconfigureFlags(final int changeFlags, final boolean visible) {
-        return changeFlags | ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
-                             ( isUndecorated() ? FLAG_IS_UNDECORATED : 0 ) |
-                             ( isFullscreen() ? FLAG_IS_FULLSCREEN : 0 ) |
-                             ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
-                             ( visible ? FLAG_IS_VISIBLE : 0 ) ;
+    protected int getReconfigureMask(final int changeFlags, final boolean visible) {
+        final int smask = stateMask.get32(0, STATE_BIT_COUNT_ALL_PUBLIC);
+        return changeFlags
+               | ( smask & ~STATE_MASK_VISIBLE )
+               | ( visible ? STATE_MASK_VISIBLE : 0 )
+               | ( isUndecorated(smask) ? STATE_MASK_UNDECORATED : 0 )
+               ;
     }
-    protected static String getReconfigureFlagsAsString(StringBuilder sb, final int flags) {
-        if(null == sb) { sb = new StringBuilder(); }
-        sb.append("[");
-
-        if( 0 != ( FLAG_CHANGE_PARENTING & flags) ) {
-            sb.append("*");
-        }
-        sb.append("PARENT ");
-        sb.append(0 != ( FLAG_HAS_PARENT & flags));
-        sb.append(", ");
-
-        if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-            sb.append("*");
-        }
-        sb.append("FS ");
-        sb.append(0 != ( FLAG_IS_FULLSCREEN & flags));
-        sb.append("[span ");
-        sb.append(0 != ( FLAG_IS_FULLSCREEN_SPAN & flags));
-        sb.append("], ");
-
-        if( 0 != ( FLAG_CHANGE_DECORATION & flags) ) {
-            sb.append("*");
-        }
-        sb.append("UNDECOR ");
-        sb.append(0 != ( FLAG_IS_UNDECORATED & flags));
-        sb.append(", ");
-
-        if( 0 != ( FLAG_CHANGE_ALWAYSONTOP & flags) ) {
-            sb.append("*");
-        }
-        sb.append("ALWAYSONTOP ");
-        sb.append(0 != ( FLAG_IS_ALWAYSONTOP & flags));
-        sb.append(", ");
-
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            sb.append("*");
-        }
-        sb.append("VISIBLE ");
-        sb.append(0 != ( FLAG_IS_VISIBLE & flags));
-
-        sb.append("]");
-        return sb.toString();
+    protected static String getReconfigStateMaskString(final int flags) {
+        return appendStateBits(new StringBuilder(), flags, true).toString();
     }
 
     protected void setTitleImpl(final String title) {}
@@ -945,13 +1090,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /**
      * @param visible
+     * @param fast {@code true} hints that the WM shall be skiped (no animation)
      * @param x client-area position in window units, or <0 if unchanged
      * @param y client-area position in window units, or <0 if unchanged
      * @param width client-area size in window units, or <=0 if unchanged
      * @param height client-area size in window units, or <=0 if unchanged
      */
-    protected final void setVisibleImpl(final boolean visible, final int x, final int y, final int width, final int height) {
-        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));
+    protected final void setVisibleImpl(final boolean visible, final boolean fast, final int x, final int y, final int width, final int height) {
+        final int mask;
+        if( fast ) {
+            mask = getReconfigureMask(CHANGE_MASK_VISIBILITY | CHANGE_MASK_VISIBILITY_FAST, visible);
+        } else {
+            mask = getReconfigureMask(CHANGE_MASK_VISIBILITY, visible);
+        }
+        reconfigureWindowImpl(x, y, width, height, mask);
     }
     final void setVisibleActionImpl(final boolean visible) {
         boolean nativeWindowCreated = false;
@@ -976,14 +1128,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     madeVisible = nativeWindowCreated;
                 }
                 // always flag visible, allowing a retry ..
-                stateMask.set(STATE_VISIBLE);
-            } else if(stateMask.get(STATE_VISIBLE) != visible) {
+                stateMask.set(STATE_BIT_VISIBLE);
+            } else if(stateMask.get(STATE_BIT_VISIBLE) != visible) {
                 if(isNativeValid()) {
-                    setVisibleImpl(visible, getX(), getY(), getWidth(), getHeight());
+                    setVisibleImpl(visible /* visible */, false /* fast */, getX(), getY(), getWidth(), getHeight());
                     WindowImpl.this.waitForVisible(visible, false);
                     madeVisible = visible;
                 } else {
-                    stateMask.set(STATE_VISIBLE);
+                    stateMask.set(STATE_BIT_VISIBLE);
                 }
             }
 
@@ -1002,7 +1154,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+stateMask.get(STATE_FULLSCREEN)+", windowHandle "+toHexString(windowHandle)+", visible: "+stateMask.get(STATE_VISIBLE)+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
+                System.err.println("Window setVisible: END ("+getThreadName()+") state "+getStateMaskString()+
+                        ", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible+
+                        ", geom "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
+                        ", windowHandle "+toHexString(windowHandle));
             }
         } finally {
             if(null!=lifecycleHook) {
@@ -1030,7 +1185,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final void setVisible(final boolean wait, final boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+stateMask.get(STATE_FULLSCREEN)+", windowHandle "+toHexString(windowHandle)+", visible: "+stateMask.get(STATE_VISIBLE)+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
+            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", windowHandle "+toHexString(windowHandle)+", state "+getStateMaskString()+" -> visible "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
         runOnEDTIfAvail(wait, new VisibleAction(visible));
     }
@@ -1056,10 +1211,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             _lock.lock();
             try {
                 if ( force || ( !isFullscreen() && ( getWidth() != width || getHeight() != height ) ) ) {
-                    final boolean _visible = stateMask.get(STATE_VISIBLE);
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: START force "+force+", "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+stateMask.get(STATE_FULLSCREEN)+", windowHandle "+toHexString(windowHandle)+", visible "+_visible);
+                        System.err.println("Window setSize: START force "+force+", "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", windowHandle "+toHexString(windowHandle)+", state "+getStateMaskString());
                     }
+                    final boolean _visible = stateMask.get(STATE_BIT_VISIBLE);
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
                     if ( _visible && isNativeValid() && ( 0 >= width || 0 >= height ) ) {
                         visibleAction=1; // invisible
@@ -1070,7 +1225,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     } else if ( _visible && isNativeValid() ) {
                         visibleAction = 0;
                         // this width/height will be set by windowChanged, called by the native implementation
-                        reconfigureWindowImpl(getX(), getY(), width, height, getReconfigureFlags(0, isVisible()));
+                        reconfigureWindowImpl(getX(), getY(), width, height, getReconfigureMask(0, isVisible()));
                         WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                     } else {
                         // invisible or invalid w/ 0 size
@@ -1222,7 +1377,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public void destroy() {
-        stateMask.clear(STATE_VISIBLE); // Immediately mark synchronized visibility flag, avoiding possible recreation
+        stateMask.clear(STATE_BIT_VISIBLE); // Immediately mark synchronized visibility flag, avoiding possible recreation
         runOnEDTIfAvail(true, destroyAction);
     }
 
@@ -1280,7 +1435,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Bug 924: Ignore reparent when in fullscreen - otherwise may confuse WM
                 if( DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.reparent: NOP (in fullscreen, "+getThreadName()+") valid "+isNativeValid()+
-                                       ", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                                       ", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", state "+getStateMaskString());
                 }
                 return;
             }
@@ -1333,7 +1488,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if( DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+
                                        ", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+
-                                       ", visible "+wasVisible+", becomesVisible "+becomesVisible+
+                                       ", state "+getStateMaskString()+" -> visible "+becomesVisible+
                                        ", forceDestroyCreate "+forceDestroyCreate+
                                        ", DEBUG_TEST_REPARENT_INCOMPATIBLE "+DEBUG_TEST_REPARENT_INCOMPATIBLE+
                                        ", HINT_FORCE_RECREATION "+( 0 != ( REPARENT_HINT_FORCE_RECREATION & hints ) )+
@@ -1464,6 +1619,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     ((Window)parentWindow).removeChild(WindowImpl.this);
                 }
                 parentWindow = newParentWindow;
+                stateMask.put(STATE_BIT_CHILDWIN, null != parentWindow);
                 if(parentWindow instanceof Window) {
                     ((Window)parentWindow).addChild(WindowImpl.this);
                 }
@@ -1474,7 +1630,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                     // TOP -> CLIENT: !visible first (fixes X11 unsuccessful return to parent window)
                     if( null != parentWindow && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
-                        setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
+                        setVisibleImpl(false /* visible */, true /* fast */, oldX, oldY, oldWidth, oldHeight);
                         WindowImpl.this.waitForVisible(false, false);
                         // FIXME: Some composite WM behave slacky .. give 'em chance to change state -> invisible,
                         // even though we do exactly that (KDE+Composite)
@@ -1496,7 +1652,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     boolean ok = false;
                     try {
-                        ok = reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_PARENTING | FLAG_CHANGE_DECORATION, isVisible()));
+                        ok = reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_PARENTING | CHANGE_MASK_DECORATION, isVisible()));
                     } finally {
                         if(null!=parentWindowLocked) {
                             parentWindowLocked.unlockSurface();
@@ -1508,12 +1664,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(ok) {
                         display.dispatchMessagesNative(); // status up2date
                         if(wasVisible) {
-                            setVisibleImpl(true, x, y, width, height);
+                            setVisibleImpl(true /* visible */, true /* fast */, x, y, width, height);
                             ok = 0 <= WindowImpl.this.waitForVisible(true, false);
                             if(ok) {
                                 if( isAlwaysOnTop() && 0 == parentWindowHandle && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
                                     // Reinforce ALWAYSONTOP when CHILD -> TOP reparenting, since reparenting itself cause X11 WM to loose it's state.
-                                    reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                                    reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_ALWAYSONTOP, isVisible()));
                                 }
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
@@ -1547,7 +1703,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         if( null != parentWindow ) {
                             // TOP -> CLIENT: Setup Parent's Pointer State
                             setOffscreenPointerIcon(pointerIcon);
-                            setOffscreenPointerVisible(stateMask.get(STATE_POINTERVISIBLE), pointerIcon);
+                            setOffscreenPointerVisible(stateMask.get(STATE_BIT_POINTERVISIBLE), pointerIcon);
                         }
                     }
                 } else {
@@ -1561,8 +1717,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
-                                       ", visible: "+stateMask.get(STATE_VISIBLE)+", parentWindowHandle "+toHexString(parentWindowHandle)+
+                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") state "+getStateMaskString()+
+                                       ", windowHandle "+toHexString(windowHandle)+
+                                       ", parentWindowHandle "+toHexString(parentWindowHandle)+
                                        ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
                                        getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
                 }
@@ -1588,8 +1745,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
-                                   ", visible: "+stateMask.get(STATE_VISIBLE)+", parentWindowHandle "+toHexString(parentWindowHandle)+
+                System.err.println("Window.reparent: END-X ("+getThreadName()+") state "+getStateMaskString()+
+                                   ", windowHandle "+toHexString(windowHandle)+
+                                   ", parentWindowHandle "+toHexString(parentWindowHandle)+
                                    ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
                                    getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
             }
@@ -1603,7 +1761,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             _lock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+stateMask.get(STATE_VISIBLE)+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
+                    System.err.println("Window.reparent: ReparentActionRecreate ("+getThreadName()+") state "+getStateMaskString()+", windowHandle "+toHexString(windowHandle)+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
                 }
                 setVisibleActionImpl(true); // native creation
                 requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
@@ -1617,6 +1775,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final ReparentAction reparentAction = new ReparentAction(newParent, x, y, hints);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getOp();
+    }
+    @Override
+    public final boolean isChildWindow() {
+        return stateMask.get(STATE_BIT_CHILDWIN);
     }
 
     @Override
@@ -1648,7 +1810,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if( stateMask.put(STATE_UNDECORATED, undecorated) != undecorated ) {
+                if( stateMask.put(STATE_BIT_UNDECORATED, undecorated) != undecorated ) {
                     if( isNativeValid() && !isFullscreen() ) {
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
@@ -1658,7 +1820,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
-                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_DECORATION, isVisible()));
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_DECORATION, isVisible()));
                         display.dispatchMessagesNative(); // status up2date
                     }
                 }
@@ -1673,10 +1835,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final void setUndecorated(final boolean value) {
         runOnEDTIfAvail(true, new DecorationAction(value));
     }
-
     @Override
     public final boolean isUndecorated() {
-        return 0 != parentWindowHandle || stateMask.get(STATE_UNDECORATED) || stateMask.get(STATE_FULLSCREEN) ;
+        return isUndecorated(getStateMask());
+    }
+    private static final boolean isUndecorated(final int smask) {
+        return 0 != ( smask & ( STATE_MASK_CHILDWIN | STATE_MASK_UNDECORATED | STATE_MASK_FULLSCREEN ) );
     }
 
     private class AlwaysOnTopAction implements Runnable {
@@ -1691,7 +1855,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if( stateMask.put(STATE_ALWAYSONTOP, alwaysOnTop) != alwaysOnTop ) {
+                if( stateMask.put(STATE_BIT_ALWAYSONTOP, alwaysOnTop) != alwaysOnTop ) {
                     if( isNativeValid() ) {
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
@@ -1701,7 +1865,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
-                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_ALWAYSONTOP, isVisible()));
                         display.dispatchMessagesNative(); // status up2date
                     }
                 }
@@ -1711,19 +1875,222 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
-
     @Override
     public final void setAlwaysOnTop(final boolean value) {
+        if( isChildWindow() ) {
+            return; // ignore for child windows
+        }
         if( isFullscreen() ) {
-            stateMask.put(STATE_FULLSCREEN_NFS_ALWAYSONTOP, value);
+            if( value && isAlwaysOnBottom() ) {
+                setAlwaysOnBottom(false);
+            }
+            stateMask.put(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP, value);
         } else {
+            if( value && isAlwaysOnBottom() ) {
+                setAlwaysOnBottom(false);
+            }
             runOnEDTIfAvail(true, new AlwaysOnTopAction(value));
         }
     }
-
     @Override
     public final boolean isAlwaysOnTop() {
-        return stateMask.get(STATE_ALWAYSONTOP);
+        return stateMask.get(STATE_BIT_ALWAYSONTOP);
+    }
+
+    private class AlwaysOnBottomAction implements Runnable {
+        boolean alwaysOnBottom;
+
+        private AlwaysOnBottomAction(final boolean alwaysOnBottom) {
+            this.alwaysOnBottom = alwaysOnBottom;
+        }
+
+        @Override
+        public final void run() {
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
+            try {
+                if( stateMask.put(STATE_BIT_ALWAYSONBOTTOM, alwaysOnBottom) != alwaysOnBottom ) {
+                    if( isNativeValid() ) {
+                        // Mirror pos/size so native change notification can get overwritten
+                        final int x = getX();
+                        final int y = getY();
+                        final int width = getWidth();
+                        final int height = getHeight();
+
+                        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        display.dispatchMessagesNative(); // status up2date
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_ALWAYSONBOTTOM, isVisible()));
+                        display.dispatchMessagesNative(); // status up2date
+                    }
+                }
+            } finally {
+                _lock.unlock();
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+        }
+    }
+    @Override
+    public final void setAlwaysOnBottom(final boolean value) {
+        if( isChildWindow() ) {
+            return; // ignore for child windows
+        }
+        if( value && isAlwaysOnTop() ) {
+            setAlwaysOnTop(false);
+        }
+        runOnEDTIfAvail(true, new AlwaysOnBottomAction(value));
+    }
+    @Override
+    public final boolean isAlwaysOnBottom() {
+        return stateMask.get(STATE_BIT_ALWAYSONBOTTOM);
+    }
+
+    private class ResizableAction implements Runnable {
+        boolean resizable;
+
+        private ResizableAction(final boolean resizable) {
+            this.resizable = resizable;
+        }
+
+        @Override
+        public final void run() {
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
+            try {
+                if( stateMask.put(STATE_BIT_RESIZABLE, resizable) != resizable ) {
+                    if( isNativeValid() ) {
+                        // Mirror pos/size so native change notification can get overwritten
+                        final int x = getX();
+                        final int y = getY();
+                        final int width = getWidth();
+                        final int height = getHeight();
+
+                        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        display.dispatchMessagesNative(); // status up2date
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_RESIZABLE, isVisible()));
+                        display.dispatchMessagesNative(); // status up2date
+                    }
+                }
+            } finally {
+                _lock.unlock();
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+        }
+    }
+    @Override
+    public final void setResizable(final boolean value) {
+        if( isChildWindow() ) {
+            return; // ignore for child windows
+        }
+        if( isFullscreen() ) {
+            stateMask.put(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE, value);
+        } else {
+            runOnEDTIfAvail(true, new ResizableAction(value));
+        }
+    }
+    @Override
+    public final boolean isResizable() {
+        return stateMask.get(STATE_BIT_RESIZABLE);
+    }
+
+    private class StickyAction implements Runnable {
+        boolean sticky;
+
+        private StickyAction(final boolean sticky) {
+            this.sticky = sticky;
+        }
+
+        @Override
+        public final void run() {
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
+            try {
+                if( stateMask.put(STATE_BIT_STICKY, sticky) != sticky ) {
+                    if( isNativeValid() ) {
+                        // Mirror pos/size so native change notification can get overwritten
+                        final int x = getX();
+                        final int y = getY();
+                        final int width = getWidth();
+                        final int height = getHeight();
+
+                        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        display.dispatchMessagesNative(); // status up2date
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureMask(CHANGE_MASK_STICKY, isVisible()));
+                        display.dispatchMessagesNative(); // status up2date
+                    }
+                }
+            } finally {
+                _lock.unlock();
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+        }
+    }
+    @Override
+    public final void setSticky(final boolean value) {
+        if( isChildWindow() ) {
+            return; // ignore for child windows
+        }
+        runOnEDTIfAvail(true, new StickyAction(value));
+    }
+    @Override
+    public final boolean isSticky() {
+        return stateMask.get(STATE_BIT_STICKY);
+    }
+
+    private class MaximizeAction implements Runnable {
+        boolean horz, vert;
+
+        private MaximizeAction(final boolean horz, final boolean vert) {
+            this.horz = horz;
+            this.vert = vert;
+        }
+
+        @Override
+        public final void run() {
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
+            try {
+                int cmask = 0;
+                if( stateMask.put(STATE_BIT_MAXIMIZED_VERT, vert) != vert ) {
+                    cmask |= CHANGE_MASK_MAXIMIZED_VERT;
+                }
+                if( stateMask.put(STATE_BIT_MAXIMIZED_HORZ, horz) != horz ) {
+                    cmask |= CHANGE_MASK_MAXIMIZED_HORZ;
+                }
+                if( 0 != cmask ) {
+                    if( isNativeValid() ) {
+                        // Mirror pos/size so native change notification can get overwritten
+                        final int x = getX();
+                        final int y = getY();
+                        final int width = getWidth();
+                        final int height = getHeight();
+
+                        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                        display.dispatchMessagesNative(); // status up2date
+
+                        reconfigureWindowImpl(x, y, width, height, getReconfigureMask(cmask, isVisible()));
+                        display.dispatchMessagesNative(); // status up2date
+                    }
+                }
+            } finally {
+                _lock.unlock();
+            }
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+        }
+    }
+    @Override
+    public final void setMaximized(final boolean horz, final boolean vert) {
+        if( isChildWindow() || isFullscreen() ) {
+            return; // ignore for child windows
+        }
+        runOnEDTIfAvail(true, new MaximizeAction(horz, vert));
+    }
+    @Override
+    public final boolean isMaximizedVert() {
+        return stateMask.get(STATE_BIT_MAXIMIZED_VERT);
+    }
+    @Override
+    public final boolean isMaximizedHorz() {
+        return stateMask.get(STATE_BIT_MAXIMIZED_HORZ);
     }
 
     @Override
@@ -1743,17 +2110,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final boolean isPointerVisible() {
-        return stateMask.get(STATE_POINTERVISIBLE);
+        return stateMask.get(STATE_BIT_POINTERVISIBLE);
     }
     @Override
     public final void setPointerVisible(final boolean pointerVisible) {
-        if(stateMask.get(STATE_POINTERVISIBLE) != pointerVisible) {
+        if(stateMask.get(STATE_BIT_POINTERVISIBLE) != pointerVisible) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
                 setVal = setPointerVisibleIntern(pointerVisible);
             }
             if(setVal) {
-                stateMask.put(STATE_POINTERVISIBLE, pointerVisible);
+                stateMask.put(STATE_BIT_POINTERVISIBLE, pointerVisible);
             }
         }
     }
@@ -1853,11 +2220,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final boolean isPointerConfined() {
-        return stateMask.get(STATE_POINTERCONFINED);
+        return stateMask.get(STATE_BIT_POINTERCONFINED);
     }
     @Override
     public final void confinePointer(final boolean confine) {
-        if(stateMask.get(STATE_POINTERCONFINED) != confine) {
+        if(stateMask.get(STATE_BIT_POINTERCONFINED) != confine) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
                 if(confine) {
@@ -1874,7 +2241,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             }
             if(setVal) {
-                stateMask.put(STATE_POINTERCONFINED, confine);
+                stateMask.put(STATE_BIT_POINTERCONFINED, confine);
             }
         }
     }
@@ -1996,7 +2363,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return ppmmStore;
     }
 
-    protected final boolean autoPosition() { return stateMask.get(STATE_AUTOPOSITION); }
+    protected final boolean autoPosition() { return stateMask.get(STATE_BIT_AUTOPOSITION); }
 
     /** Sets the position fields {@link #x} and {@link #y} in window units to the given values and {@link #autoPosition} to false. */
     protected final void definePosition(final int x, final int y) {
@@ -2004,7 +2371,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("definePosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
             // ExceptionUtils.dumpStackTrace(System.err);
         }
-        stateMask.clear(STATE_AUTOPOSITION);
+        stateMask.clear(STATE_BIT_AUTOPOSITION);
         this.x = x; this.y = y;
     }
 
@@ -2013,7 +2380,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * and {@link #pixWidth} and {@link #pixHeight} in pixel units according to {@link #convertToPixelUnits(int[])}.
      */
     protected final void defineSize(final int winWidth, final int winHeight) {
-        final int pixWidth = SurfaceScaleUtils.scale(winWidth, getPixelScaleX());   // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        final int pixWidth = SurfaceScaleUtils.scale(winWidth, getPixelScaleX());
         final int pixHeight = SurfaceScaleUtils.scale(winHeight, getPixelScaleY());
 
         if(DEBUG_IMPLEMENTATION) {
@@ -2027,12 +2395,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final boolean isVisible() {
-        return stateMask.get(STATE_VISIBLE);
+        return stateMask.get(STATE_BIT_VISIBLE);
     }
 
     @Override
     public final boolean isFullscreen() {
-        return stateMask.get(STATE_FULLSCREEN);
+        return stateMask.get(STATE_BIT_FULLSCREEN);
     }
 
     //----------------------------------------------------------------------
@@ -2087,16 +2455,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final String toString() {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(getClass().getName()+"[Config "+config+
+        sb.append(getClass().getName()+"[State "+getStateMaskString()+
                     ",\n "+screen+
+                    ",\n window["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" wu, "+getSurfaceWidth()+"x"+getSurfaceHeight()+" pixel]"+
+                    ",\n Config "+config+
                     ",\n ParentWindow "+parentWindow+
                     ",\n ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
                     ",\n WindowHandle "+toHexString(getWindowHandle())+
                     ",\n SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
-                    ",\n window["+getX()+"/"+getY()+" (auto "+autoPosition()+") "+getWidth()+"x"+getHeight()+"], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+
-                    "],\n Visible "+isVisible()+", focus "+hasFocus()+
-                    ",\n Undecorated "+stateMask.get(STATE_UNDECORATED)+" ("+isUndecorated()+")"+
-                    ",\n AlwaysOnTop "+stateMask.get(STATE_ALWAYSONTOP)+", Fullscreen "+stateMask.get(STATE_FULLSCREEN)+
                     ",\n WrappedSurface "+getWrappedSurface()+
                     ",\n ChildWindows "+childWindows.size());
 
@@ -2141,7 +2507,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         @Override
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.RequestFocusAction: force 0 - ("+getThreadName()+"): "+stateMask.get(STATE_FOCUSED)+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.RequestFocusAction: force 0 - ("+getThreadName()+"): state "+getStateMaskString()+" -> focus true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             WindowImpl.this.requestFocusImpl(false);
         }
@@ -2150,7 +2516,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         @Override
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.RequestFocusAction: force 1 - ("+getThreadName()+"): "+stateMask.get(STATE_FOCUSED)+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.RequestFocusAction: force 1 - ("+getThreadName()+"): state "+getStateMaskString()+" -> focus true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             WindowImpl.this.requestFocusImpl(true);
         }
@@ -2158,7 +2524,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final boolean hasFocus() {
-        return stateMask.get(STATE_FOCUSED);
+        return stateMask.get(STATE_BIT_FOCUSED);
     }
 
     @Override
@@ -2168,7 +2534,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void requestFocus(final boolean wait) {
-        requestFocus(wait /* wait */, false /* skipFocusAction */, stateMask.get(STATE_FOCUS_CHANGE_BROKEN) /* force */);
+        requestFocus(wait /* wait */, false /* skipFocusAction */, stateMask.get(PSTATE_BIT_FOCUS_CHANGE_BROKEN) /* force */);
     }
 
     private void requestFocus(final boolean wait, final boolean skipFocusAction, final boolean force) {
@@ -2183,7 +2549,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private void requestFocusInt(final boolean skipFocusAction) {
         if( skipFocusAction || !focusAction() ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): skipFocusAction "+skipFocusAction+", focus "+stateMask.get(STATE_FOCUSED)+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): skipFocusAction "+
+                        skipFocusAction+", state "+getStateMaskString()+" -> focus true - windowHandle "+
+                        toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             requestFocusImpl(true);
         }
@@ -2211,7 +2579,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected final void setBrokenFocusChange(final boolean v) {
-        stateMask.put(STATE_FOCUS_CHANGE_BROKEN, v);
+        stateMask.put(PSTATE_BIT_FOCUS_CHANGE_BROKEN, v);
     }
 
     @Override
@@ -2233,13 +2601,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             _lock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window setPosition: "+getX()+"/"+getY()+" -> "+x+"/"+y+", fs "+stateMask.get(STATE_FULLSCREEN)+", windowHandle "+toHexString(windowHandle));
+                    System.err.println("Window setPosition: "+getX()+"/"+getY()+" -> "+x+"/"+y+", fs "+stateMask.get(STATE_BIT_FULLSCREEN)+", windowHandle "+toHexString(windowHandle));
                 }
                 // Let the window be positioned if !fullscreen and position changed or being a child window.
                 if ( !isFullscreen() && ( getX() != x || getY() != y || null != getParent()) ) {
                     if(isNativeValid()) {
                         // this.x/this.y will be set by sizeChanged, triggered by windowing event system
-                        reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
+                        reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureMask(0, isVisible()));
                         if( null == parentWindow ) {
                             // Wait until custom position is reached within tolerances
                             waitForPosition(true, x, y, Window.TIMEOUT_NATIVEWINDOW);
@@ -2256,7 +2624,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public void setPosition(final int x, final int y) {
-        stateMask.clear(STATE_AUTOPOSITION);
+        stateMask.clear(STATE_BIT_AUTOPOSITION);
         runOnEDTIfAvail(true, new SetPositionAction(x, y));
     }
 
@@ -2273,7 +2641,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 this._fullscreen = fullscreen;
                 return isFullscreen() != fullscreen;
             } else {
-                stateMask.put(STATE_FULLSCREEN, fullscreen); // set current state for createNative(..)
+                stateMask.put(STATE_BIT_FULLSCREEN, fullscreen); // set current state for createNative(..)
                 return false;
             }
         }
@@ -2294,11 +2662,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 final RectangleImmutable sviewport = screen.getViewportInWindowUnits(); // window units
                 final RectangleImmutable viewport; // window units
-                final int fs_span_flag;
-                final boolean alwaysOnTopChange;
+                final boolean alwaysOnTopChange, resizableChange;
                 if(_fullscreen) {
                     if( null == fullscreenMonitors ) {
-                        if( stateMask.get(STATE_FULLSCREEN_MAINMONITOR) ) {
+                        if( stateMask.get(PSTATE_BIT_FULLSCREEN_MAINMONITOR) ) {
                             fullscreenMonitors = new ArrayList<MonitorDevice>();
                             fullscreenMonitors.add( getMainMonitor() );
                         } else {
@@ -2310,34 +2677,42 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         MonitorDevice.unionOfViewports(null, viewportInWindowUnits, fullscreenMonitors);
                         viewport = viewportInWindowUnits;
                     }
-                    if( isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) &&
+                    if( isReconfigureMaskSupported(STATE_MASK_FULLSCREEN_SPAN) &&
                         ( fullscreenMonitors.size() > 1 || sviewport.compareTo(viewport) > 0 ) ) {
-                        fs_span_flag = FLAG_IS_FULLSCREEN_SPAN;
+                        stateMask.set(STATE_BIT_FULLSCREEN_SPAN);
                     } else {
-                        fs_span_flag = 0;
+                        stateMask.clear(STATE_BIT_FULLSCREEN_SPAN);
                     }
                     nfs_x = oldX;
                     nfs_y = oldY;
                     nfs_width = oldWidth;
                     nfs_height = oldHeight;
-                    stateMask.copy(STATE_ALWAYSONTOP, STATE_FULLSCREEN_NFS_ALWAYSONTOP);
+                    stateMask.copy(STATE_BIT_ALWAYSONTOP, PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP);
+                    stateMask.copy(STATE_BIT_RESIZABLE, PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
                     x = viewport.getX();
                     y = viewport.getY();
                     w = viewport.getWidth();
                     h = viewport.getHeight();
-                    stateMask.clear(STATE_ALWAYSONTOP);
-                    alwaysOnTopChange = stateMask.get(STATE_FULLSCREEN_NFS_ALWAYSONTOP); // != stateMask.get(STATE_ALWAYSONTOP);
+                    stateMask.clear(STATE_BIT_ALWAYSONTOP); // special aontop handling for fullscreen
+                    stateMask.set(STATE_BIT_RESIZABLE);     // allow fullscreen to resize to max
+                    alwaysOnTopChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP);
+                    resizableChange = !stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
                 } else {
-                    stateMask.set(STATE_FULLSCREEN_MAINMONITOR);
+                    stateMask.set(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
                     fullscreenMonitors = null;
-                    fs_span_flag = 0;
+                    stateMask.clear(STATE_BIT_FULLSCREEN_SPAN);
                     viewport = null;
                     x = nfs_x;
                     y = nfs_y;
                     w = nfs_width;
                     h = nfs_height;
-                    alwaysOnTopChange = stateMask.get(STATE_FULLSCREEN_NFS_ALWAYSONTOP) != stateMask.get(STATE_ALWAYSONTOP);
-                    stateMask.copy(STATE_FULLSCREEN_NFS_ALWAYSONTOP, STATE_ALWAYSONTOP);
+                    alwaysOnTopChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP) != stateMask.get(STATE_BIT_ALWAYSONTOP);
+                    // alwaysOnBottomChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONBOTTOM) != stateMask.get(STATE_BIT_ALWAYSONBOTTOM);
+                    resizableChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE) != stateMask.get(STATE_BIT_RESIZABLE);
+                    stateMask.copy(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP, STATE_BIT_ALWAYSONTOP);
+                    stateMask.copy(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE, STATE_BIT_RESIZABLE);
+                    stateMask.clear(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP);
+                    stateMask.set(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
 
                     if(null!=parentWindow) {
                         // reset position to 0/0 within parent space
@@ -2360,18 +2735,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final boolean tempInvisible = !_fullscreen && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window fs: "+_fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
+                    System.err.println("Window "+x+"/"+y+" "+w+"x"+h+
                                        ", virtl-screenSize: "+sviewport+" [wu], monitorsViewport "+viewport+" [wu]"+
-                                       ", spanning "+(0!=fs_span_flag)+
-                                       ", alwaysOnTop "+stateMask.get(STATE_ALWAYSONTOP)+(alwaysOnTopChange?"*":"")+
                                        ", wasVisible "+wasVisible+", tempInvisible "+tempInvisible+
                                        ", hasParent "+(null!=parentWindow)+
+                                       ", state "+getStateMaskString()+
                                        " @ "+Thread.currentThread().getName());
                 }
 
                 // fullscreen off: !visible first (fixes X11 unsuccessful return to parent window _and_ wrong window size propagation)
                 if( tempInvisible ) {
-                    setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
+                    setVisibleImpl(false /* visible */, true /* fast */, oldX, oldY, oldWidth, oldHeight);
                     WindowImpl.this.waitForVisible(false, false);
                     try { Thread.sleep(100); } catch (final InterruptedException e) { }
                     display.dispatchMessagesNative(); // status up2date
@@ -2387,20 +2761,28 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 } else {
                     parentWindowLocked = null;
                 }
+                final int changeMask;
                 try {
-                    if(alwaysOnTopChange && _fullscreen) {
-                        // Enter fullscreen - Disable alwaysOnTop
-                        reconfigureWindowImpl(oldX, oldY, oldWidth, oldHeight, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                    {
+                        // Enter fullscreen - Disable alwaysOnTop/alwaysOnBottom/resizableChange
+                        int cm = 0;
+                        if( alwaysOnTopChange ) {
+                            cm = CHANGE_MASK_ALWAYSONTOP;
+                        }
+                        if( resizableChange ) {
+                            cm |= CHANGE_MASK_RESIZABLE;
+                        }
+                        changeMask = cm;
+                    }
+                    if( _fullscreen && 0 != changeMask ) {
+                        // Enter fullscreen - Disable alwaysOnTop/alwaysOnBottom/resizableChange
+                        reconfigureWindowImpl(oldX, oldY, oldWidth, oldHeight, getReconfigureMask(changeMask, isVisible()));
                     }
 
-                    stateMask.put(STATE_FULLSCREEN, _fullscreen);
+                    stateMask.put(STATE_BIT_FULLSCREEN, _fullscreen);
                     reconfigureWindowImpl(x, y, w, h,
-                                          getReconfigureFlags( ( ( null != parentWindowLocked ) ? FLAG_CHANGE_PARENTING : 0 ) |
-                                                               fs_span_flag | FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, isVisible()) );
-                    if(alwaysOnTopChange && !_fullscreen) {
-                        // Leave fullscreen - Restore alwaysOnTop
-                        reconfigureWindowImpl(x, y, w, h, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
-                    }
+                                          getReconfigureMask( ( ( null != parentWindowLocked ) ? CHANGE_MASK_PARENTING : 0 ) |
+                                                               CHANGE_MASK_FULLSCREEN | CHANGE_MASK_DECORATION, isVisible()) );
                 } finally {
                     if(null!=parentWindowLocked) {
                         parentWindowLocked.unlockSurface();
@@ -2414,7 +2796,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         try { Thread.sleep(100); } catch (final InterruptedException e) { }
                         display.dispatchMessagesNative(); // status up2date
                     }
-                    setVisibleImpl(true, x, y, w, h);
+                    setVisibleImpl(true /* visible */, true /* fast */, x, y, w, h);
                     boolean ok = 0 <= WindowImpl.this.waitForVisible(true, false);
                     if(ok) {
                         ok = WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
@@ -2422,6 +2804,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(ok && !_fullscreen && null == parentWindow) {
                         // Position mismatch shall not lead to fullscreen failure
                         WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
+                    }
+                    if( ok ) {
+                        // Restore certain states ..
+                        if( !_fullscreen && 0 != changeMask ) {
+                            // Restore alwaysOnTop/resizableChange when leaving fullscreen
+                            reconfigureWindowImpl(x, y, w, h, getReconfigureMask(changeMask, isVisible()));
+                        }
+                        if( isAlwaysOnBottom() ) {
+                            // Re-Init alwaysOnBottom always
+                            reconfigureWindowImpl(x, y, w, h, getReconfigureMask(CHANGE_MASK_ALWAYSONBOTTOM, isVisible()));
+                        }
+                        if( isSticky() ) {
+                            // Re-Init sticky always
+                            reconfigureWindowImpl(x, y, w, h, getReconfigureMask(CHANGE_MASK_STICKY, isVisible()));
+                        }
                     }
                     if(ok) {
                         requestFocusInt(_fullscreen /* skipFocusAction if fullscreen */);
@@ -2454,7 +2851,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         synchronized(fullScreenAction) {
             fullscreenMonitors = monitors;
 
-            stateMask.put(STATE_FULLSCREEN_MAINMONITOR, useMainMonitor);
+            stateMask.put(PSTATE_BIT_FULLSCREEN_MAINMONITOR, useMainMonitor);
             if( fullScreenAction.init(fullscreen) ) {
                 if( fullScreenAction.fsOn() && isOffscreenInstance(WindowImpl.this, parentWindow) ) {
                     // enable fullscreen on offscreen instance
@@ -2474,7 +2871,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     nfs_parent = null;
                 }
             }
-            return stateMask.get(STATE_FULLSCREEN);
+            return stateMask.get(STATE_BIT_FULLSCREEN);
         }
     }
 
@@ -2493,9 +2890,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         @Override
         public void monitorModeChangeNotify(final MonitorEvent me) {
             hadFocus = hasFocus();
-            final boolean fullscreen = stateMask.get(STATE_FULLSCREEN);
+            final boolean fullscreen = stateMask.get(STATE_BIT_FULLSCREEN);
             final boolean isOSX = NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(true);
-            final boolean quirkFSPause = fullscreen && isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN);
+            final boolean quirkFSPause = fullscreen && isReconfigureMaskSupported(STATE_MASK_FULLSCREEN_SPAN);
             final boolean quirkHide = !quirkFSPause && !fullscreen && isVisible() && isOSX;
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.monitorModeChangeNotify: hadFocus "+hadFocus+", qFSPause "+quirkFSPause+", qHide "+quirkHide+", "+me+" @ "+Thread.currentThread().getName());
@@ -2510,7 +2907,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 fullscreenPaused = true;
                 _fullscreenMonitors = fullscreenMonitors;
-                _fullscreenUseMainMonitor = stateMask.get(STATE_FULLSCREEN_MAINMONITOR);
+                _fullscreenUseMainMonitor = stateMask.get(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
                 setFullscreenImpl(false, true, null);
             }
             if( quirkHide ) {
@@ -2527,7 +2924,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Didn't pass above notify method. probably detected screen change after it happened.
                 animatorPaused = lifecycleHook.pauseRenderingAction();
             }
-            final boolean fullscreen = stateMask.get(STATE_FULLSCREEN);
+            final boolean fullscreen = stateMask.get(STATE_BIT_FULLSCREEN);
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.monitorModeChanged.0: success: "+success+", hadFocus "+hadFocus+", animPaused "+animatorPaused+
                                    ", hidden "+hidden+", FS "+fullscreen+", FS-paused "+fullscreenPaused+
@@ -3714,15 +4111,32 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    /** Triggered by implementation's WM events to update the position. */
+    protected final void minMaxSizeChanged(final int min_width, final int min_height, final int max_width, final int max_height) {
+        if( 0 <= min_width && 0 <= min_height && 0 <= max_width && 0 <= max_height) {
+            final RectangleImmutable sz = new Rectangle(min_width, min_height, max_width, max_height);
+            if( !minmax_size.equals(sz) ) {
+                stateMask.put(PSTATE_BIT_MINMAXSIZE_SET, !sz.equals(undefSize));
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.minMaxSizeChanged: ("+getThreadName()+"): Current "+minmax_size+" -> "+sz);
+                }
+                minmax_size.set(sz);
+            }
+        }
+    }
+
     /** Triggered by implementation's WM events to update the focus state. */
     protected void focusChanged(final boolean defer, final boolean focusGained) {
-        if( stateMask.get(STATE_FOCUS_CHANGE_BROKEN) ||
-            stateMask.get(STATE_FOCUSED) != focusGained )
+        if( stateMask.get(PSTATE_BIT_FOCUS_CHANGE_BROKEN) ||
+            stateMask.get(STATE_BIT_FOCUSED) != focusGained )
         {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") "+stateMask.get(STATE_FOCUSED)+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") state "+
+                        getStateMaskString()+" -> focus "+focusGained+
+                        " - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+
+                        toHexString(parentWindowHandle));
             }
-            stateMask.put(STATE_FOCUSED, focusGained);
+            stateMask.put(STATE_BIT_FOCUSED, focusGained);
             final int evt = focusGained ? WindowEvent.EVENT_WINDOW_GAINED_FOCUS : WindowEvent.EVENT_WINDOW_LOST_FOCUS ;
             if(!defer) {
                 sendWindowEvent(evt);
@@ -3734,9 +4148,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Triggered by implementation's WM events to update the visibility state. */
     protected final void visibleChanged(final boolean defer, final boolean visible) {
-        if( stateMask.put(STATE_VISIBLE, visible) != visible ) {
+        if( stateMask.put(STATE_BIT_VISIBLE, visible) != visible ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") "+(!visible)+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") visible "+(!visible)+" -> state "+getStateMaskString()+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
         }
     }
@@ -3751,11 +4165,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         display.dispatchMessagesNative(); // status up2date
         long remaining;
-        boolean _visible = stateMask.get(STATE_VISIBLE);
+        boolean _visible = stateMask.get(STATE_BIT_VISIBLE);
         for(remaining = timeOut; 0 < remaining && _visible != visible; remaining-=10 ) {
             try { Thread.sleep(10); } catch (final InterruptedException ie) {}
             display.dispatchMessagesNative(); // status up2date
-            _visible = stateMask.get(STATE_VISIBLE);
+            _visible = stateMask.get(STATE_BIT_VISIBLE);
         }
         if( visible != _visible ) {
             final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+_visible;
@@ -3794,6 +4208,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+
                                    getWidth()+"x"+getHeight()+" -> "+newWidth+"x"+newHeight+
+                                   ", state "+getStateMaskString()+
                                    " - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             if(0>newWidth || 0>newHeight) {
@@ -3845,7 +4260,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
             }
         } else {
-            stateMask.clear(STATE_AUTOPOSITION); // ensure it's off even w/ same position
+            stateMask.clear(STATE_BIT_AUTOPOSITION); // ensure it's off even w/ same position
         }
     }
 
@@ -3870,7 +4285,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( useCustomPosition ) {
                 ok = Math.abs(x - getX()) <= maxDX && Math.abs(y - getY()) <= maxDY ;
             } else {
-                _autopos = stateMask.get(STATE_AUTOPOSITION);
+                _autopos = stateMask.get(STATE_BIT_AUTOPOSITION);
                 ok = !_autopos;
             }
             if( !ok ) {

@@ -123,33 +123,35 @@ public class WindowDriver extends WindowImpl {
             throw new NativeWindowException("Chosen Configuration w/o native visual ID: "+cfg);
         }
         setGraphicsConfiguration(cfg);
-        final int flags = getReconfigureFlags(0, true) &
-                          ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
+        final int flags = getReconfigureMask(0, true) & STATE_MASK_CREATENATIVE;
         edtDevice.lock();
         try {
-            setWindowHandle(CreateWindow(getParentWindowHandle(),
-                                   edtDevice.getHandle(), screen.getIndex(), visualID,
-                                   display.getJavaObjectAtom(), display.getWindowDeleteAtom(),
-                                   getX(), getY(), getWidth(), getHeight(), autoPosition(), flags,
-                                   defaultIconDataSize, defaultIconData));
+            final long[] handles = CreateWindow(getParentWindowHandle(),
+                                                edtDevice.getHandle(), screen.getIndex(), visualID,
+                                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(),
+                                                getX(), getY(), getWidth(), getHeight(), flags,
+                                                defaultIconDataSize, defaultIconData, DEBUG_IMPLEMENTATION);
+            if (null == handles || 2 != handles.length || 0 == handles[0] || 0 == handles[1] ) {
+                throw new NativeWindowException("Error creating window");
+            }
+            if(DEBUG_IMPLEMENTATION) { // FIXME
+                System.err.println("X11Window.createNativeImpl() handles "+toHexString(handles[0])+", "+toHexString(handles[1]));
+            }
+            setWindowHandle(handles[0]);
+            javaWindowHandle = handles[1];
         } finally {
             edtDevice.unlock();
-        }
-        windowHandleClose = getWindowHandle();
-        if (0 == windowHandleClose) {
-            throw new NativeWindowException("Error creating window");
         }
     }
 
     @Override
     protected void closeNativeImpl() {
-        if(0!=windowHandleClose && null!=getScreen() ) {
+        if(0!=javaWindowHandle && null!=getScreen() ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             final AbstractGraphicsDevice edtDevice = display.getGraphicsDevice();
             edtDevice.lock();
             try {
-                CloseWindow0(edtDevice.getHandle(), windowHandleClose,
-                             display.getJavaObjectAtom(), display.getWindowDeleteAtom() /* , display.getKbdHandle() */, // XKB disabled for now
+                CloseWindow0(edtDevice.getHandle(), javaWindowHandle /* , display.getKbdHandle() */, // XKB disabled for now
                              display.getRandREventBase(), display.getRandRErrorBase());
             } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
@@ -158,7 +160,7 @@ public class WindowDriver extends WindowImpl {
                 }
             } finally {
                 edtDevice.unlock();
-                windowHandleClose = 0;
+                javaWindowHandle = 0;
             }
         }
         if(null != renderDevice) {
@@ -174,7 +176,7 @@ public class WindowDriver extends WindowImpl {
      * {@inheritDoc}
      */
     @Override
-    protected boolean isReconfigureFlagSupported(final int changeFlags) {
+    protected boolean isReconfigureMaskSupported(final int changeFlags) {
         return true; // all flags!
     }
 
@@ -182,7 +184,7 @@ public class WindowDriver extends WindowImpl {
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, int flags) {
         final int _x, _y;
         final InsetsImmutable _insets;
-        if( 0 == ( FLAG_IS_UNDECORATED & flags) ) {
+        if( 0 == ( STATE_MASK_UNDECORATED & flags) ) {
             // client position -> top-level window position
             _insets = getInsets();
             _x = x - _insets.getLeftWidth() ;
@@ -193,27 +195,27 @@ public class WindowDriver extends WindowImpl {
             _y = y;
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window reconfig: "+x+"/"+y+" -> "+_x+"/"+_y+" "+width+"x"+height+", insets "+_insets+", "+ getReconfigureFlagsAsString(null, flags));
+            System.err.println("X11Window reconfig: "+x+"/"+y+" -> "+_x+"/"+_y+" "+width+"x"+height+", insets "+_insets+", "+ getReconfigStateMaskString(flags));
         }
-        if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags ) ) {
-            if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
+        if( 0 != ( CHANGE_MASK_FULLSCREEN & flags ) ) {
+            if( 0 != ( STATE_MASK_FULLSCREEN & flags) &&
+                0 == ( STATE_MASK_ALWAYSONTOP & flags) &&
+                0 == ( STATE_MASK_ALWAYSONBOTTOM & flags) ) {
                 tempFSAlwaysOnTop = true;
-                flags |= FLAG_IS_ALWAYSONTOP;
+                flags |= STATE_MASK_ALWAYSONTOP;
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("X11Window reconfig.2: temporary "+getReconfigureFlagsAsString(null, flags));
+                    System.err.println("X11Window reconfig.2: temporary "+getReconfigStateMaskString(flags));
                 }
             } else {
                 tempFSAlwaysOnTop = false;
             }
         }
         final int fflags = flags;
-        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
             public Object run(final long dpy) {
                 reconfigureWindow0( dpy, getScreenIndex(),
-                                    getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
-                                    _x, _y, width, height, fflags);
+                                    getParentWindowHandle(), javaWindowHandle, _x, _y, width, height, fflags);
                 return null;
             }
         });
@@ -229,18 +231,17 @@ public class WindowDriver extends WindowImpl {
      */
     @Override
     protected void focusChanged(final boolean defer, final boolean focusGained) {
-        if( isNativeValid() && isFullscreen() && tempFSAlwaysOnTop && hasFocus() != focusGained ) {
-            final int flags = getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()) | ( focusGained ? FLAG_IS_ALWAYSONTOP : 0 );
+        if( isNativeValid() && isFullscreen() && !isAlwaysOnBottom() && tempFSAlwaysOnTop && hasFocus() != focusGained ) {
+            final int flags = getReconfigureMask(CHANGE_MASK_ALWAYSONTOP, isVisible()) |
+                              ( focusGained ? STATE_MASK_ALWAYSONTOP : 0 );
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("X11Window reconfig.3 (focus): temporary "+getReconfigureFlagsAsString(null, flags));
+                System.err.println("X11Window reconfig.3 (focus): temporary "+getReconfigStateMaskString(flags));
             }
-            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
                 @Override
                 public Object run(final long dpy) {
                     reconfigureWindow0( dpy, getScreenIndex(),
-                                        getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
-                                        getX(), getY(), getWidth(), getHeight(), flags);
+                                        getParentWindowHandle(), javaWindowHandle, getX(), getY(), getWidth(), getHeight(), flags);
                     return null;
                 }
             });
@@ -260,7 +261,7 @@ public class WindowDriver extends WindowImpl {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
             public Object run(final long dpy) {
-                requestFocus0(dpy, getWindowHandle(), force);
+                requestFocus0(dpy, javaWindowHandle, force);
                 return null;
             }
         });
@@ -271,7 +272,7 @@ public class WindowDriver extends WindowImpl {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
             public Object run(final long dpy) {
-                setTitle0(dpy, getWindowHandle(), title);
+                setTitle0(dpy, javaWindowHandle, title);
                 return null;
             }
         });
@@ -283,7 +284,7 @@ public class WindowDriver extends WindowImpl {
             @Override
             public Object run(final long dpy) {
                 try {
-                    setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.validatedHandle() : 0);
+                    setPointerIcon0(dpy, javaWindowHandle, null != pi ? pi.validatedHandle() : 0);
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
@@ -300,10 +301,10 @@ public class WindowDriver extends WindowImpl {
                 final PointerIconImpl pi = (PointerIconImpl)getPointerIcon();
                 final boolean res;
                 if( pointerVisible && null != pi ) {
-                    setPointerIcon0(dpy, getWindowHandle(), pi.validatedHandle());
+                    setPointerIcon0(dpy, javaWindowHandle, pi.validatedHandle());
                     res = true;
                 } else {
-                    res = setPointerVisible0(dpy, getWindowHandle(), pointerVisible);
+                    res = setPointerVisible0(dpy, javaWindowHandle, pointerVisible);
                 }
                 return Boolean.valueOf(res);
             }
@@ -315,7 +316,7 @@ public class WindowDriver extends WindowImpl {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
             public Boolean run(final long dpy) {
-                return Boolean.valueOf(confinePointer0(dpy, getWindowHandle(), confine));
+                return Boolean.valueOf(confinePointer0(dpy, javaWindowHandle, confine));
             }
         }).booleanValue();
     }
@@ -325,7 +326,7 @@ public class WindowDriver extends WindowImpl {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             @Override
             public Object run(final long dpy) {
-                warpPointer0(dpy, getWindowHandle(), x, y);
+                warpPointer0(dpy, javaWindowHandle, x, y);
                 return null;
             }
         });
@@ -434,39 +435,41 @@ public class WindowDriver extends WindowImpl {
 
     protected static native boolean initIDs0();
 
-    private long CreateWindow(final long parentWindowHandle, final long display, final int screen_index,
-                              final int visualID, final long javaObjectAtom, final long windowDeleteAtom,
-                              final int x, final int y, final int width, final int height, final boolean autoPosition, final int flags,
-                              final int pixelDataSize, final Buffer pixels) {
+    private long[] CreateWindow(final long parentWindowHandle, final long display, final int screen_index,
+                                final int visualID, final long javaObjectAtom, final long windowDeleteAtom,
+                                final int x, final int y, final int width, final int height, final int flags,
+                                final int pixelDataSize, final Buffer pixels, final boolean verbose) {
         // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
         if( !Buffers.isDirect(pixels) ) {
             throw new IllegalArgumentException("data buffer is not direct "+pixels);
         }
         return CreateWindow0(parentWindowHandle, display, screen_index,
                              visualID, javaObjectAtom, windowDeleteAtom,
-                             x, y, width, height, autoPosition, flags,
-                             pixelDataSize,
-                             pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */);
+                             x, y, width, height, flags,
+                             pixelDataSize, pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */, verbose);
     }
-    private native long CreateWindow0(long parentWindowHandle, long display, int screen_index,
-                                      int visualID, long javaObjectAtom, long windowDeleteAtom,
-                                      int x, int y, int width, int height, boolean autoPosition, int flags,
-                                      int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct);
-    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle*/, // XKB disabled for now
+    /** returns long[2] { X11-window-handle, JavaWindow-handle } */
+    private native long[] CreateWindow0(long parentWindowHandle, long display, int screen_index,
+                                        int visualID, long javaObjectAtom, long windowDeleteAtom,
+                                        int x, int y, int width, int height, int flags,
+                                        int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct,
+                                        boolean verbose);
+    private native long GetNativeWindowHandle0(long javaWindowHandle);
+    private native void CloseWindow0(long display, long javaWindowHandle /*, long kbdHandle*/, // XKB disabled for now
                                      final int randr_event_base, final int randr_error_base);
-    private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
-                                           long windowDeleteAtom, int x, int y, int width, int height, int flags);
-    private native void requestFocus0(long display, long windowHandle, boolean force);
+    private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long javaWindowHandle,
+                                           int x, int y, int width, int height, int flags);
+    private native void requestFocus0(long display, long javaWindowHandle, boolean force);
 
-    private static native void setTitle0(long display, long windowHandle, String title);
+    private static native void setTitle0(long display, long javaWindowHandle, String title);
 
-    private static native void setPointerIcon0(long display, long windowHandle, long handle);
+    private static native void setPointerIcon0(long display, long javaWindowHandle, long handle);
 
-    private static native long getParentWindow0(long display, long windowHandle);
-    private static native boolean setPointerVisible0(long display, long windowHandle, boolean visible);
-    private static native boolean confinePointer0(long display, long windowHandle, boolean grab);
-    private static native void warpPointer0(long display, long windowHandle, int x, int y);
+    private static native boolean setPointerVisible0(long display, long javaWindowHandle, boolean visible);
+    private static native boolean confinePointer0(long display, long javaWindowHandle, boolean grab);
+    private static native void warpPointer0(long display, long javaWindowHandle, int x, int y);
 
-    private long   windowHandleClose;
+    /** Of native type JavaWindow, containing 'jobject window', X11 Window, beside other states. */
+    private volatile long javaWindowHandle = 0; // lifecycle critical
     private X11GraphicsDevice renderDevice;
 }

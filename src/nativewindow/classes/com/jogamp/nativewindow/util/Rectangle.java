@@ -46,6 +46,9 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         this.width=width;
         this.height=height;
     }
+    public Rectangle(final RectangleImmutable s) {
+        set(s);
+    }
 
     @Override
     public Object cloneMutable() {
@@ -81,6 +84,12 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         this.y = s.y;
         this.width = s.width;
         this.height = s.height;
+    }
+    public final void set(final RectangleImmutable s) {
+        this.x = s.getX();
+        this.y = s.getY();
+        this.width = s.getWidth();
+        this.height = s.getHeight();
     }
     public final void setX(final int x) { this.x = x; }
     public final void setY(final int y) { this.y = y; }
@@ -196,6 +205,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
             }
         }
         {
+            // FIXME: Invalid, position needs to be compared differently
             final int sq = x*y;
             final int xsq = d.getX()*d.getY();
 

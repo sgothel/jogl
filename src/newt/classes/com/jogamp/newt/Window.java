@@ -116,6 +116,185 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
     public static final long TIMEOUT_NATIVEWINDOW = 1000;
 
     //
+    // States (keep in sync w/ src/newt/native/Window.h)
+    //
+    /**
+     * Visibility of this instance.
+     * <p>Native instance gets created at first visibility, following NEWT's lazy creation pattern.</p>
+     * <p>Changing this state is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_VISIBLE = 0; // reconfig-flag
+    /**
+     * Hinting that no custom position has been set before first {@link #STATE_BIT_VISIBLE visibility} of this instance.
+     * <p>If kept {@code false} at creation, this allows the WM to choose the top-level window position,
+     * otherwise the custom position is being enforced.</p>
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code true}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_AUTOPOSITION = 1;
+    /**
+     * Set if window is a <i>child window</i>, i.e. has been {@link #reparentWindow(NativeWindow, int, int, int) reparented}.
+     * <p>
+     * Otherwise bit is cleared, i.e. window is <i>top-level</i>.
+     * </p>
+     * <p>Changing this state is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_CHILDWIN = 2;       // reconfig-flag
+    /**
+     * Set if window has <i>the input focus</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_FOCUSED = 3;
+    /**
+     * Set if window has <i>window decorations</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_UNDECORATED = 4;    // reconfig-flag
+    /**
+     * Set if window is <i>always on top</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_ALWAYSONTOP = 5;    // reconfig-flag
+    /**
+     * Set if window is <i>always on bottom</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_ALWAYSONBOTTOM = 6; // reconfig-flag
+    /**
+     * Set if window is <i>sticky</i>, i.e. visible <i>on all virtual desktop</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_STICKY = 7;    // reconfig-flag
+    /**
+     * Set if window is <i>resizable</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code true}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_RESIZABLE = 8; // reconfig-flag
+    /**
+     * Set if window is <i>maximized vertically</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_MAXIMIZED_VERT = 9; // reconfig-flag
+    /**
+     * Set if window is <i>maximized horizontally</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_MAXIMIZED_HORZ = 10; // reconfig-flag
+    /**
+     * Set if window is in <i>fullscreen mode</i>, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_FULLSCREEN = 11;    // reconfig-flag
+
+    // Hidden in WindowImpl:
+    //   static final int STATE_BIT_FULLSCREEN_SPAN = 12;
+
+    /**
+     * Set if the <i>pointer is visible</i> when inside the window, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code true}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_POINTERVISIBLE = 13;
+    /**
+     * Set if the <i>pointer is confined</i> to the window, otherwise cleared.
+     * <p>Bit number {@value}.</p>
+     * <p>Defaults to {@code false}.</p>
+     * @see #getStateMask()
+     */
+    public static final int STATE_BIT_POINTERCONFINED = 14;
+
+    /** Bitmask for {@link #STATE_BIT_VISIBLE}, {@value}. */
+    public static final int STATE_MASK_VISIBLE = 1 << STATE_BIT_VISIBLE;
+    /** Bitmask for {@link #STATE_BIT_AUTOPOSITION}, {@value}. */
+    public static final int STATE_MASK_AUTOPOSITION = 1 << STATE_BIT_AUTOPOSITION;
+    /** Bitmask for {@link #STATE_BIT_CHILDWIN}, {@value}. */
+    public static final int STATE_MASK_CHILDWIN = 1 << STATE_BIT_CHILDWIN;
+    /** Bitmask for {@link #STATE_BIT_FOCUSED}, {@value}. */
+    public static final int STATE_MASK_FOCUSED = 1 << STATE_BIT_FOCUSED;
+    /** Bitmask for {@link #STATE_BIT_UNDECORATED}, {@value}. */
+    public static final int STATE_MASK_UNDECORATED = 1 << STATE_BIT_UNDECORATED;
+    /** Bitmask for {@link #STATE_BIT_ALWAYSONTOP}, {@value}. */
+    public static final int STATE_MASK_ALWAYSONTOP = 1 << STATE_BIT_ALWAYSONTOP;
+    /** Bitmask for {@link #STATE_BIT_ALWAYSONBOTTOM}, {@value}. */
+    public static final int STATE_MASK_ALWAYSONBOTTOM = 1 << STATE_BIT_ALWAYSONBOTTOM;
+    /** Bitmask for {@link #STATE_BIT_STICKY}, {@value}. */
+    public static final int STATE_MASK_STICKY = 1 << STATE_BIT_STICKY;
+    /** Bitmask for {@link #STATE_BIT_RESIZABLE}, {@value}. */
+    public static final int STATE_MASK_RESIZABLE = 1 << STATE_BIT_RESIZABLE;
+    /** Bitmask for {@link #STATE_BIT_MAXIMIZED_VERT}, {@value}. */
+    public static final int STATE_MASK_MAXIMIZED_VERT = 1 << STATE_BIT_MAXIMIZED_VERT;
+    /** Bitmask for {@link #STATE_BIT_MAXIMIZED_HORZ}, {@value}. */
+    public static final int STATE_MASK_MAXIMIZED_HORZ = 1 << STATE_BIT_MAXIMIZED_HORZ;
+    /** Bitmask for {@link #STATE_BIT_FULLSCREEN}, {@value}. */
+    public static final int STATE_MASK_FULLSCREEN = 1 << STATE_BIT_FULLSCREEN;
+    /** Bitmask for {@link #STATE_BIT_POINTERVISIBLE}, {@value}. */
+    public static final int STATE_MASK_POINTERVISIBLE = 1 << STATE_BIT_POINTERVISIBLE;
+    /** Bitmask for {@link #STATE_BIT_POINTERCONFINED}, {@value}. */
+    public static final int STATE_MASK_POINTERCONFINED = 1 << STATE_BIT_POINTERCONFINED;
+
+    /**
+     * Number of all public state bits.
+     * @see #getStateMask()
+     */
+    public int getStatePublicBitCount();
+
+    /**
+     * Bitmask covering all public state bits.
+     * @see #getStateMask()
+     */
+    public int getStatePublicBitmask();
+
+    /**
+     * Returns the current status mask of this instance.
+     * @see #STATE_MASK_VISIBLE
+     * @see #STATE_MASK_AUTOPOSITION
+     * @see #STATE_MASK_CHILDWIN
+     * @see #STATE_MASK_FOCUSED
+     * @see #STATE_MASK_UNDECORATED
+     * @see #STATE_MASK_ALWAYSONTOP
+     * @see #STATE_MASK_ALWAYSONBOTTOM
+     * @see #STATE_MASK_STICKY
+     * @see #STATE_MASK_RESIZABLE
+     * @see #STATE_MASK_MAXIMIZED_VERT
+     * @see #STATE_MASK_MAXIMIZED_HORZ
+     * @see #STATE_MASK_FULLSCREEN
+     * @see #STATE_MASK_POINTERVISIBLE
+     * @see #STATE_MASK_POINTERCONFINED
+     */
+    int getStateMask();
+
+    /**
+     * Returns a string representation of the {@link #getStateMask() current state mask}.
+     */
+    String getStateMaskString();
+
+    //
     // Lifecycle
     //
 
@@ -207,15 +386,14 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * i.e. blocks until the window becomes visible.
      * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
      * @see #setVisible(boolean, boolean)
+     * @see #STATE_BIT_VISIBLE
      */
     void setVisible(boolean visible);
 
     /**
      * <code>setVisible(..)</code> makes the window and children visible if <code>visible</code> is true,
      * otherwise the window and children becomes invisible.
-     * <p>
-     * <code>setVisible(wait, true)</code> is responsible to actual create the native window.
-     * </p>
+     * <p>Native instance gets created at first visibility, following NEWT's lazy creation pattern.</p>
      * <p>
      * If <code>wait</code> is true, method blocks until window is {@link #isVisible() visible} and {@link #isNativeValid() valid},
      * otherwise method returns immediately.
@@ -234,15 +412,20 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * }
      * </pre></p>
      * <p>
-     * In case this window is a child window and has a {@link com.jogamp.nativewindow.NativeWindow} parent,<br>
+     * In case this window is {@link #isChildWindow() a child window} and has a {@link com.jogamp.nativewindow.NativeWindow} parent,<br>
      * <code>setVisible(wait, true)</code> has no effect as long the parent's is not valid yet,
      * i.e. {@link com.jogamp.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
      * <code>setVisible(wait, true)</code> shall be repeated when the parent becomes valid.
      * </p>
      * <p>This method is <a href="#lifecycleHeavy">lifecycle heavy</a>.</p>
+     * @see #STATE_BIT_VISIBLE
      */
     void setVisible(boolean wait, boolean visible);
 
+    /**
+     * @see #STATE_BIT_VISIBLE
+     * @see #setVisible(boolean, boolean)
+     */
     boolean isVisible();
 
     /**
@@ -388,13 +571,84 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      */
     void setTopLevelPosition(int x, int y);
 
+    /**
+     * @see {@link #STATE_BIT_UNDECORATED}
+     * @see {@link #STATE_MASK_UNDECORATED}
+     */
     void setUndecorated(boolean value);
-
+    /**
+     * @see {@link #STATE_BIT_UNDECORATED}
+     * @see {@link #STATE_MASK_UNDECORATED}
+     */
     boolean isUndecorated();
 
+    /**
+     * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
+     * @see {@link #STATE_BIT_ALWAYSONTOP}
+     * @see {@link #STATE_MASK_ALWAYSONTOP}
+     */
     void setAlwaysOnTop(boolean value);
-
+    /**
+     * @see {@link #STATE_BIT_ALWAYSONTOP}
+     * @see {@link #STATE_MASK_ALWAYSONTOP}
+     */
     boolean isAlwaysOnTop();
+
+    /**
+     * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
+     * @see {@link #STATE_BIT_ALWAYSONBOTTOM}
+     * @see {@link #STATE_MASK_ALWAYSONBOTTOM}
+     */
+    void setAlwaysOnBottom(boolean value);
+    /**
+     * @see {@link #STATE_BIT_ALWAYSONBOTTOM}
+     * @see {@link #STATE_MASK_ALWAYSONBOTTOM}
+     */
+    boolean isAlwaysOnBottom();
+
+    /**
+     * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
+     * @see {@link #STATE_BIT_RESIZABLE}
+     * @see {@link #STATE_MASK_RESIZABLE}
+     */
+    void setResizable(final boolean value);
+    /**
+     * @see {@link #STATE_BIT_RESIZABLE}
+     * @see {@link #STATE_MASK_RESIZABLE}
+     */
+    boolean isResizable();
+
+    /**
+     * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
+     * @see {@link #STATE_BIT_STICKY}
+     * @see {@link #STATE_MASK_STICKY}
+     */
+    void setSticky(final boolean value);
+    /**
+     * @see {@link #STATE_BIT_STICKY}
+     * @see {@link #STATE_MASK_STICKY}
+     */
+    boolean isSticky();
+
+    /**
+     * <p>Operation is ignored in {@link #isFullscreen() fullscreen mode}.</p>
+     * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
+     * @see {@link #STATE_BIT_MAXIMIZED_HORZ}
+     * @see {@link #STATE_BIT_MAXIMIZED_VERT}
+     * @see {@link #STATE_MASK_MAXIMIZED_HORZ}
+     * @see {@link #STATE_MASK_MAXIMIZED_VERT}
+     */
+    void setMaximized(final boolean horz, final boolean vert);
+    /**
+     * @see {@link #STATE_BIT_MAXIMIZED_VERT}
+     * @see {@link #STATE_MASK_MAXIMIZED_VERT}
+     */
+    boolean isMaximizedVert();
+    /**
+     * @see {@link #STATE_BIT_MAXIMIZED_HORZ}
+     * @see {@link #STATE_MASK_MAXIMIZED_HORZ}
+     */
+    boolean isMaximizedHorz();
 
     void setTitle(String title);
 
@@ -494,6 +748,15 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
      */
     ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints);
+
+    /**
+     * Returns {@code true} if this window is a child window,
+     * i.e. has been {@link #reparentWindow(NativeWindow, int, int, int) reparented}.
+     * <p>
+     * Otherwise return {@code false}, i.e. this window is a top-level window.
+     * </p>
+     */
+    boolean isChildWindow();
 
     /**
      * Enable or disable fullscreen mode for this window.

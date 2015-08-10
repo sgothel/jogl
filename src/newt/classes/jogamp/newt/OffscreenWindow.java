@@ -120,8 +120,8 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         sizeChanged(false, width, height, false);
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         } else {
             /**
              * silently ignore:

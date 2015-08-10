@@ -29,7 +29,6 @@
 package jogamp.newt.driver.android;
 
 import jogamp.common.os.android.StaticContext;
-import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import jogamp.newt.driver.android.event.AndroidNewtEventTranslator;
 
@@ -41,7 +40,6 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
-import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.opengl.GLCapabilitiesChooser;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -460,7 +458,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     protected final boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         boolean res = true;
 
-        if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+        if( 0 != ( CHANGE_MASK_FULLSCREEN & flags) ) {
             Log.d(MD.TAG, "reconfigureWindowImpl.setFullscreen post creation (setContentView()) n/a");
             return false;
         }
@@ -480,8 +478,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 definePosition(x, y);
             }
         }
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         }
         return res;
     }

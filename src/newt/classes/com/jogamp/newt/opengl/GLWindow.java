@@ -226,6 +226,26 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //
 
     @Override
+    public final int getStatePublicBitCount() {
+        return window.getStatePublicBitCount();
+    }
+
+    @Override
+    public final int getStatePublicBitmask() {
+        return window.getStatePublicBitmask();
+    }
+
+    @Override
+    public final int getStateMask() {
+        return window.getStateMask();
+    }
+
+    @Override
+    public final String getStateMaskString() {
+        return window.getStateMaskString();
+    }
+
+    @Override
     public CapabilitiesChooser setCapabilitiesChooser(final CapabilitiesChooser chooser) {
         return window.setCapabilitiesChooser(chooser);
     }
@@ -323,6 +343,51 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final boolean isAlwaysOnTop() {
         return window.isAlwaysOnTop();
+    }
+
+    @Override
+    public final void setAlwaysOnBottom(final boolean value) {
+        window.setAlwaysOnBottom(value);
+    }
+
+    @Override
+    public final boolean isAlwaysOnBottom() {
+        return window.isAlwaysOnBottom();
+    }
+
+    @Override
+    public final void setResizable(final boolean value) {
+        window.setResizable(value);
+    }
+
+    @Override
+    public final boolean isResizable() {
+        return window.isResizable();
+    }
+
+    @Override
+    public final void setSticky(final boolean value) {
+        window.setSticky(value);
+    }
+
+    @Override
+    public final boolean isSticky() {
+        return window.isSticky();
+    }
+
+    @Override
+    public final void setMaximized(final boolean horz, final boolean vert) {
+        window.setMaximized(horz, vert);
+    }
+
+    @Override
+    public final boolean isMaximizedVert() {
+        return window.isMaximizedVert();
+    }
+
+    @Override
+    public final boolean isMaximizedHorz() {
+        return window.isMaximizedHorz();
     }
 
     @Override
@@ -468,6 +533,10 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final ReparentOperation reparentWindow(final NativeWindow newParent, final int x, final int y, final int hints) {
         return window.reparentWindow(newParent, x, y, hints);
+    }
+    @Override
+    public final boolean isChildWindow() {
+        return window.isChildWindow();
     }
 
     @Override

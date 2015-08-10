@@ -96,8 +96,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         if(0!=getWindowHandle()) {
-            if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
-                if( 0 != ( FLAG_IS_FULLSCREEN & flags) ) {
+            if(0 != ( CHANGE_MASK_FULLSCREEN & flags)) {
+                if( 0 != ( STATE_MASK_FULLSCREEN & flags) ) {
                     // n/a in BroadcomEGL
                     System.err.println("setFullscreen n/a in BroadcomEGL");
                     return false;
@@ -116,8 +116,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
         }
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         }
         return true;
     }

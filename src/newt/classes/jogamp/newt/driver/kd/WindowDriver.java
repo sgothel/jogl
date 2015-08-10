@@ -97,14 +97,14 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, int width, int height, final int flags) {
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            setVisible0(eglWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            setVisible0(eglWindowHandle, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         }
 
         if(0!=eglWindowHandle) {
-            if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
-                final boolean fs = 0 != ( FLAG_IS_FULLSCREEN & flags) ;
+            if(0 != ( CHANGE_MASK_FULLSCREEN & flags)) {
+                final boolean fs = 0 != ( STATE_MASK_FULLSCREEN & flags) ;
                 setFullScreen0(eglWindowHandle, fs);
                 if(fs) {
                     return true;
@@ -122,8 +122,8 @@ public class WindowDriver extends WindowImpl {
             }
         }
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         }
 
         return true;

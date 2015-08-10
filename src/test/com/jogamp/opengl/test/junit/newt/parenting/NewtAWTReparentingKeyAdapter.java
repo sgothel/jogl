@@ -28,207 +28,96 @@
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.awt.Frame;
-import java.net.URLConnection;
 
+import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.util.InsetsImmutable;
-
-import com.jogamp.common.util.IOUtil;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Display.PointerIcon;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
-import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-import com.jogamp.opengl.util.PNGPixelRect;
 
-public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
+public class NewtAWTReparentingKeyAdapter extends NEWTDemoListener {
     final Frame frame;
     final NewtCanvasAWT newtCanvasAWT;
-    final GLWindow glWindow;
-    final QuitAdapter quitAdapter;
-    PointerIcon[] pointerIcons = null;
-    int pointerIconIdx = 0;
 
     public NewtAWTReparentingKeyAdapter(final Frame frame, final NewtCanvasAWT newtCanvasAWT, final GLWindow glWindow, final QuitAdapter quitAdapter) {
+        super(glWindow, quitAdapter, null);
         this.frame = frame;
         this.newtCanvasAWT = newtCanvasAWT;
-        this.glWindow = glWindow;
-        this.quitAdapter = quitAdapter;
     }
 
-    public void keyReleased(final KeyEvent e) {
-        if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+    public void keyPressed(final KeyEvent e) {
+        if( e.isAutoRepeat() || e.isConsumed() ) {
             return;
         }
-        if( e.getKeySymbol() == KeyEvent.VK_L ) {
-            final com.jogamp.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
-            final com.jogamp.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
-            System.err.println("NewtCanvasAWT position: "+p0+", "+p1);
-        } else if( e.getKeySymbol() == KeyEvent.VK_D ) {
-            glWindow.setUndecorated(!glWindow.isUndecorated());
-        } else if( e.getKeySymbol() == KeyEvent.VK_S ) {
-            if(glWindow.getParent()==null) {
-                System.err.println("XXX glWin to 100/100");
-                glWindow.setPosition(100, 100);
-            } else {
-                System.err.println("XXX glWin to 0/0");
-                glWindow.setPosition(0, 0);
-            }
-        } else if( e.getKeySymbol() == KeyEvent.VK_F ) {
-            if( null != quitAdapter ) {
-                quitAdapter.enable(false);
-            }
-            new Thread() {
-                public void run() {
-                    final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                    glWindow.setFullscreen(!glWindow.isFullscreen());
-                    System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                    glWindow.setExclusiveContextThread(t);
-                    if( null != quitAdapter ) {
-                        quitAdapter.clear();
-                        quitAdapter.enable(true);
-                    }
-            } }.start();
-        } else if( e.getKeySymbol() == KeyEvent.VK_P ) {
-            new Thread() {
-                public void run() {
-                    if(glWindow.getAnimator().isPaused()) {
-                        glWindow.getAnimator().resume();
-                    } else {
-                        glWindow.getAnimator().pause();
-                    }
-                }
-            }.run();
-        } else if( e.getKeySymbol() == KeyEvent.VK_A ) {
-            new Thread() {
-                public void run() {
-                    glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
-                }
-            }.run();
-        } else if( e.getKeySymbol() == KeyEvent.VK_R ) {
-            if( null != quitAdapter ) {
-                quitAdapter.enable(false);
-            }
-            new Thread() {
-                public void run() {
-                    final Thread t = glWindow.setExclusiveContextThread(null);
-                    if(glWindow.getParent()==null) {
-                        System.err.println("XXX glWin to HOME");
-                        glWindow.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, 0 /* hints */);
-                    } else {
-                        if( null != frame ) {
-                            final InsetsImmutable nInsets = glWindow.getInsets();
-                            final java.awt.Insets aInsets = frame.getInsets();
-                            int dx, dy;
-                            if( nInsets.getTotalHeight()==0 ) {
-                                dx = aInsets.left;
-                                dy = aInsets.top;
-                            } else {
-                                dx = nInsets.getLeftWidth();
-                                dy = nInsets.getTopHeight();
-                            }
-                            final int topLevelX = frame.getX()+frame.getWidth()+dx;
-                            final int topLevelY = frame.getY()+dy;
-                            System.err.println("XXX glWin to TOP.1 "+topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
-                            glWindow.reparentWindow(null, topLevelX, topLevelY, 0 /* hint */);
+        if( 0 == e.getModifiers() ) { // all modifiers go to super class ..
+          final int keySymbol = e.getKeySymbol();
+          switch (keySymbol) {
+            case KeyEvent.VK_L:
+                e.setConsumed(true);
+                final com.jogamp.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
+                final com.jogamp.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
+                printlnState("[location]", "AWT "+p0+", NEWT "+p1);
+                break;
+            case KeyEvent.VK_R:
+                e.setConsumed(true);
+                quitAdapterOff();
+                new Thread() {
+                    public void run() {
+                        final Thread t = glWindow.setExclusiveContextThread(null);
+                        if(glWindow.getParent()==null) {
+                            printlnState("[reparent pre - glWin to HOME]");
+                            glWindow.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, 0 /* hints */);
                         } else {
-                            System.err.println("XXX glWin to TOP.0");
-                            glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
+                            if( null != frame ) {
+                                final InsetsImmutable nInsets = glWindow.getInsets();
+                                final java.awt.Insets aInsets = frame.getInsets();
+                                int dx, dy;
+                                if( nInsets.getTotalHeight()==0 ) {
+                                    dx = aInsets.left;
+                                    dy = aInsets.top;
+                                } else {
+                                    dx = nInsets.getLeftWidth();
+                                    dy = nInsets.getTopHeight();
+                                }
+                                final int topLevelX = frame.getX()+frame.getWidth()+dx;
+                                final int topLevelY = frame.getY()+dy;
+                                printlnState("[reparent pre - glWin to TOP.1]", topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
+                                glWindow.reparentWindow(null, topLevelX, topLevelY, 0 /* hint */);
+                            } else {
+                                printlnState("[reparent pre - glWin to TOP.0]");
+                                glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
+                            }
                         }
-                    }
-                    glWindow.requestFocus();
-                    glWindow.setExclusiveContextThread(t);
-                    if( null != quitAdapter ) {
-                        quitAdapter.clear();
-                        quitAdapter.enable(true);
-                    }
-            } }.start();
-        } else if(e.getKeySymbol() == KeyEvent.VK_C ) {
-            if( null == pointerIcons ) {
-                {
-                    pointerIcons = new PointerIcon[3];
-                    final Display disp = glWindow.getScreen().getDisplay();
-                    {
-                        PointerIcon _pointerIcon = null;
-                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
-                        try {
-                            _pointerIcon = disp.createPointerIcon(res, 8, 8);
-                            System.err.println("Create PointerIcon #01: "+_pointerIcon);
-                        } catch (final Exception ex) {
-                            ex.printStackTrace();
-                        }
-                        pointerIcons[0] = _pointerIcon;
-                    }
-                    {
-                        PointerIcon _pointerIcon = null;
-                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
-                        try {
-                            _pointerIcon = disp.createPointerIcon(res, 0, 0);
-                            System.err.println("Create PointerIcon #02: "+_pointerIcon);
-                        } catch (final Exception ex) {
-                            ex.printStackTrace();
-                        }
-                        pointerIcons[1] = _pointerIcon;
-                    }
-                    {
-                        PointerIcon _pointerIcon = null;
-                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
-                        try {
-                            final URLConnection urlConn = res.resolve(0);
-                            final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                            System.err.println("Create PointerIcon #03: "+image);
-                            _pointerIcon = disp.createPointerIcon(image, 32, 0);
-                            System.err.println("Create PointerIcon #03: "+_pointerIcon);
-                        } catch (final Exception ex) {
-                            ex.printStackTrace();
-                        }
-                        pointerIcons[2] = _pointerIcon;
-                    }
-                }
-            }
-            new Thread() {
-                public void run() {
-                    final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set pointer-icon pre]");
-                    final PointerIcon currentPI = glWindow.getPointerIcon();
-                    final PointerIcon newPI;
-                    if( pointerIconIdx >= pointerIcons.length ) {
-                        newPI=null;
-                        pointerIconIdx=0;
-                    } else {
-                        newPI=pointerIcons[pointerIconIdx++];
-                    }
-                    glWindow.setPointerIcon( newPI );
-                    System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
-                    glWindow.setExclusiveContextThread(t);
-            } }.start();
-        } else if( e.getKeySymbol() == KeyEvent.VK_I ) {
-            new Thread() {
-                public void run() {
-                    final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set mouse visible pre]: "+glWindow.isPointerVisible());
-                    glWindow.setPointerVisible(!glWindow.isPointerVisible());
-                    System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
-                    glWindow.setExclusiveContextThread(t);
-            } }.start();
-        } else if(e.getKeySymbol() == KeyEvent.VK_J ) {
-            new Thread() {
-                public void run() {
-                    final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
-                    glWindow.confinePointer(!glWindow.isPointerConfined());
-                    System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
-                    glWindow.setExclusiveContextThread(t);
-            } }.start();
-        } else if(e.getKeySymbol() == KeyEvent.VK_W ) {
-            new Thread() {
-               public void run() {
-                   System.err.println("[set mouse pos pre]");
-                   glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
-                   System.err.println("[set mouse pos post]");
-               } }.start();
+                        printlnState("[reparent post]");
+                        glWindow.requestFocus();
+                        glWindow.setExclusiveContextThread(t);
+                        quitAdapterOn();
+                } }.start();
+                break;
+          }
         }
+        super.keyPressed(e);
+    }
+
+    @Override
+    public void setTitle() {
+        setTitle(frame, newtCanvasAWT, glWindow);
+    }
+    public static void setTitle(final Frame frame, final NewtCanvasAWT glc, final Window win) {
+        final CapabilitiesImmutable chosenCaps = win.getChosenCapabilities();
+        final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
+        final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
+        final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
+        {
+            final java.awt.Rectangle b = glc.getBounds();
+            frame.setTitle("NewtCanvasAWT["+capsA+"], win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getNativeWindow().getSurfaceWidth()+"x"+glc.getNativeWindow().getSurfaceHeight());
+        }
+        final float[] sDPI = win.getPixelsPerMM(new float[2]);
+        sDPI[0] *= 25.4f;
+        sDPI[1] *= 25.4f;
+        win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
 }

@@ -587,12 +587,6 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         return "GearsES2[obj "+sid()+" isInit "+isInit+", usesShared "+usesSharedGears+", 1 "+gear1+", 2 "+gear2+", 3 "+gear3+", sharedGears "+sharedGears+"]";
     }
 
-    boolean confinedFixedCenter = false;
-
-    public void setConfinedFixedCenter(final boolean v) {
-        confinedFixedCenter = v;
-    }
-
     class GearsKeyAdapter extends KeyAdapter {
         public void keyPressed(final KeyEvent e) {
             final int kc = e.getKeyCode();
@@ -669,8 +663,8 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         }
 
         private void navigate(final MouseEvent e) {
-            int x = e.getX();
-            int y = e.getY();
+            final int x = e.getX();
+            final int y = e.getY();
 
             int width, height;
             final Object source = e.getSource();
@@ -694,11 +688,6 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
             final float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
             view_rotx += thetaX;
             view_roty += thetaY;
-            if(e.isConfined() && confinedFixedCenter && null!=window) {
-                x=window.getSurfaceWidth()/2;
-                y=window.getSurfaceHeight()/2;
-                window.warpPointer(x, y);
-            }
             prevMouseX = x;
             prevMouseY = y;
             // System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);

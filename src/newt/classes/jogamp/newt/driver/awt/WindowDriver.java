@@ -144,7 +144,7 @@ public class WindowDriver extends WindowImpl {
             new AWTWindowAdapter(new LocalWindowListener(), this).addTo(awtCanvas); // fwd all AWT Window events to here
         }
 
-        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
+        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureMask(CHANGE_MASK_VISIBILITY | CHANGE_MASK_DECORATION, true));
         // throws exception if failed ..
 
         final NativeWindow nw = awtCanvas.getNativeWindow();
@@ -234,9 +234,9 @@ public class WindowDriver extends WindowImpl {
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWTWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
-                               getReconfigureFlagsAsString(null, flags));
+                               getReconfigStateMaskString(flags));
         }
-        if(0 != ( FLAG_CHANGE_DECORATION & flags) && null!=awtFrame) {
+        if(0 != ( CHANGE_MASK_DECORATION & flags) && null!=awtFrame) {
             if(!awtContainer.isDisplayable()) {
                 awtFrame.setUndecorated(isUndecorated());
             } else {
@@ -246,8 +246,8 @@ public class WindowDriver extends WindowImpl {
             }
         }
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            if( 0 != ( STATE_MASK_VISIBLE & flags) ) {
                 setCanvasSizeImpl(width, height);
                 awtContainer.setVisible( true );
             } else {
@@ -266,8 +266,8 @@ public class WindowDriver extends WindowImpl {
             awtContainer.setLocation(x, y);
         }
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            if( 0 != ( FLAG_IS_VISIBLE & flags ) ) {
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            if( 0 != ( STATE_MASK_VISIBLE & flags ) ) {
                 if( !hasDeviceChanged() ) {
                     // oops ??
                     final AWTGraphicsConfiguration cfg = awtCanvas.getAWTGraphicsConfiguration();
@@ -277,7 +277,7 @@ public class WindowDriver extends WindowImpl {
                     setGraphicsConfiguration(cfg);
                 }
             }
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         }
 
         return true;

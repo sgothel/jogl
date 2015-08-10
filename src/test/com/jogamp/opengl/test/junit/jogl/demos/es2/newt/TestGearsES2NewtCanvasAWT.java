@@ -43,9 +43,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
@@ -175,18 +173,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         }
     }
 
-    private void setTitle(final Frame frame, final NewtCanvasAWT glc, final Window win, final GLCapabilitiesImmutable caps) {
-        final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        {
-            final java.awt.Rectangle b = glc.getBounds();
-            frame.setTitle("NewtCanvasAWT["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getNativeWindow().getSurfaceWidth()+"x"+glc.getNativeWindow().getSurfaceHeight());
-        }
-        final float[] sDPI = win.getPixelsPerMM(new float[2]);
-        sDPI[0] *= 25.4f;
-        sDPI[1] *= 25.4f;
-        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
-    }
-
     // public enum ResizeBy { GLWindow, Component, Frame };
     protected void runTestGL(final GLCapabilitiesImmutable caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
@@ -265,12 +251,12 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         frame.addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(final ComponentEvent e) {
-                setTitle(frame, newtCanvasAWT, glWindow, caps);
+                NewtAWTReparentingKeyAdapter.setTitle(frame, newtCanvasAWT, glWindow);
             }
 
             @Override
             public void componentMoved(final ComponentEvent e) {
-                setTitle(frame, newtCanvasAWT, glWindow, caps);
+                NewtAWTReparentingKeyAdapter.setTitle(frame, newtCanvasAWT, glWindow);
             }
 
             @Override
@@ -301,32 +287,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             }
         });
 
-        glWindow.addKeyListener(new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow, quitAdapter));
-        glWindow.addKeyListener(new com.jogamp.newt.event.KeyAdapter() {
-            @Override
-            public void keyPressed(final KeyEvent e) {
-                if( e.isAutoRepeat() ) {
-                    return;
-                }
-                if(e.getKeyChar()=='x') {
-                    final float[] hadSurfacePixelScale = glWindow.getCurrentSurfaceScale(new float[2]);
-                    final float[] reqSurfacePixelScale;
-                    if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
-                        reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
-                    } else {
-                        reqSurfacePixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-                    }
-                    System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    glWindow.setSurfaceScale(reqSurfacePixelScale);
-                    final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
-                    final float[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new float[2]);
-                    System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
-                                       reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
-                                       valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
-                                       hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-                    setTitle(frame, newtCanvasAWT, glWindow, caps);
-                }
-            } } );
+        final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow, quitAdapter);
+        glWindow.addKeyListener(newtDemoListener);
+        glWindow.addMouseListener(newtDemoListener);
 
         if( useAnimator ) {
             animator.add(glWindow);
@@ -361,7 +324,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-        setTitle(frame, newtCanvasAWT, glWindow, caps);
+        NewtAWTReparentingKeyAdapter.setTitle(frame, newtCanvasAWT, glWindow);
 
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay

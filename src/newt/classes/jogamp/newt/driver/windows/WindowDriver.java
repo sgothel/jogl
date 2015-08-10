@@ -141,8 +141,7 @@ public class WindowDriver extends WindowImpl {
         }
         setGraphicsConfiguration(cfg);
         final VersionNumber winVer = Platform.getOSVersionNumber();
-        final int flags = getReconfigureFlags(0, true) &
-                          ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
+        final int flags = getReconfigureMask(0, true) & STATE_MASK_CREATENATIVE;
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                                  winVer.getMajor(), winVer.getMinor(),
                                                  getParentWindowHandle(),
@@ -192,10 +191,10 @@ public class WindowDriver extends WindowImpl {
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, final int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("WindowsWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
-                               getReconfigureFlagsAsString(null, flags));
+                               getReconfigStateMaskString(flags));
         }
 
-        if(0 == ( FLAG_IS_UNDECORATED & flags)) {
+        if(0 == ( STATE_MASK_UNDECORATED & flags)) {
             final InsetsImmutable i = getInsets();
 
             // client position -> top-level window position
@@ -210,8 +209,8 @@ public class WindowDriver extends WindowImpl {
         }
         reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
         }
         return true;
     }

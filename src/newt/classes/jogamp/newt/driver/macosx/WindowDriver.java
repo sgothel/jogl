@@ -196,7 +196,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(cfg);
-        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));
+        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureMask(CHANGE_MASK_VISIBILITY, true));
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error creating window");
         }
@@ -406,7 +406,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             }
         }
 
-        final boolean setVisible = 0 != ( FLAG_IS_VISIBLE & flags);
         final boolean hasFocus = hasFocus();
 
         if(DEBUG_IMPLEMENTATION) {
@@ -420,11 +419,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                ", isOffscreenInstance(sscSurfaceHandle "+toHexString(sscSurfaceHandle)+
                                ", ioi: "+_isOffscreenInstance+
                                ") -> "+isOffscreenInstance+
-                               "\n\t, "+getReconfigureFlagsAsString(null, flags)+", setVisible "+setVisible+", hasFocus "+hasFocus);
+                               "\n\t, "+getReconfigStateMaskString(flags));
             // Thread.dumpStack();
         }
 
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && !setVisible ) {
+        if( 0 != ( CHANGE_MASK_VISIBILITY & flags) &&
+            0 != ( STATE_MASK_VISIBLE & flags) )
+        {
             if ( !isOffscreenInstance ) {
                 OSXUtil.RunOnMainThread(false, false, new Runnable() {
                         @Override
@@ -436,21 +437,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 visibleChanged(true, false);
             }
         }
-        if( 0 == getWindowHandle() && setVisible ||
-            0 != ( FLAG_CHANGE_DECORATION & flags) ||
-            0 != ( FLAG_CHANGE_PARENTING & flags) ||
-            0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
+        if( ( 0 == getWindowHandle() && 0 != ( STATE_MASK_VISIBLE & flags) ) ||
+            0 != ( CHANGE_MASK_PARENTING & flags)  ||
+            0 != ( CHANGE_MASK_DECORATION & flags) ||
+            0 != ( CHANGE_MASK_RESIZABLE & flags)  ||
+            0 != ( CHANGE_MASK_FULLSCREEN & flags) ) {
             if(isOffscreenInstance) {
-                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, false, setVisible, false);
+                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, flags);
             } else {
-                createWindow(false, 0 != getWindowHandle(), pClientLevelOnSreen, width, height,
-                                    0 != ( FLAG_IS_FULLSCREEN & flags), setVisible, 0 != ( FLAG_IS_ALWAYSONTOP & flags));
+                createWindow(false, 0 != getWindowHandle(), pClientLevelOnSreen, width, height, flags);
             }
             // no native event (fullscreen, some reparenting)
             positionChanged(false,  x, y);
             updatePixelScaleByWindowHandle(false /* sendEvent */);
             super.sizeChanged(false, width, height, true);
-            visibleChanged(false, setVisible);
+            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
             if( hasFocus ) {
                 requestFocusImpl(true);
             }
@@ -460,14 +461,18 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     OSXUtil.RunOnMainThread(false, false, new Runnable() {
                             @Override
                             public void run() {
-                                setWindowClientTopLeftPointAndSize0(getWindowHandle(), pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(), width, height, setVisible);
+                                setWindowClientTopLeftPointAndSize0(getWindowHandle(),
+                                        pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
+                                        width, height, 0 != ( STATE_MASK_VISIBLE & flags));
                             } } );
                 } // else offscreen size is realized via recreation
                 // no native event (fullscreen, some reparenting)
                 positionChanged(true,  x, y);
                 super.sizeChanged(true, width, height, false);
             }
-            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && setVisible ) {
+            if( 0 != ( CHANGE_MASK_VISIBILITY & flags) &&
+                0 != ( STATE_MASK_VISIBLE & flags) )
+            {
                 if( !isOffscreenInstance ) {
                     OSXUtil.RunOnMainThread(false, false, new Runnable() {
                             @Override
@@ -480,7 +485,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 }
             }
             if( !isOffscreenInstance ) {
-                setAlwaysOnTop0(getWindowHandle(), 0 != ( FLAG_IS_ALWAYSONTOP & flags));
+                setAlwaysOnTop0(getWindowHandle(), 0 != ( STATE_MASK_ALWAYSONTOP & flags));
+                setAlwaysOnBottom0(getWindowHandle(), 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags));
             }
         }
         if(DEBUG_IMPLEMENTATION) {
@@ -656,16 +662,16 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     private void createWindow(final boolean offscreenInstance, final boolean recreate,
                               final PointImmutable pS, final int width, final int height,
-                              final boolean fullscreen, final boolean visible, final boolean alwaysOnTop) {
-
+                              final int flags)
+    {
         final long parentWinHandle = getParentWindowHandle();
         final long preWinHandle = getWindowHandle();
 
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.createWindow on thread "+Thread.currentThread().getName()+
                                ": offscreen "+offscreenInstance+", recreate "+recreate+
-                               ", pS "+pS+", "+width+"x"+height+", fullscreen "+fullscreen+", visible "+visible+
-                               ", alwaysOnTop "+alwaysOnTop+", preWinHandle "+toHexString(preWinHandle)+", parentWin "+toHexString(parentWinHandle)+
+                               ", pS "+pS+", "+width+"x"+height+", state "+getReconfigStateMaskString(flags)+
+                               ", preWinHandle "+toHexString(preWinHandle)+", parentWin "+toHexString(parentWinHandle)+
                                ", surfaceHandle "+toHexString(surfaceHandle));
             // Thread.dumpStack();
         }
@@ -692,9 +698,22 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 }
             }
 
-            final long newWin = createWindow0( pS.getX(), pS.getY(), width, height, fullscreen,
-                                               ( isUndecorated() || offscreenInstance ) ? NSBorderlessWindowMask :
-                                               NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask,
+            final int windowStyle;
+            {
+                int ws = 0;
+                if( 0 != ( STATE_MASK_UNDECORATED & flags) || offscreenInstance ) {
+                    ws = NSBorderlessWindowMask;
+                } else {
+                    ws = NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask;
+                }
+                if( 0 != ( STATE_MASK_RESIZABLE & flags) ) {
+                    ws |= NSResizableWindowMask;
+                }
+                windowStyle = ws;
+            }
+            final long newWin = createWindow0( pS.getX(), pS.getY(), width, height,
+                                               0 != ( STATE_MASK_FULLSCREEN & flags),
+                                               windowStyle,
                                                NSBackingStoreBuffered, surfaceHandle);
             if ( newWin == 0 ) {
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
@@ -707,12 +726,15 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     @Override
                     public void run() {
                         initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
-                                     isOpaque, visible && !offscreenInstance, surfaceHandle);
+                                     isOpaque,
+                                     !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
+                                     surfaceHandle);
                         if( offscreenInstance ) {
                             orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
                         } else {
                             setTitle0(newWin, getTitle());
-                            setAlwaysOnTop0(getWindowHandle(), alwaysOnTop);
+                            setAlwaysOnTop0(getWindowHandle(), 0 != ( STATE_MASK_ALWAYSONTOP & flags));
+                            setAlwaysOnBottom0(getWindowHandle(), 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags));
                         }
                     } });
         } catch (final Exception ie) {
@@ -751,6 +773,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private native void setWindowClientTopLeftPoint0(long window, int x, int y, boolean display);
     /** Must be called on Main-Thread */
     private native void setAlwaysOnTop0(long window, boolean atop);
+    /** Must be called on Main-Thread */
+    private native void setAlwaysOnBottom0(long window, boolean abottom);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
     private static native void setPointerIcon0(long windowHandle, long handle);
     private static native void setPointerVisible0(long windowHandle, boolean hasFocus, boolean visible);

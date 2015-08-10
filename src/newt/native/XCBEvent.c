@@ -24,7 +24,7 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
 
     // Periodically take a break
     while( num_events > 0 ) {
-        jobject jwindow = NULL;
+        JavaWindow *w = NULL;
         xcb_generic_event_t *evt;
         // KeySym keySym = 0;
         jint modifiers = 0;
@@ -54,11 +54,11 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
 
         // X11WindowDisplayErrorHandlerEnable(1, env);
 
-        // jwindow = X11WindowGetJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom, VERBOSE_BOOL);
+        // w = X11WindowGetJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom, VERBOSE_BOOL);
 
         //X11WindowDisplayErrorHandlerEnable(0, env);
 
-        /*if(NULL==jwindow) {
+        /*if(NULL==w) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 
                 (void*)dpy, evt.type, (void*)evt.xany.window);
             continue;
@@ -109,14 +109,14 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 (void*)dpy, xcb_event_type);
             continue;
         }
-        jwindow = getJavaWindowProperty(env, dpy, event_window, javaObjectAtom,
+        w = getJavaWindowProperty(env, dpy, event_window, javaObjectAtom,
         #ifdef VERBOSE_ON
                 True
         #else
                 False
         #endif
             );
-        if(NULL==jwindow) {
+        if(NULL==w) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 
                 (void*)(intptr_t)dpy, xcb_event_type, (void*)(intptr_t)event_window);
             continue;
@@ -125,13 +125,13 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
         switch( xcb_event_type ) {
             case XCB_BUTTON_PRESS: {
                     xcb_button_press_event_t *_evt = (xcb_button_press_event_t *)evt;
-                    (*env)->CallVoidMethod(env, jwindow, requestFocusID, JNI_FALSE);
+                    (*env)->CallVoidMethod(env, w->jwindow, requestFocusID, JNI_FALSE);
                     #ifdef USE_SENDIO_DIRECT
-                    (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                           modifiers,
                                           (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #else
-                    (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_PRESSED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_PRESSED, 
                                           modifiers,
                                           (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #endif
@@ -139,11 +139,11 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
             case XCB_BUTTON_RELEASE: {
                     xcb_button_release_event_t *_evt = (xcb_button_release_event_t *)evt;
                     #ifdef USE_SENDIO_DIRECT
-                    (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
                                           modifiers,
                                           (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #else
-                    (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_RELEASED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_RELEASED, 
                                           modifiers,
                                           (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #endif
@@ -151,11 +151,11 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
             case XCB_MOTION_NOTIFY: {
                     xcb_motion_notify_event_t *_evt = (xcb_motion_notify_event_t *)evt;
                     #ifdef USE_SENDIO_DIRECT
-                    (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
                                           modifiers,
                                           (jint) _evt->event_x, (jint) _evt->event_y, (jint)0, 0.0f /*rotation*/);
                     #else
-                    (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_MOVED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_MOVED, 
                                           modifiers,
                                           (jint) _evt->event_x, (jint) _evt->event_y, (jint)0, 0.0f /*rotation*/);
                     #endif
@@ -163,10 +163,10 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
             case XCB_KEY_PRESS: {
                     xcb_key_press_event_t *_evt = (xcb_key_press_event_t *)evt;
                     #ifdef USE_SENDIO_DIRECT
-                    (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
                                           modifiers, X11KeySym2NewtVKey(_evt->state), (jchar) keyChar);
                     #else
-                    (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_PRESSED, 
+                    (*env)->CallVoidMethod(env, w->jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_PRESSED, 
                                           modifiers, X11KeySym2NewtVKey(_evt->state), (jchar) keyChar);
                     #endif
                 } break;
@@ -174,10 +174,10 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                     xcb_key_release_event_t *_evt = (xcb_key_release_event_t *)evt;
                 event_window = ((xcb_key_release_event_t *)evt)->event;
                 #ifdef USE_SENDIO_DIRECT
-                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
+                (*env)->CallVoidMethod(env, w->jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
                                       modifiers, X11KeySym2NewtVKey(_evt->state), (jchar) keyChar);
                 #else
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
+                (*env)->CallVoidMethod(env, w->jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
                                       modifiers, X11KeySym2NewtVKey(_evt->state), (jchar) keyChar);
                 #endif
 
@@ -201,9 +201,9 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                             evt.xconfigure.override_redirect, evt.xconfigure.window != evt.xconfigure.event);
                 if ( evt.xconfigure.window == evt.xconfigure.event ) {
                     // ignore child window change notification
-                    (*env)->CallVoidMethod(env, jwindow, sizeChangedID, 
+                    (*env)->CallVoidMethod(env, w->jwindow, sizeChangedID, 
                                             (jint) evt.xconfigure.width, (jint) evt.xconfigure.height, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, jwindow, positionChangedID, 
+                    (*env)->CallVoidMethod(env, w->jwindow, positionChangedID, 
                                             (jint) evt.xconfigure.x, (jint) evt.xconfigure.y);
                 }
                 break;
@@ -211,7 +211,7 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==(Atom)wmDeleteAtom) {
                     DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X !!!\n", 
                         (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type);
-                    (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
+                    (*env)->CallVoidMethod(env, w->jwindow, windowDestroyNotifyID);
                     // Called by Window.java: CloseWindow(); 
                     num_events = 0; // end loop in case of destroyed display
                 }
@@ -219,12 +219,12 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
 
             case FocusIn:
                 DBG_PRINT( "X11: event . FocusIn call %p\n", (void*)evt.xvisibility.window);
-                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_TRUE);
+                (*env)->CallVoidMethod(env, w->jwindow, focusChangedID, JNI_TRUE);
                 break;
 
             case FocusOut:
                 DBG_PRINT( "X11: event . FocusOut call %p\n", (void*)evt.xvisibility.window);
-                (*env)->CallVoidMethod(env, jwindow, focusChangedID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, w->jwindow, focusChangedID, JNI_FALSE);
                 break;
                 */
 
@@ -234,7 +234,7 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                         _evt->x, _evt->y, _evt->width, _evt->height, _evt->count);
 
                     if (_evt->count == 0 && _evt->width > 0 && _evt->height > 0) {
-                        (*env)->CallVoidMethod(env, jwindow, windowRepaintID, 
+                        (*env)->CallVoidMethod(env, w->jwindow, windowRepaintID, 
                             _evt->x, _evt->y, _evt->width, _evt->height);
                     }
                 } break;
@@ -246,7 +246,7 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                         _evt->event!=_evt->window);
                     if( _evt->event == _evt->window ) {
                         // ignore child window notification
-                        (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_TRUE);
+                        (*env)->CallVoidMethod(env, w->jwindow, visibleChangedID, JNI_TRUE);
                     }
                 } break;
 
@@ -257,7 +257,7 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                         _evt->event!=_evt->window);
                     if( _evt->event == _evt->window ) {
                         // ignore child window notification
-                        (*env)->CallVoidMethod(env, jwindow, visibleChangedID, JNI_FALSE);
+                        (*env)->CallVoidMethod(env, w->jwindow, visibleChangedID, JNI_FALSE);
                     }
                 } break;
                 /*
@@ -291,7 +291,7 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                             (void*)evt.xreparent.window, (void*)winRoot, (void*)winTopParent);
                     #endif
 
-                    (*env)->CallVoidMethod(env, jwindow, windowReparentedID, parentResult);
+                    (*env)->CallVoidMethod(env, w->jwindow, windowReparentedID, parentResult);
                 }
                 break;
                 */
