@@ -42,6 +42,7 @@ import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.util.Insets;
+import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 
@@ -53,6 +54,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
+import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MonitorEvent;
@@ -388,23 +390,61 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
     }
 
+    private final int[] normPosSize = { 0, 0, 0, 0 };
+
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, final int width, final int height, final int flags) {
+    protected boolean reconfigureWindowImpl(int _x, int _y, int _width, int _height, final int flags) {
         final boolean _isOffscreenInstance = isOffscreenInstance(this, this.getParent());
         isOffscreenInstance = 0 != sscSurfaceHandle || _isOffscreenInstance;
         final PointImmutable pClientLevelOnSreen;
         if( isOffscreenInstance ) {
-            x = 0; y = 0;
+            _x = 0; _y = 0;
             pClientLevelOnSreen = new Point(0, 0);
         } else  {
             final NativeWindow parent = getParent();
             final boolean useParent = useParent(parent);
             if( useParent ) {
-                pClientLevelOnSreen = getLocationOnScreenImpl(x, y, parent, useParent);
+                pClientLevelOnSreen = getLocationOnScreenImpl(_x, _y, parent, useParent);
             } else {
-                pClientLevelOnSreen = new Point(x, y);
+                if( 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & flags ) ) {
+                    final InsetsImmutable insets = getInsets();
+                    final MonitorMode mm = getMainMonitor().getCurrentMode();
+                    // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+                    final int mmWidth =  SurfaceScaleUtils.scaleInv(mm.getRotatedWidth(), getPixelScaleX());
+                    final int mmHeight =  SurfaceScaleUtils.scaleInv(mm.getRotatedHeight(), getPixelScaleY());
+
+                    if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & flags ) ) {
+                        if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & flags ) ) {
+                            // max-h on
+                            normPosSize[0] = _x;
+                            normPosSize[2] = _width;
+                            _x = insets.getLeftWidth();
+                            _width = mmWidth - insets.getTotalWidth();
+                        } else {
+                            // max-h off
+                            _x = normPosSize[0];
+                            _width = normPosSize[2];
+                        }
+                    }
+                    if( 0 != ( CHANGE_MASK_MAXIMIZED_VERT & flags ) ) {
+                        if( 0 != ( STATE_MASK_MAXIMIZED_VERT & flags ) ) {
+                            // max-v on
+                            normPosSize[1] = _y;
+                            normPosSize[3] = _height;
+                            _y = insets.getTopHeight();
+                            _height = mmHeight - insets.getTotalHeight();
+                        } else {
+                            // max-h off
+                            _y = normPosSize[1];
+                            _height = normPosSize[3];
+                        }
+                    }
+                }
+                pClientLevelOnSreen = new Point(_x, _y);
             }
         }
+        final int x=_x, y=_y;
+        final int width=_width, height=_height;
 
         final boolean hasFocus = hasFocus();
 
