@@ -196,7 +196,7 @@ public class WindowDriver extends WindowImpl {
         }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window reconfig.0: "+x+"/"+y+" -> "+_x+"/"+_y+" "+width+"x"+height+", insets "+_insets+
-                               ", "+getStateMaskString()+" -> "+getReconfigStateMaskString(flags));
+                               ", "+getReconfigStateMaskString(flags));
         }
         if( 0 != ( CHANGE_MASK_FULLSCREEN & flags ) ) {
             if( 0 != ( STATE_MASK_FULLSCREEN & flags) &&

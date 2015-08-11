@@ -453,7 +453,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             final NativeWindow pWin = getParent();
             final AbstractGraphicsConfiguration pWinCfg = null != pWin ? pWin.getGraphicsConfiguration() : null;
             System.err.println("MacWindow reconfig.0: "+x+"/"+y+" -> clientPos "+pClientLevelOnSreen+" - "+width+"x"+height+
-                               ", "+getStateMaskString()+" -> "+getReconfigStateMaskString(flags)+
+                               ", "+getReconfigStateMaskString(flags)+
                                ",\n\t parent type "+(null != pWin ? pWin.getClass().getName() : null)+
                                ",\n\t   this-chosenCaps "+(null != cWinCfg ? cWinCfg.getChosenCapabilities() : null)+
                                ",\n\t parent-chosenCaps "+(null != pWinCfg ? pWinCfg.getChosenCapabilities() : null)+

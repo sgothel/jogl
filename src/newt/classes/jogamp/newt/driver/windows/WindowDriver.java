@@ -191,7 +191,7 @@ public class WindowDriver extends WindowImpl {
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, final int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("WindowsWindow reconfig.0: "+x+"/"+y+" "+width+"x"+height+
-                               ", "+getStateMaskString()+" -> "+getReconfigStateMaskString(flags));
+                               ", "+getReconfigStateMaskString(flags));
         }
 
         if(0 == ( STATE_MASK_UNDECORATED & flags)) {

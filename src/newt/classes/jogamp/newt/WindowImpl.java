@@ -349,23 +349,30 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         if( showChangeFlags && 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & mask) ) {
-            sb.append("max=");
+            sb.append("max[");
             if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
+                if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & mask) ) {
+                    sb.append("*");
+                }
                 sb.append("h");
+                sb.append(", ");
             }
             if( 0 != ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
+                if( 0 != ( CHANGE_MASK_MAXIMIZED_VERT & mask) ) {
+                    sb.append("*");
+                }
                 sb.append("v");
             }
-            sb.append(", ");
+            sb.append("], ");
         } else if( 0 != ( ( STATE_MASK_MAXIMIZED_HORZ | STATE_MASK_MAXIMIZED_VERT ) & mask) ) {
-            sb.append("max=");
+            sb.append("max[");
             if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
                 sb.append("h");
             }
             if( 0 != ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
                 sb.append("v");
             }
-            sb.append(", ");
+            sb.append("], ");
         }
 
         if( showChangeFlags && 0 != ( CHANGE_MASK_FULLSCREEN & mask) ) {
