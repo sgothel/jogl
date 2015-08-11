@@ -413,13 +413,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             final NativeWindow pWin = getParent();
             final AbstractGraphicsConfiguration pWinCfg = null != pWin ? pWin.getGraphicsConfiguration() : null;
             System.err.println("MacWindow reconfig.0: "+x+"/"+y+" -> clientPos "+pClientLevelOnSreen+" - "+width+"x"+height+
+                               ", "+getStateMaskString()+" -> "+getReconfigStateMaskString(flags)+
                                ",\n\t parent type "+(null != pWin ? pWin.getClass().getName() : null)+
                                ",\n\t   this-chosenCaps "+(null != cWinCfg ? cWinCfg.getChosenCapabilities() : null)+
                                ",\n\t parent-chosenCaps "+(null != pWinCfg ? pWinCfg.getChosenCapabilities() : null)+
                                ", isOffscreenInstance(sscSurfaceHandle "+toHexString(sscSurfaceHandle)+
                                ", ioi: "+_isOffscreenInstance+
-                               ") -> "+isOffscreenInstance+
-                               "\n\t, "+getReconfigStateMaskString(flags));
+                               ") -> "+isOffscreenInstance);
             // Thread.dumpStack();
         }
 
@@ -490,7 +490,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             }
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow reconfig.X: clientPos "+pClientLevelOnSreen+", "+width+"x"+height+" -> clientPos "+getLocationOnScreenImpl(0, 0)+", insets: "+getInsets());
+            System.err.println("MaxWindow reconfig.X: "+getLocationOnScreenImpl(0, 0)+" "+getWidth()+"x"+getHeight()+", insets "+getInsets()+", "+getStateMaskString());
         }
         return true;
     }

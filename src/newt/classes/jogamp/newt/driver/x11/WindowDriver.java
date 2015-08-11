@@ -195,7 +195,8 @@ public class WindowDriver extends WindowImpl {
             _y = y;
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window reconfig: "+x+"/"+y+" -> "+_x+"/"+_y+" "+width+"x"+height+", insets "+_insets+", "+ getReconfigStateMaskString(flags));
+            System.err.println("X11Window reconfig.0: "+x+"/"+y+" -> "+_x+"/"+_y+" "+width+"x"+height+", insets "+_insets+
+                               ", "+getStateMaskString()+" -> "+getReconfigStateMaskString(flags));
         }
         if( 0 != ( CHANGE_MASK_FULLSCREEN & flags ) ) {
             if( 0 != ( STATE_MASK_FULLSCREEN & flags) &&
@@ -219,6 +220,9 @@ public class WindowDriver extends WindowImpl {
                 return null;
             }
         });
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("X11Window reconfig.X: "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", insets "+getInsets()+", "+getStateMaskString());
+        }
         return true;
     }
     volatile boolean tempFSAlwaysOnTop = false;
