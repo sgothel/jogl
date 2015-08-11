@@ -498,7 +498,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         } else {
             if( width>0 && height>0 ) {
                 if( !isOffscreenInstance ) {
-                    OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    OSXUtil.RunOnMainThread(true, false, new Runnable() {
                             @Override
                             public void run() {
                                 setWindowClientTopLeftPointAndSize0(getWindowHandle(),
