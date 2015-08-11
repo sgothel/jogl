@@ -134,11 +134,6 @@ public class WindowDriver extends WindowImpl {
         return new Point(x,y);
     }
 
-    @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop ..
-    }
-
     //----------------------------------------------------------------------
     // Internals only
     //

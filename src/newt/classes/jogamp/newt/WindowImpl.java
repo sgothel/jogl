@@ -896,16 +896,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract Point getLocationOnScreenImpl(int x, int y);
 
-    /**
-     * Triggered by user via {@link #getInsets()}.<br>
-     * Implementations may implement this hook to update the insets.<br>
-     * However, they may prefer the event driven path via {@link #insetsChanged(boolean, int, int, int, int)}.
-     *
-     * @see #getInsets()
-     * @see #insetsChanged(boolean, int, int, int, int)
-     */
-    protected abstract void updateInsetsImpl(Insets insets);
-
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) { return false; }
     protected boolean confinePointerImpl(final boolean confine) { return false; }
     protected void warpPointerImpl(final int x, final int y) { }
@@ -2265,11 +2255,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final InsetsImmutable getInsets() {
-        if(isUndecorated()) {
+        if( isUndecorated() ) {
             return Insets.getZero();
+        } else {
+            return insets;
         }
-        updateInsetsImpl(insets);
-        return insets;
     }
 
     @Override

@@ -279,11 +279,6 @@ public class WindowDriver extends WindowImpl {
         return GDIUtil.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
-    @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop - using event driven insetsChange(..)
-    }
-
     //
     // PointerEvent Handling
     //

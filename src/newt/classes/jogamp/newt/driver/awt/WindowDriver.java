@@ -191,12 +191,6 @@ public class WindowDriver extends WindowImpl {
         return res;
     }
 
-    @Override
-    protected void updateInsetsImpl(final com.jogamp.nativewindow.util.Insets insets) {
-        final Insets contInsets = awtContainer.getInsets();
-        insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
-    }
-
     private void setCanvasSizeImpl(final int width, final int height) {
         final Dimension szClient = new Dimension(width, height);
         final java.awt.Window awtWindow = AWTMisc.getWindow(awtCanvas);
@@ -250,6 +244,8 @@ public class WindowDriver extends WindowImpl {
             if( 0 != ( STATE_MASK_VISIBLE & flags) ) {
                 setCanvasSizeImpl(width, height);
                 awtContainer.setVisible( true );
+                final Insets contInsets = awtContainer.getInsets();
+                insetsChanged(false, contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
             } else {
                 awtContainer.setVisible( false );
             }

@@ -128,11 +128,6 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop ..
-    }
-
-    @Override
     public boolean surfaceSwap() {
         SwapWindow(getDisplayHandle(), getWindowHandle());
         return true;

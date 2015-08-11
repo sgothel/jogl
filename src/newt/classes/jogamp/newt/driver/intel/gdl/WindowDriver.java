@@ -132,11 +132,6 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         return new Point(x,y);
     }
 
-    @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop ..
-    }
-
     //----------------------------------------------------------------------
     // Internals only
     //

@@ -147,10 +147,5 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         return new Point(x,y);
     }
-
-    @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop ..
-    }
 }
 

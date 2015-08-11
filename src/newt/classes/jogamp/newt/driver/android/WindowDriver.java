@@ -489,11 +489,6 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         return new Point(x,y);
     }
 
-    @Override
-    protected final void updateInsetsImpl(final Insets insets) {
-        // nop ..
-    }
-
     //----------------------------------------------------------------------
     // Virtual On-Screen Keyboard / SoftInput
     //

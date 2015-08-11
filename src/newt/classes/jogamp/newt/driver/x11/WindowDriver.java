@@ -347,11 +347,6 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop - using event driven insetsChange(..)
-    }
-
-    @Override
     protected final void doMouseEvent(final boolean enqueue, final boolean wait, short eventType, int modifiers,
                                 final int x, final int y, short button, final float[] rotationXYZ, final float rotationScale) {
         switch(eventType) {

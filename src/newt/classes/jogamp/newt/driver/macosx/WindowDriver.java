@@ -554,11 +554,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         return p;
     }
 
-    @Override
-    protected void updateInsetsImpl(final Insets insets) {
-        // nop - using event driven insetsChange(..)
-    }
-
     /** Callback for native screen position change event of the client area. */
     protected void screenPositionChanged(final boolean defer, final int newX, final int newY) {
         // passed coordinates are in screen position of the client area
