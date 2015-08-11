@@ -378,7 +378,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append(", ");
         }
 
-        if( 0 == ( ( STATE_MASK_POINTERVISIBLE | STATE_MASK_POINTERCONFINED ) & mask) ) {
+        if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ||
+            0 != ( STATE_MASK_POINTERCONFINED & mask) )
+        {
             sb.append("pointer[");
             if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
                 sb.append("invisible");
