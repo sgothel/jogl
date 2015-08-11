@@ -424,7 +424,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) &&
-            0 != ( STATE_MASK_VISIBLE & flags) )
+            0 == ( STATE_MASK_VISIBLE & flags) )
         {
             if ( !isOffscreenInstance ) {
                 OSXUtil.RunOnMainThread(false, false, new Runnable() {
@@ -704,10 +704,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( 0 != ( STATE_MASK_UNDECORATED & flags) || offscreenInstance ) {
                     ws = NSBorderlessWindowMask;
                 } else {
-                    ws = NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask;
-                }
-                if( 0 != ( STATE_MASK_RESIZABLE & flags) ) {
-                    ws |= NSResizableWindowMask;
+                    ws = NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask;
+                    if( 0 != ( STATE_MASK_RESIZABLE & flags) ) {
+                        ws |= NSResizableWindowMask;
+                    }
                 }
                 windowStyle = ws;
             }
