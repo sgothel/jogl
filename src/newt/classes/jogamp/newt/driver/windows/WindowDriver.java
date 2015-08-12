@@ -220,17 +220,6 @@ public class WindowDriver extends WindowImpl {
             width = posSize[2];
             height = posSize[3];
         }
-        if(0 == ( STATE_MASK_UNDECORATED & flags)) {
-            // client position -> top-level window position
-            x -= insets.getLeftWidth() ;
-            y -= insets.getTopHeight() ;
-
-            if(0<width && 0<height) {
-                // client size -> top-level window size
-                width += insets.getTotalWidth();
-                height += insets.getTotalHeight();
-            }
-        }
         reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {

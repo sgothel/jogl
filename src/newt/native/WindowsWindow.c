@@ -203,8 +203,6 @@ static UnregisterTouchWindowPROCADDR WinTouch_UnregisterTouchWindow = NULL;
 
 static int NewtEDID_avail = 0;
 
-static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
-
 typedef struct {
     JNIEnv* jenv;
     jobject jinstance;
@@ -212,6 +210,8 @@ typedef struct {
     int width;
     /* client size height */
     int height;
+    /* Insets left, right, top, bottom */
+    RECT insets;
     /** Tristate: -1 HIDE, 0 NOP, 1 SHOW */
     int setPointerVisible;
     /** Tristate: -1 RESET, 0 NOP, 1 SET-NEW */
@@ -233,6 +233,8 @@ typedef struct {
     int supportsMTouch;
 } WindowUserData;
     
+static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd);
+
 typedef struct {
     USHORT javaKey;
     USHORT windowsKey;
@@ -665,91 +667,32 @@ static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
     return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, flags) ) ? JNI_TRUE : JNI_FALSE;
 }
 
-#if 0
-
-static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
-{
-    // being naughty here
-    static RECT m_insets = { 0, 0, 0, 0 };
-    RECT outside;
-    RECT inside;
-    POINT *rp_inside = (POINT *) (void *) &inside;
-    int dx, dy, dw, dh;
-
-    if (IsIconic(hwnd)) {
-        m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = -1;
-        return FALSE;
-    }
-
-    m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = 0;
-
-    GetClientRect(hwnd, &inside);
-    GetWindowRect(hwnd, &outside);
-
-    DBG_PRINT("*** WindowsWindow: UpdateInsets (a1) window %p, Inside CC: %d/%d - %d/%d %dx%d\n", 
-        (void*)hwnd,
-        (int)inside.left, (int)inside.top, (int)inside.right, (int)inside.bottom, 
-        (int)(inside.right - inside.left), (int)(inside.bottom - inside.top));
-    DBG_PRINT("*** WindowsWindow: UpdateInsets (a1) window %p, Outside SC: %d/%d - %d/%d %dx%d\n", 
-        (void*)hwnd,
-        (int)outside.left, (int)outside.top, (int)outside.right, (int)outside.bottom, 
-        (int)(outside.right - outside.left), (int)(outside.bottom - outside.top));
-
-    // xform client -> screen coord
-    ClientToScreen(hwnd, rp_inside);
-    ClientToScreen(hwnd, rp_inside+1);
-
-    DBG_PRINT("*** WindowsWindow: UpdateInsets (a2) window %p, Inside SC: %d/%d - %d/%d %dx%d\n", 
-        (void*)hwnd,
-        (int)inside.left, (int)inside.top, (int)inside.right, (int)inside.bottom, 
-        (int)(inside.right - inside.left), (int)(inside.bottom - inside.top));
-
-    m_insets.top = inside.top - outside.top;
-    m_insets.bottom = outside.bottom - inside.bottom;
-    m_insets.left = inside.left - outside.left;
-    m_insets.right = outside.right - inside.right;
-
-    DBG_PRINT("*** WindowsWindow: UpdateInsets (1.0) window %p, %d/%d - %d/%d %dx%d\n", 
-        (void*)hwnd, 
-        (int)m_insets.left, (int)m_insets.top, (int)m_insets.right, (int)m_insets.bottom,
-        (int)(m_insets.right-m_insets.left), (int)(m_insets.top-m_insets.bottom));
-
-    (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
-                           m_insets.left, m_insets.right,
-                           m_insets.top, m_insets.bottom);
-    return &m_insets;
-}
-
-#else
-
-static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
-{
-    // being naughty here
-    static RECT m_insets = { 0, 0, 0, 0 };
+static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
+    jobject window = wud->jinstance;
     RECT outside;
     RECT inside;
 
     if (IsIconic(hwnd)) {
-        m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = -1;
+        wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = -1;
         return FALSE;
     }
 
-    m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = 0;
+    wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = 0;
 
     GetClientRect(hwnd, &inside);
     GetWindowRect(hwnd, &outside);
 
     if (outside.right - outside.left > 0 && outside.bottom - outside.top > 0) {
         MapWindowPoints(hwnd, 0, (LPPOINT)&inside, 2);
-        m_insets.top = inside.top - outside.top;
-        m_insets.bottom = outside.bottom - inside.bottom;
-        m_insets.left = inside.left - outside.left;
-        m_insets.right = outside.right - inside.right;
+        wud->insets.top = inside.top - outside.top;
+        wud->insets.bottom = outside.bottom - inside.bottom;
+        wud->insets.left = inside.left - outside.left;
+        wud->insets.right = outside.right - inside.right;
     } else {
-        m_insets.top = -1;
+        wud->insets.top = -1;
     }
-    if (m_insets.left < 0 || m_insets.top < 0 ||
-        m_insets.right < 0 || m_insets.bottom < 0)
+    if (wud->insets.left < 0 || wud->insets.top < 0 ||
+        wud->insets.right < 0 || wud->insets.bottom < 0)
     {
         LONG style = GetWindowLong(hwnd, GWL_STYLE);
 
@@ -757,35 +700,32 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
         if (!bIsUndecorated) {
             /* Get outer frame sizes. */
             if (style & WS_THICKFRAME) {
-                m_insets.left = m_insets.right =
+                wud->insets.left = wud->insets.right =
                     GetSystemMetrics(SM_CXSIZEFRAME);
-                m_insets.top = m_insets.bottom =
+                wud->insets.top = wud->insets.bottom =
                     GetSystemMetrics(SM_CYSIZEFRAME);
             } else {
-                m_insets.left = m_insets.right =
+                wud->insets.left = wud->insets.right =
                     GetSystemMetrics(SM_CXDLGFRAME);
-                m_insets.top = m_insets.bottom =
+                wud->insets.top = wud->insets.bottom =
                     GetSystemMetrics(SM_CYDLGFRAME);
             }
 
             /* Add in title. */
-            m_insets.top += GetSystemMetrics(SM_CYCAPTION);
+            wud->insets.top += GetSystemMetrics(SM_CYCAPTION);
         } else {
             /* undo the -1 set above */
-            m_insets.left = m_insets.top = m_insets.right = m_insets.bottom = 0;
+            wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = 0;
         }
     }
 
     DBG_PRINT("*** WindowsWindow: UpdateInsets window %p, [l %d, r %d - t %d, b %d - %dx%d]\n", 
-        (void*)hwnd, (int)m_insets.left, (int)m_insets.right, (int)m_insets.top, (int)m_insets.bottom,
-        (int) ( m_insets.left + m_insets.right ), (int) (m_insets.top + m_insets.bottom));
+        (void*)hwnd, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom,
+        (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom));
 
     (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
-                           (int)m_insets.left, (int)m_insets.right, (int)m_insets.top, (int)m_insets.bottom);
-    return &m_insets;
+                           (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
 }
-
-#endif
 
 static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
 {
@@ -815,7 +755,7 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
     }
 
     // make sure insets are up to date
-    (void)UpdateInsets(env, window, wnd);
+    UpdateInsets(env, wud, wnd);
 
     GetClientRect(wnd, &rc);
     
@@ -1035,7 +975,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             if (wParam == SPI_SETNONCLIENTMETRICS) {
                 // make sure insets are updated, we don't need to resize the window 
                 // because the size of the client area doesn't change
-                (void)UpdateInsets(env, window, wnd);
+                UpdateInsets(env, wud, wnd);
             } else {
                 useDefWindowProc = 1;
             }
@@ -2124,11 +2064,17 @@ static void NewtWindow_setVisiblePosSize(WindowUserData *wud, HWND hwnd, int jfl
     BOOL abottom = TST_FLAG_IS_ALWAYSONBOTTOM(jflags);
     UINT wflags;
 
-    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, atop %d, abottom %d, max[change[%d %d], is[%d %d]], visible %d\n", 
+    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize client %d/%d %dx%d, atop %d, abottom %d, max[change[%d %d], is[%d %d]], visible %d\n", 
         x, y, width, height, atop, abottom, 
         TST_FLAG_CHANGE_MAXIMIZED_VERT(jflags), TST_FLAG_CHANGE_MAXIMIZED_HORZ(jflags),
         TST_FLAG_IS_MAXIMIZED_VERT(jflags), TST_FLAG_IS_MAXIMIZED_HORZ(jflags),
         visible);
+
+    x -= wud->insets.left; // top-level
+    y -= wud->insets.top;  // top-level
+    width += wud->insets.left + wud->insets.right;   // top-level
+    height += wud->insets.top + wud->insets.bottom;  // top-level
+    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize top-level %d/%d %dx%d\n", x, y, width, height);
 
     if(visible) {
         wflags = SWP_SHOWWINDOW;
@@ -2204,7 +2150,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
     } else if ( TST_FLAG_IS_UNDECORATED(flags) ) {
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
-        windowStyle |= WS_OVERLAPPEDWINDOW;
+        if ( TST_FLAG_IS_RESIZABLE(flags) ) {
+            // WS_OVERLAPPEDWINDOW = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+            windowStyle |= WS_OVERLAPPEDWINDOW;
+        } else {
+            windowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+        }
         if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
             // user didn't requested specific position, use WM default
             _x = CW_USEDEFAULT;
@@ -2266,27 +2217,19 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         // gather and adjust position and size
         {
             RECT rc;
-            RECT * insets;
 
             ShowWindow(window, SW_SHOW);
 
             // send insets before visibility, allowing java code a proper sync point!
-            insets = UpdateInsets(env, wud->jinstance, window);
+            UpdateInsets(env, wud, window);
             (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
             if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
                 GetWindowRect(window, &rc);
-                x = rc.left + insets->left; // client coords
-                y = rc.top + insets->top;   // client coords
+                x = rc.left + wud->insets.left; // client coords
+                y = rc.top + wud->insets.top;   // client coords
             }
             DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", x, y, width, height, TST_FLAG_IS_AUTOPOSITION(flags));
-
-            x -= insets->left; // top-level
-            y -= insets->top;  // top-level
-            width += insets->left + insets->right;   // top-level
-            height += insets->top + insets->bottom;  // top-level
-            DBG_PRINT("*** WindowsWindow: CreateWindow top-level %d/%d %dx%d\n", x, y, width, height);
-
             NewtWindow_setVisiblePosSize(wud, window, flags, TRUE, x, y, width, height);
         }
         if( wud->supportsMTouch ) {
@@ -2338,7 +2281,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     HWND hwndP = (HWND) (intptr_t) parent;
     HWND hwnd = (HWND) (intptr_t) window;
     DWORD windowStyle = WS_DEFAULT_STYLES;
-    BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags);
+    BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || 
+                       TST_FLAG_CHANGE_PARENTING(flags) || TST_FLAG_CHANGE_RESIZABLE(flags);
     WindowUserData * wud;
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
     wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
@@ -2346,14 +2290,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
 #endif
 
-
-    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d, isChild %d, isMinimized %d, isMaximized %d, isFullscreen %d\n",
+    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, undecoration[change %d, val %d], fullscreen[change %d, val %d], alwaysOnTop[change %d, val %d], visible[change %d, val %d], resizable[change %d, val %d] -> styleChange %d, isChild %d, isMinimized %d, isMaximized %d, isFullscreen %d\n",
         parent, window, x, y, width, height,
         TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_IS_CHILD(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), styleChange, 
+        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), 
+        TST_FLAG_CHANGE_RESIZABLE(flags), TST_FLAG_CHANGE_RESIZABLE(flags), styleChange, 
         wud->isChildWindow, wud->isMinimized, wud->isMaximized, wud->isFullscreen);
 
     if (!IsWindow(hwnd)) {
@@ -2396,8 +2340,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
             windowStyle |= WS_CHILD ;
         } else if ( TST_FLAG_IS_UNDECORATED(flags) ) {
             windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
-        } else {
+        } else if ( TST_FLAG_IS_RESIZABLE(flags) ) {
+            // WS_OVERLAPPEDWINDOW = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
             windowStyle |= WS_OVERLAPPEDWINDOW;
+        } else {
+            windowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
         }
         SetWindowLong(hwnd, GWL_STYLE, windowStyle);
         SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER );
