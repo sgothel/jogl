@@ -235,9 +235,9 @@ public class NEWTDemoListener extends MouseAdapter implements KeyListener {
                             horz = false;
                             vert = false;
                         } else if( e.isShiftDown() ) {
-                            final boolean anyMax = glWindow.isMaximizedHorz() || glWindow.isMaximizedVert();
-                            horz = !anyMax;
-                            vert = !anyMax;
+                            final boolean bothMax = glWindow.isMaximizedHorz() && glWindow.isMaximizedVert();
+                            horz = !bothMax;
+                            vert = !bothMax;
                         } else if( !e.isAltDown() ) {
                             horz = glWindow.isMaximizedHorz();
                             vert = !glWindow.isMaximizedVert();

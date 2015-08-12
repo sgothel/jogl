@@ -177,6 +177,7 @@
 
 static jmethodID insetsChangedID = NULL;
 static jmethodID sizeChangedID = NULL;
+static jmethodID maximizedChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
@@ -218,9 +219,13 @@ typedef struct {
     HCURSOR setPointerHandle;
     HCURSOR defPointerHandle;
     /** Bool: 0 NOP, 1 FULLSCREEN */
-    int isFullscreen;
+    BOOL isFullscreen;
     /** Bool: 0 TOP, 1 CHILD */
-    int isChildWindow;
+    BOOL isChildWindow;
+    /** Bool: 0 NOP, 1 minimized/iconic */
+    BOOL isMinimized;
+    /** Bool: 0 NOP, 1 maximized */
+    BOOL isMaximized;
     int pointerCaptured;
     int pointerInside;
     int touchDownCount;
@@ -787,10 +792,26 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
     RECT rc;
     BOOL isVisible = IsWindowVisible(wnd);
     jobject window = wud->jinstance;
+    BOOL maxChanged = FALSE;
+
+    DBG_PRINT("*** WindowsWindow: WmSize.0 window %p, %dx%d, isMinimized %d, isMaximized %d, visible %d\n", 
+        (void*)wnd, wud->width, wud->height, wud->isMinimized, wud->isMaximized, isVisible);
 
     if (type == SIZE_MINIMIZED) {
-        // TODO: deal with minimized window sizing
+        wud->isMinimized = TRUE;
         return;
+    }
+    if (type == SIZE_MAXIMIZED) {
+        if( !wud->isMaximized ) {
+            wud->isMaximized = 1;
+            maxChanged = TRUE;
+        }
+    } else if (type == SIZE_RESTORED) {
+        wud->isMinimized = FALSE;
+        if( wud->isMaximized ) {
+            wud->isMaximized = FALSE;
+            maxChanged = TRUE;
+        }
     }
 
     // make sure insets are up to date
@@ -802,8 +823,13 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
     wud->width = (int) ( rc.right  - rc.left );
     wud->height = (int) ( rc.bottom - rc.top );
 
-    DBG_PRINT("*** WindowsWindow: WmSize window %p, %dx%d, visible %d\n", (void*)wnd, wud->width, wud->height, isVisible);
+    DBG_PRINT("*** WindowsWindow: WmSize.X window %p, %dx%d, isMinimized %d, isMaximized %d (changed %d), visible %d\n", 
+        (void*)wnd, wud->width, wud->height, wud->isMinimized, wud->isMaximized, maxChanged, isVisible);
 
+    if( maxChanged ) {
+        jboolean v = wud->isMaximized ? JNI_TRUE : JNI_FALSE;
+        (*env)->CallVoidMethod(env, window, maximizedChangedID, v, v);
+    }
     (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
 }
 
@@ -1020,6 +1046,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             break;
 
         case WM_SHOWWINDOW:
+            DBG_PRINT("*** WindowsWindow: WM_SHOWWINDOW window %p: %d\n", wnd, wParam==TRUE);
             (*env)->CallVoidMethod(env, window, visibleChangedID, JNI_FALSE, wParam==TRUE?JNI_TRUE:JNI_FALSE);
             break;
 
@@ -2032,6 +2059,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
 
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    maximizedChangedID = (*env)->GetMethodID(env, clazz, "maximizedChanged", "(ZZ)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
@@ -2044,6 +2072,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
 
     if (insetsChangedID == NULL ||
         sizeChangedID == NULL ||
+        maximizedChangedID == NULL ||
         positionChangedID == NULL ||
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
@@ -2088,32 +2117,51 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_getNewtWndP
     return (jlong) (intptr_t) wndProc;
 }
 
-static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible, 
+static void NewtWindow_setVisiblePosSize(WindowUserData *wud, HWND hwnd, int jflags, BOOL visible, 
                                          int x, int y, int width, int height)
 {
-    UINT flags;
-    BOOL bRes;
-    
-    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, atop %d, visible %d\n", 
-        x, y, width, height, atop, visible);
+    BOOL atop = TST_FLAG_IS_ALWAYSONTOP(jflags);
+    BOOL abottom = TST_FLAG_IS_ALWAYSONBOTTOM(jflags);
+    UINT wflags;
+
+    DBG_PRINT("*** WindowsWindow: NewtWindow_setVisiblePosSize %d/%d %dx%d, atop %d, abottom %d, max[change[%d %d], is[%d %d]], visible %d\n", 
+        x, y, width, height, atop, abottom, 
+        TST_FLAG_CHANGE_MAXIMIZED_VERT(jflags), TST_FLAG_CHANGE_MAXIMIZED_HORZ(jflags),
+        TST_FLAG_IS_MAXIMIZED_VERT(jflags), TST_FLAG_IS_MAXIMIZED_HORZ(jflags),
+        visible);
 
     if(visible) {
-        flags = SWP_SHOWWINDOW;
+        wflags = SWP_SHOWWINDOW;
     } else {
-        flags = SWP_NOACTIVATE | SWP_NOZORDER;
+        wflags = SWP_NOACTIVATE | SWP_NOZORDER;
     }
     if(0>=width || 0>=height ) {
-        flags |= SWP_NOSIZE;
+        wflags |= SWP_NOSIZE;
     }
 
     if(atop) {
-        SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags);
-        SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, height, flags);
+        SetWindowPos(hwnd, HWND_TOP, x, y, width, height, wflags);
+        SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, height, wflags);
+    } else if(abottom) {
+        SetWindowPos(hwnd, HWND_NOTOPMOST, x, y, width, height, wflags);
+        SetWindowPos(hwnd, HWND_BOTTOM, x, y, width, height, wflags);
     } else {
-        SetWindowPos(hwnd, HWND_NOTOPMOST, x, y, width, height, flags);
-        SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags);
+        SetWindowPos(hwnd, HWND_NOTOPMOST, x, y, width, height, wflags);
+        SetWindowPos(hwnd, HWND_TOP, x, y, width, height, wflags);
     }
-    // SetWindowPos(hwnd, atop ? HWND_TOPMOST : HWND_TOP, x, y, width, height, flags);
+    // SetWindowPos(hwnd, atop ? HWND_TOPMOST : HWND_TOP, x, y, width, height, wflags);
+
+    if( TST_FLAG_CHANGE_MAXIMIZED_ANY(jflags) ) {
+        if( TST_FLAG_IS_MAXIMIZED_VERT(jflags) && TST_FLAG_IS_MAXIMIZED_HORZ(jflags) ) {
+            wud->isMaximized = 1;
+            ShowWindow(hwnd, SW_MAXIMIZE);
+        } else if( !TST_FLAG_IS_MAXIMIZED_VERT(jflags) && !TST_FLAG_IS_MAXIMIZED_HORZ(jflags) ) {
+            if( wud->isMaximized ) {
+                ShowWindow(hwnd, SW_RESTORE);
+                wud->isMaximized = 0;
+            }
+        }
+    }
 
     InvalidateRect(hwnd, NULL, TRUE);
     UpdateWindow(hwnd);
@@ -2128,7 +2176,7 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, jint winMajor, jint winMinor,
-   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags)
+   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jint flags)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
@@ -2157,7 +2205,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
         windowStyle |= WS_OVERLAPPEDWINDOW;
-        if(JNI_TRUE == autoPosition) {
+        if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
             // user didn't requested specific position, use WM default
             _x = CW_USEDEFAULT;
             _y = 0;
@@ -2172,7 +2220,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
 
     DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, win %d.%d parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
         (int)GetCurrentThreadId(), winMajor, winMinor, parentWindow, window, x, y, width, height,
-        TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags), autoPosition);
+        TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags), TST_FLAG_IS_AUTOPOSITION(flags));
 
     if (NULL == window) {
         int lastError = (int) GetLastError();
@@ -2188,8 +2236,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->setPointerAction = 0;
         wud->defPointerHandle = LoadCursor( NULL, IDC_ARROW);
         wud->setPointerHandle = wud->defPointerHandle;
-        wud->isFullscreen = 0;
+        wud->isFullscreen = FALSE;
         wud->isChildWindow = NULL!=parentWindow;
+        wud->isMinimized = FALSE;
+        wud->isMaximized = FALSE;
         wud->pointerCaptured = 0;
         wud->pointerInside = 0;
         wud->touchDownCount = 0;
@@ -2224,12 +2274,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             insets = UpdateInsets(env, wud->jinstance, window);
             (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
-            if(JNI_TRUE == autoPosition) {
+            if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
                 GetWindowRect(window, &rc);
                 x = rc.left + insets->left; // client coords
                 y = rc.top + insets->top;   // client coords
             }
-            DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", x, y, width, height, autoPosition);
+            DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", x, y, width, height, TST_FLAG_IS_AUTOPOSITION(flags));
 
             x -= insets->left; // top-level
             y -= insets->top;  // top-level
@@ -2237,7 +2287,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             height += insets->top + insets->bottom;  // top-level
             DBG_PRINT("*** WindowsWindow: CreateWindow top-level %d/%d %dx%d\n", x, y, width, height);
 
-            NewtWindow_setVisiblePosSize(window, TST_FLAG_IS_ALWAYSONTOP(flags), TRUE, x, y, width, height);
+            NewtWindow_setVisiblePosSize(wud, window, flags, TRUE, x, y, width, height);
         }
         if( wud->supportsMTouch ) {
             WinTouch_RegisterTouchWindow(window, 0);
@@ -2288,7 +2338,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     HWND hwndP = (HWND) (intptr_t) parent;
     HWND hwnd = (HWND) (intptr_t) window;
     DWORD windowStyle = WS_DEFAULT_STYLES;
-    BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ;
+    BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags);
     WindowUserData * wud;
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
     wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
@@ -2297,13 +2347,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 #endif
 
 
-    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d, isChild %d, isFullscreen %d\n",
+    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d, isChild %d, isMinimized %d, isMaximized %d, isFullscreen %d\n",
         parent, window, x, y, width, height,
         TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_IS_CHILD(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), styleChange, wud->isChildWindow, wud->isFullscreen);
+        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), styleChange, 
+        wud->isChildWindow, wud->isMinimized, wud->isMaximized, wud->isFullscreen);
 
     if (!IsWindow(hwnd)) {
         DBG_PRINT("*** WindowsWindow: reconfigureWindow0 failure: Passed window %p is invalid\n", (void*)hwnd);
@@ -2336,7 +2387,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
         // TOP: in -> out
-        wud->isFullscreen = 1;
+        wud->isFullscreen = TRUE;
         NewtWindows_setFullScreen(JNI_TRUE);
     }
 
@@ -2354,7 +2405,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
         // CHILD: out -> in
-        wud->isFullscreen = 0;
+        wud->isFullscreen = FALSE;
         NewtWindows_setFullScreen(JNI_FALSE);
     }
 
@@ -2363,17 +2414,22 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
         SetParent(hwnd, hwndP );
     }
 
-    NewtWindow_setVisiblePosSize(hwnd, TST_FLAG_IS_ALWAYSONTOP(flags), TST_FLAG_IS_VISIBLE(flags), x, y, width, height);
+    NewtWindow_setVisiblePosSize(wud, hwnd, flags, TST_FLAG_IS_VISIBLE(flags), x, y, width, height);
 
     if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
         if( TST_FLAG_IS_VISIBLE(flags) ) {
-            ShowWindow(hwnd, SW_SHOW);
+            int cmd = wud->isMinimized ? SW_RESTORE : SW_SHOW;
+            wud->isMinimized = FALSE;
+            ShowWindow(hwnd, cmd);
+        } else if( !TST_FLAG_CHANGE_VISIBILITY_FAST(flags) && !TST_FLAG_IS_CHILD(flags) ) {
+            wud->isMinimized = TRUE;
+            ShowWindow(hwnd, SW_MINIMIZE);
         } else {
             ShowWindow(hwnd, SW_HIDE);
         }
     }
 
-    DBG_PRINT("*** WindowsWindow: reconfigureWindow0.X isChild %d, isFullscreen %d\n", wud->isChildWindow, wud->isFullscreen);
+    DBG_PRINT("*** WindowsWindow: reconfigureWindow0.X isChild %d, isMinimized %d, isFullscreen %d\n", wud->isChildWindow, wud->isMinimized, wud->isFullscreen);
 }
 
 /*

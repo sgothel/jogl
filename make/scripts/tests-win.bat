@@ -7,7 +7,7 @@ REM scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT %*
@@ -59,7 +59,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedConte
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT %*

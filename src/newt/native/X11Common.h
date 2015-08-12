@@ -71,7 +71,7 @@
 extern jclass X11NewtWindowClazz;
 extern jmethodID insetsChangedID;
 extern jmethodID visibleChangedID;
-extern jmethodID minMaxSizeChangedID;
+extern jmethodID sizePosMaxInsetsChanged;
 
 typedef struct {
     Window window;
@@ -81,13 +81,15 @@ typedef struct {
     Atom windowDeleteAtom;
     uint32_t supportedAtoms;
     uint32_t lastDesktop;
+    Bool maxHorz;
+    Bool maxVert;
 } JavaWindow;
 
 JavaWindow * getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
 
 Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return);
-Status NewtWindows_updateInsets(JNIEnv *env, Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom);
-void NewtWindows_updateMinMaxSize(JNIEnv *env, Display *dpy, JavaWindow * w);
+Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom);
+Bool NewtWindows_updateMaximized(Display *dpy, JavaWindow * w);
 
 #endif /* _X11COMMON_H_ */
 

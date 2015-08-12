@@ -45,7 +45,6 @@ import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
 
@@ -141,16 +140,29 @@ public class WindowDriver extends WindowImpl {
         }
         setGraphicsConfiguration(cfg);
         final VersionNumber winVer = Platform.getOSVersionNumber();
-        final int flags = getReconfigureMask(0, true) & STATE_MASK_CREATENATIVE;
+        int flags = getReconfigureMask(0, true) & STATE_MASK_CREATENATIVE;
+        int maxCount = 0;
+        if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & flags ) ) {
+            flags |= CHANGE_MASK_MAXIMIZED_HORZ;
+            maxCount++;
+        }
+        if( 0 != ( STATE_MASK_MAXIMIZED_VERT & flags ) ) {
+            flags |= CHANGE_MASK_MAXIMIZED_VERT;
+            maxCount++;
+        }
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                                  winVer.getMajor(), winVer.getMinor(),
                                                  getParentWindowHandle(),
-                                                 getX(), getY(), getWidth(), getHeight(), autoPosition(), flags);
+                                                 getX(), getY(), getWidth(), getHeight(), flags);
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
         setWindowHandle(_windowHandle);
         windowHandleClose = _windowHandle;
+
+        if( 0 == ( STATE_MASK_CHILDWIN & flags ) && 1 == maxCount ) {
+            reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), flags);
+        }
 
         if(DEBUG_IMPLEMENTATION) {
             final Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
@@ -193,18 +205,30 @@ public class WindowDriver extends WindowImpl {
             System.err.println("WindowsWindow reconfig.0: "+x+"/"+y+" "+width+"x"+height+
                                ", "+getReconfigStateMaskString(flags));
         }
+        final InsetsImmutable insets = getInsets();
 
+        if( 0 == ( STATE_MASK_CHILDWIN & flags ) &&
+            0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & flags ) ) {
+            final int[] posSize = { x, y, width, height };
+            if( ( 0 != ( STATE_MASK_MAXIMIZED_HORZ & flags ) ) == ( 0 != ( STATE_MASK_MAXIMIZED_VERT & flags ) ) ) {
+                resetMaximizedManual(posSize); // reset before native maximize/reset
+            } else {
+                reconfigMaximizedManual(flags, posSize, insets);
+            }
+            x = posSize[0];
+            y = posSize[1];
+            width = posSize[2];
+            height = posSize[3];
+        }
         if(0 == ( STATE_MASK_UNDECORATED & flags)) {
-            final InsetsImmutable i = getInsets();
-
             // client position -> top-level window position
-            x -= i.getLeftWidth() ;
-            y -= i.getTopHeight() ;
+            x -= insets.getLeftWidth() ;
+            y -= insets.getTopHeight() ;
 
             if(0<width && 0<height) {
                 // client size -> top-level window size
-                width += i.getTotalWidth();
-                height += i.getTotalHeight();
+                width += insets.getTotalWidth();
+                height += insets.getTotalHeight();
             }
         }
         reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
@@ -367,7 +391,7 @@ public class WindowDriver extends WindowImpl {
     protected static native boolean initIDs0(long hInstance);
 
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName, int winMajor, int winMinor,
-                                      long parentWindowHandle, int x, int y, int width, int height, boolean autoPosition, int flags);
+                                      long parentWindowHandle, int x, int y, int width, int height, int flags);
     private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);

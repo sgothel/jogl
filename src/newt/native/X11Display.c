@@ -35,7 +35,7 @@
 jclass X11NewtWindowClazz = NULL;
 jmethodID insetsChangedID = NULL;
 jmethodID visibleChangedID = NULL;
-jmethodID minMaxSizeChangedID = NULL;
+jmethodID sizePosMaxInsetsChangedID = NULL;
 
 static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/WindowDriver";
 
@@ -52,7 +52,7 @@ static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
-static jmethodID requestFocusID = NULL;
+static jmethodID sendMouseEventRequestFocusID = NULL;
 
 /**
  * Keycode
@@ -254,13 +254,13 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     positionChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(ZZ)V");
-    minMaxSizeChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "minMaxSizeChanged", "(IIII)V");
+    sizePosMaxInsetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsChanged", "(ZIIIIZZIIIIZ)V");
     reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)V");
+    sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)V");
     sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
-    requestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "requestFocus", "(Z)V");
 
     if (displayCompletedID == NULL ||
         sendRRScreenChangeNotifyID == NULL ||
@@ -271,13 +271,13 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         positionChangedID == NULL ||
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
-        minMaxSizeChangedID == NULL ||
+        sizePosMaxInsetsChangedID == NULL ||
         reparentNotifyID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
         sendMouseEventID == NULL ||
-        sendKeyEventID == NULL ||
-        requestFocusID == NULL) {
+        sendMouseEventRequestFocusID == NULL ||
+        sendKeyEventID == NULL) {
         return JNI_FALSE;
     }
 
@@ -522,8 +522,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
 
         switch(evt.type) {
             case ButtonPress:
-                (*env)->CallVoidMethod(env, jw->jwindow, requestFocusID, JNI_FALSE);
-                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_PRESSED, 
+                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventRequestFocusID, (jshort) EVENT_MOUSE_PRESSED, 
                                       modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/);
                 break;
@@ -579,16 +578,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                             evt.xconfigure.override_redirect, evt.xconfigure.window != evt.xconfigure.event);
                 if ( evt.xconfigure.window == evt.xconfigure.event ) {
                     // ignore child window change notification
-                    {
-                        // update insets
-                        int left, right, top, bottom;
-                        NewtWindows_updateInsets(env, dpy, jw, &left, &right, &top, &bottom);
-                    }
-                    NewtWindows_updateMinMaxSize(env, dpy, jw);
-                    (*env)->CallVoidMethod(env, jw->jwindow, sizeChangedID, JNI_FALSE,
-                                            (jint) evt.xconfigure.width, (jint) evt.xconfigure.height, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, jw->jwindow, positionChangedID, JNI_FALSE,
-                                            (jint) evt.xconfigure.x, (jint) evt.xconfigure.y);
+                    // update insets
+                    int left=-1, right=-1, top=-1, bottom=-1;
+                    NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom);
+                    NewtWindows_updateMaximized(dpy, jw);
+                    (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsChangedID, JNI_FALSE,
+                                            (jint) evt.xconfigure.x, (jint) evt.xconfigure.y,
+                                            (jint) evt.xconfigure.width, (jint) evt.xconfigure.height,
+                                            (jboolean)jw->maxHorz, (jboolean)jw->maxVert,
+                                            (jint)left, (jint)right, (jint)top, (jint)bottom,
+                                            JNI_FALSE);
                 }
                 break;
             case ClientMessage:
@@ -633,7 +632,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     {
                         // update insets
                         int left, right, top, bottom;
-                        NewtWindows_updateInsets(env, dpy, jw, &left, &right, &top, &bottom);
+                        if( NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom) ) {
+                            (*env)->CallVoidMethod(env, jw->jwindow, insetsChangedID, JNI_FALSE, left, right, top, bottom);
+                        }
                     }
                     (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
                 }

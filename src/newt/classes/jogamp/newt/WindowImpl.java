@@ -73,6 +73,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -173,8 +174,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
     private List<MonitorDevice> fullscreenMonitors = null;
 
-    private final RectangleImmutable undefSize = new Rectangle(0, 0, 0, 0);
-    private final Rectangle minmax_size = new Rectangle(undefSize); // current min/max size or undef
     private int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
     private NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
     private String title = "Newt Window";
@@ -258,6 +257,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         stateMask.set(STATE_BIT_POINTERVISIBLE);
         stateMask.set(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
         stateMask.set(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
+        normPosSizeStored[0] = false;
+        normPosSizeStored[1] = false;
     }
 
     @Override
@@ -350,19 +351,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         if( showChangeFlags && 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & mask) ) {
             sb.append("max[");
-            if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
-                if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & mask) ) {
-                    sb.append("*");
-                }
-                sb.append("h");
-                sb.append(", ");
+            if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & mask) ) {
+                sb.append("*");
             }
-            if( 0 != ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
-                if( 0 != ( CHANGE_MASK_MAXIMIZED_VERT & mask) ) {
-                    sb.append("*");
-                }
-                sb.append("v");
+            if( 0 == ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
+                sb.append("!");
             }
+            sb.append("h");
+            sb.append(", ");
+            if( 0 != ( CHANGE_MASK_MAXIMIZED_VERT & mask) ) {
+                sb.append("*");
+            }
+            if( 0 == ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
+                sb.append("!");
+            }
+            sb.append("v");
             sb.append("], ");
         } else if( 0 != ( ( STATE_MASK_MAXIMIZED_HORZ | STATE_MASK_MAXIMIZED_VERT ) & mask) ) {
             sb.append("max[");
@@ -879,6 +882,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return appendStateBits(new StringBuilder(), flags, true).toString();
     }
 
+
     protected void setTitleImpl(final String title) {}
 
     /**
@@ -1260,7 +1264,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     @Override
     public final void setTopLevelSize(final int width, final int height) {
-        setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
+        final InsetsImmutable insets = getInsets();
+        setSize(width - insets.getTotalWidth(), height - insets.getTotalHeight());
     }
 
     private final Runnable destroyAction = new Runnable() {
@@ -2092,6 +2097,84 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final boolean isMaximizedHorz() {
         return stateMask.get(STATE_BIT_MAXIMIZED_HORZ);
     }
+    /** Triggered by implementation's WM events to update maximized window state. */
+    protected void maximizedChanged(final boolean newMaxHorz, final boolean newMaxVert) {
+        final String stateMask0 = DEBUG_IMPLEMENTATION ? getStateMaskString() : null;
+        final boolean changedHorz = stateMask.put(STATE_BIT_MAXIMIZED_HORZ, newMaxHorz) != newMaxHorz;
+        final boolean changedVert = stateMask.put(STATE_BIT_MAXIMIZED_VERT, newMaxVert) != newMaxVert;
+        if ( DEBUG_IMPLEMENTATION ) {
+            if( changedHorz || changedVert ) {
+                System.err.println("Window.maximizedChanged: "+stateMask0+" -> "+getStateMaskString());
+            }
+        }
+    }
+    /**
+     * Manually calculate maximized and de-maximized position and size
+     * not regarding a fixed taskbar etc.
+     * <p>
+     * Use only if:
+     * <code>
+     *   0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & flags )
+     * </code>
+     * </p>
+     * @param flags
+     * @param posSize
+     */
+    protected void reconfigMaximizedManual(final int flags, final int posSize[], final InsetsImmutable insets) {
+        //if( 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & flags ) ) {
+            final MonitorMode mm = getMainMonitor().getCurrentMode();
+            // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+            final int mmWidth =  SurfaceScaleUtils.scaleInv(mm.getRotatedWidth(), getPixelScaleX());
+            final int mmHeight =  SurfaceScaleUtils.scaleInv(mm.getRotatedHeight(), getPixelScaleY());
+
+            if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & flags ) ) {
+                if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & flags ) ) {
+                    // max-h on
+                    normPosSizeStored[0] = true;
+                    normPosSize[0] = posSize[0];
+                    normPosSize[2] = posSize[2];
+                    posSize[0] = insets.getLeftWidth();
+                    posSize[2] = mmWidth - insets.getTotalWidth();
+                } else {
+                    // max-h off
+                    normPosSizeStored[0] = false;
+                    posSize[0] = normPosSize[0];
+                    posSize[2] = normPosSize[2];
+                }
+            }
+            if( 0 != ( CHANGE_MASK_MAXIMIZED_VERT & flags ) ) {
+                if( 0 != ( STATE_MASK_MAXIMIZED_VERT & flags ) ) {
+                    // max-v on
+                    normPosSizeStored[1] = true;
+                    normPosSize[1] = posSize[1];
+                    normPosSize[3] = posSize[3];
+                    posSize[1] = insets.getTopHeight();
+                    posSize[3] = mmHeight - insets.getTotalHeight();
+                } else {
+                    // max-v off
+                    normPosSizeStored[1] = false;
+                    posSize[1] = normPosSize[1];
+                    posSize[3] = normPosSize[3];
+                }
+            }
+        //}
+    }
+    protected void resetMaximizedManual(final int posSize[]) {
+        if( normPosSizeStored[0] ) {
+            // max-h off
+            normPosSizeStored[0] = false;
+            posSize[0] = normPosSize[0];
+            posSize[2] = normPosSize[2];
+        }
+        if( normPosSizeStored[1] ) {
+            // max-v off
+            normPosSizeStored[1] = false;
+            posSize[1] = normPosSize[1];
+            posSize[3] = normPosSize[3];
+        }
+    }
+    private final int[] normPosSize = { 0, 0, 0, 0 };
+    private final boolean[] normPosSizeStored = { false, false };
 
     @Override
     public final String getTitle() {
@@ -2630,7 +2713,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void setTopLevelPosition(final int x, final int y) {
-        setPosition(x + getInsets().getLeftWidth(), y + getInsets().getTopHeight());
+        final InsetsImmutable insets = getInsets();
+        setPosition(x + insets.getLeftWidth(), y + insets.getTopHeight());
     }
 
     private class FullScreenAction implements Runnable {
@@ -3096,6 +3180,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                final int x, final int y, final short button, final float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
+
     public final void enqueueMouseEvent(final boolean wait, final short eventType, final int modifiers,
                                         final int x, final int y, final short button, final float rotation) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
@@ -4111,20 +4196,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    /** Triggered by implementation's WM events to update the position. */
-    protected final void minMaxSizeChanged(final int min_width, final int min_height, final int max_width, final int max_height) {
-        if( 0 <= min_width && 0 <= min_height && 0 <= max_width && 0 <= max_height) {
-            final RectangleImmutable sz = new Rectangle(min_width, min_height, max_width, max_height);
-            if( !minmax_size.equals(sz) ) {
-                stateMask.put(PSTATE_BIT_MINMAXSIZE_SET, !sz.equals(undefSize));
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.minMaxSizeChanged: ("+getThreadName()+"): Current "+minmax_size+" -> "+sz);
-                }
-                minmax_size.set(sz);
-            }
-        }
-    }
-
     /** Triggered by implementation's WM events to update the focus state. */
     protected void focusChanged(final boolean defer, final boolean focusGained) {
         if( stateMask.get(PSTATE_BIT_FOCUS_CHANGE_BROKEN) ||
@@ -4405,6 +4476,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                                 new Rectangle(x, y, width, height));
             doEvent(defer, false, e);
         }
+    }
+
+    //
+    // Accumulated actions
+    //
+
+    /** Triggered by implementation's WM events to update the client-area position, size and maximized flags. */
+    protected void sizePosMaxInsetsChanged(final boolean defer,
+                                     final int newX, final int newY,
+                                     final int newWidth, final int newHeight,
+                                     final boolean newMaxHorz, final boolean newMaxVert,
+                                     final int left, final int right, final int top, final int bottom,
+                                     final boolean force) {
+        sizeChanged(defer, newWidth, newHeight, force);
+        positionChanged(defer, newX, newY);
+        maximizedChanged(newMaxHorz, newMaxVert);
+        insetsChanged(defer, left, right, top, bottom);
+    }
+    /** Triggered by implementation. */
+    protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,
+                               final int x, final int y, final short button, final float rotation) {
+        sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+        requestFocus(false /* wait */);
     }
 
     //

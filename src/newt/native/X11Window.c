@@ -178,27 +178,52 @@ static uint32_t NewtWindows_getSupportedFeatureEWMH(Display *dpy, const Atom * a
     return 0;
 }
 static uint32_t NewtWindows_getSupportedFeaturesEWMH(Display *dpy, Window root, Atom * allAtoms, Bool verbose) {
-    Atom * actions = NULL;
+    Atom * properties = NULL;
     Atom type = 0;
-    unsigned long action_len = 0, remain = 0;
+    unsigned long props_count = 0, remain = 0;
     int form = 0, i = 0;
     uint32_t res = 0;
     Status s;
 
     XSync(dpy, False);
     if ( Success == (s = XGetWindowProperty(dpy, root, allAtoms[_NET_SUPPORTED_IDX], 0, 1024, False, AnyPropertyType,
-                                            &type, &form, &action_len, &remain, (unsigned char**)&actions)) ) {
-        if( NULL != actions ) {
-            for(i=0; i<action_len; i++) {
-                res |= NewtWindows_getSupportedFeatureEWMH(dpy, allAtoms, actions[i], i, verbose);
+                                            &type, &form, &props_count, &remain, (unsigned char**)&properties)) ) {
+        if( NULL != properties ) {
+            for(i=0; i<props_count; i++) {
+                res |= NewtWindows_getSupportedFeatureEWMH(dpy, allAtoms, properties[i], i, verbose);
             }
-            XFree(actions);
+            XFree(properties);
         }
         if(verbose) {
             fprintf(stderr, "**************** X11: Feature EWMH CHECK: 0x%X\n", res);
         }
     } else if(verbose) {
         fprintf(stderr, "**************** X11: Feature EWMH CHECK: XGetWindowProperty failed: %d\n", s);
+    }
+    return res;
+}
+static uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, Window window, Atom * allAtoms, Bool verbose) {
+    Atom * properties = NULL;
+    Atom type = 0;
+    unsigned long props_count = 0, remain = 0;
+    int form = 0, i = 0;
+    uint32_t res = 0;
+    Status s;
+
+    XSync(dpy, False);
+    if ( Success == (s = XGetWindowProperty(dpy, window, allAtoms[_NET_WM_STATE_IDX], 0, 1024, False, AnyPropertyType,
+                                            &type, &form, &props_count, &remain, (unsigned char**)&properties)) ) {
+        if( NULL != properties ) {
+            for(i=0; i<props_count; i++) {
+                res |= NewtWindows_getSupportedFeatureEWMH(dpy, allAtoms, properties[i], i, verbose);
+            }
+            XFree(properties);
+        }
+        if(verbose) {
+            fprintf(stderr, "**************** X11: WM_STATE of %p: 0x%X\n", (void*)window, res);
+        }
+    } else if(verbose) {
+        fprintf(stderr, "**************** X11: WM_STATE of %p: XGetWindowProperty failed: %d\n", (void*)window, s);
     }
     return res;
 }
@@ -222,6 +247,8 @@ static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window ro
         res->windowDeleteAtom = (Atom)windowDeleteAtom;
         res->supportedAtoms = NewtWindows_getSupportedFeaturesEWMH(dpy, root, allAtoms, verbose);
         res->lastDesktop = 0; //undef
+        res->maxHorz = False;
+        res->maxVert = False;
     }
     unsigned long jogl_java_object_data[2]; // X11 is based on 'unsigned long'
     int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) res);
@@ -465,12 +492,10 @@ static void NewtWindows_requestFocus (Display *dpy, JavaWindow * jw, Bool force)
     XSync(dpy, False);
 }
 
-Status NewtWindows_updateInsets(JNIEnv *env, Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom) {
+Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom) {
     if(0 != NewtWindows_getFrameExtends(dpy, w, left, right, top, bottom)) {
-        DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n",
-            *left, *right, *top, *bottom);
-        (*env)->CallVoidMethod(env, w->jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
-        return 1; // OK
+        DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n", *left, *right, *top, *bottom);
+        return True; // OK
     }
 
     Bool hasDecor = NewtWindows_hasDecorations (dpy, w);
@@ -480,43 +505,30 @@ Status NewtWindows_updateInsets(JNIEnv *env, Display *dpy, JavaWindow * w, int *
         Window parent = NewtWindows_getParent(dpy, w->window);
         if(0 != NewtWindows_getWindowPositionRelative2Parent (dpy, parent, left, top)) {
             *right = *left; *bottom = *top;
-            DBG_PRINT( "NewtWindows_updateInsets: insets by parent position [ l %d, r %d, t %d, b %d ]\n",
-                *left, *right, *top, *bottom);
-            (*env)->CallVoidMethod(env, w->jwindow, insetsChangedID, JNI_FALSE, *left, *right, *top, *bottom);
-            return 1; // OK
+            DBG_PRINT( "NewtWindows_updateInsets: insets by parent position [ l %d, r %d, t %d, b %d ]\n", *left, *right, *top, *bottom);
+            return True; // OK
         }
     }
     DBG_PRINT( "NewtWindows_updateInsets: cannot determine insets - hasDecor %d\n", hasDecor);
-    return 0; // Error
+    return False; // Error
 }
 
-void NewtWindows_updateMinMaxSize(JNIEnv *env, Display *dpy, JavaWindow * w) {
-    XSizeHints * xsh = XAllocSizeHints();
-    long xsh_bits = 0;
-    int min_width=-1, min_height=-1;
-    int max_width=-1, max_height=-1;
-    if( NULL != xsh ) {
-        xsh->flags = 0;
-        xsh->min_width=0;
-        xsh->min_height=0;
-        xsh->max_width=0;
-        xsh->max_height=0;
-        if( 0 != XGetWMNormalHints(dpy, w->window, xsh, &xsh_bits) ) {
-            // OK
-            if( 0 != ( xsh_bits & PMinSize ) ) {
-                min_width  = xsh->min_width;
-                min_height = xsh->min_height;
-            }
-            if( 0 != ( xsh_bits & PMaxSize ) ) {
-                max_width  = xsh->max_width;
-                max_height = xsh->max_height;
-            }
-            DBG_PRINT( "NewtWindows_updateMinMaxSize: XGetWMNormalHints 0x%X / 0x%X for window %p on display %p\n", xsh_bits, xsh->flags, (void*)w->window, dpy);
-            (*env)->CallVoidMethod(env, w->jwindow, minMaxSizeChangedID, min_width, min_height, max_width, max_height);
-        } else {
-            DBG_PRINT( "NewtWindows_updateMinMaxSize: XGetWMNormalHints failed (0x%X / 0x%X) for window %p on display %p\n", xsh_bits, xsh->flags, (void*)w->window, dpy);
-        }
-        XFree(xsh);
+Bool NewtWindows_updateMaximized(Display *dpy, JavaWindow * w) {
+    uint32_t state = NewtWindows_getNET_WM_STATE(dpy, w->window, w->allAtoms, 
+#ifdef VERBOSE_ON
+                        True
+#else
+                        False
+#endif
+                     );
+    Bool maxHorz = 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_HORZ & state ) ;
+    Bool maxVert = 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_VERT & state ) ;
+    if( w->maxHorz != maxHorz || w->maxVert != maxVert ) {
+        w->maxHorz = maxHorz;
+        w->maxVert = maxVert;
+        return True;
+    } else {
+        return False;
     }
 }
 
@@ -671,9 +683,15 @@ static void NewtWindows_setStackingEWMHFlags (Display *dpy, Window root, JavaWin
             XChangeProperty( dpy, w->window, w->allAtoms[_NET_WM_BYPASS_COMPOSITOR_IDX], XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&value, 1); 
         }
     } else if( changeMaxVert || changeMaxHorz ) {
+        if( changeMaxHorz ) {
+            w->maxHorz = enable;
+        }
+        if( changeMaxVert ) {
+            w->maxVert = enable;
+        }
         NewtWindows_sendNET_WM_STATE(dpy, root, w,
-                                     changeMaxVert ? _NET_WM_STATE_MAXIMIZED_VERT_IDX : 0, 
                                      changeMaxHorz ? _NET_WM_STATE_MAXIMIZED_HORZ_IDX : 0, 
+                                     changeMaxVert ? _NET_WM_STATE_MAXIMIZED_VERT_IDX : 0, 
                                      enable);
     }
     XSync(dpy, False);
@@ -916,7 +934,9 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
         }
 
         // send insets before visibility, allowing java code a proper sync point!
-        NewtWindows_updateInsets(env, dpy, javaWindow, &left, &right, &top, &bottom);
+        if( NewtWindows_updateInsets(dpy, javaWindow, &left, &right, &top, &bottom) ) {
+            (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsChangedID, JNI_FALSE, left, right, top, bottom);
+        }
         (*env)->CallVoidMethod(env, javaWindow->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
         if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
