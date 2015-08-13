@@ -47,6 +47,7 @@ import java.util.Set;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GL3ES3;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLContext;
@@ -138,6 +139,7 @@ public class ShaderCode {
             case GL3.GL_GEOMETRY_SHADER:
             case GL3.GL_TESS_CONTROL_SHADER:
             case GL3.GL_TESS_EVALUATION_SHADER:
+            case GL3ES3.GL_COMPUTE_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -168,6 +170,7 @@ public class ShaderCode {
             case GL3.GL_GEOMETRY_SHADER:
             case GL3.GL_TESS_CONTROL_SHADER:
             case GL3.GL_TESS_EVALUATION_SHADER:
+            case GL3ES3.GL_COMPUTE_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -767,6 +770,8 @@ public class ShaderCode {
                 return "TESS_CONTROL_SHADER";
             case GL3.GL_TESS_EVALUATION_SHADER:
                 return "TESS_EVALUATION_SHADER";
+            case GL3ES3.GL_COMPUTE_SHADER:
+            	return "COMPUTE_SHADER";
         }
         return "UNKNOWN_SHADER";
     }
@@ -1284,6 +1289,8 @@ public class ShaderCode {
                     defaultPrecision = es3_default_precision_vp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
                     defaultPrecision = es3_default_precision_fp; break;
+                case GL3ES3.GL_COMPUTE_SHADER:
+                	defaultPrecision = es3_default_precision_fp; break;
                 default:
                     defaultPrecision = null;
                     break;
@@ -1308,6 +1315,8 @@ public class ShaderCode {
                     defaultPrecision = gl3_default_precision_vp_gp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
                     defaultPrecision = gl3_default_precision_fp; break;
+                case GL3ES3.GL_COMPUTE_SHADER:
+                	defaultPrecision = gl3_default_precision_fp; break;
                 default:
                     defaultPrecision = null;
                     break;
