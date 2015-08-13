@@ -222,7 +222,7 @@ static jint X11InputState2NewtModifiers(unsigned int xstate, jshort javaVKey, jb
 
 /*
  * Class:     jogamp_newt_driver_x11_DisplayDriver
- * Method:    initIDs
+ * Method:    initIDs0
  * Signature: (Z)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
@@ -287,7 +287,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
 
 /*
  * Class:     jogamp_newt_driver_x11_DisplayDriver
- * Method:    CompleteDisplay
+ * Method:    CompleteDisplay0
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay0
@@ -355,8 +355,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
 
 /*
  * Class:     jogamp_newt_driver_x11_DisplayDriver
- * Method:    DispatchMessages
- * Signature: (JJJ)V
+ * Method:    DispatchMessages0
+ * Signature: (JJJII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom /*, jlong kbdHandle*/,
@@ -694,7 +694,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
 /*
  * Class:     Java_jogamp_newt_driver_x11_DisplayDriver
  * Method:    createPointerIcon0
- * Signature: (JJILjava/lang/Object;I)V
+ * Signature: (JJIZIIII)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_createPointerIcon0
   (JNIEnv *env, jclass clazz, jlong display, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height, jint hotX, jint hotY)
@@ -732,7 +732,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_createPointerI
 /*
  * Class:     Java_jogamp_newt_driver_x11_DisplayDriver
  * Method:    destroyPointerIcon0
- * Signature: (JJILjava/lang/Object;I)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_destroyPointerIcon0
   (JNIEnv *env, jclass clazz, jlong display, jlong handle)
