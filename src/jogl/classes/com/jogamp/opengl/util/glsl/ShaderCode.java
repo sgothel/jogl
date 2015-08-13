@@ -122,7 +122,7 @@ public class ShaderCode {
 
     /**
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param source CharSequence array containing the shader sources, organized as <code>source[count][strings-per-shader]</code>.
      *               May be either an immutable <code>String</code> - or mutable <code>StringBuilder</code> array.
@@ -159,7 +159,7 @@ public class ShaderCode {
 
     /**
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param binary binary buffer containing the shader binaries,
      */
@@ -189,7 +189,7 @@ public class ShaderCode {
      *
      * @param gl current GL object to determine whether a shader compiler is available. If null, no validation is performed.
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source location
      * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code> -> <code>shaderSources[count][1]</code>
@@ -236,7 +236,7 @@ public class ShaderCode {
      *
      * @param gl current GL object to determine whether a shader compiler is available. If null, no validation is performed.
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param sourceLocations array of {@link Uri} source locations, organized as <code>sourceFiles[count]</code> -> <code>shaderSources[count][1]</code>
      * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
@@ -282,7 +282,7 @@ public class ShaderCode {
      * which location is resolved using the <code>context</code> class, see {@link #readShaderBinary(Class, String)}.
      *
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source location
      * @param binFormat a valid native binary format as they can be queried by {@link ShaderUtil#getShaderBinaryFormats(GL)}.
@@ -313,7 +313,7 @@ public class ShaderCode {
      * Creates a complete {@link ShaderCode} object while reading the shader binary from {@link Uri} <code>binLocations</code>
      * via {@link #readShaderBinary(Uri)}.
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param binFormat a valid native binary format as they can be queried by {@link ShaderUtil#getShaderBinaryFormats(GL)}.
      * @param binLocations {@link Uri} binary location
@@ -360,7 +360,7 @@ public class ShaderCode {
      * </ul>
      * @param binary true for a binary resource, false for a source resource
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      *
      * @throws GLException if <code>type</code> is not supported
      *
@@ -378,6 +378,8 @@ public class ShaderCode {
                 return binary?SUFFIX_TESS_CONTROL_BINARY:SUFFIX_TESS_CONTROL_SOURCE;
             case GL3.GL_TESS_EVALUATION_SHADER:
                 return binary?SUFFIX_TESS_EVALUATION_BINARY:SUFFIX_TESS_EVALUATION_SOURCE;
+            //case GL3ES3.GL_COMPUTE_SHADER:
+            	//FIXME
             default:
                 throw new GLException("illegal shader type: "+type);
         }
@@ -460,7 +462,7 @@ public class ShaderCode {
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code> optional
@@ -594,7 +596,7 @@ public class ShaderCode {
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param count number of shaders
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code> optional
@@ -662,7 +664,7 @@ public class ShaderCode {
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
      * @param binRoot relative <i>root</i> path for <code>basename</code>
@@ -729,7 +731,7 @@ public class ShaderCode {
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
-     *                    {@link GL4#GL_TESS_CONTROL_SHADER} or {@link GL4#GL_TESS_EVALUATION_SHADER}.
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
      * @param binRoot relative <i>root</i> path for <code>basename</code>
