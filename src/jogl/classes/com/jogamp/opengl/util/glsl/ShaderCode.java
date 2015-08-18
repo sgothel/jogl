@@ -88,6 +88,18 @@ public class ShaderCode {
     public static final String SUFFIX_GEOMETRY_BINARY = "bgp" ;
 
     /**
+     * Unique resource suffix for {@link GL3ES3#GL_COMPUTE_SHADER} in source code: <code>{@value}</code>
+     * @since 2.3.2
+     */
+    public static final String SUFFIX_COMPUTE_SOURCE =  "cp" ;
+
+    /**
+     * Unique resource suffix for {@link GL3ES3#GL_COMPUTE_SHADER} in binary: <code>{@value}</code>
+     * @since 2.3.2
+     */
+    public static final String SUFFIX_COMPUTE_BINARY = "bcp" ;
+
+    /**
      * Unique resource suffix for {@link GL4#GL_TESS_CONTROL_SHADER} in source code: <code>{@value}</code>
      * @since 2.2.1
      */
@@ -349,6 +361,7 @@ public class ShaderCode {
      *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_SOURCE}</li>
      *     <li>{@link GL4#GL_TESS_CONTROL_SHADER tess-ctrl}: {@link #SUFFIX_TESS_CONTROL_SOURCE}</li>
      *     <li>{@link GL4#GL_TESS_EVALUATION_SHADER tess-eval}: {@link #SUFFIX_TESS_EVALUATION_SOURCE}</li>
+     *     <li>{@link GL3ES3#GL_COMPUTE_SHADER}: {@link #SUFFIX_COMPUTE_SOURCE}</li>
      *     </ul></li>
      *   <li>Binary<ul>
      *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_BINARY}</li>
@@ -356,6 +369,7 @@ public class ShaderCode {
      *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_BINARY}</li>
      *     <li>{@link GL4#GL_TESS_CONTROL_SHADER tess-ctrl}: {@link #SUFFIX_TESS_CONTROL_BINARY}</li>
      *     <li>{@link GL4#GL_TESS_EVALUATION_SHADER tess-eval}: {@link #SUFFIX_TESS_EVALUATION_BINARY}</li>
+     *     <li>{@link GL3ES3#GL_COMPUTE_SHADER}: {@link #SUFFIX_COMPUTE_BINARY}</li>
      *     </ul></li>
      * </ul>
      * @param binary true for a binary resource, false for a source resource
@@ -378,8 +392,8 @@ public class ShaderCode {
                 return binary?SUFFIX_TESS_CONTROL_BINARY:SUFFIX_TESS_CONTROL_SOURCE;
             case GL3.GL_TESS_EVALUATION_SHADER:
                 return binary?SUFFIX_TESS_EVALUATION_BINARY:SUFFIX_TESS_EVALUATION_SOURCE;
-            //case GL3ES3.GL_COMPUTE_SHADER:
-            	//FIXME
+            case GL3ES3.GL_COMPUTE_SHADER:
+                return binary?SUFFIX_COMPUTE_BINARY:SUFFIX_COMPUTE_SOURCE;
             default:
                 throw new GLException("illegal shader type: "+type);
         }
@@ -735,7 +749,12 @@ public class ShaderCode {
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
      * @param binRoot relative <i>root</i> path for <code>basename</code>
-     * @param mutableStringBuilder TODO
+     * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
+     *                        which can be edited later on at the costs of a String conversion when passing to
+     *                        {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}.
+     *                        If <code>false</code> method returns an immutable <code>String</code> instance,
+     *                        which can be passed to {@link GL2ES2#glShaderSource(int, int, String[], IntBuffer)}
+     *                        at no additional costs.
      * @param basenames basename w/o path or suffix relative to <code>srcRoot</code> and <code>binRoot</code>
      *                  for the shader's source and binary code.
      * @param mutableStringBuilder if <code>true</code> method returns a mutable <code>StringBuilder</code> instance
