@@ -134,44 +134,64 @@ import com.jogamp.opengl.util.texture.spi.TextureWriter;
 
 public class TextureIO {
     /** Constant which can be used as a file suffix to indicate a
-        DirectDraw Surface file. */
-    public static final String DDS     = "dds";
+        DirectDraw Surface file.
+        @deprecated Use {@link ImageIOUtil#T_DDS}.
+     */
+    public static final String DDS     = ImageIOUtil.T_DDS;
 
     /** Constant which can be used as a file suffix to indicate an SGI
-        RGB file. */
-    public static final String SGI     = "sgi";
+        RGB file.
+        @deprecated Use {@link ImageIOUtil#T_SGI}.
+     */
+    public static final String SGI     = ImageIOUtil.T_SGI;
 
     /** Constant which can be used as a file suffix to indicate an SGI
-        RGB file. */
-    public static final String SGI_RGB = "rgb";
+        RGB file.
+        @deprecated Use {@link ImageIOUtil#T_SGI_RGB}.
+     */
+    public static final String SGI_RGB = ImageIOUtil.T_SGI_RGB;
 
     /** Constant which can be used as a file suffix to indicate a GIF
-        file. */
-    public static final String GIF     = "gif";
+        file.
+        @deprecated Use {@link ImageIOUtil#T_GIF}.
+     */
+    public static final String GIF     = ImageIOUtil.T_GIF;
 
     /** Constant which can be used as a file suffix to indicate a JPEG
-        file. */
-    public static final String JPG     = "jpg";
+        file.
+        @deprecated Use {@link ImageIOUtil#T_JPG}.
+     */
+    public static final String JPG     = ImageIOUtil.T_JPG;
 
     /** Constant which can be used as a file suffix to indicate a PNG
-        file. */
-    public static final String PNG     = "png";
+        file.
+        @deprecated Use {@link ImageIOUtil#T_PNG}.
+     */
+    public static final String PNG     = ImageIOUtil.T_PNG;
 
     /** Constant which can be used as a file suffix to indicate a Targa
-        file. */
-    public static final String TGA     = "tga";
+        file.
+        @deprecated Use {@link ImageIOUtil#T_TGA}.
+     */
+    public static final String TGA     = ImageIOUtil.T_TGA;
 
     /** Constant which can be used as a file suffix to indicate a TIFF
-        file. */
-    public static final String TIFF    = "tiff";
+        file.
+        @deprecated Use {@link ImageIOUtil#T_TIFF}.
+     */
+    public static final String TIFF    = ImageIOUtil.T_TIFF;
 
     /** Constant which can be used as a file suffix to indicate a PAM
-        file, NetPbm magic 7 - binary RGB and RGBA. Write support only. */
-    public static final String PAM     = "pam";
+        file, NetPbm magic 7 - binary RGB and RGBA. Write support only.
+        @deprecated Use {@link ImageIOUtil#T_PAM}.
+     */
+    public static final String PAM     = ImageIOUtil.T_PAM;
 
     /** Constant which can be used as a file suffix to indicate a PAM
-        file, NetPbm magic 6 - binary RGB. Write support only. */
-    public static final String PPM     = "ppm";
+        file, NetPbm magic 6 - binary RGB. Write support only.
+        @deprecated Use {@link ImageIOUtil#T_PPM}.
+     */
+    public static final String PPM     = ImageIOUtil.T_PPM;
 
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
