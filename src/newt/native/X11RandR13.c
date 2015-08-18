@@ -39,6 +39,14 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_RandR13_getScreenResources0
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)screen_idx);
 
+    /* Bug 1183
+     * XRRGetScreenResourcesCurrent (or XRRGetScreenResources)
+     * _occasionally_ reports empty data
+     * unless XRRGetScreenSizeRange has been called once.
+     */
+    int minWidth, minHeight, maxWidth, maxHeight;
+    XRRGetScreenSizeRange ( dpy, root, &minWidth, &minHeight, &maxWidth, &maxHeight);
+
     XRRScreenResources *res = XRRGetScreenResourcesCurrent( dpy, root); // 1.3
     // XRRScreenResources *res = XRRGetScreenResources( dpy, root); // 1.2
 
