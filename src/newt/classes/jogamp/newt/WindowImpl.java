@@ -188,6 +188,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Number of all public state bits, {@value}.
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     protected static final int STATE_BIT_COUNT_ALL_PUBLIC = 15;
     /** Bitmask for {@link #STATE_BIT_COUNT_ALL_PUBLIC} */
@@ -200,6 +201,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     /* pp */ static final int STATE_BIT_FULLSCREEN_SPAN = 12;
     /* pp */ static final int PSTATE_BIT_MINMAXSIZE_SET = 27;
@@ -224,6 +226,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      *   <li>{@link #STATE_MASK_POINTERCONFINED}</li>
      * </ul>
      * Above taken out states are achieved from caller createNative() 'manually'.
+     * @since 2.3.2
      */
     protected final int STATE_MASK_CREATENATIVE = STATE_MASK_UNDECORATED |
                                                   STATE_MASK_ALWAYSONTOP |

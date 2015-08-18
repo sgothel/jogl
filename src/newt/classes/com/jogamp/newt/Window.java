@@ -125,6 +125,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_VISIBLE = 0; // reconfig-flag
     /**
@@ -134,6 +135,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code true}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_AUTOPOSITION = 1;
     /**
@@ -145,6 +147,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_CHILDWIN = 2;       // reconfig-flag
     /**
@@ -152,6 +155,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_FOCUSED = 3;
     /**
@@ -159,6 +163,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_UNDECORATED = 4;    // reconfig-flag
     /**
@@ -166,6 +171,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_ALWAYSONTOP = 5;    // reconfig-flag
     /**
@@ -173,6 +179,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_ALWAYSONBOTTOM = 6; // reconfig-flag
     /**
@@ -180,6 +187,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_STICKY = 7;    // reconfig-flag
     /**
@@ -187,6 +195,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code true}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_RESIZABLE = 8; // reconfig-flag
     /**
@@ -194,6 +203,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_MAXIMIZED_VERT = 9; // reconfig-flag
     /**
@@ -201,6 +211,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_MAXIMIZED_HORZ = 10; // reconfig-flag
     /**
@@ -208,6 +219,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_FULLSCREEN = 11;    // reconfig-flag
 
@@ -219,6 +231,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code true}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_POINTERVISIBLE = 13;
     /**
@@ -226,47 +239,92 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Bit number {@value}.</p>
      * <p>Defaults to {@code false}.</p>
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public static final int STATE_BIT_POINTERCONFINED = 14;
 
-    /** Bitmask for {@link #STATE_BIT_VISIBLE}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_VISIBLE}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_VISIBLE = 1 << STATE_BIT_VISIBLE;
-    /** Bitmask for {@link #STATE_BIT_AUTOPOSITION}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_AUTOPOSITION}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_AUTOPOSITION = 1 << STATE_BIT_AUTOPOSITION;
-    /** Bitmask for {@link #STATE_BIT_CHILDWIN}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_CHILDWIN}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_CHILDWIN = 1 << STATE_BIT_CHILDWIN;
-    /** Bitmask for {@link #STATE_BIT_FOCUSED}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_FOCUSED}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_FOCUSED = 1 << STATE_BIT_FOCUSED;
-    /** Bitmask for {@link #STATE_BIT_UNDECORATED}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_UNDECORATED}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_UNDECORATED = 1 << STATE_BIT_UNDECORATED;
-    /** Bitmask for {@link #STATE_BIT_ALWAYSONTOP}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_ALWAYSONTOP}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_ALWAYSONTOP = 1 << STATE_BIT_ALWAYSONTOP;
-    /** Bitmask for {@link #STATE_BIT_ALWAYSONBOTTOM}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_ALWAYSONBOTTOM}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_ALWAYSONBOTTOM = 1 << STATE_BIT_ALWAYSONBOTTOM;
-    /** Bitmask for {@link #STATE_BIT_STICKY}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_STICKY}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_STICKY = 1 << STATE_BIT_STICKY;
-    /** Bitmask for {@link #STATE_BIT_RESIZABLE}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_RESIZABLE}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_RESIZABLE = 1 << STATE_BIT_RESIZABLE;
-    /** Bitmask for {@link #STATE_BIT_MAXIMIZED_VERT}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_MAXIMIZED_VERT}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_MAXIMIZED_VERT = 1 << STATE_BIT_MAXIMIZED_VERT;
-    /** Bitmask for {@link #STATE_BIT_MAXIMIZED_HORZ}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_MAXIMIZED_HORZ}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_MAXIMIZED_HORZ = 1 << STATE_BIT_MAXIMIZED_HORZ;
-    /** Bitmask for {@link #STATE_BIT_FULLSCREEN}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_FULLSCREEN}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_FULLSCREEN = 1 << STATE_BIT_FULLSCREEN;
-    /** Bitmask for {@link #STATE_BIT_POINTERVISIBLE}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_POINTERVISIBLE}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_POINTERVISIBLE = 1 << STATE_BIT_POINTERVISIBLE;
-    /** Bitmask for {@link #STATE_BIT_POINTERCONFINED}, {@value}. */
+    /**
+     * Bitmask for {@link #STATE_BIT_POINTERCONFINED}, {@value}.
+     * @since 2.3.2
+     */
     public static final int STATE_MASK_POINTERCONFINED = 1 << STATE_BIT_POINTERCONFINED;
 
     /**
      * Number of all public state bits.
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public int getStatePublicBitCount();
 
     /**
      * Bitmask covering all public state bits.
      * @see #getStateMask()
+     * @since 2.3.2
      */
     public int getStatePublicBitmask();
 
@@ -286,11 +344,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @see #STATE_MASK_FULLSCREEN
      * @see #STATE_MASK_POINTERVISIBLE
      * @see #STATE_MASK_POINTERCONFINED
+     * @since 2.3.2
      */
     int getStateMask();
 
     /**
      * Returns a string representation of the {@link #getStateMask() current state mask}.
+     * @since 2.3.2
      */
     String getStateMaskString();
 
@@ -598,11 +658,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
      * @see {@link #STATE_BIT_ALWAYSONBOTTOM}
      * @see {@link #STATE_MASK_ALWAYSONBOTTOM}
+     * @since 2.3.2
      */
     void setAlwaysOnBottom(boolean value);
     /**
      * @see {@link #STATE_BIT_ALWAYSONBOTTOM}
      * @see {@link #STATE_MASK_ALWAYSONBOTTOM}
+     * @since 2.3.2
      */
     boolean isAlwaysOnBottom();
 
@@ -610,11 +672,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
      * @see {@link #STATE_BIT_RESIZABLE}
      * @see {@link #STATE_MASK_RESIZABLE}
+     * @since 2.3.2
      */
     void setResizable(final boolean value);
     /**
      * @see {@link #STATE_BIT_RESIZABLE}
      * @see {@link #STATE_MASK_RESIZABLE}
+     * @since 2.3.2
      */
     boolean isResizable();
 
@@ -622,11 +686,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>Operation is ignored if this instance {@link #isChildWindow() is a child window}.</p>
      * @see {@link #STATE_BIT_STICKY}
      * @see {@link #STATE_MASK_STICKY}
+     * @since 2.3.2
      */
     void setSticky(final boolean value);
     /**
      * @see {@link #STATE_BIT_STICKY}
      * @see {@link #STATE_MASK_STICKY}
+     * @since 2.3.2
      */
     boolean isSticky();
 
@@ -637,16 +703,19 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @see {@link #STATE_BIT_MAXIMIZED_VERT}
      * @see {@link #STATE_MASK_MAXIMIZED_HORZ}
      * @see {@link #STATE_MASK_MAXIMIZED_VERT}
+     * @since 2.3.2
      */
     void setMaximized(final boolean horz, final boolean vert);
     /**
      * @see {@link #STATE_BIT_MAXIMIZED_VERT}
      * @see {@link #STATE_MASK_MAXIMIZED_VERT}
+     * @since 2.3.2
      */
     boolean isMaximizedVert();
     /**
      * @see {@link #STATE_BIT_MAXIMIZED_HORZ}
      * @see {@link #STATE_MASK_MAXIMIZED_HORZ}
+     * @since 2.3.2
      */
     boolean isMaximizedHorz();
 
