@@ -277,7 +277,7 @@ public class ImageType {
     public static final String T_92I     = "92i";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate an Amiga metafile stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -422,7 +422,7 @@ public class ImageType {
     public static final String T_DRW     = "drw";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Autocad drawing stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -444,7 +444,7 @@ public class ImageType {
     public static final String T_ECW     = "ecw";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Microsoft Windows Enhanced metafile stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -653,7 +653,7 @@ public class ImageType {
     public static final String T_MGL     = "mgl";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate an Imagemagick stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -963,7 +963,7 @@ public class ImageType {
     public static final String T_WMF     = "wmf";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Wordperfect Graphics vectors stream, value {@value}.
      * <p>
      * TODO
      * </p>
