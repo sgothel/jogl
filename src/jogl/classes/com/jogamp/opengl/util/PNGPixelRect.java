@@ -78,7 +78,8 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
     public static PNGPixelRect read(final InputStream in,
                                     final PixelFormat ddestFmt, final boolean destDirectBuffer, final int destMinStrideInBytes,
                                     final boolean destIsGLOriented) throws IOException {
-        final PngReader pngr = new PngReader(new BufferedInputStream(in), null);
+        final BufferedInputStream bin = (in instanceof BufferedInputStream) ? (BufferedInputStream)in : new BufferedInputStream(in);
+        final PngReader pngr = new PngReader(bin, null);
         final ImageInfo imgInfo = pngr.imgInfo;
         final PngChunkPLTE plte = pngr.getMetadata().getPLTE();
         final PngChunkTRNS trns = pngr.getMetadata().getTRNS();
