@@ -83,6 +83,9 @@ public class TextureData {
     protected GLProfile glProfile;
     protected ColorSpace pixelCS = ColorSpace.RGB;
 
+    // TODO: final, and set via ctor for 2.4.X
+    /* pp */ ImageType srcImageType;
+
     /**
      * Constructs a new TextureData object with the specified parameters
      * and data contained in the given Buffer. The optional Flusher can
@@ -341,6 +344,14 @@ public class TextureData {
     /** Used only by subclasses */
     protected TextureData(final GLProfile glp) { this.glProfile = glp; this.pixelAttributes = GLPixelAttributes.UNDEF; }
 
+    /**
+     * Returns the source {@link ImageType} if applicable and known, otherwise {@code null}.
+     * @since 2.3.2
+     */
+    public final ImageType getSourceImageType() {
+        return srcImageType;
+    }
+
     /** Returns the width in pixels of the texture data. */
     public int getWidth() { return width; }
     /** Returns the height in pixels of the texture data. */
@@ -501,8 +512,9 @@ public class TextureData {
 
     @Override
     public String toString() {
+        final String optImageType = null != srcImageType ? ", "+srcImageType : "";
         return "TextureData["+width+"x"+height+", y-flip "+mustFlipVertically+", internFormat 0x"+Integer.toHexString(internalFormat)+", "+
-                pixelAttributes+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength;
+                pixelAttributes+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength+optImageType;
     }
 
     //----------------------------------------------------------------------

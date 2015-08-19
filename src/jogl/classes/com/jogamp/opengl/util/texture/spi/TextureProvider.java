@@ -54,6 +54,18 @@ import com.jogamp.opengl.util.texture.*;
 public interface TextureProvider {
 
     /**
+     * Optional additional interface for {@link TextureProvider} implementation
+     * exposing the supported {@link ImageType}s.
+     * <p>
+     * Use case: Mapping of {@link ImageType}s to {@link TextureProvider}.
+     * </p>
+     */
+    public static interface SupportsImageTypes {
+        /** Returns the supported {@link ImageType}s. */
+        ImageType[] getImageTypes();
+    }
+
+    /**
      * Produces a TextureData object from a file, or returns null if the
      * file format was not supported by this TextureProvider. Does not
      * do any OpenGL-related work. The resulting TextureData can be
@@ -85,6 +97,7 @@ public interface TextureProvider {
      *                       file's contents
      *
      * @throws IOException if an error occurred while reading the file
+     * @deprecated Use {@link #newTextureData(GLProfile, InputStream, int, int, boolean, String)
      */
     public TextureData newTextureData(GLProfile glp, File file,
                                       int internalFormat,
@@ -163,6 +176,7 @@ public interface TextureProvider {
      *                       file's contents
      *
      * @throws IOException if an error occurred while reading the URL
+     * @deprecated Use {@link #newTextureData(GLProfile, InputStream, int, int, boolean, String)
      */
     public TextureData newTextureData(GLProfile glp, URL url,
                                       int internalFormat,

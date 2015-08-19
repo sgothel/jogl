@@ -39,7 +39,6 @@
 
 package com.jogamp.opengl.util.texture.spi.awt;
 
-import java.awt.Graphics;
 import java.awt.image.*;
 import java.io.*;
 import java.net.*;

@@ -52,8 +52,10 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
@@ -72,6 +74,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
+import com.jogamp.opengl.util.texture.ImageType;
 import com.jogamp.opengl.util.texture.spi.DDSImage;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
 import com.jogamp.opengl.util.texture.spi.NetPbmTextureWriter;
@@ -134,64 +137,60 @@ import com.jogamp.opengl.util.texture.spi.TextureWriter;
 
 public class TextureIO {
     /** Constant which can be used as a file suffix to indicate a
-        DirectDraw Surface file.
-        @deprecated Use {@link ImageIOUtil#T_DDS}.
+        DirectDraw Surface file, value {@value}.
+        <p>Alias for {@link ImageType#T_DDS}.</p>
      */
-    public static final String DDS     = ImageIOUtil.T_DDS;
+    public static final String DDS     = ImageType.T_DDS;
 
-    /** Constant which can be used as a file suffix to indicate an SGI
-        RGB file.
-        @deprecated Use {@link ImageIOUtil#T_SGI}.
+    /**
+     * Constant which can be used as a file suffix to indicate an SGI RGB file, value {@value}.
+     * <p>
+     * Same semantics as {@link ImageType#SGI_RGB} and {@link #SGI_RGB}.
+     * </p>
      */
-    public static final String SGI     = ImageIOUtil.T_SGI;
+    public static final String SGI     = "sgi";
 
-    /** Constant which can be used as a file suffix to indicate an SGI
-        RGB file.
-        @deprecated Use {@link ImageIOUtil#T_SGI_RGB}.
+    /** Constant which can be used as a file suffix to indicate an SGI RGB file, value {@value}.
+        <p>Alias for {@link ImageType#T_SGI_RGB}. </p>
      */
-    public static final String SGI_RGB = ImageIOUtil.T_SGI_RGB;
+    public static final String SGI_RGB = ImageType.T_SGI_RGB;
 
-    /** Constant which can be used as a file suffix to indicate a GIF
-        file.
-        @deprecated Use {@link ImageIOUtil#T_GIF}.
+    /** Constant which can be used as a file suffix to indicate a GIF file, value {@value}.
+        <p>Alias for {@link ImageType#T_GIF}.</p>
      */
-    public static final String GIF     = ImageIOUtil.T_GIF;
+    public static final String GIF     = ImageType.T_GIF;
 
-    /** Constant which can be used as a file suffix to indicate a JPEG
-        file.
-        @deprecated Use {@link ImageIOUtil#T_JPG}.
+    /** Constant which can be used as a file suffix to indicate a JPEG file, value {@value}.
+        <p>Alias for {@link ImageType#T_JPG}.</p>
      */
-    public static final String JPG     = ImageIOUtil.T_JPG;
+    public static final String JPG     = ImageType.T_JPG;
 
-    /** Constant which can be used as a file suffix to indicate a PNG
-        file.
-        @deprecated Use {@link ImageIOUtil#T_PNG}.
+    /** Constant which can be used as a file suffix to indicate a PNG file, value {@value}.
+        <p>Alias for {@link ImageType#T_PNG}.</p>
      */
-    public static final String PNG     = ImageIOUtil.T_PNG;
+    public static final String PNG     = ImageType.T_PNG;
 
-    /** Constant which can be used as a file suffix to indicate a Targa
-        file.
-        @deprecated Use {@link ImageIOUtil#T_TGA}.
+    /** Constant which can be used as a file suffix to indicate a Targa file, value {@value}.
+        <p>Alias for {@link ImageType#T_TGA}.</p>
      */
-    public static final String TGA     = ImageIOUtil.T_TGA;
+    public static final String TGA     = ImageType.T_TGA;
 
-    /** Constant which can be used as a file suffix to indicate a TIFF
-        file.
-        @deprecated Use {@link ImageIOUtil#T_TIFF}.
+    /** Constant which can be used as a file suffix to indicate a TIFF file, value {@value}.
+        <p>Alias for {@link ImageType#T_TIFF}.</p>
      */
-    public static final String TIFF    = ImageIOUtil.T_TIFF;
+    public static final String TIFF    = ImageType.T_TIFF;
 
     /** Constant which can be used as a file suffix to indicate a PAM
-        file, NetPbm magic 7 - binary RGB and RGBA. Write support only.
-        @deprecated Use {@link ImageIOUtil#T_PAM}.
+        file, NetPbm magic 7 - binary RGB and RGBA. Write support only, value {@value}.
+        <p>Alias for {@link ImageType#T_PAM}.</p>
      */
-    public static final String PAM     = ImageIOUtil.T_PAM;
+    public static final String PAM     = ImageType.T_PAM;
 
     /** Constant which can be used as a file suffix to indicate a PAM
-        file, NetPbm magic 6 - binary RGB. Write support only.
-        @deprecated Use {@link ImageIOUtil#T_PPM}.
+        file, NetPbm magic 6 - binary RGB. Write support only, value {@value}.
+        <p>Alias for {@link ImageType#T_PPM}.</p>
      */
-    public static final String PPM     = ImageIOUtil.T_PPM;
+    public static final String PPM     = ImageType.T_PPM;
 
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
@@ -697,9 +696,14 @@ public class TextureIO {
     //
 
     /**
-     * Adds a TextureProvider to support reading of a new file format.
+     * Adds a {@link TextureProvider} to support reading of a new file format.
      * <p>
      * The last provider added, will be the first provider to be tested.
+     * </p>
+     * <p>
+     * In case the {@link TextureProvider} also implements {@link TextureProvider.SupportsImageTypes},
+     * the {@link TextureProvider} is being mapped to its supporting {@link ImageType}s
+     * allowing an O(1) association.
      * </p>
      */
     public static void addTextureProvider(final TextureProvider provider) {
@@ -707,6 +711,15 @@ public class TextureIO {
         // so we don't accidentally use it instead of a user's possibly
         // more optimal provider
         textureProviders.add(0, provider);
+
+        if( provider instanceof TextureProvider.SupportsImageTypes ) {
+            final ImageType[] imageTypes = ((TextureProvider.SupportsImageTypes)provider).getImageTypes();
+            if( null != imageTypes ) {
+                for(int i=0; i<imageTypes.length; i++) {
+                    imageType2TextureProvider.put(imageTypes[i], provider);
+                }
+            }
+        }
     }
 
     /**
@@ -756,6 +769,7 @@ public class TextureIO {
     //
 
     private static List<TextureProvider> textureProviders = new ArrayList<TextureProvider>();
+    private static Map<ImageType,TextureProvider> imageType2TextureProvider = new HashMap<ImageType,TextureProvider>();
     private static List<TextureWriter>   textureWriters   = new ArrayList<TextureWriter>();
 
     static {
@@ -807,32 +821,6 @@ public class TextureIO {
     }
 
     // Implementation methods
-    private static TextureData newTextureDataImpl(final GLProfile glp, final File file,
-                                                  final int internalFormat,
-                                                  final int pixelFormat,
-                                                  final boolean mipmap,
-                                                  String fileSuffix) throws IOException {
-        if (file == null) {
-            throw new IOException("File was null");
-        }
-
-        fileSuffix = toLowerCase(fileSuffix);
-
-        for (final Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
-            final TextureProvider provider = iter.next();
-            final TextureData data = provider.newTextureData(glp, file,
-                                                       internalFormat,
-                                                       pixelFormat,
-                                                       mipmap,
-                                                       fileSuffix);
-            if (data != null) {
-                return data;
-            }
-        }
-
-        throw new IOException("No suitable reader for given file "+file.getAbsolutePath());
-    }
-
     private static TextureData newTextureDataImpl(final GLProfile glp, InputStream stream,
                                                   final int internalFormat,
                                                   final int pixelFormat,
@@ -842,70 +830,120 @@ public class TextureIO {
             throw new IOException("Stream was null");
         }
 
-        fileSuffix = toLowerCase(fileSuffix);
-
         // Note: use of BufferedInputStream works around 4764639/4892246
         if (!(stream instanceof BufferedInputStream)) {
             stream = new BufferedInputStream(stream);
         }
 
+        // First attempt to use an ImageType mapped TextureProvider for O(1)
+        // using stream parsed data, ignoring the given fileSuffix!
+        try {
+            final ImageType imageType = new ImageType(stream);
+            if( imageType.isDefined() ) {
+                final TextureProvider mappedProvider = imageType2TextureProvider.get(imageType);
+                if( null != mappedProvider ) {
+                    final TextureData data = mappedProvider.newTextureData(glp, stream,
+                                                                           internalFormat,
+                                                                           pixelFormat,
+                                                                           mipmap,
+                                                                           imageType.type);
+                    if (data != null) {
+                        data.srcImageType = imageType;
+                        return data;
+                    }
+                }
+            }
+        } catch (final IOException ioe) {
+            if(DEBUG) {
+                System.err.println("Caught "+ioe.getMessage());
+                ioe.printStackTrace();
+            }
+        }
+
+        fileSuffix = toLowerCase(fileSuffix);
+
         for (final Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
             final TextureProvider provider = iter.next();
             final TextureData data = provider.newTextureData(glp, stream,
-                                                       internalFormat,
-                                                       pixelFormat,
-                                                       mipmap,
-                                                       fileSuffix);
+                                                             internalFormat,
+                                                             pixelFormat,
+                                                             mipmap,
+                                                             fileSuffix);
             if (data != null) {
+                if( provider instanceof TextureProvider.SupportsImageTypes ) {
+                    data.srcImageType = ((TextureProvider.SupportsImageTypes)provider).getImageTypes()[0];
+                }
                 return data;
             }
         }
 
         throw new IOException("No suitable reader for given stream");
     }
-
+    private static TextureData newTextureDataImpl(final GLProfile glp, final File file,
+                                                  final int internalFormat,
+                                                  final int pixelFormat,
+                                                  final boolean mipmap,
+                                                  final String fileSuffix) throws IOException {
+        if (file == null) {
+            throw new IOException("File was null");
+        }
+        final InputStream stream = new BufferedInputStream(new FileInputStream(file));
+        try {
+            return newTextureDataImpl( glp, stream, internalFormat, pixelFormat, mipmap,
+                                       (fileSuffix != null) ? fileSuffix : IOUtil.getFileSuffix(file) );
+        } catch(final IOException ioe) {
+            throw new IOException(ioe.getMessage()+", given file "+file.getAbsolutePath(), ioe);
+        } finally {
+            stream.close();
+        }
+    }
     private static TextureData newTextureDataImpl(final GLProfile glp, final URL url,
                                                   final int internalFormat,
                                                   final int pixelFormat,
                                                   final boolean mipmap,
-                                                  String fileSuffix) throws IOException {
+                                                  final String fileSuffix) throws IOException {
         if (url == null) {
             throw new IOException("URL was null");
         }
-
-        fileSuffix = toLowerCase(fileSuffix);
-
-        for (final Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
-            final TextureProvider provider = iter.next();
-            final TextureData data = provider.newTextureData(glp, url,
-                                                       internalFormat,
-                                                       pixelFormat,
-                                                       mipmap,
-                                                       fileSuffix);
-            if (data != null) {
-                return data;
-            }
+        final InputStream stream = new BufferedInputStream(url.openStream());
+        try {
+            return newTextureDataImpl(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
+        } catch(final IOException ioe) {
+            throw new IOException(ioe.getMessage()+", given URL "+url, ioe);
+        } finally {
+            stream.close();
         }
-
-        throw new IOException("No suitable reader for given URL "+url);
     }
 
     //----------------------------------------------------------------------
-    // DDS provider -- supports files only for now
-    static class DDSTextureProvider implements TextureProvider {
+    // Base class for internal image providers, only providing stream based data!
+    static abstract class StreamBasedTextureProvider implements TextureProvider, TextureProvider.SupportsImageTypes {
         @Override
-        public TextureData newTextureData(final GLProfile glp, final File file,
+        public final TextureData newTextureData(final GLProfile glp, final File file,
                                           final int internalFormat,
                                           final int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (DDS.equals(fileSuffix) ||
-                DDS.equals(IOUtil.getFileSuffix(file))) {
-                final DDSImage image = DDSImage.read(file);
-                return newTextureData(glp, image, internalFormat, pixelFormat, mipmap);
-            }
+            throw new UnsupportedOperationException("Only stream is supported");
+        }
 
-            return null;
+        @Override
+        public final TextureData newTextureData(final GLProfile glp, final URL url,
+                                          final int internalFormat,
+                                          final int pixelFormat,
+                                          final boolean mipmap,
+                                          final String fileSuffix) throws IOException {
+            throw new UnsupportedOperationException("Only stream is supported");
+        }
+    }
+
+    //----------------------------------------------------------------------
+    // DDS image provider
+    static class DDSTextureProvider extends StreamBasedTextureProvider {
+        private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_DDS) };
+        @Override
+        public final ImageType[] getImageTypes() {
+            return imageTypes;
         }
 
         @Override
@@ -914,8 +952,8 @@ public class TextureIO {
                                           final int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (DDS.equals(fileSuffix) ||
-                DDS.equals(ImageIOUtil.getFileSuffix(stream))) {
+            if (ImageType.T_DDS.equals(fileSuffix) ||
+                ImageType.T_DDS.equals(ImageType.Util.getFileSuffix(stream))) {
                 final byte[] data = IOUtil.copyStream2ByteArray(stream);
                 final ByteBuffer buf = ByteBuffer.wrap(data);
                 final DDSImage image = DDSImage.read(buf);
@@ -923,20 +961,6 @@ public class TextureIO {
             }
 
             return null;
-        }
-
-        @Override
-        public TextureData newTextureData(final GLProfile glp, final URL url,
-                                          final int internalFormat,
-                                          final int pixelFormat,
-                                          final boolean mipmap,
-                                          final String fileSuffix) throws IOException {
-            final InputStream stream = new BufferedInputStream(url.openStream());
-            try {
-                return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
-            } finally {
-                stream.close();
-            }
         }
 
         private TextureData newTextureData(final GLProfile glp, final DDSImage image,
@@ -1023,47 +1047,14 @@ public class TextureIO {
     }
 
     //----------------------------------------------------------------------
-    // Base class for SGI RGB and TGA image providers
-    static abstract class StreamBasedTextureProvider implements TextureProvider {
-        @Override
-        public TextureData newTextureData(final GLProfile glp, final File file,
-                                          final int internalFormat,
-                                          final int pixelFormat,
-                                          final boolean mipmap,
-                                          final String fileSuffix) throws IOException {
-            final InputStream inStream = new BufferedInputStream(new FileInputStream(file));
-            try {
-                // The SGIImage and TGAImage implementations use InputStreams
-                // anyway so there isn't much point in having a separate code
-                // path for files
-                return newTextureData(glp, inStream,
-                                      internalFormat,
-                                      pixelFormat,
-                                      mipmap,
-                                      ((fileSuffix != null) ? fileSuffix : IOUtil.getFileSuffix(file)));
-            } finally {
-                inStream.close();
-            }
-        }
-
-        @Override
-        public TextureData newTextureData(final GLProfile glp, final URL url,
-                                          final int internalFormat,
-                                          final int pixelFormat,
-                                          final boolean mipmap,
-                                          final String fileSuffix) throws IOException {
-            final InputStream stream = new BufferedInputStream(url.openStream());
-            try {
-                return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
-            } finally {
-                stream.close();
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------
     // SGI RGB image provider
     static class SGITextureProvider extends StreamBasedTextureProvider {
+        private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_SGI_RGB) };
+        @Override
+        public final ImageType[] getImageTypes() {
+            return imageTypes;
+        }
+
         @Override
         public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
@@ -1071,9 +1062,9 @@ public class TextureIO {
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
             if (SGI.equals(fileSuffix) ||
-                SGI_RGB.equals(fileSuffix) ||
-                SGI.equals(ImageIOUtil.getFileSuffix(stream)) ||
-                SGI_RGB.equals(ImageIOUtil.getFileSuffix(stream))) {
+                ImageType.T_SGI_RGB.equals(fileSuffix) ||
+                SGI.equals(ImageType.Util.getFileSuffix(stream)) ||
+                ImageType.T_SGI_RGB.equals(ImageType.Util.getFileSuffix(stream))) {
                 final SGIImage image = SGIImage.read(stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getFormat();
@@ -1101,13 +1092,19 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // TGA (Targa) image provider
     static class TGATextureProvider extends StreamBasedTextureProvider {
+        private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_TGA) };
+        @Override
+        public final ImageType[] getImageTypes() {
+            return imageTypes;
+        }
+
         @Override
         public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (TGA.equals(fileSuffix)) {
+            if (ImageType.T_TGA.equals(fileSuffix)) {
                 final TGAImage image = TGAImage.read(glp, stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getGLFormat();
@@ -1139,14 +1136,20 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // PNG image provider
     static class PNGTextureProvider extends StreamBasedTextureProvider {
+        private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_PNG) };
+        @Override
+        public final ImageType[] getImageTypes() {
+            return imageTypes;
+        }
+
         @Override
         public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (PNG.equals(fileSuffix) ||
-            	PNG.equals(ImageIOUtil.getFileSuffix(stream))) {
+            if (ImageType.T_PNG.equals(fileSuffix) ||
+            	ImageType.T_PNG.equals(ImageType.Util.getFileSuffix(stream))) {
                 final PNGPixelRect image = PNGPixelRect.read(stream, null, true /* directBuffer */, 0 /* destMinStrideInBytes */, true /* destIsGLOriented */);
                 final GLPixelAttributes glpa = new GLPixelAttributes(glp, image.getPixelformat(), false /* pack */);
                 if ( 0 == pixelFormat ) {
@@ -1180,14 +1183,20 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // JPEG image provider
     static class JPGTextureProvider extends StreamBasedTextureProvider {
+        private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_JPG) };
+        @Override
+        public final ImageType[] getImageTypes() {
+            return imageTypes;
+        }
+
         @Override
         public TextureData newTextureData(final GLProfile glp, final InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
                                           final boolean mipmap,
                                           final String fileSuffix) throws IOException {
-            if (JPG.equals(fileSuffix) ||
-            	JPG.equals(ImageIOUtil.getFileSuffix(stream))) {
+            if (ImageType.T_JPG.equals(fileSuffix) ||
+            	ImageType.T_JPG.equals(ImageType.Util.getFileSuffix(stream))) {
                 final JPEGImage image = JPEGImage.read(/*glp, */ stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getGLFormat();
@@ -1223,7 +1232,7 @@ public class TextureIO {
         @Override
         public boolean write(final File file,
                              final TextureData data) throws IOException {
-            if (DDS.equals(IOUtil.getFileSuffix(file))) {
+            if (ImageType.T_DDS.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the DDS writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
                 final int pixelFormat = pixelAttribs.format;
@@ -1276,7 +1285,7 @@ public class TextureIO {
                              final TextureData data) throws IOException {
             final String fileSuffix = IOUtil.getFileSuffix(file);
             if (SGI.equals(fileSuffix) ||
-                SGI_RGB.equals(fileSuffix)) {
+                ImageType.T_SGI_RGB.equals(fileSuffix)) {
                 // See whether the SGI writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
                 final int pixelFormat = pixelAttribs.format;
@@ -1320,7 +1329,7 @@ public class TextureIO {
         @Override
         public boolean write(final File file,
                              final TextureData data) throws IOException {
-            if (TGA.equals(IOUtil.getFileSuffix(file))) {
+            if (ImageType.T_TGA.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the TGA writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
                 final int pixelFormat = pixelAttribs.format;
@@ -1370,7 +1379,7 @@ public class TextureIO {
     static class PNGTextureWriter implements TextureWriter {
         @Override
         public boolean write(final File file, final TextureData data) throws IOException {
-            if (PNG.equals(IOUtil.getFileSuffix(file))) {
+            if (ImageType.T_PNG.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the PNG writer can handle this TextureData
                 final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
                 final int pixelFormat = pixelAttribs.format;

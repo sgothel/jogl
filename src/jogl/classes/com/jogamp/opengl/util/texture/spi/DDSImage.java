@@ -53,8 +53,7 @@ import java.nio.channels.FileChannel;
 import com.jogamp.opengl.GL;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.opengl.util.GLBuffers;
-import com.jogamp.opengl.util.texture.ImageIOUtil;
+import com.jogamp.opengl.util.texture.ImageType;
 
 /** A reader and writer for DirectDraw Surface (.dds) files, which are
     used to describe textures. These files can contain multiple mipmap
@@ -246,7 +245,7 @@ public class DDSImage {
         @param in Stream to check
         @return true if input stream is DDS image or false otherwise
         @throws java.io.IOException if an I/O exception occurred
-        @deprecated rather call {@link ImageIOUtil#getFileSuffix(InputStream)}
+        @deprecated rather call {@link ImageType#getFileSuffix(InputStream)}
     */
     @Deprecated
     public static boolean isDDSImage(InputStream in) throws IOException {
