@@ -53,7 +53,9 @@
 #define FLAG_IS_MAXIMIZED_VERT      ( 1 <<  9 )
 #define FLAG_IS_MAXIMIZED_HORZ      ( 1 << 10 )
 #define FLAG_IS_FULLSCREEN          ( 1 << 11 )
-#define FLAG_IS_FULLSCREEN_SPAN     ( 1 << 12 )
+#define FLAG_IS_POINTERVISIBLE      ( 1 << 12 )
+#define FLAG_IS_POINTERCONFINED     ( 1 << 13 )
+#define FLAG_IS_FULLSCREEN_SPAN     ( 1 << 14 )
 
 #define TST_FLAG_CHANGE_VISIBILITY(f)  ( 0 != ( (f) & FLAG_CHANGE_VISIBILITY ) ) 
 #define TST_FLAG_CHANGE_VISIBILITY_FAST(f) ( 0 != ( (f) & FLAG_CHANGE_VISIBILITY_FAST ) ) 

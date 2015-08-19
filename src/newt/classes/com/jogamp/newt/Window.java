@@ -223,9 +223,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      */
     public static final int STATE_BIT_FULLSCREEN = 11;    // reconfig-flag
 
-    // Hidden in WindowImpl:
-    //   static final int STATE_BIT_FULLSCREEN_SPAN = 12;
-
     /**
      * Set if the <i>pointer is visible</i> when inside the window, otherwise cleared.
      * <p>Bit number {@value}.</p>
@@ -233,7 +230,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @see #getStateMask()
      * @since 2.3.2
      */
-    public static final int STATE_BIT_POINTERVISIBLE = 13;
+    public static final int STATE_BIT_POINTERVISIBLE = 12;
     /**
      * Set if the <i>pointer is confined</i> to the window, otherwise cleared.
      * <p>Bit number {@value}.</p>
@@ -241,7 +238,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @see #getStateMask()
      * @since 2.3.2
      */
-    public static final int STATE_BIT_POINTERCONFINED = 14;
+    public static final int STATE_BIT_POINTERCONFINED = 13;
 
     /**
      * Bitmask for {@link #STATE_BIT_VISIBLE}, {@value}.

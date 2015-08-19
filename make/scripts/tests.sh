@@ -421,7 +421,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -814,7 +814,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture02AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestImageTypeNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureIONEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureIONEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTBenchmarkNewtAWT $*

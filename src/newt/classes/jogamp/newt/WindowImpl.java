@@ -190,21 +190,23 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #getStateMask()
      * @since 2.3.2
      */
-    protected static final int STATE_BIT_COUNT_ALL_PUBLIC = 15;
+    protected static final int STATE_BIT_COUNT_ALL_PUBLIC = STATE_BIT_POINTERCONFINED + 1;
     /** Bitmask for {@link #STATE_BIT_COUNT_ALL_PUBLIC} */
     protected static final int STATE_MASK_ALL_PUBLIC = ( 1 << STATE_BIT_COUNT_ALL_PUBLIC ) - 1;
 
     //
-    // Additional private state-mask bits and mask values
+    // Additional private reconfigure state-mask bits and mask values
     //
-    /**
-     * <p>Bit number {@value}.</p>
-     * <p>Defaults to {@code false}.</p>
-     * @see #getStateMask()
-     * @since 2.3.2
-     */
-    /* pp */ static final int STATE_BIT_FULLSCREEN_SPAN = 12;
-    /* pp */ static final int PSTATE_BIT_MINMAXSIZE_SET = 27;
+    /* pp */ static final int STATE_BIT_FULLSCREEN_SPAN = STATE_BIT_COUNT_ALL_PUBLIC;
+
+    protected static final int STATE_BIT_COUNT_RECONFIG = STATE_BIT_FULLSCREEN_SPAN + 1;
+    /** Bitmask for {@link #STATE_BIT_COUNT_RECONFIG} */
+    protected static final int STATE_MASK_ALL_RECONFIG = ( 1 << STATE_BIT_COUNT_RECONFIG ) - 1;
+
+    //
+    // Additional private non-reconfigure state-mask bits and mask values
+    //
+
     /* pp */ static final int PSTATE_BIT_FOCUS_CHANGE_BROKEN = 28;
     /* pp */ static final int PSTATE_BIT_FULLSCREEN_MAINMONITOR = 29; // true
     /* pp */ static final int PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP = 30; // non fullscreen alwaysOnTop setting
@@ -212,6 +214,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Bitmask for {@link #STATE_BIT_FULLSCREEN_SPAN}, {@value}. */
     /* pp */ static final int STATE_MASK_FULLSCREEN_SPAN = 1 << STATE_BIT_FULLSCREEN_SPAN;
+
     /* pp */ static final int PSTATE_MASK_FOCUS_CHANGE_BROKEN = 1 << PSTATE_BIT_FOCUS_CHANGE_BROKEN;
     /* pp */ static final int PSTATE_MASK_FULLSCREEN_MAINMONITOR = 1 << PSTATE_BIT_FULLSCREEN_MAINMONITOR;
     /* pp */ static final int PSTATE_MASK_FULLSCREEN_NFS_ALWAYSONTOP = 1 << PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP;
@@ -874,7 +877,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected int getReconfigureMask(final int changeFlags, final boolean visible) {
-        final int smask = stateMask.get32(0, STATE_BIT_COUNT_ALL_PUBLIC);
+        final int smask = stateMask.get32(0, STATE_BIT_COUNT_RECONFIG);
         return changeFlags
                | ( smask & ~STATE_MASK_VISIBLE )
                | ( visible ? STATE_MASK_VISIBLE : 0 )
