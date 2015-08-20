@@ -144,8 +144,14 @@ static _TCHAR* Get2ndSlashBlock(const _TCHAR* sIn, _TCHAR* sOut, size_t sOutLen)
             size_t len = t - s;
             if( len > 0 ) {
                 if( sOutLen >= len ) {
-                    _tcsncpy_s(sOut, sOutLen, s, len);
-                    return sOut;
+                    // Bug 1196: Unresolved strncpy_s (MSVCRT) on WinXP.
+                    // Mapped: _tcsncpy_s -> strncpy_s (!UNICODE).
+                    // On WinXP MSVCRT has no strncpy_s.
+                    // _tcsncpy_s(sOut, sOutLen, s, len);
+                    if( len <= sOutLen-1 ) {
+                        _tcsncpy(sOut, s, len);
+                        return sOut;
+                    }
                 }
             }
         }
