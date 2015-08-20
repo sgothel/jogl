@@ -74,6 +74,28 @@ public class ImageType {
     public static final String T_ICNS     = "icns";
 
     /**
+     * Constant which can be used as a file suffix to indicate a Microsoft Windows Icon stream, value {@value}.
+     * <p>
+     * TODO
+     * </p>
+     * <ul>
+     * <li>{@code https://msdn.microsoft.com/en-us/library/ms997538.aspx}</li>
+     * </ul>
+     */
+    public static final String T_ICO     = "ico";
+    
+    /**
+     * Constant which can be used as a file suffix to indicate a Microsoft Windows Cursor stream, value {@value}.
+     * <p>
+     * TODO
+     * </p>
+     * <ul>
+     * <li>{@code TODO}</li>
+     * </ul>
+     */
+    public static final String T_CUR     = "cur";
+    
+    /**
      * Constant which can be used as a file suffix to indicate a GIF stream, value {@value}.
      * <p>
      * {@code GIF87A or GIF89A ascii code}
@@ -192,13 +214,13 @@ public class ImageType {
      * 'D' 'D' 'S' ' ' ascii code
      * </p>
      * <ul>
-     * <li>{@code TODO}</li>
+     * <li>{@code https://msdn.microsoft.com/en-us/library/windows/desktop/bb943991%28v=vs.85%29.aspx#File_Layout1}</li>
      * </ul>
      */
     public static final String T_DDS     = "dds";
 
     /**
-     * Constant which can be used as a file suffix to indicate a PAM stream, NetPbm magic 7 - binary RGB and RGBA.
+     * Constant which can be used as a file suffix to indicate a Portable Arbitrary Map stream, NetPbm magic 7 - binary RGB and RGBA.
      * <ul>
      * <li>{@code http://netpbm.sourceforge.net/doc/pam.html}</li>
      * </ul>
@@ -233,7 +255,7 @@ public class ImageType {
     public static final String T_3D2     = "3d2";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate an Apple QuickDraw 3D 3DMF stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -244,7 +266,7 @@ public class ImageType {
     public static final String T_3DMF     = "3dmf";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Texas Instruments TI-92 Bitmap stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -255,7 +277,7 @@ public class ImageType {
     public static final String T_92I     = "92i";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate an Amiga metafile stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -266,7 +288,7 @@ public class ImageType {
     public static final String T_AMFF     = "amff";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate an America Online Art stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -277,12 +299,12 @@ public class ImageType {
     public static final String T_ART     = "art";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a United States Department of Defence Continuous Acquisition and Life-cycle Support Raster stream, value {@value}.
      * <p>
      * TODO
      * </p>
      * <ul>
-     * <li>{@code TODO}</li>
+     * <li>{@code http://www.fileformat.info/format/cals/egff.htm}</li>
      * </ul>
      */
     public static final String T_CALS     = "cals";
@@ -322,12 +344,12 @@ public class ImageType {
     public static final String T_CE2     = "ce2";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Kodak Cineon System stream, value {@value}.
      * <p>
      * TODO
      * </p>
      * <ul>
-     * <li>{@code TODO}</li>
+     * <li>{@code http://www.cineon.com/ff_draft.php}</li>
      * </ul>
      */
     public static final String T_CIN     = "cin";
@@ -344,7 +366,7 @@ public class ImageType {
     public static final String T_COB     = "cob";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Corel Photo Paint stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -378,7 +400,7 @@ public class ImageType {
     public static final String T_DEM     = "dem";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Digital Picture Exchange stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -400,7 +422,7 @@ public class ImageType {
     public static final String T_DRW     = "drw";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Autocad drawing stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -411,7 +433,7 @@ public class ImageType {
     public static final String T_DWG     = "dwg";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Hexagon Geospatial Enhanced Compression Wavelet stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -422,7 +444,7 @@ public class ImageType {
     public static final String T_ECW     = "ecw";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Microsoft Windows Enhanced metafile stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -433,7 +455,7 @@ public class ImageType {
     public static final String T_EMF     = "emf";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a FlashPix stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -543,7 +565,7 @@ public class ImageType {
     public static final String T_JIF     = "jif";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a JPEG-2000 stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -631,7 +653,7 @@ public class ImageType {
     public static final String T_MGL     = "mgl";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate an Imagemagick stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -642,7 +664,7 @@ public class ImageType {
     public static final String T_MIF     = "mif";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Multiple-image Network Graphics stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -785,6 +807,17 @@ public class ImageType {
     public static final String T_PCL     = "pcl";
 
     /**
+     * Constant which can be used as a file suffix to indicate a Softimage pic stream, value {@value}.
+     * <p>
+     * TODO
+     * </p>
+     * <ul>
+     * <li>{@code http://paulbourke.net/dataformats/softimagepic/}</li>
+     * </ul>
+     */
+    public static final String T_PIC     = "pic";
+    
+    /**
      * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
      * <p>
      * TODO
@@ -807,7 +840,7 @@ public class ImageType {
     public static final String T_POL     = "pol";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code Paint Shop Pro} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a PaintShop Pro stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -840,7 +873,7 @@ public class ImageType {
     public static final String T_QTM     = "qtm";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Sun Raster stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -930,7 +963,7 @@ public class ImageType {
     public static final String T_WMF     = "wmf";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a Wordperfect Graphics vectors stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -963,7 +996,7 @@ public class ImageType {
     public static final String T_XBM     = "xbm";
 
     /**
-     * Constant which can be used as a file suffix to indicate a {@code TBD} stream, value {@value}.
+     * Constant which can be used as a file suffix to indicate a X PixMap stream, value {@value}.
      * <p>
      * TODO
      * </p>
@@ -1041,6 +1074,7 @@ public class ImageType {
             return false;
         }
     }
+    @Override
     public String toString() { return "ImageType["+type+"]"; }
 
     /**
@@ -1118,11 +1152,19 @@ public class ImageType {
 
             // T_TGA: NO Signature!
 
-            if (b0 == (byte)0x00 && b1 == (byte)0x00 && b2 == (byte)0x00 && b3 == (byte)0x0C &&
-                b4 == (byte)0x6A && b5 == (byte)0x50 &&
-                b[6] == (byte)0x20 && b[7] == (byte)0x20 && b[8] == (byte)0x0D && b[9] == (byte)0x0A && b[10] == (byte)0x87 &&
-                b[11] == (byte)0x0A) {
-                return T_JP2;
+            if (b0 == (byte)0x00) {
+                if (b1 == (byte)0x00 && b2 == (byte)0x00 && b3 == (byte)0x0C &&
+                    b4 == (byte)0x6A && b5 == (byte)0x50 &&
+                    b[6] == (byte)0x20 && b[7] == (byte)0x20 && b[8] == (byte)0x0D && b[9] == (byte)0x0A && b[10] == (byte)0x87 &&
+                    b[11] == (byte)0x0A) {
+                    return T_JP2;
+                }
+                else if (b1 == (byte)0x01) {
+                	return T_ICO;
+                }
+                else if (b1 == (byte)0x02) {
+                	return T_CUR;
+                }
             }
             else if (b0 == (byte)0x01) {
                 if (b1 == (byte)0xDA /* && b2 == (byte)0x01 && b3 == (byte)0x01 && b4 == (byte)0x00 && b5 == (byte)0x03 */) {
@@ -1411,6 +1453,9 @@ public class ImageType {
                          b4 == (byte)0x6D && b5 == (byte)0x33 &&
                          b[6] == (byte)0x44) {
                     return T_SOD;
+                }
+                else if (b1 == (byte)0x80 && b2 == (byte)0xf6 && b3 == (byte)0x34) {
+                    return T_PIC;
                 }
             }
             else if (b0 == (byte)0x56 && b1 == (byte)0x69 && b2 == (byte)0x73 && b3 == (byte)0x74 &&
