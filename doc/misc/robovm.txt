@@ -1,0 +1,15 @@
+#get jogamp and robovm
+wget http://download.robovm.org/nightlies/robovm-1.6.1-SNAPSHOT-20150820_014200-647.tar.gz
+wget http://jogamp.org/deployment/archive/master/gluegen_885-joal_611-jogl_1424-jocl_1073/fat/jogamp-fat.jar
+
+#unpack
+tar zxvf robovm-1.6.1-SNAPSHOT-20150820_014200-647.tar.gz
+
+#compile using robovm
+./robovm-1.6.1-SNAPSHOT/bin/robovm -verbose -dynamic-jni -forcelinkclasses jogamp.**:com.jogamp.** -cp jogamp-fat.jar com.jogamp.newt.opengl.GLWindow
+
+#run
+cd com.jogamp.newt.opengl.GLWindow 
+#robovm currently fail to find natives inside jars, unpack them
+unzip lib/jogamp-fat.jar natives/*/*
+time ./com.jogamp.newt.opengl.GLWindow
