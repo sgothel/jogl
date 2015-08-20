@@ -197,11 +197,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // Additional private reconfigure state-mask bits and mask values
     //
-    /* pp */ static final int STATE_BIT_FULLSCREEN_SPAN = STATE_BIT_COUNT_ALL_PUBLIC;
+    protected static final int STATE_BIT_FULLSCREEN_SPAN = STATE_BIT_COUNT_ALL_PUBLIC;
 
-    protected static final int STATE_BIT_COUNT_RECONFIG = STATE_BIT_FULLSCREEN_SPAN + 1;
-    /** Bitmask for {@link #STATE_BIT_COUNT_RECONFIG} */
-    protected static final int STATE_MASK_ALL_RECONFIG = ( 1 << STATE_BIT_COUNT_RECONFIG ) - 1;
+    protected static final int STATE_BIT_COUNT_ALL_RECONFIG = STATE_BIT_FULLSCREEN_SPAN + 1;
+    /** Bitmask for {@link #STATE_BIT_COUNT_ALL_RECONFIG} */
+    protected static final int STATE_MASK_ALL_RECONFIG = ( 1 << STATE_BIT_COUNT_ALL_RECONFIG ) - 1;
 
     //
     // Additional private non-reconfigure state-mask bits and mask values
@@ -213,7 +213,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /* pp */ static final int PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE = 31; // non fullscreen resizable setting
 
     /** Bitmask for {@link #STATE_BIT_FULLSCREEN_SPAN}, {@value}. */
-    /* pp */ static final int STATE_MASK_FULLSCREEN_SPAN = 1 << STATE_BIT_FULLSCREEN_SPAN;
+    protected static final int STATE_MASK_FULLSCREEN_SPAN = 1 << STATE_BIT_FULLSCREEN_SPAN;
 
     /* pp */ static final int PSTATE_MASK_FOCUS_CHANGE_BROKEN = 1 << PSTATE_BIT_FOCUS_CHANGE_BROKEN;
     /* pp */ static final int PSTATE_MASK_FULLSCREEN_MAINMONITOR = 1 << PSTATE_BIT_FULLSCREEN_MAINMONITOR;
@@ -877,7 +877,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected int getReconfigureMask(final int changeFlags, final boolean visible) {
-        final int smask = stateMask.get32(0, STATE_BIT_COUNT_RECONFIG);
+        final int smask = stateMask.get32(0, STATE_BIT_COUNT_ALL_RECONFIG);
         return changeFlags
                | ( smask & ~STATE_MASK_VISIBLE )
                | ( visible ? STATE_MASK_VISIBLE : 0 )

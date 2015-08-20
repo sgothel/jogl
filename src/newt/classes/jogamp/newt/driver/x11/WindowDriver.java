@@ -170,10 +170,10 @@ public class WindowDriver extends WindowImpl {
     }
 
     /**
-     * <p>
-     * X11 Window supports {@link #FLAG_IS_FULLSCREEN_SPAN}
-     * </p>
      * {@inheritDoc}
+     * <p>
+     * X11 Window supports {@link #STATE_BIT_FULLSCREEN_SPAN}.
+     * </p>
      */
     @Override
     protected boolean isReconfigureMaskSupported(final int changeFlags) {
