@@ -13,3 +13,15 @@ cd com.jogamp.newt.opengl.GLWindow
 #robovm currently fail to find natives inside jars, unpack them
 unzip lib/jogamp-fat.jar natives/*/*
 time ./com.jogamp.newt.opengl.GLWindow
+
+# Runtime options
+# All robovm runtimeoptions starts with
+# -rvm:
+#
+# To set jogamp specific java properties use
+# -rvm:Djogamp.debug
+# -rvm:Djogl.debug
+#
+# for more rvm flag examples see
+# https://github.com/robovm/robovm/wiki/Hacking-on-RoboVM#controlling-a-robovm-executable
+time ./com.jogamp.newt.opengl.GLWindow -rvm:Djogl.debug
