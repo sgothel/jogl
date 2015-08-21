@@ -42,7 +42,6 @@ import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.newt.MonitorDevice;
@@ -116,6 +115,11 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
         return false; // nop
     }
 
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask |
+               STATE_MASK_FULLSCREEN; // due to size change
+    }
 
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {

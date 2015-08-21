@@ -246,6 +246,16 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public final int getSupportedStateMask() {
+        return window.getSupportedStateMask();
+    }
+
+    @Override
+    public final String getSupportedStateMaskString() {
+        return window.getSupportedStateMaskString();
+    }
+
+    @Override
     public CapabilitiesChooser setCapabilitiesChooser(final CapabilitiesChooser chooser) {
         return window.setCapabilitiesChooser(chooser);
     }

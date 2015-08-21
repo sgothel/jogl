@@ -35,7 +35,6 @@
 package jogamp.newt.driver.intel.gdl;
 
 import com.jogamp.nativewindow.*;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 
 public class WindowDriver extends jogamp.newt.WindowImpl {
@@ -83,6 +82,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             surfaceHandle = 0;
             ((DisplayDriver)getScreen().getDisplay()).setFocus(null);
         }
+    }
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask;
     }
 
     @Override

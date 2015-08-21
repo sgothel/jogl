@@ -38,7 +38,6 @@ import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.opengl.GLCapabilitiesChooser;
@@ -452,6 +451,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 }
             });
         }
+    }
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask;
     }
 
     @Override

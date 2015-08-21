@@ -41,7 +41,6 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 
@@ -389,6 +388,23 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     private final int[] normPosSize = { 0, 0, 0, 0 };
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask |
+               STATE_MASK_AUTOPOSITION |
+               STATE_MASK_CHILDWIN |
+               STATE_MASK_UNDECORATED |
+               STATE_MASK_ALWAYSONTOP |
+               STATE_MASK_ALWAYSONBOTTOM |
+               STATE_MASK_STICKY |
+               STATE_MASK_RESIZABLE |
+               STATE_MASK_MAXIMIZED_VERT |
+               STATE_MASK_MAXIMIZED_HORZ |
+               STATE_MASK_FULLSCREEN |
+               STATE_MASK_POINTERVISIBLE |
+               STATE_MASK_POINTERCONFINED;
+    }
 
     @Override
     protected boolean reconfigureWindowImpl(int _x, int _y, int _width, int _height, final int flags) {

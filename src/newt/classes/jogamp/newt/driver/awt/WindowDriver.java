@@ -225,6 +225,11 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask;
+    }
+
+    @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWTWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+

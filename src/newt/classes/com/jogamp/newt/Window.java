@@ -327,6 +327,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
 
     /**
      * Returns the current status mask of this instance.
+     * @see #getSupportedStateMask()
      * @see #STATE_MASK_VISIBLE
      * @see #STATE_MASK_AUTOPOSITION
      * @see #STATE_MASK_CHILDWIN
@@ -350,6 +351,50 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @since 2.3.2
      */
     String getStateMaskString();
+
+    /**
+     * Returns the supported {@link #getStateMask() state mask} of the implementation.
+     * <p>
+     * Implementation provides supported {@link #getStateMask() state mask} values at runtime
+     * <i>after</i> native window creation, i.e. first visibility.
+     * </p>
+     * <p>
+     * Default value is {@link #STATE_MASK_VISIBLE} | {@link #STATE_MASK_FOCUSED},
+     * i.e. the <b>minimum requirement</b> for all implementations.
+     * </p>
+     * <p>
+     * Before native window creation {@link #getStatePublicBitmask()} is returned,
+     * i.e. it is assumed all features are supported.
+     * </p>
+     * <p>
+     * Semantic of the supported state-mask bits:
+     * <ul>
+     * <li>{@link #STATE_BIT_VISIBLE}: {@link #setVisible(boolean) Visibility} can be toggled after creation. <b>Minimum requirement</b>.</li>
+     * <li>{@link #STATE_BIT_AUTOPOSITION}: {@code WindowManager autoposition} is supported.</li>
+     * <li>{@link #STATE_BIT_CHILDWIN}: {@link #reparentWindow(NativeWindow, int, int, int) Native window parenting} is supported.</li>
+     * <li>{@link #STATE_BIT_FOCUSED}: Window {@link #requestFocus() focus management} is supported.  <b>Minimum requirement</b>.</li>
+     * <li>{@link #STATE_BIT_UNDECORATED}: {@link #setUndecorated(boolean) Window decoration} can be toggled after creation.</li>
+     * <li>{@link #STATE_BIT_ALWAYSONTOP}: Window can be set {@link #setAlwaysOnTop(boolean) always-on-top}. </li>
+     * <li>{@link #STATE_BIT_ALWAYSONBOTTOM}: Window can be set {@link #setAlwaysOnBottom(boolean) always-on-bottom}. </li>
+     * <li>{@link #STATE_BIT_STICKY}: Window can be set {@link #setSticky(boolean) sticky}.</li>
+     * <li>{@link #STATE_BIT_RESIZABLE}: Window {@link #setResizable(boolean) resizability} can be disabled and toggled.</li>
+     * <li>{@link #STATE_BIT_MAXIMIZED_VERT}: Window can be {@link #setMaximized(boolean, boolean) maximized-vertically}. </li>
+     * <li>{@link #STATE_BIT_MAXIMIZED_HORZ}: Window can be {@link #setMaximized(boolean, boolean) maximized-horizontally}. </li>
+     * <li>{@link #STATE_BIT_FULLSCREEN}: Window {@link #setFullscreen(boolean) fullscreen} can be toggled after creation. </li>
+     * <li>{@link #STATE_BIT_POINTERVISIBLE}: Window {@link #setPointerVisible(boolean) pointer visibility} can be toggled. </li>
+     * <li>{@link #STATE_BIT_POINTERCONFINED}: Window {@link #confinePointer(boolean) pointer can be confined}. </li>
+     * </ul>
+     * </p>
+     * @see #getStateMask()
+     * @since 2.3.2
+     */
+    int getSupportedStateMask();
+
+    /**
+     * Returns a string representation of the {@link #getSupportedStateMask() supported state mask}.
+     * @since 2.3.2
+     */
+    String getSupportedStateMaskString();
 
     //
     // Lifecycle

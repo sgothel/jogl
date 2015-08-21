@@ -255,6 +255,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected static final int CHANGE_MASK_FULLSCREEN      = 1 << 21;
 
     /* pp */ final Bitfield stateMask = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
+    /** Default is all but {@link #STATE_MASK_FULLSCREEN_SPAN}. */
+    protected int supportedReconfigStateMask = 0;
+    /** See {@link #getSupportedStateMask()}, i.e. {@link #STATE_MASK_VISIBLE} | {@link #STATE_MASK_FOCUSED}. */
+    protected static final int minimumReconfigStateMask = STATE_MASK_VISIBLE | STATE_MASK_FOCUSED;
+
     /* pp */ final void resetStateMask() {
         stateMask.clearField(false);
         stateMask.set(STATE_BIT_AUTOPOSITION);
@@ -265,6 +270,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         stateMask.set(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
         normPosSizeStored[0] = false;
         normPosSizeStored[1] = false;
+        supportedReconfigStateMask = STATE_MASK_ALL_RECONFIG;
     }
 
     @Override
@@ -280,16 +286,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final int getStateMask() {
         return stateMask.get32(0, STATE_BIT_COUNT_ALL_PUBLIC);
     }
+
     @Override
     public final String getStateMaskString() {
         return appendStateBits(new StringBuilder(), stateMask.get32(0, STATE_BIT_COUNT_ALL_PUBLIC), false).toString();
     }
 
+    @Override
+    public final int getSupportedStateMask() {
+        return supportedReconfigStateMask & STATE_MASK_ALL_PUBLIC;
+    }
+
+    @Override
+    public final String getSupportedStateMaskString() {
+        return appendStateBits(new StringBuilder(), getSupportedStateMask(), true).toString();
+    }
+
     protected static StringBuilder appendStateBits(final StringBuilder sb, final int mask, final boolean showChangeFlags) {
         sb.append("[");
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_VISIBILITY & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_VISIBILITY & mask) ) {
+                sb.append("*");
+            }
             if( 0 != ( CHANGE_MASK_VISIBILITY_FAST & mask) ) {
                 sb.append("*");
             }
@@ -299,8 +318,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         sb.append((0 != ( STATE_MASK_AUTOPOSITION & mask))?"autopos, ":"");
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_PARENTING & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_PARENTING & mask) ) {
+                sb.append("*");
+            }
             sb.append((0 != ( STATE_MASK_CHILDWIN & mask))?"child":"top");
             sb.append(", ");
         } else if( 0 != ( STATE_MASK_CHILDWIN & mask) ) {
@@ -310,8 +331,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         sb.append((0 != ( STATE_MASK_FOCUSED & mask))?"focused, ":"");
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_DECORATION & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_DECORATION & mask) ) {
+                sb.append("*");
+            }
             sb.append((0 != ( STATE_MASK_UNDECORATED & mask))?"undecor":"decor");
             sb.append(", ");
         } else if( 0 != ( STATE_MASK_UNDECORATED & mask) ) {
@@ -319,8 +342,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append(", ");
         }
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_ALWAYSONTOP & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_ALWAYSONTOP & mask) ) {
+                sb.append("*");
+            }
             sb.append((0 != ( STATE_MASK_ALWAYSONTOP & mask))?"aontop":"!aontop");
             sb.append(", ");
         } else if( 0 != ( STATE_MASK_ALWAYSONTOP & mask) ) {
@@ -328,8 +353,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append(", ");
         }
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_ALWAYSONBOTTOM & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_ALWAYSONBOTTOM & mask) ) {
+                sb.append("*");
+            }
             sb.append((0 != ( STATE_MASK_ALWAYSONBOTTOM & mask))?"aonbottom":"!aonbottom");
             sb.append(", ");
         } else if( 0 != ( STATE_MASK_ALWAYSONBOTTOM & mask) ) {
@@ -337,8 +364,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append(", ");
         }
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_STICKY & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_STICKY & mask) ) {
+                sb.append("*");
+            }
             sb.append((0 != ( STATE_MASK_STICKY & mask))?"sticky":"unsticky");
             sb.append(", ");
         } else if( 0 != ( STATE_MASK_STICKY & mask) ) {
@@ -346,8 +375,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append(", ");
         }
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_RESIZABLE & mask) ) {
-            sb.append("*");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_RESIZABLE & mask) ) {
+                sb.append("*");
+            }
             sb.append((0 != ( STATE_MASK_RESIZABLE & mask))?"resizable":"unresizable");
             sb.append(", ");
         } else if( 0 == ( STATE_MASK_RESIZABLE & mask) ) {
@@ -355,7 +386,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append(", ");
         }
 
-        if( showChangeFlags && 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & mask) ) {
+        if( showChangeFlags ) {
             sb.append("max[");
             if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & mask) ) {
                 sb.append("*");
@@ -384,28 +415,47 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sb.append("], ");
         }
 
-        if( showChangeFlags && 0 != ( CHANGE_MASK_FULLSCREEN & mask) ) {
-            sb.append("*");
-            sb.append((0 != ( STATE_MASK_FULLSCREEN & mask))?"fullscreen":"window");
-            sb.append((0 != ( STATE_MASK_FULLSCREEN_SPAN & mask))?"[span]":"[]");
-            sb.append(", ");
+        if( showChangeFlags ) {
+            if( 0 != ( CHANGE_MASK_FULLSCREEN & mask) ) {
+                sb.append("*");
+            }
+            sb.append("fullscreen[");
+            sb.append(0 != ( STATE_MASK_FULLSCREEN & mask));
+            sb.append((0 != ( STATE_MASK_FULLSCREEN_SPAN & mask))?", span":"");
+            sb.append("], ");
         } else if( 0 != ( STATE_MASK_FULLSCREEN & mask) ) {
             sb.append("fullscreen");
             sb.append(", ");
         }
 
-        if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ||
-            0 != ( STATE_MASK_POINTERCONFINED & mask) )
-        {
-            sb.append("pointer[");
-            if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
-                sb.append("invisible");
+        if( showChangeFlags ) {
+                sb.append("pointer[");
+                if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
+                    sb.append("invisible");
+                } else {
+                    sb.append("visible");
+                }
                 sb.append(", ");
+                if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
+                    sb.append("confined");
+                } else {
+                    sb.append("free");
+                }
+                sb.append("]");
+        } else {
+            if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ||
+                0 != ( STATE_MASK_POINTERCONFINED & mask) )
+            {
+                sb.append("pointer[");
+                if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
+                    sb.append("invisible");
+                    sb.append(", ");
+                }
+                if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
+                    sb.append("confined");
+                }
+                sb.append("]");
             }
-            if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
-                sb.append("confined");
-            }
-            sb.append("]");
         }
         sb.append("]");
         return sb;
@@ -670,6 +720,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     final long t0 = System.currentTimeMillis();
                     createNativeImpl();
+                    supportedReconfigStateMask = getSupportedReconfigMaskImpl();
+                    if( DEBUG_IMPLEMENTATION) {
+                        System.err.println("Supported Reconfig: "+appendStateBits(new StringBuilder(), supportedReconfigStateMask, true).toString());
+                    }
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
                     setPointerIconIntern(pointerIcon);
@@ -847,6 +901,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected abstract void requestFocusImpl(boolean force);
 
     /**
+     * Returns the reconfigure state-mask supported by the implementation.
+     * <p>
+     * Default value is {@link #STATE_MASK_VISIBLE} | {@link #STATE_MASK_FOCUSED},
+     * i.e. the <b>minimum requirement</b> for all implementations.
+     * </p>
+     * @see #getSupportedStateMask()
+     * @see #reconfigureWindowImpl(int, int, int, int, int)
+     */
+    protected abstract int getSupportedReconfigMaskImpl();
+
+    /**
      * The native implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.
      *
@@ -861,19 +926,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param height client-area size in window units, or <=0 if unchanged
      * @param flags bitfield of change and status flags
      *
+     * @see #getSupportedReconfigMaskImpl()
      * @see #sizeChanged(int,int)
      * @see #positionChanged(boolean,int, int)
      */
     protected abstract boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags);
 
     /**
-     * Tests whether a single reconfigure flag is supported by implementation.
-     * <p>
-     * Default is all but {@link #STATE_MASK_FULLSCREEN_SPAN}
-     * </p>
+     * Tests whether the given reconfigure state-mask is supported by implementation.
      */
-    protected boolean isReconfigureMaskSupported(final int changeFlags) {
-        return 0 == ( changeFlags & STATE_MASK_FULLSCREEN_SPAN );
+    protected final boolean isReconfigureMaskSupported(final int changeFlags) {
+        return changeFlags == ( changeFlags & supportedReconfigStateMask );
     }
 
     protected int getReconfigureMask(final int changeFlags, final boolean visible) {

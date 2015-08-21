@@ -255,6 +255,8 @@ public class TestGearsES2NEWT extends UITestCase {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         }
 
+        System.err.println("Window Current State   : "+glWindow.getStateMaskString());
+        System.err.println("Window Supported States: "+glWindow.getSupportedStateMaskString());
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());

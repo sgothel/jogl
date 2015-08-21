@@ -39,7 +39,6 @@ import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.VisualIDHolder.VIDType;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 
@@ -94,6 +93,12 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected void requestFocusImpl(final boolean reparented) { }
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask |
+               STATE_MASK_FULLSCREEN;
+    }
 
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, int width, int height, final int flags) {

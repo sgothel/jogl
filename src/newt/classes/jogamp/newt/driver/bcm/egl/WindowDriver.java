@@ -38,7 +38,6 @@ import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 
@@ -91,6 +90,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         } else {
             defineSize(width, height);
         }
+    }
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask;
     }
 
     @Override

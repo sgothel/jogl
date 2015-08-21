@@ -46,7 +46,6 @@ import jogamp.newt.driver.PNGIcon;
 
 import com.jogamp.nativewindow.*;
 import com.jogamp.nativewindow.VisualIDHolder.VIDType;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
 
@@ -134,7 +133,7 @@ public class WindowDriver extends WindowImpl {
             if (null == handles || 2 != handles.length || 0 == handles[0] || 0 == handles[1] ) {
                 throw new NativeWindowException("Error creating window");
             }
-            if(DEBUG_IMPLEMENTATION) { // FIXME
+            if(DEBUG_IMPLEMENTATION) {
                 System.err.println("X11Window.createNativeImpl() handles "+toHexString(handles[0])+", "+toHexString(handles[1]));
             }
             setWindowHandle(handles[0]);
@@ -169,15 +168,9 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * X11 Window supports {@link #STATE_BIT_FULLSCREEN_SPAN}.
-     * </p>
-     */
     @Override
-    protected boolean isReconfigureMaskSupported(final int changeFlags) {
-        return true; // all flags!
+    protected final int getSupportedReconfigMaskImpl() {
+        return GetSupportedReconfigMask0(javaWindowHandle) & STATE_MASK_ALL_RECONFIG;
     }
 
     @Override
@@ -453,12 +446,12 @@ public class WindowDriver extends WindowImpl {
                                         int x, int y, int width, int height, int flags,
                                         int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct,
                                         boolean verbose);
-    private native long GetNativeWindowHandle0(long javaWindowHandle);
+    private static native int GetSupportedReconfigMask0(long javaWindowHandle);
     private native void CloseWindow0(long display, long javaWindowHandle /*, long kbdHandle*/, // XKB disabled for now
                                      final int randr_event_base, final int randr_error_base);
-    private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long javaWindowHandle,
-                                           int x, int y, int width, int height, int flags);
-    private native void requestFocus0(long display, long javaWindowHandle, boolean force);
+    private static native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long javaWindowHandle,
+                                                  int x, int y, int width, int height, int flags);
+    private static native void requestFocus0(long display, long javaWindowHandle, boolean force);
 
     private static native void setTitle0(long display, long javaWindowHandle, String title);
 

@@ -36,7 +36,6 @@ import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowException;
 
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
@@ -246,6 +245,21 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void requestFocusImpl(final boolean reparented) {
         focusChanged(false, true);
+    }
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask |
+               // STATE_MASK_UNDECORATED |
+               // STATE_MASK_ALWAYSONTOP |
+               // STATE_MASK_ALWAYSONBOTTOM |
+               // STATE_MASK_STICKY |
+               // STATE_MASK_RESIZABLE |
+               // STATE_MASK_MAXIMIZED_VERT |
+               // STATE_MASK_MAXIMIZED_HORZ |
+               STATE_MASK_FULLSCREEN | // due to size change
+               STATE_MASK_POINTERVISIBLE |
+               STATE_MASK_POINTERCONFINED;
     }
 
     @Override

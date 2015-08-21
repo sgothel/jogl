@@ -988,6 +988,34 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
 
 /*
  * Class:     jogamp_newt_driver_x11_WindowDriver
+ * Method:    GetSupportedReconfigMask0
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_WindowDriver_GetSupportedReconfigMask0
+  (JNIEnv *env, jclass clazz, jlong javaWindow)
+{
+    JavaWindow * jw = (JavaWindow*)(intptr_t)javaWindow;
+    uint32_t supported = jw->supportedAtoms;
+    return 
+        FLAG_IS_VISIBLE |
+        FLAG_IS_AUTOPOSITION |
+        FLAG_IS_CHILD |
+        FLAG_IS_FOCUSED |
+        FLAG_IS_UNDECORATED |
+        ( ( 0 != ( _MASK_NET_WM_STATE_ABOVE & supported ) ) ? FLAG_IS_ALWAYSONTOP : 0 ) |
+        ( ( 0 != ( _MASK_NET_WM_STATE_BELOW & supported ) ) ? FLAG_IS_ALWAYSONBOTTOM : 0 ) |
+        ( ( 0 != ( _MASK_NET_WM_DESKTOP & supported ) ) ? FLAG_IS_STICKY : 0 ) |
+        FLAG_IS_RESIZABLE |
+        ( ( 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_VERT & supported ) ) ? FLAG_IS_MAXIMIZED_VERT : 0 ) |
+        ( ( 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_HORZ & supported ) ) ? FLAG_IS_MAXIMIZED_HORZ : 0 ) |
+        FLAG_IS_FULLSCREEN |
+        FLAG_IS_POINTERVISIBLE |
+        FLAG_IS_POINTERCONFINED |
+        FLAG_IS_FULLSCREEN_SPAN;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    CloseWindow
  * Signature: (JJ)V
  */
@@ -1065,7 +1093,7 @@ static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
  * Signature: (JIJJIIIII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindow0
-  (JNIEnv *env, jobject obj, jlong jdisplay, jint screen_index,
+  (JNIEnv *env, jclass clazz, jlong jdisplay, jint screen_index,
    jlong jparent, jlong javaWindow,
    jint x, jint y, jint width, jint height, jint flags)
 {
@@ -1259,7 +1287,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
  * Signature: (JJZ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_requestFocus0
-  (JNIEnv *env, jobject obj, jlong display, jlong javaWindow, jboolean force)
+  (JNIEnv *env, jclass clazz, jlong display, jlong javaWindow, jboolean force)
 {
     NewtWindows_requestFocus ( (Display *) (intptr_t) display, (JavaWindow*)(intptr_t)javaWindow, JNI_TRUE==force?True:False ) ;
 }
