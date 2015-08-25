@@ -38,6 +38,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.Capabilities;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.util.Point;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
@@ -135,19 +136,52 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
         if (underlayWindowMap.containsKey(s)) {
             WindowImpl underlayWindow = (WindowImpl)s;
             WindowImpl overlayWindow = underlayWindowMap.get(s);
-            if(overlayWindow.getX()!=underlayWindow.getX() ||
-               overlayWindow.getY()!=underlayWindow.getY()) {
-                overlayWindow.setPosition(underlayWindow.getX(), underlayWindow.getY());
+            Point overlayOnScreen = new Point();
+            Point underlayOnScreen = new Point();
+            overlayWindow.getLocationOnScreen(overlayOnScreen);
+            underlayWindow.getLocationOnScreen(underlayOnScreen);
+            if(overlayOnScreen.getX()!=underlayOnScreen.getX() ||
+               overlayOnScreen.getY()!=underlayOnScreen.getY()) {
+                overlayWindow.setPosition(underlayOnScreen.getX(), underlayOnScreen.getY());
             }
         } else if (overlayWindowMap.containsKey(s)) {
             WindowImpl overlayWindow = (WindowImpl)s;
             WindowImpl underlayWindow = overlayWindowMap.get(s);
-            if(overlayWindow.getX()!=underlayWindow.getX() ||
-               overlayWindow.getY()!=underlayWindow.getY()) {
-                //FIXME: Pressing Maximize on the underlay X11
-                //with this line enabled locks-up the NEWT EDT while using the BCM.VC.IV
-                //underlayWindow.setPosition(overlayWindow.getX(), overlayWindow.getY());
+            // FIXME: Pressing Maximize on the underlay X11
+            // with these lines enabled locks-up the NEWT EDT
+            /*
+            Point overlayOnScreen = new Point();
+            Point underlayOnScreen = new Point();
+            overlayWindow.getLocationOnScreen(overlayOnScreen);
+            underlayWindow.getLocationOnScreen(underlayOnScreen);
+            if(overlayOnScreen.getX()!=underlayOnScreen.getX() ||
+               overlayOnScreen.getY()!=underlayOnScreen.getY()) {
+                underlayWindow.setPosition(overlayOnScreen.getX(), overlayOnScreen.getY());
             }
+            */
+           /* it locks up like this
+    Caused by: java.lang.RuntimeException: Waited 5000ms for: <5ccc078, 45700941>[count 1, qsz 0, owner <main-Display-.x11_:0-1-EDT-1>] - <main-Display-.x11_:0-2-EDT-1>
+    at jogamp.common.util.locks.RecursiveLockImpl01Unfairish.lock(RecursiveLockImpl01Unfairish.java:198)
+    at jogamp.nativewindow.ResourceToolkitLock.lock(ResourceToolkitLock.java:56)
+    at com.jogamp.nativewindow.DefaultGraphicsDevice.lock(DefaultGraphicsDevice.java:126)
+    at jogamp.newt.DisplayImpl.runWithLockedDevice(DisplayImpl.java:780)
+    at jogamp.newt.DisplayImpl.runWithLockedDisplayDevice(DisplayImpl.java:793)
+    at jogamp.newt.driver.x11.WindowDriver.runWithLockedDisplayDevice(WindowDriver.java:425)
+    at jogamp.newt.driver.x11.WindowDriver.getLocationOnScreenImpl(WindowDriver.java:334)
+    at jogamp.newt.WindowImpl.getLocationOnScreen(WindowImpl.java:1113)
+    at jogamp.newt.driver.x11.X11UnderlayTracker.windowMoved(X11UnderlayTracker.java:153)
+    at jogamp.newt.WindowImpl.consumeWindowEvent(WindowImpl.java:4243)
+    at jogamp.newt.WindowImpl.sendWindowEvent(WindowImpl.java:4174)
+    at jogamp.newt.WindowImpl.positionChanged(WindowImpl.java:4403)
+    at jogamp.newt.WindowImpl.sizePosMaxInsetsChanged(WindowImpl.java:4567)
+    at jogamp.newt.driver.x11.DisplayDriver.DispatchMessages0(Native Method)
+    at jogamp.newt.driver.x11.DisplayDriver.dispatchMessagesNative(DisplayDriver.java:112)
+    at jogamp.newt.WindowImpl.waitForPosition(WindowImpl.java:4438)
+    at jogamp.newt.WindowImpl.access$2200(WindowImpl.java:96)
+    at jogamp.newt.WindowImpl$SetPositionAction.run(WindowImpl.java:2765)
+    at com.jogamp.common.util.RunnableTask.run(RunnableTask.java:150)
+    at jogamp.newt.DefaultEDTUtil$NEDT.run(DefaultEDTUtil.java:372)
+            */
         }
     }
 
@@ -366,20 +400,16 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void keyPressed(KeyEvent e) {
         if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
             focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(),
-                                       e.getKeyCode(), e.getKeyCode(), (char) e.getKeySymbol());
+                                       e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
             focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(),
-                                       e.getKeyCode(), e.getKeyCode(), (char) e.getKeySymbol());
+                                       e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
         }
     }
 
