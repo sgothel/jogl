@@ -226,6 +226,8 @@ typedef struct {
     BOOL isMinimized;
     /** Bool: 0 NOP, 1 maximized */
     BOOL isMaximized;
+    BOOL isOnBottom;
+    BOOL isOnTop;
     int pointerCaptured;
     int pointerInside;
     int touchDownCount;
@@ -608,11 +610,19 @@ static int WmKeyUp(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE s
 
 static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jboolean force) {
     HWND pHwnd, current;
+    WindowUserData * wud;
     BOOL isEnabled = IsWindowEnabled(hwnd);
     pHwnd = GetParent(hwnd);
     current = GetFocus();
-    DBG_PRINT("*** WindowsWindow: requestFocus.S force %d, parent %p, window %p, isEnabled %d, isCurrent %d\n", 
-        (int)force, (void*)pHwnd, (void*)hwnd, isEnabled, current==hwnd);
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
+    wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+#endif
+
+    DBG_PRINT("*** WindowsWindow: requestFocus.S force %d, parent %p, window %p, isEnabled %d, isCurrent %d, isOn[Top %d, Bottom %d]\n", 
+        (int)force, (void*)pHwnd, (void*)hwnd, isEnabled, current==hwnd,
+        wud->isOnTop, wud->isOnBottom);
 
     if( JNI_TRUE==force || current!=hwnd || !isEnabled ) {
         UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
@@ -674,7 +684,7 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
 
     if (IsIconic(hwnd)) {
         wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = -1;
-        return FALSE;
+        return;
     }
 
     wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = 0;
@@ -2085,6 +2095,8 @@ static void NewtWindow_setVisiblePosSize(WindowUserData *wud, HWND hwnd, int jfl
         wflags |= SWP_NOSIZE;
     }
 
+    wud->isOnTop = atop;
+    wud->isOnBottom = abottom;
     if(atop) {
         SetWindowPos(hwnd, HWND_TOP, x, y, width, height, wflags);
         SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, height, wflags);
@@ -2191,6 +2203,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->isChildWindow = NULL!=parentWindow;
         wud->isMinimized = FALSE;
         wud->isMaximized = FALSE;
+        wud->isOnBottom = FALSE;
+        wud->isOnTop = FALSE;
         wud->pointerCaptured = 0;
         wud->pointerInside = 0;
         wud->touchDownCount = 0;
@@ -2283,6 +2297,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     DWORD windowStyle = WS_DEFAULT_STYLES;
     BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || 
                        TST_FLAG_CHANGE_PARENTING(flags) || TST_FLAG_CHANGE_RESIZABLE(flags);
+    BOOL atop = TST_FLAG_IS_ALWAYSONTOP(flags);
+    BOOL abottom = TST_FLAG_IS_ALWAYSONBOTTOM(flags);
     WindowUserData * wud;
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
     wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
@@ -2290,12 +2306,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
 #endif
 
-    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, undecoration[change %d, val %d], fullscreen[change %d, val %d], alwaysOnTop[change %d, val %d], visible[change %d, val %d], resizable[change %d, val %d] -> styleChange %d, isChild %d, isMinimized %d, isMaximized %d, isFullscreen %d\n",
+    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, isChild %d, undecoration[change %d, val %d], fullscreen[change %d, val %d], alwaysOnTop[change %d, val %d], alwaysOnBottom[change %d, val %d], visible[change %d, val %d], resizable[change %d, val %d] -> styleChange %d, isChild %d, isMinimized %d, isMaximized %d, isFullscreen %d\n",
         parent, window, x, y, width, height,
         TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_IS_CHILD(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
+        TST_FLAG_CHANGE_ALWAYSONBOTTOM(flags), TST_FLAG_IS_ALWAYSONBOTTOM(flags),
         TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), 
         TST_FLAG_CHANGE_RESIZABLE(flags), TST_FLAG_CHANGE_RESIZABLE(flags), styleChange, 
         wud->isChildWindow, wud->isMinimized, wud->isMaximized, wud->isFullscreen);
@@ -2304,6 +2321,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
         DBG_PRINT("*** WindowsWindow: reconfigureWindow0 failure: Passed window %p is invalid\n", (void*)hwnd);
         return;
     }
+
+    wud->isOnTop = atop;
+    wud->isOnBottom = abottom;
 
     if (NULL!=hwndP && !IsWindow(hwndP)) {
         DBG_PRINT("*** WindowsWindow: reconfigureWindow0 failure: Passed parent window %p is invalid\n", (void*)hwndP);
