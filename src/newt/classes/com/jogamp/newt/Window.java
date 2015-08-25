@@ -369,20 +369,20 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * <p>
      * Semantic of the supported state-mask bits:
      * <ul>
-     * <li>{@link #STATE_BIT_VISIBLE}: {@link #setVisible(boolean) Visibility} can be toggled after creation. <b>Minimum requirement</b>.</li>
-     * <li>{@link #STATE_BIT_AUTOPOSITION}: {@code WindowManager autoposition} is supported.</li>
-     * <li>{@link #STATE_BIT_CHILDWIN}: {@link #reparentWindow(NativeWindow, int, int, int) Native window parenting} is supported.</li>
-     * <li>{@link #STATE_BIT_FOCUSED}: Window {@link #requestFocus() focus management} is supported.  <b>Minimum requirement</b>.</li>
-     * <li>{@link #STATE_BIT_UNDECORATED}: {@link #setUndecorated(boolean) Window decoration} can be toggled after creation.</li>
-     * <li>{@link #STATE_BIT_ALWAYSONTOP}: Window can be set {@link #setAlwaysOnTop(boolean) always-on-top}. </li>
-     * <li>{@link #STATE_BIT_ALWAYSONBOTTOM}: Window can be set {@link #setAlwaysOnBottom(boolean) always-on-bottom}. </li>
-     * <li>{@link #STATE_BIT_STICKY}: Window can be set {@link #setSticky(boolean) sticky}.</li>
-     * <li>{@link #STATE_BIT_RESIZABLE}: Window {@link #setResizable(boolean) resizability} can be disabled and toggled.</li>
-     * <li>{@link #STATE_BIT_MAXIMIZED_VERT}: Window can be {@link #setMaximized(boolean, boolean) maximized-vertically}. </li>
-     * <li>{@link #STATE_BIT_MAXIMIZED_HORZ}: Window can be {@link #setMaximized(boolean, boolean) maximized-horizontally}. </li>
-     * <li>{@link #STATE_BIT_FULLSCREEN}: Window {@link #setFullscreen(boolean) fullscreen} can be toggled after creation. </li>
-     * <li>{@link #STATE_BIT_POINTERVISIBLE}: Window {@link #setPointerVisible(boolean) pointer visibility} can be toggled. </li>
-     * <li>{@link #STATE_BIT_POINTERCONFINED}: Window {@link #confinePointer(boolean) pointer can be confined}. </li>
+     * <li>{@link #STATE_MASK_VISIBLE}: {@link #setVisible(boolean) Visibility} can be toggled after creation. <b>Minimum requirement</b>.</li>
+     * <li>{@link #STATE_MASK_AUTOPOSITION}: {@code WindowManager autoposition} is supported.</li>
+     * <li>{@link #STATE_MASK_CHILDWIN}: {@link #reparentWindow(NativeWindow, int, int, int) Native window parenting} is supported.</li>
+     * <li>{@link #STATE_MASK_FOCUSED}: Window {@link #requestFocus() focus management} is supported.  <b>Minimum requirement</b>.</li>
+     * <li>{@link #STATE_MASK_UNDECORATED}: {@link #setUndecorated(boolean) Window decoration} can be toggled after creation.</li>
+     * <li>{@link #STATE_MASK_ALWAYSONTOP}: Window can be set {@link #setAlwaysOnTop(boolean) always-on-top}. </li>
+     * <li>{@link #STATE_MASK_ALWAYSONBOTTOM}: Window can be set {@link #setAlwaysOnBottom(boolean) always-on-bottom}. </li>
+     * <li>{@link #STATE_MASK_STICKY}: Window can be set {@link #setSticky(boolean) sticky}.</li>
+     * <li>{@link #STATE_MASK_RESIZABLE}: Window {@link #setResizable(boolean) resizability} can be disabled and toggled.</li>
+     * <li>{@link #STATE_MASK_MAXIMIZED_VERT}: Window can be {@link #setMaximized(boolean, boolean) maximized-vertically}. </li>
+     * <li>{@link #STATE_MASK_MAXIMIZED_HORZ}: Window can be {@link #setMaximized(boolean, boolean) maximized-horizontally}. </li>
+     * <li>{@link #STATE_MASK_FULLSCREEN}: Window {@link #setFullscreen(boolean) fullscreen} can be toggled after creation. </li>
+     * <li>{@link #STATE_MASK_POINTERVISIBLE}: Window {@link #setPointerVisible(boolean) pointer visibility} can be toggled. </li>
+     * <li>{@link #STATE_MASK_POINTERCONFINED}: Window {@link #confinePointer(boolean) pointer can be confined}. </li>
      * </ul>
      * </p>
      * @see #getStateMask()

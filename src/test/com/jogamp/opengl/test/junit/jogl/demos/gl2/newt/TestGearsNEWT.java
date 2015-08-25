@@ -28,10 +28,9 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.newt;
 
-import com.jogamp.newt.event.KeyAdapter;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import com.jogamp.opengl.util.Animator;
@@ -84,25 +83,9 @@ public class TestGearsNEWT extends UITestCase {
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
-        final GLWindow f_glWindow = glWindow;
-        glWindow.addKeyListener(new KeyAdapter() {
-            public void keyReleased(final KeyEvent e) {
-                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
-                    return;
-                }
-                if(e.getKeyChar()=='f') {
-                    new Thread() {
-                        public void run() {
-                            f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
-                    } }.start();
-                } else if(e.getKeyChar()=='d') {
-                    new Thread() {
-                        public void run() {
-                            f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
-                    } }.start();
-                }
-            }
-        });
+        final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
+        glWindow.addKeyListener(newtDemoListener);
+        glWindow.addMouseListener(newtDemoListener);
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);

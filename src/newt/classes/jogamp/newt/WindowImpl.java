@@ -223,7 +223,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Reconfig mask for createNativeImpl(..) taking out from {@link #getStateMask()}:
      * <ul>
-     *   <li>{@link #STATE_MASK_VISIBLE}</li>
      *   <li>{@link #STATE_MASK_FULLSCREEN}</li>
      *   <li>{@link #STATE_MASK_POINTERVISIBLE}</li>
      *   <li>{@link #STATE_MASK_POINTERCONFINED}</li>
@@ -231,13 +230,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Above taken out states are achieved from caller createNative() 'manually'.
      * @since 2.3.2
      */
-    protected final int STATE_MASK_CREATENATIVE = STATE_MASK_UNDECORATED |
-                                                  STATE_MASK_ALWAYSONTOP |
-                                                  STATE_MASK_ALWAYSONBOTTOM |
-                                                  STATE_MASK_STICKY |
-                                                  STATE_MASK_RESIZABLE |
-                                                  STATE_MASK_MAXIMIZED_VERT |
-                                                  STATE_MASK_MAXIMIZED_HORZ;
+    protected final int STATE_MASK_CREATENATIVE = STATE_MASK_ALL_PUBLIC &
+                                                  ~( STATE_MASK_FULLSCREEN |
+                                                     STATE_MASK_POINTERVISIBLE |
+                                                     STATE_MASK_POINTERCONFINED
+                                                   );
     //
     // Additional private state-mask mask values for reconfiguration only
     // (keep in sync w/ src/newt/native/Window.h)
@@ -262,12 +259,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /* pp */ final void resetStateMask() {
         stateMask.clearField(false);
-        stateMask.set(STATE_BIT_AUTOPOSITION);
-        stateMask.put(STATE_BIT_CHILDWIN, null != parentWindow);
-        stateMask.set(STATE_BIT_RESIZABLE);
-        stateMask.set(STATE_BIT_POINTERVISIBLE);
-        stateMask.set(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
-        stateMask.set(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
+        stateMask.put32(0, 32,
+                STATE_MASK_AUTOPOSITION |
+                ( null != parentWindow ? STATE_MASK_CHILDWIN : 0 ) |
+                STATE_MASK_RESIZABLE |
+                STATE_MASK_POINTERVISIBLE |
+                PSTATE_MASK_FULLSCREEN_NFS_RESIZABLE |
+                PSTATE_MASK_FULLSCREEN_MAINMONITOR);
         normPosSizeStored[0] = false;
         normPosSizeStored[1] = false;
         supportedReconfigStateMask = STATE_MASK_ALL_RECONFIG;
@@ -2917,7 +2915,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final int changeMask;
                 try {
                     {
-                        // Enter fullscreen - Disable alwaysOnTop/alwaysOnBottom/resizableChange
+                        // Enter fullscreen - Disable alwaysOnTop/resizableChange
                         int cm = 0;
                         if( alwaysOnTopChange ) {
                             cm = CHANGE_MASK_ALWAYSONTOP;
@@ -2928,7 +2926,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         changeMask = cm;
                     }
                     if( _fullscreen && 0 != changeMask ) {
-                        // Enter fullscreen - Disable alwaysOnTop/alwaysOnBottom/resizableChange
+                        // Enter fullscreen - Disable alwaysOnTop/resizableChange
                         reconfigureWindowImpl(oldX, oldY, oldWidth, oldHeight, getReconfigureMask(changeMask, isVisible()));
                     }
 
