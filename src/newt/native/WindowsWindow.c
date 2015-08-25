@@ -629,10 +629,22 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jb
         if(!isEnabled) {
             EnableWindow(hwnd, TRUE);
         }
-        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
-        SetForegroundWindow(hwnd);  // Slightly Higher Priority
+        BOOL frontWindow;
+        if( wud->isOnBottom ) {
+            SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+            frontWindow = FALSE;
+        } else if( wud->isOnTop ) {
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, flags);
+            frontWindow = TRUE;
+        } else {
+            SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
+            frontWindow = TRUE;
+        }
+        if( frontWindow ) {
+            SetForegroundWindow(hwnd);  // Slightly Higher Priority
+        }
         SetFocus(hwnd);// Sets Keyboard Focus To Window (activates parent window if exist, or this window)
-        if(NULL!=pHwnd) {
+        if( frontWindow && NULL!=pHwnd ) {
             SetActiveWindow(hwnd);
         }
         current = GetFocus();
@@ -969,13 +981,46 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     // Bug 916 - NEWT Fullscreen Mode on Windows ALT-TAB doesn't allow Application Switching
                     // Remedy for 'some' display drivers, i.e. Intel HD: 
                     // Explicitly push fullscreen window to BOTTOM when inactive (ALT-TAB)
-                    UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
-                    if( inactive ) {
-                        SetWindowPos(wnd, HWND_BOTTOM, 0, 0, 0, 0, flags);
+                    if( inactive || wud->isOnBottom ) {
+                        SetWindowPos(wnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
                     } else {
-                        SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0, flags);
+                        UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
+                        if( wud->isOnTop ) {
+                            SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, flags);
+                        } else {
+                            SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0, flags);
+                        }
                         SetForegroundWindow(wnd);  // Slightly Higher Priority
                     }
+                }
+                useDefWindowProc = 1;
+            }
+            break;
+
+        case WM_WINDOWPOSCHANGING: {
+                WINDOWPOS *p = (WINDOWPOS*)lParam;
+                BOOL isThis = wnd == p->hwnd;
+                BOOL isBottom = HWND_BOTTOM == p->hwndInsertAfter;
+                BOOL isTopMost = HWND_TOPMOST == p->hwndInsertAfter;
+                BOOL forceBottom = isThis && wud->isOnBottom && !isBottom;
+                BOOL forceTop = isThis && wud->isOnTop && !isTopMost;
+                #ifdef VERBOSE_ON
+                    BOOL isNoTopMost = HWND_NOTOPMOST == p->hwndInsertAfter;
+                    BOOL isTop = HWND_TOP == p->hwndInsertAfter;
+                    BOOL isTopMost = HWND_TOPMOST == p->hwndInsertAfter;
+                    BOOL isNoZ = 0 != ( SWP_NOZORDER & p->flags );
+                    DBG_PRINT("*** WindowsWindow: WM_WINDOWPOSCHANGING window %p / %p (= %d), %p[bottom %d, notop %d, top %d, topmost %d, noZ %d, force[Top %d, Bottom %d], %d/%d %dx%d 0x%X\n", 
+                        wnd, p->hwnd, isThis, 
+                        p->hwndInsertAfter, isBottom, isNoTopMost, isTop, isTopMost, isNoZ,
+                        forceTop, forceBottom,
+                        p->x, p->y, p->cx, p->cy, p->flags);
+                #endif
+                if( forceTop ) {
+                    p->hwndInsertAfter = HWND_TOPMOST;
+                    p->flags &= ~SWP_NOZORDER;
+                } else if( forceBottom ) {
+                    p->hwndInsertAfter = HWND_BOTTOM;
+                    p->flags &= ~SWP_NOZORDER;
                 }
                 useDefWindowProc = 1;
             }
@@ -2088,6 +2133,9 @@ static void NewtWindow_setVisiblePosSize(WindowUserData *wud, HWND hwnd, int jfl
 
     if(visible) {
         wflags = SWP_SHOWWINDOW;
+        if( abottom ) {
+            wflags |= SWP_NOACTIVATE;
+        }
     } else {
         wflags = SWP_NOACTIVATE | SWP_NOZORDER;
     }
@@ -2107,7 +2155,6 @@ static void NewtWindow_setVisiblePosSize(WindowUserData *wud, HWND hwnd, int jfl
         SetWindowPos(hwnd, HWND_NOTOPMOST, x, y, width, height, wflags);
         SetWindowPos(hwnd, HWND_TOP, x, y, width, height, wflags);
     }
-    // SetWindowPos(hwnd, atop ? HWND_TOPMOST : HWND_TOP, x, y, width, height, wflags);
 
     if( TST_FLAG_CHANGE_MAXIMIZED_ANY(jflags) ) {
         if( TST_FLAG_IS_MAXIMIZED_VERT(jflags) && TST_FLAG_IS_MAXIMIZED_HORZ(jflags) ) {
@@ -2349,10 +2396,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
         SetParent(hwnd, NULL);
     }
     
-    if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
-        // TOP: in -> out
-        wud->isFullscreen = TRUE;
-        NewtWindows_setFullScreen(JNI_TRUE);
+    if( TST_FLAG_IS_FULLSCREEN(flags) ) {
+        if( TST_FLAG_CHANGE_FULLSCREEN(flags) ) { // FS on
+            wud->isFullscreen = TRUE;
+            if( !abottom ) {
+                NewtWindows_setFullScreen(JNI_TRUE);
+            }
+        } else if( TST_FLAG_CHANGE_ALWAYSONBOTTOM(flags) ) { // FS BOTTOM toggle
+            NewtWindows_setFullScreen( abottom ? JNI_FALSE : JNI_TRUE);
+        }
     }
 
     if ( styleChange ) {
@@ -2371,7 +2423,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     }
 
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
-        // CHILD: out -> in
         wud->isFullscreen = FALSE;
         NewtWindows_setFullScreen(JNI_FALSE);
     }
@@ -2385,9 +2436,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 
     if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
         if( TST_FLAG_IS_VISIBLE(flags) ) {
-            int cmd = wud->isMinimized ? SW_RESTORE : SW_SHOW;
+            int cmd = wud->isMinimized ? SW_RESTORE : ( abottom ? SW_SHOWNA : SW_SHOW );
             wud->isMinimized = FALSE;
             ShowWindow(hwnd, cmd);
+            if( abottom ) {
+                SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+            }
         } else if( !TST_FLAG_CHANGE_VISIBILITY_FAST(flags) && !TST_FLAG_IS_CHILD(flags) ) {
             wud->isMinimized = TRUE;
             ShowWindow(hwnd, SW_MINIMIZE);
