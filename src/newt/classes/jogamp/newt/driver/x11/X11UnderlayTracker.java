@@ -400,20 +400,16 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
     @Override
     public void keyPressed(KeyEvent e) {
         if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
             focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(),
-                                       e.getKeyCode(), e.getKeyCode(), (char) e.getKeySymbol());
+                                       e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         if (focusedWindow != null) {
-            // e.setConsumed(false);
-            // focusedWindow.consumeEvent(e);
             focusedWindow.sendKeyEvent(e.getEventType(), e.getModifiers(),
-                                       e.getKeyCode(), e.getKeyCode(), (char) e.getKeySymbol());
+                                       e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
         }
     }
 
