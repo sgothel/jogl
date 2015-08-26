@@ -1813,6 +1813,31 @@ public abstract class GLContextImpl extends GLContext {
     return true;
   }
 
+  private static final void addStickyQuirkAlways(final AbstractGraphicsDevice adevice,
+                                                 final GLRendererQuirks quirks,
+                                                 final int quirk,
+                                                 final boolean withinGLVersionsMapping) {
+        quirks.addQuirk( quirk );
+        if( withinGLVersionsMapping ) {
+            // Thread safe due to single threaded initialization!
+            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+        } else {
+            // FIXME: Remove when moving EGL/ES to ARB ctx creation
+            synchronized(GLContextImpl.class) {
+                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+            }
+        }
+  }
+  private static final void addStickyQuirkAtMapping(final AbstractGraphicsDevice adevice,
+                                                    final GLRendererQuirks quirks,
+                                                    final int quirk,
+                                                    final boolean withinGLVersionsMapping) {
+        quirks.addQuirk( quirk );
+        if( withinGLVersionsMapping ) {
+            // Thread safe due to single threaded initialization!
+            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+        }
+  }
   private final void setRendererQuirks(final AbstractGraphicsDevice adevice, final GLDrawableFactoryImpl factory,
                                        final int reqMajor, final int reqMinor, final int reqCTP,
                                        final int major, final int minor, final int ctp, final VersionNumberString vendorVersion,
@@ -1851,16 +1876,7 @@ public abstract class GLContextImpl extends GLContext {
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: ES req "+reqMajor+" and 2 < "+major);
             }
-            quirks.addQuirk( quirk );
-            if( withinGLVersionsMapping ) {
-                // Thread safe due to single threaded initialization!
-                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-            } else {
-                // FIXME: Remove when moving EGL/ES to ARB ctx creation
-                synchronized(GLContextImpl.class) {
-                    GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-                }
-            }
+            addStickyQuirkAlways(adevice, quirks, quirk, withinGLVersionsMapping);
         }
     }
     if( GLProfile.disableSurfacelessContext ) {
@@ -1868,32 +1884,14 @@ public abstract class GLContextImpl extends GLContext {
         if(DEBUG) {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: disabled");
         }
-        quirks.addQuirk( quirk );
-        if( withinGLVersionsMapping ) {
-            // Thread safe due to single threaded initialization!
-            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-        } else {
-            // FIXME: Remove when moving EGL/ES to ARB ctx creation
-            synchronized(GLContextImpl.class) {
-                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-            }
-        }
+        addStickyQuirkAlways(adevice, quirks, quirk, withinGLVersionsMapping);
     }
     if( GLProfile.disableOpenGLARBContext ) {
         final int quirk = GLRendererQuirks.NoARBCreateContext;
         if(DEBUG) {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: disabled");
         }
-        quirks.addQuirk( quirk );
-        if( withinGLVersionsMapping ) {
-            // Thread safe due to single threaded initialization!
-            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-        } else {
-            // FIXME: Remove when moving EGL/ES to ARB ctx creation
-            synchronized(GLContextImpl.class) {
-                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-            }
-        }
+        addStickyQuirkAlways(adevice, quirks, quirk, withinGLVersionsMapping);
     }
 
     //
@@ -1922,11 +1920,7 @@ public abstract class GLContextImpl extends GLContext {
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", req "+reqMajor+"."+reqMinor);
             }
-            quirks.addQuirk( quirk );
-            if( withinGLVersionsMapping ) {
-                // Thread safe due to single threaded initialization!
-                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-            }
+            addStickyQuirkAtMapping(adevice, quirks, quirk, withinGLVersionsMapping);
         }
         if( isDriverNVIDIAGeForce ) {
             final VersionNumber osxVersionNVFlushClean = new VersionNumber(10,7,3); // < OSX 10.7.3 w/ NV needs glFlush
@@ -1984,11 +1978,7 @@ public abstract class GLContextImpl extends GLContext {
                     if(DEBUG) {
                         System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+", Renderer "+glRenderer+" and Version "+glVersion+"]");
                     }
-                    quirks.addQuirk( quirk );
-                    if( withinGLVersionsMapping ) {
-                        // Thread safe due to single threaded initialization!
-                        GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-                    }
+                    addStickyQuirkAtMapping(adevice, quirks, quirk, withinGLVersionsMapping);
                 }
             }
         } else if( isDriverIntel && glRenderer.equals("Intel Bear Lake B") ) {
@@ -2111,11 +2101,7 @@ public abstract class GLContextImpl extends GLContext {
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 / Renderer " + glRenderer + " / Vendor "+glVendor);
             }
-            quirks.addQuirk( quirk );
-            if( withinGLVersionsMapping ) {
-                // Thread safe due to single threaded initialization!
-                GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-            }
+            addStickyQuirkAtMapping(adevice, quirks, quirk, withinGLVersionsMapping);
         }
         if( isWindows && glRenderer.contains("SVGA3D") && vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) {
             final int quirk = GLRendererQuirks.NoFullFBOSupport;
