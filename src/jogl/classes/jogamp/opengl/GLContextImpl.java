@@ -1113,34 +1113,6 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
-  @Override
-  public final boolean setSwapInterval(final int interval) throws GLException {
-    validateCurrent();
-    return setSwapIntervalNC(interval);
-  }
-  protected final boolean setSwapIntervalNC(final int interval) throws GLException {
-    if( drawable.getChosenGLCapabilities().isOnscreen() &&
-        ( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) )
-      )
-    {
-        final Integer usedInterval = setSwapIntervalImpl(interval);
-        if( null != usedInterval ) {
-            currentSwapInterval = usedInterval.intValue();
-            return true;
-        }
-    }
-    return false;
-  }
-  protected abstract Integer setSwapIntervalImpl(final int interval);
-
-  public final int getSwapInterval() {
-    return currentSwapInterval;
-  }
-  protected final void setDefaultSwapInterval() {
-    currentSwapInterval = 0;
-    setSwapIntervalNC(1);
-  }
-
   /**
    * Note: Since context creation is temporary, caller need to issue {@link #resetStates(boolean)}, if creation was successful, i.e. returns true.
    * This method does not reset the states, allowing the caller to utilize the state variables.
@@ -2393,6 +2365,38 @@ public abstract class GLContextImpl extends GLContext {
         pixelDataEvaluated = true;
     }
   }
+
+  //----------------------------------------------------------------------
+  // SwapBuffer
+
+  @Override
+  public final boolean setSwapInterval(final int interval) throws GLException {
+    validateCurrent();
+    return setSwapIntervalNC(interval);
+  }
+  protected final boolean setSwapIntervalNC(final int interval) throws GLException {
+    if( drawable.getChosenGLCapabilities().isOnscreen() &&
+        ( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) )
+      )
+    {
+        final Integer usedInterval = setSwapIntervalImpl(interval);
+        if( null != usedInterval ) {
+            currentSwapInterval = usedInterval.intValue();
+            return true;
+        }
+    }
+    return false;
+  }
+  protected abstract Integer setSwapIntervalImpl(final int interval);
+
+  public final int getSwapInterval() {
+    return currentSwapInterval;
+  }
+  protected final void setDefaultSwapInterval() {
+    currentSwapInterval = 0;
+    setSwapIntervalNC(1);
+  }
+
 
   //----------------------------------------------------------------------
   // Helpers for buffer object optimizations
