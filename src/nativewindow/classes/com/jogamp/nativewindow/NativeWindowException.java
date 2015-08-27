@@ -42,6 +42,7 @@ package com.jogamp.nativewindow;
 /** A generic exception for OpenGL errors used throughout the binding
     as a substitute for {@link RuntimeException}. */
 
+@SuppressWarnings("serial")
 public class NativeWindowException extends RuntimeException {
   /** Constructs a NativeWindowException object. */
   public NativeWindowException() {

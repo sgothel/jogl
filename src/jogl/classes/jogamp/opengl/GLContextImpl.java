@@ -950,13 +950,13 @@ public abstract class GLContextImpl extends GLContext {
   {
     final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
-    if (DEBUG) {
-      System.err.println(getThreadName() + ": createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+
-               GLContext.getAvailableGLVersionsSet(device));
-    }
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final GLProfile glp = glCaps.getGLProfile();
 
+    if (DEBUG) {
+      System.err.println(getThreadName() + ": createContextARB-MapGLVersions is SET ("+device.getConnection()+"): "+
+               GLContext.getAvailableGLVersionsSet(device));
+    }
     if ( !GLContext.getAvailableGLVersionsSet(device) ) {
         if( !mapGLVersions(device) ) {
             // none of the ARB context creation calls was successful, bail out
@@ -968,7 +968,7 @@ public abstract class GLContextImpl extends GLContext {
     GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
 
     if(DEBUG) {
-        System.err.println(getThreadName() + ": createContextARB: Requested "+glp+" -> "+GLContext.getGLVersion(reqMajorCTP[0], 0, reqMajorCTP[1], null));
+        System.err.println(getThreadName() + ": createContextARB-MapGLVersions Requested "+glp+" -> "+GLContext.getGLVersion(reqMajorCTP[0], 0, reqMajorCTP[1], null));
     }
     final int _major[] = { 0 };
     final int _minor[] = { 0 };
@@ -978,7 +978,7 @@ public abstract class GLContextImpl extends GLContext {
                                         _major, _minor, _ctp)) {
         _ctp[0] |= additionalCtxCreationFlags;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": createContextARB: Mapped "+GLContext.getGLVersion(_major[0], _minor[0], _ctp[0], null));
+            System.err.println(getThreadName() + ": createContextARB-MapGLVersions Mapped "+GLContext.getGLVersion(_major[0], _minor[0], _ctp[0], null));
         }
         _ctx = createContextARBImpl(share, direct, _ctp[0], _major[0], _minor[0]);
         if(0!=_ctx) {
@@ -992,6 +992,9 @@ public abstract class GLContextImpl extends GLContext {
 
   private final boolean mapGLVersions(final AbstractGraphicsDevice device) {
     synchronized (GLContext.deviceVersionAvailable) {
+        if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextARB-MapGLVersions START on "+device);
+        }
         final long t0 = ( DEBUG ) ? System.nanoTime() : 0;
         boolean success = false;
         // Following GLProfile.GL_PROFILE_LIST_ALL order of profile detection { GL4bc, GL3bc, GL2, GL4, GL3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 }
@@ -1019,7 +1022,7 @@ public abstract class GLContextImpl extends GLContext {
                         GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                         hasGL4   = true;
                         if(DEBUG) {
-                            System.err.println("Quirk Triggerd: "+GLRendererQuirks.toString(GLRendererQuirks.GL4NeedsGL3Request)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber());
+                            System.err.println(getThreadName() + ": createContextARB-MapGLVersions: Quirk Triggerd: "+GLRendererQuirks.toString(GLRendererQuirks.GL4NeedsGL3Request)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber());
                         }
                     }
                     resetStates(false); // clean the context states, since creation was temporary
@@ -1101,13 +1104,13 @@ public abstract class GLContextImpl extends GLContext {
         if(success) {
             // only claim GL versions set [and hence detected] if ARB context creation was successful
             GLContext.setAvailableGLVersionsSet(device, true);
-            if(DEBUG) {
-                final long t1 = System.nanoTime();
-                System.err.println("GLContextImpl.mapGLVersions: "+device+", profileAliasing: "+PROFILE_ALIASING+", total "+(t1-t0)/1e6 +"ms");
+        }
+        if(DEBUG) {
+            final long t1 = System.nanoTime();
+            System.err.println(getThreadName() + ": createContextARB-MapGLVersions END (success "+success+") on "+device+", profileAliasing: "+PROFILE_ALIASING+", total "+(t1-t0)/1e6 +"ms");
+            if( success ) {
                 System.err.println(GLContext.dumpAvailableGLVersions(null).toString());
             }
-        } else if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextARB-MapVersions NONE for :"+device);
         }
         return success;
     }
@@ -1178,12 +1181,12 @@ public abstract class GLContextImpl extends GLContext {
         GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
         destroyContextARBImpl(_context);
         if (DEBUG) {
-          System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+          System.err.println(getThreadName() + ": createContextARB-MapGLVersions "+device+", HAVE: "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), reqProfile).toString()+ ") ["+majorMax+"."+minorMax+" .. "+majorMin+"."+minorMin+"] -> "+getGLVersion());
         }
         res = true;
     } else {
         if (DEBUG) {
-          System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
+          System.err.println(getThreadName() + ": createContextARB-MapGLVersions "+device+", NOPE: "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), reqProfile).toString()+ ") ["+majorMax+"."+minorMax+" .. "+majorMin+"."+minorMin+"]");
         }
         res = false;
     }

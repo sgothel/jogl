@@ -1180,8 +1180,9 @@ public abstract class GLContext {
       if( 0 != ( ctxOptions & CTX_PROFILE_ES ) ) {
           final int major = ctxVersion.getMajor();
           return 2 == major || 3 == major;
+      } else {
+          return false;
       }
-      return false;
   }
 
   /**
@@ -1649,7 +1650,7 @@ public abstract class GLContext {
               deviceVersionsAvailableSet.remove(devKey);
           }
           if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);
+            System.err.println(getThreadName() + ": createContextARB-MapGLVersions SET "+devKey);
             System.err.println(GLContext.dumpAvailableGLVersions(null).toString());
           }
       }
@@ -1686,7 +1687,7 @@ public abstract class GLContext {
         resCtp &= ~CTX_IMPL_FBO ;
     }
     if(DEBUG) {
-        System.err.println("GLContext.mapAvailableGLVersion: "+device+": "+getGLVersion(reqMajor, 0, profile, null)+" -> "+getGLVersion(resMajor, resMinor, resCtp, null));
+        System.err.println(getThreadName() + ": createContextARB-MapGLVersions MAP "+device+": "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), profile).toString()+ ") -> "+getGLVersion(resMajor, resMinor, resCtp, null));
         // Thread.dumpStack();
     }
     final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, profile);
@@ -2005,13 +2006,8 @@ public abstract class GLContext {
     return isGLVersionAvailable(device, 2, CTX_PROFILE_COMPAT, isHardware);
   }
 
-  protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
+  protected static StringBuilder getGLProfile(final StringBuilder sb, final int ctp) {
     boolean needColon = false;
-    final StringBuilder sb = new StringBuilder();
-    sb.append(major);
-    sb.append(".");
-    sb.append(minor);
-    sb.append(" (");
     needColon = appendString(sb, "ES profile",            needColon, 0 != ( CTX_PROFILE_ES & ctp ));
     needColon = appendString(sb, "Compat profile",        needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
     needColon = appendString(sb, "Core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
@@ -2034,6 +2030,15 @@ public abstract class GLContext {
     } else {
         needColon = appendString(sb, "hardware",          needColon, true);
     }
+    return sb;
+  }
+  protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(major);
+    sb.append(".");
+    sb.append(minor);
+    sb.append(" (");
+    getGLProfile(sb, ctp);
     sb.append(")");
     if(null!=gl_version) {
         sb.append(" - ");
