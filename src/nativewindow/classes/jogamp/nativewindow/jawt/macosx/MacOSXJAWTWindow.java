@@ -102,13 +102,14 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               @Override
               public void run() {
                   if( 0 != rootSurfaceLayer ) {
-                      if( 0 != jawtSurfaceLayersHandle) {
+                      if( null != dsi ) {
+                          long jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
                           UnsetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
                       }
                       OSXUtil.DestroyCALayer(rootSurfaceLayer);
                       rootSurfaceLayer = 0;
                   }
-                  jawtSurfaceLayersHandle = 0;
+                  unlockSurfaceImpl();
               }
           });
       }
@@ -327,7 +328,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
             }
         }
         if(null == errMsg) {
-            jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
+            final long jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
             OSXUtil.RunOnMainThread(false, false, new Runnable() {
                     @Override
                     public void run() {
@@ -429,7 +430,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   private JAWT_DrawingSurface ds;
   private boolean dsLocked;
   private JAWT_DrawingSurfaceInfo dsi;
-  private long jawtSurfaceLayersHandle;
 
   private JAWT_MacOSXDrawingSurfaceInfo macosxdsi;
 
