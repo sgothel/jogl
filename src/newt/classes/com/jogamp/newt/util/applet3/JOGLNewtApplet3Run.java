@@ -243,7 +243,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
         }
         this.ctx = ctx;
         String glEventListenerClazzName=null;
-        int glSwapInterval=0;
+        int glSwapInterval=1;
         boolean glDebug=false;
         boolean glTrace=false;
         boolean glNoDefaultKeyListener = false;

@@ -302,9 +302,16 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                         @Override
                         public boolean run(final GLAutoDrawable drawable) {
                             final GL gl = drawable.getGL();
-                            int i = gl.getSwapInterval();
-                            i = i==0 ? 1 : 0;
+                            final int _i = gl.getSwapInterval();
+                            final int i;
+                            switch(_i) {
+                                case  0: i = -1; break;
+                                case -1: i =  1; break;
+                                case  1: i =  0; break;
+                                default: i =  1; break;
+                            }
                             gl.setSwapInterval(i);
+
                             final GLAnimatorControl a = drawable.getAnimator();
                             if( null != a ) {
                                 a.resetFPSCounter();
@@ -312,7 +319,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                             if(drawable instanceof FPSCounter) {
                                 ((FPSCounter)drawable).resetFPSCounter();
                             }
-                            System.err.println("Swap Interval: "+i);
+                            System.err.println("Swap Interval: "+_i+" -> "+i+" -> "+gl.getSwapInterval());
                             return true;
                         }
                     });

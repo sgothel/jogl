@@ -115,7 +115,7 @@ public class JOGLNewtApplet1Run extends Applet {
 
         String glEventListenerClazzName=null;
         String glProfileName=null;
-        int glSwapInterval=0;
+        int glSwapInterval=1;
         boolean glDebug=false;
         boolean glTrace=false;
         boolean glUndecorated=false;

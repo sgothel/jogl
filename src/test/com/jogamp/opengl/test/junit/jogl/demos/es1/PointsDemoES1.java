@@ -181,9 +181,7 @@ public class PointsDemoES1 extends PointsDemo {
         // Thread.dumpStack();
         final GL2ES1 gl = glad.getGL().getGL2ES1();
 
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
-        }
+        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
 
         // Set location in front of camera
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);

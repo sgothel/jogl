@@ -230,9 +230,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
       if( !isInit ) { return; }
       final GL2 gl = glad.getGL().getGL2();
-      if(-1 != swapInterval) {
-          gl.setSwapInterval(swapInterval);
-      }
+      gl.setSwapInterval(swapInterval);
       reshape(gl, x, y, width, height, width, height);
   }
 

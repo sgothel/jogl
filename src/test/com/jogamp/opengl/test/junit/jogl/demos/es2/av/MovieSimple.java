@@ -51,6 +51,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -65,7 +66,6 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -105,7 +105,7 @@ public class MovieSimple implements GLEventListener {
     private int effects = EFFECT_NORMAL;
     private float alpha = 1.0f;
     private int swapInterval = 1;
-    private int swapIntervalSet = -1;
+    private boolean swapIntervalSet = true;
 
     private GLMediaPlayer mPlayer;
     private final boolean mPlayerShared;
@@ -265,10 +265,13 @@ public class MovieSimple implements GLEventListener {
             int pts1 = 0;
             switch(e.getKeySymbol()) {
                 case KeyEvent.VK_V: {
-                    switch(swapIntervalSet) {
-                        case 0: swapInterval = 1; break;
-                        default: swapInterval = 0; break;
+                    switch(swapInterval) {
+                        case  0: swapInterval = -1; break;
+                        case -1: swapInterval =  1; break;
+                        case  1: swapInterval =  0; break;
+                        default: swapInterval =  1; break;
                     }
+                    swapIntervalSet = true;
                     break;
                 }
                 case KeyEvent.VK_O:          displayOSD = !displayOSD; break;
@@ -483,7 +486,7 @@ public class MovieSimple implements GLEventListener {
                            ", "+drawable.getClass().getName()+", "+drawable);
 
         if(waitForKey) {
-            UITestCase.waitForKey("Init>");
+            JunitTracer.waitForKey("Init>");
         }
         final Texture tex;
         try {
@@ -736,11 +739,13 @@ public class MovieSimple implements GLEventListener {
     @Override
     public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        if( swapIntervalSet ) {
+            final int _swapInterval = swapInterval;
+            gl.setSwapInterval(_swapInterval); // in case switching the drawable (impl. may bound attribute there)
             drawable.getAnimator().resetFPSCounter();
-            swapIntervalSet = swapInterval;
-            swapInterval = -1;
+            swapInterval = gl.getSwapInterval();
+            System.err.println("Swap Interval: "+_swapInterval+" -> "+swapInterval);
+            swapIntervalSet = false;
         }
         if(null == mPlayer) { return; }
 

@@ -181,9 +181,7 @@ public class Mix2TexturesES2 implements GLEventListener {
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
-        }
+        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();

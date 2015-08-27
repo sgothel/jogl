@@ -446,29 +446,43 @@ public interface GLBase {
 
    public boolean isTextureFormatBGRA8888Available();
 
-   /** Provides a platform-independent way to specify the minimum swap
-       interval for buffer swaps. An argument of 0 disables
-       sync-to-vertical-refresh completely, while an argument of 1
-       causes the application to wait until the next vertical refresh
-       until swapping buffers. The default, which is platform-specific,
-       is usually either 0 or 1. This function is not guaranteed to
-       have an effect, and in particular only affects heavyweight
-       onscreen components.
-
-       @see #getSwapInterval
-       @throws GLException if this context is not the current
+   /**
+    * Set the swap interval of the current context and attached <i>onscreen {@link GLDrawable}</i>.
+    * <p>
+    * <i>offscreen {@link GLDrawable}</i> are ignored and {@code false} is returned.
+    * </p>
+    * <p>
+    * The {@code interval} semantics:
+    * <ul>
+    *   <li><i>0</i> disables the vertical synchronization</li>
+    *   <li><i>&ge;1</i> is the number of vertical refreshes before a swap buffer occurs</li>
+    *   <li><i>&lt;0</i> enables <i>late swaps to occur without synchronization to the video frame</i>, a.k.a <i>EXT_swap_control_tear</i>.
+    *              If supported, the absolute value is the minimum number of
+    *              video frames between buffer swaps. If not supported, the absolute value is being used, see above.
+    *   </li>
+    * </ul>
+    * </p>
+    * @param interval see above
+    * @return true if the operation was successful, otherwise false
+    * @throws GLException if the context is not current.
+    * @see GLContext#setSwapInterval(int)
+    * @see #getSwapInterval()
     */
-   public void setSwapInterval(int interval);
+   public void setSwapInterval(int interval) throws GLException;
 
-   /** Provides a platform-independent way to get the swap
-       interval set by {@link #setSwapInterval}. <br>
-
-       If the interval is not set by {@link #setSwapInterval} yet,
-       -1 is returned, indicating that the platforms default
-       is being used.
-
-       @see #setSwapInterval
-     */
+   /**
+    * Return the current swap interval.
+    * <p>
+    * If the context has not been made current at all,
+    * the default value {@code 0} is returned.
+    * </p>
+    * <p>
+    * For a valid context w/ an <o>onscreen {@link GLDrawable}</i> the default value is {@code 1},
+    * otherwise the default value is {@code 0}.
+    * </p>
+    * @see GLContext#getSwapInterval()
+    * @see #setSwapInterval(int)
+    */
    public int getSwapInterval();
 
    /**
@@ -494,12 +508,12 @@ public interface GLBase {
     * for accessing it, including which class or interface contains the
     * functions.
     *
-    * <P>
-    *
+    * <p>
     * Note: it is the intent to add new extensions as quickly as possible
     * to the core GL API. Therefore it is unlikely that most vendors will
     * use this extension mechanism, but it is being provided for
     * completeness.
+    * </p>
     */
    public Object getExtension(String extensionName);
 

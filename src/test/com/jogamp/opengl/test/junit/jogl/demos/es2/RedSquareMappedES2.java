@@ -211,9 +211,7 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
     @Override
     public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval);
-        }
+        gl.setSwapInterval(swapInterval);
         reshapeImpl(gl, x, y, width, height, width, height);
     }
 

@@ -237,7 +237,6 @@ public abstract class GLContext {
   protected String ctxVersionString;
   protected VersionNumberString ctxVendorVersion;
   protected VersionNumber ctxGLSLVersion;
-  private int currentSwapInterval;
   protected GLRendererQuirks glRendererQuirks;
 
   /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */
@@ -258,7 +257,6 @@ public abstract class GLContext {
       ctxGLSLVersion = VersionNumber.zeroVersion;
       attachedObjects.clear();
       contextHandle=0;
-      currentSwapInterval = -1;
       glRendererQuirks = null;
       drawableRetargeted = false;
   }
@@ -1246,50 +1244,41 @@ public abstract class GLContext {
   }
 
   /**
-   * Set the swap interval of the current context and attached drawable.
-   * @param interval Should be &ge; 0. 0 disables the vertical synchronization,
-   *                 where &ge; 1 is the number of vertical refreshes before a swap buffer occurs.
-   *                 A value &lt; 0 is ignored.
+   * Set the swap interval of the current context and attached <i>onscreen {@link GLDrawable}</i>.
+   * <p>
+   * <i>offscreen {@link GLDrawable}</i> are ignored and {@code false} is returned.
+   * </p>
+   * <p>
+   * The {@code interval} semantics:
+   * <ul>
+   *   <li><i>0</i> disables the vertical synchronization</li>
+   *   <li><i>&ge;1</i> is the number of vertical refreshes before a swap buffer occurs</li>
+   *   <li><i>&lt;0</i> enables <i>late swaps to occur without synchronization to the video frame</i>, a.k.a <i>EXT_swap_control_tear</i>.
+   *              If supported, the absolute value is the minimum number of
+   *              video frames between buffer swaps. If not supported, the absolute value is being used, see above.
+   *   </li>
+   * </ul>
+   * </p>
+   * @param interval see above
    * @return true if the operation was successful, otherwise false
-   *
    * @throws GLException if the context is not current.
+   * @see #getSwapInterval()
    */
-  public final boolean setSwapInterval(final int interval) throws GLException {
-    validateCurrent();
-    if(0<=interval) {
-        if( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) ) {
-            if( setSwapIntervalImpl(interval) ) {
-                currentSwapInterval = interval;
-                return true;
-            }
-        }
-    }
-    return false;
-  }
-  protected boolean setSwapIntervalImpl(final int interval) {
-      return false;
-  }
-  /** Return the current swap interval.
+  public abstract boolean setSwapInterval(final int interval) throws GLException;
+
+  /**
+   * Return the current swap interval.
    * <p>
    * If the context has not been made current at all,
-   * the default value <code>-1</code> is returned.
+   * the default value {@code 0} is returned.
    * </p>
    * <p>
-   * For a valid context the default value is <code>1</code>
-   * in case of an EGL based profile (ES1 or ES2) and <code>-1</code>
-   * (undefined) for desktop.
+   * For a valid context w/ an <o>onscreen {@link GLDrawable}</i> the default value is {@code 1},
+   * otherwise the default value is {@code 0}.
    * </p>
+   * @see #setSwapInterval(int)
    */
-  public final int getSwapInterval() {
-    return currentSwapInterval;
-  }
-  protected final void setDefaultSwapInterval() {
-    if(this.isGLES()) {
-        currentSwapInterval = 1;
-    } else {
-        currentSwapInterval = -1;
-    }
-  }
+  public abstract int getSwapInterval();
 
   public final boolean queryMaxSwapGroups(final int[] maxGroups, final int maxGroups_offset,
                                           final int[] maxBarriers, final int maxBarriers_offset) {

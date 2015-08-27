@@ -39,6 +39,11 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.FPSCounter;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.util.Gamma;
 import com.jogamp.opengl.util.PNGPixelRect;
 
@@ -290,29 +295,57 @@ public class NEWTDemoListener extends MouseAdapter implements KeyListener {
                 break;
             case KeyEvent.VK_V:
                 e.setConsumed(true);
-                new Thread() {
-                    public void run() {
-                        final boolean wasVisible = glWindow.isVisible();
-                        {
-                            final Thread t = glWindow.setExclusiveContextThread(null);
-                            printlnState("[set visible pre]");
-                            glWindow.setVisible(!wasVisible);
-                            printlnState("[set visible post]");
-                            glWindow.setExclusiveContextThread(t);
-                        }
-                        if( wasVisible && !e.isControlDown() ) {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (final InterruptedException e) {
-                                e.printStackTrace();
+                if( e.isControlDown() ) {
+                    glWindow.invoke(false, new GLRunnable() {
+                        @Override
+                        public boolean run(final GLAutoDrawable drawable) {
+                            final GL gl = drawable.getGL();
+                            final int _i = gl.getSwapInterval();
+                            final int i;
+                            switch(_i) {
+                                case  0: i = -1; break;
+                                case -1: i =  1; break;
+                                case  1: i =  0; break;
+                                default: i =  1; break;
                             }
-                            final Thread t = glWindow.setExclusiveContextThread(null);
-                            printlnState("[reset visible pre]");
-                            glWindow.setVisible(true);
-                            printlnState("[reset visible post]");
-                            glWindow.setExclusiveContextThread(t);
+                            gl.setSwapInterval(i);
+
+                            final GLAnimatorControl a = drawable.getAnimator();
+                            if( null != a ) {
+                                a.resetFPSCounter();
+                            }
+                            if(drawable instanceof FPSCounter) {
+                                ((FPSCounter)drawable).resetFPSCounter();
+                            }
+                            System.err.println("Swap Interval: "+_i+" -> "+i+" -> "+gl.getSwapInterval());
+                            return true;
                         }
-                } }.start();
+                    });
+                } else {
+                    new Thread() {
+                        public void run() {
+                            final boolean wasVisible = glWindow.isVisible();
+                            {
+                                final Thread t = glWindow.setExclusiveContextThread(null);
+                                printlnState("[set visible pre]");
+                                glWindow.setVisible(!wasVisible);
+                                printlnState("[set visible post]");
+                                glWindow.setExclusiveContextThread(t);
+                            }
+                            if( wasVisible && !e.isControlDown() ) {
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (final InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                final Thread t = glWindow.setExclusiveContextThread(null);
+                                printlnState("[reset visible pre]");
+                                glWindow.setVisible(true);
+                                printlnState("[reset visible post]");
+                                glWindow.setExclusiveContextThread(t);
+                            }
+                    } }.start();
+                }
                 break;
             case KeyEvent.VK_W:
                 e.setConsumed(true);

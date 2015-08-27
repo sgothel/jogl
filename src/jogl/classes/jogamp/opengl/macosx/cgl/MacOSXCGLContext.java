@@ -423,8 +423,17 @@ public class MacOSXCGLContext extends GLContextImpl
   }
 
   @Override
-  protected boolean setSwapIntervalImpl(final int interval) {
-    return impl.setSwapInterval(interval);
+  protected final Integer setSwapIntervalImpl(final int interval) {
+      final int useInterval;
+      if( 0 > interval ) {
+          useInterval = Math.abs(interval);
+      } else {
+          useInterval = interval;
+      }
+      if( impl.setSwapInterval(useInterval) ) {
+          return Integer.valueOf(useInterval);
+      }
+      return null;
   }
 
   @Override

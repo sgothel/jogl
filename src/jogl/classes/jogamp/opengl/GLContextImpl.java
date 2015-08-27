@@ -131,6 +131,8 @@ public abstract class GLContextImpl extends GLContext {
   private boolean pixelDataEvaluated;
   private int /* pixelDataInternalFormat, */ pixelDataFormat, pixelDataType;
 
+  private int currentSwapInterval;
+
   protected GL gl;
 
   protected static final Object mappedContextTypeObjectLock;
@@ -209,6 +211,7 @@ public abstract class GLContextImpl extends GLContext {
 
       surfacelessOK = false;
       pixelDataEvaluated = false;
+      currentSwapInterval = 0;
 
       super.resetStates(isInit);
   }
@@ -1108,6 +1111,34 @@ public abstract class GLContextImpl extends GLContext {
         }
         return success;
     }
+  }
+
+  @Override
+  public final boolean setSwapInterval(final int interval) throws GLException {
+    validateCurrent();
+    return setSwapIntervalNC(interval);
+  }
+  protected final boolean setSwapIntervalNC(final int interval) throws GLException {
+    if( drawable.getChosenGLCapabilities().isOnscreen() &&
+        ( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) )
+      )
+    {
+        final Integer usedInterval = setSwapIntervalImpl(interval);
+        if( null != usedInterval ) {
+            currentSwapInterval = usedInterval.intValue();
+            return true;
+        }
+    }
+    return false;
+  }
+  protected abstract Integer setSwapIntervalImpl(final int interval);
+
+  public final int getSwapInterval() {
+    return currentSwapInterval;
+  }
+  protected final void setDefaultSwapInterval() {
+    currentSwapInterval = 0;
+    setSwapIntervalNC(1);
   }
 
   /**

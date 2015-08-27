@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
@@ -285,16 +286,27 @@ public abstract class UIListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_V) {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
+                        @Override
                         public boolean run(final GLAutoDrawable drawable) {
                             final GL gl = drawable.getGL();
-                            int i = gl.getSwapInterval();
-                            i = i==0 ? 1 : 0;
+                            final int _i = gl.getSwapInterval();
+                            final int i;
+                            switch(_i) {
+                                case  0: i =  1; break;
+                                case  1: i = -1; break;
+                                case -1: i =  0; break;
+                                default: i =  1; break;
+                            }
                             gl.setSwapInterval(i);
+
                             final GLAnimatorControl a = drawable.getAnimator();
                             if( null != a ) {
                                 a.resetFPSCounter();
                             }
-                            System.err.println("Swap Interval: "+i);
+                            if(drawable instanceof FPSCounter) {
+                                ((FPSCounter)drawable).resetFPSCounter();
+                            }
+                            System.err.println("Swap Interval: "+_i+" -> "+i+" -> "+gl.getSwapInterval());
                             return true;
                         }
                     });

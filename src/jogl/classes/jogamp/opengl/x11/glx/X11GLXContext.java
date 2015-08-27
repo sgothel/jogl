@@ -72,7 +72,7 @@ public class X11GLXContext extends GLContextImpl {
   // Table that holds the addresses of the native C-language entry points for
   // GLX extension functions.
   private GLXExtProcAddressTable glXExtProcAddressTable;
-  /** 1 MESA, 2 SGI, 0 undefined, -1 none */
+  /** 3 SGI, 2 GLX_EXT_swap_control_tear, 1 GLX_EXT_swap_control, 0 undefined, -1 none */
   private int hasSwapInterval = 0;
   private int hasSwapGroupNV = 0;
 
@@ -549,39 +549,64 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected boolean setSwapIntervalImpl(final int interval) {
-    if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; }
-
-    final GLXExt glXExt = getGLXExt();
-    if(0==hasSwapInterval) {
+  protected final Integer setSwapIntervalImpl(final int interval) {
+    final long displayHandle = drawable.getNativeSurface().getDisplayHandle();
+    if( 0 == hasSwapInterval ) {
         try {
-            /** Same impl. ..
-            if( glXExt.isExtensionAvailable(GLXExtensions.GLX_MESA_swap_control) ) {
-                if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_MESA_swap_control); }
-                hasSwapInterval =  1;
-            } else */
-            if ( glXExt.isExtensionAvailable(GLXExtensions.GLX_SGI_swap_control) ) {
-                if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_SGI_swap_control); }
-                hasSwapInterval =  2;
+            if ( isExtensionAvailable(GLXExtensions.GLX_EXT_swap_control) ) {
+                hasSwapInterval = 1;
+                if ( isExtensionAvailable(GLXExtensions.GLX_EXT_swap_control_tear) ) {
+                    try {
+                        final IntBuffer val = Buffers.newDirectIntBuffer(1);
+                        GLX.glXQueryDrawable(displayHandle, drawable.getHandle(), GLX.GLX_LATE_SWAPS_TEAR_EXT, val);
+                        if( 1 == val.get(0) ) {
+                            hasSwapInterval =  2;
+                            if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval.2 using: "+GLXExtensions.GLX_EXT_swap_control_tear + ", " + GLXExtensions.GLX_EXT_swap_control_tear); }
+                        } else if(DEBUG) {
+                            System.err.println("X11GLXContext.setSwapInterval.2 n/a: "+GLXExtensions.GLX_EXT_swap_control_tear+", query: "+val.get(0));
+                        }
+                    } catch (final Throwable t) { if(DEBUG) { ExceptionUtils.dumpThrowable("", t); } }
+                }
+                if(DEBUG) {
+                    if( 1 == hasSwapInterval ) {
+                        System.err.println("X11GLXContext.setSwapInterval.1 using: "+GLXExtensions.GLX_EXT_swap_control);
+                    }
+                }
+            } else if ( isExtensionAvailable(GLXExtensions.GLX_SGI_swap_control) ) {
+                hasSwapInterval =  3;
+                if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval.3 using: "+GLXExtensions.GLX_SGI_swap_control); }
             } else {
                 hasSwapInterval = -1;
+                if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval.0 N/A"); }
             }
-        } catch (final Throwable t) { hasSwapInterval=-1; }
+        } catch (final Throwable t) { hasSwapInterval=-1; if(DEBUG) { ExceptionUtils.dumpThrowable("", t); } }
     }
-    /* try {
-        switch( hasSwapInterval ) {
-            case 1:
-                return 0 == glXExt.glXSwapIntervalMESA(interval);
-            case 2:
-                return 0 == glXExt.glXSwapIntervalSGI(interval);
+    if (3 == hasSwapInterval) {
+        final int useInterval;
+        if( 0 > interval ) {
+            useInterval = Math.abs(interval);
+        } else {
+            useInterval = interval;
         }
-    } catch (Throwable t) { hasSwapInterval = -1; } */
-    if (2 == hasSwapInterval) {
         try {
-            return 0 == glXExt.glXSwapIntervalSGI(interval);
-        } catch (final Throwable t) { hasSwapInterval=-1; }
+            final GLXExt glXExt = getGLXExt();
+            if( 0 == glXExt.glXSwapIntervalSGI(useInterval) ) {
+                return Integer.valueOf(useInterval);
+            }
+        } catch (final Throwable t) { hasSwapInterval=-1; if(DEBUG) { ExceptionUtils.dumpThrowable("", t); } }
+    } else if ( 0 < hasSwapInterval ) { // 2 || 1
+        final int useInterval;
+        if( 1 == hasSwapInterval && 0 > interval ) {
+            useInterval = Math.abs(interval);
+        } else {
+            useInterval = interval;
+        }
+        try {
+            GLX.glXSwapIntervalEXT(displayHandle, drawable.getHandle(), useInterval);
+            return Integer.valueOf(useInterval);
+        } catch (final Throwable t) { hasSwapInterval=-1; if(DEBUG) { ExceptionUtils.dumpThrowable("", t); } }
     }
-    return false;
+    return null;
   }
 
   private final int initSwapGroupImpl(final GLXExt glXExt) {

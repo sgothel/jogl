@@ -291,10 +291,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, _gl, new Object[] { System.err } ) );
             } catch (final Exception e) {e.printStackTrace();}
         }
-
-        if(glSwapInterval>=0) {
-            _gl.setSwapInterval(glSwapInterval);
-        }
+        _gl.setSwapInterval(glSwapInterval);
     }
     @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {

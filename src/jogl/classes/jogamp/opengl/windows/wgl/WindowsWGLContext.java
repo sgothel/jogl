@@ -50,6 +50,7 @@ import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
@@ -59,6 +60,7 @@ import com.jogamp.opengl.GLRendererQuirks;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLXExtensions;
 
 public class WindowsWGLContext extends GLContextImpl {
   static final Map<String, String> extensionNameMap;
@@ -70,7 +72,8 @@ public class WindowsWGLContext extends GLContextImpl {
   // Table that holds the addresses of the native C-language entry points for
   // WGL extension functions.
   private WGLExtProcAddressTable wglExtProcAddressTable;
-  private int hasSwapIntervalSGI = 0;
+  /** 2 WGL_EXT_swap_control_tear, 1 WGL_EXT_swap_control, 0 undefined, -1 none */
+  private int hasSwapInterval = 0;
   private int hasSwapGroupNV = 0;
 
   static {
@@ -93,7 +96,7 @@ public class WindowsWGLContext extends GLContextImpl {
     wglGLReadDrawableAvailable=false;
     // no inner state _wglExt=null;
     wglExtProcAddressTable=null;
-    hasSwapIntervalSGI = 0;
+    hasSwapInterval = 0;
     hasSwapGroupNV = 0;
     super.resetStates(isInit);
   }
@@ -487,19 +490,39 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   @Override
-  protected boolean setSwapIntervalImpl(final int interval) {
-    final WGLExt wglExt = getWGLExt();
-    if(0==hasSwapIntervalSGI) {
+  protected final Integer setSwapIntervalImpl(final int interval) {
+    if( 0 == hasSwapInterval ) {
         try {
-            hasSwapIntervalSGI = wglExt.isExtensionAvailable("WGL_EXT_swap_control")?1:-1;
-        } catch (final Throwable t) { hasSwapIntervalSGI=1; }
+            if ( isExtensionAvailable(GLXExtensions.WGL_EXT_swap_control) ) {
+                hasSwapInterval = 1;
+                if ( isExtensionAvailable(GLXExtensions.WGL_EXT_swap_control_tear) ) {
+                    hasSwapInterval =  2;
+                    if(DEBUG) { System.err.println("WGLContext.setSwapInterval.2 using: "+GLXExtensions.WGL_EXT_swap_control_tear + ", " + GLXExtensions.WGL_EXT_swap_control_tear); }
+                } else {
+                    hasSwapInterval =  1;
+                    if(DEBUG) { System.err.println("WGLContext.setSwapInterval.1 using: "+GLXExtensions.WGL_EXT_swap_control); }
+                }
+            } else {
+                hasSwapInterval = -1;
+                if(DEBUG) { System.err.println("WGLContext.setSwapInterval.0 N/A"); }
+            }
+        } catch (final Throwable t) { hasSwapInterval=-1; if(DEBUG) { ExceptionUtils.dumpThrowable("", t); } }
     }
-    if (hasSwapIntervalSGI>0) {
+    if ( 0 < hasSwapInterval ) { // 2 || 1
+        final int useInterval;
+        if( 1 == hasSwapInterval && 0 > interval ) {
+            useInterval = Math.abs(interval);
+        } else {
+            useInterval = interval;
+        }
         try {
-            return wglExt.wglSwapIntervalEXT(interval);
-        } catch (final Throwable t) { hasSwapIntervalSGI=-1; }
+            final WGLExt wglExt = getWGLExt();
+            if( wglExt.wglSwapIntervalEXT(useInterval) ) {
+                return Integer.valueOf(useInterval);
+            }
+        } catch (final Throwable t) { hasSwapInterval=-1; if(DEBUG) { ExceptionUtils.dumpThrowable("", t); } }
     }
-    return false;
+    return null;
   }
 
   private final int initSwapGroupImpl(final WGLExt wglExt) {

@@ -51,7 +51,6 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.egl.EGLExtImpl;
 import jogamp.opengl.egl.EGLExtProcAddressTable;
-import jogamp.opengl.windows.wgl.WindowsWGLContext;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
@@ -432,11 +431,20 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected boolean setSwapIntervalImpl(final int interval) {
+    protected final Integer setSwapIntervalImpl(final int interval) {
         if( hasRendererQuirk(GLRendererQuirks.NoSetSwapInterval) ) {
-            return false;
+            return null;
         }
-        return EGL.eglSwapInterval(drawable.getNativeSurface().getDisplayHandle(), interval);
+        final int useInterval;
+        if( 0 > interval ) {
+            useInterval = Math.abs(interval);
+        } else {
+            useInterval = interval;
+        }
+        if( EGL.eglSwapInterval(drawable.getNativeSurface().getDisplayHandle(), useInterval) ) {
+            return Integer.valueOf(useInterval);
+        }
+        return null;
     }
 
     static long eglGetProcAddress(final long eglGetProcAddressHandle, final String procname)

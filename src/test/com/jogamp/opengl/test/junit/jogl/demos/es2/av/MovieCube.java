@@ -46,6 +46,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -57,7 +58,6 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureSequenceCubeES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -75,7 +75,7 @@ public class MovieCube implements GLEventListener {
     private TextureSequenceCubeES2 cube=null;
     private GLMediaPlayer mPlayer=null;
     private int swapInterval = 1;
-    private int swapIntervalSet = -1;
+    private boolean swapIntervalSet = true;
     private long lastPerfPos = 0;
     private volatile boolean resetGLState = false;
 
@@ -246,7 +246,7 @@ public class MovieCube implements GLEventListener {
             final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
-                    aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
+                    aspect, mPlayer.getFramerate(), lfps, tfps, swapInterval);
             final String text2 = String.format("audio: id %d, kbps %d, codec %s",
                     mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
             final String text3 = String.format("video: id %d, kbps %d, codec %s",
@@ -278,10 +278,13 @@ public class MovieCube implements GLEventListener {
             int pts1 = 0;
             switch(e.getKeySymbol()) {
                 case KeyEvent.VK_V: {
-                    switch(swapIntervalSet) {
-                        case 0: swapInterval = 1; break;
-                        default: swapInterval = 0; break;
+                    switch(swapInterval) {
+                        case  0: swapInterval = -1; break;
+                        case -1: swapInterval =  1; break;
+                        case  1: swapInterval =  0; break;
+                        default: swapInterval =  1; break;
                     }
+                    swapIntervalSet = true;
                     break;
                 }
                 case KeyEvent.VK_O:          displayOSD = !displayOSD; break;
@@ -362,7 +365,7 @@ public class MovieCube implements GLEventListener {
         cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);
 
         if(waitForKey) {
-            UITestCase.waitForKey("Init>");
+            JunitTracer.waitForKey("Init>");
         }
 
         if( GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
@@ -433,12 +436,14 @@ public class MovieCube implements GLEventListener {
 
     @Override
     public void display(final GLAutoDrawable drawable) {
-        if(-1 != swapInterval) {
+        if( swapIntervalSet ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+            final int _swapInterval = swapInterval;
+            gl.setSwapInterval(_swapInterval); // in case switching the drawable (impl. may bound attribute there)
             drawable.getAnimator().resetFPSCounter();
-            swapIntervalSet = swapInterval;
-            swapInterval = -1;
+            swapInterval = gl.getSwapInterval();
+            System.err.println("Swap Interval: "+_swapInterval+" -> "+swapInterval);
+            swapIntervalSet = false;
         }
         if(null == mPlayer) { return; }
 

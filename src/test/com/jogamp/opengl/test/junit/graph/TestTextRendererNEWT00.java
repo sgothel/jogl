@@ -54,6 +54,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -73,7 +74,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static int GraphVBAASamples = 0;
     static int GraphMSAASamples = 0;
     static boolean ManualTest = false;
-    static int SwapInterval = 0;
+    static int SwapInterval = 1;
 
     static String fontFileName = null;
     static URL fontURL = null;
@@ -213,7 +214,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
         if( WaitStartEnd ) {
-            UITestCase.waitForKey("Start");
+            JunitTracer.waitForKey("Start");
         }
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
@@ -252,7 +253,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         });
         anim.stop();
         if( WaitStartEnd ) {
-            UITestCase.waitForKey("Stop");
+            JunitTracer.waitForKey("Stop");
         }
         destroyWindow(window);
     }

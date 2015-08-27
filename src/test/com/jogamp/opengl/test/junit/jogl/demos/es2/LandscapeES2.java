@@ -128,9 +128,7 @@ public class LandscapeES2 implements GLEventListener {
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
-        }
+        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
 
         shaderState.useProgram(gl, true);
 
