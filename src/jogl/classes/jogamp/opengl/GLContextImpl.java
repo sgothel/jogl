@@ -2117,6 +2117,16 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks.addQuirk( quirk );
         }
+    } else if( isDriverNVIDIAGeForce ) {
+        // Bug 1200: Crash on GNU/Linux x86_64 'NVidia beta driver 355.06' @ probeSurfacelessCtx
+        // final VersionNumber nvSafeVersion = new VersionNumber(356, 0, 0); // FIXME: Add safe version!
+        if( !esCtx /* &&  vendorVersion.compareTo(nvSafeVersion) < 0 */ ) {
+            final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+            if(DEBUG) {
+                System.err.print("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: !ES, Vendor " + glVendor +", Renderer " + glRenderer);
+            }
+            addStickyQuirkAlways(adevice, quirks, quirk, withinGLVersionsMapping);
+        }
     }
 
     //
