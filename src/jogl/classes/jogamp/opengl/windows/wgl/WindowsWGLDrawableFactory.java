@@ -44,8 +44,6 @@ import java.nio.Buffer;
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
@@ -191,11 +189,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             } catch (final Exception jre) { /* n/a .. */ }
         }
 
-        sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
-
         // Init shared resources off thread
         // Will be released via ShutdownHook
-        sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
+        sharedResourceImplementation = new SharedResourceImplementation();
+        sharedResourceRunner = new SharedResourceRunner(sharedResourceImplementation);
         sharedResourceRunner.start();
     }
   }
@@ -215,9 +212,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;
     }
-    if(null != sharedMap) {
-        sharedMap.clear();
-        sharedMap = null;
+    if(null != sharedResourceImplementation) {
+        sharedResourceImplementation.clear();
+        sharedResourceImplementation = null;
     }
     defaultDevice = null;
     /**
@@ -238,8 +235,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   /* pp */ static String toHexString(final long l) { return "0x"+Long.toHexString(l); }
 
   private WindowsGraphicsDevice defaultDevice;
+  private SharedResourceImplementation sharedResourceImplementation;
   private SharedResourceRunner sharedResourceRunner;
-  private HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap;
 
   @Override
   protected void enterThreadCriticalZone() {
@@ -300,26 +297,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       final boolean hasReadDrawable() { return hasARBReadDrawable; }
   }
 
-  class SharedResourceImplementation implements SharedResourceRunner.Implementation {
-        @Override
-        public void clear() {
-            sharedMap.clear();
-        }
-        @Override
-        public SharedResourceRunner.Resource mapPut(final AbstractGraphicsDevice device, final SharedResourceRunner.Resource resource) {
-            return sharedMap.put(device.getConnection(), resource);
-        }
-        @Override
-        public SharedResourceRunner.Resource mapGet(final AbstractGraphicsDevice device) {
-            return sharedMap.get(device.getConnection());
-        }
-        @Override
-        public Collection<SharedResourceRunner.Resource> mapValues() {
-            synchronized(sharedMap) {
-                return sharedMap.values();
-            }
-        }
-
+  class SharedResourceImplementation extends SharedResourceRunner.AImplementation {
         @Override
         public boolean isDeviceSupported(final AbstractGraphicsDevice device) {
             return true;

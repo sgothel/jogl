@@ -38,10 +38,9 @@ package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
@@ -337,14 +336,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     // The act of constructing them causes them to be registered
                     EGLGraphicsConfigurationFactory.registerFactory();
 
-                    sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
-
                     // FIXME: defaultDevice.open() triggers eglInitialize(..) which crashed on Windows w/ Chrome/ANGLE, FF/ANGLE!
                     defaultDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
 
                     // Init shared resources off thread
                     // Will be released via ShutdownHook
-                    sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
+                    sharedResourceImplementation = new SharedResourceImplementation();
+                    sharedResourceRunner = new SharedResourceRunner(sharedResourceImplementation);
                     sharedResourceRunner.start();
                 }
             }
@@ -353,7 +351,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     @Override
     protected final boolean isComplete() {
-        return null != sharedMap; // null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper;
+        return null != sharedResourceImplementation; // null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper || ..;
     }
 
 
@@ -366,9 +364,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             sharedResourceRunner.stop();
             sharedResourceRunner = null;
         }
-        if(null != sharedMap) {
-            sharedMap.clear();
-            sharedMap = null;
+        if(null != sharedResourceImplementation) {
+            sharedResourceImplementation.clear();
+            sharedResourceImplementation = null;
         }
 
         if(null != defaultDevice) {
@@ -395,7 +393,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     private void dumpMap() {
-        synchronized(sharedMap) {
+        synchronized(sharedResourceImplementation) {
+            final Map<String /* uniqueId */, SharedResourceRunner.Resource> sharedMap = sharedResourceImplementation.getSharedMap();
             System.err.println("EGLDrawableFactory.map "+sharedMap.size());
             int i=0;
             final Set<String> keys = sharedMap.keySet();
@@ -415,8 +414,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private boolean hasX11 = false;
     private EGLGraphicsDevice defaultDevice = null;
     private EGLFeatures defaultDeviceEGLFeatures;
+    private SharedResourceImplementation sharedResourceImplementation;
     private SharedResourceRunner sharedResourceRunner;
-    private HashMap<String /* uniqueKey */, SharedResourceRunner.Resource> sharedMap;
 
     static class SharedResource implements SharedResourceRunner.Resource {
       private EGLGraphicsDevice device;
@@ -487,27 +486,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       }
   }
 
-  class SharedResourceImplementation implements SharedResourceRunner.Implementation {
-        @Override
-        public void clear() {
-            sharedMap.clear();
-        }
-        @Override
-        public SharedResourceRunner.Resource mapPut(final AbstractGraphicsDevice device, final SharedResourceRunner.Resource resource) {
-            return sharedMap.put(device.getConnection(), resource);
-        }
-        @Override
-        public SharedResourceRunner.Resource mapGet(final AbstractGraphicsDevice device) {
-            return sharedMap.get(device.getConnection());
-        }
-        @Override
-        public Collection<SharedResourceRunner.Resource> mapValues() {
-            return sharedMap.values();
-        }
-
+  class SharedResourceImplementation extends SharedResourceRunner.AImplementation {
         @Override
         public boolean isDeviceSupported(final AbstractGraphicsDevice device) {
-            return null != sharedMap; // null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper
+            return null != sharedResourceImplementation; // null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper || ..
         }
 
         @Override
@@ -843,7 +825,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     @Override
     public final boolean getIsDeviceCompatible(final AbstractGraphicsDevice device) {
       // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
-      return null != sharedMap ; // null!=eglES2DynamicLookupHelper || null!=eglES1DynamicLookupHelper;
+      return null != sharedResourceImplementation ; // null!=eglES2DynamicLookupHelper || null!=eglES1DynamicLookupHelper || ..;
     }
 
     private static List<GLCapabilitiesImmutable> getAvailableEGLConfigs(final EGLGraphicsDevice eglDisplay, final GLCapabilitiesImmutable caps) {
@@ -902,7 +884,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     @Override
     protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(final AbstractGraphicsDevice device) {
-        if(null == sharedMap) { // null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper
+        if(null == sharedResourceImplementation) { // null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper || ..
             return new ArrayList<GLCapabilitiesImmutable>(); // null
         }
         return EGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);

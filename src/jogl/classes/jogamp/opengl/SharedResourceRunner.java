@@ -28,8 +28,10 @@
 package jogamp.opengl;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
@@ -81,6 +83,29 @@ public class SharedResourceRunner implements Runnable {
         /** Called within synchronized block. */
         Collection<Resource> mapValues();
     }
+    public static abstract class AImplementation implements Implementation {
+        private final HashMap<String /* uniqueId */, SharedResourceRunner.Resource> sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
+        /** Called within synchronized block. Use w/ care! */
+        public Map<String /* uniqueId */, SharedResourceRunner.Resource> getSharedMap() {
+            return sharedMap;
+        }
+        @Override
+        public final void clear() {
+            sharedMap.clear();
+        }
+        @Override
+        public final SharedResourceRunner.Resource mapPut(final AbstractGraphicsDevice device, final SharedResourceRunner.Resource resource) {
+            return sharedMap.put(device.getUniqueID(), resource);
+        }
+        @Override
+        public final SharedResourceRunner.Resource mapGet(final AbstractGraphicsDevice device) {
+            return sharedMap.get(device.getUniqueID());
+        }
+        @Override
+        public final Collection<SharedResourceRunner.Resource> mapValues() {
+            return sharedMap.values();
+        }
+    }
 
     final HashSet<String> devicesTried = new HashSet<String>();
     final Implementation impl;
@@ -93,13 +118,13 @@ public class SharedResourceRunner implements Runnable {
     AbstractGraphicsDevice releaseDevice;
 
     private boolean getDeviceTried(final AbstractGraphicsDevice device) { // synchronized call
-        return devicesTried.contains(device.getConnection());
+        return devicesTried.contains(device.getUniqueID());
     }
     private void addDeviceTried(final AbstractGraphicsDevice device) { // synchronized call
-        devicesTried.add(device.getConnection());
+        devicesTried.add(device.getUniqueID());
     }
     private void removeDeviceTried(final AbstractGraphicsDevice device) { // synchronized call
-        devicesTried.remove(device.getConnection());
+        devicesTried.remove(device.getUniqueID());
     }
 
     public SharedResourceRunner(final Implementation impl) {

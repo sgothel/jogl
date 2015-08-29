@@ -41,8 +41,6 @@ import java.nio.Buffer;
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
@@ -126,11 +124,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         // The act of constructing them causes them to be registered
         X11GLXGraphicsConfigurationFactory.registerFactory();
 
-        sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
-
         // Init shared resources off thread
         // Will be released via ShutdownHook
-        sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
+        sharedResourceImplementation = new SharedResourceImplementation();
+        sharedResourceRunner = new SharedResourceRunner(sharedResourceImplementation);
         sharedResourceRunner.start();
     }
   }
@@ -149,9 +146,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;
     }
-    if(null != sharedMap) {
-        sharedMap.clear();
-        sharedMap = null;
+    if(null != sharedResourceImplementation) {
+        sharedResourceImplementation.clear();
+        sharedResourceImplementation = null;
     }
     defaultDevice = null;
     /**
@@ -168,8 +165,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   private X11GraphicsDevice defaultDevice;
+  private SharedResourceImplementation sharedResourceImplementation;
   private SharedResourceRunner sharedResourceRunner;
-  private HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap;
 
   static class SharedResource implements SharedResourceRunner.Resource {
       private final String glXServerVendorName;
@@ -226,24 +223,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       final boolean isGLXMultisampleAvailable() { return glXMultisampleAvailable; }
   }
 
-  class SharedResourceImplementation implements SharedResourceRunner.Implementation {
-        @Override
-        public void clear() {
-            sharedMap.clear();
-        }
-        @Override
-        public SharedResourceRunner.Resource mapPut(final AbstractGraphicsDevice device, final SharedResourceRunner.Resource resource) {
-            return sharedMap.put(device.getConnection(), resource);
-        }
-        @Override
-        public SharedResourceRunner.Resource mapGet(final AbstractGraphicsDevice device) {
-            return sharedMap.get(device.getConnection());
-        }
-        @Override
-        public Collection<SharedResourceRunner.Resource> mapValues() {
-            return sharedMap.values();
-        }
-
+  class SharedResourceImplementation extends SharedResourceRunner.AImplementation {
         @Override
         public boolean isDeviceSupported(final AbstractGraphicsDevice device) {
             final boolean res;
