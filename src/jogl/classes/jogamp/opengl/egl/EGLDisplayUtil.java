@@ -80,10 +80,17 @@ public class EGLDisplayUtil {
         static EGLDisplayRef getOrCreateOpened(final long eglDisplay, final IntBuffer major, final IntBuffer minor) {
             final EGLDisplayRef o = (EGLDisplayRef) openEGLDisplays.get(eglDisplay);
             if( null == o ) {
-                if( EGL.eglInitialize(eglDisplay, major, minor) ) {
+                final boolean ok = EGL.eglInitialize(eglDisplay, major, minor);
+                if( DEBUG ) {
+                    System.err.println("EGLDisplayUtil.EGL.eglInitialize 0x"+Long.toHexString(eglDisplay)+" -> "+ok);
+                }
+                if( ok ) {
                     final EGLDisplayRef n = new EGLDisplayRef(eglDisplay);
                     openEGLDisplays.put(eglDisplay, n);
                     n.initRefCount++;
+                    if( DEBUG ) {
+                        System.err.println("EGLDisplayUtil.EGL.eglInitialize "+n);
+                    }
                     if( null == singletonEGLDisplay ) {
                         singletonEGLDisplay = n;
                     }
@@ -113,7 +120,12 @@ public class EGLDisplayUtil {
                 if( 0 < o.initRefCount ) { // no negative refCount
                     o.initRefCount--;
                     if( 0 == o.initRefCount ) {
-                        res[0] = EGL.eglTerminate(eglDisplay);
+                        final boolean ok = EGL.eglTerminate(eglDisplay);
+                        if( DEBUG ) {
+                            System.err.println("EGLDisplayUtil.EGL.eglTerminate 0x"+Long.toHexString(eglDisplay)+" -> "+ok);
+                            System.err.println("EGLDisplayUtil.EGL.eglTerminate "+o);
+                        }
+                        res[0] = ok;
                         if( o == singletonEGLDisplay ) {
                             singletonEGLDisplay = null;
                         }

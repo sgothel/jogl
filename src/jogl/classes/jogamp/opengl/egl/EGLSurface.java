@@ -35,7 +35,7 @@ import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLException;
-
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.opengl.egl.EGL;
@@ -101,16 +101,22 @@ public class EGLSurface extends WrappedSurface {
         final boolean isPBuffer = ((GLCapabilitiesImmutable) config.getChosenCapabilities()).isPBuffer();
 
         long eglSurface = createEGLSurfaceHandle(isPBuffer, true /* useSurfaceHandle */, config, nativeSurface);
+        if( DEBUG ) {
+            System.err.println(getThreadName() + ": EGLSurface: EGL.eglCreateSurface.0: 0x"+Long.toHexString(eglSurface));
+            ProxySurfaceImpl.dumpHierarchy(System.err, this);
+        }
+
         if ( EGL.EGL_NO_SURFACE == eglSurface ) {
             final int eglError0 = EGL.eglGetError();
             if( EGL.EGL_BAD_NATIVE_WINDOW == eglError0 && !isPBuffer ) {
                 // Try window handle if available and differs (Windows HDC / HWND).
                 // ANGLE impl. required HWND on Windows.
                 if( hasUniqueNativeWindowHandle(nativeSurface) ) {
-                    if(DEBUG) {
-                        System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+config+", error "+GLDrawableImpl.toHexString(eglError0)+", retry w/ windowHandle");
-                    }
                     eglSurface = createEGLSurfaceHandle(isPBuffer, false /* useSurfaceHandle */, config, nativeSurface);
+                    if( DEBUG ) {
+                        System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+config+", error "+GLDrawableImpl.toHexString(eglError0)+", retry w/ windowHandle");
+                        System.err.println(getThreadName() + ": EGLSurface: EGL.eglCreateSurface.1: 0x"+Long.toHexString(eglSurface));
+                    }
                     if (EGL.EGL_NO_SURFACE == eglSurface) {
                         throw new GLException("Creation of window surface w/ window handle failed: "+config+", "+this+", error "+GLDrawableImpl.toHexString(EGL.eglGetError()));
                     }

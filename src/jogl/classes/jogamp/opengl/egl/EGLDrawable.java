@@ -36,6 +36,7 @@
 
 package jogamp.opengl.egl;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
@@ -82,7 +83,10 @@ public class EGLDrawable extends GLDrawableImpl {
         final EGLSurface eglSurf = (EGLSurface) surface;
         final long eglSurfHandle = eglSurf.getSurfaceHandle();
         if(DEBUG) {
-            System.err.println(getThreadName() + ": destroyHandle of "+eglSurf);
+            System.err.println(getThreadName() + ": EGLDrawable: destroyHandle of "+toHexString(eglSurfHandle));
+            ProxySurfaceImpl.dumpHierarchy(System.err, eglSurf);
+            System.err.println(getThreadName() + ": EGLSurface         : "+eglSurf);
+            ExceptionUtils.dumpStack(System.err);
         }
         if( !eglSurf.containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS ) &&
             EGL.EGL_NO_SURFACE == eglSurfHandle ) {

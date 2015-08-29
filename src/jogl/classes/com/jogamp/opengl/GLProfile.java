@@ -1964,8 +1964,8 @@ public class GLProfile {
         GLContext.setAvailableGLVersionsSet(device, true);
 
         if (DEBUG) {
-            System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": added profile(s): desktop "+addedDesktopProfile+", egl "+addedEGLProfile);
-            System.err.println("GLProfile.initProfilesForDevice: "+device.getConnection()+": "+glAvailabilityToString(device));
+            System.err.println("GLProfile.initProfilesForDevice: "+device.getUniqueID()+": added profile(s): desktop "+addedDesktopProfile+", egl "+addedEGLProfile);
+            System.err.println("GLProfile.initProfilesForDevice: "+device.getUniqueID()+": "+glAvailabilityToString(device));
             if(addedDesktopProfile) {
                 dumpGLInfo(desktopFactory, device);
                 final List<GLCapabilitiesImmutable> availCaps = desktopFactory.getAvailableCapabilities(device);
@@ -1996,6 +1996,9 @@ public class GLProfile {
             }
         } else {
             System.err.println("GLProfile.dumpGLInfo: shared context n/a");
+            System.err.println(device.getClass().getSimpleName()+"[type "+
+                    device.getType()+", connection "+device.getConnection()+"]:");
+            System.err.println(GLProfile.glAvailabilityToString(device, null, "\t", 1).toString());
         }
     }
 
@@ -2028,7 +2031,7 @@ public class GLProfile {
 
     private static boolean computeProfileMap(final AbstractGraphicsDevice device, final boolean desktopCtxUndef, final boolean esCtxUndef) {
         if (DEBUG) {
-            System.err.println("GLProfile.init map "+device.getConnection()+", desktopCtxUndef "+desktopCtxUndef+", esCtxUndef "+esCtxUndef);
+            System.err.println("GLProfile.init map "+device.getUniqueID()+", desktopCtxUndef "+desktopCtxUndef+", esCtxUndef "+esCtxUndef);
         }
         final boolean isHardwareRasterizer[] = new boolean[1];
         GLProfile defaultGLProfileAny = null;
@@ -2050,22 +2053,22 @@ public class GLProfile {
                 }
                 _mappedProfiles.put(profile, glProfile);
                 if (DEBUG) {
-                    System.err.println("GLProfile.init map "+glProfile+" on device "+device.getConnection());
+                    System.err.println("GLProfile.init map "+glProfile+" on device "+device.getUniqueID());
                 }
                 if( null == defaultGLProfileHW && isHardwareRasterizer[0] ) {
                     defaultGLProfileHW=glProfile;
                     if (DEBUG) {
-                        System.err.println("GLProfile.init map defaultHW "+glProfile+" on device "+device.getConnection());
+                        System.err.println("GLProfile.init map defaultHW "+glProfile+" on device "+device.getUniqueID());
                     }
                 } else if( null == defaultGLProfileAny ) {
                     defaultGLProfileAny=glProfile;
                     if (DEBUG) {
-                        System.err.println("GLProfile.init map defaultAny "+glProfile+" on device "+device.getConnection());
+                        System.err.println("GLProfile.init map defaultAny "+glProfile+" on device "+device.getUniqueID());
                     }
                 }
             } else {
                 if (DEBUG) {
-                    System.err.println("GLProfile.init map *** no mapping for "+profile+" on device "+device.getConnection());
+                    System.err.println("GLProfile.init map *** no mapping for "+profile+" on device "+device.getUniqueID());
                 }
             }
         }

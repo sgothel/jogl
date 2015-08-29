@@ -127,7 +127,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         public EGLFeatures(final EGLGraphicsDevice device) {
             final long eglDisplay = device.getHandle();
             vendor = EGL.eglQueryString(eglDisplay, EGL.EGL_VENDOR);
-            if(DEBUG) {
+            if(DEBUG_SHAREDCTX) {
                 System.err.println("EGLFeatures on device "+device+", vendor "+vendor);
             }
             version = device.getEGLVersion();
@@ -143,8 +143,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     }
                 }
                 hasGLAPI = _hasGLAPI;
-                if(DEBUG) {
-                    System.err.println("  Client APIs: "+eglClientAPIStr+"; has EGL 1.4 "+hasEGL_1_4+" -> has OpenGL "+hasGLAPI);
+                if(DEBUG_SHAREDCTX) {
+                    System.err.println("  Client APIs: '"+eglClientAPIStr+"'; has EGL 1.4 "+hasEGL_1_4+" -> has OpenGL "+hasGLAPI);
                 }
             }
             {
@@ -162,7 +162,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     }
                     hasKHRSurfaceless = extensions.contains("EGL_KHR_surfaceless_context");
                 }
-                if(DEBUG) {
+                if(DEBUG_SHAREDCTX) {
                     System.err.println("  Extensions: "+extensions);
                     System.err.println("  KHR_create_context: "+hasKHRCreateContext);
                     System.err.println("  KHR_surfaceless_context: "+hasKHRSurfaceless);
@@ -395,7 +395,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private void dumpMap() {
         synchronized(sharedResourceImplementation) {
             final Map<String /* uniqueId */, SharedResourceRunner.Resource> sharedMap = sharedResourceImplementation.getSharedMap();
-            System.err.println("EGLDrawableFactory.map "+sharedMap.size());
+            System.err.println("EGLDrawableFactory.MapGLVersion.map "+sharedMap.size());
             int i=0;
             final Set<String> keys = sharedMap.keySet();
             for(final Iterator<String> keyI = keys.iterator(); keyI.hasNext(); i++) {
@@ -505,6 +505,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         private SharedResource createEGLSharedResourceImpl(final AbstractGraphicsDevice adevice) {
+            if ( DEBUG_SHAREDCTX ) {
+                System.err.println("EGLDrawableFactory.MapGLVersions: device "+adevice);
+            }
+
             final GLRendererQuirks[] rendererQuirksES1 = new GLRendererQuirks[] { null };
             final GLRendererQuirks[] rendererQuirksES3ES2 = new GLRendererQuirks[] { null };
             final GLRendererQuirks[] rendererQuirksGLn = new GLRendererQuirks[] { null };
@@ -595,7 +599,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
             if ( !GLProfile.isAvailable(adevice, profileString) ) {
                 if ( DEBUG_SHAREDCTX ) {
-                    System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" n/a on "+adevice);
+                    System.err.println("EGLDrawableFactory.MapGLVersions: "+profileString+" n/a on "+adevice);
                 }
                 return false;
             }
