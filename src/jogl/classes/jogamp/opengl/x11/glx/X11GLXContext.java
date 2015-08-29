@@ -56,6 +56,7 @@ import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLXExtensions;
 
 import com.jogamp.common.ExceptionUtils;
@@ -224,11 +225,22 @@ public class X11GLXContext extends GLContextImpl {
 
   @Override
   protected long createContextARBImpl(final long share, final boolean direct, final int ctp, final int major, final int minor) {
-    updateGLXProcAddressTable();
-    final GLXExt _glXExt = getGLXExt();
     if(DEBUG) {
       System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
-                         ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
+                         ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct);
+    }
+    final GLDynamicLookupHelper dlh = getGLDynamicLookupHelper(major, ctp);
+    if( null == dlh ) {
+        if(DEBUG) {
+            System.err.println(getThreadName()+" - X11GLXContext.createContextARBImpl: Null GLDynamicLookupHelper");
+        }
+        return 0;
+    } else {
+        updateGLXProcAddressTable(null, dlh);
+    }
+    final GLXExt _glXExt = getGLXExt();
+    if(DEBUG) {
+      System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl: "+
                          ", glXCreateContextAttribsARB: "+toHexString(glXExtProcAddressTable._addressof_glXCreateContextAttribsARB));
     }
 
@@ -479,8 +491,17 @@ public class X11GLXContext extends GLContextImpl {
     // Should check for X errors and raise GLException
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Ignoring {@code contextFQN}, using {@code GLX}+{@link AbstractGraphicsDevice#getUniqueID()}.
+   * </p>
+   */
   @Override
-  protected final void updateGLXProcAddressTable() {
+  protected final void updateGLXProcAddressTable(final String contextFQN, final GLDynamicLookupHelper dlh) {
+    if( null == dlh ) {
+        throw new GLException("No GLDynamicLookupHelper for "+this);
+    }
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "GLX-"+adevice.getUniqueID();
@@ -498,7 +519,7 @@ public class X11GLXContext extends GLContextImpl {
         }
     } else {
         glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
-        resetProcAddressTable(getGLXExtProcAddressTable());
+        resetProcAddressTable(getGLXExtProcAddressTable(), dlh);
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
             if(DEBUG) {

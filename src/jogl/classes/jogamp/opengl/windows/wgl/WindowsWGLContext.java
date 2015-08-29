@@ -60,6 +60,7 @@ import com.jogamp.opengl.GLRendererQuirks;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLXExtensions;
 
 public class WindowsWGLContext extends GLContextImpl {
@@ -201,13 +202,24 @@ public class WindowsWGLContext extends GLContextImpl {
 
   @Override
   protected long createContextARBImpl(final long share, final boolean direct, final int ctp, final int major, final int minor) {
+    if(DEBUG) {
+        System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
+                ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct);
+    }
     if( null == getWGLExtProcAddressTable()) {
-        updateGLXProcAddressTable();
+        final GLDynamicLookupHelper dlh = getGLDynamicLookupHelper(major, ctp);
+        if( null == dlh ) {
+            if(DEBUG) {
+                System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: Null GLDynamicLookupHelper");
+            }
+            return 0;
+        } else {
+            updateGLXProcAddressTable(null, dlh);
+        }
     }
     final WGLExt _wglExt = getWGLExt();
     if(DEBUG) {
-      System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
-                         ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
+      System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+
                          ", wglCreateContextAttribsARB: "+toHexString(wglExtProcAddressTable._addressof_wglCreateContextAttribsARB));
     }
 
@@ -441,8 +453,17 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Ignoring {@code contextFQN}, using {@code WGL}-{@link AbstractGraphicsDevice#getUniqueID()}.
+   * </p>
+   */
   @Override
-  protected final void updateGLXProcAddressTable() {
+  protected final void updateGLXProcAddressTable(final String contextFQN, final GLDynamicLookupHelper dlh) {
+    if( null == dlh ) {
+        throw new GLException("No GLDynamicLookupHelper for "+this);
+    }
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "WGL-"+adevice.getUniqueID();
@@ -465,7 +486,7 @@ public class WindowsWGLContext extends GLContextImpl {
         }
     } else {
         wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
-        resetProcAddressTable(wglExtProcAddressTable);
+        resetProcAddressTable(wglExtProcAddressTable, dlh);
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getWGLExtProcAddressTable());
             if(DEBUG) {

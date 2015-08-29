@@ -363,14 +363,17 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected final void updateGLXProcAddressTable() {
+    protected final void updateGLXProcAddressTable(final String contextFQN, final GLDynamicLookupHelper dlh) {
+        if( null == dlh ) {
+            throw new GLException("No GLDynamicLookupHelper for "+this);
+        }
         final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
         final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
         final String key = "EGL-"+adevice.getUniqueID();
+        // final String key = contextFQN;
         if (DEBUG) {
           System.err.println(getThreadName() + ": Initializing EGLextension address table: "+key);
         }
-
         ProcAddressTable table = null;
         synchronized(mappedContextTypeObjectLock) {
             table = mappedGLXProcAddress.get( key );
@@ -385,7 +388,7 @@ public class EGLContext extends GLContextImpl {
             }
         } else {
             eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
-            resetProcAddressTable(eglExtProcAddressTable);
+            resetProcAddressTable(eglExtProcAddressTable, dlh);
             synchronized(mappedContextTypeObjectLock) {
                 mappedGLXProcAddress.put(key, eglExtProcAddressTable);
                 if(DEBUG) {

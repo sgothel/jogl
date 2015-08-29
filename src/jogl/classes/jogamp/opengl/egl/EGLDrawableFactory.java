@@ -867,17 +867,21 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public GLDynamicLookupHelper getGLDynamicLookupHelper(final String esProfile) {
+    public final GLDynamicLookupHelper getGLDynamicLookupHelper(final int majorVersion, final int contextOptions) {
         final GLDynamicLookupHelper res;
-        if ( GLProfile.GLES2 == esProfile || GLProfile.GLES3 == esProfile ) {
+        if ( EGLContext.isGLES2ES3(majorVersion, contextOptions) ) {
             res = eglES2DynamicLookupHelper;
-        } else if ( GLProfile.GLES1 == esProfile ) {
+        } else if ( EGLContext.isGLES1(majorVersion, contextOptions) ) {
             res = eglES1DynamicLookupHelper;
-        } else {
+        } else if( EGLContext.isGLDesktop(contextOptions) ) {
             res = eglGLnDynamicLookupHelper;
+        } else {
+            throw new IllegalArgumentException("neither GLES1, GLES2, GLES3 nor desktop GL has been specified: "+majorVersion+" ("+EGLContext.getGLProfile(new StringBuilder(), contextOptions).toString());
         }
-        if( null == res ) {
-            throw new GLException("No lookup for esProfile "+esProfile);
+        if( DEBUG_SHAREDCTX ) {
+            if( null == res ) {
+                System.err.println("EGLDrawableFactory.getGLDynamicLookupHelper: NULL for profile "+majorVersion+" ("+EGLContext.getGLProfile(new StringBuilder(), contextOptions).toString());
+            }
         }
         return res;
     }

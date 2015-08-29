@@ -63,6 +63,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLFBODrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
@@ -436,8 +437,17 @@ public class MacOSXCGLContext extends GLContextImpl
       return null;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Ignoring {@code contextFQN}, using {@code MacOSX}-{@link AbstractGraphicsDevice#getUniqueID()}.
+   * </p>
+   */
   @Override
-  protected final void updateGLXProcAddressTable() {
+  protected final void updateGLXProcAddressTable(final String contextFQN, final GLDynamicLookupHelper dlh) {
+    if( null == dlh ) {
+        throw new GLException("No GLDynamicLookupHelper for "+this);
+    }
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "MacOSX-"+adevice.getUniqueID();
@@ -455,7 +465,7 @@ public class MacOSXCGLContext extends GLContextImpl
         }
     } else {
         cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
-        resetProcAddressTable(getCGLExtProcAddressTable());
+        resetProcAddressTable(getCGLExtProcAddressTable(), dlh);
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getCGLExtProcAddressTable());
             if(DEBUG) {

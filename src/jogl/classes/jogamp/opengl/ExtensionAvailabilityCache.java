@@ -45,7 +45,6 @@ import java.util.StringTokenizer;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES3;
-import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLContext;
 
 import com.jogamp.common.util.VersionNumber;
@@ -138,9 +137,9 @@ final class ExtensionAvailabilityCache {
 
       boolean useGetStringi = false;
 
-      // Use 'glGetStringi' only for ARB GL3 context,
+      // Use 'glGetStringi' only for ARB GL3 and ES3 context,
       // on GL2 platforms the function might be available, but not working.
-      if ( context.isGL3() ) {
+      if ( context.isGL3() || context.isGLES3() ) {
           if ( ! context.isFunctionAvailable("glGetStringi") ) {
               if(DEBUG) {
                   System.err.println("GLContext: GL >= 3.1 usage, but no glGetStringi");
@@ -156,16 +155,16 @@ final class ExtensionAvailabilityCache {
       }
 
       if(useGetStringi) {
-          final GL2GL3 gl2gl3 = gl.getGL2GL3();
+          final GL2ES3 gl2es3 = (GL2ES3)gl; // validated via context - OK!
           final int count;
           {
               final int[] val = { 0 } ;
-              gl2gl3.glGetIntegerv(GL2ES3.GL_NUM_EXTENSIONS, val, 0);
+              gl2es3.glGetIntegerv(GL2ES3.GL_NUM_EXTENSIONS, val, 0);
               count = val[0];
           }
           final StringBuilder sb = new StringBuilder();
           for (int i = 0; i < count; i++) {
-              final String ext = gl2gl3.glGetStringi(GL.GL_EXTENSIONS, i);
+              final String ext = gl2es3.glGetStringi(GL.GL_EXTENSIONS, i);
               if( null == availableExtensionCache.put(ext, ext) ) {
                   // new one
                   if( 0 < i ) {

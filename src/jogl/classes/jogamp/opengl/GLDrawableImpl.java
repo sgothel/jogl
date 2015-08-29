@@ -67,14 +67,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.requestedCapabilities = requestedCapabilities;
   }
 
-  /**
-   * Returns the DynamicLookupHelper
-   * @throws GLException if no DynamicLookupHelper is installed
-   */
-  public final GLDynamicLookupHelper getGLDynamicLookupHelper() throws GLException {
-      return getFactoryImpl().getGLDynamicLookupHelper( getGLProfile().getImplName() );
-  }
-
   public final GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
   }

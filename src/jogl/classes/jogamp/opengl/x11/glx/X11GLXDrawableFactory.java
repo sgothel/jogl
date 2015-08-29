@@ -160,7 +160,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final GLDynamicLookupHelper getGLDynamicLookupHelper(final String profileName) {
+  public final GLDynamicLookupHelper getGLDynamicLookupHelper(final int majorVersion, final int contextOptions) {
       return x11GLXDynamicLookupHelper;
   }
 
