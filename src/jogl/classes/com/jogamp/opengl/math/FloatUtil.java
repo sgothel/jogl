@@ -1959,6 +1959,7 @@ public final class FloatUtil {
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return matrix string representation
+   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
                                              final FloatBuffer a, final int aOffset, final int rows, final int columns, final boolean rowMajorOrder) {

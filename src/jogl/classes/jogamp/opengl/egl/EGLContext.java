@@ -433,7 +433,7 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected final Integer setSwapIntervalImpl(final int interval) {
+    protected final Integer setSwapIntervalImpl2(final int interval) {
         if( hasRendererQuirk(GLRendererQuirks.NoSetSwapInterval) ) {
             return null;
         }

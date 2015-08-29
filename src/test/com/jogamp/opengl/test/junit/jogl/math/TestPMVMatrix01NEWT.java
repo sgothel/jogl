@@ -47,7 +47,6 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -102,6 +101,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
                                                                           0.0f,  0.0f,  0.0f,  1.0f } );
 
     @Test
+    @SuppressWarnings("deprecation")
     public void test00MatrixToString() {
         final String s4x4Cpmv = PMVMatrix.matrixToString(null, "%10.5f", translated123C).toString();
         final String s4x4Cflu = FloatUtil.matrixToString(null, null, "%10.5f", translated123C, 0, 4, 4, false).toString();
@@ -328,7 +328,6 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         // System.err.println("P2: "+pmv.toString());
     }
 
-    @SuppressWarnings("unused")
     @Test
     public void test03MvTranslate() {
         final FloatBuffer pmvMv;
@@ -367,7 +366,6 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         // System.err.println("pmvMvit: "+Platform.NEWLINE+PMVMatrix.matrixToString(null, "%10.5f", pmvMvit));
     }
 
-    @SuppressWarnings("unused")
     @Test
     public void test04MvTranslateRotate() {
         final FloatBuffer pmvMv;

@@ -2616,7 +2616,7 @@ public abstract class GLContextImpl extends GLContext {
         ( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) )
       )
     {
-        final Integer usedInterval = setSwapIntervalImpl(interval);
+        final Integer usedInterval = setSwapIntervalImpl2(interval);
         if( null != usedInterval ) {
             currentSwapInterval = usedInterval.intValue();
             return true;
@@ -2624,11 +2624,13 @@ public abstract class GLContextImpl extends GLContext {
     }
     return false;
   }
-  protected abstract Integer setSwapIntervalImpl(final int interval);
+  protected abstract Integer setSwapIntervalImpl2(final int interval);
 
+  @Override
   public final int getSwapInterval() {
     return currentSwapInterval;
   }
+  @Override
   protected final void setDefaultSwapInterval() {
     currentSwapInterval = 0;
     setSwapIntervalNC(1);

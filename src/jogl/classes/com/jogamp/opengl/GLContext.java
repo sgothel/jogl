@@ -1265,7 +1265,14 @@ public abstract class GLContext {
    * @throws GLException if the context is not current.
    * @see #getSwapInterval()
    */
-  public abstract boolean setSwapInterval(final int interval) throws GLException;
+  public /* abstract */ boolean setSwapInterval(final int interval) throws GLException {
+      // FIXME: Make abstract for next version - just here to *not* break SEMVER!
+      throw new InternalError("Implemented in GLContextImpl");
+  }
+  protected boolean setSwapIntervalImpl(final int interval) {
+      // FIXME: Remove for next version - just here to *not* break SEMVER!
+      throw new InternalError("Implemented in GLContextImpl");
+  }
 
   /**
    * Return the current swap interval.
@@ -1279,7 +1286,15 @@ public abstract class GLContext {
    * </p>
    * @see #setSwapInterval(int)
    */
-  public abstract int getSwapInterval();
+  public /* abstract */ int getSwapInterval() {
+      // FIXME: Make abstract for next version - just here to *not* break SEMVER!
+      throw new InternalError("Implemented in GLContextImpl");
+  }
+
+  protected void setDefaultSwapInterval() {
+      // FIXME: Remove for next version - just here to *not* break SEMVER!
+      throw new InternalError("Implemented in GLContextImpl");
+  }
 
   public final boolean queryMaxSwapGroups(final int[] maxGroups, final int maxGroups_offset,
                                           final int[] maxBarriers, final int maxBarriers_offset) {

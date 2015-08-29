@@ -84,6 +84,7 @@ public class GLUniformData {
     public IntBuffer intBufferValue()   { return (IntBuffer)data; };
     public FloatBuffer floatBufferValue() { return (FloatBuffer)data; };
 
+    @SuppressWarnings("deprecation")
     public StringBuilder toString(StringBuilder sb) {
       if(null == sb) {
           sb = new StringBuilder();
