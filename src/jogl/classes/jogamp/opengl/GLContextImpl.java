@@ -1294,13 +1294,9 @@ public abstract class GLContextImpl extends GLContext {
     final int minor[] = new int[1];
 
     if( CTX_PROFILE_ES == reqProfile ) {
-        if( 3 == reqMajor ) { // ES3 - ES2
-            maxMajor=3; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
-            minMajor=2; minMinor=0;
-        } else { // ES2 or ES1
-            maxMajor=reqMajor; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
-            minMajor=reqMajor; minMinor=0;
-        }
+        // ES3, ES2 or ES1
+        maxMajor=reqMajor; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
+        minMajor=reqMajor; minMinor=0;
     } else {
         if( 4 == reqMajor ) {
             maxMajor=4; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
