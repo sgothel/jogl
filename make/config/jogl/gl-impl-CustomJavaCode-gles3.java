@@ -171,6 +171,9 @@ public final GLES2 getGLES2() throws GLException {
 
 @Override
 public final GLES3 getGLES3() throws GLException {
+    if(!_isES3) {
+        throw new GLException("Not a GLES3 implementation");
+    }
     return this;
 }
 
