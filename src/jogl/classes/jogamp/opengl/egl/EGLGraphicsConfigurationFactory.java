@@ -242,7 +242,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             }
             ownEGLDisplay = false;
         } else {
-            eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(absDevice.getHandle(), absDevice.getConnection(), absDevice.getUnitID());
+            eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(absDevice);
             eglDevice.open();
             ownEGLDisplay = true;
         }

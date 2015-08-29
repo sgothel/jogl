@@ -340,6 +340,22 @@ public class EGLDisplayUtil {
      * <p>
      * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      * </p>
+     * @param adevice
+     * @return an uninitialized {@link EGLGraphicsDevice}
+     */
+    public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(final AbstractGraphicsDevice aDevice)  {
+        return new EGLGraphicsDevice(aDevice, EGL.EGL_NO_DISPLAY, eglLifecycleCallback);
+    }
+
+    /**
+     * Returns an uninitialized {@link EGLGraphicsDevice}. User needs to issue {@link EGLGraphicsDevice#open()} before usage.
+     * <p>
+     * Using {@link #eglGetDisplayAndInitialize(long[])} for the {@link EGLGraphicsDevice#open()} implementation
+     * and {@link #eglTerminate(long)} for {@link EGLGraphicsDevice#close()}.
+     * </p>
+     * <p>
+     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * </p>
      * @param surface
      * @return an uninitialized EGLGraphicsDevice
      */

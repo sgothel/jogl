@@ -80,6 +80,18 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         this.eglLifecycleCallback = null;
     }
 
+    public EGLGraphicsDevice(final AbstractGraphicsDevice aDevice, final long eglDisplay, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
+        super(NativeWindowFactory.TYPE_EGL, aDevice.getConnection(), aDevice.getUnitID(), eglDisplay);
+        final long nativeDisplayID;
+        if( aDevice instanceof EGLGraphicsDevice ) {
+            nativeDisplayID = ((EGLGraphicsDevice)aDevice).getNativeDisplayID();
+        } else {
+            nativeDisplayID = aDevice.getHandle();
+        }
+        this.nativeDisplayID[0] = nativeDisplayID;
+        this.eglLifecycleCallback = eglLifecycleCallback;
+    }
+
     public EGLGraphicsDevice(final long nativeDisplayID, final long eglDisplay, final String connection, final int unitID, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID, eglDisplay);
         this.nativeDisplayID[0] = nativeDisplayID;

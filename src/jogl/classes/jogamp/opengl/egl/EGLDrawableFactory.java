@@ -928,9 +928,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                                       final GLCapabilitiesChooser chooser) {
         final EGLGraphicsDevice device;
         if( createNewDevice || ! (deviceReq instanceof EGLGraphicsDevice) ) {
-            final long nativeDisplayID = ( deviceReq instanceof EGLGraphicsDevice) ?
-                    ( (EGLGraphicsDevice) deviceReq ).getNativeDisplayID() : deviceReq.getHandle() ;
-            device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(nativeDisplayID, deviceReq.getConnection(), deviceReq.getUnitID());
+            device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(deviceReq);
             device.open();
             ownDevice[0] = true;
         } else {
@@ -1008,8 +1006,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle,
                                                   final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser,
                                                   final UpstreamSurfaceHook upstream) {
-        final EGLGraphicsDevice eglDeviceReq = (EGLGraphicsDevice) deviceReq;
-        final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(eglDeviceReq.getNativeDisplayID(), deviceReq.getConnection(), deviceReq.getUnitID());
+        final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(deviceReq);
         device.open();
         final DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
         final EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED, false);
