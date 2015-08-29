@@ -141,6 +141,10 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
     @Test
     public void test01ES2OnEGL() throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getEGLFactory();
+        if( null == factory ) {
+            System.err.println("EGL Factory n/a");
+            return;
+        }
         final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GLES2);
         if(null != glp) {
             Assert.assertTrue("Not a GLES2 profile but "+glp, glp.isGLES2());
@@ -159,6 +163,10 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
     @Test
     public void test02GLOnEGL() throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getEGLFactory();
+        if( null == factory ) {
+            System.err.println("EGL Factory n/a");
+            return;
+        }
         final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GL2GL3);
         if(null != glp) {
             Assert.assertTrue("Not a GL2GL3 profile but "+glp, glp.isGL2GL3());
@@ -179,6 +187,10 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
     @Test
     public void test11ES2OnGL() throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
+        if( null == factory ) {
+            System.err.println("Desktop Factory n/a");
+            return;
+        }
         final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GLES2);
         if(null != glp) {
             Assert.assertTrue("Not a GLES2 profile but "+glp, glp.isGLES2());
@@ -197,6 +209,10 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
     @Test
     public void test12GLOnGL() throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
+        if( null == factory ) {
+            System.err.println("Desktop Factory n/a");
+            return;
+        }
         final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GL2GL3);
         if(null != glp) {
             Assert.assertTrue("Not a GL2GL3 profile but "+glp, glp.isGL2GL3());
