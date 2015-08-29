@@ -48,12 +48,19 @@ class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
     public void display(final ArrayList<GLAutoDrawable> drawables,
                         final boolean ignoreExceptions,
                         final boolean printExceptions) throws UncaughtAnimatorException {
-        for (int i=0; i<drawables.size(); i++) {
-            final GLAutoDrawable drawable = drawables.get(i);
+        boolean hasException = false;
+        for (int i=0; !hasException && i<drawables.size(); i++) {
+            boolean catch1 = true;
+            GLAutoDrawable drawable = null;
             try {
+                drawable = drawables.get(i);
+                catch1 = false;
                 drawable.display();
             } catch (final Throwable t) {
-                if (ignoreExceptions) {
+                if( catch1 && t instanceof IndexOutOfBoundsException ) {
+                    // concurrent pulling of GLAutoDrawables ..
+                    hasException = true;
+                } else if (ignoreExceptions) {
                     if (printExceptions) {
                         t.printStackTrace();
                     }

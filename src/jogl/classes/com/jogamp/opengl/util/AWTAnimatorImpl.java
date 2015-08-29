@@ -56,7 +56,7 @@ import com.jogamp.opengl.util.AnimatorBase.UncaughtAnimatorException;
 class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // For efficient rendering of Swing components, in particular when
     // they overlap one another
-    private final List<JComponent> lightweights    = new ArrayList<JComponent>();
+    private final List<JComponent> lightweights = new ArrayList<JComponent>();
     private final Map<RepaintManager,RepaintManager> repaintManagers = new IdentityHashMap<RepaintManager,RepaintManager>();
     private final Map<JComponent,Rectangle>  dirtyRegions    = new IdentityHashMap<JComponent,Rectangle>();
 
@@ -64,34 +64,40 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     public void display(final ArrayList<GLAutoDrawable> drawables,
                         final boolean ignoreExceptions,
                         final boolean printExceptions) throws UncaughtAnimatorException {
-        for (int i=0; i<drawables.size(); i++) {
-            final GLAutoDrawable drawable = drawables.get(i);
-            if (drawable instanceof JComponent) {
-                // Lightweight components need a more efficient drawing
-                // scheme than simply forcing repainting of each one in
-                // turn since drawing one can force another one to be
-                // drawn in turn
-                lightweights.add((JComponent)drawable);
-            } else {
-                try {
+        boolean hasException = false;
+        for (int i=0; !hasException && i<drawables.size(); i++) {
+            GLAutoDrawable drawable = null;
+            boolean catch1 = true;
+            try {
+                drawable = drawables.get(i);
+                catch1 = false;
+                if (drawable instanceof JComponent) {
+                    // Lightweight components need a more efficient drawing
+                    // scheme than simply forcing repainting of each one in
+                    // turn since drawing one can force another one to be
+                    // drawn in turn
+                    lightweights.add((JComponent)drawable);
+                } else {
                     drawable.display();
-                } catch (final Throwable t) {
-                    if (ignoreExceptions) {
-                        if (printExceptions) {
-                            t.printStackTrace();
-                        }
-                    } else {
-                        throw new UncaughtAnimatorException(drawable, t);
+                }
+            } catch (final Throwable t) {
+                if( catch1 && t instanceof IndexOutOfBoundsException ) {
+                    // concurrent pulling of GLAutoDrawables ..
+                    hasException = true;
+                } else if ( ignoreExceptions ) {
+                    if ( printExceptions ) {
+                        t.printStackTrace();
                     }
+                } else {
+                    throw new UncaughtAnimatorException(drawable, t);
                 }
             }
         }
-
         if (lightweights.size() > 0) {
             try {
                 SwingUtilities.invokeAndWait(drawWithRepaintManagerRunnable);
-            } catch (final Exception e) {
-                e.printStackTrace();
+            } catch (final Throwable t) {
+                t.printStackTrace();
             }
             lightweights.clear();
         }
