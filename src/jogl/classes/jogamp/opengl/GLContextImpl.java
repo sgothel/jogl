@@ -1128,6 +1128,40 @@ public abstract class GLContextImpl extends GLContext {
         boolean hasGL2   = false;
         boolean hasGL4   = false;
         boolean hasGL3   = false;
+        boolean hasES3   = false;
+        boolean hasES2   = false;
+        boolean hasES1   = false;
+
+        if( (device instanceof EGLGraphicsDevice) && !GLProfile.disableOpenGLES ) {
+            if( !hasES3) {
+                hasES3   = createContextARBMapVersionsAvailable(device, 3, CTX_PROFILE_ES);    // ES3
+                success |= hasES3;
+                if( hasES3 ) {
+                    if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
+                        // Map hw-accel ES3 to all lower core profiles: ES2
+                        mapAvailableGLVersion(device, 2, CTX_PROFILE_ES, ctxVersion, ctxOptions, glRendererQuirks);
+                        if( PROFILE_ALIASING ) {
+                            hasES2   = true;
+                        }
+                    }
+                    resetStates(false); // clean context states, since creation was temporary
+                }
+            }
+            if( !hasES2) {
+                hasES2   = createContextARBMapVersionsAvailable(device, 2, CTX_PROFILE_ES);    // ES2
+                success |= hasES2;
+                if( hasES3 ) {
+                    resetStates(false); // clean context states, since creation was temporary
+                }
+            }
+            if( !hasES1) {
+                hasES1   = createContextARBMapVersionsAvailable(device, 1, CTX_PROFILE_ES);    // ES1
+                success |= hasES1;
+                if( hasES1 ) {
+                    resetStates(false); // clean context states, since creation was temporary
+                }
+            }
+        }
 
         // Even w/ PROFILE_ALIASING, try to use true core GL profiles
         // ensuring proper user behavior across platforms due to different feature sets!

@@ -102,6 +102,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private static String defaultConnection = null;
     private static EGLGraphicsDevice defaultDevice = null;
     private static EGLFeatures defaultDeviceEGLFeatures = null;
+    private static SharedResource defaultSharedResource = null;
 
     private static final boolean isANGLE(final GLDynamicLookupHelper dl) {
         if(Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE) {
@@ -140,7 +141,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 final String eglClientAPIStr = EGL.eglQueryString(eglDisplay, EGL.EGL_CLIENT_APIS);
                 if( hasEGL_1_4 ) {
                     final String[] eglClientAPIs = eglClientAPIStr.split("\\s");
-                    for(int i=eglClientAPIs.length-1; i>=0; i--) {
+                    for(int i=eglClientAPIs.length-1; !_hasGLAPI && i>=0; i--) {
                         _hasGLAPI = eglClientAPIs[i].equals("OpenGL");
                     }
                 }
@@ -408,10 +409,11 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             for(final Iterator<String> keyI = keys.iterator(); keyI.hasNext(); i++) {
                 final String key = keyI.next();
                 final SharedResource sr = (SharedResource) sharedMap.get(key);
-                System.err.println("EGLDrawableFactory.map["+i+"] "+key+" -> "+sr.getDevice()+", avail "+sr.isAvailable+
-                                   "gln   [quirks "+sr.rendererQuirksGLn+", ctp "+EGLContext.getGLVersion(3, 0, sr.ctpGLn, null)+"], "+
-                                   "es1   [quirks "+sr.rendererQuirksES1+", ctp "+EGLContext.getGLVersion(1, 0, sr.ctpES1, null)+"], "+
-                                   "es2/3 [quirks "+sr.rendererQuirksES3ES2+", ctp "+EGLContext.getGLVersion(2, 0, sr.ctpES3ES2, null)+"]");
+                System.err.println("EGLDrawableFactory.MapGLVersion.map["+i+"] "+key+" -> "+sr.getDevice()+", avail "+sr.isAvailable+", "+
+                                   "es1 [avail "+sr.isAvailableES1+", quirks "+sr.rendererQuirksES1+", ctp "+EGLContext.getGLVersion(1, 0, sr.ctpES1, null)+"], "+
+                                   "es2 [avail "+sr.isAvailableES2+", quirks "+sr.rendererQuirksES2+", ctp "+EGLContext.getGLVersion(2, 0, sr.ctpES2, null)+"], "+
+                                   "es3 [avail "+sr.isAvailableES3+", quirks "+sr.rendererQuirksES3+", ctp "+EGLContext.getGLVersion(2, 0, sr.ctpES3, null)+"], "+
+                                   "gln [avail "+sr.isAvailableGLn+", quirks "+sr.rendererQuirksGLn+", ctp "+EGLContext.getGLVersion(3, 0, sr.ctpGLn, null)+"]");
             }
             ;
         }
@@ -422,32 +424,40 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     static class SharedResource implements SharedResourceRunner.Resource {
       private EGLGraphicsDevice device;
-      // private final EGLContext contextES1;
-      // private final EGLContext contextES2;
-      // private final EGLContext contextES3;
       final boolean isAvailable;
-      final GLRendererQuirks rendererQuirksGLn;
+      final boolean isAvailableES1;
+      final boolean isAvailableES2;
+      final boolean isAvailableES3;
+      final boolean isAvailableGLn;
       final GLRendererQuirks rendererQuirksES1;
-      final GLRendererQuirks rendererQuirksES3ES2;
-      final int ctpGLn;
+      final GLRendererQuirks rendererQuirksES2;
+      final GLRendererQuirks rendererQuirksES3;
+      final GLRendererQuirks rendererQuirksGLn;
       final int ctpES1;
-      final int ctpES3ES2;
+      final int ctpES2;
+      final int ctpES3;
+      final int ctpGLn;
 
-      SharedResource(final EGLGraphicsDevice dev, final boolean isAvailable,
-                     final GLRendererQuirks rendererQuirksGLn, final int ctpGLn,
-                     final GLRendererQuirks rendererQuirksES1, final int ctpES1,
-                     final GLRendererQuirks rendererQuirksES3ES2, final int ctpES3ES2) {
+      SharedResource(final EGLGraphicsDevice dev,
+                     final boolean isAvailableES1, final GLRendererQuirks rendererQuirksES1, final int ctpES1,
+                     final boolean isAvailableES2, final GLRendererQuirks rendererQuirksES2, final int ctpES2,
+                     final boolean isAvailableES3, final GLRendererQuirks rendererQuirksES3, final int ctpES3,
+                     final boolean isAvailableGLn, final GLRendererQuirks rendererQuirksGLn, final int ctpGLn) {
           this.device = dev;
-          this.isAvailable = isAvailable;
+          this.isAvailable = isAvailableES1 || isAvailableES2 || isAvailableES3 || isAvailableGLn;
 
-          this.rendererQuirksGLn = rendererQuirksGLn;
-          this.ctpGLn = ctpGLn;
-
+          this.isAvailableES1 = isAvailableES1;
           this.rendererQuirksES1 = rendererQuirksES1;
           this.ctpES1 = ctpES1;
-
-          this.rendererQuirksES3ES2 = rendererQuirksES3ES2;
-          this.ctpES3ES2 = ctpES3ES2;
+          this.isAvailableES2 = isAvailableES2;
+          this.rendererQuirksES2 = rendererQuirksES2;
+          this.ctpES2 = ctpES2;
+          this.isAvailableES3 = isAvailableES3;
+          this.rendererQuirksES3 = rendererQuirksES3;
+          this.ctpES3 = ctpES3;
+          this.isAvailableGLn = isAvailableGLn;
+          this.rendererQuirksGLn = rendererQuirksGLn;
+          this.ctpGLn = ctpGLn;
       }
 
       @Override
@@ -472,8 +482,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       @Override
       public GLRendererQuirks getRendererQuirks(final GLProfile glp) {
           if( null == glp ) {
-              if( null != rendererQuirksES3ES2 ) {
-                  return rendererQuirksES3ES2;
+              if( null != rendererQuirksES3 ) {
+                  return rendererQuirksES3;
+              } else if( null != rendererQuirksES2 ) {
+                  return rendererQuirksES2;
               } else if( null != rendererQuirksES1 ) {
                   return rendererQuirksES1;
               } else {
@@ -483,8 +495,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
               return rendererQuirksGLn;
           } else if( glp.isGLES1() ) {
               return rendererQuirksES1;
-          } else {
-              return rendererQuirksES3ES2;
+          } else if( glp.isGLES2() ) {
+              return rendererQuirksES2;
+          } else /* if( glp.isGLES3() ) */ {
+              return rendererQuirksES3;
           }
       }
   }
@@ -512,78 +526,124 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 System.err.println("EGLDrawableFactory.MapGLVersions: device "+adevice);
             }
 
-            final GLRendererQuirks[] rendererQuirksES1 = new GLRendererQuirks[] { null };
-            final GLRendererQuirks[] rendererQuirksES3ES2 = new GLRendererQuirks[] { null };
-            final GLRendererQuirks[] rendererQuirksGLn = new GLRendererQuirks[] { null };
-            final int[] ctpES1 = new int[] { EGLContext.CTX_PROFILE_ES };
-            final int[] ctpES3ES2 = new int[] { EGLContext.CTX_PROFILE_ES };
-            final int[] ctpGLn = new int[] { EGLContext.CTX_PROFILE_CORE };
-
-            if ( DEBUG_SHAREDCTX ) {
-                System.err.println("EGLDrawableFactory.createShared(): device "+adevice);
-            }
-
-            boolean madeCurrentES1 = false;
-            boolean madeCurrentES2 = false;
-            boolean madeCurrentES3 = false;
-            boolean madeCurrentGLn = false;
-
-            if( null != eglGLnDynamicLookupHelper ) {
-                // OpenGL 3.1 core -> GL3, will utilize normal desktop profile mapping
-                final int[] major = { 3 };
-                final int[] minor = { 1 }; // FIXME: No minor version probing for ES currently!
-                madeCurrentGLn = mapAvailableEGLESConfig(adevice, major, minor,
-                                                         ctpGLn, rendererQuirksGLn) && 0 != major[0];
-            } else {
-                madeCurrentGLn = false;
-            }
-            EGLContext.setAvailableGLVersionsSet(adevice, true);
-
-            if( null != eglES1DynamicLookupHelper ) {
-                final int[] major = { 1 };
-                final int[] minor = { 0 };
-                madeCurrentES1 = mapAvailableEGLESConfig(adevice, major, minor,
-                                                         ctpES1, rendererQuirksES1) && 1 == major[0];
-            } else {
-                madeCurrentES1 = false;
-            }
-            if( null != eglES2DynamicLookupHelper ) {
-                // ES3 Query
-                final int[] major = { 3 };
-                final int[] minor = { 0 };
-                madeCurrentES3 = mapAvailableEGLESConfig(adevice, major, minor,
-                                                         ctpES3ES2, rendererQuirksES3ES2) && 3 == major[0];
-                if( !madeCurrentES3 ) {
-                    // ES2 Query, may result in ES3
-                    major[0] = 2;
-                    if( mapAvailableEGLESConfig(adevice, major, minor,
-                                                ctpES3ES2, rendererQuirksES3ES2) )
-                    {
-                        switch( major[0] ) {
-                            case 2: madeCurrentES2 = true; break;
-                            case 3: madeCurrentES3 = true; break;
-                            default: throw new InternalError("XXXX Got "+major[0]);
+            final boolean initDefaultDevice;
+            if( 0 == defaultDevice.getHandle() ) { // Note: GLProfile always triggers EGL device initialization first!
+                initDefaultDevice = true;
+                defaultDevice.open();
+                defaultDeviceEGLFeatures = new EGLFeatures(defaultDevice);
+                if ( DEBUG_SHAREDCTX ) {
+                    System.err.println("EGLDrawableFactory.MapGLVersions: defaultDevice "+defaultDevice);
+                    System.err.println("EGLDrawableFactory.MapGLVersions: defaultDevice EGLFeatures "+defaultDeviceEGLFeatures);
+                }
+                // Probe for GLRendererQuirks.SingletonEGLDisplayOnly
+                final boolean singletonEGLDisplayOnlyVendor, singletonEGLDisplayOnlyProbe;
+                /* if( defaultDeviceEGLFeatures.vendor.contains("NVIDIA") ) { // May use for later ..
+                    singletonEGLDisplayOnlyVendor=true;
+                    singletonEGLDisplayOnlyProbe=false;
+                } else */ {
+                    singletonEGLDisplayOnlyVendor=false;
+                    final long secondEGLDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+                    singletonEGLDisplayOnlyProbe = EGL.EGL_NO_DISPLAY == secondEGLDisplay;
+                }
+                if( singletonEGLDisplayOnlyVendor || singletonEGLDisplayOnlyProbe ) {
+                    final int quirk = GLRendererQuirks.SingletonEGLDisplayOnly;
+                    GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
+                    EGLDisplayUtil.setSingletonEGLDisplayOnly(true);
+                    if ( DEBUG_SHAREDCTX ) {
+                        if( singletonEGLDisplayOnlyVendor ) {
+                            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Vendor: "+defaultDeviceEGLFeatures);
+                        } else if( singletonEGLDisplayOnlyProbe ) {
+                            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Second eglGetDisplay(EGL_DEFAULT_DISPLAY) failed");
                         }
                     }
                 }
+            } else {
+                initDefaultDevice = false;
+                if( null == defaultSharedResource ) {
+                    throw new InternalError("XXX: defaultDevice "+defaultDevice+", adevice "+adevice);
+                }
             }
 
-            if( hasX11 ) {
-                handleDontCloseX11DisplayQuirk(rendererQuirksES1[0]);
-                handleDontCloseX11DisplayQuirk(rendererQuirksES3ES2[0]);
+            final boolean[] mappedToDefaultDevice = { false };
+            final GLRendererQuirks[] rendererQuirksES1 = new GLRendererQuirks[] { null };
+            final GLRendererQuirks[] rendererQuirksES2 = new GLRendererQuirks[] { null };
+            final GLRendererQuirks[] rendererQuirksES3 = new GLRendererQuirks[] { null };
+            final GLRendererQuirks[] rendererQuirksGLn = new GLRendererQuirks[] { null };
+            final int[] ctpES1 = new int[] { 0 };
+            final int[] ctpES2 = new int[] { 0 };
+            final int[] ctpES3 = new int[] { 0 };
+            final int[] ctpGLn = new int[] { 0 };
+            final boolean[] madeCurrentES1 = { false };
+            final boolean[] madeCurrentES2 = { false };
+            final boolean[] madeCurrentES3 = { false };
+            final boolean[] madeCurrentGLn = { false };
+
+            final GLContextImpl.MappedGLVersionListener mvl = new GLContextImpl.MappedGLVersionListener() {
+                @Override
+                public void glVersionMapped(final MappedGLVersion e) {
+                    if ( DEBUG_SHAREDCTX ) {
+                        System.err.println("EGLDrawableFactory.MapGLVersions: Mapped: "+e);
+                    }
+                    if ( EGLContext.isGLES2ES3(e.ctxVersion.getMajor(), e.ctxOptions) ) {
+                        if( e.ctxVersion.getMajor() == 3 ) {
+                            madeCurrentES3[0] = true;
+                            rendererQuirksES3[0] = e.quirks;
+                            ctpES3[0] = e.ctxOptions;
+                        }
+                        madeCurrentES2[0] = true;
+                        rendererQuirksES2[0] = e.quirks;
+                        ctpES2[0] = e.ctxOptions;
+                    } else if ( EGLContext.isGLES1(e.ctxVersion.getMajor(), e.ctxOptions) ) {
+                        madeCurrentES1[0] = true;
+                        rendererQuirksES1[0] = e.quirks;
+                        ctpES1[0] = e.ctxOptions;
+                    } else if( EGLContext.isGLDesktop(e.ctxOptions) ) {
+                        madeCurrentGLn[0] = true;
+                        rendererQuirksGLn[0] = e.quirks;
+                        ctpGLn[0] = e.ctxOptions;
+                    }
+                }
+            };
+            final SharedResource sr;
+            final EGLGraphicsDevice[] eglDevice = { null };
+            final boolean mapSuccess;
+            EGLContext.setMappedGLVersionListener(mvl);
+            try {
+                // Query triggers profile mapping!
+                mapSuccess = mapAvailableEGLESConfig(adevice, mappedToDefaultDevice, eglDevice);
+            } finally {
+                EGLContext.setMappedGLVersionListener(null);
             }
-            final SharedResource sr = new SharedResource(defaultDevice,
-                                                         madeCurrentGLn || madeCurrentES1 || madeCurrentES2 || madeCurrentES3,
-                                                         rendererQuirksGLn[0], ctpGLn[0],
-                                                         rendererQuirksES1[0], ctpES1[0],
-                                                         rendererQuirksES3ES2[0], ctpES3ES2[0]);
+
+            if( mappedToDefaultDevice[0] ) {
+                EGLContext.remapAvailableGLVersions(defaultDevice, adevice);
+                sr = defaultSharedResource;
+            } else {
+                if( hasX11 ) {
+                    handleDontCloseX11DisplayQuirk(rendererQuirksES1[0]);
+                    handleDontCloseX11DisplayQuirk(rendererQuirksGLn[0]);
+                    handleDontCloseX11DisplayQuirk(rendererQuirksES3[0]);
+                    handleDontCloseX11DisplayQuirk(rendererQuirksES2[0]);
+                }
+                sr = new SharedResource(eglDevice[0],
+                            madeCurrentES1[0], rendererQuirksES1[0], ctpES1[0],
+                            madeCurrentES2[0], rendererQuirksES2[0], ctpES2[0],
+                            madeCurrentES3[0], rendererQuirksES3[0], ctpES3[0],
+                            madeCurrentGLn[0], rendererQuirksGLn[0], ctpGLn[0]);
+                if( initDefaultDevice ) {
+                    defaultSharedResource = sr;
+                }
+            }
 
             if ( DEBUG_SHAREDCTX ) {
-                System.err.println("EGLDrawableFactory.createShared: devices: queried nativeTK "+QUERY_EGL_ES_NATIVE_TK+", adevice " + adevice + ", defaultDevice " + defaultDevice);
-                System.err.println("EGLDrawableFactory.createShared: context GLn: " + madeCurrentGLn + ", quirks "+rendererQuirksGLn[0]);
-                System.err.println("EGLDrawableFactory.createShared: context ES1: " + madeCurrentES1 + ", quirks "+rendererQuirksES1[0]);
-                System.err.println("EGLDrawableFactory.createShared: context ES2: " + madeCurrentES2 + ", quirks "+rendererQuirksES3ES2[0]);
-                System.err.println("EGLDrawableFactory.createShared: context ES3: " + madeCurrentES3 + ", quirks "+rendererQuirksES3ES2[0]);
+                System.err.println("EGLDrawableFactory.MapGLVersions: mapSuccess "+mapSuccess+", mappedToDefaultDevice "+mappedToDefaultDevice[0]);
+                System.err.println("EGLDrawableFactory.MapGLVersions: defDevice  : " + defaultDevice);
+                System.err.println("EGLDrawableFactory.MapGLVersions: adevice    : " + adevice);
+                System.err.println("EGLDrawableFactory.MapGLVersions: eglDevice  : " + sr.device);
+                System.err.println("EGLDrawableFactory.MapGLVersions: context ES1: " + sr.isAvailableES1 + ", quirks "+sr.rendererQuirksES1);
+                System.err.println("EGLDrawableFactory.MapGLVersions: context ES2: " + sr.isAvailableES2 + ", quirks "+sr.rendererQuirksES2);
+                System.err.println("EGLDrawableFactory.MapGLVersions: context ES3: " + sr.isAvailableES3 + ", quirks "+sr.rendererQuirksES3);
+                System.err.println("EGLDrawableFactory.MapGLVersions: context GLn: " + sr.isAvailableGLn + ", quirks "+sr.rendererQuirksGLn);
                 dumpMap();
             }
             return sr;
@@ -596,9 +656,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         private boolean mapAvailableEGLESConfig(final AbstractGraphicsDevice adevice,
-                                                final int[] majorVersion, final int[] minorVersion,
-                                                final int[] ctxProfile, final GLRendererQuirks[] rendererQuirks) {
-            final String profileString = EGLContext.getGLProfile(majorVersion[0], minorVersion[0], ctxProfile[0]);
+                                                final boolean[] mapsADeviceToDefaultDevice,
+                                                final EGLGraphicsDevice[] resEGLDevice) {
+            final int majorVersion = 2;
+            final int minorVersion = 0;
+            final int ctxProfile = EGLContext.CTX_PROFILE_ES;
+            final String profileString = EGLContext.getGLProfile(majorVersion, minorVersion, ctxProfile);
 
             if ( !GLProfile.isAvailable(adevice, profileString) ) {
                 if ( DEBUG_SHAREDCTX ) {
@@ -608,104 +671,126 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
             final GLProfile glp = GLProfile.get(adevice, profileString) ;
             final GLDrawableFactoryImpl desktopFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getDesktopFactory();
-            final boolean initDefaultDevice = 0 == defaultDevice.getHandle(); // Note: GLProfile always triggers EGL device initialization first!
-            final boolean mapsADeviceToDefaultDevice = !QUERY_EGL_ES_NATIVE_TK || initDefaultDevice ||
-                                                       null == desktopFactory;
-                                                       // FIXME || adevice instanceof EGLGraphicsDevice ;
+
+            final GLCapabilities reqCapsAny = new GLCapabilities(glp);
+            reqCapsAny.setRedBits(5); reqCapsAny.setGreenBits(5); reqCapsAny.setBlueBits(5); reqCapsAny.setAlphaBits(0);
+            reqCapsAny.setDoubleBuffered(false);
+            final GLCapabilitiesImmutable reqCapsPBuffer = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(reqCapsAny);
+            final List<GLCapabilitiesImmutable> defaultDevicePBufferCapsL = getAvailableEGLConfigs(defaultDevice, reqCapsPBuffer);
+            final boolean defaultDeviceHasPBuffer = defaultDevicePBufferCapsL.size() > 0;
+
+            final boolean useDefaultDevice = adevice == defaultDevice;
+
+            mapsADeviceToDefaultDevice[0] = !useDefaultDevice &&
+                                            null != defaultSharedResource && defaultSharedResource.isAvailable &&
+                                            defaultConnection.equals(adevice.getConnection());
+
             if ( DEBUG_SHAREDCTX ) {
-                System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" ( "+majorVersion[0]+" ), "+
-                        "mapsADeviceToDefaultDevice "+mapsADeviceToDefaultDevice+
-                        " (QUERY_EGL_ES_NATIVE_TK "+QUERY_EGL_ES_NATIVE_TK+", initDefaultDevice "+initDefaultDevice+", hasDesktopFactory "+(null != desktopFactory)+
+                System.err.println("EGLDrawableFactory.MapGLVersions: "+profileString+" ( "+majorVersion+" ), "+
+                        "mapsADeviceToDefaultDevice "+mapsADeviceToDefaultDevice[0]+
+                        " (useDefaultDevice "+useDefaultDevice+", defaultDeviceHasPBuffer "+defaultDeviceHasPBuffer+", hasDesktopFactory "+(null != desktopFactory)+
                         ", isEGLGraphicsDevice "+(adevice instanceof EGLGraphicsDevice)+")");
             }
 
-            boolean hasPBuffer;
-            EGLGraphicsDevice eglDevice = null;
+            if( mapsADeviceToDefaultDevice[0] ) {
+                return true;
+            }
+
+            final boolean defaultNoSurfacelessCtx = GLRendererQuirks.existStickyDeviceQuirk(defaultDevice, GLRendererQuirks.NoSurfacelessCtx);
+            boolean success = false;
+            final boolean hasKHRSurfacelessTried;
+            if( defaultDeviceEGLFeatures.hasKHRSurfaceless && !defaultNoSurfacelessCtx ) {
+                hasKHRSurfacelessTried = true;
+                final AbstractGraphicsDevice zdevice = useDefaultDevice ? defaultDevice : adevice; // reuse
+                final EGLSurface zeroSurface = createSurfacelessImpl(zdevice, false, reqCapsAny, reqCapsAny, null, 64, 64);
+                resEGLDevice[0] = (EGLGraphicsDevice) zeroSurface.getGraphicsConfiguration().getScreen().getDevice();
+                if ( DEBUG_SHAREDCTX ) {
+                    System.err.println("EGLDrawableFactory-MapGLVersions.0: "+resEGLDevice[0]);
+                }
+                EGLDrawable zeroDrawable = null;
+                EGLContext context = null;
+                try {
+                    zeroDrawable = (EGLDrawable) createOnscreenDrawableImpl ( zeroSurface );
+                    zeroDrawable.setRealized(true);
+
+                    context = (EGLContext) zeroDrawable.createContext(null);
+                    if (null == context) {
+                        throw new GLException("Couldn't create shared context for drawable: "+zeroDrawable);
+                    }
+                    // Triggers initial mapping, if not done yet
+                    if( GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent() ) { // could cause exception
+                        // context.isCurrent() !
+                        final GL gl = context.getGL();
+                        final String glVersionString = gl.glGetString(GL.GL_VERSION);
+                        if(null != glVersionString) {
+                            success = true;
+                        } else {
+                            setNoSurfacelessCtxQuirk(context);
+                        }
+                    } else if ( DEBUG_SHAREDCTX ) {
+                        System.err.println("EGLDrawableFactory-MapGLVersions.0: NOT_CURRENT: "+resEGLDevice[0]+", "+context);
+                    }
+                } catch (final Throwable t) {
+                    if ( DEBUG_SHAREDCTX ) {
+                        System.err.println("EGLDrawableFactory-MapGLVersions.0: INFO: context create/makeCurrent failed");
+                        t.printStackTrace();
+                    }
+                } finally {
+                    if( null != context ) {
+                        try {
+                            context.destroy();
+                        } catch (final GLException gle) {
+                            if ( DEBUG_SHAREDCTX ) {
+                                System.err.println("EGLDrawableFactory-MapGLVersions.0: INFO: destroy caught exception:");
+                                gle.printStackTrace();
+                            }
+                        }
+                    }
+                    if( null != zeroDrawable ) {
+                        zeroDrawable.setRealized(false);
+                    }
+                    if( null != zeroSurface ) {
+                        zeroSurface.destroyNotify();
+                    }
+                }
+                if( success ) {
+                    return true;
+                }
+            } else { // hasKHRSurfaceless
+                hasKHRSurfacelessTried = false;
+            }
             EGLFeatures eglFeatures = null;
             NativeSurface surface = null;
             ProxySurface upstreamSurface = null; // X11, GLX, ..
             ProxySurface downstreamSurface = null; // EGL
-            boolean success = false;
             try {
-                final GLCapabilities reqCapsAny = new GLCapabilities(glp);
-                reqCapsAny.setRedBits(5); reqCapsAny.setGreenBits(5); reqCapsAny.setBlueBits(5); reqCapsAny.setAlphaBits(0);
-                reqCapsAny.setDoubleBuffered(false);
-
-                if( mapsADeviceToDefaultDevice ) {
-                    // In this branch, any non EGL device is mapped to EGL default shared resources (default behavior).
-                    // Only one default shared resource instance is ever be created.
-                    if( initDefaultDevice ) {
-                        defaultDevice.open();
-                        defaultDeviceEGLFeatures = new EGLFeatures(defaultDevice);
-
-                        // Probe for GLRendererQuirks.SingletonEGLDisplayOnly
-                        final long secondEGLDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-                        if ( EGL.EGL_NO_DISPLAY == secondEGLDisplay ) {
-                            final int quirk = GLRendererQuirks.SingletonEGLDisplayOnly;
-                            GLRendererQuirks.addStickyDeviceQuirk(adevice, quirk);
-                            EGLDisplayUtil.setSingletonEGLDisplayOnly(true);
-                            if ( DEBUG_SHAREDCTX ) {
-                                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Second eglGetDisplay(EGL_DEFAULT_DISPLAY) failed");
-                            }
-                        }
-                    }
-                    eglDevice = defaultDevice; // reuse
+                if( useDefaultDevice && defaultDeviceHasPBuffer ) {
+                    // Map any non EGL device to EGL default shared resources (default behavior), using a pbuffer surface
+                    resEGLDevice[0] = defaultDevice; // reuse
                     eglFeatures = defaultDeviceEGLFeatures;
                     if ( DEBUG_SHAREDCTX ) {
-                        System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig.0: "+eglFeatures);
+                        System.err.println("EGLDrawableFactory-MapGLVersions.1: "+resEGLDevice[0]);
+                        System.err.println("EGLDrawableFactory-MapGLVersions.1: "+eglFeatures);
                     }
 
-                    if( !glp.isGLES() && !eglFeatures.hasGLAPI ) {
-                        if ( DEBUG_SHAREDCTX ) {
-                            System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig() OpenGL API not supported (1)");
-                        }
-                    } else {
-                        final GLCapabilitiesImmutable reqCapsPBuffer = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(reqCapsAny);
-                        final List<GLCapabilitiesImmutable> availablePBufferCapsL = getAvailableEGLConfigs(eglDevice, reqCapsPBuffer);
-                        hasPBuffer = availablePBufferCapsL.size() > 0;
-
-                        // attempt to created the default shared resources ..
-                        if( hasPBuffer ) {
-                            // 2nd case create defaultDevice shared resource using pbuffer surface
-                            downstreamSurface = createDummySurfaceImpl(eglDevice, false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64); // egl pbuffer offscreen
-                            if( null != downstreamSurface ) {
-                                downstreamSurface.createNotify();
-                                surface = downstreamSurface;
-                            }
-                        } else {
-                            // 3rd case fake creation of defaultDevice shared resource, no pbuffer available
-                            final List<GLCapabilitiesImmutable> capsAnyL = getAvailableEGLConfigs(eglDevice, reqCapsAny);
-                            if(capsAnyL.size() > 0) {
-                                final GLCapabilitiesImmutable chosenCaps = capsAnyL.get(0);
-                                EGLContext.mapStaticGLESVersion(eglDevice, chosenCaps);
-                                success = true;
-                            }
-                            if ( DEBUG_SHAREDCTX ) {
-                                System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig() no pbuffer config available, detected !pbuffer config: "+success);
-                                EGLGraphicsConfigurationFactory.printCaps("!PBufferCaps", capsAnyL, System.err);
-                            }
-                        }
+                    downstreamSurface = createDummySurfaceImpl(resEGLDevice[0], false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64);
+                    if( null != downstreamSurface ) {
+                        downstreamSurface.createNotify();
+                        surface = downstreamSurface;
                     }
-                } else {
-                    // 4th case always creates a true mapping of given device to EGL
+                } else if( adevice != defaultDevice ) {
+                    // Create a true mapping of given device to EGL
                     upstreamSurface = desktopFactory.createDummySurface(adevice, reqCapsAny, null, 64, 64); // X11, WGL, .. dummy window
                     if(null != upstreamSurface) {
                         upstreamSurface.createNotify();
-                        eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
-                        eglDevice.open();
-                        eglFeatures = new EGLFeatures(eglDevice);
+                        resEGLDevice[0] = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
+                        resEGLDevice[0].open();
+                        eglFeatures = new EGLFeatures(resEGLDevice[0]);
                         if ( DEBUG_SHAREDCTX ) {
-                            System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig.1: "+eglFeatures);
+                            System.err.println("EGLDrawableFactory-MapGLVersions.2: "+resEGLDevice[0]);
+                            System.err.println("EGLDrawableFactory-MapGLVersions.2: "+eglFeatures);
                         }
-                        if( !glp.isGLES() && !eglFeatures.hasGLAPI ) {
-                            if ( DEBUG_SHAREDCTX ) {
-                                System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig() OpenGL API not supported (2)");
-                            }
-                            // disposed at finalized: eglDevice, upstreamSurface
-                        } else {
-                            hasPBuffer = true;
-                            surface = upstreamSurface;
-                        }
+                        surface = upstreamSurface;
                     }
                 }
 
@@ -722,16 +807,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                             throw new GLException("Couldn't create shared context for drawable: "+drawable);
                         }
 
+                        // Triggers initial mapping, if not done yet
                         if( GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent() ) { // could cause exception
                             // context.isCurrent() !
-                            final String glVersionString = context.getGL().glGetString(GL.GL_VERSION);
+                            final GL gl = context.getGL();
+                            final String glVersionString = gl.glGetString(GL.GL_VERSION);
                             if(null != glVersionString) {
-                                context.mapCurrentAvailableGLESVersion(eglDevice);
-                                if(eglDevice != adevice) {
-                                    context.mapCurrentAvailableGLESVersion(adevice);
-                                }
-
-                                if( eglFeatures.hasKHRSurfaceless &&
+                                success = true;
+                                if( !hasKHRSurfacelessTried && eglFeatures.hasKHRSurfaceless &&
                                     ( context.isGLES() || context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 )
                                   )
                                 {
@@ -741,21 +824,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 } else {
                                     setNoSurfacelessCtxQuirk(context);
                                 }
-                                rendererQuirks[0] = context.getRendererQuirks();
-                                ctxProfile[0] = context.getContextOptions();
-                                majorVersion[0] = context.getGLVersionNumber().getMajor();
-                                minorVersion[0] = context.getGLVersionNumber().getMinor();
-                                success = true;
-                            } else {
-                                // Oops .. something is wrong
-                                if ( DEBUG_SHAREDCTX ) {
-                                    System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+eglDevice+", "+context.getGLVersion()+" - VERSION is null, dropping availability!");
-                                }
+                            } else if ( DEBUG_SHAREDCTX ) {
+                                System.err.println("EGLDrawableFactory-MapGLVersions.12: NULL VERSION: "+resEGLDevice[0]+", "+context.getGLVersion());
                             }
+                        } else if ( DEBUG_SHAREDCTX ) {
+                            System.err.println("EGLDrawableFactory-MapGLVersions.12: NOT_CURRENT: "+resEGLDevice[0]+", "+context);
                         }
                     } catch (final Throwable t) {
                         if ( DEBUG_SHAREDCTX ) {
-                            System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: INFO: context create/makeCurrent failed");
+                            System.err.println("EGLDrawableFactory-MapGLVersions.12: INFO: context create/makeCurrent failed");
                             t.printStackTrace();
                         }
                     } finally {
@@ -764,7 +841,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 context.destroy();
                             } catch (final GLException gle) {
                                 if ( DEBUG_SHAREDCTX ) {
-                                    System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: INFO: destroy caught exception:");
+                                    System.err.println("EGLDrawableFactory-MapGLVersions.12: INFO: destroy caught exception:");
                                     gle.printStackTrace();
                                 }
                             }
@@ -784,12 +861,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
                 success = false;
             } finally {
-                if(null != downstreamSurface) {
+                if( null != downstreamSurface ) {
                     downstreamSurface.destroyNotify();
                 }
-                if( defaultDevice != eglDevice ) { // don't close default device
-                    if(null != eglDevice) {
-                        eglDevice.close();
+                if( defaultDevice != resEGLDevice[0] ) { // don't close default device
+                    if(null != resEGLDevice[0]) {
+                        resEGLDevice[0].close();
                     }
                 }
                 if(null != upstreamSurface) {

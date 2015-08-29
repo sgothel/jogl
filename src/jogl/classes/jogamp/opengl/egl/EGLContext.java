@@ -236,11 +236,11 @@ public class EGLContext extends GLContextImpl {
 
             int index = ctx_attribs_idx_major + 2;
 
-            /** if( ctDesktopGL && reqMinor >= 0 ) { // FIXME: No minor version probing for ES currently!
+            if( reqMinor >= 0 ) {
                 attribs.put(index + 0, EGLExt.EGL_CONTEXT_MINOR_VERSION_KHR);
                 attribs.put(index + 1, reqMinor);
                 index += 2;
-            } */
+            }
 
             if( ctDesktopGL && ( useMajor > 3 || useMajor == 3 && reqMinor >= 2 ) ) {
                 attribs.put(index + 0, EGLExt.EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR);
@@ -463,52 +463,32 @@ public class EGLContext extends GLContextImpl {
     // Accessible ..
     //
 
-    /* pp */ void mapCurrentAvailableGLESVersion(final AbstractGraphicsDevice device) {
-        mapStaticGLESVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+    /* pp */ static final boolean isGLES1(final int majorVersion, final int ctxOptions) {
+        return 0 != ( ctxOptions & GLContext.CTX_PROFILE_ES ) && majorVersion == 1 ;
+    }
+    /* pp */ static final boolean isGLES2ES3(final int majorVersion, final int ctxOptions) {
+        if( 0 != ( ctxOptions & CTX_PROFILE_ES ) ) {
+            return 2 == majorVersion || 3 == majorVersion;
+        } else {
+            return false;
+        }
+    }
+    /* pp */ static final boolean isGLDesktop(final int ctxOptions) {
+        return 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
+    }
+    protected static StringBuilder getGLProfile(final StringBuilder sb, final int ctp) {
+        return GLContext.getGLProfile(sb, ctp);
     }
     /* pp */ int getContextOptions() { return ctxOptions; }
-    /* pp */ static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final GLCapabilitiesImmutable caps) {
-        final GLProfile glp = caps.getGLProfile();
-        final int[] reqMajorCTP = new int[2];
-        GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
-        if( glp.isGLES() ) {
-            if( reqMajorCTP[0] >= 3 ) {
-                reqMajorCTP[1] |= GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
-            } else if( reqMajorCTP[0] >= 2 ) {
-                reqMajorCTP[1] |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
-            }
-        }
-        if( !caps.getHardwareAccelerated() ) {
-            reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
-        }
-        mapStaticGLESVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
+    protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice) {
+        GLContextImpl.remapAvailableGLVersions(fromDevice, toDevice);
     }
-    /* pp */ static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final int major, final int minor, final int ctp) {
-        if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
-            // ES1, ES2, ES3, ..
-            mapStaticGLESVersion(device, major /* reqMajor */, major, minor, ctp);
-            if( 3 == major ) {
-                // map ES2 -> ES3
-                mapStaticGLESVersion(device, 2 /* reqMajor */, major, minor, ctp);
-            }
-        }
-    }
-    private static void mapStaticGLESVersion(final AbstractGraphicsDevice device, final int reqMajor, final int major, final int minor, final int ctp) {
-        GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
-        if(! ( device instanceof EGLGraphicsDevice ) ) {
-            final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
-            GLContext.mapAvailableGLVersion(eglDevice, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
-        }
-    }
-    protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
-        return GLContext.getGLVersion(major, minor, ctp, gl_version);
+    protected static synchronized void setMappedGLVersionListener(final MappedGLVersionListener mvl) {
+        GLContextImpl.setMappedGLVersionListener(mvl);
     }
 
-    protected static boolean getAvailableGLVersionsSet(final AbstractGraphicsDevice device) {
-        return GLContext.getAvailableGLVersionsSet(device);
-    }
-    protected static void setAvailableGLVersionsSet(final AbstractGraphicsDevice device, final boolean set) {
-        GLContext.setAvailableGLVersionsSet(device, set);
+    protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
+        return GLContext.getGLVersion(major, minor, ctp, gl_version);
     }
 
     protected static String toHexString(final int hex) {

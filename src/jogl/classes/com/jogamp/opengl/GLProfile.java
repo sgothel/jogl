@@ -39,6 +39,7 @@ package com.jogamp.opengl;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
 import com.jogamp.common.ExceptionUtils;
@@ -242,7 +243,7 @@ public class GLProfile {
             initLock.unlock();
         }
         if(DEBUG) {
-            if( justInitialized && ( hasGL234Impl || hasGLES1Impl || hasGLES3Impl ) ) {
+            if( justInitialized && ( hasGL234Impl || hasGL234OnEGLImpl || hasGLES1Impl || hasGLES3Impl ) ) {
                 System.err.println(JoglVersion.getDefaultOpenGLInfo(defaultDevice, null, true));
             }
         }
@@ -1629,6 +1630,7 @@ public class GLProfile {
     private static /*final*/ boolean hasEGLFactory;
     private static /*final*/ boolean hasGLES3Impl;
     private static /*final*/ boolean hasGLES1Impl;
+    private static /*final*/ boolean hasGL234OnEGLImpl;
     private static /*final*/ Constructor<?> ctorGL234Impl;
     private static /*final*/ Constructor<?> ctorGLES3Impl;
     private static /*final*/ Constructor<?> ctorGLES1Impl;
@@ -1681,6 +1683,7 @@ public class GLProfile {
                 ctorGL234ProcAddr = null;
             }
         }
+        hasGL234OnEGLImpl = hasGL234Impl;
 
         // depends on hasEGLFactory
         {
@@ -1745,10 +1748,9 @@ public class GLProfile {
         try {
             desktopFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GL2);
             if(null != desktopFactory) {
-                final DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(GL2);
-                if(null!=glLookupHelper) {
-                    hasDesktopGLFactory = glLookupHelper.isLibComplete() && hasGL234Impl;
-                }
+                final DesktopGLDynamicLookupHelper glLookupHelper = (DesktopGLDynamicLookupHelper) desktopFactory.getGLDynamicLookupHelper(2, GLContext.CTX_PROFILE_COMPAT);
+                hasGL234Impl = null!=glLookupHelper && glLookupHelper.isLibComplete() && hasGL234Impl;
+                hasDesktopGLFactory = hasGL234Impl;
             }
         } catch (final LinkageError le) {
             t=le;
@@ -1780,10 +1782,14 @@ public class GLProfile {
             try {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
                 if(null != eglFactory) {
-                    hasEGLFactory = true;
-                    // update hasGLES1Impl, hasGLES3Impl based on EGL
-                    hasGLES3Impl = null!=eglFactory.getGLDynamicLookupHelper(GLES2) && hasGLES3Impl;
-                    hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(GLES1) && hasGLES1Impl;
+                    // update hasGLES1Impl, hasGLES3Impl, hasGL234OnEGLImpl based on library completion
+                    final GLDynamicLookupHelper es2DynLookup = eglFactory.getGLDynamicLookupHelper(2, GLContext.CTX_PROFILE_ES);
+                    final GLDynamicLookupHelper es1DynLookup = eglFactory.getGLDynamicLookupHelper(1, GLContext.CTX_PROFILE_ES);
+                    final GLDynamicLookupHelper glXDynLookup = eglFactory.getGLDynamicLookupHelper(3, GLContext.CTX_PROFILE_CORE);
+                    hasGLES3Impl = null!=es2DynLookup && es2DynLookup.isLibComplete() && hasGLES3Impl;
+                    hasGLES1Impl = null!=es1DynLookup && es1DynLookup.isLibComplete() && hasGLES1Impl;
+                    hasGL234OnEGLImpl = null!=glXDynLookup && glXDynLookup.isLibComplete() && hasGL234OnEGLImpl;
+                    hasEGLFactory = hasGLES3Impl || hasGLES1Impl || hasGL234OnEGLImpl;
                 }
             } catch (final LinkageError le) {
                 t=le;
@@ -1803,6 +1809,8 @@ public class GLProfile {
 
         final AbstractGraphicsDevice defaultEGLDevice;
         if(null == eglFactory) {
+            hasEGLFactory    = false;
+            hasGL234OnEGLImpl= false;
             hasGLES3Impl     = false;
             hasGLES1Impl     = false;
             defaultEGLDevice = null;
@@ -1843,6 +1851,7 @@ public class GLProfile {
             System.err.println("GLProfile.init hasEGLFactory         "+hasEGLFactory);
             System.err.println("GLProfile.init hasGLES1Impl          "+hasGLES1Impl);
             System.err.println("GLProfile.init hasGLES3Impl          "+hasGLES3Impl);
+            System.err.println("GLProfile.init hasGL234OnEGLImpl     "+hasGL234OnEGLImpl);
             System.err.println("GLProfile.init defaultDevice         "+defaultDevice);
             System.err.println("GLProfile.init defaultDevice Desktop "+defaultDesktopDevice);
             System.err.println("GLProfile.init defaultDevice EGL     "+defaultEGLDevice);
@@ -1887,7 +1896,9 @@ public class GLProfile {
             return null != map.get(GL_DEFAULT);
         }
 
+        HashMap<String, GLProfile> mappedDesktopProfiles = null;
         boolean addedDesktopProfile = false;
+        HashMap<String, GLProfile> mappedEGLProfiles = null;
         boolean addedEGLProfile = false;
 
         final boolean deviceIsDesktopCompatible = hasDesktopGLFactory && desktopFactory.getIsDeviceCompatible(device);
@@ -1906,21 +1917,23 @@ public class GLProfile {
             if(null != sharedResourceThread) {
                 initLock.removeOwner(sharedResourceThread);
             }
-            if (DEBUG) {
-                System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail);
+            if( desktopSharedCtxAvail ) {
+                if( !GLContext.getAvailableGLVersionsSet(device) ) {
+                    throw new InternalError("Available GLVersions not set for "+device);
+                }
+                mappedDesktopProfiles = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
+                addedDesktopProfile = mappedDesktopProfiles.size() > 0;
+                if (DEBUG) {
+                    System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail+
+                            ", profiles: "+(addedDesktopProfile ? mappedDesktopProfiles.size() : 0));
+                }
             }
-            if(!desktopSharedCtxAvail) {
-                hasDesktopGLFactory = false;
-            } else if( !GLContext.getAvailableGLVersionsSet(device) ) {
-                throw new InternalError("Available GLVersions not set");
-            }
-            addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         }
 
         final boolean deviceIsEGLCompatible = hasEGLFactory && eglFactory.getIsDeviceCompatible(device);
 
         // also test GLES1, GLES2 and GLES3 on desktop, since we have implementations / emulations available.
-        if( deviceIsEGLCompatible && ( hasGLES3Impl || hasGLES1Impl ) ) {
+        if( deviceIsEGLCompatible ) {
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, true /* desktopCtxUndef*/, true /* esCtxUndef */);
 
@@ -1934,18 +1947,17 @@ public class GLProfile {
             if(null != sharedResourceThread) {
                 initLock.removeOwner(sharedResourceThread);
             }
-            if(!eglSharedCtxAvail) {
-                // Remark: On Windows there is a libEGL.dll delivered w/ Chrome 15.0.874.121m and Firefox 8.0.1
-                // but it seems even EGL.eglInitialize(eglDisplay, null, null)
-                // fails in some scenarios (eg VirtualBox 4.1.6) w/ EGL error 0x3001 (EGL_NOT_INITIALIZED).
-                hasEGLFactory = false;
-                hasGLES3Impl = false;
-                hasGLES1Impl = false;
+            if( eglSharedCtxAvail ) {
+                if( !GLContext.getAvailableGLVersionsSet(device) ) {
+                    throw new InternalError("Available GLVersions not set for "+device);
+                }
+                mappedEGLProfiles = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
+                addedEGLProfile = mappedEGLProfiles.size() > 0;
             }
             if (DEBUG) {
-                System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail);
+                System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail+
+                                   ", profiles: "+(addedEGLProfile ? mappedEGLProfiles.size() : 0));
             }
-            addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         }
 
         if( !addedDesktopProfile && !addedEGLProfile ) {
@@ -1959,6 +1971,15 @@ public class GLProfile {
                 System.err.println("GLProfile: hasGLES1Impl         "+hasGLES1Impl);
                 System.err.println("GLProfile: hasGLES3Impl         "+hasGLES3Impl);
             }
+        } else {
+            final HashMap<String, GLProfile> mappedAllProfiles = new HashMap<String, GLProfile>();
+            if( addedEGLProfile ) {
+                mappedAllProfiles.putAll(mappedEGLProfiles);
+            }
+            if( addedDesktopProfile ) {
+                mappedAllProfiles.putAll(mappedDesktopProfiles);
+            }
+            setProfileMap(device, mappedAllProfiles); // union
         }
 
         GLContext.setAvailableGLVersionsSet(device, true);
@@ -2029,7 +2050,7 @@ public class GLProfile {
         sb.append("]");
     }
 
-    private static boolean computeProfileMap(final AbstractGraphicsDevice device, final boolean desktopCtxUndef, final boolean esCtxUndef) {
+    private static HashMap<String, GLProfile> computeProfileMap(final AbstractGraphicsDevice device, final boolean desktopCtxUndef, final boolean esCtxUndef) {
         if (DEBUG) {
             System.err.println("GLProfile.init map "+device.getUniqueID()+", desktopCtxUndef "+desktopCtxUndef+", esCtxUndef "+esCtxUndef);
         }
@@ -2078,13 +2099,14 @@ public class GLProfile {
             _mappedProfiles.put(GL_DEFAULT, defaultGLProfileAny);
         }
         setProfileMap(device, _mappedProfiles);
-        return _mappedProfiles.size() > 0;
+        return _mappedProfiles;
     }
 
     /**
      * Returns the profile implementation
      */
     private static String computeProfileImpl(final AbstractGraphicsDevice device, final String profile, final boolean desktopCtxUndef, final boolean esCtxUndef, final boolean isHardwareRasterizer[]) {
+        final boolean hasAnyGL234Impl = hasGL234Impl || hasGL234OnEGLImpl;
         final boolean hardwareRasterizer[] = new boolean[1];
         if ( GL2ES1 == profile ) {
             final boolean gles1Available;
@@ -2096,7 +2118,7 @@ public class GLProfile {
                 gles1Available = false;
                 gles1HWAvailable = false;
             }
-            if(hasGL234Impl) {
+            if( hasAnyGL234Impl ) {
                 final boolean gl3bcAvailable = GLContext.isGL3bcAvailable(device, hardwareRasterizer);
                 final boolean gl3bcHWAvailable = gl3bcAvailable && hardwareRasterizer[0] ;
                 final boolean gl2Available = GLContext.isGL2Available(device, hardwareRasterizer);
@@ -2135,7 +2157,7 @@ public class GLProfile {
                 gles3Available = false;
                 gles3HWAvailable = false;
             }
-            if( hasGL234Impl ) {
+            if( hasAnyGL234Impl ) {
                 final boolean gl4bcAvailable = GLContext.isGL4bcAvailable(device, hardwareRasterizer);
                 final boolean gl4bcHWAvailable = gl4bcAvailable && hardwareRasterizer[0] ;
                 final boolean gl3Available = GLContext.isGL3Available(device, hardwareRasterizer);
@@ -2182,7 +2204,7 @@ public class GLProfile {
                 final boolean es3HardwareRasterizer[] = new boolean[1];
                 final boolean gles3Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, es3HardwareRasterizer) );
                 final boolean gles3HWAvailable = gles3Available && es3HardwareRasterizer[0] ;
-                if( hasGL234Impl ) {
+                if( hasAnyGL234Impl ) {
                     final boolean gl4bcAvailable = GLContext.isGL4bcAvailable(device, hardwareRasterizer);
                     final boolean gl4bcHWAvailable = gl4bcAvailable && hardwareRasterizer[0] ;
                     final boolean glAnyHWAvailable = gl4bcHWAvailable ||
@@ -2203,7 +2225,7 @@ public class GLProfile {
                 }
             }
         } else if(GL2GL3 == profile) {
-            if(hasGL234Impl) {
+            if( hasAnyGL234Impl ) {
                 final boolean gl4Available = GLContext.isGL4Available(device, hardwareRasterizer);
                 final boolean gl4HWAvailable = gl4Available && hardwareRasterizer[0] ;
                 final boolean gl3Available = GLContext.isGL3Available(device, hardwareRasterizer);
@@ -2235,15 +2257,15 @@ public class GLProfile {
                     return GL2;
                 }
             }
-        } else if(GL4bc == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device, isHardwareRasterizer))) {
+        } else if(GL4bc == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL4bc : GLContext.getAvailableGLProfileName(device, 4, GLContext.CTX_PROFILE_COMPAT);
-        } else if(GL4 == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device, isHardwareRasterizer))) {
+        } else if(GL4 == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL4 : GLContext.getAvailableGLProfileName(device, 4, GLContext.CTX_PROFILE_CORE);
-        } else if(GL3bc == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer))) {
+        } else if(GL3bc == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL3bc : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_COMPAT);
-        } else if(GL3 == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
+        } else if(GL3 == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_CORE);
-        } else if(GL2 == profile && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
+        } else if(GL2 == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_COMPAT);
         } else if(GLES3 == profile && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, isHardwareRasterizer))) {
             return esCtxUndef ? GLES3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_ES);
