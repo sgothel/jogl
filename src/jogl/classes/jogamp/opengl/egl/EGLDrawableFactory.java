@@ -709,6 +709,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
                 EGLDrawable zeroDrawable = null;
                 EGLContext context = null;
+                boolean hasException = false;
                 try {
                     zeroDrawable = (EGLDrawable) createOnscreenDrawableImpl ( zeroSurface );
                     zeroDrawable.setRealized(true);
@@ -731,6 +732,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         System.err.println("EGLDrawableFactory-MapGLVersions.0: NOT_CURRENT: "+resEGLDevice[0]+", "+context);
                     }
                 } catch (final Throwable t) {
+                    hasException = true;
                     if ( DEBUG_SHAREDCTX ) {
                         System.err.println("EGLDrawableFactory-MapGLVersions.0: INFO: context create/makeCurrent failed");
                         t.printStackTrace();
@@ -752,6 +754,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if( null != zeroSurface ) {
                         zeroSurface.destroyNotify();
                     }
+                    if( success || hasException ) { // cont. using device if !success
+                        if( defaultDevice != resEGLDevice[0] ) { // don't close default device
+                            if(null != resEGLDevice[0]) {
+                                resEGLDevice[0].close();
+                            }
+                        }
+                    }
                 }
                 if( success ) {
                     return true;
@@ -761,6 +770,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
             EGLFeatures eglFeatures = null;
             NativeSurface surface = null;
+            EGLDrawable drawable = null;
+            GLDrawable zeroDrawable = null;
+            EGLContext context = null;
             ProxySurface upstreamSurface = null; // X11, GLX, ..
             ProxySurface downstreamSurface = null; // EGL
             try {
@@ -795,72 +807,61 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
 
                 if(null != surface) {
-                    EGLDrawable drawable = null;
-                    GLDrawable zeroDrawable = null;
-                    EGLContext context = null;
-                    try {
-                        drawable = (EGLDrawable) createOnscreenDrawableImpl ( surface );
-                        drawable.setRealized(true);
+                    drawable = (EGLDrawable) createOnscreenDrawableImpl ( surface );
+                    drawable.setRealized(true);
 
-                        context = (EGLContext) drawable.createContext(null);
-                        if (null == context) {
-                            throw new GLException("Couldn't create shared context for drawable: "+drawable);
-                        }
+                    context = (EGLContext) drawable.createContext(null);
+                    if (null == context) {
+                        throw new GLException("Couldn't create shared context for drawable: "+drawable);
+                    }
 
-                        // Triggers initial mapping, if not done yet
-                        if( GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent() ) { // could cause exception
-                            // context.isCurrent() !
-                            final GL gl = context.getGL();
-                            final String glVersionString = gl.glGetString(GL.GL_VERSION);
-                            if(null != glVersionString) {
-                                success = true;
-                                if( !hasKHRSurfacelessTried && eglFeatures.hasKHRSurfaceless &&
-                                    ( context.isGLES() || context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 )
-                                  )
-                                {
-                                    if( probeSurfacelessCtx(context, false /* restoreDrawable */) ) {
-                                        zeroDrawable = context.getGLDrawable();
-                                    }
-                                } else {
-                                    setNoSurfacelessCtxQuirk(context);
+                    // Triggers initial mapping, if not done yet
+                    if( GLContext.CONTEXT_NOT_CURRENT != context.makeCurrent() ) { // could cause exception
+                        // context.isCurrent() !
+                        final GL gl = context.getGL();
+                        final String glVersionString = gl.glGetString(GL.GL_VERSION);
+                        if(null != glVersionString) {
+                            success = true;
+                            if( !hasKHRSurfacelessTried && eglFeatures.hasKHRSurfaceless &&
+                                ( context.isGLES() || context.getGLVersionNumber().compareTo(GLContext.Version3_0) >= 0 )
+                              )
+                            {
+                                if( probeSurfacelessCtx(context, false /* restoreDrawable */) ) {
+                                    zeroDrawable = context.getGLDrawable();
                                 }
-                            } else if ( DEBUG_SHAREDCTX ) {
-                                System.err.println("EGLDrawableFactory-MapGLVersions.12: NULL VERSION: "+resEGLDevice[0]+", "+context.getGLVersion());
+                            } else {
+                                setNoSurfacelessCtxQuirk(context);
                             }
                         } else if ( DEBUG_SHAREDCTX ) {
-                            System.err.println("EGLDrawableFactory-MapGLVersions.12: NOT_CURRENT: "+resEGLDevice[0]+", "+context);
+                            System.err.println("EGLDrawableFactory-MapGLVersions.12: NULL VERSION: "+resEGLDevice[0]+", "+context.getGLVersion());
                         }
-                    } catch (final Throwable t) {
-                        if ( DEBUG_SHAREDCTX ) {
-                            System.err.println("EGLDrawableFactory-MapGLVersions.12: INFO: context create/makeCurrent failed");
-                            t.printStackTrace();
-                        }
-                    } finally {
-                        if( null != context ) {
-                            try {
-                                context.destroy();
-                            } catch (final GLException gle) {
-                                if ( DEBUG_SHAREDCTX ) {
-                                    System.err.println("EGLDrawableFactory-MapGLVersions.12: INFO: destroy caught exception:");
-                                    gle.printStackTrace();
-                                }
-                            }
-                        }
-                        if( null != zeroDrawable ) {
-                            zeroDrawable.setRealized(false);
-                        }
-                        if( null != drawable ) {
-                            drawable.setRealized(false);
-                        }
+                    } else if ( DEBUG_SHAREDCTX ) {
+                        System.err.println("EGLDrawableFactory-MapGLVersions.12: NOT_CURRENT: "+resEGLDevice[0]+", "+context);
                     }
                 }
             } catch (final Throwable t) {
                 if ( DEBUG_SHAREDCTX ) {
-                    System.err.println("Caught exception on thread "+getThreadName());
+                    System.err.println("EGLDrawableFactory-MapGLVersions.12: INFO: context create/makeCurrent failed");
                     t.printStackTrace();
                 }
                 success = false;
             } finally {
+                if( null != context ) {
+                    try {
+                        context.destroy();
+                    } catch (final GLException gle) {
+                        if ( DEBUG_SHAREDCTX ) {
+                            System.err.println("EGLDrawableFactory-MapGLVersions.12: INFO: destroy caught exception:");
+                            gle.printStackTrace();
+                        }
+                    }
+                }
+                if( null != zeroDrawable ) {
+                    zeroDrawable.setRealized(false);
+                }
+                if( null != drawable ) {
+                    drawable.setRealized(false);
+                }
                 if( null != downstreamSurface ) {
                     downstreamSurface.destroyNotify();
                 }
