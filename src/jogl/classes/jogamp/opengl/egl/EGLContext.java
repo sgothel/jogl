@@ -49,6 +49,7 @@ import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.egl.EGLExtImpl;
 import jogamp.opengl.egl.EGLExtProcAddressTable;
 
@@ -167,9 +168,8 @@ public class EGLContext extends GLContextImpl {
         final long eglConfig = config.getNativeConfig();
         final EGLDrawableFactory factory = (EGLDrawableFactory) drawable.getFactoryImpl();
 
-        final boolean hasOpenGLAPISupport = factory.hasOpenGLAPISupport();
+        final boolean hasFullOpenGLAPISupport = factory.hasFullOpenGLAPISupport();
         final boolean useKHRCreateContext = factory.hasDefaultDeviceKHRCreateContext();
-        final boolean allowOpenGLAPI = hasOpenGLAPISupport && useKHRCreateContext;
         final boolean ctDesktopGL = 0 == ( GLContext.CTX_PROFILE_ES & ctp );
         final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
         final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
@@ -177,9 +177,9 @@ public class EGLContext extends GLContextImpl {
 
         if(DEBUG) {
             System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: Start "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")
-                                               + ", hasOpenGLAPISupport "+hasOpenGLAPISupport
+                                               + ", OpenGL API Support "+factory.hasOpenGLAPISupport()
                                                + ", useKHRCreateContext "+useKHRCreateContext
-                                               + ", allowOpenGLAPI "+allowOpenGLAPI
+                                               + ", Full OpenGL API Support "+hasFullOpenGLAPISupport
                                                + ", device "+device);
         }
         if ( 0 == eglDisplay ) {
@@ -202,8 +202,7 @@ public class EGLContext extends GLContextImpl {
          *        hence it must be switched before makeCurrent w/ different APIs, see:
          *           eglWaitClient();
          */
-        if( ctDesktopGL && !allowOpenGLAPI ) {
-        // if( ctDesktopGL && !hasOpenGLAPISupport ) {
+        if( ctDesktopGL && !hasFullOpenGLAPISupport ) {
             if(DEBUG) {
                 System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: DesktopGL not avail "+getGLVersion(reqMajor, reqMinor, ctp, "@creation"));
             }
@@ -211,7 +210,7 @@ public class EGLContext extends GLContextImpl {
         }
 
         try {
-            if( allowOpenGLAPI && device.getEGLVersion().compareTo(Version1_2) >= 0 ) {
+            if( hasFullOpenGLAPISupport && device.getEGLVersion().compareTo(Version1_2) >= 0 ) {
                 EGL.eglWaitClient(); // EGL >= 1.2
             }
             if( !EGL.eglBindAPI( ctDesktopGL ? EGL.EGL_OPENGL_API : EGL.EGL_OPENGL_ES_API) ) {

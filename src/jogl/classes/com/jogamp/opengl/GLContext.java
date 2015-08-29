@@ -1603,6 +1603,12 @@ public abstract class GLContext {
             ( ( b8    & 0x000000FF ) << 16 ) |
             ( ( c16   & 0x0000FFFF )       ) ;
   }
+  protected static VersionNumber decomposeBits(final int bits32, final int[] ctp) {
+      final int major = ( bits32 & 0xFF000000 ) >>> 24 ;
+      final int minor = ( bits32 & 0x00FF0000 ) >>> 16 ;
+      ctp[0]          = ( bits32 & 0x0000FFFF )        ;
+      return new VersionNumber(major, minor, 0);
+  }
 
   private static void validateProfileBits(final int bits, final String argName) {
     int num = 0;
@@ -1666,16 +1672,7 @@ public abstract class GLContext {
   }
 
   /**
-   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable(int,int)} not intended to be used by
-   * implementations. However, if {@link jogamp.opengl.GLContextImpl#createContextARB(long, boolean)} is not being used within
-   * {@link com.jogamp.opengl.GLDrawableFactory#getOrCreateSharedContext(com.jogamp.nativewindow.AbstractGraphicsDevice)},
-   * GLProfile has to map the available versions.
-   *
-   * @param reqMajor Key Value either 1, 2, 3 or 4
-   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
-   * @return the old mapped value
-   *
-   * @see #createContextARBMapVersionsAvailable
+   * @deprecated Use {@link GLContextImpl#mapAvailableGLVersion(AbstractGraphicsDevice, int, int, VersionNumber, int)}
    */
   protected static Integer mapAvailableGLVersion(final AbstractGraphicsDevice device,
                                                  final int reqMajor, final int profile, final int resMajor, final int resMinor, int resCtp)
@@ -1688,7 +1685,6 @@ public abstract class GLContext {
     }
     if(DEBUG) {
         System.err.println(getThreadName() + ": createContextARB-MapGLVersions MAP "+device+": "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), profile).toString()+ ") -> "+getGLVersion(resMajor, resMinor, resCtp, null));
-        // Thread.dumpStack();
     }
     final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, profile);
     final Integer val = Integer.valueOf(composeBits(resMajor, resMinor, resCtp));
@@ -1704,19 +1700,17 @@ public abstract class GLContext {
     synchronized(deviceVersionAvailable) {
         final Set<String> keys = deviceVersionAvailable.keySet();
         boolean needsSeparator = false;
-        for(final Iterator<String> i = keys.iterator(); i.hasNext(); ) {
+        for(final Iterator<String> keyI = keys.iterator(); keyI.hasNext(); ) {
             if(needsSeparator) {
                 sb.append(Platform.getNewline());
             }
-            final String key = i.next();
-            sb.append(key).append(": ");
+            final String key = keyI.next();
+            sb.append("MapGLVersions ").append(key).append(": ");
             final Integer valI = deviceVersionAvailable.get(key);
             if(null != valI) {
-                final int bits32 = valI.intValue();
-                final int major = ( bits32 & 0xFF000000 ) >>> 24 ;
-                final int minor = ( bits32 & 0x00FF0000 ) >>> 16 ;
-                final int ctp   = ( bits32 & 0x0000FFFF )       ;
-                sb.append(GLContext.getGLVersion(major, minor, ctp, null));
+                final int[] ctp = { 0 };
+                final VersionNumber version = decomposeBits(valI.intValue(), ctp);
+                GLContext.getGLVersion(sb, version, ctp[0], null);
             } else {
                 sb.append("n/a");
             }
@@ -2032,8 +2026,10 @@ public abstract class GLContext {
     }
     return sb;
   }
-  protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
-    final StringBuilder sb = new StringBuilder();
+  protected static StringBuilder getGLVersion(final StringBuilder sb, final VersionNumber version, final int ctp, final String gl_version) {
+      return getGLVersion(sb, version.getMajor(), version.getMinor(), ctp, gl_version);
+  }
+  protected static StringBuilder getGLVersion(final StringBuilder sb, final int major, final int minor, final int ctp, final String gl_version) {
     sb.append(major);
     sb.append(".");
     sb.append(minor);
@@ -2044,7 +2040,10 @@ public abstract class GLContext {
         sb.append(" - ");
         sb.append(gl_version);
     }
-    return sb.toString();
+    return sb;
+  }
+  protected static String getGLVersion(final int major, final int minor, final int ctp, final String gl_version) {
+      return getGLVersion(new StringBuilder(), major, minor, ctp, gl_version).toString();
   }
 
   //

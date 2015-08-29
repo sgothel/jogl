@@ -45,7 +45,10 @@ import java.nio.IntBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.DynamicLookupHelper;
@@ -59,12 +62,12 @@ import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
-
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ProxySurface;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL2ES3;
@@ -805,28 +808,28 @@ public abstract class GLContextImpl extends GLContext {
                         reqProfile = GLContext.CTX_PROFILE_COMPAT;
                         isCompat = true;
                     }
-                    GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                    final MappedGLVersion me = mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion, ctxOptions, glRendererQuirks);
                     // Perform all required profile mappings
                     if( isCompat ) {
                         // COMPAT via non ARB
-                        GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
                         if( reqMajor >= 4 ) {
-                            GLContext.mapAvailableGLVersion(device, 3, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                            GLContext.mapAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                            mapAvailableGLVersion(device, 3, reqProfile, ctxVersion, ctxOptions, glRendererQuirks);
+                            mapAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
                         }
                         if( reqMajor >= 3 ) {
-                            GLContext.mapAvailableGLVersion(device, 2, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                            mapAvailableGLVersion(device, 2, reqProfile, ctxVersion, ctxOptions, glRendererQuirks);
                         }
                     } else {
                         // CORE via non ARB, unlikely, however ..
                         if( reqMajor >= 4 ) {
-                            GLContext.mapAvailableGLVersion(device, 3, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                            mapAvailableGLVersion(device, 3, reqProfile, ctxVersion, ctxOptions, glRendererQuirks);
                         }
                     }
                     GLContext.setAvailableGLVersionsSet(device, true);
 
                     if (DEBUG) {
-                      System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " + device+" -> "+reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+                      System.err.println(getThreadName() + ": createContextOLD-MapGLVersions HAVE: " + me);
                     }
                 }
             }
@@ -990,6 +993,128 @@ public abstract class GLContextImpl extends GLContext {
     return _ctx;
   }
 
+  //----------------------------------------------------------------------
+  //
+
+  public static class MappedGLVersion {
+      public final AbstractGraphicsDevice device;
+      public final int reqMajorVersion;
+      public final int reqProfile;
+      public final VersionNumber ctxVersion;
+      public final int ctxOptions;
+      public final GLRendererQuirks quirks;
+      public final VersionNumber preCtxVersion;
+      public final int preCtxOptions;
+      public MappedGLVersion(final AbstractGraphicsDevice device, final int reqMajorVersion, final int reqProfile,
+                             final VersionNumber ctxVersion, final int ctxOptions, final GLRendererQuirks quirks,
+                             final VersionNumber preCtxVersion, final int preCtxOptions) {
+          this.device = device;
+          this.reqMajorVersion = reqMajorVersion;
+          this.reqProfile = reqProfile;
+          this.ctxVersion = ctxVersion;
+          this.ctxOptions = ctxOptions;
+          this.quirks = quirks;
+          this.preCtxVersion = preCtxVersion;
+          this.preCtxOptions = preCtxOptions;
+      }
+      public final String toString() {
+          return toString(new StringBuilder(), -1, -1, -1, -1).toString();
+      }
+      public final StringBuilder toString(final StringBuilder sb, final int minMajor, final int minMinor, final int maxMajor, final int maxMinor) {
+          sb.append(device.toString()).append(" ").append(reqMajorVersion).append(" (");
+          GLContext.getGLProfile(sb, reqProfile).append(")");
+          if( minMajor >=0 && minMinor >=0 && maxMajor >= 0 && maxMinor >= 0) {
+              sb.append("[").append(minMajor).append(".").append(minMinor).append(" .. ").append(maxMajor).append(".").append(maxMinor).append("]");
+          }
+          sb.append(": [");
+          if( null != preCtxVersion ) {
+              GLContext.getGLVersion(sb, preCtxVersion, preCtxOptions, null);
+          } else {
+              sb.append("None");
+          }
+          sb.append("] -> [");
+          GLContext.getGLVersion(sb, ctxVersion, ctxOptions, null).append("]");
+          return sb;
+      }
+  }
+  public static interface MappedGLVersionListener {
+      void glVersionMapped(final MappedGLVersion e);
+  }
+  private static MappedGLVersionListener mapGLVersionListener = null;
+  protected static synchronized void setMappedGLVersionListener(final MappedGLVersionListener mvl) {
+      mapGLVersionListener = mvl;
+  }
+
+  /**
+   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable(int,int)} not intended to be used by
+   * implementations. However, if {@link jogamp.opengl.GLContextImpl#createContextARB(long, boolean)} is not being used within
+   * {@link com.jogamp.opengl.GLDrawableFactory#getOrCreateSharedContext(com.jogamp.nativewindow.AbstractGraphicsDevice)},
+   * GLProfile has to map the available versions.
+   *
+   * @param reqMajor Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @param resVersion the resulting version number
+   * @param resCtp the resulting context options
+   * @return the old mapped value
+   *
+   * @see #createContextARBMapVersionsAvailable
+   */
+  protected static MappedGLVersion mapAvailableGLVersion(final AbstractGraphicsDevice device,
+                                                           final int reqMajor, final int profile,
+                                                           final VersionNumber resVersion, final int resCtp, final GLRendererQuirks resQuirks)
+  {
+      @SuppressWarnings("deprecation")
+      final Integer preVal = mapAvailableGLVersion(device, reqMajor, profile, resVersion.getMajor(), resVersion.getMinor(), resCtp);
+      final int[] preCtp = { 0 };
+      final VersionNumber preVersion = null != preVal ? decomposeBits(preVal.intValue(), preCtp) : null;
+      final MappedGLVersion res = new MappedGLVersion(device, reqMajor, profile, resVersion, resCtp, resQuirks, preVersion, preCtp[0]);
+      if( null != mapGLVersionListener ) {
+          mapGLVersionListener.glVersionMapped(res);
+      }
+      return res;
+  }
+
+  protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice) {
+    if( fromDevice == toDevice || fromDevice.getUniqueID() == toDevice.getUniqueID() ) {
+        return; // NOP
+    }
+    synchronized(deviceVersionAvailable) {
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": createContextARB-MapGLVersions REMAP "+fromDevice+" -> "+toDevice);
+        }
+        final IdentityHashMap<String, Integer> newDeviceVersionAvailable = new IdentityHashMap<String, Integer>();
+        final Set<String> keys = deviceVersionAvailable.keySet();
+        for(final Iterator<String> keyI = keys.iterator(); keyI.hasNext(); ) {
+            final String origKey = keyI.next();
+            final Integer valI = deviceVersionAvailable.get(origKey);
+            if( null != valI ) {
+                if(DEBUG) {
+                    final int[] ctp = { 0 };
+                    final VersionNumber version = decomposeBits(valI.intValue(), ctp);
+                    System.err.println(" MapGLVersions REMAP OLD "+origKey+" -> "+GLContext.getGLVersion(new StringBuilder(), version, ctp[0], null).toString());
+                }
+                newDeviceVersionAvailable.put(origKey, valI);
+                final int devSepIdx = origKey.lastIndexOf('-');
+                if( 0 >= devSepIdx ) {
+                    throw new InternalError("device-separator '-' at "+devSepIdx+" of "+origKey);
+                }
+                final String devUniqueID = origKey.substring(0, devSepIdx);
+                if( fromDevice.getUniqueID().equals(devUniqueID) ) {
+                    final String profileReq = origKey.substring(devSepIdx);
+                    final String newKey = (toDevice.getUniqueID()+profileReq).intern();
+                    if(DEBUG) {
+                        System.err.println(" MapGLVersions REMAP NEW "+newKey+" -> (ditto)");
+                    }
+                    newDeviceVersionAvailable.put(newKey, valI);
+                }
+            }
+        }
+        deviceVersionAvailable.clear();
+        deviceVersionAvailable.putAll(newDeviceVersionAvailable);
+        GLContext.setAvailableGLVersionsSet(toDevice, true);
+    }
+  }
+
   private final boolean mapGLVersions(final AbstractGraphicsDevice device) {
     synchronized (GLContext.deviceVersionAvailable) {
         if (DEBUG) {
@@ -1012,14 +1137,14 @@ public abstract class GLContextImpl extends GLContext {
             /**
              * OSX 10.9 GLRendererQuirks.GL4NeedsGL3Request, quirk is added as usual @ setRendererQuirks(..)
              */
-            if( !GLProfile.disableOpenGLCore && !hasGL4 && !hasGL3 ) {
-                hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
+            if( !GLProfile.disableOpenGLDesktop && !GLProfile.disableOpenGLCore && !hasGL4 && !hasGL3 ) {
+                hasGL3   = createContextARBMapVersionsAvailable(device, 3, CTX_PROFILE_CORE);    // GL3
                 success |= hasGL3;
                 if( hasGL3 ) {
                     final boolean isHWAccel = 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions );
                     if( isHWAccel && ctxVersion.getMajor() >= 4 ) {
                         // Gotcha: Creating a '3.2' ctx delivers a >= 4 ctx.
-                        GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
                         hasGL4   = true;
                         if(DEBUG) {
                             System.err.println(getThreadName() + ": createContextARB-MapGLVersions: Quirk Triggerd: "+GLRendererQuirks.toString(GLRendererQuirks.GL4NeedsGL3Request)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber());
@@ -1029,14 +1154,14 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
         }
-        if( !GLProfile.disableOpenGLCore ) {
+        if( !GLProfile.disableOpenGLDesktop && !GLProfile.disableOpenGLCore ) {
             if( !hasGL4 ) {
-                hasGL4   = createContextARBMapVersionsAvailable(4, CTX_PROFILE_CORE);    // GL4
+                hasGL4   = createContextARBMapVersionsAvailable(device, 4, CTX_PROFILE_CORE);    // GL4
                 success |= hasGL4;
                 if( hasGL4 ) {
                     if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
                         // Map hw-accel GL4 to all lower core profiles: GL3
-                        GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                        mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
                         if( PROFILE_ALIASING ) {
                             hasGL3   = true;
                         }
@@ -1045,60 +1170,62 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
             if( !hasGL3 ) {
-                hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
+                hasGL3   = createContextARBMapVersionsAvailable(device, 3, CTX_PROFILE_CORE);    // GL3
                 success |= hasGL3;
                 if( hasGL3 ) {
                     resetStates(false); // clean this context states, since creation was temporary
                 }
             }
         }
-        if( !hasGL4bc ) {
-            hasGL4bc = createContextARBMapVersionsAvailable(4, CTX_PROFILE_COMPAT);  // GL4bc
-            success |= hasGL4bc;
-            if( hasGL4bc ) {
-                if( !hasGL4 ) { // last chance .. ignore hw-accel
-                    GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    hasGL4   = true;
-                }
-                if( !hasGL3 ) { // last chance .. ignore hw-accel
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    hasGL3   = true;
-                }
-                if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
-                    // Map hw-accel GL4bc to all lower compatible profiles: GL3bc, GL2
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    if(PROFILE_ALIASING) {
-                        hasGL3bc = true;
-                        hasGL2   = true;
+        if( !GLProfile.disableOpenGLDesktop ) {
+            if( !hasGL4bc ) {
+                hasGL4bc = createContextARBMapVersionsAvailable(device, 4, CTX_PROFILE_COMPAT);  // GL4bc
+                success |= hasGL4bc;
+                if( hasGL4bc ) {
+                    if( !hasGL4 ) { // last chance .. ignore hw-accel
+                        mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
+                        hasGL4   = true;
                     }
-                }
-                resetStates(false); // clean this context states, since creation was temporary
-            }
-        }
-        if( !hasGL3bc ) {
-            hasGL3bc = createContextARBMapVersionsAvailable(3, CTX_PROFILE_COMPAT);  // GL3bc
-            success |= hasGL3bc;
-            if( hasGL3bc ) {
-                if(!hasGL3) {  // last chance .. ignore hw-accel
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    hasGL3   = true;
-                }
-                if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
-                    // Map hw-accel GL3bc to all lower compatible profiles: GL2
-                    GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
-                    if(PROFILE_ALIASING) {
-                        hasGL2   = true;
+                    if( !hasGL3 ) { // last chance .. ignore hw-accel
+                        mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
+                        hasGL3   = true;
                     }
+                    if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
+                        // Map hw-accel GL4bc to all lower compatible profiles: GL3bc, GL2
+                        mapAvailableGLVersion(device, 3, CTX_PROFILE_COMPAT, ctxVersion, ctxOptions, glRendererQuirks);
+                        mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion, ctxOptions, glRendererQuirks);
+                        if(PROFILE_ALIASING) {
+                            hasGL3bc = true;
+                            hasGL2   = true;
+                        }
+                    }
+                    resetStates(false); // clean this context states, since creation was temporary
                 }
-                resetStates(false); // clean this context states, since creation was temporary
             }
-        }
-        if( !hasGL2 ) {
-            hasGL2   = createContextARBMapVersionsAvailable(2, CTX_PROFILE_COMPAT);  // GL2
-            success |= hasGL2;
-            if( hasGL2 ) {
-                resetStates(false); // clean this context states, since creation was temporary
+            if( !hasGL3bc ) {
+                hasGL3bc = createContextARBMapVersionsAvailable(device, 3, CTX_PROFILE_COMPAT);  // GL3bc
+                success |= hasGL3bc;
+                if( hasGL3bc ) {
+                    if(!hasGL3) {  // last chance .. ignore hw-accel
+                        mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion, ctxOptions, glRendererQuirks);
+                        hasGL3   = true;
+                    }
+                    if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctxOptions ) ) {
+                        // Map hw-accel GL3bc to all lower compatible profiles: GL2
+                        mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion, ctxOptions, glRendererQuirks);
+                        if(PROFILE_ALIASING) {
+                            hasGL2   = true;
+                        }
+                    }
+                    resetStates(false); // clean this context states, since creation was temporary
+                }
+            }
+            if( !hasGL2 ) {
+                hasGL2   = createContextARBMapVersionsAvailable(device, 2, CTX_PROFILE_COMPAT);  // GL2
+                success |= hasGL2;
+                if( hasGL2 ) {
+                    resetStates(false); // clean this context states, since creation was temporary
+                }
             }
         }
         if(success) {
@@ -1120,38 +1247,43 @@ public abstract class GLContextImpl extends GLContext {
    * Note: Since context creation is temporary, caller need to issue {@link #resetStates(boolean)}, if creation was successful, i.e. returns true.
    * This method does not reset the states, allowing the caller to utilize the state variables.
    **/
-  private final boolean createContextARBMapVersionsAvailable(final int reqMajor, final int reqProfile) {
+  private final boolean createContextARBMapVersionsAvailable(final AbstractGraphicsDevice device, final int reqMajor, final int reqProfile) {
     long _context;
     int ctp = CTX_IS_ARB_CREATED | reqProfile;
 
     // To ensure GL profile compatibility within the JOGL application
     // we always try to map against the highest GL version,
     // so the user can always cast to the highest available one.
-    int majorMax, minorMax;
-    int majorMin, minorMin;
+    int maxMajor, maxMinor;
+    int minMajor, minMinor;
     final int major[] = new int[1];
     final int minor[] = new int[1];
 
     if( CTX_PROFILE_ES == reqProfile ) {
-        majorMax=reqMajor; minorMax=GLContext.getMaxMinor(ctp, majorMax);
-        majorMin=reqMajor; minorMin=0;
+        if( 3 == reqMajor ) { // ES3 - ES2
+            maxMajor=3; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
+            minMajor=2; minMinor=0;
+        } else { // ES2 or ES1
+            maxMajor=reqMajor; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
+            minMajor=reqMajor; minMinor=0;
+        }
     } else {
         if( 4 == reqMajor ) {
-            majorMax=4; minorMax=GLContext.getMaxMinor(ctp, majorMax);
-            majorMin=4; minorMin=0;
+            maxMajor=4; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
+            minMajor=4; minMinor=0;
         } else if( 3 == reqMajor ) {
-            majorMax=3; minorMax=GLContext.getMaxMinor(ctp, majorMax);
-            majorMin=3; minorMin=1;
+            maxMajor=3; maxMinor=GLContext.getMaxMinor(ctp, maxMajor);
+            minMajor=3; minMinor=1;
         } else /* if( glp.isGL2() ) */ {
             // our minimum desktop OpenGL runtime requirements are 1.1,
             // nevertheless we restrict ARB context creation to 2.0 to spare us futile attempts
-            majorMax=3; minorMax=0;
-            majorMin=2; minorMin=0;
+            maxMajor=3; maxMinor=0;
+            minMajor=2; minMinor=0;
         }
     }
     _context = createContextARBVersions(0, true, ctp,
-                                        /* max */ majorMax, minorMax,
-                                        /* min */ majorMin, minorMin,
+                                        /* max */ maxMajor, maxMinor,
+                                        /* min */ minMajor, minMinor,
                                         /* res */ major, minor);
 
     if( 0 == _context && CTX_PROFILE_CORE == reqProfile && !PROFILE_ALIASING ) {
@@ -1159,8 +1291,8 @@ public abstract class GLContextImpl extends GLContext {
         ctp &= ~CTX_PROFILE_CORE ;
         ctp |=  CTX_OPTION_FORWARD ;
         _context = createContextARBVersions(0, true, ctp,
-                                            /* max */ majorMax, minorMax,
-                                            /* min */ majorMin, minorMin,
+                                            /* max */ maxMajor, maxMinor,
+                                            /* min */ minMajor, minMinor,
                                             /* res */ major, minor);
        if( 0 == _context ) {
             // Try a compatible one .. even though not requested .. last resort
@@ -1168,25 +1300,24 @@ public abstract class GLContextImpl extends GLContext {
             ctp &= ~CTX_OPTION_FORWARD ;
             ctp |=  CTX_PROFILE_COMPAT ;
             _context = createContextARBVersions(0, true, ctp,
-                                       /* max */ majorMax, minorMax,
-                                       /* min */ majorMin, minorMin,
+                                       /* max */ maxMajor, maxMinor,
+                                       /* min */ minMajor, minMinor,
                                        /* res */ major, minor);
        }
     }
     final boolean res;
     if( 0 != _context ) {
-        final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
         // ctxMajorVersion, ctxMinorVersion, ctxOptions is being set by
         //   createContextARBVersions(..) -> setGLFunctionAvailbility(..) -> setContextVersion(..)
-        GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+        final MappedGLVersion me = mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion, ctxOptions, glRendererQuirks);
         destroyContextARBImpl(_context);
         if (DEBUG) {
-          System.err.println(getThreadName() + ": createContextARB-MapGLVersions "+device+", HAVE: "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), reqProfile).toString()+ ") ["+majorMax+"."+minorMax+" .. "+majorMin+"."+minorMin+"] -> "+getGLVersion());
+          System.err.println(getThreadName() + ": createContextARB-MapGLVersions HAVE "+me.toString(new StringBuilder(), minMajor, minMinor, maxMajor, maxMinor).toString());
         }
         res = true;
     } else {
         if (DEBUG) {
-          System.err.println(getThreadName() + ": createContextARB-MapGLVersions "+device+", NOPE: "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), reqProfile).toString()+ ") ["+majorMax+"."+minorMax+" .. "+majorMin+"."+minorMin+"]");
+          System.err.println(getThreadName() + ": createContextARB-MapGLVersions NOPE "+device+", "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), reqProfile).toString()+ ") ["+maxMajor+"."+maxMinor+" .. "+minMajor+"."+minMinor+"]");
         }
         res = false;
     }
@@ -1913,7 +2044,7 @@ public abstract class GLContextImpl extends GLContext {
     final String MesaRendererIntelsp = "Intel(R)";
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
-    final boolean esCtx = 0 != ( ctp & GLContext.CTX_PROFILE_ES );
+    final boolean isES = 0 != ( ctp & GLContext.CTX_PROFILE_ES );
     final boolean isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
     final boolean isWindows = Platform.getOSType() == Platform.OSType.WINDOWS;
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
@@ -1936,7 +2067,7 @@ public abstract class GLContextImpl extends GLContext {
     //
     // General Quirks
     //
-    if( esCtx ) {
+    if( isES ) {
         if( 2 == reqMajor && 2 < major ) {
             final int quirk = GLRendererQuirks.GLES3ViaEGLES2Config;
             if(DEBUG) {
@@ -2219,7 +2350,7 @@ public abstract class GLContextImpl extends GLContext {
         if( !GLRendererQuirks.areSameStickyDevice(factoryDefaultDevice, adevice) ) {
             GLRendererQuirks.pushStickyDeviceQuirks(factoryDefaultDevice, quirks);
         }
-        if( esCtx ) {
+        if( isES ) {
             final AbstractGraphicsDevice eglFactoryDefaultDevice = GLDrawableFactory.getEGLFactory().getDefaultDevice();
             if( !GLRendererQuirks.areSameStickyDevice(eglFactoryDefaultDevice, adevice) &&
                 !GLRendererQuirks.areSameStickyDevice(eglFactoryDefaultDevice, factoryDefaultDevice) ) {

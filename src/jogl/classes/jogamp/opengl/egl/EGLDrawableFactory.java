@@ -66,6 +66,7 @@ import com.jogamp.opengl.GLProfile;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextImpl.MappedGLVersion;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
@@ -77,7 +78,6 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
@@ -89,17 +89,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
     private static final boolean DEBUG_SHAREDCTX = DEBUG  || GLContext.DEBUG;
 
-    /* package */ static final boolean QUERY_EGL_ES_NATIVE_TK;
-
     static {
         Debug.initSingleton();
-        QUERY_EGL_ES_NATIVE_TK = PropertyAccess.isPropertyDefined("jogl.debug.EGLDrawableFactory.QueryNativeTK", true);
     }
 
     private static boolean eglDynamicLookupHelperInit = false;
     private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglGLnDynamicLookupHelper = null;
+    private static boolean isANGLE = false;
+    private static boolean hasX11 = false;
+    private static String defaultConnection = null;
+    private static EGLGraphicsDevice defaultDevice = null;
+    private static EGLFeatures defaultDeviceEGLFeatures = null;
 
     private static final boolean isANGLE(final GLDynamicLookupHelper dl) {
         if(Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE) {
@@ -192,12 +194,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             eglDynamicLookupHelperInit = true;
 
             // Check for other underlying stuff ..
-            if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
+            final String nwt = NativeWindowFactory.getNativeWindowType(true);
+            if(NativeWindowFactory.TYPE_X11 == nwt) {
                 hasX11 = true;
                 try {
                     ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
                 } catch (final Exception jre) { /* n/a .. */ }
+            } else {
+                hasX11 = false;
             }
+            defaultConnection = NativeWindowFactory.getDefaultDisplayConnection(nwt);
 
             /**
              * FIXME: Probably need to move EGL from a static model
@@ -336,8 +342,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     // The act of constructing them causes them to be registered
                     EGLGraphicsConfigurationFactory.registerFactory();
 
-                    // FIXME: defaultDevice.open() triggers eglInitialize(..) which crashed on Windows w/ Chrome/ANGLE, FF/ANGLE!
-                    defaultDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+                    // Note: defaultDevice.open() triggers eglInitialize(..) which crashed on Windows w/ Chrome/ANGLE, FF/ANGLE!
+                    // Hence opening will happen later, eventually
+                    defaultDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, defaultConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
 
                     // Init shared resources off thread
                     // Will be released via ShutdownHook
@@ -410,10 +417,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
-    private boolean isANGLE = false;
-    private boolean hasX11 = false;
-    private EGLGraphicsDevice defaultDevice = null;
-    private EGLFeatures defaultDeviceEGLFeatures;
     private SharedResourceImplementation sharedResourceImplementation;
     private SharedResourceRunner sharedResourceRunner;
 
@@ -817,8 +820,26 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public final boolean hasDefaultDeviceKHRCreateContext() {
         return defaultDeviceEGLFeatures.hasKHRCreateContext;
     }
+    /**
+     * Method returns {@code true} if {@code EGL_OpenGL_API} is supported,
+     * otherwise method returns {@code false}.
+     */
     public final boolean hasOpenGLAPISupport() {
         return defaultDeviceEGLFeatures.hasGLAPI;
+    }
+    /**
+     * Method returns {@code true} if {@code EGL_OpenGL_API} and {@code EGL_KHR_create_context} is supported,
+     * otherwise method returns {@code false}.
+     */
+    public final boolean hasFullOpenGLAPISupport() {
+        /**
+         * It has been experienced w/ Mesa 10.3.2 (EGL 1.4/Gallium)
+         * that even though initial OpenGL context can be created w/o 'EGL_KHR_create_context',
+         * switching the API via 'eglBindAPI(EGL_OpenGL_API)' the latter 'eglCreateContext(..)' fails w/ EGL_BAD_ACCESS.
+         * Hence we require both: OpenGL API support _and_  'EGL_KHR_create_context'.
+         */
+        return null != eglGLnDynamicLookupHelper &&
+               defaultDeviceEGLFeatures.hasGLAPI && defaultDeviceEGLFeatures.hasKHRCreateContext;
     }
 
     @Override
@@ -948,7 +969,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+    protected final EGLSurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
                                                           final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
                                                           final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
         final boolean[] ownDevice = { false };
@@ -957,14 +978,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+    public final EGLSurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
                                                      GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
         chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(chosenCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above
         return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new EGLDummyUpstreamSurfaceHook(width, height));
     }
 
     @Override
-    public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+    public final EGLSurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
                                                     GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
         chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
         final boolean[] ownDevice = { false };
@@ -1007,7 +1028,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected ProxySurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle,
+    protected EGLSurface createProxySurfaceImpl(final AbstractGraphicsDevice deviceReq, final int screenIdx, final long windowHandle,
                                                   final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser,
                                                   final UpstreamSurfaceHook upstream) {
         final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(deviceReq);
