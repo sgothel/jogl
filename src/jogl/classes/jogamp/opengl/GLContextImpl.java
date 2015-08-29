@@ -2241,6 +2241,17 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
         }
+        if( isDriverNVIDIAGeForce ) {
+            // Bug 1200: Crash on GNU/Linux x86_64 'NVidia beta driver 355.06' @ probeSurfacelessCtx
+            // final VersionNumber nvSafeVersion = new VersionNumber(356, 0, 0); // FIXME: Add safe version!
+            if( !isES && !(adevice instanceof EGLGraphicsDevice) /* &&  vendorVersion.compareTo(nvSafeVersion) < 0 */ ) {
+                final int quirk = GLRendererQuirks.NoSurfacelessCtx;
+                if(DEBUG) {
+                    System.err.print("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: !ES, !EGL, Vendor " + glVendor +", X11 Renderer " + glRenderer+", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
+                }
+                addStickyQuirkAtMapping(adevice, quirks, quirk, withinGLVersionsMapping);
+            }
+        }
     }
 
 
@@ -2306,16 +2317,6 @@ public abstract class GLContextImpl extends GLContext {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
             }
             quirks.addQuirk( quirk );
-        }
-    } else if( isDriverNVIDIAGeForce ) {
-        // Bug 1200: Crash on GNU/Linux x86_64 'NVidia beta driver 355.06' @ probeSurfacelessCtx
-        // final VersionNumber nvSafeVersion = new VersionNumber(356, 0, 0); // FIXME: Add safe version!
-        if( !esCtx /* &&  vendorVersion.compareTo(nvSafeVersion) < 0 */ ) {
-            final int quirk = GLRendererQuirks.NoSurfacelessCtx;
-            if(DEBUG) {
-                System.err.print("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: !ES, Vendor " + glVendor +", Renderer " + glRenderer);
-            }
-            addStickyQuirkAlways(adevice, quirks, quirk, withinGLVersionsMapping);
         }
     }
 
