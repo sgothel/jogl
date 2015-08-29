@@ -45,6 +45,23 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     protected ToolkitLock toolkitLock;
 
     /**
+     * Return the default display connection for the given windowing toolkit type
+     * gathered via {@link NativeWindowFactory#getDefaultDisplayConnection()}.
+     * @param type
+     */
+    public static String getDefaultDisplayConnection() {
+        return NativeWindowFactory.getDefaultDisplayConnection();
+    }
+    /**
+     * Return the default display connection for the given windowing toolkit type
+     * gathered via {@link NativeWindowFactory#getDefaultDisplayConnection(String)}.
+     * @param type
+     */
+    public static String getDefaultDisplayConnection(final String type) {
+        return NativeWindowFactory.getDefaultDisplayConnection(type);
+    }
+
+    /**
      * Create an instance with the system default {@link ToolkitLock},
      * gathered via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * @param type

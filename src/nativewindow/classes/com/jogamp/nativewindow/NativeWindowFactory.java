@@ -54,6 +54,7 @@ import jogamp.nativewindow.WrappedWindow;
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.x11.X11Util;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
@@ -647,6 +648,17 @@ public abstract class NativeWindowFactory {
                VisualIDHolder.VID_UNDEFINED != visualID ;
     }
 
+    public static String getDefaultDisplayConnection() {
+        return getDefaultDisplayConnection(NativeWindowFactory.getNativeWindowType(true));
+    }
+    public static String getDefaultDisplayConnection(final String nwt) {
+        if(NativeWindowFactory.TYPE_X11 == nwt) {
+            return X11Util.getNullDisplayName();
+        } else {
+            return AbstractGraphicsDevice.DEFAULT_CONNECTION;
+        }
+    }
+
     /**
      * Creates a native device type, following {@link #getNativeWindowType(boolean) getNativeWindowType(true)}.
      * <p>
@@ -673,7 +685,7 @@ public abstract class NativeWindowFactory {
                 return new X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
             }
         } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
-            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {

@@ -32,9 +32,11 @@
 
 package com.jogamp.nativewindow.egl;
 
-import com.jogamp.nativewindow.*;
-
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.DefaultGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
 
 /** Encapsulates a graphics device on EGL platforms.
  */
@@ -73,7 +75,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * This constructor exist to setup a default device connection/unit.<br>
      */
     public EGLGraphicsDevice() {
-        super(NativeWindowFactory.TYPE_EGL, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        super(NativeWindowFactory.TYPE_EGL, DefaultGraphicsDevice.getDefaultDisplayConnection(), AbstractGraphicsDevice.DEFAULT_UNIT);
         this.nativeDisplayID[0] = 0 ; // EGL.EGL_DEFAULT_DISPLAY
         this.eglLifecycleCallback = null;
     }

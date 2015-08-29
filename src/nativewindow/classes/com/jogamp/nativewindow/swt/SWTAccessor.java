@@ -386,7 +386,7 @@ public class SWTAccessor {
             return new X11GraphicsDevice(xdisplay0, AbstractGraphicsDevice.DEFAULT_UNIT, false /* owner */);
         }
         if( isWindows ) {
-            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         }
         if( isOSX ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);

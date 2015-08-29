@@ -42,7 +42,7 @@ public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen 
     }
 
     public static AbstractGraphicsScreen createDefault(final String type) {
-        return new DefaultGraphicsScreen(new DefaultGraphicsDevice(type, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT), 0);
+        return new DefaultGraphicsScreen(new DefaultGraphicsDevice(type, DefaultGraphicsDevice.getDefaultDisplayConnection(type), AbstractGraphicsDevice.DEFAULT_UNIT), 0);
     }
 
     @Override
