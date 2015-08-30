@@ -1150,7 +1150,10 @@ public abstract class GLContextImpl extends GLContext {
             if( !hasES2) {
                 hasES2   = createContextARBMapVersionsAvailable(device, 2, CTX_PROFILE_ES);    // ES2
                 success |= hasES2;
-                if( hasES3 ) {
+                if( hasES2 ) {
+                    if( ctxVersion.getMajor() >= 3 && hasRendererQuirk(GLRendererQuirks.GLES3ViaEGLES2Config)) {
+                        mapAvailableGLVersion(device, 3, CTX_PROFILE_ES, ctxVersion, ctxOptions, glRendererQuirks);
+                    }
                     resetStates(false); // clean context states, since creation was temporary
                 }
             }
