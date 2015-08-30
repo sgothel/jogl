@@ -230,6 +230,15 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   /**
+   * Method returns {@code true} if underlying {@link #createContextARBImpl(long, boolean, int, int, int) <i>ARB context creation</i>}
+   * supports {@code major} and {@code minor} version number.
+   * <p>
+   * Otherwise only the {@code major} version number is supported for context creation.
+   * </p>
+   */
+  public abstract boolean hasMajorMinorCreateContextARB();
+
+  /**
    * Returns the shared device mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
    * either a preexisting or newly created, or <code>null</code> if creation failed or not supported.<br>
    * Creation of the shared context is tried only once.

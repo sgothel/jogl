@@ -379,6 +379,33 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return 0;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This factory always supports native desktop OpenGL profiles.
+   * </p>
+   */
+  @Override
+  public final boolean hasOpenGLDesktopSupport() { return true; }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This factory never supports native GLES profiles.
+   * </p>
+   */
+  @Override
+  public final boolean hasOpenGLESSupport() { return false; }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Always returns true.
+   * </p>
+   */
+  @Override
+  public final boolean hasMajorMinorCreateContextARB() { return true; }
+
   @Override
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(final AbstractGraphicsDevice device) {
     return X11GLXGraphicsConfigurationFactory.getAvailableCapabilities(this, device);

@@ -899,17 +899,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return defaultDeviceEGLFeatures.hasKHRCreateContext;
     }
     /**
-     * Method returns {@code true} if {@code EGL_OpenGL_API} is supported,
-     * otherwise method returns {@code false}.
+     * {@inheritDoc}
+     * <p>
+     * This factory may support native desktop OpenGL if {@link EGL#EGL_CLIENT_APIS} contains {@code OpenGL}
+     * <i>and</i> if {@code EGL_KHR_create_context} extension is supported.
+     * </p>
      */
-    public final boolean hasOpenGLAPISupport() {
-        return defaultDeviceEGLFeatures.hasGLAPI;
-    }
-    /**
-     * Method returns {@code true} if {@code EGL_OpenGL_API} and {@code EGL_KHR_create_context} is supported,
-     * otherwise method returns {@code false}.
-     */
-    public final boolean hasFullOpenGLAPISupport() {
+    @Override
+    public final boolean hasOpenGLDesktopSupport() {
         /**
          * It has been experienced w/ Mesa 10.3.2 (EGL 1.4/Gallium)
          * that even though initial OpenGL context can be created w/o 'EGL_KHR_create_context',
@@ -918,6 +915,27 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
          */
         return null != eglGLnDynamicLookupHelper &&
                defaultDeviceEGLFeatures.hasGLAPI && defaultDeviceEGLFeatures.hasKHRCreateContext;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This factory always supports native GLES profiles.
+     * </p>
+     */
+    @Override
+    public final boolean hasOpenGLESSupport() { return true; }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Return true if  {@code EGL_KHR_create_context} extension is supported,
+     * see {@link #hasDefaultDeviceKHRCreateContext()}.
+     * </p>
+     */
+    @Override
+    public final boolean hasMajorMinorCreateContextARB() {
+        return hasDefaultDeviceKHRCreateContext();
     }
 
     @Override

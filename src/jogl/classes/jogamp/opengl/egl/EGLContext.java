@@ -168,7 +168,7 @@ public class EGLContext extends GLContextImpl {
         final long eglConfig = config.getNativeConfig();
         final EGLDrawableFactory factory = (EGLDrawableFactory) drawable.getFactoryImpl();
 
-        final boolean hasFullOpenGLAPISupport = factory.hasFullOpenGLAPISupport();
+        final boolean hasFullOpenGLAPISupport = factory.hasOpenGLDesktopSupport();
         final boolean useKHRCreateContext = factory.hasDefaultDeviceKHRCreateContext();
         final boolean ctDesktopGL = 0 == ( GLContext.CTX_PROFILE_ES & ctp );
         final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
@@ -177,9 +177,8 @@ public class EGLContext extends GLContextImpl {
 
         if(DEBUG) {
             System.err.println(getThreadName() + ": EGLContext.createContextARBImpl: Start "+getGLVersion(reqMajor, reqMinor, ctp, "@creation")
-                                               + ", OpenGL API Support "+factory.hasOpenGLAPISupport()
                                                + ", useKHRCreateContext "+useKHRCreateContext
-                                               + ", Full OpenGL API Support "+hasFullOpenGLAPISupport
+                                               + ", OpenGL API Support "+hasFullOpenGLAPISupport
                                                + ", device "+device);
         }
         if ( 0 == eglDisplay ) {

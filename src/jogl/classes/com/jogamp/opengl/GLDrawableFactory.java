@@ -421,6 +421,18 @@ public abstract class GLDrawableFactory {
   public abstract GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device, final GLProfile glp);
 
   /**
+   * Method returns {@code true} if underlying implementation may support native desktop OpenGL,
+   * otherwise {@code false}.
+   */
+  public abstract boolean hasOpenGLDesktopSupport();
+
+  /**
+   * Method returns {@code true} if underlying implementation may support native embedded OpenGL ES,
+   * otherwise {@code false}.
+   */
+  public abstract boolean hasOpenGLESSupport();
+
+  /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
    */
   public static GLDrawableFactory getDesktopFactory() {

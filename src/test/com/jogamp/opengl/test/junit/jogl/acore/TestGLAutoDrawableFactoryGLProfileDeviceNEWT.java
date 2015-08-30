@@ -185,7 +185,7 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
     }
 
     @Test
-    public void test11ES2OnGL() throws InterruptedException {
+    public void test11ES2OnDesktop() throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
         if( null == factory ) {
             System.err.println("Desktop Factory n/a");
@@ -207,7 +207,7 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
     }
 
     @Test
-    public void test12GLOnGL() throws InterruptedException {
+    public void test12GLOnDesktop() throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
         if( null == factory ) {
             System.err.println("Desktop Factory n/a");
