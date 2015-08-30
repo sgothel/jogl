@@ -109,6 +109,9 @@ public class MacOSXCGLContext extends GLContextImpl
   }
 
   static boolean isGLProfileSupported(final int ctp, final int major, final int minor) {
+    if( 0 != ( CTX_PROFILE_ES & ctp ) ) {
+        return false;
+    }
     final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
     final boolean ctCore      = 0 != ( CTX_PROFILE_CORE & ctp ) ;
 

@@ -71,7 +71,8 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         }
     }
 
-    void doTest(final boolean isEGL, final GLDrawableFactory factory, final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
+    void doTest(final boolean isEGL, final GLDrawableFactory factory, final AbstractGraphicsDevice device,
+                final GLCapabilitiesImmutable reqGLCaps, final GLEventListener demo) throws InterruptedException {
         System.err.println("Factory: "+factory.getClass().getName());
         System.err.println("Requested GL Caps: "+reqGLCaps);
 
@@ -79,7 +80,7 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         // Create native OpenGL resources .. XGL/WGL/CGL ..
         // equivalent to GLAutoDrawable methods: setVisible(true)
         //
-        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, reqGLCaps, null, widthStep*szStep, heightStep*szStep);
+        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(device, reqGLCaps, null, widthStep*szStep, heightStep*szStep);
 
         Assert.assertNotNull(glad);
         Assert.assertTrue(glad.isRealized());
@@ -145,7 +146,8 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
             System.err.println("EGL Factory n/a");
             return;
         }
-        final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GLES2);
+        final AbstractGraphicsDevice prodDevice = factory.getDefaultDevice();
+        final GLProfile glp = getProfile(prodDevice, GLProfile.GLES2);
         if(null != glp) {
             Assert.assertTrue("Not a GLES2 profile but "+glp, glp.isGLES2());
             Assert.assertTrue("Not a GL2ES2 profile but "+glp, glp.isGL2ES2());
@@ -157,7 +159,7 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         final GearsES2 demo = new GearsES2(1);
         demo.setVerbose(false);
-        doTest(true /* isEGL */, factory, reqGLCaps, demo);
+        doTest(true /* isEGL */, factory, prodDevice, reqGLCaps, demo);
     }
 
     @Test
@@ -167,7 +169,8 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
             System.err.println("EGL Factory n/a");
             return;
         }
-        final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GL2GL3);
+        final AbstractGraphicsDevice prodDevice = factory.getDefaultDevice();
+        final GLProfile glp = getProfile(prodDevice, GLProfile.GL2GL3);
         if(null != glp) {
             Assert.assertTrue("Not a GL2GL3 profile but "+glp, glp.isGL2GL3());
         }
@@ -181,17 +184,18 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         final GearsES2 demo = new GearsES2(1);
         demo.setVerbose(false);
-        doTest(true /* isEGL */, factory, reqGLCaps, demo);
+        doTest(true /* isEGL */, factory, prodDevice, reqGLCaps, demo);
     }
 
     @Test
     public void test11ES2OnDesktop() throws InterruptedException {
-        final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
-        if( null == factory ) {
+        final GLDrawableFactory deskFactory = GLDrawableFactory.getDesktopFactory();
+        if( null == deskFactory ) {
             System.err.println("Desktop Factory n/a");
             return;
         }
-        final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GLES2);
+        final AbstractGraphicsDevice prodDevice = deskFactory.getDefaultDevice();
+        final GLProfile glp = getProfile(prodDevice, GLProfile.GLES2);
         if(null != glp) {
             Assert.assertTrue("Not a GLES2 profile but "+glp, glp.isGLES2());
             Assert.assertTrue("Not a GL2ES2 profile but "+glp, glp.isGL2ES2());
@@ -199,11 +203,16 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         if(null == glp) {
             return;
         }
+        final GLDrawableFactory prodFactory = GLDrawableFactory.getFactory(glp);
+        if( null == prodFactory ) {
+            System.err.println("Production Factory n/a");
+            return;
+        }
         final GLCapabilities reqGLCaps = new GLCapabilities(glp);
         reqGLCaps.setOnscreen(false);
         final GearsES2 demo = new GearsES2(1);
         demo.setVerbose(false);
-        doTest(false /* isEGL */, factory, reqGLCaps, demo);
+        doTest(true /* isEGL */, prodFactory, prodDevice, reqGLCaps, demo);
     }
 
     @Test
@@ -213,7 +222,8 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
             System.err.println("Desktop Factory n/a");
             return;
         }
-        final GLProfile glp = getProfile(factory.getDefaultDevice(), GLProfile.GL2GL3);
+        final AbstractGraphicsDevice prodDevice = factory.getDefaultDevice();
+        final GLProfile glp = getProfile(prodDevice, GLProfile.GL2GL3);
         if(null != glp) {
             Assert.assertTrue("Not a GL2GL3 profile but "+glp, glp.isGL2GL3());
         }
@@ -227,7 +237,7 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         final GearsES2 demo = new GearsES2(1);
         demo.setVerbose(false);
-        doTest(false /* isEGL */, factory, reqGLCaps, demo);
+        doTest(false /* isEGL */, factory, prodDevice, reqGLCaps, demo);
     }
 
     public static void main(final String args[]) throws IOException {

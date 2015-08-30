@@ -170,7 +170,7 @@ public class EGLContext extends GLContextImpl {
 
         final boolean hasFullOpenGLAPISupport = factory.hasOpenGLDesktopSupport();
         final boolean useKHRCreateContext = factory.hasDefaultDeviceKHRCreateContext();
-        final boolean ctDesktopGL = 0 == ( GLContext.CTX_PROFILE_ES & ctp );
+        final boolean ctDesktopGL = 0 == ( CTX_PROFILE_ES & ctp );
         final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
         final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
         final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;

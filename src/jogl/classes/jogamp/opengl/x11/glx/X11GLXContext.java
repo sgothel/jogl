@@ -229,6 +229,16 @@ public class X11GLXContext extends GLContextImpl {
       System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
                          ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct);
     }
+    final boolean ctDesktopGL = 0 == ( CTX_PROFILE_ES & ctp );
+    final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
+    final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
+    final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
+    if( !ctDesktopGL ) {
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": X11GLXContext.createContextARBImpl: GL ES not avail "+getGLVersion(major, minor, ctp, "@creation"));
+        }
+        return 0; // n/a
+    }
     final GLDynamicLookupHelper dlh = getGLDynamicLookupHelper(major, ctp);
     if( null == dlh ) {
         if(DEBUG) {
@@ -243,10 +253,6 @@ public class X11GLXContext extends GLContextImpl {
       System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl: "+
                          ", glXCreateContextAttribsARB: "+toHexString(glXExtProcAddressTable._addressof_glXCreateContextAttribsARB));
     }
-
-    final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
-    final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
-    final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
 
     final IntBuffer attribs = Buffers.newDirectIntBuffer(ctx_arb_attribs_rom);
     attribs.put(ctx_arb_attribs_idx_major + 1, major);
@@ -333,6 +339,10 @@ public class X11GLXContext extends GLContextImpl {
         System.err.println(getThreadName() + ": Use ARB[avail["+getCreateContextARBAvailStr(device)+
                 "], fbCfg "+config.hasFBConfig()+" -> "+createContextARBAvailable+
                 "], shared "+sharedCreatedWithARB+"]");
+    }
+    if( glp.isGLES() ) {
+        throw new GLException(getThreadName()+": Unable to create OpenGL ES context on desktopDevice "+device+
+                ", config "+config+", "+glp+", shareWith "+toHexString(shareWithHandle));
     }
 
     if( !config.hasFBConfig() ) {

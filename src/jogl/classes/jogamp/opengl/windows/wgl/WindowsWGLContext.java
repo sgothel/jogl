@@ -55,6 +55,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.nativewindow.windows.GDI;
@@ -206,6 +207,16 @@ public class WindowsWGLContext extends GLContextImpl {
         System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
                 ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct);
     }
+    final boolean ctDesktopGL = 0 == ( CTX_PROFILE_ES & ctp );
+    final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
+    final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
+    final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
+    if( !ctDesktopGL ) {
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": WindowWGLContext.createContextARBImpl: GL ES not avail "+getGLVersion(major, minor, ctp, "@creation"));
+        }
+        return 0; // n/a
+    }
     if( null == getWGLExtProcAddressTable()) {
         final GLDynamicLookupHelper dlh = getGLDynamicLookupHelper(major, ctp);
         if( null == dlh ) {
@@ -222,10 +233,6 @@ public class WindowsWGLContext extends GLContextImpl {
       System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+
                          ", wglCreateContextAttribsARB: "+toHexString(wglExtProcAddressTable._addressof_wglCreateContextAttribsARB));
     }
-
-    final boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
-    final boolean ctFwdCompat = 0 != ( CTX_OPTION_FORWARD & ctp ) ;
-    final boolean ctDebug     = 0 != ( CTX_OPTION_DEBUG & ctp ) ;
 
     long ctx=0;
 
@@ -308,6 +315,11 @@ public class WindowsWGLContext extends GLContextImpl {
         System.err.println(getThreadName() + ": Use ARB[avail["+getCreateContextARBAvailStr(device)+
                 "], bitmap "+glCaps.isBitmap()+" -> "+createContextARBAvailable+
                 "], shared "+sharedCreatedWithARB+"]");
+    }
+    final GLProfile glp = glCaps.getGLProfile();
+    if( glp.isGLES() ) {
+        throw new GLException(getThreadName()+": Unable to create OpenGL ES context on desktopDevice "+device+
+                ", config "+config+", "+glp+", shareWith "+toHexString(shareWithHandle));
     }
     boolean createContextARBTried = false;
 
