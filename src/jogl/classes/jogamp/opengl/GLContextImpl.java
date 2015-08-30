@@ -693,7 +693,7 @@ public abstract class GLContextImpl extends GLContext {
         // throws an GLException if not
         // FIXME: drawable.getGLProfile().verifyEquality(gl.getGLProfile());
 
-        glDebugHandler.init( isGL2GL3() && isGLDebugEnabled() );
+        glDebugHandler.init( isGLDebugEnabled() );
 
         if(DEBUG_GL) {
             setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, gl, null) );
@@ -2820,8 +2820,8 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final void glDebugMessageControl(final int source, final int type, final int severity, final int count, final IntBuffer ids, final boolean enabled) {
-      if(glDebugHandler.isExtensionARB()) {
-          gl.getGL2GL3().glDebugMessageControl(source, type, severity, count, ids, enabled);
+      if(glDebugHandler.isExtensionKHRARB()) {
+          gl.getGL2ES2().glDebugMessageControl(source, type, severity, count, ids, enabled);
       } else if(glDebugHandler.isExtensionAMD()) {
           gl.getGL2GL3().glDebugMessageEnableAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, count, ids, enabled);
       }
@@ -2829,8 +2829,8 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final void glDebugMessageControl(final int source, final int type, final int severity, final int count, final int[] ids, final int ids_offset, final boolean enabled) {
-      if(glDebugHandler.isExtensionARB()) {
-          gl.getGL2GL3().glDebugMessageControl(source, type, severity, count, ids, ids_offset, enabled);
+      if(glDebugHandler.isExtensionKHRARB()) {
+          gl.getGL2ES2().glDebugMessageControl(source, type, severity, count, ids, ids_offset, enabled);
       } else if(glDebugHandler.isExtensionAMD()) {
           gl.getGL2GL3().glDebugMessageEnableAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, count, ids, ids_offset, enabled);
       }
@@ -2839,8 +2839,8 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final void glDebugMessageInsert(final int source, final int type, final int id, final int severity, final String buf) {
       final int len = (null != buf) ? buf.length() : 0;
-      if(glDebugHandler.isExtensionARB()) {
-          gl.getGL2GL3().glDebugMessageInsert(source, type, id, severity, len, buf);
+      if(glDebugHandler.isExtensionKHRARB()) {
+          gl.getGL2ES2().glDebugMessageInsert(source, type, id, severity, len, buf);
       } else if(glDebugHandler.isExtensionAMD()) {
           gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, len, buf);
       }

@@ -17,6 +17,7 @@
     #define DBG_PRINT(...)
 #endif
 
+// Note: 'ARB' is also used for 'KHR'!
 
 static jmethodID glDebugMessageARB = NULL; // int source, int type, int id, int severity, String msg
 static jmethodID glDebugMessageAMD = NULL; // int id, int category, int severity, String msg
@@ -120,7 +121,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_GLDebugMessageHandler_register0
     handle->extType = extType;
     DBG_PRINT("GLDebugMessageHandler.register0: jobject %p, extType %d\n", (void*)handle->obj, handle->extType);
 
-    if(jogamp_opengl_GLDebugMessageHandler_EXT_ARB == extType) {
+    if(jogamp_opengl_GLDebugMessageHandler_EXT_KHR == extType ||
+       jogamp_opengl_GLDebugMessageHandler_EXT_ARB == extType) {
         _local_PFNGLDEBUGMESSAGECALLBACKARBPROC ptr_glDebugMessageCallbackARB;
         ptr_glDebugMessageCallbackARB = (_local_PFNGLDEBUGMESSAGECALLBACKARBPROC) (intptr_t) procAddress;
         ptr_glDebugMessageCallbackARB((_local_GLDEBUGPROCARB)GLDebugMessageARBCallback, handle);
@@ -151,7 +153,8 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_GLDebugMessageHandler_unregister0
         JoglCommon_throwNewRuntimeException(env, "wrong handle (obj doesn't match)");
     }
 
-    if(jogamp_opengl_GLDebugMessageHandler_EXT_ARB == handle->extType) {
+    if(jogamp_opengl_GLDebugMessageHandler_EXT_KHR == handle->extType ||
+       jogamp_opengl_GLDebugMessageHandler_EXT_ARB == handle->extType) {
         _local_PFNGLDEBUGMESSAGECALLBACKARBPROC ptr_glDebugMessageCallbackARB;
         ptr_glDebugMessageCallbackARB = (_local_PFNGLDEBUGMESSAGECALLBACKARBPROC) (intptr_t) procAddress;
         ptr_glDebugMessageCallbackARB((_local_GLDEBUGPROCARB)NULL, NULL);

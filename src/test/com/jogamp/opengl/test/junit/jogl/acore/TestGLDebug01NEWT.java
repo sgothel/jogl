@@ -31,7 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 
 import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
@@ -53,6 +52,14 @@ public class TestGLDebug01NEWT extends UITestCase {
 
     static String dbgTstMsg0 = "Hello World";
     static int dbgTstId0 = 42;
+
+    static GLProfile getGLProfile(final String profile) {
+        if( !GLProfile.isAvailable(profile) )  {
+            System.err.println("Profile "+profile+" n/a");
+            return null;
+        }
+        return GLProfile.get(profile);
+    }
 
     GLWindow createWindow(final GLProfile glp, final boolean debugGL) {
         final GLCapabilities caps = new GLCapabilities(glp);
@@ -76,9 +83,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
 
-    void test01GLDebug01EnableDisable(final boolean enable, final String dbgTstMsg, final int dbgTstId) throws InterruptedException {
-        final GLProfile glp = GLProfile.getDefault();
-
+    void testX1GLDebugEnableDisable(final GLProfile glp, final boolean enable, final String dbgTstMsg, final int dbgTstId) throws InterruptedException {
         final GLWindow window = createWindow(glp, enable);
         final GLContext ctx = window.getContext();
         final MyGLDebugListener myGLDebugListener = new MyGLDebugListener(dbgTstMsg, dbgTstId);
@@ -109,19 +114,42 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test01GLDebug01Disabled() throws InterruptedException {
-        test01GLDebug01EnableDisable(false, null, -1);
+    public void test01GL2GL3DebugDisabled() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
+        if( null == glp ) {
+            return;
+        }
+        testX1GLDebugEnableDisable(glp, false, null, -1);
     }
 
     @Test
-    public void test01GLDebug01Enabled() throws InterruptedException {
-        test01GLDebug01EnableDisable(true, dbgTstMsg0, dbgTstId0);
+    public void test02GL2GL3DebugEnabled() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
+        if( null == glp ) {
+            return;
+        }
+        testX1GLDebugEnableDisable(glp, true, dbgTstMsg0, dbgTstId0);
     }
 
     @Test
-    public void test02GLDebug01Error() throws InterruptedException {
-        final GLProfile glp = GLProfile.getDefault();
+    public void test11GLES2DebugDisabled() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GLES2);
+        if( null == glp ) {
+            return;
+        }
+        testX1GLDebugEnableDisable(glp, false, null, -1);
+    }
 
+    @Test
+    public void test12GLES2DebugEnabled() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GLES2);
+        if( null == glp ) {
+            return;
+        }
+        testX1GLDebugEnableDisable(glp, true, dbgTstMsg0, dbgTstId0);
+    }
+
+    void testX3GLDebugError(final GLProfile glp) throws InterruptedException {
         final GLWindow window = createWindow(glp, true);
 
         final MyGLDebugListener myGLDebugListener = new MyGLDebugListener(
@@ -144,6 +172,23 @@ public class TestGLDebug01NEWT extends UITestCase {
         destroyWindow(window);
     }
 
+    @Test
+    public void test03GL2GL3DebugError() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
+        if( null == glp ) {
+            return;
+        }
+        testX3GLDebugError(glp);
+    }
+
+    @Test
+    public void test13GLES2DebugError() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GLES2);
+        if( null == glp ) {
+            return;
+        }
+        testX3GLDebugError(glp);
+    }
 
     public static void main(final String args[]) throws IOException {
         final String tstname = TestGLDebug01NEWT.class.getName();

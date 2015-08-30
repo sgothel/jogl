@@ -61,8 +61,9 @@ import com.jogamp.opengl.GLExtensions;
 public class GLDebugMessageHandler {
     private static final boolean DEBUG = Debug.debug("GLDebugMessageHandler");
 
-    private static final int EXT_ARB = 1;
-    private static final int EXT_AMD = 2;
+    private static final int EXT_KHR = 1;
+    private static final int EXT_ARB = 2;
+    private static final int EXT_AMD = 3;
 
     static {
         if ( !initIDs0() ) {
@@ -75,6 +76,7 @@ public class GLDebugMessageHandler {
 
     // licefycle: init - EOL
     private String extName;
+    private String extSuffix;
     private int extType;
     private long glDebugMessageCallbackProcAddress;
     private boolean extAvailable;
@@ -92,6 +94,7 @@ public class GLDebugMessageHandler {
         this.listenerImpl = new ListenerSyncedImplStub<GLDebugListener>();
         this.glDebugMessageCallbackProcAddress = 0;
         this.extName = null;
+        this.extSuffix = null;
         this.extType = 0;
         this.extAvailable = false;
         this.handle = 0;
@@ -143,43 +146,68 @@ public class GLDebugMessageHandler {
             }
             return;
         }
-        if( ctx.isExtensionAvailable(GLExtensions.ARB_debug_output) ) {
+        if( ctx.isExtensionAvailable(GLExtensions.GL_KHR_debug) ) {
+            extName = GLExtensions.GL_KHR_debug;
+            extSuffix = ctx.isGLES() ? "KHR" : ""; // See SPEC!
+            extType = EXT_KHR;
+        } else if( ctx.isExtensionAvailable(GLExtensions.ARB_debug_output) ) {
             extName = GLExtensions.ARB_debug_output;
+            extSuffix = "ARB";
             extType = EXT_ARB;
         } else if( ctx.isExtensionAvailable(GLExtensions.AMD_debug_output) ) {
             extName = GLExtensions.AMD_debug_output;
+            extSuffix = "AMD";
             extType = EXT_AMD;
         }
-        if(DEBUG) {
-            System.err.println("GLDebugMessageHandler: Using extension: <"+extName+">");
+
+        // Validate GL Profile, just to be sure
+        switch(extType) {
+            case EXT_KHR:
+                if( !ctx.isGL2ES2() ) {
+                    if(DEBUG) {
+                        System.err.println("Non GL2ES2 context not supported, has "+ctx.getGLVersion());
+                    }
+                    extType = 0;
+                }
+                break;
+            case EXT_ARB:
+                // fall through intended
+            case EXT_AMD:
+                if( !ctx.isGL2GL3() ) {
+                    if(DEBUG) {
+                        System.err.println("Non GL2GL3 context not supported, has "+ctx.getGLVersion());
+                    }
+                    extType = 0;
+                }
+                break;
         }
 
         if(0 == extType) {
+            extName = null;
+            extSuffix = null;
             if(DEBUG) {
                 System.err.println("GLDebugMessageHandler: No extension available! "+ctx.getGLVersion());
                 System.err.println("GL_EXTENSIONS  "+ctx.getGLExtensionCount());
                 System.err.println(ctx.getGLExtensionsString());
             }
             return;
+        } else  if(DEBUG) {
+            System.err.println("GLDebugMessageHandler: Using extension: <"+extName+"> with suffix <"+extSuffix+">");
         }
 
         final ProcAddressTable procAddressTable = ctx.getGLProcAddressTable();
-        if( !ctx.isGLES1() && !ctx.isGLES2() ) {
-            switch(extType) {
-                case EXT_ARB:
-                    glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackARB");
-                    break;
-                case EXT_AMD:
-                    glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackAMD");
-                    break;
-            }
-        } else {
-            glDebugMessageCallbackProcAddress = 0;
-            if(DEBUG) {
-                System.err.println("Non desktop context not supported");
-            }
+        switch(extType) {
+            case EXT_KHR:
+                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallback"+extSuffix);
+                break;
+            case EXT_ARB:
+                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallback"+extSuffix);
+                break;
+            case EXT_AMD:
+                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallback"+extSuffix);
+                break;
         }
-        extAvailable = 0 < extType && null != extName && 0 != glDebugMessageCallbackProcAddress;
+        extAvailable = 0 < extType && null != extName && null != extSuffix && 0 != glDebugMessageCallbackProcAddress;
 
         if(DEBUG) {
             System.err.println("GLDebugMessageHandler: extAvailable: "+extAvailable+", glDebugMessageCallback* : 0x"+Long.toHexString(glDebugMessageCallbackProcAddress));
@@ -203,12 +231,20 @@ public class GLDebugMessageHandler {
         return extName;
     }
 
+    public final boolean isExtensionKHRARB() {
+        return EXT_KHR == extType || EXT_ARB == extType;
+    }
+
+    public final boolean isExtensionKHR() {
+        return EXT_KHR == extType;
+    }
+
     public final boolean isExtensionARB() {
-        return extName == GLExtensions.ARB_debug_output;
+        return EXT_ARB == extType;
     }
 
     public final boolean isExtensionAMD() {
-        return extName == GLExtensions.AMD_debug_output;
+        return EXT_AMD == extType;
     }
 
     /**
@@ -226,7 +262,7 @@ public class GLDebugMessageHandler {
         }
     }
     private final void setSynchronousImpl() {
-        if(isExtensionARB()) {
+        if(isExtensionKHRARB()) {
             if(synchronous) {
                 ctx.getGL().glEnable(GL2ES2.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             } else {

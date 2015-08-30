@@ -36,6 +36,7 @@ public class GLExtensions {
   public static final String VERSION_1_5                     = "GL_VERSION_1_5";
   public static final String VERSION_2_0                     = "GL_VERSION_2_0";
 
+  public static final String GL_KHR_debug                    = "GL_KHR_debug";
   public static final String ARB_debug_output                = "GL_ARB_debug_output";
   public static final String AMD_debug_output                = "GL_AMD_debug_output";
 

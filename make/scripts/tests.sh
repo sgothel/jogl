@@ -181,6 +181,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLEventListenerState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.GLContext"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
@@ -513,7 +514,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLException01NEWT $*
 
@@ -570,7 +571,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryGL2OffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryGLnBitmapCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryES2OffscrnCapsNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryGLProfileDeviceNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryGLProfileDeviceNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT $*
