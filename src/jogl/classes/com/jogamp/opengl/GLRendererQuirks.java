@@ -287,6 +287,7 @@ public class GLRendererQuirks {
      *   <li>EGL_VERSION     1.4</li>
      *   <li>GL_VENDOR       NVIDIA Corporation</li>
      *   <li>GL_VERSION      OpenGL ES 3.0 331.38 (probably w/ 1st NV EGL lib on x86)</li>
+     *   <li>GL_VERSION      OpenGL ES 3.1 NVIDIA 355.06 (unstable)</li>
      *   <li>Platform        X11</li>
      *   <li>CPU Family      {@link Platform.CPUFamily#X86}</li>
      * </ul>
@@ -393,7 +394,7 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int NeedSharedObjectSync = 20;
-	
+
     /**
      * No reliable ARB_create_context implementation,
      * even if driver claims otherwise.
@@ -401,8 +402,8 @@ public class GLRendererQuirks {
      * Some drivers wrongly claim to support ARB_create_context.
      * However, the creation of such context fails:
      * <pre>
-     *   com.jogamp.opengl.GLException: AWT-EventQueue-0: WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 
-     *   requested (OpenGL >= 3.0.1). Requested: GLProfile[GL3bc/GL3bc.hw], current: 2.1 (Compat profile, FBO, hardware) 
+     *   com.jogamp.opengl.GLException: AWT-EventQueue-0: WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2
+     *   requested (OpenGL >= 3.0.1). Requested: GLProfile[GL3bc/GL3bc.hw], current: 2.1 (Compat profile, FBO, hardware)
      *   - 2.1.8787
      * </pre>
      * </p>

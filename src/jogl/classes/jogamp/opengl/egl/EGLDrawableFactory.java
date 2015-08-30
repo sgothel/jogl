@@ -537,10 +537,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
                 // Probe for GLRendererQuirks.SingletonEGLDisplayOnly
                 final boolean singletonEGLDisplayOnlyVendor, singletonEGLDisplayOnlyProbe;
-                /* if( defaultDeviceEGLFeatures.vendor.contains("NVIDIA") ) { // May use for later ..
+                if( defaultDeviceEGLFeatures.vendor.contains("NVIDIA") ) { // OpenGL ES 3.1 NVIDIA 355.06 unstable
                     singletonEGLDisplayOnlyVendor=true;
                     singletonEGLDisplayOnlyProbe=false;
-                } else */ {
+                } else {
                     singletonEGLDisplayOnlyVendor=false;
                     final long secondEGLDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
                     singletonEGLDisplayOnlyProbe = EGL.EGL_NO_DISPLAY == secondEGLDisplay;
