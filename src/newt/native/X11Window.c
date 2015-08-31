@@ -858,24 +858,22 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
         pVisualQuery=NULL;
     }
 
-    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixmap |
-                  CWBorderPixel | CWColormap | CWOverrideRedirect | CWEventMask ) ;
+    attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | 
+                  CWBackPixmap | CWBackPixel | CWBorderPixel | CWColormap | 
+                  CWOverrideRedirect | CWEventMask ) ;
 
     memset(&xswa, 0, sizeof(xswa));
-    xswa.override_redirect = False; // use the window manager, always (default)
-    xswa.border_pixel = 0;
-    xswa.background_pixmap = None;
     xswa.backing_store=NotUseful;  /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;         /* planes to be preserved if possible */
     xswa.backing_pixel=0;          /* value to use in restoring planes */
+    xswa.background_pixmap = None;
+    xswa.background_pixel = BlackPixel(dpy, scrn_idx);
+    xswa.border_pixel = 0;
+    xswa.colormap = XCreateColormap(dpy, windowParent, visual, AllocNone);
+    xswa.override_redirect = False; // use the window manager, always (default)
     xswa.event_mask  = X11_MOUSE_EVENT_MASK;
     xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
     xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
-
-    xswa.colormap = XCreateColormap(dpy,
-                                    windowParent,
-                                    visual,
-                                    AllocNone);
 
     {
         int _x = x, _y = y; // pos for CreateWindow, might be tweaked
@@ -900,6 +898,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
         NewtCommon_throwNewRuntimeException(env, "could not create Window, bail out!");
         return 0;
     }
+    // XClearWindow(dpy, window);
 
     XSetWMProtocols(dpy, window, &wm_delete_atom, 1); // windowDeleteAtom
     javaWindow = createJavaWindowProperty(env, dpy, root, window, javaObjectAtom, windowDeleteAtom, obj, verbose);
