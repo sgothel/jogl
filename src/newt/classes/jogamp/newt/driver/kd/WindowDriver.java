@@ -96,8 +96,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return minimumReconfigStateMask |
-               STATE_MASK_FULLSCREEN;
+        return minimumReconfigStateMask;
     }
 
     @Override

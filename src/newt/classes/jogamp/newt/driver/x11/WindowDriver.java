@@ -170,7 +170,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return GetSupportedReconfigMask0(javaWindowHandle) & STATE_MASK_ALL_RECONFIG;
+        return ( minimumReconfigStateMask | GetSupportedReconfigMask0(javaWindowHandle) ) & STATE_MASK_ALL_RECONFIG;
     }
 
     @Override

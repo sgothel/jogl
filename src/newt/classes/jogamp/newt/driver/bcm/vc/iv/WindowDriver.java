@@ -257,7 +257,6 @@ public class WindowDriver extends WindowImpl {
                // STATE_MASK_RESIZABLE |
                // STATE_MASK_MAXIMIZED_VERT |
                // STATE_MASK_MAXIMIZED_HORZ |
-               STATE_MASK_FULLSCREEN | // due to size change
                STATE_MASK_POINTERVISIBLE |
                STATE_MASK_POINTERCONFINED;
     }

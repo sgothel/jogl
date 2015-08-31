@@ -254,8 +254,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /* pp */ final Bitfield stateMask = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
     /** Default is all but {@link #STATE_MASK_FULLSCREEN_SPAN}. */
     protected int supportedReconfigStateMask = 0;
-    /** See {@link #getSupportedStateMask()}, i.e. {@link #STATE_MASK_VISIBLE} | {@link #STATE_MASK_FOCUSED}. */
-    protected static final int minimumReconfigStateMask = STATE_MASK_VISIBLE | STATE_MASK_FOCUSED;
+    /** See {@link #getSupportedStateMask()}, i.e. {@link #STATE_MASK_VISIBLE} | {@link #STATE_MASK_FOCUSED} | {@link STATE_MASK_FULLSCREEN}. */
+    protected static final int minimumReconfigStateMask = STATE_MASK_VISIBLE | STATE_MASK_FOCUSED | STATE_MASK_FULLSCREEN;
 
     /* pp */ final void resetStateMask() {
         stateMask.clearField(false);
