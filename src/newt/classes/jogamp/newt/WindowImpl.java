@@ -737,22 +737,34 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
                     setPointerIconIntern(pointerIcon);
-                    setPointerVisibleIntern(stateMask.get(STATE_BIT_POINTERVISIBLE));
-                    confinePointerImpl(stateMask.get(STATE_BIT_POINTERCONFINED));
+                    if( isReconfigureMaskSupported(STATE_MASK_POINTERVISIBLE) ) {
+                        setPointerVisibleIntern(stateMask.get(STATE_BIT_POINTERVISIBLE));
+                    } else {
+                        stateMask.set(STATE_BIT_POINTERVISIBLE);
+                    }
+                    if( isReconfigureMaskSupported(STATE_MASK_POINTERCONFINED) ) {
+                        confinePointerImpl(stateMask.get(STATE_BIT_POINTERCONFINED));
+                    } else {
+                        stateMask.clear(STATE_BIT_POINTERCONFINED);
+                    }
                     setKeyboardVisible(keyboardVisible);
                     final long remainingV = waitForVisible(true, false);
                     if( 0 <= remainingV ) {
-                        if(isFullscreen()) {
-                            synchronized(fullScreenAction) {
-                                stateMask.clear(STATE_BIT_FULLSCREEN); // trigger a state change
-                                fullScreenAction.init(true);
-                                fullScreenAction.run();
+                        if( isReconfigureMaskSupported(STATE_MASK_FULLSCREEN) ) {
+                            if( stateMask.get(STATE_BIT_FULLSCREEN) ) {
+                                synchronized(fullScreenAction) {
+                                    stateMask.clear(STATE_BIT_FULLSCREEN); // trigger a state change
+                                    fullScreenAction.init(true);
+                                    fullScreenAction.run();
+                                }
+                            } else {
+                                if ( !hasParent ) {
+                                    // Wait until position is reached within tolerances, either auto-position or custom position.
+                                    waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
+                                }
                             }
                         } else {
-                            if ( !hasParent ) {
-                                // Wait until position is reached within tolerances, either auto-position or custom position.
-                                waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
-                            }
+                            stateMask.clear(STATE_BIT_FULLSCREEN);
                         }
                         if (DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.createNative(): elapsed "+(System.currentTimeMillis()-t0)+" ms");
@@ -1268,6 +1280,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void setVisible(final boolean wait, final boolean visible) {
+        if( !isReconfigureMaskSupported(STATE_MASK_VISIBLE) && isNativeValid() ) {
+            return;
+        }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", windowHandle "+toHexString(windowHandle)+", state "+getStateMaskString()+" -> visible "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
@@ -1857,6 +1872,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final ReparentOperation reparentWindow(final NativeWindow newParent, final int x, final int y, final int hints) {
+        if( !isReconfigureMaskSupported(STATE_MASK_CHILDWIN) && isNativeValid() ) {
+            return ReparentOperation.ACTION_INVALID;
+        }
         final ReparentAction reparentAction = new ReparentAction(newParent, x, y, hints);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getOp();
@@ -1918,11 +1936,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void setUndecorated(final boolean value) {
-        if( isFullscreen() ) {
-            stateMaskNFS.put(STATE_MASK_UNDECORATED, value);
-        } else {
-            runOnEDTIfAvail(true, new DecorationAction(value));
+        if( isNativeValid() ) {
+            if( !isReconfigureMaskSupported(STATE_MASK_UNDECORATED) ) {
+                return;
+            }
+            if( isFullscreen() ) {
+                stateMaskNFS.put(STATE_MASK_UNDECORATED, value);
+                return;
+            }
         }
+        runOnEDTIfAvail(true, new DecorationAction(value));
     }
     @Override
     public final boolean isUndecorated() {
@@ -1945,7 +1968,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             _lock.lock();
             try {
                 if( stateMask.put(STATE_BIT_ALWAYSONTOP, alwaysOnTop) != alwaysOnTop ) {
-                    if( isNativeValid() ) {
+                    if( isNativeValid() && !isFullscreen() ) {
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
                         final int y = getY();
@@ -1969,17 +1992,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( isChildWindow() ) {
             return; // ignore for child windows
         }
-        if( isFullscreen() ) {
-            if( value && isAlwaysOnBottom() ) {
-                setAlwaysOnBottom(false);
+        if( isNativeValid() ) {
+            if( !isReconfigureMaskSupported(STATE_MASK_ALWAYSONTOP) ) {
+                return;
             }
-            stateMaskNFS.put(STATE_BIT_ALWAYSONTOP, value);
-        } else {
-            if( value && isAlwaysOnBottom() ) {
-                setAlwaysOnBottom(false);
+            if( isFullscreen() ) {
+                if( value && isAlwaysOnBottom() ) {
+                    setAlwaysOnBottom(false);
+                }
+                stateMaskNFS.put(STATE_BIT_ALWAYSONTOP, value);
+                return;
             }
-            runOnEDTIfAvail(true, new AlwaysOnTopAction(value));
         }
+        if( value && isAlwaysOnBottom() ) {
+            setAlwaysOnBottom(false);
+        }
+        runOnEDTIfAvail(true, new AlwaysOnTopAction(value));
     }
     @Override
     public final boolean isAlwaysOnTop() {
@@ -2022,6 +2050,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final void setAlwaysOnBottom(final boolean value) {
         if( isChildWindow() ) {
             return; // ignore for child windows
+        }
+        if( !isReconfigureMaskSupported(STATE_MASK_ALWAYSONBOTTOM) && isNativeValid() ) {
+            return;
         }
         if( value && isAlwaysOnTop() ) {
             setAlwaysOnTop(false);
@@ -2070,11 +2101,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( isChildWindow() ) {
             return; // ignore for child windows
         }
-        if( isFullscreen() ) {
-            stateMaskNFS.put(STATE_BIT_RESIZABLE, value);
-        } else {
-            runOnEDTIfAvail(true, new ResizableAction(value));
+        if( isNativeValid() ) {
+            if( !isReconfigureMaskSupported(STATE_MASK_RESIZABLE) ) {
+                return;
+            }
+            if( isFullscreen() ) {
+                stateMaskNFS.put(STATE_BIT_RESIZABLE, value);
+                return;
+            }
         }
+        runOnEDTIfAvail(true, new ResizableAction(value));
     }
     @Override
     public final boolean isResizable() {
@@ -2117,6 +2153,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final void setSticky(final boolean value) {
         if( isChildWindow() ) {
             return; // ignore for child windows
+        }
+        if( !isReconfigureMaskSupported(STATE_MASK_STICKY) && isNativeValid() ) {
+            return;
         }
         runOnEDTIfAvail(true, new StickyAction(value));
     }
@@ -2168,6 +2207,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     @Override
     public final void setMaximized(boolean horz, boolean vert) {
+        if( isNativeValid() ) {
+            if( horz && !isReconfigureMaskSupported(STATE_BIT_MAXIMIZED_HORZ) ) {
+                horz = false;
+            }
+            if( vert && !isReconfigureMaskSupported(STATE_BIT_MAXIMIZED_VERT) ) {
+                vert = false;
+            }
+        }
         if( isChildWindow() ) {
             return; // ignore for child windows
         }
@@ -2295,6 +2342,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     @Override
     public final void setPointerVisible(final boolean pointerVisible) {
+        if( !isReconfigureMaskSupported(STATE_MASK_POINTERVISIBLE) && isNativeValid() ) {
+            return;
+        }
         if(stateMask.get(STATE_BIT_POINTERVISIBLE) != pointerVisible) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
@@ -2405,6 +2455,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     @Override
     public final void confinePointer(final boolean confine) {
+        if( !isReconfigureMaskSupported(STATE_MASK_POINTERCONFINED) && isNativeValid() ) {
+            return;
+        }
         if(stateMask.get(STATE_BIT_POINTERCONFINED) != confine) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
@@ -2729,6 +2782,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** Internally forcing request focus on current thread */
     private void requestFocusInt(final boolean skipFocusAction) {
         if( skipFocusAction || !focusAction() ) {
+            if( !isReconfigureMaskSupported(STATE_MASK_FOCUSED) ) {
+                return;
+            }
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): skipFocusAction "+
                         skipFocusAction+", state "+getStateMaskString()+" -> focus true - windowHandle "+
