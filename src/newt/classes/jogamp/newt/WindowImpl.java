@@ -203,22 +203,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** Bitmask for {@link #STATE_BIT_COUNT_ALL_RECONFIG} */
     protected static final int STATE_MASK_ALL_RECONFIG = ( 1 << STATE_BIT_COUNT_ALL_RECONFIG ) - 1;
 
+    protected static final int STATE_MASK_ALL_PUBLIC_SUPPORTED = STATE_MASK_ALL_PUBLIC & ~STATE_MASK_AUTOPOSITION;
+
     //
     // Additional private non-reconfigure state-mask bits and mask values
     //
 
-    /* pp */ static final int PSTATE_BIT_FOCUS_CHANGE_BROKEN = 28;
-    /* pp */ static final int PSTATE_BIT_FULLSCREEN_MAINMONITOR = 29; // true
-    /* pp */ static final int PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP = 30; // non fullscreen alwaysOnTop setting
-    /* pp */ static final int PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE = 31; // non fullscreen resizable setting
+    /* pp */ static final int PSTATE_BIT_FOCUS_CHANGE_BROKEN = 30;
+    /* pp */ static final int PSTATE_BIT_FULLSCREEN_MAINMONITOR = 31; // true
 
     /** Bitmask for {@link #STATE_BIT_FULLSCREEN_SPAN}, {@value}. */
-    protected static final int STATE_MASK_FULLSCREEN_SPAN = 1 << STATE_BIT_FULLSCREEN_SPAN;
+    /* pp */ static final int STATE_MASK_FULLSCREEN_SPAN = 1 << STATE_BIT_FULLSCREEN_SPAN;
 
     /* pp */ static final int PSTATE_MASK_FOCUS_CHANGE_BROKEN = 1 << PSTATE_BIT_FOCUS_CHANGE_BROKEN;
     /* pp */ static final int PSTATE_MASK_FULLSCREEN_MAINMONITOR = 1 << PSTATE_BIT_FULLSCREEN_MAINMONITOR;
-    /* pp */ static final int PSTATE_MASK_FULLSCREEN_NFS_ALWAYSONTOP = 1 << PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP;
-    /* pp */ static final int PSTATE_MASK_FULLSCREEN_NFS_RESIZABLE = 1 << PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE;
+
+    /**
+     * Mask covering all preserved non-fullscreen (NFS) states
+     * while in fullscreen mode.
+     */
+    private static final int STATE_MASK_FULLSCREEN_NFS = STATE_MASK_ALWAYSONTOP |
+                                                         STATE_MASK_RESIZABLE |
+                                                         STATE_MASK_MAXIMIZED_VERT |
+                                                         STATE_MASK_MAXIMIZED_HORZ;
 
     /**
      * Reconfig mask for createNativeImpl(..) taking out from {@link #getStateMask()}:
@@ -230,11 +237,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Above taken out states are achieved from caller createNative() 'manually'.
      * @since 2.3.2
      */
-    protected final int STATE_MASK_CREATENATIVE = STATE_MASK_ALL_PUBLIC &
-                                                  ~( STATE_MASK_FULLSCREEN |
-                                                     STATE_MASK_POINTERVISIBLE |
-                                                     STATE_MASK_POINTERCONFINED
-                                                   );
+    protected static final int STATE_MASK_CREATENATIVE = STATE_MASK_ALL_PUBLIC &
+                                                      ~( STATE_MASK_FULLSCREEN |
+                                                         STATE_MASK_POINTERVISIBLE |
+                                                         STATE_MASK_POINTERCONFINED
+                                                       );
     //
     // Additional private state-mask mask values for reconfiguration only
     // (keep in sync w/ src/newt/native/Window.h)
@@ -251,7 +258,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected static final int CHANGE_MASK_MAXIMIZED_HORZ  = 1 << 22;
     protected static final int CHANGE_MASK_FULLSCREEN      = 1 << 21;
 
+    /** Regular state mask */
     /* pp */ final Bitfield stateMask = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
+    /** Non fullscreen state mask */
+    private final Bitfield stateMaskNFS = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
+
     /** Default is all but {@link #STATE_MASK_FULLSCREEN_SPAN}. */
     protected int supportedReconfigStateMask = 0;
     /** See {@link #getSupportedStateMask()}, i.e. {@link #STATE_MASK_VISIBLE} | {@link #STATE_MASK_FOCUSED} | {@link STATE_MASK_FULLSCREEN}. */
@@ -264,8 +275,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 ( null != parentWindow ? STATE_MASK_CHILDWIN : 0 ) |
                 STATE_MASK_RESIZABLE |
                 STATE_MASK_POINTERVISIBLE |
-                PSTATE_MASK_FULLSCREEN_NFS_RESIZABLE |
                 PSTATE_MASK_FULLSCREEN_MAINMONITOR);
+        stateMaskNFS.clearField(false);
         normPosSizeStored[0] = false;
         normPosSizeStored[1] = false;
         supportedReconfigStateMask = STATE_MASK_ALL_RECONFIG;
@@ -292,7 +303,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final int getSupportedStateMask() {
-        return supportedReconfigStateMask & STATE_MASK_ALL_PUBLIC;
+        return supportedReconfigStateMask & STATE_MASK_ALL_PUBLIC_SUPPORTED;
     }
 
     @Override
@@ -320,7 +331,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( 0 != ( CHANGE_MASK_PARENTING & mask) ) {
                 sb.append("*");
             }
-            sb.append((0 != ( STATE_MASK_CHILDWIN & mask))?"child":"top");
+            sb.append((0 != ( STATE_MASK_CHILDWIN & mask))?"child":"toplevel");
             sb.append(", ");
         } else if( 0 != ( STATE_MASK_CHILDWIN & mask) ) {
             sb.append("child");
@@ -718,9 +729,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     final long t0 = System.currentTimeMillis();
                     createNativeImpl();
-                    supportedReconfigStateMask = getSupportedReconfigMaskImpl();
+                    supportedReconfigStateMask = getSupportedReconfigMaskImpl() & STATE_MASK_ALL_RECONFIG;
                     if( DEBUG_IMPLEMENTATION) {
-                        System.err.println("Supported Reconfig: "+appendStateBits(new StringBuilder(), supportedReconfigStateMask, true).toString());
+                        final boolean minimumOK = minimumReconfigStateMask == ( minimumReconfigStateMask & supportedReconfigStateMask );
+                        System.err.println("Supported Reconfig (minimum-ok "+minimumOK+"): "+appendStateBits(new StringBuilder(), supportedReconfigStateMask, true).toString());
                     }
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
@@ -933,16 +945,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Tests whether the given reconfigure state-mask is supported by implementation.
      */
-    protected final boolean isReconfigureMaskSupported(final int changeFlags) {
-        return changeFlags == ( changeFlags & supportedReconfigStateMask );
+    protected final boolean isReconfigureMaskSupported(final int reconfigMask) {
+        return reconfigMask == ( reconfigMask & supportedReconfigStateMask );
     }
 
     protected int getReconfigureMask(final int changeFlags, final boolean visible) {
         final int smask = stateMask.get32(0, STATE_BIT_COUNT_ALL_RECONFIG);
         return changeFlags
-               | ( smask & ~STATE_MASK_VISIBLE )
+               | ( smask & ~(STATE_MASK_VISIBLE | STATE_MASK_UNDECORATED | STATE_MASK_CHILDWIN) )
                | ( visible ? STATE_MASK_VISIBLE : 0 )
                | ( isUndecorated(smask) ? STATE_MASK_UNDECORATED : 0 )
+               | ( 0 != getParentWindowHandle() ? STATE_MASK_CHILDWIN : 0 )
                ;
     }
     protected static String getReconfigStateMaskString(final int flags) {
@@ -1905,7 +1918,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void setUndecorated(final boolean value) {
-        runOnEDTIfAvail(true, new DecorationAction(value));
+        if( isFullscreen() ) {
+            stateMaskNFS.put(STATE_MASK_UNDECORATED, value);
+        } else {
+            runOnEDTIfAvail(true, new DecorationAction(value));
+        }
     }
     @Override
     public final boolean isUndecorated() {
@@ -1956,7 +1973,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( value && isAlwaysOnBottom() ) {
                 setAlwaysOnBottom(false);
             }
-            stateMask.put(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP, value);
+            stateMaskNFS.put(STATE_BIT_ALWAYSONTOP, value);
         } else {
             if( value && isAlwaysOnBottom() ) {
                 setAlwaysOnBottom(false);
@@ -2054,7 +2071,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             return; // ignore for child windows
         }
         if( isFullscreen() ) {
-            stateMask.put(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE, value);
+            stateMaskNFS.put(STATE_BIT_RESIZABLE, value);
         } else {
             runOnEDTIfAvail(true, new ResizableAction(value));
         }
@@ -2150,11 +2167,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     @Override
-    public final void setMaximized(final boolean horz, final boolean vert) {
-        if( isChildWindow() || isFullscreen() ) {
+    public final void setMaximized(boolean horz, boolean vert) {
+        if( isChildWindow() ) {
             return; // ignore for child windows
         }
-        runOnEDTIfAvail(true, new MaximizeAction(horz, vert));
+        if( isFullscreen() ) {
+            stateMaskNFS.put(STATE_BIT_MAXIMIZED_HORZ, horz);
+            stateMaskNFS.put(STATE_BIT_MAXIMIZED_VERT, vert);
+        } else {
+            runOnEDTIfAvail(true, new MaximizeAction(horz, vert));
+        }
     }
     @Override
     public final boolean isMaximizedVert() {
@@ -2166,12 +2188,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     /** Triggered by implementation's WM events to update maximized window state. */
     protected void maximizedChanged(final boolean newMaxHorz, final boolean newMaxVert) {
-        final String stateMask0 = DEBUG_IMPLEMENTATION ? getStateMaskString() : null;
-        final boolean changedHorz = stateMask.put(STATE_BIT_MAXIMIZED_HORZ, newMaxHorz) != newMaxHorz;
-        final boolean changedVert = stateMask.put(STATE_BIT_MAXIMIZED_VERT, newMaxVert) != newMaxVert;
-        if ( DEBUG_IMPLEMENTATION ) {
+        if( !isFullscreen() ) {
+            final String stateMask0 = DEBUG_IMPLEMENTATION ? getStateMaskString() : null;
+            final boolean changedHorz = stateMask.put(STATE_BIT_MAXIMIZED_HORZ, newMaxHorz) != newMaxHorz;
+            final boolean changedVert = stateMask.put(STATE_BIT_MAXIMIZED_VERT, newMaxVert) != newMaxVert;
+            if ( DEBUG_IMPLEMENTATION ) {
+                if( changedHorz || changedVert ) {
+                    System.err.println("Window.maximizedChanged.accepted: "+stateMask0+" -> "+getStateMaskString());
+                }
+            }
+        } else if( DEBUG_IMPLEMENTATION ) {
+            final String stateMask0 = DEBUG_IMPLEMENTATION ? getStateMaskString() : null;
+            final boolean changedHorz = stateMask.get(STATE_BIT_MAXIMIZED_HORZ) != newMaxHorz;
+            final boolean changedVert = stateMask.get(STATE_BIT_MAXIMIZED_VERT) != newMaxVert;
             if( changedHorz || changedVert ) {
-                System.err.println("Window.maximizedChanged: "+stateMask0+" -> "+getStateMaskString());
+                System.err.println("Window.maximizedChanged.ignored: "+stateMask0+" -> max["+(newMaxHorz?"":"!")+"h, "+(newMaxVert?"":"!")+"v]");
             }
         }
     }
@@ -2789,8 +2820,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         private boolean init(final boolean fullscreen) {
             if(isNativeValid()) {
-                this._fullscreen = fullscreen;
-                return isFullscreen() != fullscreen;
+                if( !isReconfigureMaskSupported(STATE_MASK_FULLSCREEN) ) {
+                    return false;
+                } else {
+                    this._fullscreen = fullscreen;
+                    return isFullscreen() != fullscreen;
+                }
             } else {
                 stateMask.put(STATE_BIT_FULLSCREEN, fullscreen); // set current state for createNative(..)
                 return false;
@@ -2809,11 +2844,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final int oldWidth = getWidth();
                 final int oldHeight = getHeight();
 
-                int x,y,w,h;
+                final int x,y,w,h;
 
                 final RectangleImmutable sviewport = screen.getViewportInWindowUnits(); // window units
                 final RectangleImmutable viewport; // window units
                 final boolean alwaysOnTopChange, resizableChange;
+
                 if(_fullscreen) {
                     if( null == fullscreenMonitors ) {
                         if( stateMask.get(PSTATE_BIT_FULLSCREEN_MAINMONITOR) ) {
@@ -2838,32 +2874,28 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     nfs_y = oldY;
                     nfs_width = oldWidth;
                     nfs_height = oldHeight;
-                    stateMask.copy(STATE_BIT_ALWAYSONTOP, PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP);
-                    stateMask.copy(STATE_BIT_RESIZABLE, PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
+                    stateMaskNFS.put32(0, 32, stateMask.get32(0, 32) & STATE_MASK_FULLSCREEN_NFS);
                     x = viewport.getX();
                     y = viewport.getY();
                     w = viewport.getWidth();
                     h = viewport.getHeight();
                     stateMask.clear(STATE_BIT_ALWAYSONTOP); // special aontop handling for fullscreen
                     stateMask.set(STATE_BIT_RESIZABLE);     // allow fullscreen to resize to max
-                    alwaysOnTopChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP);
-                    resizableChange = !stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
+                    alwaysOnTopChange = stateMaskNFS.get(STATE_BIT_ALWAYSONTOP);
+                    resizableChange = !stateMaskNFS.get(STATE_BIT_RESIZABLE);
                 } else {
+                    int _x,_y,_w,_h;
                     stateMask.set(PSTATE_BIT_FULLSCREEN_MAINMONITOR);
                     fullscreenMonitors = null;
                     stateMask.clear(STATE_BIT_FULLSCREEN_SPAN);
                     viewport = null;
-                    x = nfs_x;
-                    y = nfs_y;
-                    w = nfs_width;
-                    h = nfs_height;
-                    alwaysOnTopChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP) != stateMask.get(STATE_BIT_ALWAYSONTOP);
-                    // alwaysOnBottomChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONBOTTOM) != stateMask.get(STATE_BIT_ALWAYSONBOTTOM);
-                    resizableChange = stateMask.get(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE) != stateMask.get(STATE_BIT_RESIZABLE);
-                    stateMask.copy(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP, STATE_BIT_ALWAYSONTOP);
-                    stateMask.copy(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE, STATE_BIT_RESIZABLE);
-                    stateMask.clear(PSTATE_BIT_FULLSCREEN_NFS_ALWAYSONTOP);
-                    stateMask.set(PSTATE_BIT_FULLSCREEN_NFS_RESIZABLE);
+                    _x = nfs_x;
+                    _y = nfs_y;
+                    _w = nfs_width;
+                    _h = nfs_height;
+                    alwaysOnTopChange = stateMaskNFS.get(STATE_BIT_ALWAYSONTOP) != stateMask.get(STATE_BIT_ALWAYSONTOP);
+                    resizableChange = stateMaskNFS.get(STATE_BIT_RESIZABLE) != stateMask.get(STATE_BIT_RESIZABLE);
+                    stateMask.put32(0, 32, stateMaskNFS.get32(0, 32) | ( stateMask.get32(0, 32) & ~STATE_MASK_FULLSCREEN_NFS ) );
 
                     if(null!=parentWindow) {
                         // reset position to 0/0 within parent space
@@ -2871,12 +2903,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         y = 0;
 
                         // refit if size is bigger than parent
-                        if( w > parentWindow.getWidth() ) {
+                        if( _w > parentWindow.getWidth() ) {
                             w = parentWindow.getWidth();
+                        } else {
+                            w = _w;
                         }
-                        if( h > parentWindow.getHeight() ) {
+                        if( _h > parentWindow.getHeight() ) {
                             h = parentWindow.getHeight();
+                        } else {
+                            h = _h;
                         }
+                    } else {
+                        x = _x;
+                        y = _y;
+                        w = _w;
+                        h = _h;
                     }
                 }
 
@@ -2931,6 +2972,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
 
                     stateMask.put(STATE_BIT_FULLSCREEN, _fullscreen);
+                    // Note CHANGE_MASK_PARENTING: STATE_MASK_CHILDWIN is refined in getReconfigureMask()
+                    // Note CHANGE_MASK_DECORATION: STATE_MASK_UNDECORATED is refined in getReconfigureMask()
                     reconfigureWindowImpl(x, y, w, h,
                                           getReconfigureMask( ( ( null != parentWindowLocked ) ? CHANGE_MASK_PARENTING : 0 ) |
                                                                CHANGE_MASK_FULLSCREEN | CHANGE_MASK_DECORATION, isVisible()) );
