@@ -42,6 +42,7 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
 
 import com.jogamp.nativewindow.x11.X11GraphicsConfiguration;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
@@ -59,15 +60,17 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(!(screen instanceof X11GraphicsScreen)) {
             throw new NativeWindowException("Only valid X11GraphicsScreen are allowed");
         }
-        final X11Capabilities x11CapsChosen;
+        final XVisualInfo x11VisualInfo;
         if(VisualIDHolder.VID_UNDEFINED == nativeVisualID) {
-            x11CapsChosen = new X11Capabilities(getXVisualInfo(screen, capsChosen));
+            x11VisualInfo = getXVisualInfo(screen, capsChosen);
         } else {
-            x11CapsChosen = new X11Capabilities(getXVisualInfo(screen, nativeVisualID));
+            x11VisualInfo = getXVisualInfo(screen, nativeVisualID);
         }
+
+        final X11Capabilities x11CapsChosen = X11GraphicsConfiguration.XVisualInfo2X11Capabilities((X11GraphicsDevice)screen.getDevice(), x11VisualInfo);
         final AbstractGraphicsConfiguration res = new X11GraphicsConfiguration((X11GraphicsScreen)screen,  x11CapsChosen, capsRequested, x11CapsChosen.getXVisualInfo());
         if(DEBUG) {
-            System.err.println("X11GraphicsConfigurationFactory.chooseGraphicsConfigurationImpl(visualID 0x"+Integer.toHexString(nativeVisualID)+", "+screen+","+capsChosen+"): "+res);
+            System.err.println("X11GraphicsConfigurationFactory.chooseGraphicsConfigurationImpl(visualID 0x"+Integer.toHexString(nativeVisualID)+", "+x11VisualInfo+", "+screen+","+capsChosen+"): "+res);
         }
         return res;
     }
@@ -85,7 +88,6 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(xvis==null || num[0]<1) {
             return null;
         }
-
         return XVisualInfo.create(xvis[0]);
     }
 

@@ -275,21 +275,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return val;
   }
 
-  static XRenderDirectFormat XVisual2XRenderMask(final long dpy, final long visual) {
-    final XRenderPictFormat renderPictFmt = X11Lib.XRenderFindVisualFormat(dpy, visual);
-    if(null == renderPictFmt) {
-        return null;
-    }
-    return renderPictFmt.getDirect();
-  }
-  static XRenderDirectFormat XVisual2XRenderMask(final long dpy, final long visual, final XRenderPictFormat dest) {
-    if( !X11Lib.XRenderFindVisualFormat(dpy, visual, dest) ) {
-        return null;
-    } else {
-        return dest.getDirect();
-    }
-  }
-
   static X11GLCapabilities GLXFBConfig2GLCapabilities(final X11GraphicsDevice device, final GLProfile glp, final long fbcfg,
                                                       final int winattrmask, final boolean isMultisampleAvailable) {
     final IntBuffer tmp = Buffers.newDirectIntBuffer(1);

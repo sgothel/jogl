@@ -24,14 +24,20 @@
 
     if (_res == null) return null;
     Buffers.nativeOrder(_res);
-    XVisualInfo[] _retarray = new XVisualInfo[getFirstElement(arg3, arg3_offset)];
-    for (int _count = 0; _count < getFirstElement(arg3, arg3_offset); _count++) {
-      _res.position(_count * XVisualInfo.size());
-      _res.limit   ((1 + _count) * XVisualInfo.size());
+    final int count = getFirstElement(arg3, arg3_offset);
+    if (count <= 0) return null;
+    final int esize = _res.capacity() / count;
+    if( esize < XVisualInfo.size() ) {
+        throw new RuntimeException("element-size "+_res.capacity()+"/"+count+"="+esize+" < "+XVisualInfo.size());
+    }
+    XVisualInfo[] _retarray = new XVisualInfo[count];
+    for (int i = 0; i < count; i++) {
+      _res.position(i * esize); // XVisualInfo.size());
+      _res.limit   ((1 + i) * esize); // XVisualInfo.size());
       java.nio.ByteBuffer _tmp = _res.slice();
       _res.position(0);
       _res.limit(_res.capacity());
-      _retarray[_count] = XVisualInfo.create(_tmp);
+      _retarray[i] = XVisualInfo.create(_tmp);
     }
     return _retarray;
   }

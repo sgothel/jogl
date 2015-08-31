@@ -33,10 +33,15 @@
 
 package com.jogamp.nativewindow.x11;
 
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
+import jogamp.nativewindow.x11.X11Capabilities;
+import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.x11.XRenderDirectFormat;
+import jogamp.nativewindow.x11.XRenderPictFormat;
 import jogamp.nativewindow.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
@@ -47,6 +52,44 @@ import jogamp.nativewindow.x11.XVisualInfo;
 
 public class X11GraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     private XVisualInfo info;
+
+    // FBConfig
+
+    protected static XRenderDirectFormat XVisual2XRenderMask(final long dpy, final long visual) {
+        final XRenderPictFormat xRenderPictFormat = XRenderPictFormat.create();
+        return XVisual2XRenderMask(dpy, visual, xRenderPictFormat);
+    }
+    protected static XRenderDirectFormat XVisual2XRenderMask(final long dpy, final long visual, final XRenderPictFormat dest) {
+        if( !X11Lib.XRenderFindVisualFormat(dpy, visual, dest) ) {
+            return null;
+        } else {
+            return dest.getDirect();
+        }
+    }
+
+    public static X11Capabilities XVisualInfo2X11Capabilities(final X11GraphicsDevice device, final XVisualInfo info) {
+        final long display = device.getHandle();
+        final X11Capabilities res = new X11Capabilities(info);
+
+        final XRenderDirectFormat xrmask = ( null != info ) ? XVisual2XRenderMask( display, info.getVisual() ) : null ;
+        final int alphaMask = ( null != xrmask ) ? xrmask.getAlphaMask() : 0;
+        if( 0 < alphaMask ) {
+            res.setBackgroundOpaque(false);
+            res.setTransparentRedValue(xrmask.getRedMask());
+            res.setTransparentGreenValue(xrmask.getGreenMask());
+            res.setTransparentBlueValue(xrmask.getBlueMask());
+            res.setTransparentAlphaValue(alphaMask);
+        } else {
+            res.setBackgroundOpaque(true);
+        }
+        // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)
+        res.setRedBits       (Bitfield.Util.bitCount((int)info.getRed_mask()));
+        res.setGreenBits     (Bitfield.Util.bitCount((int)info.getGreen_mask()));
+        res.setBlueBits      (Bitfield.Util.bitCount((int)info.getBlue_mask()));
+        res.setAlphaBits     (Bitfield.Util.bitCount(alphaMask));
+
+        return res;
+    }
 
     public X11GraphicsConfiguration(final X11GraphicsScreen screen,
                                     final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested,
