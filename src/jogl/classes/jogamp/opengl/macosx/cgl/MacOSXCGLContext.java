@@ -86,6 +86,8 @@ public class MacOSXCGLContext extends GLContextImpl
   // NSOpenGL-based or CGL-based)
   protected interface GLBackendImpl {
         boolean isNSContext();
+        /** Indicating CALayer, i.e. onscreen rendering using offscreen layer. */
+        boolean isUsingCALayer();
         long create(long share, int ctp, int major, int minor);
         boolean destroy(long ctx);
         void associateDrawable(boolean bound);
@@ -428,6 +430,9 @@ public class MacOSXCGLContext extends GLContextImpl
 
   @Override
   protected final Integer setSwapIntervalImpl2(final int interval) {
+      if( !impl.isUsingCALayer() && !drawable.getChosenGLCapabilities().isOnscreen() ) {
+          return null;
+      }
       final int useInterval;
       if( 0 > interval ) {
           useInterval = Math.abs(interval);
@@ -543,6 +548,8 @@ public class MacOSXCGLContext extends GLContextImpl
       @Override
       public boolean isNSContext() { return true; }
 
+      @Override
+      public boolean isUsingCALayer() { return null != backingLayerHost; }
 
       /** Only returns a valid NSView. If !NSView, return null and mark either isPBuffer, isFBO or isSurfaceless. */
       private long getNSViewHandle(final boolean[] isPBuffer, final boolean[] isFBO, final boolean[] isSurfaceless) {
@@ -1148,6 +1155,9 @@ public class MacOSXCGLContext extends GLContextImpl
   class CGLImpl implements GLBackendImpl {
       @Override
       public boolean isNSContext() { return false; }
+
+      @Override
+      public boolean isUsingCALayer() { return false; }
 
       @Override
       public long create(final long share, final int ctp, final int major, final int minor) {

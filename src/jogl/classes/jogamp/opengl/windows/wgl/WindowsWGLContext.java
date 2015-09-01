@@ -524,6 +524,9 @@ public class WindowsWGLContext extends GLContextImpl {
 
   @Override
   protected final Integer setSwapIntervalImpl2(final int interval) {
+    if( !drawable.getChosenGLCapabilities().isOnscreen() ) {
+        return null;
+    }
     if( 0 == hasSwapInterval ) {
         try {
             if ( isExtensionAvailable(GLXExtensions.WGL_EXT_swap_control) ) {

@@ -581,6 +581,9 @@ public class X11GLXContext extends GLContextImpl {
 
   @Override
   protected final Integer setSwapIntervalImpl2(final int interval) {
+    if( !drawable.getChosenGLCapabilities().isOnscreen() ) {
+        return null;
+    }
     final long displayHandle = drawable.getNativeSurface().getDisplayHandle();
     if( 0 == hasSwapInterval ) {
         try {

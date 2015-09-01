@@ -2636,8 +2636,8 @@ public abstract class GLContextImpl extends GLContext {
     return setSwapIntervalNC(interval);
   }
   protected final boolean setSwapIntervalNC(final int interval) throws GLException {
-    if( drawable.getChosenGLCapabilities().isOnscreen() &&
-        ( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) )
+    if( !drawableRetargeted ||
+        !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget)
       )
     {
         final Integer usedInterval = setSwapIntervalImpl2(interval);

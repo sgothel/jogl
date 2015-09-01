@@ -427,7 +427,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
@@ -621,7 +621,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindows01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.TestWindows02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestWindows02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*

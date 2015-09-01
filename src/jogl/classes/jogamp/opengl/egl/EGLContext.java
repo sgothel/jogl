@@ -433,7 +433,8 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected final Integer setSwapIntervalImpl2(final int interval) {
-        if( hasRendererQuirk(GLRendererQuirks.NoSetSwapInterval) ) {
+        if( !drawable.getChosenGLCapabilities().isOnscreen() ||
+            hasRendererQuirk(GLRendererQuirks.NoSetSwapInterval) ) {
             return null;
         }
         final int useInterval;
