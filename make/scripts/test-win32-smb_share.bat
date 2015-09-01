@@ -2,8 +2,8 @@
 set SMB_ROOT=\\risa.goethel.localnet\deployment\test\jogamp
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.7.0_45_x32
-set JAVA_HOME=c:\jdk1.7.0_45_x32
+set J2RE_HOME=c:\jre1.8.0_60_x32
+set JAVA_HOME=c:\jdk1.8.0_60_x32
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set PROJECT_ROOT=%SMB_ROOT%\jogl
