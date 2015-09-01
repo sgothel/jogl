@@ -101,14 +101,15 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
               @Override
               public void run() {
+                  if( 0 != jawtSurfaceLayersHandle) {
+                      // null rootSurfaceLayer OK
+                      UnsetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
+                  }
+                  jawtSurfaceLayersHandle = 0;
                   if( 0 != rootSurfaceLayer ) {
-                      if( 0 != jawtSurfaceLayersHandle) {
-                          UnsetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
-                      }
                       OSXUtil.DestroyCALayer(rootSurfaceLayer);
                       rootSurfaceLayer = 0;
                   }
-                  jawtSurfaceLayersHandle = 0;
               }
           });
       }

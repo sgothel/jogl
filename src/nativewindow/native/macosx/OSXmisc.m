@@ -861,8 +861,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Ge
         NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
         return 0;
     }
-    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-    return (jlong) ((intptr_t) surfaceLayers);
+    NSObject *surfaceLayersObj = (NSObject*) dsi->platformInfo;
+    [surfaceLayersObj retain]; // Pairs w/ Unset
+    DBG_PRINT("CALayer::GetJAWTSurfaceLayersHandle: surfaceLayers %p (refcnt %d)\n", surfaceLayersObj, (int)[surfaceLayersObj retainCount]);
+
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)surfaceLayersObj;
+    return (jlong) (intptr_t) surfaceLayers;
 }
 
 /*
@@ -878,9 +882,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Set
     [CATransaction begin];
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)(intptr_t)jawtSurfaceLayersHandle;
+    NSObject *surfaceLayersObj = (NSObject*) (intptr_t) jawtSurfaceLayersHandle;
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)surfaceLayersObj;
     MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
     DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", [surfaceLayers layer], layer, (int)[layer retainCount]);
+
     [surfaceLayers setLayer: [layer retain]]; // Pairs w/ Unset
 
     [CATransaction commit];
@@ -902,20 +908,26 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
     [CATransaction begin];
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)(intptr_t)jawtSurfaceLayersHandle;
+    NSObject *surfaceLayersObj = (NSObject*) (intptr_t) jawtSurfaceLayersHandle;
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)surfaceLayersObj;
+    DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.0: surfaceLayers %p (refcnt %d)\n", surfaceLayersObj, (int)[surfaceLayersObj retainCount]);
+
     MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
-    if(layer != [surfaceLayers layer]) {
-        NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
-        return;
+    if(NULL != layer) {
+        if(layer != [surfaceLayers layer]) {
+            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
+            return;
+        }
+        DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.1: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
+        [layer release]; // Pairs w/ Set
+        [surfaceLayers setLayer: NULL]; // Pairs w/ Set
     }
-    DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.0: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
-    [layer release]; // Pairs w/ Set
-    [surfaceLayers setLayer: NULL];
+    [surfaceLayersObj release]; // Pairs w/ Get
 
     [CATransaction commit];
 
     [pool release];
-    DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.X: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.X\n");
 }
 
 @interface MainRunnable : NSObject
