@@ -62,6 +62,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -689,7 +690,28 @@ public abstract class NativeWindowFactory {
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
-            throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
+            final EGLGraphicsDevice device;
+            if( own ) {
+                Object odev = null;
+                try {
+                    // EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+                    odev = ReflectionUtil.callStaticMethod("jogamp.opengl.egl.EGLDisplayUtil", "eglCreateEGLGraphicsDevice",
+                            new Class<?>[] { Long.class, String.class, Integer.class},
+                            new Object[] { 0L /* EGL.EGL_DEFAULT_DISPLAY */, DefaultGraphicsDevice.getDefaultDisplayConnection(nwt), AbstractGraphicsDevice.DEFAULT_UNIT },
+                            NativeWindowFactory.class.getClassLoader());
+                } catch (final Exception e) {
+                    throw new NativeWindowException("EGLDisplayUtil.eglCreateEGLGraphicsDevice failed", e);
+                }
+                if( odev instanceof EGLGraphicsDevice ) {
+                    device = (EGLGraphicsDevice)odev;
+                    device.open();
+                } else {
+                    throw new NativeWindowException("EGLDisplayUtil.eglCreateEGLGraphicsDevice failed");
+                }
+            } else {
+                device = new EGLGraphicsDevice(0, 0 /* EGL.EGL_NO_DISPLAY */, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, null);
+            }
+            return device;
         } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
             throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
         } else {
@@ -743,6 +765,4 @@ public abstract class NativeWindowFactory {
         }
         throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
     }
-
-
 }
