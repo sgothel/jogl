@@ -46,6 +46,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.VersionUtil;
 
 /**
  * Unit test to identify Thread.interrupt() caller for DefaultEDTUtil.invokeImpl(..) wait interruption.
@@ -62,6 +63,7 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        System.err.println(VersionUtil.getPlatformInfo());
         glp = GLProfile.getDefault();
     }
 
