@@ -69,26 +69,21 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(final Screen screen, final GLCapabilitiesImmutable caps) {
+    static GLWindow createWindow(final GLCapabilitiesImmutable caps) {
         Assert.assertNotNull(caps);
         //
         // Create native windowing resources .. X11/Win/OSX
         //
-        GLWindow glWindow;
-        if(null!=screen) {
-            glWindow = GLWindow.create(screen, caps);
-            Assert.assertNotNull(glWindow);
-        } else {
-            glWindow = GLWindow.create(caps);
-            Assert.assertNotNull(glWindow);
-        }
+        final GLWindow glWindow = GLWindow.create(caps);
+        Assert.assertNotNull(glWindow);
+        glWindow.setSize(width, height);
+
         glWindow.setUpdateFPSFrames(1, null);
 
         final GearsES2 demo = new GearsES2();
         demo.setVerbose(false);
         glWindow.addGLEventListener(demo);
 
-        glWindow.setSize(width, height);
         return glWindow;
     }
 
@@ -123,7 +118,7 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
             public void run() {
                 final GLCapabilities caps = new GLCapabilities(glp);
                 Assert.assertNotNull(caps);
-                final GLWindow window1 = createWindow(null, caps); // local
+                final GLWindow window1 = createWindow(caps); // local
                 final EDTUtil edt = window1.getScreen().getDisplay().getEDTUtil();
                 final Animator anim = new Animator(window1);
                 try {
@@ -174,10 +169,10 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
                 GLWindow lastWindow = null;
                 try {
                     final boolean ok = true;
-                    for(int i=0; ok && i*100<durationTest00; i++) {
+                    for(int i=0; ok && i*100<durationTest01; i++) {
                         final GLCapabilities caps = new GLCapabilities(glp);
                         Assert.assertNotNull(caps);
-                        final GLWindow window1 = createWindow(null, caps); // local
+                        final GLWindow window1 = createWindow(caps); // local
                         lastWindow = window1;
                         window1.setVisible(true);
                         Assert.assertEquals(true,window1.isVisible());
