@@ -60,6 +60,8 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
     static GLProfile glp;
     static long durationTest00 = 1000; // ms
     static long durationTest01 = 1000; // ms
+    static int width = 800;
+    static int height = 600;
 
     @BeforeClass
     public static void initClass() {
@@ -86,7 +88,7 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
         demo.setVerbose(false);
         glWindow.addGLEventListener(demo);
 
-        glWindow.setSize(512, 512);
+        glWindow.setSize(width, height);
         return glWindow;
     }
 
@@ -218,13 +220,17 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time00")) {
                 durationTest00 = atoi(args[++i]);
-            }
-            if(args[i].equals("-time01")) {
+            } else if(args[i].equals("-time01")) {
                 durationTest01 = atoi(args[++i]);
+            } else if(args[i].equals("-width")) {
+                width = atoi(args[++i]);
+            } else if(args[i].equals("-height")) {
+                height = atoi(args[++i]);
             }
         }
         System.out.println("durationTest00: "+durationTest00);
         System.out.println("durationTest01: "+durationTest01);
+        System.out.println("defaultSize   : "+width+"x"+height);
         final String tstname = TestBug1211IRQ00NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
