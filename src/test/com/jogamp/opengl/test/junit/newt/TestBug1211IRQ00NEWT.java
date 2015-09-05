@@ -31,21 +31,19 @@ package com.jogamp.opengl.test.junit.newt;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
@@ -56,18 +54,11 @@ import com.jogamp.opengl.util.Animator;
  * </ul>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug1211IRQ00NEWT extends UITestCase {
-    static GLProfile glp;
+public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
     static long durationTest00 = 1000; // ms
     static long durationTest01 = 1000; // ms
     static int width = 800;
     static int height = 600;
-
-    @BeforeClass
-    public static void initClass() {
-        System.err.println(VersionUtil.getPlatformInfo());
-        glp = GLProfile.getDefault();
-    }
 
     static GLWindow createWindow(final GLCapabilitiesImmutable caps) {
         Assert.assertNotNull(caps);
@@ -94,166 +85,229 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
         }
     }
 
-    static class MyThread extends Thread {
-        volatile boolean interruptCalled;
+    @SuppressWarnings("serial")
+    static class MyInterruptedException extends InterruptedException {
+        public MyInterruptedException(final String message, final Throwable cause) {
+            super(message);
+            if( null != cause ) {
+                initCause(cause);
+            }
+        }
+    }
+    static class MyThread extends Thread implements Thread.UncaughtExceptionHandler {
+        volatile Throwable interruptCause = null;
+        volatile int interruptCounter = 0;
+        volatile boolean myThreadStarted = false;
+        volatile boolean myThreadStopped = false;
 
         public MyThread(final Runnable target, final String name) {
             super(target, name);
-            interruptCalled = false;
+            setUncaughtExceptionHandler(this);
         }
-        public boolean interruptCalled() { return interruptCalled; }
+        public synchronized void clearInterruptCounter() {
+            interruptCounter = 0;
+            interruptCause = null;
+        }
+        public synchronized boolean interruptCalled() { return 0 < interruptCounter; }
 
-        public static void testInterrupted() throws InterruptedException {
+        public static void testInterrupted1() throws InterruptedException {
             if( Thread.interrupted() ) {
-                throw new InterruptedException("Thread.testInterrupted -> TRUE (silent interruption)");
+                throw new InterruptedException(Thread.currentThread().getName()+".testInterrupted -> TRUE (silent interruption)");
+            }
+        }
+        public synchronized void testInterrupted(final boolean ignore) throws InterruptedException {
+            if( isInterrupted() ) {
+                final boolean current;
+                if( this == Thread.currentThread() ) {
+                    Thread.interrupted(); // clear!
+                    current = true;
+                } else {
+                    current = false;
+                }
+                final InterruptedException e = new MyInterruptedException(getName()+".testInterrupted -> TRUE (current "+current+", counter "+interruptCounter+")",
+                                                                          interruptCause);
+                interruptCause = null;
+                interruptCounter = 0;
+                if( !ignore ) {
+                    throw e;
+                } else {
+                    ExceptionUtils.dumpThrowable("Ignored", e);
+                }
             }
         }
 
         @Override
-        public void interrupt() {
-            System.err.println("MyThread.interrupt() ******************************************************");
-            ExceptionUtils.dumpStack(System.err);
-            interruptCalled = true;
+        public void run() {
+            myThreadStarted = true;
+            try {
+                super.run();
+            } finally {
+                myThreadStopped = true;
+            }
+        }
+        @Override
+        public synchronized void interrupt() {
+            interruptCounter++;
+            interruptCause = new Throwable(getName()+".interrupt() ************************************************* - count "+interruptCounter);
+            ExceptionUtils.dumpThrowable("causing", interruptCause);
             super.interrupt();
+        }
+
+        @Override
+        public void uncaughtException(final Thread t, final Throwable e) {
+            System.err.println("UncaughtException on Thread "+t.getName()+": "+e.getMessage());
+            ExceptionUtils.dumpThrowable("UncaughtException", e);
         }
     }
 
 
     volatile boolean interrupt1 = false;
     volatile boolean interrupt2 = false;
-    volatile boolean interrupt3 = false;
-    volatile boolean interrupt4 = false;
+    volatile boolean interruptInit0 = false;
 
-    @Before
     public void initTest() {
         interrupt1 = false;
         interrupt2 = false;
-        interrupt3 = false;
-        interrupt4 = false;
     }
 
     /**
      * Test whether resize triggers DefaultEDTUtil.invokeImpl(..) wait interruption.
      */
-    @Test
-    public void test00() {
-        final MyThread t = new MyThread(new Runnable() {
-            public void run() {
-                final GLCapabilities caps = new GLCapabilities(glp);
-                Assert.assertNotNull(caps);
-                final GLWindow window1 = createWindow(caps); // local
-                final EDTUtil edt = window1.getScreen().getDisplay().getEDTUtil();
-                final Animator anim = new Animator(window1);
-                try {
-                    window1.setVisible(true);
-                    Assert.assertEquals(true,window1.isVisible());
-                    Assert.assertEquals(true,window1.isNativeValid());
-                    anim.start();
-                    boolean ok = true;
-                    for(int i=0; ok && i*100<durationTest00; i++) {
-                        Thread.sleep(100);
-                        final int ow = window1.getWidth();
-                        final int oh = window1.getHeight();
-                        final int nw, nh;
-                        if( 0 == i % 2 ) {
-                            nw = ow + 100;
-                            nh = oh + 100;
-                        } else {
-                            nw = ow - 100;
-                            nh = oh - 100;
-                        }
-                        System.err.println("test00.resize["+i+"]: "+ow+"x"+oh+" -> "+nw+"x"+nh);
-                        window1.setSize(nw, nh);
-                        final MyThread _t = (MyThread)Thread.currentThread();
-                        ok = !_t.interruptCalled() && !_t.isInterrupted() && edt.isRunning() && anim.isAnimating();
-                        MyThread.testInterrupted();
-                    }
-                } catch (final InterruptedException e) {
-                    ExceptionUtils.dumpThrowable("MyThread.InterruptedException-1", e);
-                    interrupt1 = true;
-                }
-                try {
-                    anim.stop();
-                    destroyWindow(window1);
-                    MyThread.testInterrupted();
-                } catch (final InterruptedException e) {
-                    ExceptionUtils.dumpThrowable("MyThread.InterruptedException-2", e);
-                    interrupt2 = true;
-                }
-            }
-        }, "Thread_Test01");
-        t.start();
+    public void subTest00() {
+        final MyThread t = (MyThread)Thread.currentThread();
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        Assert.assertNotNull(caps);
+        final GLWindow window1 = createWindow(caps); // local
+        final EDTUtil edt = window1.getScreen().getDisplay().getEDTUtil();
+        final Animator anim = new Animator(window1);
         try {
-            t.join();
-            MyThread.testInterrupted();
+            window1.setVisible(true);
+            Assert.assertEquals(true,window1.isVisible());
+            Assert.assertEquals(true,window1.isNativeValid());
+            anim.start();
+            boolean ok = true;
+            for(int i=0; ok && i*100<durationTest00; i++) {
+                Thread.sleep(100);
+                final int ow = window1.getWidth();
+                final int oh = window1.getHeight();
+                final int nw, nh;
+                if( 0 == i % 2 ) {
+                    nw = ow + 100;
+                    nh = oh + 100;
+                } else {
+                    nw = ow - 100;
+                    nh = oh - 100;
+                }
+                System.err.println("test00.resize["+i+"]: "+ow+"x"+oh+" -> "+nw+"x"+nh);
+                window1.setSize(nw, nh);
+                ok = !t.interruptCalled() && !t.isInterrupted() && edt.isRunning() && anim.isAnimating();
+                t.testInterrupted(false);
+            }
         } catch (final InterruptedException e) {
-            ExceptionUtils.dumpThrowable("Thread.InterruptedException", e);
-            interrupt3 = true;
+            ExceptionUtils.dumpThrowable("InterruptedException-1", e);
+            interrupt1 = true;
         }
-        Assert.assertFalse("MyThread.interruptCalled()", t.interruptCalled());
-        Assert.assertFalse("MyThread.interrupt() occured!", t.isInterrupted());
-        Assert.assertFalse("MyThread Interrupt-1 occured!", interrupt1);
-        Assert.assertFalse("MyThread Interrupt-2 occured!", interrupt2);
-        Assert.assertFalse("Thread Interrupt-3 occured!", interrupt3);
+        try {
+            anim.stop();
+            destroyWindow(window1);
+            t.testInterrupted(false);
+        } catch (final InterruptedException e) {
+            ExceptionUtils.dumpThrowable("InterruptedException-2", e);
+            interrupt2 = true;
+        }
+        Assert.assertFalse("interruptCalled()", t.interruptCalled());
+        Assert.assertFalse("interrupt() occured!", t.isInterrupted());
+        Assert.assertFalse("Interrupt-1 occured!", interrupt1);
+        Assert.assertFalse("Interrupt-2 occured!", interrupt2);
     }
 
     /**
      * Test whether create/destroy triggers DefaultEDTUtil.invokeImpl(..) wait interruption.
      */
+    public void subTest01() {
+        final MyThread t = (MyThread)Thread.currentThread();
+        GLWindow lastWindow = null;
+        try {
+            final boolean ok = true;
+            for(int i=0; ok && i*100<durationTest01; i++) {
+                final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+                Assert.assertNotNull(caps);
+                final GLWindow window1 = createWindow(caps); // local
+                lastWindow = window1;
+                window1.setVisible(true);
+                Assert.assertEquals(true,window1.isVisible());
+                Assert.assertEquals(true,window1.isNativeValid());
+                System.err.println("test01.create["+i+"]: "+window1.getStateMaskString()+", "+window1.getWidth()+"x"+window1.getHeight());
+                final Animator anim = new Animator(window1);
+                anim.start();
+                Thread.sleep(100);
+                anim.stop();
+                destroyWindow(window1);
+                t.testInterrupted(false);
+            }
+        } catch (final InterruptedException e) {
+            ExceptionUtils.dumpThrowable("InterruptedException-1", e);
+            interrupt1 = true;
+        }
+        try {
+            destroyWindow(lastWindow);
+            t.testInterrupted(false);
+        } catch (final InterruptedException e) {
+            ExceptionUtils.dumpThrowable("InterruptedException-2", e);
+            interrupt2 = true;
+        }
+        Assert.assertFalse("interruptCalled()", t.interruptCalled());
+        Assert.assertFalse("interrupt() occured!", t.isInterrupted());
+        Assert.assertFalse("Interrupt-1 occured!", interrupt1);
+        Assert.assertFalse("Interrupt-2 occured!", interrupt2);
+    }
+
     @Test
-    public void test01() {
+    public void testAll() {
+        interruptInit0 = false;
         final MyThread t = new MyThread(new Runnable() {
             public void run() {
-                GLWindow lastWindow = null;
+                final MyThread t = (MyThread)Thread.currentThread();
+                TestBug1211IRQ00NEWT test = null;
                 try {
-                    final boolean ok = true;
-                    for(int i=0; ok && i*100<durationTest01; i++) {
-                        final GLCapabilities caps = new GLCapabilities(glp);
-                        Assert.assertNotNull(caps);
-                        final GLWindow window1 = createWindow(caps); // local
-                        lastWindow = window1;
-                        window1.setVisible(true);
-                        Assert.assertEquals(true,window1.isVisible());
-                        Assert.assertEquals(true,window1.isNativeValid());
-                        System.err.println("test01.create["+i+"]: "+window1.getStateMaskString()+", "+window1.getWidth()+"x"+window1.getHeight());
-                        final Animator anim = new Animator(window1);
-                        anim.start();
-                        Thread.sleep(100);
-                        anim.stop();
-                        destroyWindow(window1);
-                        MyThread.testInterrupted();
-                    }
+                    System.err.println(VersionUtil.getPlatformInfo());
+                    GLProfile.initSingleton();
+                    test = new TestBug1211IRQ00NEWT();
+                    t.testInterrupted(false);
                 } catch (final InterruptedException e) {
-                    ExceptionUtils.dumpThrowable("MyThread.InterruptedException", e);
-                    interrupt1 = true;
+                    ExceptionUtils.dumpThrowable("InterruptedException-Init0", e);
+                    interruptInit0 = true;
+                    test = null;
                 }
-                try {
-                    destroyWindow(lastWindow);
-                    MyThread.testInterrupted();
-                } catch (final InterruptedException e) {
-                    ExceptionUtils.dumpThrowable("MyThread.InterruptedException-2", e);
-                    interrupt2 = true;
+                t.clearInterruptCounter();
+                if( null != test ) {
+                    test.initTest();
+                    test.subTest00();
+
+                    test.initTest();
+                    test.subTest01();
                 }
             }
-        }, "Thread_Test01");
+        }, "MyMainThread");
         t.start();
+        boolean interrupted = false;
         try {
-            t.join();
-            MyThread.testInterrupted();
+            MyThread.testInterrupted1();
+            while( !t.myThreadStarted ) {
+                Thread.yield();
+                MyThread.testInterrupted1();
+            }
+            while( !t.myThreadStopped ) {
+                Thread.yield();
+                MyThread.testInterrupted1();
+            }
+            MyThread.testInterrupted1();
         } catch (final InterruptedException e) {
-            ExceptionUtils.dumpThrowable("Thread.InterruptedException", e);
-            interrupt3 = true;
+            ExceptionUtils.dumpThrowable("InterruptedException-All", e);
+            interrupted = true;
         }
-        Assert.assertFalse("MyThread.interruptCalled()", t.interruptCalled());
-        Assert.assertFalse("MyThread.interrupt() occured!", t.isInterrupted());
-        Assert.assertFalse("MyThread Interrupt-1 occured!", interrupt1);
-        Assert.assertFalse("MyThread Interrupt-2 occured!", interrupt2);
-        Assert.assertFalse("Thread Interrupt-3 occured!", interrupt3);
-    }
-    static void ncSleep(final long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (final InterruptedException e) {}
+        Assert.assertFalse("Thread Interrupt-All occured!", interrupted);
+        Assert.assertFalse("Interrupt-Init0 occured!", interruptInit0);
     }
 
     static int atoi(final String a) {
@@ -265,6 +319,9 @@ public class TestBug1211IRQ00NEWT extends UITestCase {
     }
 
     public static void main(final String args[]) throws IOException {
+        // We like to allow concurrent manual tests!
+        SingletonJunitCase.enableSingletonLock(false);
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time00")) {
                 durationTest00 = atoi(args[++i]);
