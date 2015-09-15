@@ -51,6 +51,7 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLSharedContextSetter;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLEventListenerState;
@@ -596,6 +597,44 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     @Override
     public final Thread getExclusiveContextThread() {
         return helper.getExclusiveContextThread();
+    }
+
+    /**
+     * Invokes given {@code runnable} on current thread outside of a probable claimed exclusive thread,
+     * i.e. releases the exclusive thread, executes the runnable and reclaims it.
+     * FIXME: Promote to GLAutoDrawable!
+     *
+     * @param runnable the {@link Runnable} to execute on the new thread.
+     *                 The runnable <b>must exit</b>, i.e. not loop forever.
+     *
+     * @see #setExclusiveContextThread(Thread, GLContext)
+     *
+     * @since 2.3.2
+     */
+    public final void invokeOnCurrentThread(final Runnable runnable) {
+        helper.runOutsideOfExclusiveContextThread(context, runnable);
+    }
+    /**
+     * Invokes given {@code runnable} on current thread outside of a probable claimed exclusive thread,
+     * i.e. releases the exclusive thread, executes the runnable and reclaims it.
+     * FIXME: Promote to GLAutoDrawable!
+     *
+     * @param tg the {@link ThreadGroup} for the new thread, maybe <code>null</code>
+     * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
+     * @param runnable the {@link Runnable} to execute on the new thread.
+     *                 The runnable <b>must exit</b>, i.e. not loop forever.
+     * @return {@link RunnableTask} instance with execution details
+     *
+     * @see #setExclusiveContextThread(Thread, GLContext)
+     *
+     * @since 2.3.2
+     */
+    public final RunnableTask invokeOnNewThread(final ThreadGroup tg, final boolean waitUntilDone, final Runnable runnable) {
+        return RunnableTask.invokeOnNewThread(tg, null, waitUntilDone,
+                new Runnable() {
+                    public final void run() {
+                        helper.runOutsideOfExclusiveContextThread(context, runnable);
+                    } });
     }
 
     @Override

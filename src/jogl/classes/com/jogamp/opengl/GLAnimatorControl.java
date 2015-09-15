@@ -58,7 +58,8 @@ public interface GLAnimatorControl extends FPSCounter {
          * Any exception thrown by this method will be ignored.
          * </p>
          * @param animator the {@link GLAnimatorControl}
-         * @param drawable the causing {@link GLAutoDrawable}
+         * @param drawable the causing {@link GLAutoDrawable},
+         *        may be {@code null} in case {@link Throwable} caused unrelated to any {@link GLAutoDrawable}.
          * @param cause the uncaught exception
          * @see GLAnimatorControl#setUncaughtExceptionHandler(UncaughtExceptionHandler)
          * @since 2.2

@@ -37,6 +37,7 @@ import java.io.InputStream;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.MouseTracker;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
@@ -55,7 +56,7 @@ public class LinuxMouseTracker implements WindowListener, MouseTracker {
 
     static {
         lmt = new LinuxMouseTracker();
-        final Thread t = new Thread(lmt.mouseDevicePoller, "NEWT-LinuxMouseTracker");
+        final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-LinuxMouseTracker");
         t.setDaemon(true);
         t.start();
     }

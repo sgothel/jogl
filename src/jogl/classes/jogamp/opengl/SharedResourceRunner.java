@@ -38,6 +38,9 @@ import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
+import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class SharedResourceRunner implements Runnable {
@@ -166,13 +169,18 @@ public class SharedResourceRunner implements Runnable {
                     System.err.println("SharedResourceRunner.start() - start new Thread - "+getThreadName());
                 }
                 resetState();
-                thread = new Thread(this, getThreadName()+"-SharedResourceRunner");
+                thread = new InterruptSource.Thread(null, this, getThreadName()+"-SharedResourceRunner");
                 thread.setDaemon(true); // Allow JVM to exit, even if this one is running
                 thread.start();
-                while (!running) {
-                    try {
+                try {
+                    while (!running) {
                         this.wait();
-                    } catch (final InterruptedException ex) { }
+                    }
+                } catch (final InterruptedException ex) {
+                    // Cleanup
+                    shouldRelease = true;
+                    this.notifyAll();
+                    throw new InterruptedRuntimeException(ex);
                 }
             }
         }
@@ -188,11 +196,12 @@ public class SharedResourceRunner implements Runnable {
                 synchronized (this) {
                     shouldRelease = true;
                     this.notifyAll();
-
-                    while (running) {
-                        try {
+                    try {
+                        while (running) {
                             this.wait();
-                        } catch (final InterruptedException ex) { }
+                        }
+                    } catch (final InterruptedException ex) {
+                        throw new InterruptedRuntimeException(ex);
                     }
                 }
             }
@@ -213,7 +222,11 @@ public class SharedResourceRunner implements Runnable {
                             ExceptionUtils.dumpStack(System.err);
                         }
                         if ( impl.isDeviceSupported(device) ) {
-                            doAndWait(device, null);
+                            try {
+                                doAndWait(device, null);
+                            } catch (final InterruptedException ex) {
+                                throw new InterruptedRuntimeException(ex);
+                            }
                             sr = impl.mapGet(device);
                         }
                         if (DEBUG) {
@@ -236,7 +249,11 @@ public class SharedResourceRunner implements Runnable {
                     if (DEBUG) {
                         System.err.println("SharedResourceRunner.releaseShared() " + device + ": trying - "+getThreadName());
                     }
-                    doAndWait(null, device);
+                    try {
+                        doAndWait(null, device);
+                    } catch (final InterruptedException ex) {
+                        throw new InterruptedRuntimeException(ex);
+                    }
                     if (DEBUG) {
                         System.err.println("SharedResourceRunner.releaseShared() " + device + ": done - "+getThreadName());
                     }
@@ -246,7 +263,7 @@ public class SharedResourceRunner implements Runnable {
         return sr;
     }
 
-    private final void doAndWait(final AbstractGraphicsDevice initDevice, final AbstractGraphicsDevice releaseDevice) {
+    private final void doAndWait(final AbstractGraphicsDevice initDevice, final AbstractGraphicsDevice releaseDevice) throws InterruptedException {
         synchronized (this) {
             // wait until thread becomes ready to init new device,
             // pass the device and release the sync
@@ -254,26 +271,41 @@ public class SharedResourceRunner implements Runnable {
             if (DEBUG) {
                 System.err.println("SharedResourceRunner.doAndWait() START init: " + initDevice + ", release: "+releaseDevice+" - "+threadName);
             }
-            while (!ready && running) {
-                try {
+            try {
+                while (!ready && running) {
                     this.wait();
-                } catch (final InterruptedException ex) { }
-            }
-            if (DEBUG) {
-                System.err.println("SharedResourceRunner.doAndWait() set command: " + initDevice + ", release: "+releaseDevice+" - "+threadName);
-            }
-            this.initDevice = initDevice;
-            this.releaseDevice = releaseDevice;
-            this.notifyAll();
+                }
+                if (DEBUG) {
+                    System.err.println("SharedResourceRunner.doAndWait() set command: " + initDevice + ", release: "+releaseDevice+" - "+threadName);
+                }
+                this.initDevice = initDevice;
+                this.releaseDevice = releaseDevice;
+                this.notifyAll();
 
-            // wait until thread has init/released the device
-            while ( running && ( !ready || null != this.initDevice || null != this.releaseDevice ) ) {
-                try {
+                // wait until thread has init/released the device
+                while ( running && ( !ready || null != this.initDevice || null != this.releaseDevice ) ) {
                     this.wait();
-                } catch (final InterruptedException ex) { }
+                }
+            } catch (final InterruptedException ex) {
+                final InterruptedException ex2 = SourcedInterruptedException.wrap(ex);
+                if (DEBUG) {
+                    System.err.println("SharedResourceRunner.doAndWait() INTERRUPT init: " + initDevice + ", release: "+releaseDevice+" - "+threadName);
+                    ExceptionUtils.dumpThrowable("", ex2);
+                }
+                // Cleanup initDevice due to exception!
+                final AbstractGraphicsDevice _initDevice = this.initDevice;
+                if( null != _initDevice ) {
+                    if (DEBUG) {
+                        System.err.println("SharedResourceRunner.doAndWait() Cleanup init: " + _initDevice + " -> release: "+this.releaseDevice+" - "+threadName);
+                    }
+                    this.releaseDevice = _initDevice;
+                    this.initDevice = null;
+                    this.notifyAll();
+                }
+                throw ex2;
             }
             if (DEBUG) {
-                System.err.println("SharedResourceRunner.initializeAndWait END init: " + initDevice + ", release: "+releaseDevice+" - "+threadName);
+                System.err.println("SharedResourceRunner.doAndWait() END init: " + initDevice + ", release: "+releaseDevice+" - "+threadName);
             }
         }
         // done
@@ -292,19 +324,18 @@ public class SharedResourceRunner implements Runnable {
 
             while (!shouldRelease) {
                 try {
-                    // wait for stop or init
+                    // wait until call-thread issues stop or init/released a device
                     ready = true;
                     if (DEBUG) {
                         System.err.println("SharedResourceRunner.run(): READY - " + threadName);
                     }
                     notifyAll();
-                    this.wait();
+                    while ( !shouldRelease && null == initDevice && null == releaseDevice ) {
+                        this.wait();
+                    }
                 } catch (final InterruptedException ex) {
                     shouldRelease = true;
-                    if(DEBUG) {
-                        System.err.println("SharedResourceRunner.run(): INTERRUPTED - "+threadName);
-                        ex.printStackTrace();
-                    }
+                    ExceptionUtils.dumpThrowable("handled", SourcedInterruptedException.wrap(ex)); // cancelable
                 }
                 ready = false;
 
@@ -321,7 +352,7 @@ public class SharedResourceRunner implements Runnable {
                         try {
                             sr = impl.createSharedResource(initDevice);
                         } catch (final Exception e) {
-                            e.printStackTrace();
+                            ExceptionUtils.dumpThrowable("handled", e);
                         }
                         if (null != sr) {
                             impl.mapPut(initDevice, sr);
@@ -335,9 +366,10 @@ public class SharedResourceRunner implements Runnable {
                         if (null != sr) {
                             try {
                                 impl.releaseSharedResource(sr);
-                                impl.mapPut(releaseDevice, null);
                             } catch (final Exception e) {
-                                e.printStackTrace();
+                                ExceptionUtils.dumpThrowable("handled", e);
+                            } finally {
+                                impl.mapPut(releaseDevice, null);
                             }
                         }
                     }
@@ -370,8 +402,7 @@ public class SharedResourceRunner implements Runnable {
             try {
                 impl.releaseSharedResource(iter.next());
             } catch (final Throwable t) {
-                System.err.println("Caught exception on thread "+getThreadName());
-                t.printStackTrace();
+                ExceptionUtils.dumpThrowable("", t);
             }
         }
         impl.clear();

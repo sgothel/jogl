@@ -33,7 +33,6 @@ import java.util.List;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
-
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.TimeFrameI;
@@ -364,7 +363,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) throws InterruptedException {
         int pts = TimeFrameI.INVALID_PTS;
         if(null != mp || null != cam) {
             final SurfaceTextureFrame sTexFrame = null != nextFrame ? (SurfaceTextureFrame) nextFrame : singleSTexFrame;
@@ -398,12 +397,8 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 boolean update = updateSurface;
                 if( !update ) {
                     synchronized(updateSurfaceLock) {
-                        if(!updateSurface) { // volatile OK.
-                            try {
-                                updateSurfaceLock.wait();
-                            } catch (final InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                        while(!updateSurface) { // volatile OK.
+                            updateSurfaceLock.wait(); // propagates InterruptedException
                         }
                         update = updateSurface;
                         updateSurface = false;

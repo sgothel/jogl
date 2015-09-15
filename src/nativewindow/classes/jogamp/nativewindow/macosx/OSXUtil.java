@@ -34,6 +34,7 @@ import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.RunnableTask;
 
 import jogamp.nativewindow.Debug;
@@ -267,22 +268,21 @@ public class OSXUtil implements ToolkitProperties {
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
             // otherwise we may freeze the OSX main thread.
-            Throwable throwable = null;
             final Object sync = new Object();
             final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
                 RunOnMainThread0(kickNSApp, rt);
                 if( waitUntilDone ) {
-                    try {
-                        sync.wait();
-                    } catch (final InterruptedException ie) {
-                        throwable = ie;
-                    }
-                    if(null==throwable) {
-                        throwable = rt.getThrowable();
-                    }
-                    if(null!=throwable) {
-                        throw new RuntimeException(throwable);
+                    while( rt.isInQueue() ) {
+                        try {
+                            sync.wait();
+                        } catch (final InterruptedException ie) {
+                            throw new InterruptedRuntimeException(ie);
+                        }
+                        final Throwable throwable = rt.getThrowable();
+                        if(null!=throwable) {
+                            throw new RuntimeException(throwable);
+                        }
                     }
                 }
             }
@@ -341,23 +341,22 @@ public class OSXUtil implements ToolkitProperties {
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
             // otherwise we may freeze the OSX main thread.
-            Throwable throwable = null;
             final Object sync = new Object();
             final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
                 rt.setArgs(args);
                 RunOnMainThread0(kickNSApp, rt);
                 if( waitUntilDone ) {
-                    try {
-                        sync.wait();
-                    } catch (final InterruptedException ie) {
-                        throwable = ie;
-                    }
-                    if(null==throwable) {
-                        throwable = rt.getThrowable();
-                    }
-                    if(null!=throwable) {
-                        throw new RuntimeException(throwable);
+                    while( rt.isInQueue() ) {
+                        try {
+                            sync.wait();
+                        } catch (final InterruptedException ie) {
+                            throw new InterruptedRuntimeException(ie);
+                        }
+                        final Throwable throwable = rt.getThrowable();
+                        if(null!=throwable) {
+                            throw new RuntimeException(throwable);
+                        }
                     }
                 }
             }

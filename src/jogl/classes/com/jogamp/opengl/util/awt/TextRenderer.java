@@ -40,6 +40,7 @@
 package com.jogamp.opengl.util.awt;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.*;
@@ -915,7 +916,7 @@ public class TextRenderer {
                     // Run this on another thread than the AWT event queue to
                     // make sure the call to Animator.stop() completes before
                     // exiting
-                    new Thread(new Runnable() {
+                    new InterruptSource.Thread(null, new Runnable() {
                             @Override
                             public void run() {
                                 anim.stop();

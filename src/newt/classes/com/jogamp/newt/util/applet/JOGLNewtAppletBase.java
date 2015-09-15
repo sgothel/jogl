@@ -33,7 +33,6 @@ import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
-import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -43,16 +42,17 @@ import com.jogamp.opengl.GLPipelineFactory;
 import jogamp.newt.Debug;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.Display.PointerIcon;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 
@@ -60,7 +60,7 @@ import com.jogamp.opengl.util.AnimatorBase;
 /** Shows how to deploy an applet using JOGL. This demo must be
     referenced from a web page via an &lt;applet&gt; tag. */
 
-public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
+public class JOGLNewtAppletBase implements GLEventListener {
     public static final boolean DEBUG = Debug.debug("Applet");
 
     String glEventListenerClazzName;
@@ -194,7 +194,9 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             }
 
             if(!noDefaultKeyListener) {
-                glWindow.addKeyListener(this);
+                final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
+                glWindow.addKeyListener(newtDemoListener);
+                glWindow.addMouseListener(newtDemoListener);
             }
 
             glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
@@ -220,7 +222,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 null == glWindow.getParent() && null != parentWin && 0 != parentWin.getWindowHandle() )
             {
                 // we may be called directly by the native EDT
-                new Thread(new Runnable() {
+                new InterruptSource.Thread(null, new Runnable() {
                    @Override
                    public void run() {
                     if( glWindow.isNativeValid() && null != parentWin && 0 != parentWin.getWindowHandle() ) {
@@ -303,86 +305,5 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public void dispose(final GLAutoDrawable drawable) {
     }
 
-    // ***********************************************************************************
-    // ***********************************************************************************
-    // ***********************************************************************************
-
-    @Override
-    public void keyPressed(final KeyEvent e) {
-       if( !e.isPrintableKey() || e.isAutoRepeat() ) {
-           return;
-       }
-       if(e.getKeyChar()=='d') {
-           new Thread() {
-               public void run() {
-                   glWindow.setUndecorated(!glWindow.isUndecorated());
-               } }.start();
-       } if(e.getKeyChar()=='f') {
-           new Thread() {
-               public void run() {
-                   glWindow.setFullscreen(!glWindow.isFullscreen());
-               } }.start();
-       } else if(e.getKeyChar()=='a') {
-           new Thread() {
-               public void run() {
-                   glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
-               } }.start();
-       } else if(e.getKeyChar()=='r' && null!=parentWin) {
-           new Thread() {
-               public void run() {
-                   if(null == glWindow.getParent()) {
-                       glWindow.reparentWindow(parentWin, -1, -1, 0 /* hints */);
-                   } else {
-                       final InsetsImmutable insets = glWindow.getInsets();
-                       final int x, y;
-                       if ( 0 >= insets.getTopHeight() ) {
-                           // fail safe ..
-                           x = 32;
-                           y = 32;
-                       } else {
-                           x = insets.getLeftWidth();
-                           y = insets.getTopHeight();
-                       }
-                       glWindow.reparentWindow(null, x, y, 0 /* hints */);
-                       glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
-                   }
-               } }.start();
-       } else if(e.getKeyChar()=='c') {
-           new Thread() {
-               public void run() {
-                   System.err.println("[set pointer-icon pre]");
-                   final PointerIcon currentPI = glWindow.getPointerIcon();
-                   glWindow.setPointerIcon( currentPI == pointerIconTest ? null : pointerIconTest);
-                   System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
-               } }.start();
-       } else if(e.getKeyChar()=='i') {
-           new Thread() {
-               public void run() {
-                   System.err.println("[set mouse visible pre]: "+glWindow.isPointerVisible());
-                   glWindow.setPointerVisible(!glWindow.isPointerVisible());
-                   System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
-               } }.start();
-       } else if(e.getKeyChar()=='j') {
-           new Thread() {
-               public void run() {
-                    final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
-                    glWindow.confinePointer(!glWindow.isPointerConfined());
-                    System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
-                    glWindow.setExclusiveContextThread(t);
-               } }.start();
-       } else if(e.getKeyChar()=='w') {
-           new Thread() {
-               public void run() {
-                   System.err.println("[set mouse pos pre]");
-                   glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
-                   System.err.println("[set mouse pos post]");
-               } }.start();
-       }
-    }
-
-    @Override
-    public void keyReleased(final KeyEvent e) {
-    }
 }
 

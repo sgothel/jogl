@@ -43,6 +43,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.opengl.GLContext;
 
 /** Singleton thread upon which all OpenGL work is performed by
@@ -78,15 +81,18 @@ public class GLWorkerThread {
       synchronized (GLWorkerThread.class) {
         if (!started) {
           lock = new Object();
-          thread = new Thread(new WorkerRunnable(),
-                              "JOGL-GLWorkerThread-");
+          final WorkerRunnable worker = new WorkerRunnable();
+          thread = new InterruptSource.Thread(null, worker, "JOGL-GLWorkerThread-");
           thread.setDaemon(true);
           started = true;
           synchronized (lock) {
             thread.start();
             try {
-              lock.wait();
+              while(!worker.isRunning) {
+                lock.wait();
+              }
             } catch (final InterruptedException e) {
+                throw new InterruptedRuntimeException(e);
             }
           }
 
@@ -119,7 +125,7 @@ public class GLWorkerThread {
           // less cooperatively
           AccessController.doPrivileged(new PrivilegedAction() {
               public Object run() {
-                Runtime.getRuntime().addShutdownHook(new Thread() {
+                Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
                     public void run() {
                       Object lockTemp = lock;
                       if (lockTemp == null) {
@@ -177,7 +183,9 @@ public class GLWorkerThread {
 
       work = runnable;
       lockTemp.notifyAll();
-      lockTemp.wait();
+      while( null != work ) {
+          lockTemp.wait();
+      }
       if (exception != null) {
         final Throwable localException = exception;
         exception = null;
@@ -222,10 +230,13 @@ public class GLWorkerThread {
   protected static String getThreadName() { return Thread.currentThread().getName(); }
 
   static class WorkerRunnable implements Runnable {
+    volatile boolean isRunning = false;
+
     @Override
     public void run() {
       // Notify starting thread that we're ready
       synchronized (lock) {
+        isRunning = true;
         lock.notifyAll();
       }
 
@@ -238,6 +249,7 @@ public class GLWorkerThread {
               // Avoid race conditions with wanting to release contexts on this thread
               lock.wait(1000);
             } catch (final InterruptedException e) {
+              throw new InterruptedRuntimeException(e);
             }
 
             if (GLContext.getCurrent() != null) {
@@ -269,8 +281,7 @@ public class GLWorkerThread {
               final Runnable curAsync = queue.remove(0);
               curAsync.run();
             } catch (final Throwable t) {
-              System.err.println(getThreadName()+": Exception occurred on JOGL OpenGL worker thread:");
-              t.printStackTrace();
+              ExceptionUtils.dumpThrowable("suppressed", t); // Noncancelable
             }
           }
 
@@ -285,6 +296,7 @@ public class GLWorkerThread {
           }
         }
       }
+      isRunning = false;
     }
   }
 }

@@ -37,6 +37,7 @@ package jogamp.newt;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -697,8 +698,9 @@ public abstract class DisplayImpl extends Display {
             } else {
                 throw re;
             }
+        } finally {
+            eventTask.notifyCaller();
         }
-        eventTask.notifyCaller();
     }
 
     @Override
@@ -725,7 +727,10 @@ public abstract class DisplayImpl extends Display {
             }
             if( null != _events ) {
                 for (int i=0; i < _events.size(); i++) {
-                    dispatchMessage(_events.get(i));
+                    final NEWTEventTask e = _events.get(i);
+                    if( !e.isDispatched() ) {
+                        dispatchMessage(e);
+                    }
                 }
             }
         }
@@ -759,11 +764,12 @@ public abstract class DisplayImpl extends Display {
                 haveEvents = true;
                 eventsLock.notifyAll();
             }
-            if( wait ) {
+            while( wait && !eTask.isDispatched() ) {
                 try {
                     lock.wait();
                 } catch (final InterruptedException ie) {
-                    throw new RuntimeException(ie);
+                    eTask.setDispatched(); // Cancels NEWTEvent ..
+                    throw new InterruptedRuntimeException(ie);
                 }
                 if( null != eTask.getException() ) {
                     throw eTask.getException();

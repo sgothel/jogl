@@ -40,6 +40,9 @@
 
 package com.jogamp.opengl.util;
 
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLException;
 
@@ -174,6 +177,9 @@ public class Animator extends AnimatorBase {
                             try {
                                 Animator.this.wait();
                             } catch (final InterruptedException e) {
+                                caughtException = new UncaughtAnimatorException(null, SourcedInterruptedException.wrap(e));
+                                stopIssued = true;
+                                break; // end pause loop
                             }
                             if (wasPaused) {
                                 // resume from pause -> reset counter
@@ -209,8 +215,7 @@ public class Animator extends AnimatorBase {
                 }
             } catch(final ThreadDeath td) {
                 if(DEBUG) {
-                    System.err.println("Animator caught: "+td.getClass().getName()+": "+td.getMessage());
-                    td.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", td);
                 }
                 caughtThreadDeath = td;
             }
@@ -222,8 +227,7 @@ public class Animator extends AnimatorBase {
                     if( null == caughtException ) {
                         caughtException = dre;
                     } else {
-                        System.err.println("Animator.setExclusiveContextThread: caught: "+dre.getMessage());
-                        dre.printStackTrace();
+                        ExceptionUtils.dumpThrowable("(setExclusiveContextThread)", dre);
                     }
                 }
             }
@@ -233,8 +237,7 @@ public class Animator extends AnimatorBase {
                 if(DEBUG) {
                     System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
                     if( null != caughtException ) {
-                        System.err.println("Animator caught: "+caughtException.getMessage());
-                        caughtException.printStackTrace();
+                        ExceptionUtils.dumpThrowable("", caughtException);
                     }
                 }
                 stopIssued = false;
@@ -291,13 +294,7 @@ public class Animator extends AnimatorBase {
             runnable = new MainLoop();
         }
         fpsCounter.resetFPSCounter();
-        final String threadName = getThreadName()+"-"+baseName;
-        Thread thread;
-        if(null==threadGroup) {
-            thread = new Thread(runnable, threadName);
-        } else {
-            thread = new Thread(threadGroup, runnable, threadName);
-        }
+        final Thread thread = new InterruptSource.Thread(threadGroup, runnable, getThreadName()+"-"+baseName);
         thread.setDaemon(false); // force to be non daemon, regardless of parent thread
         if(DEBUG) {
             final Thread ct = Thread.currentThread();

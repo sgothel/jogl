@@ -61,6 +61,7 @@ import com.jogamp.opengl.GLFBODrawable;
 import com.jogamp.opengl.GLRunnable;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.PropertyAccess;
 
 /** Encapsulates the implementation of most of the GLAutoDrawable's
@@ -874,9 +875,8 @@ public class GLDrawableHelper {
         return false;
     }
 
-    GLRunnableTask rTask = null;
+    final GLRunnableTask rTask;
     final Object rTaskLock = new Object();
-    Throwable throwable = null;
     synchronized(rTaskLock) {
         boolean deferredHere;
         synchronized(glRunnablesLock) {
@@ -910,13 +910,13 @@ public class GLDrawableHelper {
             drawable.display();
         } else if( wait ) {
             try {
-                rTaskLock.wait(); // free lock, allow execution of rTask
+                while( rTask.isInQueue() ) {
+                    rTaskLock.wait(); // free lock, allow execution of rTask
+                }
             } catch (final InterruptedException ie) {
-                throwable = ie;
+                throw new InterruptedRuntimeException(ie);
             }
-            if(null==throwable) {
-                throwable = rTask.getThrowable();
-            }
+            final Throwable throwable = rTask.getThrowable();
             if(null!=throwable) {
                 throw new RuntimeException(throwable);
             }
@@ -941,9 +941,8 @@ public class GLDrawableHelper {
     }
 
     final int count = newGLRunnables.size();
-    GLRunnableTask rTask = null;
+    final GLRunnableTask rTask;
     final Object rTaskLock = new Object();
-    Throwable throwable = null;
     synchronized(rTaskLock) {
         boolean deferredHere;
         synchronized(glRunnablesLock) {
@@ -981,13 +980,13 @@ public class GLDrawableHelper {
             drawable.display();
         } else if( wait ) {
             try {
-                rTaskLock.wait(); // free lock, allow execution of rTask
+                while( rTask.isInQueue() ) {
+                    rTaskLock.wait(); // free lock, allow execution of rTask
+                }
             } catch (final InterruptedException ie) {
-                throwable = ie;
+                throw new InterruptedRuntimeException(ie);
             }
-            if(null==throwable) {
-                throwable = rTask.getThrowable();
-            }
+            final Throwable throwable = rTask.getThrowable();
             if(null!=throwable) {
                 throw new RuntimeException(throwable);
             }
@@ -1080,6 +1079,21 @@ public class GLDrawableHelper {
    */
   public final Thread getExclusiveContextThread() {
     return exclusiveContextThread;
+  }
+
+  /**
+   * Runs given {@code runnable} outside of a probable claimed exclusive thread,
+   * i.e. releases the exclusive thread, executes the runnable and reclaims it.
+   * @see #setExclusiveContextThread(Thread, GLContext)
+   * @since 2.3.2
+   */
+  public final void runOutsideOfExclusiveContextThread(final GLContext context, final Runnable runnable) {
+      final Thread t = setExclusiveContextThread(null, context);
+      try {
+          runnable.run();
+      } finally {
+          setExclusiveContextThread(t, context);
+      }
   }
 
   private static final ThreadLocal<WeakReference<Runnable>> perThreadInitAction = new ThreadLocal<WeakReference<Runnable>>();

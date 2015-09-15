@@ -40,6 +40,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptedRuntimeException;
 
 /**
  * Base implementation of GLAnimatorControl<br>
@@ -596,7 +597,9 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 notifyAll();
                 try {
                     wait(pollPeriod);
-                } catch (final InterruptedException ie) {  }
+                } catch (final InterruptedException ie) {
+                    throw new InterruptedRuntimeException(ie);
+                }
                 remaining -= System.currentTimeMillis() - t1 ;
                 nok = waitCondition.eval();
             }

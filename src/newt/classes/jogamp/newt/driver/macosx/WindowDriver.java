@@ -34,6 +34,7 @@
 
 package jogamp.newt.driver.macosx;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindow;
@@ -378,7 +379,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
     private void superSizeChangedOffThread(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
         if( defer ) {
-            new Thread() {
+            new InterruptSource.Thread() {
                 public void run() {
                     WindowDriver.super.sizeChanged(false /* defer */, newWidth, newHeight, force);
                 } }.start();

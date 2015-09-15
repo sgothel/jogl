@@ -32,6 +32,8 @@ import com.jogamp.nativewindow.NativeWindowException;
 import jogamp.newt.Debug;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.util.EDTUtil;
 
@@ -162,8 +164,7 @@ public class SWTEDTUtil implements EDTUtil {
     }
 
     private final boolean invokeImpl(boolean wait, final Runnable task, boolean stop) {
-        Throwable throwable = null;
-        RunnableTask rTask = null;
+        final RunnableTask rTask;
         final Object rTaskLock = new Object();
         synchronized(rTaskLock) { // lock the optional task execution
             synchronized(edtLock) { // lock the EDT status
@@ -184,6 +185,7 @@ public class SWTEDTUtil implements EDTUtil {
                         task.run();
                     }
                     wait = false; // running in same thread (EDT) -> no wait
+                    rTask = null;
                     if( stop ) {
                         nedt.shouldStop = true;
                     }
@@ -225,18 +227,21 @@ public class SWTEDTUtil implements EDTUtil {
                                                  true /* always catch and report Exceptions, don't disturb EDT */,
                                                  wait ? null : System.err);
                         swtDisplay.asyncExec(rTask);
+                    } else {
+                        wait = false;
+                        rTask = null;
                     }
                 }
             }
             if( wait ) {
                 try {
-                    rTaskLock.wait(); // free lock, allow execution of rTask
+                    while( rTask.isInQueue() ) {
+                        rTaskLock.wait(); // free lock, allow execution of rTask
+                    }
                 } catch (final InterruptedException ie) {
-                    throwable = ie;
+                    throw new InterruptedRuntimeException(ie);
                 }
-                if(null==throwable) {
-                    throwable = rTask.getThrowable();
-                }
+                final Throwable throwable = rTask.getThrowable();
                 if(null!=throwable) {
                     if(throwable instanceof NativeWindowException) {
                         throw (NativeWindowException)throwable;
@@ -274,12 +279,12 @@ public class SWTEDTUtil implements EDTUtil {
             final Thread swtT = !swtDisplay.isDisposed() ? swtDisplay.getThread() : null;
             final boolean onSWTEDT = swtT == curT;
             if( nedt.isRunning && nedt != curT && !onSWTEDT ) {
-                while( nedt.isRunning ) {
-                    try {
+                try {
+                    while( nedt.isRunning ) {
                         edtLock.wait();
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
                     }
+                } catch (final InterruptedException e) {
+                    throw new InterruptedRuntimeException(e);
                 }
                 return true;
             } else {
@@ -288,13 +293,13 @@ public class SWTEDTUtil implements EDTUtil {
         }
     }
 
-    class NEDT extends Thread {
+    class NEDT extends InterruptSource.Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
         Object sync = new Object();
 
         public NEDT(final ThreadGroup tg, final String name) {
-            super(tg, name);
+            super(tg, null, name);
         }
 
         final public boolean isRunning() {
@@ -337,7 +342,7 @@ public class SWTEDTUtil implements EDTUtil {
                             try {
                                 sync.wait(pollPeriod);
                             } catch (final InterruptedException e) {
-                                e.printStackTrace();
+                                throw new InterruptedRuntimeException(e);
                             }
                         }
                     }

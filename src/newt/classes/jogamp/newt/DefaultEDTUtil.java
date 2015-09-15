@@ -44,6 +44,8 @@ import com.jogamp.nativewindow.NativeWindowException;
 import jogamp.common.util.locks.LockDebugUtil;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.locks.Lock;
 import com.jogamp.newt.util.EDTUtil;
@@ -68,7 +70,7 @@ public class DefaultEDTUtil implements EDTUtil {
         this.threadGroup = tg;
         this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
         this.dispatchMessages=dispatchMessages;
-        this.edt = new NEDT(threadGroup, name);
+        this.edt = new NEDT(threadGroup, this.name);
         this.edt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
@@ -169,8 +171,7 @@ public class DefaultEDTUtil implements EDTUtil {
     };
 
     private final boolean invokeImpl(boolean wait, Runnable task, final boolean stop, final boolean provokeError) {
-        Throwable throwable = null;
-        RunnableTask rTask = null;
+        final RunnableTask rTask;
         final Object rTaskLock = new Object();
         synchronized(rTaskLock) { // lock the optional task execution
             synchronized(edtLock) { // lock the EDT status
@@ -187,6 +188,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         task.run();
                     }
                     wait = false; // running in same thread (EDT) -> no wait
+                    rTask = null;
                     if( stop ) {
                         edt.shouldStop = true;
                         if( edt.tasks.size()>0 ) {
@@ -230,18 +232,19 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                     } else {
                         wait = false;
+                        rTask = null;
                     }
                 }
             }
             if( wait ) {
                 try {
-                    rTaskLock.wait(); // free lock, allow execution of rTask
+                    while( rTask.isInQueue() ) {
+                        rTaskLock.wait(); // free lock, allow execution of rTask
+                    }
                 } catch (final InterruptedException ie) {
-                    throwable = ie;
+                    throw new InterruptedRuntimeException(ie);
                 }
-                if(null==throwable) {
-                    throwable = rTask.getThrowable();
-                }
+                final Throwable throwable = rTask.getThrowable();
                 if(null!=throwable) {
                     if(throwable instanceof NativeWindowException) {
                         throw (NativeWindowException)throwable;
@@ -268,13 +271,13 @@ public class DefaultEDTUtil implements EDTUtil {
             return false;
         }
         synchronized(_edt.tasks) {
-            while(_edt.isRunning && _edt.tasks.size()>0) {
-                try {
+            try {
+                while(_edt.isRunning && _edt.tasks.size()>0) {
                     _edt.tasks.notifyAll();
                     _edt.tasks.wait();
-                } catch (final InterruptedException e) {
-                    e.printStackTrace();
                 }
+            } catch (final InterruptedException e) {
+                throw new InterruptedRuntimeException(e);
             }
             return true;
         }
@@ -284,12 +287,12 @@ public class DefaultEDTUtil implements EDTUtil {
     final public boolean waitUntilStopped() {
         synchronized(edtLock) {
             if(edt.isRunning && edt != Thread.currentThread() ) {
-                while( edt.isRunning ) {
-                    try {
+                try {
+                    while( edt.isRunning ) {
                         edtLock.wait();
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
                     }
+                } catch (final InterruptedException e) {
+                    throw new InterruptedRuntimeException(e);
                 }
                 return true;
             } else {
@@ -298,13 +301,13 @@ public class DefaultEDTUtil implements EDTUtil {
         }
     }
 
-    class NEDT extends Thread {
+    class NEDT extends InterruptSource.Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
         final ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
 
         public NEDT(final ThreadGroup tg, final String name) {
-            super(tg, name);
+            super(tg, null, name);
         }
 
         final public boolean isRunning() {
@@ -347,11 +350,11 @@ public class DefaultEDTUtil implements EDTUtil {
                     RunnableTask task = null;
                     synchronized(tasks) {
                         // wait for tasks
-                        if(!shouldStop && tasks.size()==0) {
+                        if( !shouldStop && tasks.size()==0 ) {
                             try {
                                 tasks.wait(pollPeriod);
                             } catch (final InterruptedException e) {
-                                e.printStackTrace();
+                                throw new InterruptedRuntimeException(e);
                             }
                         }
                         // execute one task, if available
@@ -375,7 +378,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                         if(!task.hasWaiter() && null != task.getThrowable()) {
                             // at least dump stack-trace in case nobody waits for result
-                            System.err.println("DefaultEDT.run(): Caught exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
+                            System.err.println("DefaultEDT.run(): Caught exception occured on thread "+java.lang.Thread.currentThread().getName()+": "+task.toString());
                             task.getThrowable().printStackTrace();
                         }
                     }

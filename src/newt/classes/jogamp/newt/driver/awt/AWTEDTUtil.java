@@ -33,6 +33,8 @@ import java.awt.EventQueue;
 import com.jogamp.nativewindow.NativeWindowException;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.util.EDTUtil;
@@ -54,7 +56,7 @@ public class AWTEDTUtil implements EDTUtil {
         this.threadGroup = tg;
         this.name=Thread.currentThread().getName()+"-"+name+"-EDT-";
         this.dispatchMessages=dispatchMessages;
-        this.nedt = new NEDT(threadGroup, name);
+        this.nedt = new NEDT(threadGroup, this.name);
         this.nedt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
@@ -132,8 +134,7 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     private final boolean invokeImpl(boolean wait, final Runnable task, final boolean stop) {
-        Throwable throwable = null;
-        RunnableTask rTask = null;
+        final RunnableTask rTask;
         final Object rTaskLock = new Object();
         synchronized(rTaskLock) { // lock the optional task execution
             synchronized(edtLock) { // lock the EDT status
@@ -150,6 +151,7 @@ public class AWTEDTUtil implements EDTUtil {
                         task.run();
                     }
                     wait = false; // running in same thread (EDT) -> no wait
+                    rTask = null;
                     if(stop) {
                         nedt.shouldStop = true;
                     }
@@ -182,18 +184,21 @@ public class AWTEDTUtil implements EDTUtil {
                                                  true /* always catch and report Exceptions, don't disturb EDT */,
                                                  wait ? null : System.err);
                         AWTEDTExecutor.singleton.invoke(false, rTask);
+                    } else {
+                        wait = false;
+                        rTask = null;
                     }
                 }
             }
             if( wait ) {
                 try {
-                    rTaskLock.wait(); // free lock, allow execution of rTask
+                    while( rTask.isInQueue() ) {
+                        rTaskLock.wait(); // free lock, allow execution of rTask
+                    }
                 } catch (final InterruptedException ie) {
-                    throwable = ie;
+                    throw new InterruptedRuntimeException(ie);
                 }
-                if(null==throwable) {
-                    throwable = rTask.getThrowable();
-                }
+                final Throwable throwable = rTask.getThrowable();
                 if(null!=throwable) {
                     if(throwable instanceof NativeWindowException) {
                         throw (NativeWindowException)throwable;
@@ -227,12 +232,12 @@ public class AWTEDTUtil implements EDTUtil {
     final public boolean waitUntilStopped() {
         synchronized(edtLock) {
             if( nedt.isRunning && nedt != Thread.currentThread() && !EventQueue.isDispatchThread() ) {
-                while( nedt.isRunning ) {
-                    try {
+                try {
+                    while( nedt.isRunning ) {
                         edtLock.wait();
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
                     }
+                } catch (final InterruptedException e) {
+                    throw new InterruptedRuntimeException(e);
                 }
                 return true;
             } else {
@@ -241,13 +246,13 @@ public class AWTEDTUtil implements EDTUtil {
         }
     }
 
-    class NEDT extends Thread {
+    class NEDT extends InterruptSource.Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
         Object sync = new Object();
 
         public NEDT(final ThreadGroup tg, final String name) {
-            super(tg, name);
+            super(tg, null, name);
         }
 
         final public boolean isRunning() {
@@ -286,7 +291,7 @@ public class AWTEDTUtil implements EDTUtil {
                             try {
                                 sync.wait(pollPeriod);
                             } catch (final InterruptedException e) {
-                                e.printStackTrace();
+                                throw new InterruptedRuntimeException(e);
                             }
                         }
                     }

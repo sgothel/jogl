@@ -36,6 +36,9 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
+
 // Needed only for NIO workarounds on CVM
 import java.lang.reflect.*;
 
@@ -43,9 +46,10 @@ public class Mixer {
     // This class is a singleton
     private static Mixer mixer;
 
-    private volatile boolean shutdown;
-    private volatile Object shutdownLock = new Object();
-    private volatile boolean shutdownDone;
+    volatile boolean fillerAlive;
+    volatile boolean mixerAlive;
+    volatile boolean shutdown;
+    volatile Object shutdownLock = new Object();
 
     // Windows Event object
     private final long event;
@@ -63,6 +67,9 @@ public class Mixer {
 
     private Mixer() {
         event = CreateEvent();
+        fillerAlive = false;
+        mixerAlive = false;
+        shutdown = false;
         new FillerThread().start();
         final MixerThread m = new MixerThread();
         m.setPriority(Thread.MAX_PRIORITY - 1);
@@ -118,50 +125,57 @@ public class Mixer {
             shutdown = true;
             SetEvent(event);
             try {
-                shutdownLock.wait();
+                while(fillerAlive || mixerAlive) {
+                    shutdownLock.wait();
+                }
             } catch (final InterruptedException e) {
+                throw new InterruptedRuntimeException(e);
             }
         }
     }
 
-    class FillerThread extends Thread {
+    class FillerThread extends InterruptSource.Thread {
         FillerThread() {
-            super("Mixer Thread");
+            super(null, null, "Mixer Thread");
         }
 
         @Override
         public void run() {
-            while (!shutdown) {
-                final List<Track> curTracks = tracks;
+            fillerAlive = true;
+            try {
+                while (!shutdown) {
+                    final List<Track> curTracks = tracks;
 
-                for (final Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
-                    final Track track = iter.next();
+                    for (final Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
+                        final Track track = iter.next();
+                        try {
+                            track.fill();
+                        } catch (final IOException e) {
+                            e.printStackTrace();
+                            remove(track);
+                        }
+                    }
                     try {
-                        track.fill();
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                        remove(track);
+                        // Run ten times per second
+                        java.lang.Thread.sleep(100);
+                    } catch (final InterruptedException e) {
+                        throw new InterruptedRuntimeException(e);
                     }
                 }
-
-                try {
-                    // Run ten times per second
-                    Thread.sleep(100);
-                } catch (final InterruptedException e) {
-                    e.printStackTrace();
-                }
+            } finally {
+                fillerAlive = false;
             }
         }
     }
 
-    class MixerThread extends Thread {
+    class MixerThread extends InterruptSource.Thread {
         // Temporary mixing buffer
         // Interleaved left and right channels
         float[] mixingBuffer;
         private final Vec3f temp = new Vec3f();
 
         MixerThread() {
-            super("Mixer Thread");
+            super(null, null, "Mixer Thread");
             if (!initializeWaveOut(event)) {
                 throw new InternalError("Error initializing waveout device");
             }
@@ -169,108 +183,113 @@ public class Mixer {
 
         @Override
         public void run() {
-            while (!shutdown) {
-                // Get the next buffer
-                final long mixerBuffer = getNextMixerBuffer();
-                if (mixerBuffer != 0) {
-                    ByteBuffer buf = getMixerBufferData(mixerBuffer);
+            mixerAlive = true;
+            try {
+                while (!shutdown) {
+                    // Get the next buffer
+                    final long mixerBuffer = getNextMixerBuffer();
+                    if (mixerBuffer != 0) {
+                        ByteBuffer buf = getMixerBufferData(mixerBuffer);
 
-                    if (buf == null) {
-                        // This is happening on CVM because
-                        // JNI_NewDirectByteBuffer isn't implemented
-                        // by default and isn't compatible with the
-                        // JSR-239 NIO implementation (apparently)
-                        buf = newDirectByteBuffer(getMixerBufferDataAddress(mixerBuffer),
-                                                  getMixerBufferDataCapacity(mixerBuffer));
-                    }
-
-                    if (buf == null) {
-                        throw new InternalError("Couldn't wrap the native address with a direct byte buffer");
-                    }
-
-                    // System.out.println("Mixing buffer");
-
-                    // If we don't have enough samples in our mixing buffer, expand it
-                    // FIXME: knowledge of native output rendering format
-                    if ((mixingBuffer == null) || (mixingBuffer.length < (buf.capacity() / 2 /* bytes / sample */))) {
-                        mixingBuffer = new float[buf.capacity() / 2];
-                    } else {
-                        // Zap it
-                        for (int i = 0; i < mixingBuffer.length; i++) {
-                            mixingBuffer[i] = 0.0f;
+                        if (buf == null) {
+                            // This is happening on CVM because
+                            // JNI_NewDirectByteBuffer isn't implemented
+                            // by default and isn't compatible with the
+                            // JSR-239 NIO implementation (apparently)
+                            buf = newDirectByteBuffer(getMixerBufferDataAddress(mixerBuffer),
+                                                      getMixerBufferDataCapacity(mixerBuffer));
                         }
-                    }
 
-                    // This assertion should be in place if we have stereo
-                    if ((mixingBuffer.length % 2) != 0) {
-                        final String msg = "FATAL ERROR: odd number of samples in the mixing buffer";
-                        System.out.println(msg);
-                        throw new InternalError(msg);
-                    }
+                        if (buf == null) {
+                            throw new InternalError("Couldn't wrap the native address with a direct byte buffer");
+                        }
 
-                    // Run down all of the registered tracks mixing them in
-                    final List<Track> curTracks = tracks;
+                        // System.out.println("Mixing buffer");
 
-                    for (final Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
-                        final Track track = iter.next();
-                        // Consider only playing tracks
-                        if (track.isPlaying()) {
-                            // First recompute its gain
-                            final Vec3f pos = track.getPosition();
-                            final float leftGain  = gain(pos, leftSpeakerPosition);
-                            final float rightGain = gain(pos, rightSpeakerPosition);
-                            // Now mix it in
-                            int i = 0;
-                            while (i < mixingBuffer.length) {
-                                if (track.hasNextSample()) {
-                                    final float sample = track.nextSample();
-                                    mixingBuffer[i++] = sample * leftGain;
-                                    mixingBuffer[i++] = sample * rightGain;
-                                } else {
-                                    // This allows tracks to stall without being abruptly cancelled
-                                    if (track.done()) {
-                                        remove(track);
+                        // If we don't have enough samples in our mixing buffer, expand it
+                        // FIXME: knowledge of native output rendering format
+                        if ((mixingBuffer == null) || (mixingBuffer.length < (buf.capacity() / 2 /* bytes / sample */))) {
+                            mixingBuffer = new float[buf.capacity() / 2];
+                        } else {
+                            // Zap it
+                            for (int i = 0; i < mixingBuffer.length; i++) {
+                                mixingBuffer[i] = 0.0f;
+                            }
+                        }
+
+                        // This assertion should be in place if we have stereo
+                        if ((mixingBuffer.length % 2) != 0) {
+                            final String msg = "FATAL ERROR: odd number of samples in the mixing buffer";
+                            System.out.println(msg);
+                            throw new InternalError(msg);
+                        }
+
+                        // Run down all of the registered tracks mixing them in
+                        final List<Track> curTracks = tracks;
+
+                        for (final Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
+                            final Track track = iter.next();
+                            // Consider only playing tracks
+                            if (track.isPlaying()) {
+                                // First recompute its gain
+                                final Vec3f pos = track.getPosition();
+                                final float leftGain  = gain(pos, leftSpeakerPosition);
+                                final float rightGain = gain(pos, rightSpeakerPosition);
+                                // Now mix it in
+                                int i = 0;
+                                while (i < mixingBuffer.length) {
+                                    if (track.hasNextSample()) {
+                                        final float sample = track.nextSample();
+                                        mixingBuffer[i++] = sample * leftGain;
+                                        mixingBuffer[i++] = sample * rightGain;
+                                    } else {
+                                        // This allows tracks to stall without being abruptly cancelled
+                                        if (track.done()) {
+                                            remove(track);
+                                        }
+                                        break;
                                     }
-                                    break;
                                 }
                             }
                         }
-                    }
 
-                    // Now that we have our data, send it down to the card
-                    int outPos = 0;
-                    for (int i = 0; i < mixingBuffer.length; i++) {
-                        final short val = (short) mixingBuffer[i];
-                        buf.put(outPos++, (byte)  val);
-                        buf.put(outPos++, (byte) (val >> 8));
-                    }
-                    if (!prepareMixerBuffer(mixerBuffer)) {
-                        throw new RuntimeException("Error preparing mixer buffer");
-                    }
-                    if (!writeMixerBuffer(mixerBuffer)) {
-                        throw new RuntimeException("Error writing mixer buffer to device");
-                    }
-                } else {
-                    // System.out.println("No mixer buffer available");
+                        // Now that we have our data, send it down to the card
+                        int outPos = 0;
+                        for (int i = 0; i < mixingBuffer.length; i++) {
+                            final short val = (short) mixingBuffer[i];
+                            buf.put(outPos++, (byte)  val);
+                            buf.put(outPos++, (byte) (val >> 8));
+                        }
+                        if (!prepareMixerBuffer(mixerBuffer)) {
+                            throw new RuntimeException("Error preparing mixer buffer");
+                        }
+                        if (!writeMixerBuffer(mixerBuffer)) {
+                            throw new RuntimeException("Error writing mixer buffer to device");
+                        }
+                    } else {
+                        // System.out.println("No mixer buffer available");
 
-                    // Wait for a buffer to become available
-                    if (!WaitForSingleObject(event)) {
-                        throw new RuntimeException("Error while waiting for event object");
-                    }
+                        // Wait for a buffer to become available
+                        if (!WaitForSingleObject(event)) {
+                            throw new RuntimeException("Error while waiting for event object");
+                        }
 
-                    /*
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
+                        /*
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            throw new InterruptedRuntimeException(e);
+                        }
+                        */
                     }
-                    */
                 }
-            }
-
-            // Need to shut down
-            shutdownWaveOut();
-            synchronized(shutdownLock) {
-                shutdownLock.notifyAll();
+            } finally {
+                mixerAlive = false;
+                // Need to shut down
+                shutdownWaveOut();
+                synchronized(shutdownLock) {
+                    shutdownLock.notifyAll();
+                }
             }
         }
 

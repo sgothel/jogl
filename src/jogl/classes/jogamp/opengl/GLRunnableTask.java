@@ -29,6 +29,7 @@
 package jogamp.opengl;
 
 import com.jogamp.opengl.GLRunnable;
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.opengl.GLAutoDrawable;
 
 /**
@@ -61,7 +62,7 @@ public class GLRunnableTask implements GLRunnable {
             } catch (final Throwable t) {
                 runnableException = t;
                 if(catchExceptions) {
-                    runnableException.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", runnableException);
                 } else {
                     throw new RuntimeException(runnableException);
                 }
@@ -75,7 +76,7 @@ public class GLRunnableTask implements GLRunnable {
                 } catch (final Throwable t) {
                     runnableException = t;
                     if(catchExceptions) {
-                        runnableException.printStackTrace();
+                        ExceptionUtils.dumpThrowable("", runnableException);
                     } else {
                         throw new RuntimeException(runnableException);
                     }

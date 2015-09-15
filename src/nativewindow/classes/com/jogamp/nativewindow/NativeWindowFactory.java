@@ -57,6 +57,7 @@ import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
@@ -183,7 +184,7 @@ public abstract class NativeWindowFactory {
                 _DEBUG[0] = Debug.debug("NativeWindow");
                 _tmp[0] = PropertyAccess.getProperty("nativewindow.ws.name", true);
                 Runtime.getRuntime().addShutdownHook(
-                    new Thread(new Runnable() {
+                    new InterruptSource.Thread(null, new Runnable() {
                                 @Override
                                 public void run() {
                                     NativeWindowFactory.shutdown(true);

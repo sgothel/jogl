@@ -98,6 +98,7 @@ import jogamp.opengl.awt.AWTTilePainter;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.util.glsl.GLSLTextureRaster;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
@@ -395,7 +396,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    */
   public final boolean initializeBackend(final boolean offthread) {
     if( offthread ) {
-        new Thread(getThreadName()+"-GLJPanel_Init") {
+        new InterruptSource.Thread(null, null, getThreadName()+"-GLJPanel_Init") {
             public void run() {
               if( !isInitialized ) {
                   initializeBackendImpl();

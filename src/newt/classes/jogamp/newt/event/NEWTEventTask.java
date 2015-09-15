@@ -38,19 +38,27 @@ public class NEWTEventTask {
     private final NEWTEvent event;
     private final Object notifyObject;
     private RuntimeException exception;
+    private volatile boolean dispatched;
 
     public NEWTEventTask(final NEWTEvent event, final Object notifyObject) {
         this.event = event ;
         this.notifyObject = notifyObject ;
         this.exception = null;
+        this.dispatched = false;
     }
 
     public final NEWTEvent get() { return event; }
     public final void setException(final RuntimeException e) { exception = e; }
     public final RuntimeException getException() { return exception; }
     public final boolean isCallerWaiting() { return null != notifyObject; }
+    public final boolean isDispatched() { return dispatched; }
+    public final void setDispatched() { dispatched = true; }
 
+    /**
+     * Notifies caller after {@link #setDispatched()}.
+     */
     public void notifyCaller() {
+        setDispatched();
         if(null != notifyObject) {
             synchronized (notifyObject) {
                 notifyObject.notifyAll();

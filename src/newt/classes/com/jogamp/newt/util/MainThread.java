@@ -45,6 +45,7 @@ import java.util.List;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 
@@ -171,15 +172,14 @@ public class MainThread {
         return res;
     }
 
-    static class UserApp extends Thread {
+    static class UserApp extends InterruptSource.Thread {
         private final String mainClassNameShort;
         private final String mainClassName;
         private final String[] mainClassArgs;
         private final Method mainClassMain;
-        private List<Thread> nonDaemonThreadsAtStart;
+        private List<java.lang.Thread> nonDaemonThreadsAtStart;
 
         public UserApp(final String mainClassName, final String[] mainClassArgs) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
-            super();
             this.mainClassName=mainClassName;
             this.mainClassArgs=mainClassArgs;
 
@@ -200,10 +200,10 @@ public class MainThread {
         @Override
         public void run() {
             nonDaemonThreadsAtStart = getNonDaemonThreads();
-            if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" start, nonDaemonThreadsAtStart "+nonDaemonThreadsAtStart);
+            if(DEBUG) System.err.println("MainAction.run(): "+java.lang.Thread.currentThread().getName()+" start, nonDaemonThreadsAtStart "+nonDaemonThreadsAtStart);
             // start user app ..
             try {
-                if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" invoke "+mainClassName);
+                if(DEBUG) System.err.println("MainAction.run(): "+java.lang.Thread.currentThread().getName()+" invoke "+mainClassName);
                 mainClassMain.invoke(null, new Object[] { mainClassArgs } );
             } catch (final InvocationTargetException ite) {
                 ite.getTargetException().printStackTrace();
@@ -219,30 +219,30 @@ public class MainThread {
                 while( 0 < ( ndtr = getNonDaemonThreadCount(nonDaemonThreadsAtStart) ) ) {
                     if(DEBUG) System.err.println("MainAction.run(): post user app, non daemon threads alive: "+ndtr);
                     try {
-                        Thread.sleep(1000);
+                        java.lang.Thread.sleep(1000);
                     } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin: "+ndtr);
+                if(DEBUG) System.err.println("MainAction.run(): "+java.lang.Thread.currentThread().getName()+" user app fin: "+ndtr);
             }
 
             if ( useMainThread ) {
                 if(isMacOSX) {
                     try {
                         if(DEBUG) {
-                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.0");
+                            System.err.println("MainAction.main(): "+java.lang.Thread.currentThread()+" MainAction fin - stopNSApp.0");
                         }
                         ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "stopNSApplication",
                             null, null, MainThread.class.getClassLoader());
                         if(DEBUG) {
-                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.X");
+                            System.err.println("MainAction.main(): "+java.lang.Thread.currentThread()+" MainAction fin - stopNSApp.X");
                         }
                     } catch (final Exception e) {
                         e.printStackTrace();
                     }
                 } else {
-                    if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainAction fin - System.exit(0)");
+                    if(DEBUG) System.err.println("MainAction.run(): "+java.lang.Thread.currentThread().getName()+" MainAction fin - System.exit(0)");
                     System.exit(0);
                 }
             }

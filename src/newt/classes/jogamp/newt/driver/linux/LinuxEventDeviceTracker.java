@@ -43,6 +43,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.KeyTracker;
 
 import com.jogamp.common.nio.StructAccessor;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.WindowEvent;
@@ -63,7 +64,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
 
     static {
         ledt = new LinuxEventDeviceTracker();
-        final Thread t = new Thread(ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
+        final Thread t = new InterruptSource.Thread(null, ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
         t.setDaemon(true);
         t.start();
     }
@@ -153,7 +154,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                         if(number<32&&number>=0) {
                             if(eventDevicePollers[number]==null){
                                 eventDevicePollers[number] = new EventDevicePoller(number);
-                                final Thread t = new Thread(eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
+                                final Thread t = new InterruptSource.Thread(null, eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
                                 t.setDaemon(true);
                                 t.start();
                             } else if(eventDevicePollers[number].stop) {
