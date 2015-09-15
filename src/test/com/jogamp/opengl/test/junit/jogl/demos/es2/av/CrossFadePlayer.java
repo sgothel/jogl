@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -73,7 +74,7 @@ public class CrossFadePlayer
 					System.out.println("Duration: " + mp.getDuration() + "ms");
 					System.out.println("Volume: " + mp.getAudioVolume());
 					System.out.println("player.initGL()...");
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             try {
                                 mp.initGL(null);
@@ -98,7 +99,7 @@ public class CrossFadePlayer
                         stop = true;
                     } else {
                         System.err.println("Player State: EOS");
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             public void run() {
                                 System.out.println("mp.setPlaySpeed(1f) returned: " + mp.setPlaySpeed(1f));
                                 mp.seek(0);
@@ -112,7 +113,7 @@ public class CrossFadePlayer
 					if( null != se ) {
 						se.printStackTrace();
 					}
-					new Thread() {
+					new InterruptSource.Thread() {
 						public void run() {
 							System.out.println("terminating...");
 							stop = true;

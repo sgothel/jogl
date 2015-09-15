@@ -42,6 +42,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -800,7 +801,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
 
     static class StereoGLMediaEventListener implements GLMediaEventListener {
             void destroyWindow(final Window window) {
-                new Thread() {
+                new InterruptSource.Thread() {
                     public void run() {
                         window.destroy();
                     } }.start();
@@ -846,7 +847,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                         destroy = true;
                     } else {
                         System.err.println("MovieSimple State: EOS");
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             public void run() {
                                 mp.setPlaySpeed(1f);
                                 mp.seek(0);

@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore.anim;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
@@ -85,10 +86,10 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
                     lastTime = time;
                     animator.pause();
                     System.out.println(Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.pause(): paused "+animator);
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             try {
-                                Thread.sleep(1000);
+                                java.lang.Thread.sleep(1000);
                             } catch (final InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -98,9 +99,9 @@ public class Bug898AnimatorFromEDTAWT extends javax.swing.JFrame {
                                     final long td = System.currentTimeMillis() - lastTime;
                                     if (animator.isPaused()) {
                                         animator.resume(); //Doesn't work on v2.0.2 or higher
-                                        System.out.println(Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.resume(): animating "+animator);
+                                        System.out.println(java.lang.Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.resume(): animating "+animator);
                                     } else {
-                                        System.out.println(Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.resume(): Ooops - not paused! - animating "+animator);
+                                        System.out.println(java.lang.Thread.currentThread().getName()+": #"+step+" "+td+" ms: animator.resume(): Ooops - not paused! - animating "+animator);
                                     }
                                 } } );
                         }

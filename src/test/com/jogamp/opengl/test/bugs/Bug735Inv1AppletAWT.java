@@ -27,7 +27,7 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
-
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LandscapeES2;
@@ -100,7 +100,7 @@ public class Bug735Inv1AppletAWT extends Applet implements Runnable {
   }
 
   public void start() {
-    thread = new Thread(this, "Animation Thread");
+    thread = new InterruptSource.Thread(null, this, "Animation Thread");
     thread.start();
   }
 

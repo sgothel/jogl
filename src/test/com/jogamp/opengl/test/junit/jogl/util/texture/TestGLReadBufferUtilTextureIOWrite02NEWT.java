@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.GLAutoDrawable;
@@ -99,7 +100,7 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
                     c=0;
                     snapshot(i++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                     dw_old = dw;
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         @Override
                         public void run() {
                             glWindow.setSize(2*dw, 2*dh);

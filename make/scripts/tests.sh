@@ -470,7 +470,7 @@ function testawtswt() {
 # av demos
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
 
@@ -630,7 +630,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
-testnoawt com.jogamp.opengl.test.junit.newt.TestBug1211IRQ00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestBug1211IRQ00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT $*

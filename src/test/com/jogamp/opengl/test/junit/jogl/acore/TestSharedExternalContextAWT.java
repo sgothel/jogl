@@ -14,6 +14,7 @@ import javax.swing.Timer;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.*;
@@ -69,7 +70,7 @@ public class TestSharedExternalContextAWT {
     // which is suppose to lie outside of the JVM.
     // The thread is kept alive, since this detail
     // may be required for the OpenGL driver implementation.
-    final Thread thread = new Thread(runnable);
+    final Thread thread = new InterruptSource.Thread(null, runnable);
     thread.setDaemon(true);
     thread.start();
     masterLatch.await(3, TimeUnit.SECONDS);

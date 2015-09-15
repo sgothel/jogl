@@ -6,6 +6,7 @@ import java.awt.Frame;
 import java.awt.event.*;
 import java.awt.geom.*;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -49,7 +50,7 @@ public abstract class Issue344Base implements GLEventListener
         frame.setSize(512, 512);
         frame.addWindowListener(new WindowAdapter() {
                 public void windowClosing(final WindowEvent e) {
-                    new Thread(new Runnable() {
+                    new InterruptSource.Thread(null, new Runnable() {
                             public void run() {
                                 System.exit(0);
                             }

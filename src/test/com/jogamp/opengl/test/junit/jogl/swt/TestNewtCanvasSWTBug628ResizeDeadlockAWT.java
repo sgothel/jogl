@@ -50,7 +50,8 @@ import com.jogamp.opengl.GLCapabilities ;
 import com.jogamp.opengl.GLEventListener ;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.KeyAdapter;
@@ -143,14 +144,13 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    static class ResizeThread extends Thread {
+    static class ResizeThread extends InterruptSource.Thread {
         volatile boolean shallStop = false;
         private final Shell _shell ;
         private int _n ;
 
         public ResizeThread( final Shell shell )
         {
-            super();
             _shell = shell ;
         }
 
@@ -196,9 +196,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     display.asyncExec( resizeAction );
                     display.wake();
 
-                    Thread.sleep( 50L ) ;
+                    java.lang.Thread.sleep( 50L ) ;
                 } catch( final InterruptedException e ) {
-                    break ;
+                    throw new InterruptedRuntimeException(e);
                 }
             }
             System.err.println("*R-Exit* shallStop "+shallStop+", disposed "+_shell.isDisposed());
@@ -207,7 +207,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    static class KeyfireThread extends Thread
+    static class KeyfireThread extends InterruptSource.Thread
     {
         volatile boolean shallStop = false;
         Display _display;
@@ -216,6 +216,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
 
         public KeyfireThread(final Robot robot, final Display display)
         {
+            super();
             _robot = robot;
             _display = display;
         }
@@ -231,7 +232,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     AWTRobotUtil.waitForIdle(_robot);
                     AWTRobotUtil.newtKeyPress(_n, _robot, true, KeyEvent.VK_0, 10);
                     AWTRobotUtil.newtKeyPress(_n, _robot, false, KeyEvent.VK_0, 0);
-                    Thread.sleep( 40L ) ;
+                    java.lang.Thread.sleep( 40L ) ;
                     _n++;
                     if(!_display.isDisposed()) {
                         _display.wake();
@@ -368,7 +369,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         }
 
         {
-            final Thread t = new Thread(new Runnable() {
+            final Thread t = new InterruptSource.Thread(null, new Runnable() {
                 @Override
                 public void run() {
                     try {

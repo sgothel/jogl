@@ -28,7 +28,7 @@
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import com.jogamp.opengl.GL2ES2;
-
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -91,7 +91,7 @@ public class MediaPlayerButton extends TextureSeqButton {
                     // FIXME: mPlayer.resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             // loop for-ever ..
                             mPlayer.seek(0);

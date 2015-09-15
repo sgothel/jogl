@@ -36,6 +36,7 @@ import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.event.MonitorEvent;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
@@ -90,7 +91,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
             public void mousePressed(final MouseEvent e) {
                 if( e.getPointerCount() == 3 ) {
                     Log.d(TAG, "MemoryHog");
-                    new Thread(new Runnable() {
+                    new InterruptSource.Thread(null, new Runnable() {
                         public void run() {
                             final ArrayList<Buffer> buffers = new ArrayList<Buffer>();
                             while(true) {

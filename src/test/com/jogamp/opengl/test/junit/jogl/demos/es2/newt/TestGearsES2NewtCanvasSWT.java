@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.KeyAdapter;
@@ -184,14 +185,12 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
-                    new Thread() {
+                    glWindow.invokeOnNewThread(null, false, new Runnable() {
                         public void run() {
-                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
                             System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                            glWindow.setExclusiveContextThread(t);
-                    } }.start();
+                    } } );
                 }
             }
         });

@@ -20,7 +20,8 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
-
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LandscapeES2;
@@ -82,7 +83,7 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
 
   public void start() {
     initDraw();
-    thread = new Thread(this, "Animation Thread");
+    thread = new InterruptSource.Thread(null, this, "Animation Thread");
     thread.start();
   }
 
@@ -219,7 +220,7 @@ public class Bug735Inv2AppletAWT extends Applet implements Runnable {
     System.err.println("swapInterval "+SWAP_INTERVAL);
     System.err.println("exclusiveContext "+USE_ECT);
     if(waitForKey) {
-        UITestCase.waitForKey("Start");
+        JunitTracer.waitForKey("Start");
     }
 
     final GraphicsEnvironment environment =

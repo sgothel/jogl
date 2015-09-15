@@ -42,6 +42,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -116,7 +117,7 @@ public class MovieCube implements GLEventListener {
                     resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             // loop for-ever ..
                             mPlayer.seek(0);
@@ -599,7 +600,7 @@ public class MovieCube implements GLEventListener {
                     if( null != se ) {
                         se.printStackTrace();
                     }
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             window.destroy();
                         } }.start();

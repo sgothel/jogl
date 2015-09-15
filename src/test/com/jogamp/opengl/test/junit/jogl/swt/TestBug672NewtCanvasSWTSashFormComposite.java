@@ -205,14 +205,14 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
-                    new Thread() {
+                    glWindow.invokeOnNewThread(null, false, new Runnable() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
                             System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
-                    } }.start();
+                    } } );
                 }
             }
         });

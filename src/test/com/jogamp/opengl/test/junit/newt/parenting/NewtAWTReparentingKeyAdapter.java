@@ -29,21 +29,21 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.awt.Frame;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.util.NEWTDemoListener;
-import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 
 public class NewtAWTReparentingKeyAdapter extends NEWTDemoListener {
     final Frame frame;
     final NewtCanvasAWT newtCanvasAWT;
 
-    public NewtAWTReparentingKeyAdapter(final Frame frame, final NewtCanvasAWT newtCanvasAWT, final GLWindow glWindow, final QuitAdapter quitAdapter) {
-        super(glWindow, quitAdapter, null);
+    public NewtAWTReparentingKeyAdapter(final Frame frame, final NewtCanvasAWT newtCanvasAWT, final GLWindow glWindow) {
+        super(glWindow, null);
         this.frame = frame;
         this.newtCanvasAWT = newtCanvasAWT;
     }
@@ -64,9 +64,9 @@ public class NewtAWTReparentingKeyAdapter extends NEWTDemoListener {
             case KeyEvent.VK_R:
                 e.setConsumed(true);
                 quitAdapterOff();
-                new Thread() {
+                new InterruptSource.Thread() {
                     public void run() {
-                        final Thread t = glWindow.setExclusiveContextThread(null);
+                        final java.lang.Thread t = glWindow.setExclusiveContextThread(null);
                         if(glWindow.getParent()==null) {
                             printlnState("[reparent pre - glWin to HOME]");
                             glWindow.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, 0 /* hints */);

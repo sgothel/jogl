@@ -47,6 +47,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -355,7 +356,7 @@ public class MovieSimple implements GLEventListener {
                     resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             // loop for-ever ..
                             mPlayer.seek(0);
@@ -807,7 +808,7 @@ public class MovieSimple implements GLEventListener {
 
     static class MyGLMediaEventListener implements GLMediaEventListener {
             void destroyWindow(final Window window) {
-                new Thread() {
+                new InterruptSource.Thread() {
                     public void run() {
                         window.destroy();
                     } }.start();
@@ -841,7 +842,7 @@ public class MovieSimple implements GLEventListener {
                     /**
                      * Kick off player w/o GLEventListener, i.e. for audio only.
                      *
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             public void run() {
                                 try {
                                     mp.initGL(null);
@@ -873,7 +874,7 @@ public class MovieSimple implements GLEventListener {
                     } else {
                         System.err.println("MovieSimple State: EOS");
                         if( loopEOS ) {
-                            new Thread() {
+                            new InterruptSource.Thread() {
                                 public void run() {
                                     mp.setPlaySpeed(1f);
                                     mp.seek(0);

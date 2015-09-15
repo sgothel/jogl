@@ -52,6 +52,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
@@ -127,7 +128,7 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
         final String cancelButtonText = UIManager.getString("FileChooser.cancelButtonText",l);
 
         // launch robot action ..
-        new Thread()
+        new InterruptSource.Thread()
         {
             public void run()
             {
@@ -161,7 +162,7 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
                     // hover to 'approve' -> tool tip
                     if( null != approveButtonPos ) {
                         AWTRobotUtil.mouseMove(robot, approveButtonPos, MOVE_ITER, MOVE_DELAY);
-                        Thread.sleep(TOOLTIP_WAIT);
+                        java.lang.Thread.sleep(TOOLTIP_WAIT);
                         try {
                             SwingUtilities.invokeAndWait(new Runnable() {
                                 public void run() {

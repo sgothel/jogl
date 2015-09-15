@@ -50,7 +50,6 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -272,12 +271,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             animator.setExclusiveContext(exclusiveContext);
         }
 
-        final QuitAdapter quitAdapter = new QuitAdapter();
-        //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
-        //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
-        glWindow.addKeyListener(quitAdapter);
-        glWindow.addWindowListener(quitAdapter);
-
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
@@ -287,9 +280,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             }
         });
 
-        final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow, quitAdapter);
+        final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow);
+        newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);
+        glWindow.addWindowListener(newtDemoListener);
 
         if( useAnimator ) {
             animator.add(glWindow);
@@ -334,7 +329,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
 
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while(!quitAdapter.shouldQuit() && t1-t0<duration) {
+        while(!newtDemoListener.shouldQuit() && t1-t0<duration) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
         }

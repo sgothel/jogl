@@ -28,6 +28,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.caps;
 
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -92,12 +94,12 @@ public class TestTranslucencyNEWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
                     } }.start();
@@ -157,7 +159,7 @@ public class TestTranslucencyNEWT extends UITestCase {
             }
         }
         if( waitForKey ) {
-            UITestCase.waitForKey("main");
+            JunitTracer.waitForKey("main");
         }
         org.junit.runner.JUnitCore.main(TestTranslucencyNEWT.class.getName());
     }

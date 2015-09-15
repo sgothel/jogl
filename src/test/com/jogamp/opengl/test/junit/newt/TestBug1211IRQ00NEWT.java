@@ -36,6 +36,8 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.newt.opengl.GLWindow;
@@ -85,49 +87,35 @@ public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
         }
     }
 
-    @SuppressWarnings("serial")
-    static class MyInterruptedException extends InterruptedException {
-        public MyInterruptedException(final String message, final Throwable cause) {
-            super(message);
-            if( null != cause ) {
-                initCause(cause);
-            }
-        }
-    }
-    static class MyThread extends Thread implements Thread.UncaughtExceptionHandler {
-        volatile Throwable interruptCause = null;
-        volatile int interruptCounter = 0;
+    static class MyThread extends InterruptSource.Thread implements Thread.UncaughtExceptionHandler {
         volatile boolean myThreadStarted = false;
         volatile boolean myThreadStopped = false;
 
         public MyThread(final Runnable target, final String name) {
-            super(target, name);
+            super(null, target, name);
             setUncaughtExceptionHandler(this);
         }
-        public synchronized void clearInterruptCounter() {
-            interruptCounter = 0;
-            interruptCause = null;
-        }
-        public synchronized boolean interruptCalled() { return 0 < interruptCounter; }
 
         public static void testInterrupted1() throws InterruptedException {
-            if( Thread.interrupted() ) {
-                throw new InterruptedException(Thread.currentThread().getName()+".testInterrupted -> TRUE (silent interruption)");
+            if( java.lang.Thread.interrupted() ) {
+                throw SourcedInterruptedException.wrap(
+                        new InterruptedException(java.lang.Thread.currentThread().getName()+".testInterrupted -> TRUE (silent interruption)"));
             }
         }
         public synchronized void testInterrupted(final boolean ignore) throws InterruptedException {
             if( isInterrupted() ) {
                 final boolean current;
-                if( this == Thread.currentThread() ) {
-                    Thread.interrupted(); // clear!
+                if( this == java.lang.Thread.currentThread() ) {
+                    java.lang.Thread.interrupted(); // clear!
                     current = true;
                 } else {
                     current = false;
                 }
-                final InterruptedException e = new MyInterruptedException(getName()+".testInterrupted -> TRUE (current "+current+", counter "+interruptCounter+")",
-                                                                          interruptCause);
-                interruptCause = null;
-                interruptCounter = 0;
+                final int counter = getInterruptCounter(false);
+                final Throwable source = getInterruptSource(true);
+                final InterruptedException e = new SourcedInterruptedException(
+                                                getName()+".testInterrupted -> TRUE (current "+current+", counter "+counter+")",
+                                                null, source);
                 if( !ignore ) {
                     throw e;
                 } else {
@@ -145,16 +133,9 @@ public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
                 myThreadStopped = true;
             }
         }
-        @Override
-        public synchronized void interrupt() {
-            interruptCounter++;
-            interruptCause = new Throwable(getName()+".interrupt() ************************************************* - count "+interruptCounter);
-            ExceptionUtils.dumpThrowable("causing", interruptCause);
-            super.interrupt();
-        }
 
         @Override
-        public void uncaughtException(final Thread t, final Throwable e) {
+        public void uncaughtException(final java.lang.Thread t, final Throwable e) {
             System.err.println("UncaughtException on Thread "+t.getName()+": "+e.getMessage());
             ExceptionUtils.dumpThrowable("UncaughtException", e);
         }
@@ -200,7 +181,7 @@ public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
                 }
                 System.err.println("test00.resize["+i+"]: "+ow+"x"+oh+" -> "+nw+"x"+nh);
                 window1.setSize(nw, nh);
-                ok = !t.interruptCalled() && !t.isInterrupted() && edt.isRunning() && anim.isAnimating();
+                ok = 0==t.getInterruptCounter(false) && !t.isInterrupted() && edt.isRunning() && anim.isAnimating();
                 t.testInterrupted(false);
             }
         } catch (final InterruptedException e) {
@@ -215,7 +196,7 @@ public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
             ExceptionUtils.dumpThrowable("InterruptedException-2", e);
             interrupt2 = true;
         }
-        Assert.assertFalse("interruptCalled()", t.interruptCalled());
+        Assert.assertEquals("interruptCounter not zero", 0, t.getInterruptCounter(false));
         Assert.assertFalse("interrupt() occured!", t.isInterrupted());
         Assert.assertFalse("Interrupt-1 occured!", interrupt1);
         Assert.assertFalse("Interrupt-2 occured!", interrupt2);
@@ -256,7 +237,7 @@ public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
             ExceptionUtils.dumpThrowable("InterruptedException-2", e);
             interrupt2 = true;
         }
-        Assert.assertFalse("interruptCalled()", t.interruptCalled());
+        Assert.assertEquals("interruptCounter not zero", 0, t.getInterruptCounter(false));
         Assert.assertFalse("interrupt() occured!", t.isInterrupted());
         Assert.assertFalse("Interrupt-1 occured!", interrupt1);
         Assert.assertFalse("Interrupt-2 occured!", interrupt2);
@@ -279,7 +260,7 @@ public class TestBug1211IRQ00NEWT extends SingletonJunitCase {
                     interruptInit0 = true;
                     test = null;
                 }
-                t.clearInterruptCounter();
+                t.clearInterruptSource();
                 if( null != test ) {
                     test.initTest();
                     test.subTest00();

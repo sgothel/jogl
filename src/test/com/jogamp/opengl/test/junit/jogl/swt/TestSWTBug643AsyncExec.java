@@ -51,6 +51,7 @@ import com.jogamp.opengl.GLProfile;
 import jogamp.newt.swt.SWTEDTUtil;
 import jogamp.newt.swt.event.SWTNewtEventFactory;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.opengl.GLWindow ;
@@ -110,7 +111,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    static class AsyncExecEDTFeederThread extends Thread {
+    static class AsyncExecEDTFeederThread extends InterruptSource.Thread {
         volatile boolean shallStop = false;
         private final Display swtDisplay ;
         private final jogamp.newt.DisplayImpl newtDisplay;
@@ -118,7 +119,6 @@ public class TestSWTBug643AsyncExec extends UITestCase {
 
         public AsyncExecEDTFeederThread( final Display swtDisplay, final com.jogamp.newt.Display newtDisplay )
         {
-            super();
             this.swtDisplay = swtDisplay ;
             this.newtDisplay = (jogamp.newt.DisplayImpl)newtDisplay;
         }
@@ -152,7 +152,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                         // only perform async exec on valid and already running NEWT EDT!
                         newtDisplay.runOnEDTIfAvail(false, newtAsyncAction);
                     }
-                    Thread.sleep( 50L ) ;
+                    java.lang.Thread.sleep( 50L ) ;
                 } catch( final InterruptedException e ) {
                     break ;
                 }
@@ -275,7 +275,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         }
 
         {
-            final Thread t = new Thread(new Runnable() {
+            final Thread t = new InterruptSource.Thread(null, new Runnable() {
                 @Override
                 public void run() {
                     try {

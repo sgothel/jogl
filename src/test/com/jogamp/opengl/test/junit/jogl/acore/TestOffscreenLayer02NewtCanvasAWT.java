@@ -49,6 +49,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -162,7 +163,7 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         }
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
 
         frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, newtCanvasAWT1);
@@ -189,7 +190,7 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
 
         end(animator1, frame1, glWindow1);
         if( waitForKey ) {
-            UITestCase.waitForKey("Continue");
+            JunitTracer.waitForKey("Continue");
         }
     }
 
@@ -234,7 +235,7 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
             }
         }
         if(waitForKey) {
-            UITestCase.waitForKey("Start");
+            JunitTracer.waitForKey("Start");
         }
         final String tstname = TestOffscreenLayer02NewtCanvasAWT.class.getName();
         /*

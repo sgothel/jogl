@@ -40,12 +40,11 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -172,12 +171,6 @@ public class TestGearsES2NEWT extends UITestCase {
             animator.setExclusiveContext(exclusiveContext);
         }
 
-        final QuitAdapter quitAdapter = new QuitAdapter();
-        //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
-        //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
-        glWindow.addKeyListener(quitAdapter);
-        glWindow.addWindowListener(quitAdapter);
-
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
@@ -196,6 +189,7 @@ public class TestGearsES2NEWT extends UITestCase {
         }
 
         final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow, pointerIcons);
+        newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);
 
@@ -231,7 +225,7 @@ public class TestGearsES2NEWT extends UITestCase {
                                     final EDTUtil edt = ((Window)upstream).getScreen().getDisplay().getEDTUtil();
                                     System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
                                     if( edt instanceof DefaultEDTUtil ) {
-                                        quitAdapter.doQuit();
+                                        newtDemoListener.doQuit();
                                         ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
                                             public void run() {
                                                 throw new RuntimeException("XXX Should never ever be seen! - "+Thread.currentThread());
@@ -279,7 +273,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        while(!quitAdapter.shouldQuit() && t1-t0<duration) {
+        while(!newtDemoListener.shouldQuit() && t1-t0<duration) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
             if( SysExit.testError == sysExit || SysExit.testExit == sysExit || SysExit.testEDTError == sysExit) {
@@ -294,7 +288,7 @@ public class TestGearsES2NEWT extends UITestCase {
                         final EDTUtil edt = glWindow.getScreen().getDisplay().getEDTUtil();
                         System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
                         if( edt instanceof DefaultEDTUtil ) {
-                            quitAdapter.doQuit();
+                            newtDemoListener.doQuit();
                             ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
                                 public void run() {
                                     throw new RuntimeException("XXX Should never ever be seen!");

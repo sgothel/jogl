@@ -87,15 +87,15 @@ public class TestLandscapeES2NEWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
-                    new Thread() {
+                    glWindow.invokeOnNewThread(null, false, new Runnable() {
                         public void run() {
                             glWindow.setFullscreen(!glWindow.isFullscreen());
-                    } }.start();
+                    } } );
                 } else if(e.getKeyChar()=='d') {
-                    new Thread() {
+                    glWindow.invokeOnNewThread(null, false, new Runnable() {
                         public void run() {
                             glWindow.setUndecorated(!glWindow.isUndecorated());
-                    } }.start();
+                    } } );
                 }
             }
         });

@@ -46,7 +46,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.test.junit.jogl.demos.GLFinishOnDisplay;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.Mix2TexturesES2;
-
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.SurfaceUpdatedListener;
 import com.jogamp.opengl.GL;
@@ -178,7 +178,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
                     }
                     if(9 == c) {
                         c=0;
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             @Override
                             public void run() {
                                 glWindow.setSize(dw+256, dh+256);

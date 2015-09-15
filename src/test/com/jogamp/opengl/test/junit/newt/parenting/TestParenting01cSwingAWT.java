@@ -47,6 +47,7 @@ import javax.swing.WindowConstants;
 import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -140,7 +141,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         animator1.start();
 
         final GLDisturbanceAction disturbanceAction = new GLDisturbanceAction(glWindow1);
-        new Thread(disturbanceAction).start();
+        new InterruptSource.Thread(null, disturbanceAction).start();
         disturbanceAction.waitUntilRunning();
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
@@ -274,7 +275,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         animator1.start();
 
         final GLDisturbanceAction disturbanceAction = new GLDisturbanceAction(glWindow1);
-        new Thread(disturbanceAction).start();
+        new InterruptSource.Thread(null, disturbanceAction).start();
         disturbanceAction.waitUntilRunning();
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);

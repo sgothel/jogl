@@ -32,6 +32,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
@@ -114,7 +115,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                     if( 3 == c ) {
                         demo.setMSAA(4);
                     } else if( 6 == c ) {
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             @Override
                             public void run() {
                                 glWindow.setSize(dw+64, dh+64);
@@ -124,14 +125,14 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                     } else if( 12 == c ) {
                         demo.setMSAA(0);
                     } else if( 15 == c ) {
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             @Override
                             public void run() {
                                 glWindow.setSize(dw+128, dh+128);
                             } }.start();
                     } else if( 18 == c ) {
                         c=0;
-                        new Thread() {
+                        new InterruptSource.Thread() {
                             @Override
                             public void run() {
                                 glWindow.setSize(dw+256, dh+256);
@@ -167,7 +168,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                 }
                 System.err.println("*** "+e);
                 if(e.getKeyChar()=='f') {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());

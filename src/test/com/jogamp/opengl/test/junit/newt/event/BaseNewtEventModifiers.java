@@ -40,6 +40,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test ;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -344,20 +345,17 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         }
         _testMouseListener.setModifierCheckEnabled( true ) ;
 
-        Throwable throwable = null;
         // final Object sync = new Object();
         final RunnableTask rt = new RunnableTask( testAction, null, true, System.err );
         try {
             // synchronized(sync) {
-                new Thread(rt, "Test-Thread").start();
+                new InterruptSource.Thread(null, rt, "Test-Thread").start();
                 int i=0;
-                while( !rt.isExecuted() && null == throwable ) {
+                while( rt.isInQueue() ) {
                     System.err.println("WAIT-till-done: eventDispatch() #"+i++);
                     eventDispatch();
                 }
-                if(null==throwable) {
-                    throwable = rt.getThrowable();
-                }
+                final Throwable throwable = rt.getThrowable();
                 if(null!=throwable) {
                     throw new RuntimeException(throwable);
                 }

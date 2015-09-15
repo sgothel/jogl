@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es1.newt;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -90,12 +91,12 @@ public class TestRedSquareES1NEWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
-                    new Thread() {
+                    new InterruptSource.Thread() {
                         public void run() {
                             f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
                     } }.start();

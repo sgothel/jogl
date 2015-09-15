@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -194,8 +195,8 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         final Object sync = new Object();
         final MyRunnable[] animTasks = new MyRunnable[animThreadCount];
         final MyRunnable[] resizeTasks = new MyRunnable[animThreadCount];
-        final Thread[] animThreads = new Thread[reszThreadCount];
-        final Thread[] resizeThreads = new Thread[reszThreadCount];
+        final InterruptSource.Thread[] animThreads = new InterruptSource.Thread[reszThreadCount];
+        final InterruptSource.Thread[] resizeThreads = new InterruptSource.Thread[reszThreadCount];
 
         System.err.println("animThreadCount "+animThreadCount+", frameCount "+frameCount);
         System.err.println("reszThreadCount "+reszThreadCount+", resizeCount "+resizeCount);
@@ -204,12 +205,12 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         for(int i=0; i<animThreadCount; i++) {
             System.err.println("create anim task/thread "+i);
             animTasks[i] = new RudeAnimator(glWindow, frameCount, sync, i);
-            animThreads[i] = new Thread(animTasks[i], currentThreadName+"-anim"+i);
+            animThreads[i] = new InterruptSource.Thread(null, animTasks[i], currentThreadName+"-anim"+i);
         }
         for(int i=0; i<reszThreadCount; i++) {
             System.err.println("create resz task/thread "+i);
             resizeTasks[i] = new RudeResizer(glWindow, resizeCount, sync, i);
-            resizeThreads[i] = new Thread(resizeTasks[i], currentThreadName+"-resz"+i);
+            resizeThreads[i] = new InterruptSource.Thread(null, resizeTasks[i], currentThreadName+"-resz"+i);
         }
 
         myEventCounter.reset();

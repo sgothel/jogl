@@ -16,6 +16,7 @@ import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLRunnable;
 
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -354,7 +355,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                new Thread() {
+                new InterruptSource.Thread() {
                     public void run() {
                         if( null != cDrawable ) {
                             final GLAnimatorControl actrl = cDrawable.getAnimator();

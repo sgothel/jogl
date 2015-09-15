@@ -42,6 +42,7 @@ import java.util.List;
 import com.jogamp.opengl.GLContext;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 
 public class MiscUtils {
     public static boolean atob(final String str, final boolean def) {
@@ -160,7 +161,7 @@ public class MiscUtils {
         return false;
     }
 
-    public static class StreamDump extends Thread {
+    public static class StreamDump extends InterruptSource.Thread {
         final InputStream is;
         final StringBuilder outString;
         final OutputStream outStream;

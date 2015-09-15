@@ -29,8 +29,8 @@
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.newt;
 
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import com.jogamp.opengl.util.Animator;

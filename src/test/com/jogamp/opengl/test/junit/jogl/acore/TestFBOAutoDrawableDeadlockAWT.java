@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -83,7 +84,7 @@ public class TestFBOAutoDrawableDeadlockAWT extends UITestCase {
                 System.err.println("BB.0: "+rTask.getSyncObject());
                 synchronized (rTask.getSyncObject()) {
                     System.err.println("BB.1: "+rTask.getSyncObject());
-                    new Thread(rTask, Thread.currentThread().getName()+"-Pbuffer_Creation").start();
+                    new InterruptSource.Thread(null, rTask, Thread.currentThread().getName()+"-Pbuffer_Creation").start();
                     try {
                         System.err.println("BB.2");
                         rTask.getSyncObject().wait();

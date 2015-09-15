@@ -154,7 +154,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
         final GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
         glWindow1.addKeyListener(new KeyAdapter() {
             public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {

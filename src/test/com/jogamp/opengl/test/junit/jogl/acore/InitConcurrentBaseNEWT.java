@@ -28,6 +28,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.nativewindow.Capabilities;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.opengl.GLCapabilities;
@@ -194,11 +196,11 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         final String currentThreadName = Thread.currentThread().getName();
         final Object syncDone = new Object();
         final JOGLTask[] tasks = new JOGLTask[num];
-        final Thread[] threads = new Thread[num];
+        final InterruptSource.Thread[] threads = new InterruptSource.Thread[num];
         int i;
         for(i=0; i<num; i++) {
             tasks[i] = new JOGLTask(syncDone, i, reuse);
-            threads[i] = new Thread(tasks[i], currentThreadName+"-jt"+i);
+            threads[i] = new InterruptSource.Thread(null, tasks[i], currentThreadName+"-jt"+i);
         }
         final long t0 = System.currentTimeMillis();
 
@@ -211,7 +213,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
                 try {
                     syncDone.wait(500);
                 } catch (final InterruptedException e) {
-                    throw new RuntimeException(e);
+                    throw new InterruptedRuntimeException(e);
                 }
                 System.err.println(i+": "+doneDump(tasks));
                 i++;
