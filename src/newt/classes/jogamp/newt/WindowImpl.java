@@ -2186,6 +2186,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 if( 0 != cmask ) {
                     if( isNativeValid() ) {
+                        final boolean focused = hasFocus();
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
                         final int y = getY();
@@ -2197,6 +2198,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                         reconfigureWindowImpl(x, y, width, height, getReconfigureMask(cmask, isVisible()));
                         display.dispatchMessagesNative(); // status up2date
+
+                        if(focused) {
+                            requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
+                        }
                     }
                 }
             } finally {
