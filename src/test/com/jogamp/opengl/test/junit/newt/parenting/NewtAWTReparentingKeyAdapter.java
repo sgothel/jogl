@@ -29,7 +29,6 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.awt.Frame;
 
-import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.newt.Window;
@@ -64,7 +63,7 @@ public class NewtAWTReparentingKeyAdapter extends NEWTDemoListener {
             case KeyEvent.VK_R:
                 e.setConsumed(true);
                 quitAdapterOff();
-                new InterruptSource.Thread() {
+                glWindow.invokeOnNewThread(null, false, new Runnable() {
                     public void run() {
                         final java.lang.Thread t = glWindow.setExclusiveContextThread(null);
                         if(glWindow.getParent()==null) {
@@ -95,7 +94,7 @@ public class NewtAWTReparentingKeyAdapter extends NEWTDemoListener {
                         glWindow.requestFocus();
                         glWindow.setExclusiveContextThread(t);
                         quitAdapterOn();
-                } }.start();
+                } } );
                 break;
           }
         }

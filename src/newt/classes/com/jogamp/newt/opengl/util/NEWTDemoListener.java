@@ -28,7 +28,10 @@
 package com.jogamp.newt.opengl.util;
 
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.ScalableSurface;
@@ -65,7 +68,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
         if( null != pointerIcons ) {
             this.pointerIcons = pointerIcons;
         } else {
-            this.pointerIcons = createPointerIcons(glWindow);
+            this.pointerIcons = createPointerIcons(glWindow.getScreen().getDisplay());
         }
     }
     public NEWTDemoListener(final GLWindow glWin) {
@@ -424,76 +427,69 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
         win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
 
-    public static PointerIcon[] createPointerIcons(final GLWindow glWindow) {
-        final PointerIcon[] pointerIcons = { null, null, null, null, null };
+    public static PointerIcon[] createPointerIcons(final Display disp) {
+        final List<PointerIcon> pointerIcons = new ArrayList<PointerIcon>();
         {
-            final Display disp = glWindow.getScreen().getDisplay();
             disp.createNative();
-            int idx = 0;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 8, 8);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                    pointerIcons.add(_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", e);
                 }
-                pointerIcons[idx] = _pointerIcon;
             }
-            idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                    pointerIcons.add(_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", e);
                 }
-                pointerIcons[idx] = _pointerIcon;
             }
-            idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-red-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "arrow-red-alpha-64x64.png" } );
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                    pointerIcons.add(_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", e);
                 }
-                pointerIcons[idx] = _pointerIcon;
             }
-            idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-blue-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "arrow-blue-alpha-64x64.png" } );
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                    pointerIcons.add(_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", e);
                 }
-                pointerIcons[idx] = _pointerIcon;
             }
-            idx++;
             if( PNGIcon.isAvailable() ) {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
                 try {
                     final URLConnection urlConn = res.resolve(0);
                     final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, image.toString());
+                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size()+1, image.toString());
                     _pointerIcon = disp.createPointerIcon(image, 32, 0);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
+                    pointerIcons.add(_pointerIcon);
+                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    ExceptionUtils.dumpThrowable("", e);
                 }
-                pointerIcons[idx] = _pointerIcon;
             }
-            idx++;
         }
-        return pointerIcons;
+        return pointerIcons.toArray(new PointerIcon[pointerIcons.size()]);
     }
 }

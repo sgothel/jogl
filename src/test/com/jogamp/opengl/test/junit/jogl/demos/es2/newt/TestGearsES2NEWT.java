@@ -33,7 +33,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Display;
-import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -182,13 +181,7 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
-        final PointerIcon[] pointerIcons = NEWTDemoListener.createPointerIcons(glWindow);
-        if( setPointerIcon ) {
-            glWindow.setPointerIcon(pointerIcons[0]);
-            System.err.println("Set PointerIcon: "+glWindow.getPointerIcon());
-        }
-
-        final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow, pointerIcons);
+        final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);
