@@ -659,6 +659,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
   }
 
+  final boolean updatePixelScale() {
+      if( jawtWindow.hasPixelScaleChanged() ) {
+          jawtWindow.getNativeSurfaceScale(nativePixelScale);
+          jawtWindow.setSurfaceScale(reqPixelScale);
+          jawtWindow.getCurrentSurfaceScale(hasPixelScale);
+          return true;
+      } else {
+          return false;
+      }
+  }
+
   @Override
   public final int[] getRequestedSurfaceScale(final int[] result) {
       System.arraycopy(reqPixelScale, 0, result, 0, 2);
@@ -786,7 +797,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  private void reshapeImpl(final int width, final int height) {
+  void reshapeImpl(final int width, final int height) {
     final int scaledWidth = width * hasPixelScale[0];
     final int scaledHeight = height * hasPixelScale[1];
 
@@ -1391,6 +1402,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         _lock.lock();
         try {
             if( null != drawable && drawable.isRealized() ) {
+                if( GLCanvas.this.updatePixelScale() ) {
+                    GLCanvas.this.reshapeImpl(getWidth(), getHeight());
+                }
                 helper.invokeGL(drawable, context, displayAction, initAction);
             }
         } finally {

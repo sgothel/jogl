@@ -111,7 +111,12 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     private void setTitle(final JFrame frame, final GLJPanel glc, final GLCapabilitiesImmutable caps) {
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
         final java.awt.Rectangle b = glc.getBounds();
-        frame.setTitle("GLJPanel["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());
+        final int[] currentScale = new int[2];
+        final int[] nativeScale = new int[2];
+        glc.getCurrentSurfaceScale(currentScale);
+        glc.getNativeSurfaceScale(nativeScale);
+        frame.setTitle("GLJPanel["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight()+
+                ", scale "+currentScale[0]+"x"+currentScale[1]+" / "+nativeScale[0]+"x"+nativeScale[1]);
     }
 
     protected void runTestGL(final GLCapabilities caps)

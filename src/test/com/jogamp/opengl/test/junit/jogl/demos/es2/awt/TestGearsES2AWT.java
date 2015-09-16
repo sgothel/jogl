@@ -160,7 +160,12 @@ public class TestGearsES2AWT extends UITestCase {
     private void setTitle(final Frame frame, final GLCanvas glc, final GLCapabilitiesImmutable caps) {
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
         final java.awt.Rectangle b = glc.getBounds();
-        frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());
+        final int[] currentScale = new int[2];
+        final int[] nativeScale = new int[2];
+        glc.getCurrentSurfaceScale(currentScale);
+        glc.getNativeSurfaceScale(nativeScale);
+        frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight()+
+                ", scale "+currentScale[0]+"x"+currentScale[1]+" / "+nativeScale[0]+"x"+nativeScale[1]);
     }
 
     protected void runTestGL(final GLCapabilities caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
@@ -215,30 +220,23 @@ public class TestGearsES2AWT extends UITestCase {
         }
         setTitle(frame, glCanvas, caps);
 
-        frame.addComponentListener(new ComponentListener() {
-            @Override
-            public void componentResized(final ComponentEvent e) {
-                setTitle(frame, glCanvas, caps);
-            }
-
-            @Override
-            public void componentMoved(final ComponentEvent e) {
-                setTitle(frame, glCanvas, caps);
-            }
-
-            @Override
-            public void componentShown(final ComponentEvent e) { }
-
-            @Override
-            public void componentHidden(final ComponentEvent e) { }
-        });
-
         final GearsES2 demo = new GearsES2(swapInterval);
         glCanvas.addGLEventListener(demo);
 
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glCanvas.addGLEventListener(snap);
-
+        glCanvas.addGLEventListener(new GLEventListener() {
+            @Override
+            public void init(final GLAutoDrawable drawable) { }
+            @Override
+            public void dispose(final GLAutoDrawable drawable) { }
+            @Override
+            public void display(final GLAutoDrawable drawable) { }
+            @Override
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+                setTitle(frame, glCanvas, caps);
+            }
+        });
         final Animator animator = useAnimator ? new Animator(glCanvas) : null;
         if( useAnimator && exclusiveContext ) {
             animator.setExclusiveContext(awtEDT);

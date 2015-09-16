@@ -46,6 +46,8 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.EventQueue;
+import java.awt.GraphicsConfiguration;
 import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -105,7 +107,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
   private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
   protected final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
-
+  private volatile boolean hasPixelScaleChanged = false;
   private long drawable_old;
 
   /**
@@ -270,6 +272,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
     nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
     nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScaleChanged = false;
   }
   protected abstract void invalidateNative();
 
@@ -307,7 +310,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * Updates bounds and pixelScale
    * @return true if bounds or pixelScale has changed, otherwise false
    */
-  protected final boolean updateLockedData(final JAWT_Rectangle jawtBounds) {
+  protected final boolean updateLockedData(final JAWT_Rectangle jawtBounds, final GraphicsConfiguration gc) {
     final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
     final boolean changedBounds = !bounds.equals(jb);
 
@@ -322,21 +325,70 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
         }
     }
-    {
-        final int ps = JAWTUtil.getPixelScale(config.getAWTGraphicsConfiguration());
-        nativePixelScale[0] = ps;
-        nativePixelScale[1] = ps;
-    }
 
-    return updatePixelScale() || changedBounds;
+    updatePixelScale(gc, false);
+    return hasPixelScaleChanged || changedBounds;
   }
 
   /**
    * Update pixelScale
    * @return true if pixelScale has changed, otherwise false
    */
-  protected final boolean updatePixelScale() {
-    return SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
+  protected final boolean updatePixelScale(final GraphicsConfiguration gc, final boolean clearFlag) {
+    final int psOld = nativePixelScale[0];
+    final int ps = JAWTUtil.getPixelScale(gc);
+    if( psOld != ps ) {
+        nativePixelScale[0] = ps;
+        nativePixelScale[1] = ps;
+        hasPixelScaleChanged = true;
+    }
+    if( clearFlag ) {
+        final boolean r = hasPixelScaleChanged;
+        hasPixelScaleChanged = false;
+        return r;
+    } else {
+        return hasPixelScaleChanged;
+    }
+  }
+  /**
+   * Bug 1181 - JOGL WebStart Applications using GLCanvas/AWT may Deadlock by two AWT-EDT on Java >= 1.8.0_45,
+   * Commit b0af5159bc6100a6262afe6b52f9092a207ac2b3.
+   */
+  private final GraphicsConfiguration getGraphicsConfigurationSafe() {
+      final GraphicsConfiguration gc;
+      if( EventQueue.isDispatchThread() || Thread.holdsLock(component.getTreeLock()) ) {
+          /**
+           * Trigger detection of possible reconfiguration before 'sun.awt.SunToolkit.awtLock()',
+           * which maybe triggered via adevice.lock() below (X11).
+           * See setAWTGraphicsConfiguration(..).
+           */
+          gc = component.getGraphicsConfiguration();
+      } else {
+          // Reuse cached instance
+          gc = config.getAWTGraphicsConfiguration();
+      }
+      return gc;
+  }
+
+  /**
+   * @deprecated Use {@link #updatePixelScale(GraphicsConfiguration, boolean)}
+   */
+  protected final boolean updatePixelScale(final boolean clearFlag) {
+      return updatePixelScale(getGraphicsConfigurationSafe(), clearFlag);
+  }
+
+  protected final boolean setReqPixelScale() {
+      updatePixelScale(getGraphicsConfigurationSafe(), true);
+      return SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
+  }
+
+  /**
+   * Returns and clears the {@code hasPixelScaleChanged} flag, as set via {@link #lockSurface()}.
+   */
+  public final boolean hasPixelScaleChanged() {
+      final boolean v = hasPixelScaleChanged;
+      hasPixelScaleChanged = false;
+      return v;
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
@@ -540,7 +592,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @throws NativeWindowException
    */
   protected abstract JAWT fetchJAWTImpl() throws NativeWindowException;
-  protected abstract int lockSurfaceImpl() throws NativeWindowException;
+  protected abstract int lockSurfaceImpl(final GraphicsConfiguration gc) throws NativeWindowException;
 
   protected void dumpJAWTInfo() {
       System.err.println(jawt2String(null).toString());
@@ -561,6 +613,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 Thread.dumpStack();
             }
         } else {
+            final GraphicsConfiguration gc = getGraphicsConfigurationSafe();
+
             determineIfApplet();
             try {
                 final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
@@ -570,7 +624,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                         jawt = fetchJAWTImpl();
                         isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
                     }
-                    res = lockSurfaceImpl();
+                    res = lockSurfaceImpl(gc);
                     if(LOCK_SUCCESS == res && drawable_old != drawable) {
                         res = LOCK_SURFACE_CHANGED;
                         if(DEBUG) {

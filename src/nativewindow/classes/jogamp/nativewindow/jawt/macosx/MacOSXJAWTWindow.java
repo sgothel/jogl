@@ -41,6 +41,7 @@
 package jogamp.nativewindow.jawt.macosx;
 
 import java.awt.Component;
+import java.awt.GraphicsConfiguration;
 import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -48,7 +49,6 @@ import java.security.PrivilegedAction;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.util.Point;
@@ -118,11 +118,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   @Override
   public void setSurfaceScale(final int[] pixelScale) {
       super.setSurfaceScale(pixelScale);
-      if( 0 != getWindowHandle() ) { // locked at least once !
-          final int hadPixelScaleX = getPixelScaleX();
-          updatePixelScale();
-
-          if( hadPixelScaleX != getPixelScaleX() && 0 != getAttachedSurfaceLayer() ) {
+      if( 0 != getWindowHandle() && setReqPixelScale() ) { // locked at least once _and_ updated pixel-scale
+          if( 0 != getAttachedSurfaceLayer() ) {
               OSXUtil.RunOnMainThread(false, false, new Runnable() {
                   @Override
                   public void run() {
@@ -243,7 +240,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  protected int lockSurfaceImpl() throws NativeWindowException {
+  protected int lockSurfaceImpl(final GraphicsConfiguration gc) throws NativeWindowException {
     int ret = NativeSurface.LOCK_SURFACE_NOT_READY;
     ds = getJAWT().GetDrawingSurface(component);
     if (ds == null) {
@@ -280,7 +277,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       unlockSurfaceImpl();
       return NativeSurface.LOCK_SURFACE_NOT_READY;
     }
-    updateLockedData(dsi.getBounds());
+    updateLockedData(dsi.getBounds(), gc);
     if (DEBUG && firstLock ) {
       dumpInfo();
     }

@@ -559,6 +559,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         // re-creating it -- tricky to do properly while the context is
         // current
         if( !printActive ) {
+            updatePixelScale(backend);
             if ( handleReshape ) {
                 handleReshape = false;
                 sendReshape = handleReshape();
@@ -596,6 +597,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           }
       }
   }
+
+  private final boolean updatePixelScale(final Backend b) {
+      final int ps = JAWTUtil.getPixelScale(getGraphicsConfiguration());
+      nativePixelScale[0] = ps;
+      nativePixelScale[1] = ps;
+      if( SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null) ) {
+          updateWrappedSurfaceScale(b.getDrawable());
+          reshapeImpl(getWidth(), getHeight());
+          return true;
+      } else {
+          return false;
+      }
+  }
+
 
   @Override
   public final int[] getRequestedSurfaceScale(final int[] result) {
