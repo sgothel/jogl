@@ -115,6 +115,7 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow);
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
+        glWindow.addMouseListener(newtDemoListener);
         glWindow.addWindowListener(newtDemoListener);
 
         if( useAnimator ) {

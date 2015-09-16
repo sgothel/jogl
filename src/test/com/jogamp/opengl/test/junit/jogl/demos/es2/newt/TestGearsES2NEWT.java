@@ -185,6 +185,7 @@ public class TestGearsES2NEWT extends UITestCase {
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);
+        glWindow.addWindowListener(newtDemoListener);
 
         if( useAnimator ) {
             animator.add(glWindow);
