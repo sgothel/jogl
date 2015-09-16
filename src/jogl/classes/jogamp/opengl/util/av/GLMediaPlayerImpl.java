@@ -1387,6 +1387,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
+    /**
+     * Called initially by {@link #initStreamImpl(int, int)}, which
+     * is called off-thread by {@link #initStream(Uri, int, int, int)}.
+     * <p>
+     * The latter catches an occurring exception and set the state delivers the error events.
+     * </p>
+     * <p>
+     * Further calls are issues off-thread by the decoder implementation.
+     * </p>
+     */
     protected final void updateAttributes(int vid, final int aid, final int width, final int height, final int bps_stream,
                                           final int bps_video, final int bps_audio, final float fps,
                                           final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
@@ -1395,6 +1405,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
         if( wasUninitialized ) {
             event_mask |= GLMediaEventListener.EVENT_CHANGE_INIT;
+            setState( State.Initialized );
         }
         if( STREAM_ID_AUTO == vid ) {
             vid = STREAM_ID_NONE;
@@ -1451,12 +1462,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         if( wasUninitialized ) {
             if( null != streamWorker ) {
-                changeState(GLMediaEventListener.EVENT_CHANGE_ERR, GLMediaPlayer.State.Uninitialized);
                 throw new InternalError("XXX: StreamWorker not null - "+this);
             }
             if( TEXTURE_COUNT_MIN < textureCount || STREAM_ID_NONE == vid ) { // Enable StreamWorker for 'audio only' as well (Bug 918).
                 streamWorker = new StreamWorker();
-                setState( State.Initialized );
             }
             if( DEBUG ) {
                 System.err.println("XXX Initialize @ updateAttributes: "+this);
@@ -1533,7 +1542,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final int decVideoFrames = null != videoFramesDecoded ? videoFramesDecoded.size() : 0;
         final int video_scr = video_scr_pts + (int) ( ( Platform.currentTimeMillis() - video_scr_t0 ) * playSpeed );
         final String camPath = null != cameraPath ? ", camera: "+cameraPath : "";
-        return "GLMediaPlayer["+state+", vSCR "+video_scr+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s), z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
+        return getClass().getSimpleName()+"["+state+", vSCR "+video_scr+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s), z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
                "speed "+playSpeed+", "+bps_stream+" bps, hasSW "+(null!=streamWorker)+
                ", Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
                "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
