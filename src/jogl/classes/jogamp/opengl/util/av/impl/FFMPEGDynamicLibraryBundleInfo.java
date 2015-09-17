@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.util.RunnableExecutor;
@@ -190,7 +190,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
                 libLoaded[i] = dl.isToolLibLoaded(i);
             }
             if( !libLoaded[LIB_IDX_UTI] || !libLoaded[LIB_IDX_FMT] || !libLoaded[LIB_IDX_COD] ) {
-                throw new RuntimeException("FFMPEG Tool library incomplete: [ avutil "+libLoaded[LIB_IDX_UTI]+", avformat "+libLoaded[LIB_IDX_FMT]+", avcodec "+libLoaded[LIB_IDX_COD]+"]");
+                System.err.println("FFMPEG Tool library incomplete: [ avutil "+libLoaded[LIB_IDX_UTI]+", avformat "+libLoaded[LIB_IDX_FMT]+", avcodec "+libLoaded[LIB_IDX_COD]+"]");
+                return null;
             }
             dl.claimAllLinkPermission();
             try {
@@ -216,7 +217,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }
 
-        AccessController.doPrivileged(privInitSymbolsAction);
+        final DynamicLibraryBundle dl = AccessController.doPrivileged(privInitSymbolsAction);
+        if( null == dl ) {
+            return false;
+        }
 
         // optional symbol name set
         final Set<String> optionalSymbolNameSet = new HashSet<String>();
@@ -254,7 +258,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         try {
             _ready = initSymbols(_versions);
         } catch (final Throwable t) {
-            t.printStackTrace();
+            ExceptionUtils.dumpThrowable("", t);
         }
         libsUFCLoaded = libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_COD];
         avUtilVersion = _versions[0];
