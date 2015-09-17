@@ -522,6 +522,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             mPlayer.setTextureUnit(texUnitMediaPlayer);
             final MediaPlayerButton mPlayerButton = new MediaPlayerButton(renderer.getRenderState().getVertexFactory(), renderModes,
                                                                           button2XSize, button2YSize, mPlayer);
+            mPlayerButton.setVerbose(true);
             mPlayerButton.addDefaultEventListener();
             mPlayerButton.translate(xStartRight, yStartTop - diffY*1, 0f);
             mPlayerButton.setToggleable(true);
@@ -666,14 +667,17 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if( upObj instanceof Window ) {
             final Window upWin = (Window)upObj;
             final MonitorDevice mm = upWin.getMainMonitor();
-            final float[] monitorPixelsPerMM = mm.getPixelsPerMM(new float[2]);
-            final float monitorDpiH = monitorPixelsPerMM[1]*25.4f;
-            final float[] surfacePixelsPerMM = upWin.getPixelsPerMM(new float[2]);
-            dpiH = surfacePixelsPerMM[1]*25.4f;
+            final float[] monitorDPI = mm.getPixelsPerMM(new float[2]);
+            monitorDPI[0] *= 25.4f;
+            monitorDPI[1] *= 25.4f;
+            final float[] sDPI = upWin.getPixelsPerMM(new float[2]);
+            sDPI[0] *= 25.4f;
+            sDPI[1] *= 25.4f;
+            dpiH = sDPI[1];
             System.err.println("Monitor detected: "+mm);
-            System.err.println("Monitor dpi: "+monitorDpiH);
+            System.err.println("Monitor dpi: "+monitorDPI[0]+" x "+monitorDPI[1]);
             System.err.println("Surface scale: native "+Arrays.toString(upWin.getMaximumSurfaceScale(new float[2]))+", current "+Arrays.toString(upWin.getCurrentSurfaceScale(new float[2])));
-            System.err.println("Surface dpi: "+dpiH);
+            System.err.println("Surface dpi "+sDPI[0]+" x "+sDPI[1]);
         } else {
             System.err.println("Using default DPI of "+dpiH);
         }

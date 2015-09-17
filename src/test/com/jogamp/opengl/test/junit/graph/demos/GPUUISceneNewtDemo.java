@@ -145,10 +145,6 @@ public class GPUUISceneNewtDemo {
         });
 
         window.setVisible(true);
-        final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
-        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
-                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
-                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         animator.start();
     }
 }

@@ -31,7 +31,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.ScalableSurface;
@@ -439,7 +438,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                     pointerIcons.add(_pointerIcon);
                     System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    ExceptionUtils.dumpThrowable("", e);
+                    System.err.println(e.getMessage());
                 }
             }
             {
@@ -450,7 +449,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                     pointerIcons.add(_pointerIcon);
                     System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    ExceptionUtils.dumpThrowable("", e);
+                    System.err.println(e.getMessage());
                 }
             }
             {
@@ -461,7 +460,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                     pointerIcons.add(_pointerIcon);
                     System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    ExceptionUtils.dumpThrowable("", e);
+                    System.err.println(e.getMessage());
                 }
             }
             {
@@ -472,7 +471,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                     pointerIcons.add(_pointerIcon);
                     System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
                 } catch (final Exception e) {
-                    ExceptionUtils.dumpThrowable("", e);
+                    System.err.println(e.getMessage());
                 }
             }
             if( PNGIcon.isAvailable() ) {
@@ -480,13 +479,15 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                 final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
                 try {
                     final URLConnection urlConn = res.resolve(0);
-                    final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size()+1, image.toString());
-                    _pointerIcon = disp.createPointerIcon(image, 32, 0);
-                    pointerIcons.add(_pointerIcon);
-                    System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
+                    if( null != urlConn ) {
+                        final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                        System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size()+1, image.toString());
+                        _pointerIcon = disp.createPointerIcon(image, 32, 0);
+                        pointerIcons.add(_pointerIcon);
+                        System.err.printf("Create PointerIcon #%02d: %s%n", pointerIcons.size(), _pointerIcon.toString());
+                    }
                 } catch (final Exception e) {
-                    ExceptionUtils.dumpThrowable("", e);
+                    System.err.println(e.getMessage());
                 }
             }
         }

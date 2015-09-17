@@ -165,9 +165,14 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         super.init(drawable);
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
-            final float[] pixelsPerMM = new float[2];
-            ((Window)upObj).getPixelsPerMM(pixelsPerMM);
-            dpiH = pixelsPerMM[1]*25.4f;
+            final Window window = (Window) upObj;
+            final float[] sDPI = window.getPixelsPerMM(new float[2]);
+            sDPI[0] *= 25.4f;
+            sDPI[1] *= 25.4f;
+            dpiH = sDPI[1];
+            System.err.println("Using screen DPI of "+dpiH);
+        } else {
+            System.err.println("Using default DPI of "+dpiH);
         }
         fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
         switchHeadBox();

@@ -41,7 +41,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  * GPU based resolution independent {@link GLMediaPlayer} Button impl
  */
 public class MediaPlayerButton extends TextureSeqButton {
-    public boolean verbose = false;
+    private boolean verbose = false;
 
     /**
      * @param factory
@@ -61,6 +61,8 @@ public class MediaPlayerButton extends TextureSeqButton {
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
         setEnabled(false); // data and shader n/a yet
     }
+
+    public void setVerbose(final boolean v) { verbose = v; }
 
     /**
      * Add the default {@link GLMediaEventListener} to {@link #getGLMediaPlayer() this class's GLMediaPlayer}.

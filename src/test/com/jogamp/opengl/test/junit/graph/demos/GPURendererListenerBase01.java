@@ -47,6 +47,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
@@ -121,6 +122,17 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     @Override
     public void init(final GLAutoDrawable drawable) {
+        final Object upObj = drawable.getUpstreamWidget();
+        if( upObj instanceof Window ) {
+            final Window window = (Window) upObj;
+            final float[] sDPI = window.getPixelsPerMM(new float[2]);
+            sDPI[0] *= 25.4f;
+            sDPI[1] *= 25.4f;
+            System.err.println("DPI "+sDPI[0]+" x "+sDPI[1]);
+
+            final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
+            System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+        }
         autoDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(debug) {
