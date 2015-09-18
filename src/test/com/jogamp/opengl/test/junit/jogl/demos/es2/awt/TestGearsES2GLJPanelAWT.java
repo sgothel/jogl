@@ -119,12 +119,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 ", scale "+currentScale[0]+"x"+currentScale[1]+" / "+nativeScale[0]+"x"+nativeScale[1]);
     }
 
-    protected void runTestGL(final GLCapabilities caps)
+    protected GLJPanel newGLJPanel(final JFrame frame, final GLCapabilities caps, final FPSAnimator animator, final SnapshotGLEventListener snap)
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        final JFrame frame = new JFrame("Swing GLJPanel");
-        Assert.assertNotNull(frame);
-
         final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
         glJPanel.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
@@ -142,8 +139,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
             glJPanel.addGLEventListener(gears);
         }
-        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
-        glJPanel.addGLEventListener(snap);
+        if( null != snap ) {
+            glJPanel.addGLEventListener(snap);
+        }
         glJPanel.addGLEventListener(new GLEventListener() {
             @Override
             public void init(final GLAutoDrawable drawable) { }
@@ -158,7 +156,6 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
 
         });
         setTitle(frame, glJPanel, caps);
-        frame.setLocation(xpos, ypos);
 
         frame.addComponentListener(new ComponentListener() {
             @Override
@@ -178,28 +175,88 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             public void componentHidden(final ComponentEvent e) { }
         });
 
-        final FPSAnimator animator = useAnimator ? new FPSAnimator(glJPanel, 60) : null;
+        if( SwingUtilities.isEventDispatchThread() ) {
+            frame.getContentPane().add(glJPanel, BorderLayout.CENTER);
+            frame.getContentPane().validate();
+            frame.pack();
+            frame.setVisible(true);
+        } else {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        frame.getContentPane().add(glJPanel, BorderLayout.CENTER);
+                        frame.getContentPane().validate();
+                        frame.pack();
+                        frame.setVisible(true);
+                    } } ) ;
+            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    frame.getContentPane().add(glJPanel, BorderLayout.CENTER);
-                    frame.getContentPane().validate();
-                    frame.pack();
-                    frame.setVisible(true);
-                } } ) ;
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
+            final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
+            final int[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new int[2]);
+            System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                               valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
+                               hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+            setTitle(frame, glJPanel, caps);
+            Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+        }
 
-        final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-        final int[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new int[2]);
-        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
-                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
-                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-        setTitle(frame, glJPanel, caps);
-        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
-
-        if( useAnimator ) {
+        if( null != animator ) {
+            animator.add(glJPanel);
             animator.setUpdateFPSFrames(60, System.err);
+        }
+        return glJPanel;
+    }
+
+    protected void destroy(final JFrame frame, final GLJPanel glJPanel) {
+        try {
+            if( SwingUtilities.isEventDispatchThread() ) {
+                if( null != frame ) {
+                    frame.setVisible(false);
+                    if( null != glJPanel ) {
+                        frame.getContentPane().remove(glJPanel);
+                    }
+                    frame.remove(glJPanel);
+                }
+                if( null != glJPanel ) {
+                    glJPanel.destroy();
+                }
+                if( null != frame ) {
+                    frame.dispose();
+                }
+            } else {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            if( null != frame ) {
+                                frame.setVisible(false);
+                                if( null != glJPanel ) {
+                                    frame.getContentPane().remove(glJPanel);
+                                }
+                                frame.remove(glJPanel);
+                            }
+                            if( null != glJPanel ) {
+                                glJPanel.destroy();
+                            }
+                            if( null != frame ) {
+                                frame.dispose();
+                            }
+                        } } );
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void runTestGL(final GLCapabilities caps)
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        final JFrame frame = new JFrame("Swing GLJPanel");
+        frame.setLocation(xpos, ypos);
+        Assert.assertNotNull(frame);
+
+        final FPSAnimator animator = useAnimator ? new FPSAnimator(60) : null;
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        final GLJPanel glJPanel = newGLJPanel(frame, caps, animator, snap);
+        if( null != animator ) {
             animator.start();
             Assert.assertEquals(true, animator.isAnimating());
         }
@@ -207,6 +264,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         final QuitAdapter quitAdapter = new QuitAdapter();
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel).addTo(glJPanel);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glJPanel).addTo(frame);
+
+        final JFrame[] frame2 = { null };
+        final GLJPanel[] glJPanel2 = { null };
 
         final com.jogamp.newt.event.KeyListener kl = new com.jogamp.newt.event.KeyAdapter() {
             @Override
@@ -252,6 +312,33 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                     glJPanel.setRequestedGLCapabilities(capsNew);
                     System.err.println("XXX-A2: "+animator.toString());
                     System.err.println("XXX: "+glJPanel.toString());
+                } else if(e.getKeyChar()=='n') {
+                    System.err.println("XXX: frame2: "+frame2[0]);
+                    if( null != frame2[0] ) {
+                        System.err.println("XXX: frame2.isShowing: "+frame2[0].isShowing());
+                    }
+                    System.err.println("XXX: glJPanel2: "+glJPanel2[0]);
+                    if( null != frame2[0] && frame2[0].isShowing() ) {
+                        destroy(frame2[0], glJPanel2[0]);
+                        frame2[0] = null;
+                        glJPanel2[0] = null;
+                    } else {
+                        frame2[0] = new JFrame("GLJPanel2");
+                        frame2[0].setLocation(frame.getX()+frame.getWidth()+64, frame.getY());
+                        final FPSAnimator animator2 = useAnimator ? new FPSAnimator(60) : null;
+                        if( null != animator2 ) {
+                            animator2.start();
+                        }
+                        final SnapshotGLEventListener snap2 = new SnapshotGLEventListener();
+                        try {
+                            glJPanel2[0] = newGLJPanel(frame2[0], caps, animator2, snap2);
+                        } catch (final Exception e2) {
+                            e2.printStackTrace();
+                            destroy(frame2[0], glJPanel2[0]);
+                            frame2[0] = null;
+                            glJPanel2[0] = null;
+                        }
+                    }
                 }
             } };
         new AWTKeyAdapter(kl, glJPanel).addTo(glJPanel);
@@ -290,14 +377,10 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         } else {
             Assert.assertNull(animator);
         }
-        SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    frame.setVisible(false);
-                    frame.getContentPane().remove(glJPanel);
-                    frame.remove(glJPanel);
-                    glJPanel.destroy();
-                    frame.dispose();
-                } } );
+        destroy(frame, glJPanel);
+        if( null != frame2[0] ) {
+            destroy(frame2[0], glJPanel2[0]);
+        }
     }
 
     @Test
