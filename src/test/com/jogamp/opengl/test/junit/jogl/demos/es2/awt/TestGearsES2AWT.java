@@ -158,7 +158,15 @@ public class TestGearsES2AWT extends UITestCase {
     private void setTitle(final Frame frame, final GLCanvas glc, final GLCapabilitiesImmutable caps) {
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
         final java.awt.Rectangle b = glc.getBounds();
-        frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());
+        final float[] minSurfacePixelScale = glc.getMinimumSurfaceScale(new float[2]);
+        final float[] maxSurfacePixelScale = glc.getMaximumSurfaceScale(new float[2]);
+        final float[] reqSurfacePixelScale = glc.getRequestedSurfaceScale(new float[2]);
+        final float[] hasSurfacePixelScale = glc.getCurrentSurfaceScale(new float[2]);
+        frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight()+
+                ", scale[min "+minSurfacePixelScale[0]+"x"+minSurfacePixelScale[1]+", max "+
+                maxSurfacePixelScale[0]+"x"+maxSurfacePixelScale[1]+", req "+
+                reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" -> has "+
+                hasSurfacePixelScale[0]+"x"+hasSurfacePixelScale[1]+"]");
     }
 
     protected void runTestGL(final GLCapabilities caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {

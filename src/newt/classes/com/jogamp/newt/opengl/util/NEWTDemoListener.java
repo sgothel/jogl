@@ -423,7 +423,15 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
         final float[] sDPI = win.getPixelsPerMM(new float[2]);
         sDPI[0] *= 25.4f;
         sDPI[1] *= 25.4f;
-        win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
+        final float[] minSurfacePixelScale = win.getMinimumSurfaceScale(new float[2]);
+        final float[] maxSurfacePixelScale = win.getMaximumSurfaceScale(new float[2]);
+        final float[] reqSurfacePixelScale = win.getRequestedSurfaceScale(new float[2]);
+        final float[] hasSurfacePixelScale = win.getCurrentSurfaceScale(new float[2]);
+        win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]+
+                ", scale[min "+minSurfacePixelScale[0]+"x"+minSurfacePixelScale[1]+", max "+
+                maxSurfacePixelScale[0]+"x"+maxSurfacePixelScale[1]+", req "+
+                reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" -> has "+
+                hasSurfacePixelScale[0]+"x"+hasSurfacePixelScale[1]+"]");
     }
 
     public static PointerIcon[] createPointerIcons(final Display disp) {
