@@ -362,7 +362,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
     }
     @Override
     public void mouseClicked(final MouseEvent e) {
-        if(e.getClickCount() == 2 && e.getPointerCount() == 1) {
+        if(e.getClickCount() == 2 && e.getPointerCount() == 3) {
             glWindow.setFullscreen(!glWindow.isFullscreen());
             System.err.println("setFullscreen: "+glWindow.isFullscreen());
         }
