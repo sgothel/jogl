@@ -4653,7 +4653,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Accumulated actions
     //
 
-    /** Triggered by implementation's WM events to update the client-area position, size and maximized flags. */
+    /** Triggered by implementation's WM events to update the client-area position, size and insets. */
+    protected void sizePosInsetsChanged(final boolean defer,
+                                     final int newX, final int newY,
+                                     final int newWidth, final int newHeight,
+                                     final int left, final int right, final int top, final int bottom,
+                                     final boolean force) {
+        sizeChanged(defer, newWidth, newHeight, force);
+        positionChanged(defer, newX, newY);
+        insetsChanged(defer, left, right, top, bottom);
+    }
+
+    /** Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags. */
     protected void sizePosMaxInsetsChanged(final boolean defer,
                                      final int newX, final int newY,
                                      final int newWidth, final int newHeight,

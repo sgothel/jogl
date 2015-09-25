@@ -47,7 +47,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-
+import com.jogamp.opengl.test.junit.jogl.demos.es2.LineSquareXDemoES2;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Dimension;
@@ -100,6 +100,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGL2 = false;
+    static boolean demo2 = false;
     static boolean manualTest = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
@@ -140,9 +141,16 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setPointerVisible(mouseVisible);
         glWindow.confinePointer(mouseConfined);
 
-        final GearsES2 demo = new GearsES2(swapInterval);
-        demo.setUseMappedBuffers(useMappedBuffers);
-        demo.setValidateBuffers(true);
+        final GLEventListener demo;
+        if( demo2 ) {
+            final LineSquareXDemoES2 demo2 = new LineSquareXDemoES2(false);
+            demo = demo2;
+        } else {
+            final GearsES2 gearsES2 = new GearsES2(swapInterval);
+            gearsES2.setUseMappedBuffers(useMappedBuffers);
+            gearsES2.setValidateBuffers(true);
+            demo = gearsES2;
+        }
         glWindow.addGLEventListener(demo);
 
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
@@ -466,6 +474,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 sysExit = SysExit.valueOf(args[i]);
             } else if(args[i].equals("-manual")) {
                 manualTest = true;
+            } else if(args[i].equals("-demo2")) {
+                demo2 = true;
             }
         }
         wsize = new Dimension(w, h);

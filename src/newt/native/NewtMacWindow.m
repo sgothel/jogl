@@ -179,6 +179,7 @@ static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
+static jmethodID sizePosInsetsChangedID = NULL;
 static jmethodID updatePixelScaleID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID positionChangedID = NULL;
@@ -830,12 +831,14 @@ NS_ENDHANDLER
     updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    sizePosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsChanged", "(ZIIIIIIIIZ)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && insetsChangedID &&
+    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && 
+        insetsChangedID && sizePosInsetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
         CKCH_CreateDictionaries();
@@ -947,6 +950,32 @@ NS_ENDHANDLER
         (*env)->CallVoidMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
     }
 }
+
+- (void) updateSizePosInsets: (JNIEnv*) env jwin: (jobject) javaWin defer: (jboolean)defer
+{
+    // update insets on every window resize for lack of better hook place
+    [self updateInsets: NULL jwin:NULL];
+
+    NSRect frameRect = [self frame];
+    NSRect contentRect = [self contentRectForFrameRect: frameRect];
+
+    DBG_PRINT( "updateSize: [ w %d, h %d ]\n", (jint) contentRect.size.width, (jint) contentRect.size.height);
+
+    NSPoint p0 = { 0, 0 };
+    p0 = [self getLocationOnScreen: p0];
+
+    DBG_PRINT( "updatePos: [ x %d, y %d ]\n", (jint) p0.x, (jint) p0.y);
+
+    if( NULL != env && NULL != javaWin ) {
+        (*env)->CallVoidMethod(env, javaWin, sizePosInsetsChangedID, defer,
+                               (jint) p0.x, (jint) p0.y,
+                               (jint) contentRect.size.width, (jint) contentRect.size.height,
+                               cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3],
+                               JNI_FALSE // force
+                              );
+    }
+}
+
 
 - (void) attachToParent: (NSWindow*) parent
 {
@@ -1198,15 +1227,7 @@ NS_ENDHANDLER
         javaWindowObject = [newtView getJavaWindowObject];
     }
     if( NULL != javaWindowObject ) {
-        // update insets on every window resize for lack of better hook place
-        [self updateInsets: env jwin:javaWindowObject];
-
-        NSRect frameRect = [self frame];
-        NSRect contentRect = [self contentRectForFrameRect: frameRect];
-
-        (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_TRUE, // defer 
-                               (jint) contentRect.size.width,
-                               (jint) contentRect.size.height, JNI_FALSE);
+        [self updateSizePosInsets: env jwin: javaWindowObject defer:JNI_TRUE];
     }
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);

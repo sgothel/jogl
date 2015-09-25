@@ -1374,6 +1374,26 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_changeContent
 
 /*
  * Class:     jogamp_newt_driver_macosx_WindowDriver
+ * Method:    updateSizePosInsets0
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_updateSizePosInsets0
+  (JNIEnv *env, jobject jthis, jlong window, jboolean defer)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "updateSizePosInsets - window: %p, defer %d (START)\n", mWin, (int)defer);
+
+    [mWin updateSizePosInsets: env jwin:jthis defer:defer];
+
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p, defer %d (END)\n", mWin, (int)defer);
+
+    [pool release];
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    setWindowClientTopLeftPointAndSize0
  * Signature: (JIIIIZ)V
  */
