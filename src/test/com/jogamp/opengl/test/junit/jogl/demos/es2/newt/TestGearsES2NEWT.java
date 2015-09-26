@@ -37,6 +37,8 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
@@ -189,11 +191,37 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
+        final GLWindow[] glWindow2 = { null };
+
         final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);
         glWindow.addWindowListener(newtDemoListener);
+        glWindow.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if( e.isAutoRepeat() ) {
+                    return;
+                }
+                if(e.getKeyChar()=='n') {
+                    if( null != glWindow2[0] && glWindow2[0].isNativeValid() ) {
+                        glWindow2[0].destroy();
+                        glWindow2[0] = null;
+                    } else {
+                        glWindow2[0] = GLWindow.create(screen, caps);
+                        glWindow2[0].setTitle("GLWindow2");
+                        glWindow2[0].setPosition(glWindow.getX()+glWindow.getWidth()+64, glWindow.getY());
+                        glWindow2[0].setSize(glWindow.getWidth(), glWindow.getHeight());
+                        glWindow2[0].addGLEventListener(new LineSquareXDemoES2(false));
+                        final Animator animator2 = useAnimator ? new Animator(glWindow2[0]) : null;
+                        if( null != animator2 ) {
+                            animator2.start();
+                        }
+                        glWindow2[0].setVisible(true);
+                    }
+                }
+            } } );
 
         if( useAnimator ) {
             animator.add(glWindow);
@@ -310,6 +338,10 @@ public class TestGearsES2NEWT extends UITestCase {
         }
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         glWindow.destroy();
+        if( null != glWindow2[0] && glWindow2[0].isNativeValid() ) {
+            glWindow2[0].destroy();
+            glWindow2[0] = null;
+        }
         if( NativeWindowFactory.isAWTAvailable() ) {
             Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
         }
