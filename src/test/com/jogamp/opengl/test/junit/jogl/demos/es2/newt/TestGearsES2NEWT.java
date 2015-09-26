@@ -182,11 +182,11 @@ public class TestGearsES2NEWT extends UITestCase {
 
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(final WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
+                System.err.println("window resized: "+glWindow.getBounds()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 NEWTDemoListener.setTitle(glWindow);
             }
             public void windowMoved(final WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
+                System.err.println("window moved:   "+glWindow.getBounds()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 NEWTDemoListener.setTitle(glWindow);
             }
         });
