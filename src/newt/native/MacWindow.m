@@ -832,8 +832,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getDisplayID0(JNIEnv *env, jobject jthis, jlong window) {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == myWindow ) {
+        DBG_PRINT( "getDisplayID0 - NULL NEWT win - abort\n");
+        return 0;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSScreen *screen =  [myWindow screen];
     int32_t displayID = (int32_t)NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
     [pool release];
@@ -1035,8 +1039,12 @@ NS_ENDHANDLER
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPixelScale0
   (JNIEnv *env, jobject jthis, jlong window, jlong view, jfloat reqPixelScale)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == myWindow ) {
+        DBG_PRINT( "setPixelScale0 - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtView* myView = (NewtView*) (intptr_t) view ;
 #ifdef VERBOSE_ON
     int dbgIdx = 1;
@@ -1195,8 +1203,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_unlockSur
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
   (JNIEnv *env, jobject window, jlong w, jboolean force)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) w);
+    if( NULL == mWin ) {
+        DBG_PRINT( "requestFocus - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 #ifdef VERBOSE_ON
     BOOL hasFocus = [mWin isKeyWindow];
 #endif
@@ -1220,12 +1232,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
   (JNIEnv *env, jobject window, jlong w)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) w);
+    if( NULL == mWin ) {
+        DBG_PRINT( "resignFocus0 - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* pWin = [mWin parentWindow];
     BOOL hasFocus = [mWin isKeyWindow];
 
-    DBG_PRINT( "requestFocusParent0 - window: %p, parent %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
+    DBG_PRINT( "resignFocus0 - window: %p, parent %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
     if( hasFocus ) {
         if(NULL != pWin) {
             // [mWin makeFirstResponder: pWin];
@@ -1234,7 +1250,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
             [pWin resignKeyWindow];
         }
     }
-    DBG_PRINT( "requestFocusParent0 - window: %p (END)\n", mWin);
+    DBG_PRINT( "resignFocus0 - window: %p (END)\n", mWin);
 
     [pool release];
 }
@@ -1247,8 +1263,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
   (JNIEnv *env, jobject unused, jlong window)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "orderFront0 - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* pWin = [mWin parentWindow];
 
     DBG_PRINT( "orderFront0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
@@ -1272,8 +1292,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
   (JNIEnv *env, jobject unused, jlong window)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "orderOut0 - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* pWin = [mWin parentWindow];
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
@@ -1297,8 +1321,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setTitle0
   (JNIEnv *env, jobject unused, jlong window, jstring title)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
+    if( NULL == win ) {
+        DBG_PRINT( "setTitle0 - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     DBG_PRINT( "setTitle0 - window: %p (START)\n", win);
 
@@ -1387,7 +1415,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_updateSizePos
 
     [mWin updateSizePosInsets: env jwin:jthis defer:defer];
 
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p, defer %d (END)\n", mWin, (int)defer);
+    DBG_PRINT( "updateSizePosInsets - window: %p, defer %d (END)\n", mWin, (int)defer);
 
     [pool release];
 }
@@ -1420,8 +1448,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClie
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClientTopLeftPoint0
   (JNIEnv *env, jobject unused, jlong window, jint x, jint y, jboolean display)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "setWindowClientTopLeftPoint - NULL NEWT win - abort\n");
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (START)\n", mWin);
 
@@ -1489,6 +1521,10 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocatio
   (JNIEnv *env, jclass unused, jlong win, jint src_x, jint src_y)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) win;
+    if( NULL == mWin ) {
+        DBG_PRINT( "getLocationOnScreen0 - NULL NEWT win - abort\n");
+        return NULL;
+    }
     if( ![mWin isKindOfClass:[NewtMacWindow class]] ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
         return NULL;
@@ -1500,12 +1536,16 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocatio
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerIcon0
   (JNIEnv *env, jobject unused, jlong window, jlong handle)
 {
+    NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) window;
+    if( NULL == mWin ) {
+        DBG_PRINT( "setPointerIcon0 - NULL NEWT win - abort\n");
+        return;
+    }
     NSCursor *c = (NSCursor*) (intptr_t) handle ;
     if ( NULL != c && NO == [c isKindOfClass:[NSCursor class]] ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NSCursor %p", c);
         return;
     }
-    NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) window;
     if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
         return;
@@ -1529,6 +1569,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerVis
   (JNIEnv *env, jclass clazz, jlong window, jboolean hasFocus, jboolean mouseVisible)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "setPointerVisible0 - NULL NEWT win - abort\n");
+        return;
+    }
     if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
         return;
@@ -1553,6 +1597,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_confinePointe
   (JNIEnv *env, jclass clazz, jlong window, jboolean confine)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "confinePointer0 - NULL NEWT win - abort\n");
+        return;
+    }
     if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
         return;
@@ -1576,6 +1624,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "warpPointer0 - NULL NEWT win - abort\n");
+        return;
+    }
     if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
         return;

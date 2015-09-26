@@ -37,7 +37,8 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.*;
 import com.jogamp.nativewindow.*;
-
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -150,6 +151,7 @@ public class TestParenting02NEWT extends UITestCase {
 
         glWindow1.addGLEventListener(demo1);
         glWindow2.addGLEventListener(demo2);
+        glWindow2.addWindowListener(windowMoveDetection);
 
         boolean shouldQuit = false;
         long duration = durationPerTest;
@@ -163,8 +165,19 @@ public class TestParenting02NEWT extends UITestCase {
             x += 1;
             y += 1;
             // glWindow1.setPosition(x,y);
-            glWindow2.setPosition(glWindow1.getWidth()/2,glWindow1.getHeight()/2-y);
-            Thread.sleep(step);
+            final PointImmutable expPos = new Point(glWindow1.getWidth()/2, glWindow1.getHeight()/2-y);
+            glWindow2.setPosition(expPos.getX(), expPos.getY());
+            {
+                int waitCount=0;
+                do {
+                    Thread.sleep(step);
+                    waitCount++;
+                } while( !windowMoved && waitCount < 10);
+                final boolean didWindowMove = windowMoved;
+                windowMoved = false;
+                final PointImmutable hasPos = new Point(glWindow2.getX(), glWindow2.getY());
+                System.err.println("Moved: exp "+expPos+", has "+hasPos+", equals "+expPos.equals(hasPos)+", didWindowMove "+didWindowMove+", waitCount "+waitCount);
+            }
 
             while( null != ( event = eventFifo.get() ) ) {
                 final Window source = (Window) event.getSource();
@@ -186,6 +199,13 @@ public class TestParenting02NEWT extends UITestCase {
         destroyWindow(null, null, window2, glWindow2);
         destroyWindow(display, screen, window1, glWindow1);
     }
+    volatile boolean windowMoved = false;
+    final WindowListener windowMoveDetection = new WindowAdapter() {
+            @Override
+            public void windowMoved(final WindowEvent e) {
+                windowMoved = true;
+            }
+    };
 
     public static void setDemoFields(final GLEventListener demo, final Window window, final GLWindow glWindow, final boolean debug) {
         Assert.assertNotNull(demo);
@@ -214,17 +234,7 @@ public class TestParenting02NEWT extends UITestCase {
             }
         }
         final String tstname = TestParenting02NEWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

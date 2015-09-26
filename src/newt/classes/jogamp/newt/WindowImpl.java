@@ -4557,13 +4557,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected void insetsChanged(final boolean defer, final int left, final int right, final int top, final int bottom) {
         if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
+            final boolean changed = left != insets.getLeftWidth() ||  right != insets.getRightWidth() ||
+                                     top != insets.getTopHeight() || bottom != insets.getBottomHeight();
+
             if( blockInsetsChange || isUndecorated() ) {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged (defer: "+defer+"): Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (blocked "+blockInsetsChange+", undecoration "+isUndecorated()+")");
+                    if( changed ) {
+                        System.err.println("Window.insetsChanged (defer: "+defer+"): Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (blocked "+blockInsetsChange+", undecoration "+isUndecorated()+")");
+                    }
                 }
-            } else if ( (left != insets.getLeftWidth() || right != insets.getRightWidth() ||
-                         top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
-                       ) {
+            } else if ( changed ) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.insetsChanged (defer: "+defer+"): Changed "+insets+" -> "+new Insets(left, right, top, bottom));
                 }
@@ -4652,17 +4655,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // Accumulated actions
     //
-
-    /** Triggered by implementation's WM events to update the client-area position, size and insets. */
-    protected void sizePosInsetsChanged(final boolean defer,
-                                     final int newX, final int newY,
-                                     final int newWidth, final int newHeight,
-                                     final int left, final int right, final int top, final int bottom,
-                                     final boolean force) {
-        sizeChanged(defer, newWidth, newHeight, force);
-        positionChanged(defer, newX, newY);
-        insetsChanged(defer, left, right, top, bottom);
-    }
 
     /** Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags. */
     protected void sizePosMaxInsetsChanged(final boolean defer,

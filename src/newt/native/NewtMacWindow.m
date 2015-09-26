@@ -54,7 +54,7 @@ static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
         deltaX = CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis2);
         deltaY = CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis1);
         // fprintf(stderr, "WHEEL/PAD: %lf/%lf - 0x%X\n", (double)deltaX, (double)deltaY, javaMods[0]);
-        if( fabsf(deltaX) > fabsf(deltaY) ) {
+        if( fabs(deltaX) > fabs(deltaY) ) {
             javaMods[0] |= EVENT_SHIFT_MASK;
             delta = deltaX;
         } else {
@@ -179,10 +179,10 @@ static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
-static jmethodID sizePosInsetsChangedID = NULL;
+static jmethodID sizeScreenPosInsetsChangedID = NULL;
 static jmethodID updatePixelScaleID = NULL;
 static jmethodID visibleChangedID = NULL;
-static jmethodID positionChangedID = NULL;
+static jmethodID screenPositionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
@@ -650,31 +650,32 @@ static jmethodID windowRepaintID = NULL;
 
     // convert to 1-based button number (or use zero if no button is involved)
     // TODO: detect mouse button when mouse wheel scrolled  
-    jshort javaButtonNum = 0;
+    jshort javaButtonNum;
     jfloat scrollDeltaY = 0.0f;
     switch ([event type]) {
-    case NSScrollWheel: {
-        scrollDeltaY = GetDelta(event, javaMods);
-        javaButtonNum = 1;
-        break;
+        case NSScrollWheel:
+            scrollDeltaY = GetDelta(event, javaMods);
+            javaButtonNum = 1;
+            break;
+        case NSLeftMouseDown:
+        case NSLeftMouseUp:
+        case NSLeftMouseDragged:
+            javaButtonNum = 1;
+            break;
+        case NSRightMouseDown:
+        case NSRightMouseUp:
+        case NSRightMouseDragged:
+            javaButtonNum = 3;
+            break;
+        case NSOtherMouseDown:
+        case NSOtherMouseUp:
+        case NSOtherMouseDragged:
+            javaButtonNum = 2;
+            break;
+        default:
+            javaButtonNum = 0;
+            break;
     }
-    case NSLeftMouseDown:
-    case NSLeftMouseUp:
-    case NSLeftMouseDragged:
-        javaButtonNum = 1;
-        break;
-    case NSRightMouseDown:
-    case NSRightMouseUp:
-    case NSRightMouseDragged:
-        javaButtonNum = 3;
-        break;
-    case NSOtherMouseDown:
-    case NSOtherMouseUp:
-    case NSOtherMouseDragged:
-        javaButtonNum = 2;
-        break;
-    }
-
     if (evType == EVENT_MOUSE_WHEEL_MOVED && scrollDeltaY == 0) {
         // ignore 0 increment wheel scroll events
         return;
@@ -831,15 +832,15 @@ NS_ENDHANDLER
     updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
-    sizePosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsChanged", "(ZIIIIIIIIZ)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
+    sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZ)V");
+    screenPositionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
     if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && 
-        insetsChangedID && sizePosInsetsChangedID &&
-        positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
+        insetsChangedID && sizeScreenPosInsetsChangedID &&
+        screenPositionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
         CKCH_CreateDictionaries();
         return YES;
@@ -967,7 +968,7 @@ NS_ENDHANDLER
     DBG_PRINT( "updatePos: [ x %d, y %d ]\n", (jint) p0.x, (jint) p0.y);
 
     if( NULL != env && NULL != javaWin ) {
-        (*env)->CallVoidMethod(env, javaWin, sizePosInsetsChangedID, defer,
+        (*env)->CallVoidMethod(env, javaWin, sizeScreenPosInsetsChangedID, defer,
                                (jint) p0.x, (jint) p0.y,
                                (jint) contentRect.size.width, (jint) contentRect.size.height,
                                cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3],
@@ -1253,7 +1254,8 @@ NS_ENDHANDLER
 
     NSPoint p0 = { 0, 0 };
     p0 = [self getLocationOnScreen: p0];
-    (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID, JNI_FALSE, (jint) p0.x, (jint) p0.y);
+    DBG_PRINT( "windowDidMove: [ x %d, y %d ]\n", (jint) p0.x, (jint) p0.y);
+    (*env)->CallVoidMethod(env, javaWindowObject, screenPositionChangedID, JNI_TRUE, (jint) p0.x, (jint) p0.y);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
