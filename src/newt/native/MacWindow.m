@@ -853,16 +853,16 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getDisplayID0
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
   (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h, jfloat reqPixelScale,
-   jboolean opaque, jboolean visible, jlong jview)
+   jboolean opaque, jboolean atop, jboolean abottom, jboolean visible, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
     NewtView* myView = (NewtView*) (intptr_t) jview ;
     BOOL fullscreen = myWindow->isFullscreenWindow;
 
-    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, reqPixScale %f, opaque %d, fs %d, visible %d, view %p (START)\n",
+    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, reqPixScale %f, opaque %d, atop %d, abottom %d, fs %d, visible %d, view %p (START)\n",
         (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, (float)reqPixelScale,
-        (int) opaque, (int)fullscreen, (int)visible, myView);
+        (int) opaque, (int)atop, (int)abottom, (int)fullscreen, (int)visible, myView);
 
 NS_DURING
     // HiDPI scaling: Setup - Available >= 10.7
@@ -925,6 +925,7 @@ NS_ENDHANDLER
         [myWindow setOpaque: NO];
         [myWindow setBackgroundColor: [NSColor clearColor]];
     }
+    [myWindow setAlwaysOn: atop bottom:abottom];
 
     // specify we want mouse-moved events
     [myWindow setAcceptsMouseMovedEvents:YES];
@@ -1460,54 +1461,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClie
     setWindowClientTopLeftPoint(mWin, x, y, display);
 
     DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (END)\n", mWin);
-
-    [pool release];
-}
-
-/*
- * Class:     jogamp_newt_driver_macosx_WindowDriver
- * Method:    setAlwaysOnTop0
- * Signature: (JZ)V
- */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTop0
-  (JNIEnv *env, jobject unused, jlong window, jboolean atop)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
-
-    DBG_PRINT( "setAlwaysOnTop0 - window: %p, atop %d (START)\n", win, (int)atop);
-
-    if(atop) {
-        [win setLevel:NSFloatingWindowLevel];
-    } else {
-        [win setLevel:NSNormalWindowLevel];
-    }
-
-    DBG_PRINT( "setAlwaysOnTop0 - window: %p, atop %d (END)\n", win, (int)atop);
-
-    [pool release];
-}
-
-/*
- * Class:     jogamp_newt_driver_macosx_WindowDriver
- * Method:    setAlwaysOnBottom0
- * Signature: (JZ)V
- */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnBottom0
-  (JNIEnv *env, jobject unused, jlong window, jboolean abottom)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
-
-    DBG_PRINT( "setAlwaysOnBottom0 - window: %p, abottom %d (START)\n", win, (int)abottom);
-
-    if(abottom) {
-        [win setLevel:NSScreenSaverWindowLevel]; // ??
-    } else {
-        [win setLevel:NSNormalWindowLevel];
-    }
-
-    DBG_PRINT( "setAlwaysOnBottom0 - window: %p, abottom %d (END)\n", win, (int)abottom);
 
     [pool release];
 }

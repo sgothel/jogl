@@ -932,6 +932,20 @@ NS_ENDHANDLER
     return realized;
 }
 
+- (void) setAlwaysOn: (BOOL)top bottom:(BOOL)bottom
+{
+    if( top ) {
+        DBG_PRINT( "*************** setAlwaysOn -> top\n");
+        [self setLevel: kCGMaximumWindowLevel];
+    } else if ( bottom ) {
+        DBG_PRINT( "*************** setAlwaysOn -> bottom\n");
+        [self setLevel: kCGDesktopIconWindowLevel]; // w/ input
+    } else {
+        DBG_PRINT( "*************** setAlwaysOn -> normal\n");
+        [self setLevel:NSNormalWindowLevel];
+    }
+}
+
 - (void) updateInsets: (JNIEnv*) env jwin: (jobject) javaWin
 {
     NSRect frameRect = [self frame];

@@ -437,6 +437,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if( ( 0 == oldWindowHandle && 0 != ( STATE_MASK_VISIBLE & flags) ) ||
             0 != ( CHANGE_MASK_PARENTING & flags)  ||
             0 != ( CHANGE_MASK_DECORATION & flags) ||
+            0 != ( CHANGE_MASK_ALWAYSONTOP & flags) ||
+            0 != ( CHANGE_MASK_ALWAYSONBOTTOM & flags) ||
             0 != ( CHANGE_MASK_RESIZABLE & flags)  ||
             0 != ( CHANGE_MASK_FULLSCREEN & flags) ) {
             if(isOffscreenInstance) {
@@ -486,10 +488,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 } else {
                     visibleChanged(true, true);
                 }
-            }
-            if( !isOffscreenInstance ) {
-                setAlwaysOnTop0(oldWindowHandle, 0 != ( STATE_MASK_ALWAYSONTOP & flags));
-                setAlwaysOnBottom0(oldWindowHandle, 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags));
             }
         } else {
             throw new InternalError("Null windowHandle but no re-creation triggered, check visibility: "+getStateMaskString());
@@ -781,14 +779,14 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     public void run() {
                         initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
                                      isOpaque,
+                                     !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
+                                     !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
                                      !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
                                      surfaceHandle);
                         if( offscreenInstance ) {
                             orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
                         } else {
                             setTitle0(newWin, getTitle());
-                            setAlwaysOnTop0(newWin, 0 != ( STATE_MASK_ALWAYSONTOP & flags));
-                            setAlwaysOnBottom0(newWin, 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags));
                         }
                     } });
         } catch (final Exception ie) {
@@ -801,7 +799,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
     private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
-                                    boolean opaque, boolean visible, long view);
+                                    boolean opaque, boolean atop, boolean abottom, boolean visible, long view);
+
     private native int getDisplayID0(long window);
     private native void setPixelScale0(long window, long view, float reqPixelScale);
     private native boolean lockSurface0(long window, long view);
@@ -825,10 +824,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private native void setWindowClientTopLeftPointAndSize0(long window, int x, int y, int w, int h, boolean display);
     /** Must be called on Main-Thread */
     private native void setWindowClientTopLeftPoint0(long window, int x, int y, boolean display);
-    /** Must be called on Main-Thread */
-    private native void setAlwaysOnTop0(long window, boolean atop);
-    /** Must be called on Main-Thread */
-    private native void setAlwaysOnBottom0(long window, boolean abottom);
     /** Triggers {@link #sizeScreenPosInsetsChanged(boolean, int, int, int, int, int, int, int, int, boolean)} */
     private native void updateSizePosInsets0(long window, boolean defer);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);

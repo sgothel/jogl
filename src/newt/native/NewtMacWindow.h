@@ -164,6 +164,8 @@ CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 - (void) setRealized: (BOOL)v;
 - (BOOL) isRealized;
 
+- (void) setAlwaysOn: (BOOL)top bottom:(BOOL)bottom;
+
 - (void) updateInsets: (JNIEnv*) env jwin: (jobject) javaWin;
 - (void) updateSizePosInsets: (JNIEnv*) env jwin: (jobject) javaWin defer: (jboolean)defer;
 - (void) attachToParent: (NSWindow*) parent;
