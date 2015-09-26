@@ -262,6 +262,8 @@ public class GLPixelBuffer {
                         case GL.GL_UNSIGNED_SHORT_5_5_5_1:
                             pixFmt = PixelFormat.ABGR1555;
                             break;
+                        case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
+                            // fall through intended
                         case GL.GL_UNSIGNED_BYTE:
                             pixFmt = PixelFormat.RGBA8888;
                             break;
@@ -280,6 +282,8 @@ public class GLPixelBuffer {
                         case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
                             pixFmt = PixelFormat.ARGB8888;
                             break;
+                        case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
+                            // fall through intended
                         case GL.GL_UNSIGNED_BYTE:
                             pixFmt = PixelFormat.BGRA8888;
                             break;
