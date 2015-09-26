@@ -300,7 +300,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                                 glWindow.setVisible(!wasVisible);
                                 printlnState("[set visible post]");
                             }
-                            if( wasVisible && !e.isControlDown() ) {
+                            if( wasVisible && !e.isShiftDown() ) {
                                 try {
                                     java.lang.Thread.sleep(5000);
                                 } catch (final InterruptedException e) {
