@@ -56,6 +56,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
@@ -349,7 +350,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
 
         final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-        final boolean isOpaque = capsChosen.isBackgroundOpaque() && GDI.DwmIsCompositionEnabled();
+        final boolean isOpaque = capsChosen.isBackgroundOpaque() && GDIUtil.DwmIsCompositionEnabled();
         final int winattrbits = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen)
                                 & ~GLGraphicsConfigurationUtil.BITMAP_BIT; // w/o BITMAP
         final GLProfile glProfile = capsChosen.getGLProfile();
@@ -358,7 +359,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
         if(DEBUG) {
             System.err.println("updateGraphicsConfigurationARB: hdc "+toHexString(hdc)+", pfdIDCount(hdc) "+pfdIDCount+", capsChosen "+capsChosen+", "+GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrbits).toString());
-            System.err.println("\tisOpaque "+isOpaque+" (translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDI.DwmIsCompositionEnabled()+")");
+            System.err.println("\tisOpaque "+isOpaque+" (translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDIUtil.DwmIsCompositionEnabled()+")");
             final int pformatsNum = null != pformats ? pformats.length : -1;
             System.err.println("\textHDC "+extHDC+", chooser "+(null!=chooser)+", pformatsNum "+pformatsNum);
         }

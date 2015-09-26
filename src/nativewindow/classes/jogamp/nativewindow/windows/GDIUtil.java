@@ -32,6 +32,8 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionNumber;
 
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.Debug;
@@ -120,6 +122,30 @@ public class GDIUtil implements ToolkitProperties {
 
     public static Point GetRelativeLocation(final long src_win, final long dest_win, final int src_x, final int src_y) {
         return (Point) GetRelativeLocation0(src_win, dest_win, src_x, src_y);
+    }
+
+    /**
+     * Windows >= 8, even if not manifested
+     * @see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
+     */
+    private static final VersionNumber Win8Version = new VersionNumber(6, 2, 0);
+
+    /**
+     * Wrapper for {@link GDI#DwmIsCompositionEnabled()}
+     * taking the Windows 8 version into account.
+     * <p>
+     * If Windows version >= {@link #Win8Version} method always returns {@code true},
+     * otherwise value of {@link GDI#DwmIsCompositionEnabled()} is returned.
+     * </p>
+     * @see https://msdn.microsoft.com/en-us/library/windows/desktop/aa969518%28v=vs.85%29.aspx
+     */
+    public static boolean DwmIsCompositionEnabled() {
+        final VersionNumber winVer = Platform.getOSVersionNumber();
+        if( winVer.compareTo(Win8Version) >= 0 ) {
+            return true;
+        } else {
+            return GDI.DwmIsCompositionEnabled();
+        }
     }
 
     public static boolean IsUndecorated(final long win) {
