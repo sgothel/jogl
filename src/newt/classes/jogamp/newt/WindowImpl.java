@@ -2213,10 +2213,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final void setMaximized(boolean horz, boolean vert) {
         if( isNativeValid() ) {
-            if( horz && !isReconfigureMaskSupported(STATE_BIT_MAXIMIZED_HORZ) ) {
+            if( horz && !isReconfigureMaskSupported(STATE_MASK_MAXIMIZED_HORZ) ) {
                 horz = false;
             }
-            if( vert && !isReconfigureMaskSupported(STATE_BIT_MAXIMIZED_VERT) ) {
+            if( vert && !isReconfigureMaskSupported(STATE_MASK_MAXIMIZED_VERT) ) {
                 vert = false;
             }
         }
