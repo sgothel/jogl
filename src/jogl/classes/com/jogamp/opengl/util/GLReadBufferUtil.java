@@ -245,8 +245,8 @@ public class GLReadBufferUtil {
                     readTexture.updateImage(gl, readTextureData);
                 } else {
                     readTexture.updateSubImage(gl, readTextureData, 0,
-                                               0, 0, // src offset
-                                               0, 0, // dst offset
+                                               inX, inY, // dst offset
+                                               0,   0,   // src offset
                                                width, height);
                 }
                 readPixelBuffer.rewind();
