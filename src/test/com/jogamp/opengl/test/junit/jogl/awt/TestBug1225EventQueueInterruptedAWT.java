@@ -73,7 +73,10 @@ import org.junit.runners.MethodSorters;
  * <p>
  * The reporter claims that an interrupt on the AWT-EDT shall not disturb neither AWT nor JOGL's GLCanvas
  * and rendering shall continue.
- * This seems to be true.
+ * <ul>
+ *   <li>This seems to be true for JRE 1.8.0_60</li>
+ *   <li>This seems to be false for JRE 1.7.0_45. This JRE's AWT-EDT even dies occasionally when interrupted.</li>
+ * </ul>
  * </p>
  * <p>
  * The test passes on GNU/Linux and Windows using JRE 1.8.0_60.
@@ -122,13 +125,14 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
         }
     }
     void testImpl(final boolean useGL) throws InterruptedException, InvocationTargetException {
-        AWTRobotUtil.validateAWTEDTIsAlive();
+        Assert.assertTrue("AWT not alive", AWTRobotUtil.isAWTEDTAlive());
         final OurUncaughtExceptionHandler uncaughtHandler = new OurUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler( uncaughtHandler );
 
         final Dimension csize = new Dimension(800, 400);
         final JPanel panel = new JPanel(new GridLayout(2, 1));
         final GLCanvas glc;
+        final InterruptableGLEL iglel;
         if( useGL ) {
             glc = new GLCanvas();
             {
@@ -136,32 +140,15 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
                 gears.setVerbose(false);
                 glc.addGLEventListener(gears);
             }
-            glc.addGLEventListener(new GLEventListener() {
-                @Override
-                public void init(final GLAutoDrawable drawable) {
-                }
-                @Override
-                public void dispose(final GLAutoDrawable drawable) {
-                }
-                @Override
-                public void display(final GLAutoDrawable drawable) {
-                    if( Thread.interrupted() ) {
-                        final InterruptedRuntimeException e = new InterruptedRuntimeException(new InterruptedException("Interrupt detected in GLEventListener, thread: "+Thread.currentThread().getName()));
-                        ExceptionUtils.dumpThrowable("", e);
-                        throw e;
-                    }
-                }
-                @Override
-                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-                }
-
-            });
+            iglel = new InterruptableGLEL();
+            glc.addGLEventListener(iglel);
             glc.setSize(csize);
             glc.setPreferredSize(csize);
             panel.add(glc);
         } else {
             NativeWindowFactory.initSingleton();
             glc = null;
+            iglel = null;
             final Label l = new Label("No GL Object");
             l.setSize(csize);
             l.setPreferredSize(csize);
@@ -185,25 +172,67 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
 
         final InterruptableLoop loop = new InterruptableLoop(icomp, glc);
         final Thread thread = new Thread(loop);
-        thread.start();
+
+        synchronized(loop) {
+            thread.start();
+            try {
+                loop.notifyAll();  // wake-up startup-block
+                while( !loop.isRunning && !loop.shallStop ) {
+                    loop.wait();  // wait until started
+                }
+                loop.ack = true;
+                loop.notifyAll();  // wake-up startup-block
+            } catch (final InterruptedException e) {
+                Assert.assertNull("while starting loop", new InterruptedRuntimeException(e));
+            }
+        }
 
         for(int i=0; thread.isAlive() && null == loop.exception && null == uncaughtHandler.exception && i<100; i++) {
             icomp.interruptAWTEventQueue();
             Thread.sleep(durationPerTest/100);
         }
-        if(thread.isAlive()) {
-            System.err.println("Manually stopping loop");
-            loop.stop();
-            thread.join();
-        }
-        dispose(frame);
 
+        loop.shallStop = true;
+        synchronized(loop) {
+            try {
+                loop.notifyAll();  // wake-up pause-block (opt)
+                while( loop.isRunning ) {
+                    loop.wait();  // wait until stopped
+                }
+            } catch (final InterruptedException e) {
+                Assert.assertNull("while stopping loop", new InterruptedRuntimeException(e));
+            }
+        }
+
+        //
+        // Notifications only!
+        //
+        // Note:
+        //   On JRE 1.8.0_60: Interrupt is cleared on AWT-EDT
+        //   On JRE 1.7.0_45: Interrupt is *NOT* cleared on AWT-EDT
+        //
+        if( null != iglel && null != iglel.exception ) {
+            ExceptionUtils.dumpThrowable("GLEventListener", iglel.exception);
+        }
+        if( null != icomp.exception ) {
+            ExceptionUtils.dumpThrowable("InterruptingComponent", icomp.exception);
+        }
         if( null != loop.exception ) {
             ExceptionUtils.dumpThrowable("loop", loop.exception);
         }
         if( null != uncaughtHandler.exception ) {
             ExceptionUtils.dumpThrowable("uncaughtHandler", uncaughtHandler.exception);
         }
+        if( !AWTRobotUtil.isAWTEDTAlive() ) {
+            System.err.println("AWT is not alive anymore!!! Ooops");
+            // cannot do anything anymore on AWT-EDT .. frame.dispose();
+        } else {
+            dispose(frame);
+        }
+
+        //
+        // Fail if interrupt was propagated to loop or uncaught handler
+        //
         Assert.assertNull("Caught Exception in loop", loop.exception);
         Assert.assertNull("Caught Exception via uncaughtHandler", uncaughtHandler.exception);
     }
@@ -211,6 +240,8 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
     static class InterruptableLoop implements Runnable {
         public volatile Exception exception = null;
         public volatile boolean shallStop = false;
+        public volatile boolean isRunning = false;
+        public volatile boolean ack = false;
         final InterruptingComponent icomp;
         final GLCanvas glc;
         boolean alt = false;;
@@ -227,34 +258,73 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
         @Override
         public void run()
         {
-            try
-            {
-                while( !shallStop ) {
-                    if( alt ) {
-                        icomp.repaint(); // issues paint of GLCanvas on AWT-EDT
-                    } else if( null != glc ) {
-                        glc.display(); // issues paint of GLCanvas on AWT-EDT
+            synchronized ( this ) {
+                isRunning = true;
+                this.notifyAll();
+                try {
+                    while( !ack ) {
+                        this.wait();  // wait until ack
                     }
-                    alt = !alt;
-                    Thread.sleep(16);
-                    if( Thread.interrupted() ) {
-                        final InterruptedRuntimeException e = new InterruptedRuntimeException(new InterruptedException("Interrupt detected in loop, thread: "+Thread.currentThread().getName()));
-                        throw e;
+                    this.notifyAll();
+                } catch (final InterruptedException e) {
+                    throw new InterruptedRuntimeException(e);
+                }
+                ack = false;
+            }
+            synchronized ( this ) {
+                try {
+                    while( !shallStop ) {
+                        if( alt ) {
+                            icomp.repaint(); // issues paint of GLCanvas on AWT-EDT
+                        } else if( null != glc ) {
+                            // Avoid invokeAndWait(..) in GLCanvas.display() if AWT-EDT dies!
+                            glc.repaint(); // issues paint of GLCanvas on AWT-EDT, which then issues display()!
+                        }
+                        alt = !alt;
+                        Thread.sleep(16);
+                        if( Thread.interrupted() ) {
+                            final InterruptedRuntimeException e = new InterruptedRuntimeException(new InterruptedException("Interrupt detected in loop, thread: "+Thread.currentThread().getName()));
+                            throw e;
+                        }
                     }
+                } catch (final InterruptedException e) {
+                    exception = SourcedInterruptedException.wrap(e);
+                    ExceptionUtils.dumpThrowable("", exception);
+                } catch (final Exception e) {
+                    exception = e;
+                    ExceptionUtils.dumpThrowable("", exception);
+                } finally {
+                    isRunning = false;
+                    this.notifyAll();
                 }
             }
-            catch (final InterruptedException e) {
-                exception = SourcedInterruptedException.wrap(e);
-                ExceptionUtils.dumpThrowable("", exception);
-            } catch (final Exception e) {
-                exception = e;
-                ExceptionUtils.dumpThrowable("", exception);
+        }
+    }
+
+    static class InterruptableGLEL implements GLEventListener {
+        public volatile InterruptedException exception = null;
+        @Override
+        public void init(final GLAutoDrawable drawable) {
+        }
+        @Override
+        public void dispose(final GLAutoDrawable drawable) {
+        }
+        @Override
+        public void display(final GLAutoDrawable drawable) {
+            final Thread c = Thread.currentThread();
+            if( c.isInterrupted() && null == exception ) {
+                exception = new InterruptedException("Interrupt detected in GLEventListener, thread: "+c.getName());
+                drawable.removeGLEventListener(this);
             }
+        }
+        @Override
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         }
     }
 
     static class InterruptingComponent extends Component {
         private static final long serialVersionUID = 1L;
+        public volatile InterruptedException exception = null;
 
         private volatile boolean doInterrupt = false;
 
@@ -272,10 +342,9 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
         @Override
         public void paint(final Graphics g)
         {
-            if( Thread.interrupted() ) {
-                final InterruptedRuntimeException e = new InterruptedRuntimeException(new InterruptedException("Interrupt detected in AWT Component, thread: "+Thread.currentThread().getName()));
-                ExceptionUtils.dumpThrowable("", e);
-                throw e;
+            final Thread c = Thread.currentThread();
+            if( c.isInterrupted() && null == exception ) {
+                exception = new InterruptedException("Interrupt detected in AWT Component, thread: "+c.getName());
             }
 
             g.setColor(colors[colorIdx++]);
@@ -285,7 +354,6 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
             g.fillRect(0, 0, getWidth(), getHeight());
 
             if(doInterrupt) {
-                final Thread c = Thread.currentThread();
                 System.err.println("Thread "+c.getName()+": *Interrupting*");
                 doInterrupt = false;
                 c.interrupt();
