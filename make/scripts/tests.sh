@@ -424,7 +424,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -715,6 +715,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1225EventQueueInterruptedAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.Bug818GLJPanelAndGLCanvasApplet $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.GLJPanelsAndGLCanvasDemoGL2Applet $*
