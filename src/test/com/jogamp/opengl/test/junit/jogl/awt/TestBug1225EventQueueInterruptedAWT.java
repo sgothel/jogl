@@ -58,7 +58,6 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import org.junit.Test;
-import org.junit.Assume;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
@@ -126,7 +125,11 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
         }
     }
     void testImpl(final boolean useGL) throws InterruptedException, InvocationTargetException {
-        Assume.assumeTrue("AWT not alive", AWTRobotUtil.isAWTEDTAlive());
+        if( !AWTRobotUtil.isAWTEDTAlive() ) {
+            System.err.println("Test aborted: AWT not alive");
+            return;
+        }
+        // Assume.assumeTrue("AWT not alive", AWTRobotUtil.isAWTEDTAlive());
         // Assert.assertTrue("AWT not alive", AWTRobotUtil.isAWTEDTAlive());
         final OurUncaughtExceptionHandler uncaughtHandler = new OurUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler( uncaughtHandler );
