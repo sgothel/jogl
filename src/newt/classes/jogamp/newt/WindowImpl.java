@@ -737,34 +737,39 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
                     setPointerIconIntern(pointerIcon);
-                    if( isReconfigureMaskSupported(STATE_MASK_POINTERVISIBLE) ) {
-                        setPointerVisibleIntern(stateMask.get(STATE_BIT_POINTERVISIBLE));
-                    } else {
-                        stateMask.set(STATE_BIT_POINTERVISIBLE);
+                    if( !stateMask.get(STATE_BIT_POINTERVISIBLE) ) {
+                        // non default action
+                        if( isReconfigureMaskSupported(STATE_MASK_POINTERVISIBLE) ) {
+                            setPointerVisibleIntern(stateMask.get(STATE_BIT_POINTERVISIBLE));
+                        } else {
+                            stateMask.set(STATE_BIT_POINTERVISIBLE);
+                        }
                     }
-                    if( isReconfigureMaskSupported(STATE_MASK_POINTERCONFINED) ) {
-                        confinePointerImpl(stateMask.get(STATE_BIT_POINTERCONFINED));
-                    } else {
-                        stateMask.clear(STATE_BIT_POINTERCONFINED);
+                    if( stateMask.get(STATE_BIT_POINTERCONFINED) ) {
+                        // non default action
+                        if( isReconfigureMaskSupported(STATE_MASK_POINTERCONFINED) ) {
+                            confinePointerImpl(true);
+                        } else {
+                            stateMask.clear(STATE_BIT_POINTERCONFINED);
+                        }
                     }
                     setKeyboardVisible(keyboardVisible);
                     final long remainingV = waitForVisible(true, false);
                     if( 0 <= remainingV ) {
-                        if( isReconfigureMaskSupported(STATE_MASK_FULLSCREEN) ) {
-                            if( stateMask.get(STATE_BIT_FULLSCREEN) ) {
-                                synchronized(fullScreenAction) {
-                                    stateMask.clear(STATE_BIT_FULLSCREEN); // trigger a state change
-                                    fullScreenAction.init(true);
-                                    fullScreenAction.run();
-                                }
-                            } else {
-                                if ( !hasParent ) {
-                                    // Wait until position is reached within tolerances, either auto-position or custom position.
-                                    waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
-                                }
+                        if( stateMask.get(STATE_BIT_FULLSCREEN) && !isReconfigureMaskSupported(STATE_MASK_FULLSCREEN) ) {
+                            stateMask.clear(STATE_BIT_FULLSCREEN);
+                        }
+                        if( stateMask.get(STATE_BIT_FULLSCREEN) ) {
+                            synchronized(fullScreenAction) {
+                                stateMask.clear(STATE_BIT_FULLSCREEN); // trigger a state change
+                                fullScreenAction.init(true);
+                                fullScreenAction.run();
                             }
                         } else {
-                            stateMask.clear(STATE_BIT_FULLSCREEN);
+                            if ( !hasParent ) {
+                                // Wait until position is reached within tolerances, either auto-position or custom position.
+                                waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
+                            }
                         }
                         if (DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.createNative(): elapsed "+(System.currentTimeMillis()-t0)+" ms");
@@ -2239,7 +2244,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return stateMask.get(STATE_BIT_MAXIMIZED_HORZ);
     }
     /** Triggered by implementation's WM events to update maximized window state. */
-    protected void maximizedChanged(final boolean newMaxHorz, final boolean newMaxVert) {
+    protected final void maximizedChanged(final boolean newMaxHorz, final boolean newMaxVert) {
         if( !isFullscreen() ) {
             final String stateMask0 = DEBUG_IMPLEMENTATION ? getStateMaskString() : null;
             final boolean changedHorz = stateMask.put(STATE_BIT_MAXIMIZED_HORZ, newMaxHorz) != newMaxHorz;
