@@ -124,7 +124,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitP
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug1225EventQueueInterruptedAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug1225EventQueueInterruptedAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
@@ -170,6 +170,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCan
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashFormComposite %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindows01NEWT
+scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindows02NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT %*

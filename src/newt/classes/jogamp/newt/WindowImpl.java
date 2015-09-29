@@ -4662,12 +4662,26 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     /** Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags. */
-    protected void sizePosMaxInsetsChanged(final boolean defer,
-                                     final int newX, final int newY,
-                                     final int newWidth, final int newHeight,
-                                     final boolean newMaxHorz, final boolean newMaxVert,
-                                     final int left, final int right, final int top, final int bottom,
-                                     final boolean force) {
+    protected final void sizePosInsetsFocusVisibleChanged(final boolean defer,
+                                                          final int newX, final int newY,
+                                                          final int newWidth, final int newHeight,
+                                                          final int left, final int right, final int top, final int bottom,
+                                                          final boolean focusGained,
+                                                          final boolean visible,
+                                                          final boolean force) {
+        sizeChanged(defer, newWidth, newHeight, force);
+        positionChanged(defer, newX, newY);
+        insetsChanged(defer, left, right, top, bottom);
+        focusChanged(defer, focusGained);
+        visibleChanged(defer, visible);
+    }
+    /** Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags. */
+    protected final void sizePosMaxInsetsChanged(final boolean defer,
+                                                 final int newX, final int newY,
+                                                 final int newWidth, final int newHeight,
+                                                 final boolean newMaxHorz, final boolean newMaxVert,
+                                                 final int left, final int right, final int top, final int bottom,
+                                                 final boolean force) {
         sizeChanged(defer, newWidth, newHeight, force);
         positionChanged(defer, newX, newY);
         maximizedChanged(newMaxHorz, newMaxVert);

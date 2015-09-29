@@ -138,7 +138,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
+    D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
@@ -420,7 +420,7 @@ function testawtswt() {
 # Stereo
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
-
+#
 #
 # HiDPI
 #
@@ -621,7 +621,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindows01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestWindows02NEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.TestWindows02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowAndPointerIconNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*
@@ -715,7 +715,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1225EventQueueInterruptedAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1225EventQueueInterruptedAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.Bug818GLJPanelAndGLCanvasApplet $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.GLJPanelsAndGLCanvasDemoGL2Applet $*

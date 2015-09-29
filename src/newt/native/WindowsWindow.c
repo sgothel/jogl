@@ -181,6 +181,7 @@ static jmethodID maximizedChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
+static jmethodID sizePosInsetsFocusVisibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID sendMouseEventID = NULL;
@@ -206,10 +207,18 @@ static int NewtEDID_avail = 0;
 typedef struct {
     JNIEnv* jenv;
     jobject jinstance;
+    /* client x-pos */
+    int xpos;
+    /* client y-pos */
+    int ypos;
     /* client size width */
     int width;
     /* client size height */
     int height;
+    /* visible state */
+    BOOL visible;
+    /* focused state */
+    BOOL focused;
     /* Insets left, right, top, bottom */
     RECT insets;
     /** Tristate: -1 HIDE, 0 NOP, 1 SHOW */
@@ -228,6 +237,8 @@ typedef struct {
     BOOL isMaximized;
     BOOL isOnBottom;
     BOOL isOnTop;
+    /** Bug 1205: Clear Window Background -> security! */
+    BOOL isInCreation;
     int pointerCaptured;
     int pointerInside;
     int touchDownCount;
@@ -693,6 +704,7 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
     jobject window = wud->jinstance;
     RECT outside;
     RECT inside;
+    int strategy = 0;
 
     if (IsIconic(hwnd)) {
         wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = -1;
@@ -710,6 +722,7 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
         wud->insets.bottom = outside.bottom - inside.bottom;
         wud->insets.left = inside.left - outside.left;
         wud->insets.right = outside.right - inside.right;
+        strategy = 1;
     } else {
         wud->insets.top = -1;
     }
@@ -735,18 +748,21 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
 
             /* Add in title. */
             wud->insets.top += GetSystemMetrics(SM_CYCAPTION);
+            strategy += 10;
         } else {
             /* undo the -1 set above */
             wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = 0;
+            strategy += 20;
         }
     }
 
-    DBG_PRINT("*** WindowsWindow: UpdateInsets window %p, [l %d, r %d - t %d, b %d - %dx%d]\n", 
-        (void*)hwnd, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom,
-        (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom));
-
-    (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
-                           (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
+    DBG_PRINT("*** WindowsWindow: UpdateInsets window %p, s %d, [l %d, r %d - t %d, b %d - %dx%d], at-init %d\n", 
+        (void*)hwnd, strategy, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom,
+        (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom), wud->isInCreation);
+    if( !wud->isInCreation ) {
+        (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
+                               (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
+    }
 }
 
 static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
@@ -785,14 +801,16 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
     wud->width = (int) ( rc.right  - rc.left );
     wud->height = (int) ( rc.bottom - rc.top );
 
-    DBG_PRINT("*** WindowsWindow: WmSize.X window %p, %dx%d, isMinimized %d, isMaximized %d (changed %d), visible %d\n", 
-        (void*)wnd, wud->width, wud->height, wud->isMinimized, wud->isMaximized, maxChanged, isVisible);
+    DBG_PRINT("*** WindowsWindow: WmSize.X window %p, %dx%d, isMinimized %d, isMaximized %d (changed %d), visible %d, at-init %d\n", 
+        (void*)wnd, wud->width, wud->height, wud->isMinimized, wud->isMaximized, maxChanged, isVisible, wud->isInCreation);
 
-    if( maxChanged ) {
-        jboolean v = wud->isMaximized ? JNI_TRUE : JNI_FALSE;
-        (*env)->CallVoidMethod(env, window, maximizedChangedID, v, v);
+    if( !wud->isInCreation ) {
+        if( maxChanged ) {
+            jboolean v = wud->isMaximized ? JNI_TRUE : JNI_FALSE;
+            (*env)->CallVoidMethod(env, window, maximizedChangedID, v, v);
+        }
+        (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
     }
-    (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
 }
 
 #ifdef TEST_MOUSE_HOOKS
@@ -1007,7 +1025,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 #ifdef VERBOSE_ON
                     BOOL isNoTopMost = HWND_NOTOPMOST == p->hwndInsertAfter;
                     BOOL isTop = HWND_TOP == p->hwndInsertAfter;
-                    BOOL isTopMost = HWND_TOPMOST == p->hwndInsertAfter;
                     BOOL isNoZ = 0 != ( SWP_NOZORDER & p->flags );
                     DBG_PRINT("*** WindowsWindow: WM_WINDOWPOSCHANGING window %p / %p (= %d), %p[bottom %d, notop %d, top %d, topmost %d, noZ %d, force[Top %d, Bottom %d], %d/%d %dx%d 0x%X\n", 
                         wnd, p->hwnd, isThis, 
@@ -1041,33 +1058,63 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             break;
 
         case WM_SHOWWINDOW:
-            DBG_PRINT("*** WindowsWindow: WM_SHOWWINDOW window %p: %d\n", wnd, wParam==TRUE);
-            (*env)->CallVoidMethod(env, window, visibleChangedID, JNI_FALSE, wParam==TRUE?JNI_TRUE:JNI_FALSE);
+            DBG_PRINT("*** WindowsWindow: WM_SHOWWINDOW window %p: %d, at-init %d\n", wnd, wParam==TRUE, wud->isInCreation);
+            wud->visible = wParam==TRUE;
+            if( !wud->isInCreation ) {
+                (*env)->CallVoidMethod(env, window, visibleChangedID, JNI_FALSE, wParam==TRUE?JNI_TRUE:JNI_FALSE);
+            }
             break;
 
         case WM_MOVE:
-            DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d\n", wnd, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-            (*env)->CallVoidMethod(env, window, positionChangedID, JNI_FALSE, (jint)GET_X_LPARAM(lParam), (jint)GET_Y_LPARAM(lParam));
+            wud->xpos = (int)GET_X_LPARAM(lParam);
+            wud->ypos = (int)GET_Y_LPARAM(lParam);
+            DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d, at-init %d\n", wnd, wud->xpos, wud->ypos, wud->isInCreation);
+            if( !wud->isInCreation ) {
+                (*env)->CallVoidMethod(env, window, positionChangedID, JNI_FALSE, (jint)wud->xpos, (jint)wud->ypos);
+            }
             useDefWindowProc = 1;
             break;
 
         case WM_PAINT: {
-            RECT r;
-            if (GetUpdateRect(wnd, &r, FALSE /* do not erase background */)) {
-                // clear the whole client area and issue repaint for it, w/o looping through erase background
-                ValidateRect(wnd, NULL); // clear all!
-                (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+            if( wud->isInCreation ) {
+                if (GetUpdateRect(wnd, NULL, TRUE /* erase background */)) {
+                    DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (dirty)\n");
+                    // WM_ERASEBKGND sent!
+                } else {
+                    DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (clean)\n");
+                }
             } else {
-                // shall not happen ?
-                ValidateRect(wnd, NULL); // clear all!
+                if (GetUpdateRect(wnd, NULL, FALSE /* do not erase background */)) {
+                    DBG_PRINT("*** WindowsWindow: WM_PAINT.1 (dirty)\n");
+                    // Let NEWT render the whole client area by issueing repaint for it, w/o looping through erase background
+                    ValidateRect(wnd, NULL); // clear all!
+                    (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+                } else {
+                    DBG_PRINT("*** WindowsWindow: WM_PAINT.1 (clean)\n");
+                    // shall not happen ?
+                    ValidateRect(wnd, NULL); // clear all!
+                }
+                // return 0 == done
             }
-            // return 0 == done
             break;
         }
         case WM_ERASEBKGND:
-            // ignore erase background
-            (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
-            res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
+            if( wud->isInCreation ) {
+                PAINTSTRUCT ps;
+                HDC hdc;
+                hdc = BeginPaint(wnd, &ps);
+                DBG_PRINT("*** WindowsWindow: WM_ERASEBKGND.0 (erasure) l/b %d/%d r/t %d/%d\n", 
+                    ps.rcPaint.left, ps.rcPaint.bottom, ps.rcPaint.right, ps.rcPaint.top);
+                FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW+1));
+                EndPaint(wnd, &ps); 
+                res = 1; // return 1 == done
+            } else {
+                // ignore erase background, but let NEWT render the whole client area
+                DBG_PRINT("*** WindowsWindow: WM_ERASEBKGND.1 (repaint)\n");
+                ValidateRect(wnd, NULL); // clear all!
+                (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+                res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
+            }
             break;
 
         case WM_SETCURSOR :
@@ -1116,8 +1163,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             break;
 
         case WM_SETFOCUS:
-            DBG_PRINT("*** WindowsWindow: WM_SETFOCUS window %p, lost %p\n", wnd, (HWND)wParam);
-            (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
+            DBG_PRINT("*** WindowsWindow: WM_SETFOCUS window %p, lost %p, at-init %d\n", wnd, (HWND)wParam, wud->isInCreation);
+            wud->focused = TRUE;
+            if( !wud->isInCreation ) {
+                (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
+            }
             useDefWindowProc = 1;
             break;
 
@@ -1130,7 +1180,10 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     wud->pointerCaptured = 0;
                     ReleaseCapture();
                 }
-                (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
+                wud->focused = FALSE;
+                if( !wud->isInCreation ) {
+                    (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
+                }
                 useDefWindowProc = 1;
             } else {
                 // quick focus .. we had it already, are enabled ..
@@ -2058,6 +2111,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
+    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZIIIIIIIIZZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
@@ -2071,6 +2125,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
         positionChangedID == NULL ||
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
+        sizePosInsetsFocusVisibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
         sendMouseEventID == NULL ||
@@ -2186,7 +2241,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
     const TCHAR* wndName = NULL;
-    DWORD windowStyle = WS_DEFAULT_STYLES | WS_VISIBLE;
+    DWORD windowStyle = WS_DEFAULT_STYLES;
     int x=(int)jx, y=(int)jy;
     int width=(int)defaultWidth, height=(int)defaultHeight;
     HWND window = NULL;
@@ -2240,8 +2295,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
+        wud->xpos = x;
+        wud->ypos = y;
         wud->width = width;
         wud->height = height;
+        wud->visible = TRUE;
+        wud->focused = TRUE;
         wud->setPointerVisible = 0;
         wud->setPointerAction = 0;
         wud->defPointerHandle = LoadCursor( NULL, IDC_ARROW);
@@ -2252,6 +2311,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->isMaximized = FALSE;
         wud->isOnBottom = FALSE;
         wud->isOnTop = FALSE;
+        wud->isInCreation = TRUE;
         wud->pointerCaptured = 0;
         wud->pointerInside = 0;
         wud->touchDownCount = 0;
@@ -2275,24 +2335,43 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
 #endif
 
-        // gather and adjust position and size
-        {
+        // Not required (reducing redundant pain/update/size calls):
+        //   ShowWindow(window, SW_SHOW);
+        //   InvalidateRect(window, NULL, FALSE);
+        //   UpdateWindow(window); // Issue WM_PAINT to clear window!
+
+        // send insets before visibility, allowing java code a proper sync point!
+        UpdateInsets(env, wud, window);
+
+        if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
             RECT rc;
-
-            ShowWindow(window, SW_SHOW);
-
-            // send insets before visibility, allowing java code a proper sync point!
-            UpdateInsets(env, wud, window);
-            (*env)->CallVoidMethod(env, wud->jinstance, visibleChangedID, JNI_FALSE, JNI_TRUE);
-
-            if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
-                GetWindowRect(window, &rc);
-                x = rc.left + wud->insets.left; // client coords
-                y = rc.top + wud->insets.top;   // client coords
-            }
-            DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", x, y, width, height, TST_FLAG_IS_AUTOPOSITION(flags));
-            NewtWindow_setVisiblePosSize(wud, window, flags, TRUE, x, y, width, height);
+            GetWindowRect(window, &rc);
+            x = rc.left + wud->insets.left; // client coords
+            y = rc.top + wud->insets.top;   // client coords
+            wud->xpos = x;
+            wud->ypos = y;
         }
+        DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", 
+            x, y, width, height, TST_FLAG_IS_AUTOPOSITION(flags));
+
+        NewtWindow_setVisiblePosSize(wud, window, flags, TRUE, x, y, width, height);
+
+        DBG_PRINT("*** WindowsWindow: CreateWindow pos/size set: %d/%d %dx%d, focused %d, visible %d\n", 
+            wud->xpos, wud->ypos, wud->width, wud->height, wud->focused, wud->visible);
+        wud->isInCreation = FALSE;
+
+        if( wud->isMaximized ) {
+            (*env)->CallVoidMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
+        }
+        (*env)->CallVoidMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE,
+                               (jint)wud->xpos, (jint)wud->ypos,
+                               (jint)wud->width, (jint)wud->height,
+                               (jint)wud->insets.left, (jint)wud->insets.right, (jint)wud->insets.top, (jint)wud->insets.bottom,
+                               (jboolean)wud->focused,
+                               (jboolean)wud->visible,
+                               JNI_FALSE);
+        DBG_PRINT("*** WindowsWindow: CreateWindow JNI callbacks done\n");
+
         if( wud->supportsMTouch ) {
             WinTouch_RegisterTouchWindow(window, 0);
         }
@@ -2311,6 +2390,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
     hookMP = SetWindowsHookEx(WH_MOUSE_LL, &HookMouseProc, (HINSTANCE) (intptr_t) hInstance, 0);
     DBG_PRINT("**** LLMP Hook %p, MP Hook %p\n", hookLLMP, hookMP);
 #endif
+    DBG_PRINT("*** WindowsWindow: CreateWindow done\n");
 
     return (jlong) (intptr_t) window;
 }
