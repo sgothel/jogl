@@ -103,12 +103,12 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
     }
 
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test01_NoGL() throws InterruptedException, InvocationTargetException {
         testImpl(false);
     }
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test02_WithGL() throws InterruptedException, InvocationTargetException {
         testImpl(true);
     }
