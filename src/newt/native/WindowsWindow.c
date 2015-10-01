@@ -936,6 +936,7 @@ static void sendTouchScreenEvent(JNIEnv *env, jobject window,
                            jNames, jX, jY, jPressure, (jfloat)maxPressure);
 }
     
+// #define DO_ERASEBKGND 1
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT res = 0;
@@ -1077,9 +1078,15 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
 
         case WM_PAINT: {
             if( wud->isInCreation ) {
+                #ifdef DO_ERASEBKGND
                 if (GetUpdateRect(wnd, NULL, TRUE /* erase background */)) {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (dirty)\n");
                     // WM_ERASEBKGND sent!
+                #else
+                if (GetUpdateRect(wnd, NULL, FALSE /* do not erase background */)) {
+                    DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (dirty)\n");
+                    ValidateRect(wnd, NULL); // clear all!
+                #endif
                 } else {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (clean)\n");
                 }
@@ -1100,13 +1107,23 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         }
         case WM_ERASEBKGND:
             if( wud->isInCreation ) {
-                PAINTSTRUCT ps;
-                HDC hdc;
-                hdc = BeginPaint(wnd, &ps);
-                DBG_PRINT("*** WindowsWindow: WM_ERASEBKGND.0 (erasure) l/b %d/%d r/t %d/%d\n", 
-                    ps.rcPaint.left, ps.rcPaint.bottom, ps.rcPaint.right, ps.rcPaint.top);
-                FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW+1));
-                EndPaint(wnd, &ps); 
+                #ifdef DO_ERASEBKGND
+                    // On Windows the initial window is clean?!
+                    // This fill destroys translucency on Windows 10
+                    // (which only seem to work on undecorated windows)
+                    PAINTSTRUCT ps;
+                    HDC hdc;
+                    hdc = BeginPaint(wnd, &ps);
+                    DBG_PRINT("*** WindowsWindow: WM_ERASEBKGND.0 (erasure) l/b %d/%d r/t %d/%d\n", 
+                        ps.rcPaint.left, ps.rcPaint.bottom, ps.rcPaint.right, ps.rcPaint.top);
+                    // FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW+1));
+                    // FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_APPWORKSPACE+1));
+                    // A black color also sets alpha to zero for translucency!
+                    FillRect(hdc, &ps.rcPaint, (HBRUSH)GetStockObject(BLACK_PEN));
+                    EndPaint(wnd, &ps); 
+                #else
+                    ValidateRect(wnd, NULL); // clear all!
+                #endif
                 res = 1; // return 1 == done
             } else {
                 // ignore erase background, but let NEWT render the whole client area
