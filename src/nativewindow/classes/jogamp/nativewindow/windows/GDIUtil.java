@@ -128,7 +128,13 @@ public class GDIUtil implements ToolkitProperties {
      * Windows >= 8, even if not manifested
      * @see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
      */
-    private static final VersionNumber Win8Version = new VersionNumber(6, 2, 0);
+    public static final VersionNumber Win8Version = new VersionNumber(6, 2, 0);
+
+    /**
+     * Windows >= 10, manifested
+     * @see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
+     */
+    public static final VersionNumber Win10Version = new VersionNumber(10, 0, 0);
 
     /**
      * Wrapper for {@link GDI#DwmIsCompositionEnabled()}
@@ -146,6 +152,77 @@ public class GDIUtil implements ToolkitProperties {
         } else {
             return GDI.DwmIsCompositionEnabled();
         }
+    }
+
+    public static boolean DwmSetupTranslucency(final long hwnd, final boolean enable) {
+        if( !GDI.DwmIsExtensionAvailable() ) {
+            if(DEBUG) {
+                System.err.println("GDIUtil.DwmSetupTranslucency on wnd 0x"+Long.toHexString(hwnd)+": enable "+enable+" -> failed, extension not available");
+            }
+            return !enable;
+        }
+        final VersionNumber winVer = Platform.getOSVersionNumber();
+        final boolean isWin8 = winVer.compareTo(Win8Version) >= 0;
+        if( !isWin8 && !GDI.DwmIsCompositionEnabled() ) {
+            if(DEBUG) {
+                System.err.println("GDIUtil.DwmSetupTranslucency on wnd 0x"+Long.toHexString(hwnd)+": enable "+enable+" -> failed, composition disabled");
+            }
+            return !enable;
+        }
+        final boolean hasWinCompEXT = GDI.IsWindowCompositionExtensionAvailable();
+        final boolean useWinCompEXT = isWin8 && hasWinCompEXT;
+        final boolean isUndecorated = IsUndecorated(hwnd);
+        boolean ok;
+        if( useWinCompEXT && !isUndecorated ) {
+            final AccentPolicy accentPolicy = AccentPolicy.create();
+            if( enable ) {
+                // For undecorated windows, this would also enable the Glass effect!
+                accentPolicy.setAccentState(GDI.ACCENT_ENABLE_BLURBEHIND);
+            } else {
+                accentPolicy.setAccentState(GDI.ACCENT_DISABLED);
+            }
+            ok = GDI.SetWindowCompositionAccentPolicy(hwnd, accentPolicy);
+        } else {
+            // Works even for >= Win8, if undecorated
+            final DWM_BLURBEHIND bb = DWM_BLURBEHIND.create();
+            final int dwFlags = enable ? GDI.DWM_BB_ENABLE | GDI.DWM_BB_BLURREGION | GDI.DWM_BB_TRANSITIONONMAXIMIZED : GDI.DWM_BB_ENABLE;
+            // final int dwFlags = GDI.DWM_BB_ENABLE;
+            bb.setDwFlags( dwFlags );
+            bb.setFEnable( enable ? 1 : 0 );
+            bb.setHRgnBlur(0);
+            bb.setFTransitionOnMaximized(1);
+            ok = GDI.DwmEnableBlurBehindWindow(hwnd, bb);
+            if( ok ) {
+                final MARGINS m = MARGINS.create();
+                m.setCxLeftWidth(-1);
+                m.setCxRightWidth(-1);
+                m.setCyBottomHeight(-1);
+                m.setCyTopHeight(-1);
+                ok = GDI.DwmExtendFrameIntoClientArea(hwnd, m);
+            }
+        }
+        /***
+         * Not required ..
+         *
+        if( ok && isWin8 && !isUndecorated ) {
+            final IntBuffer pvAttribute = Buffers.newDirectIntBuffer(1);
+            if( enable ) {
+                // Glass Effect even if undecorated, hence not truly 100% translucent!
+                pvAttribute.put(0, GDI.DWMNCRP_ENABLED);
+            } else {
+                pvAttribute.put(0, GDI.DWMNCRP_DISABLED);
+            }
+            final int err = GDI.DwmSetWindowAttribute(hwnd, GDI.DWMWA_NCRENDERING_POLICY,
+                                                      pvAttribute,
+                                                      Buffers.sizeOfBufferElem(pvAttribute)*pvAttribute.capacity());
+            ok = 0 == err; // S_OK
+        } */
+        if(DEBUG) {
+            final boolean isChild = IsChild(hwnd);
+            System.err.println("GDIUtil.DwmSetupTranslucency on wnd 0x"+Long.toHexString(hwnd)+": enable "+enable+", isUndecorated "+isUndecorated+", isChild "+isChild+
+                               ", version "+winVer+", isWin8 "+isWin8+", hasWinCompEXT "+hasWinCompEXT+", useWinCompEXT "+useWinCompEXT+" -> ok: "+ok);
+        }
+        return ok;
     }
 
     public static boolean IsUndecorated(final long win) {

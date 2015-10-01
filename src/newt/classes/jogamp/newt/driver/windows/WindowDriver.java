@@ -157,6 +157,10 @@ public class WindowDriver extends WindowImpl {
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
+        if( !cfg.getChosenCapabilities().isBackgroundOpaque() ) {
+            GDIUtil.DwmSetupTranslucency(_windowHandle, true);
+        }
+        InitWindow0(_windowHandle, flags);
         setWindowHandle(_windowHandle);
         windowHandleClose = _windowHandle;
 
@@ -235,7 +239,16 @@ public class WindowDriver extends WindowImpl {
             width = posSize[2];
             height = posSize[3];
         }
+
+        final boolean changeDecoration = 0 != ( CHANGE_MASK_DECORATION & flags);
+        final boolean isTranslucent = !getChosenCapabilities().isBackgroundOpaque();
+        if( changeDecoration && isTranslucent ) {
+            GDIUtil.DwmSetupTranslucency(getWindowHandle(), false);
+        }
         reconfigureWindow0( getParentWindowHandle(), getWindowHandle(), x, y, width, height, flags);
+        if( changeDecoration && isTranslucent ) {
+            GDIUtil.DwmSetupTranslucency(getWindowHandle(), true);
+        }
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
             visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
@@ -396,6 +409,7 @@ public class WindowDriver extends WindowImpl {
 
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName, int winMajor, int winMinor,
                                       long parentWindowHandle, int x, int y, int width, int height, int flags);
+    private native void InitWindow0(long windowHandle, int flags);
     private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);

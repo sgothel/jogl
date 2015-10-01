@@ -9,6 +9,14 @@
  * Editions / Removals and a split (wingdi.h -> wingdi.h + wingdi_types.h + winwgl.h) were made by the JogAmp Community, 2010, 2012
  */
 
+/**
+ * These are standard include replacement files
+ * for gluegen processing only!
+ */
+#ifndef __GLUEGEN__
+    #error "This file is intended to be used for GlueGen code generation, not native compilation.
+#endif
+
 #ifndef GDI_TYPES_1_X
 #define GDI_TYPES_1_X
 

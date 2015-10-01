@@ -227,7 +227,7 @@
                  outputRootDir="${build.nativewindow}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 literalInclude="${stub.includes.gluegen.gg}, ${src.c}/${window.os.system}"
+                 literalInclude="${stub.includes.gluegen.gg}, ${stub.includes}/${window.os.system}/gluegen, ${src.c}/${window.os.system}"
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  debug="false"
                  dumpCPP="false">
@@ -246,7 +246,7 @@
                  outputRootDir="${build.nativewindow}"
                  config="${jawt.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 literalInclude="${stub.includes.gluegen.gg}, ${stub.includes.gluegen}/jni, ${stub.includes.gluegen}/jni/${jni.platform.sub}"
+                 literalInclude="${stub.includes.gluegen.gg}, ${stub.includes.gluegen}/jni, ${stub.includes.gluegen}/jni/${jni.platform.sub}, ${stub.includes}/${window.os.system}/gluegen"
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  debug="false"
                  dumpCPP="false">
@@ -710,6 +710,7 @@
                 <includepath path="${src.generated.c}" />
                 <includepath path="${src.generated.c}/X11"     if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX"  if="isOSX"/>
+                <includepath path="stub_includes/win32"        if="isWindows"/>
                 <includepath path="${src.generated.c}/Windows" if="isWindows"/>
                 <includepath path="${src.c}/x11"               if="isX11"/>
                 <includepath path="${src.c}/macosx"            if="isOSX"/>

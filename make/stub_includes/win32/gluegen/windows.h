@@ -1,6 +1,14 @@
 /* Windows #defines and typedefs required for processing of extracts
    from WINGDI.H and jawt_md.h */
 
+/**
+ * These are standard include replacement files
+ * for gluegen processing only!
+ */
+#ifndef __GLUEGEN__
+    #error "This file is intended to be used for GlueGen code generation, not native compilation.
+#endif
+
 #ifndef _WINDOWS_
 #define _WINDOWS_
 
@@ -30,9 +38,12 @@ typedef HANDLE              HINSTANCE;
 typedef HANDLE              HPALETTE;
 typedef HANDLE              HWND;
 typedef HANDLE              HRGN;
-typedef __int32             LONG;
 typedef const char*         LPCSTR;
+typedef void*               PVOID;
 typedef void*               LPVOID;
+typedef const void*         LPCVOID;
+typedef __int32             LONG;
+typedef unsigned __int32    ULONG;
 typedef unsigned __int64    ULONG_PTR;
 typedef struct _proc*       PROC;
 typedef unsigned int*       PUINT;

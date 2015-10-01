@@ -171,24 +171,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                                   ": error code " + GDI.GetLastError());
         }
         if( !caps.isBackgroundOpaque() ) {
-            final long hwnd = GDI.WindowFromDC(hdc);
-            final DWM_BLURBEHIND bb = DWM_BLURBEHIND.create();
-            bb.setDwFlags(GDI.DWM_BB_ENABLE| GDI.DWM_BB_TRANSITIONONMAXIMIZED);
-            bb.setFEnable( 1 );
-            boolean ok = GDI.DwmEnableBlurBehindWindow(hwnd, bb);
-            if( ok ) {
-                final MARGINS m = MARGINS.create();
-                m.setCxLeftWidth(-1);
-                m.setCxRightWidth(-1);
-                m.setCyBottomHeight(-1);
-                m.setCyTopHeight(-1);
-                ok = GDI.DwmExtendFrameIntoClientArea(hwnd, m);
-            }
-            if(DEBUG) {
-                final boolean isUndecorated = GDIUtil.IsUndecorated(hwnd);
-                final boolean isChild = GDIUtil.IsChild(hwnd);
-                System.err.println("translucency enabled on wnd: 0x"+Long.toHexString(hwnd)+" - isUndecorated "+isUndecorated+", isChild "+isChild+", ok: "+ok);
-            }
+            GDIUtil.DwmSetupTranslucency(GDI.WindowFromDC(hdc), true);
         }
         if (DEBUG) {
             System.err.println("setPixelFormat: hdc "+toHexString(hdc) +", "+caps);

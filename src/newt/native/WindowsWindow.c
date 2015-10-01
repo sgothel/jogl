@@ -2236,16 +2236,15 @@ static void NewtWindow_setVisiblePosSize(WindowUserData *wud, HWND hwnd, int jfl
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, jint winMajor, jint winMinor,
-   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jint flags)
+   jlong parent, jint jxpos, jint jypos, jint defaultWidth, jint defaultHeight, jint flags)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
     const TCHAR* wndName = NULL;
     DWORD windowStyle = WS_DEFAULT_STYLES;
-    int x=(int)jx, y=(int)jy;
+    int xpos=(int)jxpos, ypos=(int)jypos;
     int width=(int)defaultWidth, height=(int)defaultHeight;
-    HWND window = NULL;
-    int _x = x, _y = y; // pos for CreateWindow, might be tweaked
+    HWND hwnd = NULL;
 
 #ifdef UNICODE
     wndClassName = NewtCommon_GetNullTerminatedStringChars(env, jWndClassName);
@@ -2261,10 +2260,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             return 0;
         }
         windowStyle |= WS_CHILD ;
-    } else if ( TST_FLAG_IS_UNDECORATED(flags) ) {
-        windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     } else {
-        if ( TST_FLAG_IS_RESIZABLE(flags) ) {
+        if ( TST_FLAG_IS_UNDECORATED(flags) ) {
+            windowStyle |= WS_POPUP | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+        } else if ( TST_FLAG_IS_RESIZABLE(flags) ) {
             // WS_OVERLAPPEDWINDOW = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
             windowStyle |= WS_OVERLAPPEDWINDOW;
         } else {
@@ -2272,31 +2271,28 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         }
         if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
             // user didn't requested specific position, use WM default
-            _x = CW_USEDEFAULT;
-            _y = 0;
+            xpos = CW_USEDEFAULT;
+            ypos = 0;
         }
     }
 
-    window = CreateWindow(wndClassName, wndName, windowStyle,
-                          _x, _y, width, height,
-                          parentWindow, NULL,
-                          (HINSTANCE) (intptr_t) hInstance,
-                          NULL);
+    hwnd = CreateWindow(wndClassName, wndName, windowStyle,
+                        xpos, ypos, width, height,
+                        parentWindow, NULL, (HINSTANCE) (intptr_t) hInstance, NULL);
 
-    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, win %d.%d parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
-        (int)GetCurrentThreadId(), winMajor, winMinor, parentWindow, window, x, y, width, height,
+    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, win %d.%d parent %p, window %p, %d/%d -> %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
+        (int)GetCurrentThreadId(), winMajor, winMinor, parentWindow, hwnd, jxpos, jypos, xpos, ypos, width, height,
         TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags), TST_FLAG_IS_AUTOPOSITION(flags));
 
-    if (NULL == window) {
+    if (NULL == hwnd) {
         int lastError = (int) GetLastError();
         DBG_PRINT("*** WindowsWindow: CreateWindow failure: 0x%X %d\n", lastError, lastError);
-        return 0;
     } else {
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
-        wud->xpos = x;
-        wud->ypos = y;
+        wud->xpos = xpos;
+        wud->ypos = ypos;
         wud->width = width;
         wud->height = height;
         wud->visible = TRUE;
@@ -2330,51 +2326,26 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         DBG_PRINT("*** WindowsWindow: CreateWindow winTouchFuncAvail %d, supportsMTouch %d\n", WinTouch_func_avail, wud->supportsMTouch);
 
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
-        SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
+        SetWindowLong(hwnd, GWL_USERDATA, (intptr_t) wud);
 #else
-        SetWindowLongPtr(window, GWLP_USERDATA, (intptr_t) wud);
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, (intptr_t) wud);
 #endif
 
-        // Not required (reducing redundant pain/update/size calls):
-        //   ShowWindow(window, SW_SHOW);
-        //   InvalidateRect(window, NULL, FALSE);
-        //   UpdateWindow(window); // Issue WM_PAINT to clear window!
-
         // send insets before visibility, allowing java code a proper sync point!
-        UpdateInsets(env, wud, window);
+        UpdateInsets(env, wud, hwnd);
 
         if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
             RECT rc;
-            GetWindowRect(window, &rc);
-            x = rc.left + wud->insets.left; // client coords
-            y = rc.top + wud->insets.top;   // client coords
-            wud->xpos = x;
-            wud->ypos = y;
+            GetWindowRect(hwnd, &rc);
+            xpos = rc.left + wud->insets.left; // client coords
+            ypos = rc.top + wud->insets.top;   // client coords
+            wud->xpos = xpos;
+            wud->ypos = ypos;
         }
-        DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d (autoPosition %d)\n", 
-            x, y, width, height, TST_FLAG_IS_AUTOPOSITION(flags));
-
-        NewtWindow_setVisiblePosSize(wud, window, flags, TRUE, x, y, width, height);
-
-        DBG_PRINT("*** WindowsWindow: CreateWindow pos/size set: %d/%d %dx%d, focused %d, visible %d\n", 
-            wud->xpos, wud->ypos, wud->width, wud->height, wud->focused, wud->visible);
-        wud->isInCreation = FALSE;
-
-        if( wud->isMaximized ) {
-            (*env)->CallVoidMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
-        }
-        (*env)->CallVoidMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE,
-                               (jint)wud->xpos, (jint)wud->ypos,
-                               (jint)wud->width, (jint)wud->height,
-                               (jint)wud->insets.left, (jint)wud->insets.right, (jint)wud->insets.top, (jint)wud->insets.bottom,
-                               (jboolean)wud->focused,
-                               (jboolean)wud->visible,
-                               JNI_FALSE);
-        DBG_PRINT("*** WindowsWindow: CreateWindow JNI callbacks done\n");
-
-        if( wud->supportsMTouch ) {
-            WinTouch_RegisterTouchWindow(window, 0);
-        }
+        DBG_PRINT("*** WindowsWindow: CreateWindow client: %d/%d %dx%d -> %d/%d %dx%d (autoPosition %d)\n", 
+            xpos, ypos, width, height, 
+            wud->xpos, wud->ypos, wud->width, wud->height,
+            TST_FLAG_IS_AUTOPOSITION(flags));
     }
 
 #ifdef UNICODE
@@ -2390,9 +2361,50 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
     hookMP = SetWindowsHookEx(WH_MOUSE_LL, &HookMouseProc, (HINSTANCE) (intptr_t) hInstance, 0);
     DBG_PRINT("**** LLMP Hook %p, MP Hook %p\n", hookLLMP, hookMP);
 #endif
-    DBG_PRINT("*** WindowsWindow: CreateWindow done\n");
 
-    return (jlong) (intptr_t) window;
+    DBG_PRINT("*** WindowsWindow: CreateWindow done\n");
+    return (jlong) (intptr_t) hwnd;
+}
+
+/*
+ * Class:     jogamp_newt_driver_windows_WindowDriver
+ * Method:    InitWindow
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
+  (JNIEnv *env, jobject obj, jlong window, jint flags) 
+{
+    HWND hwnd = (HWND) (intptr_t) window;
+    WindowUserData * wud;
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
+    wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+#endif
+
+    DBG_PRINT("*** WindowsWindow: InitWindow start %d/%d %dx%d, focused %d, visible %d\n", 
+        wud->xpos, wud->ypos, wud->width, wud->height, wud->focused, wud->visible);
+
+    NewtWindow_setVisiblePosSize(wud, hwnd, flags, TRUE, wud->xpos, wud->ypos, wud->width, wud->height);
+    wud->isInCreation = FALSE;
+
+    DBG_PRINT("*** WindowsWindow: InitWindow pos/size set: %d/%d %dx%d, focused %d, visible %d\n", 
+        wud->xpos, wud->ypos, wud->width, wud->height, wud->focused, wud->visible);
+
+    if( wud->isMaximized ) {
+        (*env)->CallVoidMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
+    }
+    (*env)->CallVoidMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE,
+                           (jint)wud->xpos, (jint)wud->ypos,
+                           (jint)wud->width, (jint)wud->height,
+                           (jint)wud->insets.left, (jint)wud->insets.right, (jint)wud->insets.top, (jint)wud->insets.bottom,
+                           (jboolean)wud->focused,
+                           (jboolean)wud->visible,
+                           JNI_FALSE);
+    DBG_PRINT("*** WindowsWindow: InitWindow JNI callbacks done\n");
+
+    if( wud->supportsMTouch ) {
+        WinTouch_RegisterTouchWindow(hwnd, 0);
+    }
 }
 
 /*
