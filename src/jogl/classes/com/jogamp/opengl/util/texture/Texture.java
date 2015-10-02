@@ -163,8 +163,10 @@ import com.jogamp.opengl.util.texture.spi.*;
  * @author Chris Campbell, Kenneth Russell, et.al.
  */
 public class Texture {
-    /** The GL target type. */
+    /** The GL target type for this texture. */
     private int target;
+    /** The image GL target type for this texture, or its sub-components if cubemap. */
+    private int imageTarget;
     /** The GL texture ID. */
     private int texID;
     /** The width of the texture. */
@@ -190,7 +192,8 @@ public class Texture {
 
     @Override
     public String toString() {
-        return "Texture[target 0x"+Integer.toHexString(target)+", name "+texID+", "+
+        final String targetS = target == imageTarget ? Integer.toHexString(target) : Integer.toHexString(target) + " - image "+Integer.toHexString(imageTarget);
+        return "Texture[target "+targetS+", name "+texID+", "+
                 imgWidth+"/"+texWidth+" x "+imgHeight+"/"+texHeight+", y-flip "+mustFlipVertically+
                 ", "+estimatedMemorySize+" bytes]";
     }
@@ -206,7 +209,9 @@ public class Texture {
     private static final boolean disableTexRect = Debug.isPropertyDefined("jogl.texture.notexrect", true);
 
     public Texture(final GL gl, final TextureData data) throws GLException {
-        texID = 0;
+        this.texID = 0;
+        this.target = 0;
+        this.imageTarget = 0;
         updateImage(gl, data);
     }
 
@@ -217,8 +222,9 @@ public class Texture {
      *               GL2.GL_TEXTURE_RECTANGLE
      */
     public Texture(final int target) {
-        texID = 0;
+        this.texID = 0;
         this.target = target;
+        this.imageTarget = target;
     }
 
     /**
@@ -250,11 +256,14 @@ public class Texture {
                    final boolean mustFlipVertically) {
         this.texID = textureID;
         this.target = target;
+        this.imageTarget = target;
         this.mustFlipVertically = mustFlipVertically;
         this.texWidth = texWidth;
         this.texHeight = texHeight;
-        aspectRatio = (float) imgWidth / (float) imgHeight;
-        setImageSize(imgWidth, imgHeight, target);
+        this.aspectRatio = (float) imgWidth / (float) imgHeight;
+        this.imgWidth = imgWidth;
+        this.imgHeight = imgHeight;
+        this.updateTexCoords();
     }
 
     /**
@@ -344,13 +353,20 @@ public class Texture {
 
     /**
      * Returns the OpenGL "target" of this texture.
-     *
-     * @return the OpenGL target of this texture
      * @see com.jogamp.opengl.GL#GL_TEXTURE_2D
      * @see com.jogamp.opengl.GL2#GL_TEXTURE_RECTANGLE_ARB
      */
     public int getTarget() {
         return target;
+    }
+
+    /**
+     * Returns the image OpenGL "target" of this texture, or its sub-components if cubemap.
+     * @see com.jogamp.opengl.GL#GL_TEXTURE_2D
+     * @see com.jogamp.opengl.GL2#GL_TEXTURE_RECTANGLE_ARB
+     */
+    public int getImageTarget() {
+        return imageTarget;
     }
 
     /**
@@ -438,7 +454,7 @@ public class Texture {
      * @return the texture coordinates corresponding to the specified sub-image
      */
     public TextureCoords getSubImageTexCoords(final int x1, final int y1, final int x2, final int y2) {
-        if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
+        if (GL2.GL_TEXTURE_RECTANGLE_ARB == imageTarget) {
             if (mustFlipVertically) {
                 return new TextureCoords(x1, texHeight - y1, x2, texHeight - y2);
             } else {
@@ -616,17 +632,17 @@ public class Texture {
             texHeight = nextPowerOfTwo(imgHeight);
             texTarget = GL.GL_TEXTURE_2D;
         }
-
         texParamTarget = texTarget;
-        setImageSize(imgWidth, imgHeight, texTarget);
+        imageTarget = texTarget;
+        updateTexCoords();
 
         if (targetOverride != 0) {
             // Allow user to override auto detection and skip bind step (for
             // cubemap construction)
-            texTarget = targetOverride;
             if (this.target == 0) {
                 throw new GLException("Override of target failed; no target specified yet");
             }
+            texTarget = targetOverride;
             texParamTarget = this.target;
             gl.glBindTexture(texParamTarget, texID);
         } else {
@@ -977,17 +993,8 @@ public class Texture {
         return ret;
     }
 
-    /**
-     * Updates the actual image dimensions; usually only called from
-     * <code>updateImage</code>.
-     */
-    private void setImageSize(final int width, final int height, final int target) {
-        imgWidth = width;
-        imgHeight = height;
-        updateTexCoords();
-    }
     private void updateTexCoords() {
-        if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
+        if ( GL2.GL_TEXTURE_RECTANGLE_ARB == imageTarget ) {
             if (mustFlipVertically) {
                 coords = new TextureCoords(0, imgHeight, imgWidth, 0);
             } else {
