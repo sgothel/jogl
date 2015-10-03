@@ -70,7 +70,9 @@ public class DisplayDriver extends DisplayImpl {
             final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/pointer-grey-alpha-16x24.png" }, DisplayDriver.class.getClassLoader(), null);
             try {
                 final URLConnection urlConn = res.resolve(0);
-                image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                if( null != urlConn ) {
+                    image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                }
             } catch (final Exception e) {
                 e.printStackTrace();
             }
@@ -96,7 +98,11 @@ public class DisplayDriver extends DisplayImpl {
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
         aDevice.open();
 
-        defaultPointerIcon = (PointerIconImpl) createPointerIcon(defaultPointerIconImage, 0, 0);
+        if( null != defaultPointerIconImage ) {
+            defaultPointerIcon = (PointerIconImpl) createPointerIcon(defaultPointerIconImage, 0, 0);
+        } else {
+            defaultPointerIcon = null;
+        }
         if( DEBUG_POINTER_ICON ) {
             System.err.println("Display.PointerIcon.createDefault: "+defaultPointerIcon);
         }

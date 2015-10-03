@@ -68,7 +68,7 @@ public class NewtFactory {
                 NativeWindowFactory.initSingleton(); // last resort ..
                 {
                     /** See API Doc in {@link Window} ! */
-                    final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, sysPaths).split("\\s");
+                    final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, sysPaths).split("[\\s,]");
                     if( paths.length < 2 ) {
                         throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));
                     }
@@ -81,7 +81,7 @@ public class NewtFactory {
     /**
      * Returns the application window icon resources to be used.
      * <p>
-     * Property <code>newt.window.icons</code> may define a list of PNG icons separated by a whitespace character.
+     * Property <code>newt.window.icons</code> may define a list of PNG icons separated by one whitespace or one comma character.
      * Shall reference at least two PNG icons, from lower (16x16) to higher (>= 32x32) resolution.
      * </p>
      * <p>

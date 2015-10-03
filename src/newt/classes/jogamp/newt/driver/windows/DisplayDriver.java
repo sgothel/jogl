@@ -68,19 +68,23 @@ public class DisplayDriver extends DisplayImpl {
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
                     {
                         final URLConnection urlConn = iconRes.resolve(0);
-                        final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                        _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
+                        if( null != urlConn ) {
+                            final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                            _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
+                        }
                     }
                     {
                         final URLConnection urlConn = iconRes.resolve(iconRes.resourceCount()-1);
-                        final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
-                        _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
+                        if( null != urlConn ) {
+                            final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                            _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
+                        }
                     }
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }
-            defaultIconHandles = _defaultIconHandle;
+            defaultIconHandles = _defaultIconHandle; // null is a valid value for an icon handle
         }
         sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0(),
                                                         false /* useDummyDispatchThread */, defaultIconHandles[0], defaultIconHandles[1]);

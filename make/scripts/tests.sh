@@ -43,7 +43,8 @@ if [ $MOSX -eq 1 ] ; then
 fi
 
 # We use TempJarCache and JAR files per default now!
-# export USE_BUILDDIR=1
+export USE_BUILDDIR=0
+#export USE_BUILDDIR=1
 
 if [ $USE_BUILDDIR -eq 1 ] ; then
     export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
@@ -195,6 +196,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.window.icons=null,null"
+    #D_ARGS="-Dnewt.window.icons=../src/test/com/jogamp/opengl/test/junit/jogl/util/texture/test-ntscI_4-01-160x90.png,../src/test/com/jogamp/opengl/test/junit/jogl/util/texture/cross-grey-alpha-16x16.png -Djogamp.debug.IOUtil"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
@@ -283,7 +286,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.graph.curve.instance"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
-    D_ARGS="-Djogamp.debug.IOUtil"
+    #D_ARGS="-Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
@@ -434,7 +437,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -874,7 +877,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
