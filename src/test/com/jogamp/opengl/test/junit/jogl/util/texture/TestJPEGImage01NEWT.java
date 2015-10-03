@@ -146,7 +146,7 @@ public class TestJPEGImage01NEWT extends UITestCase {
     @Test
     public void testReadES2_RGBn() throws InterruptedException, IOException, MalformedURLException {
         final String fname = null == _fname ? "test-ntscN_3-01-160x90-90pct-yuv444-base.jpg" : _fname;
-        final URLConnection urlConn = IOUtil.getResource(this.getClass(), fname);
+        final URLConnection urlConn = IOUtil.getResource(fname, this.getClass().getClassLoader(), this.getClass());
         testImpl(urlConn.getInputStream());
     }
 

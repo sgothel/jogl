@@ -101,7 +101,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
     }
 
     GLWindow testJOGLJpeg(final String fname) throws InterruptedException, IOException {
-        final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), fname);
+        final URLConnection testTextureUrlConn = IOUtil.getResource(fname, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(testTextureUrlConn);
         final InputStream istream = testTextureUrlConn.getInputStream();
         Assert.assertNotNull(istream);
@@ -160,7 +160,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
     }
 
     GLWindow testAWTJpeg(final String fname, final int xpos) throws InterruptedException, IOException {
-        final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), fname);
+        final URLConnection testTextureUrlConn = IOUtil.getResource(fname, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(testTextureUrlConn);
         final InputStream istream = testTextureUrlConn.getInputStream();
         Assert.assertNotNull(istream);

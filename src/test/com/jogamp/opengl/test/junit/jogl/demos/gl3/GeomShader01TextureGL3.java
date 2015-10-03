@@ -193,7 +193,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
     }
 
     private Texture createTestTexture(final GL3 gl) throws IOException  {
-        final URLConnection urlConn = IOUtil.getResource(this.getClass(), "../../util/texture/test-ntscN_3-01-160x90.png");
+        final URLConnection urlConn = IOUtil.getResource("../../util/texture/test-ntscN_3-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
         if(null == urlConn) { return null; }
         final InputStream istream = urlConn.getInputStream();
         if(null == istream) { return null; }

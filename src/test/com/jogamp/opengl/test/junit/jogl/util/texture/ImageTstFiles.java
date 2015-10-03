@@ -96,7 +96,7 @@ public class ImageTstFiles {
     private final ArrayList<NamedInputStream> init(final String[] source) throws IOException {
         final ArrayList<NamedInputStream> sink = new ArrayList<NamedInputStream>();
         for(int i=0; i<source.length; i++) {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), source[i]);
+            final URLConnection testTextureUrlConn = IOUtil.getResource(source[i], this.getClass().getClassLoader(), this.getClass());
             if( null != testTextureUrlConn ) {
                 final InputStream s = testTextureUrlConn.getInputStream();
                 if( null != s ) {

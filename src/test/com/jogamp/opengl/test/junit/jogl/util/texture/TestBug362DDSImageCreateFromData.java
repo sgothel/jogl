@@ -56,7 +56,7 @@ public class TestBug362DDSImageCreateFromData {
     }
 
     private File initFile(final String filename) throws URISyntaxException {
-    	final URLConnection connection = IOUtil.getResource(getClass(), filename);
+    	final URLConnection connection = IOUtil.getResource(filename, getClass().getClassLoader(), getClass());
     	Assert.assertNotNull(connection);
     	final URL url = connection.getURL();
     	final File file = new File(url.toURI());

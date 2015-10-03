@@ -82,44 +82,44 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
         grayTextureStream = TestPNGTextureFromFileNEWT.class.getResourceAsStream( "grayscale_texture.png" );
         Assert.assertNotNull(grayTextureStream);
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscN_3-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamN_3 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamN_3);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_4-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscN_4-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamN_4 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamN_4);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscNG4-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscNG4-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamNG4 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamNG4);
         }
 
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI_3-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscI_3-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamI_3 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamI_3);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscIG3-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscIG3-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamIG3 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamIG3);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI_4-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscI_4-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamI_4 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamI_4);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscIG4-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscIG4-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamIG4 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamIG4);
@@ -127,13 +127,13 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
 
 
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP_3-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscP_3-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamP_3 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamP_3);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP_4-01-160x90.png");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscP_4-01-160x90.png", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamP_4 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamP_4);

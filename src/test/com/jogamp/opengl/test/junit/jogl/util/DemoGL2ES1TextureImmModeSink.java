@@ -97,7 +97,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
         }
         final GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
 
-        final URLConnection testTextureUrlConn = IOUtil.getResource(PNGTstFiles.class, "test-ntscP_3-01-160x90.png");
+        final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscP_3-01-160x90.png", PNGTstFiles.class.getClassLoader(), PNGTstFiles.class);
         try {
             final InputStream  testTextureStream = testTextureUrlConn.getInputStream();
             textureData = TextureIO.newTextureData(gl.getGLProfile(), testTextureStream , false /* mipmap */, TextureIO.PNG);

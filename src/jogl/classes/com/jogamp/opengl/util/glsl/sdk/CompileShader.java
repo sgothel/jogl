@@ -52,7 +52,7 @@ public abstract class CompileShader {
         final String justName = basename(resourceName);
         outName = justName.substring(0, justName.length() - suffixLen) +
                   ShaderCode.getFileSuffix(true, type);
-        final URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
+        final URL resourceURL = IOUtil.getResource(resourceName, this.getClass().getClassLoader(), null).getURL();
         final String dirName = dirname(resourceURL.getPath());
 
         outName = dirName + File.separator + "bin" + File.separator +
@@ -64,7 +64,7 @@ public abstract class CompileShader {
     public void processOneShader(final String resourceName, final String outName, final int type)
         throws IOException, UnsupportedEncodingException, InterruptedException
     {
-        final URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
+        final URL resourceURL = IOUtil.getResource(resourceName, this.getClass().getClassLoader(), null).getURL();
         final String dirName = dirname(resourceURL.getPath());
 
         final CharSequence shader = ShaderCode.readShaderSource(null, resourceName, false);

@@ -94,7 +94,7 @@ public class TestWindowAndPointerIconNEWT extends SingletonJunitCase {
             final int idx = 0;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-red-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "arrow-red-alpha-64x64.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());

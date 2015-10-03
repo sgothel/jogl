@@ -77,7 +77,7 @@ public class ImageSequence implements TextureSequence {
     }
 
     public final void addFrame(final GL gl, final Class<?> context, final String imageResourcePath, final String imageSuffix) throws IOException {
-        final URLConnection urlConn = IOUtil.getResource(context, imageResourcePath);
+        final URLConnection urlConn = IOUtil.getResource(imageResourcePath, context.getClassLoader(), context);
         if(null != urlConn) {
             final TextureData texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, imageSuffix);
             final Texture tex = new Texture(getTextureTarget());

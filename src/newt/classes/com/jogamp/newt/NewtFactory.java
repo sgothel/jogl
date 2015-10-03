@@ -59,6 +59,7 @@ public class NewtFactory {
     public static final String DRIVER_DEFAULT_ROOT_PACKAGE = "jogamp.newt.driver";
 
     private static IOUtil.ClassResources defaultWindowIcons;
+    private static String sysPaths = "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png";
 
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -67,12 +68,11 @@ public class NewtFactory {
                 NativeWindowFactory.initSingleton(); // last resort ..
                 {
                     /** See API Doc in {@link Window} ! */
-                    final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png").split("\\s");
+                    final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, sysPaths).split("\\s");
                     if( paths.length < 2 ) {
                         throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));
                     }
-                    final Class<?> clazz = NewtFactory.class;
-                    defaultWindowIcons = new IOUtil.ClassResources(clazz, paths);
+                    defaultWindowIcons = new IOUtil.ClassResources(paths, NewtFactory.class.getClassLoader(), null);
                 }
                 return null;
             } } );

@@ -440,7 +440,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             disp.createNative();
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/cross-grey-alpha-16x16.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 8, 8);
                     pointerIcons.add(_pointerIcon);
@@ -451,7 +451,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             }
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/pointer-grey-alpha-16x24.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     pointerIcons.add(_pointerIcon);
@@ -462,7 +462,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             }
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "arrow-red-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "arrow-red-alpha-64x64.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     pointerIcons.add(_pointerIcon);
@@ -473,7 +473,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             }
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "arrow-blue-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "arrow-blue-alpha-64x64.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     pointerIcons.add(_pointerIcon);
@@ -484,7 +484,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             }
             if( PNGIcon.isAvailable() ) {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(disp.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "jogamp-pointer-64x64.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     final URLConnection urlConn = res.resolve(0);
                     if( null != urlConn ) {

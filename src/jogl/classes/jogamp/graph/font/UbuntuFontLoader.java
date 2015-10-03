@@ -52,7 +52,6 @@ public class UbuntuFontLoader implements FontSet {
     private static final Uri.Encoded jarSubDir = Uri.Encoded.cast("atomic/");
     private static final Uri.Encoded jarName = Uri.Encoded.cast("jogl-fonts-p0.jar");
 
-    private static final String relFontPath = "fonts/ubuntu/" ;
     private static final String absFontPath = "jogamp/graph/font/fonts/ubuntu/" ;
 
     private static final FontSet fontLoader = new UbuntuFontLoader();
@@ -160,15 +159,14 @@ public class UbuntuFontLoader implements FontSet {
                 }
             }
         }
-        final String path = useTempJARCache ? absFontPath : relFontPath;
         try {
-            final Font f = abspathImpl(path+fname, family, style);
+            final Font f = abspathImpl(absFontPath+fname, family, style);
             if( null != f ) {
                 return f;
             }
-            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, path, fname));
+            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, absFontPath, fname));
         } catch(final Exception e) {
-            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, path, fname), e);
+            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, absFontPath, fname), e);
         }
     }
     private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
@@ -190,7 +188,7 @@ public class UbuntuFontLoader implements FontSet {
                 throw new IOException(privErr[0]);
             }
         } else {
-            final URLConnection urlConn = IOUtil.getResource(UbuntuFontLoader.class, fname);
+            final URLConnection urlConn = IOUtil.getResource(fname, getClass().getClassLoader(), null);
             stream = null != urlConn ? urlConn.getInputStream() : null;
         }
         if(null != stream) {

@@ -118,7 +118,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             int idx = 0;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/cross-grey-alpha-16x16.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 8, 8);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
@@ -130,7 +130,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/pointer-grey-alpha-16x24.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
@@ -142,7 +142,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-red-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "arrow-red-alpha-64x64.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
@@ -154,7 +154,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "arrow-blue-alpha-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "arrow-blue-alpha-64x64.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
@@ -166,7 +166,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             idx++;
             if( PNGIcon.isAvailable() ) {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "jogamp-pointer-64x64.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     final URLConnection urlConn = res.resolve(0);
                     final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);

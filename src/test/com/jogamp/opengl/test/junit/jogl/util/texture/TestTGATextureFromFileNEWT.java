@@ -69,19 +69,19 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
     @Before
     public void initTest() throws IOException {
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-u32.tga");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-u32.tga", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream01U32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream01U32);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug744-rle32.tga");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("bug744-rle32.tga", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream02RLE32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream02RLE32);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug982.rle32.256x256.tga");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("bug982.rle32.256x256.tga", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream03RLE32 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream03RLE32);

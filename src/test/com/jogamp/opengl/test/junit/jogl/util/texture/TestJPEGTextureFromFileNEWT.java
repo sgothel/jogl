@@ -82,63 +82,63 @@ public class TestJPEGTextureFromFileNEWT extends UITestCase {
     @Before
     public void initTest() throws IOException {
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90-90pct-yuv444-base.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscN_3-01-160x90-90pct-yuv444-base.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream01YUV444_Base = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream01YUV444_Base);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90-90pct-yuv444-prog.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscN_3-01-160x90-90pct-yuv444-prog.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream01YUV444_Prog = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream01YUV444_Prog);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90-60pct-yuv422h-base.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscN_3-01-160x90-60pct-yuv422h-base.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream01YUV422h_Base = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream01YUV422h_Base);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90-60pct-yuv422h-prog.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ntscN_3-01-160x90-60pct-yuv422h-prog.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream01YUV422h_Prog = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream01YUV422h_Prog);
         }
 
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "j1-baseline.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("j1-baseline.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream02YUV420_Base = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream02YUV420_Base);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "j2-progressive.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("j2-progressive.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream02YUV420_Prog = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream02YUV420_Prog);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "j3-baseline_gray.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("j3-baseline_gray.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream02YUV420_BaseGray = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream02YUV420_BaseGray);
         }
 
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-cmyk-01.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-cmyk-01.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream03CMYK_01 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream03CMYK_01);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ycck-01.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("test-ycck-01.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream03YCCK_01 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream03YCCK_01);
         }
         {
-            final URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug745_qttdef_post_frame.jpg");
+            final URLConnection testTextureUrlConn = IOUtil.getResource("bug745_qttdef_post_frame.jpg", this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream04QTTDefPostFrame = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream04QTTDefPostFrame);

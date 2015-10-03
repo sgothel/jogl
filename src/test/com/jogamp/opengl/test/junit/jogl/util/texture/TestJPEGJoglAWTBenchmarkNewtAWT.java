@@ -64,7 +64,7 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
         {
             final long t0 = System.currentTimeMillis();
             for(int i = 0; i< loops; i++ ) {
-                final URLConnection urlConn = IOUtil.getResource(this.getClass(), fname);
+                final URLConnection urlConn = IOUtil.getResource(fname, this.getClass().getClassLoader(), this.getClass());
                 final InputStream istream = urlConn.getInputStream();
                 final JPEGImage image = JPEGImage.read(istream); // parsing & completion done !!!
                 final int internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -92,7 +92,7 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
         {
             final long t0 = System.currentTimeMillis();
             for(int i = 0; i< loops; i++ ) {
-                final URLConnection urlConn = IOUtil.getResource(this.getClass(), fname);
+                final URLConnection urlConn = IOUtil.getResource(fname, this.getClass().getClassLoader(), this.getClass());
                 final InputStream istream = urlConn.getInputStream();
                 final JPEGImage image = JPEGImage.read(istream, TextureData.ColorSpace.YCbCr); // parsing & completion done !!!
                 final int internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -120,7 +120,7 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
         {
             final long t0 = System.currentTimeMillis();
             for(int i = 0; i< loops; i++ ) {
-                final URLConnection urlConn = IOUtil.getResource(this.getClass(), fname);
+                final URLConnection urlConn = IOUtil.getResource(fname, this.getClass().getClassLoader(), this.getClass());
                 final InputStream istream = urlConn.getInputStream();
                 Buffer data = null;
                 try {

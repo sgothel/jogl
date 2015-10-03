@@ -199,7 +199,7 @@ public class FontFactory {
                 throw new IOException(e);
             }
         } else {
-            stream = IOUtil.getResource(context, fname).getInputStream();
+            stream = IOUtil.getResource(fname, context.getClassLoader(), context).getInputStream();
         }
         if( null != stream ) {
             return FontFactory.get ( stream, true ) ;

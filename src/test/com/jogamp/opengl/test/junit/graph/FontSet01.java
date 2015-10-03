@@ -14,22 +14,22 @@ public class FontSet01 {
         fonts[i++] = FontFactory.get(FontFactory.UBUNTU).getDefault(); // FontSet.FAMILY_REGULAR, FontSet.STYLE_NONE
         fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_REGULAR, FontSet.STYLE_ITALIC);
         fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_REGULAR, FontSet.STYLE_BOLD);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeMono.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeMonoBold.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSans.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSansBold.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerif.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerifBold.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerifBoldItalic.ttf").getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource(TestTextRendererNEWTBugXXXX.class,
-                "fonts/freefont/FreeSerifItalic.ttf").getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMonoBold.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSans.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSansBold.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerifBold.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerifBoldItalic.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
+        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerifItalic.ttf",
+                TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
         return fonts;
     }
 }

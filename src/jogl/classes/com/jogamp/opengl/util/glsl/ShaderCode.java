@@ -1106,7 +1106,7 @@ public class ShaderCode {
                     nextConn = IOUtil.openURL(relUri.toURL(), "ShaderCode.relativeOf ");
                     if (nextConn == null) {
                         // Try relative of class and absolute
-                        nextConn = IOUtil.getResource(context, includeFile);
+                        nextConn = IOUtil.getResource(includeFile, context.getClassLoader(), context);
                     }
                     if (nextConn == null) {
                         // Fail
@@ -1158,7 +1158,7 @@ public class ShaderCode {
      * @see IOUtil#getResource(Class, String)
      */
     public static CharSequence readShaderSource(final Class<?> context, final String path, final boolean mutableStringBuilder) throws IOException {
-        final URLConnection conn = IOUtil.getResource(context, path);
+        final URLConnection conn = IOUtil.getResource(path, context.getClassLoader(), context);
         if (conn == null) {
             return null;
         }
@@ -1204,7 +1204,7 @@ public class ShaderCode {
      * @see IOUtil#getResource(Class, String)
      */
     public static ByteBuffer readShaderBinary(final Class<?> context, final String path) throws IOException {
-        final URLConnection conn = IOUtil.getResource(context, path);
+        final URLConnection conn = IOUtil.getResource(path, context.getClassLoader(), context);
         if (conn == null) {
             return null;
         }

@@ -42,9 +42,13 @@ if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
 fi
 
-# We use TempJarCache per default now!
-#export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
-#export DYLD_LIBRARY_PATH=$JOGAMP_DYLD_LIBRARY_PATH
+# We use TempJarCache and JAR files per default now!
+# export USE_BUILDDIR=1
+
+if [ $USE_BUILDDIR -eq 1 ] ; then
+    export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=$JOGAMP_DYLD_LIBRARY_PATH
+fi
 
 #export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
@@ -279,7 +283,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.graph.curve.instance"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
-    #D_ARGS="-Djogamp.debug.IOUtil"
+    D_ARGS="-Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
@@ -310,7 +314,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=system"
     #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.AudioSink.trace"
     #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
-    D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
@@ -334,9 +338,14 @@ function jrun() {
         #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
         #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
-        #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
+        #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
+
+    if [ $USE_BUILDDIR -eq 1 ] ; then
+        export USE_CLASSPATH=.:$GLUEGEN_BUILDDIR/classes:$GLUEGEN_BUILDDIR/test/build/classes:$JOAL_BUILDDIR/classes:$JOGL_BUILDDIR/nativewindow/classes:$JOGL_BUILDDIR/jogl/classes:$JOGL_BUILDDIR/newt/classes:$JOGL_BUILDDIR/oculusvr/classes:$JOGL_BUILDDIR/test/build/classes:$JUNIT_JAR:$ANT_JARS
+    fi
+
     if [ $swton -eq 1 ] ; then
         export USE_CLASSPATH=$USE_CLASSPATH:$JOGL_SWT_CLASSPATH
     fi
@@ -344,8 +353,9 @@ function jrun() {
         export USE_CLASSPATH=$CUSTOM_CLASSPATH:$USE_CLASSPATH
     fi
     #Test NEWT Broadcom ..
-    #export USE_CLASSPATH=$JOGL_BUILD_DIR/jar/atomic/newt.driver.broadcomegl.jar::$USE_CLASSPATH
+    #export USE_CLASSPATH=$JOGL_BUILDDIR/jar/atomic/newt.driver.broadcomegl.jar::$USE_CLASSPATH
     #X_ARGS="-Dnativewindow.ws.name=jogamp.newt.driver.broadcom.egl $X_ARGS"
+    echo USE_BUILDDIR $USE_BUILDDIR
     echo USE_CLASSPATH $USE_CLASSPATH
     if [ $MOSX_MT -eq 1 ] ; then
         if [ $awton -eq 0 -a $swton -eq 0 ] ; then
@@ -424,7 +434,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -864,7 +874,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*

@@ -102,7 +102,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
                 forceGL3 = true;
             } else if(args[i].equals("-font")) {
                 i++;
-                font = FontFactory.get(IOUtil.getResource(TestTextRendererNEWT10.class, args[i]).getInputStream(), true);
+                font = FontFactory.get(IOUtil.getResource(args[i], TestTextRendererNEWT10.class.getClassLoader(), TestTextRendererNEWT10.class).getInputStream(), true);
             } else if(args[i].equals("-fontSize")) {
                 i++;
                 fontSize = MiscUtils.atof(args[i], fontSize);
