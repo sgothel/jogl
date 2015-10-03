@@ -43,6 +43,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -915,7 +916,7 @@ public abstract class GLProfile0XBase extends UITestCase {
         Thread.sleep(100);
         // Same definition as in GLProfile for 'disableOpenGLARBContext'
         final boolean isOSX = Platform.OSType.MACOS == Platform.getOSType();
-        final boolean disableOpenGLARBContext = null != System.getProperty("jogl.disable.openglarbcontext") && !isOSX;
+        final boolean disableOpenGLARBContext = PropertyAccess.isPropertyDefined("jogl.disable.openglarbcontext", true) && !isOSX;
         if( disableOpenGLARBContext ) {
             Assert.assertFalse("Property 'jogl.disable.openglarbcontext' set, but created w/ ARB",
                                glad.getContext().isCreatedWithARBMethod());
