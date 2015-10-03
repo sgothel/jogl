@@ -52,6 +52,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     private int swapInterval = 0;
     private float aspect = 1.0f;
     private boolean doRotate = true;
+    private boolean verbose = true;
     private boolean clearBuffers = true;
     private TileRendererBase tileRendererInUse = null;
     private boolean doRotateBeforePrinting;
@@ -87,16 +88,21 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     public void setAspect(final float aspect) { this.aspect = aspect; }
     public void setDoRotation(final boolean rotate) { this.doRotate = rotate; }
     public void setClearBuffers(final boolean v) { clearBuffers = v; }
+    public void setVerbose(final boolean v) { verbose = v; }
 
     @Override
     public void init(final GLAutoDrawable glad) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.init: tileRendererInUse "+tileRendererInUse);
+        if(verbose) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.init: tileRendererInUse "+tileRendererInUse);
+        }
         final GL2ES2 gl = glad.getGL().getGL2ES2();
 
-        System.err.println("RedSquareES2 init on "+Thread.currentThread());
-        System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
-        System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+        if(verbose) {
+            System.err.println("RedSquareES2 init on "+Thread.currentThread());
+            System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
+            System.err.println("INIT GL IS: " + gl.getClass().getName());
+            System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+        }
         if( !gl.hasGLSL() ) {
             System.err.println("No GLSL available, no rendering.");
             return;
@@ -149,7 +155,9 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         st.useProgram(gl, false);
 
         t0 = System.currentTimeMillis();
-        System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
+        if(verbose) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
+        }
     }
 
     @Override
@@ -206,7 +214,9 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     }
 
     void reshapeImpl(final GL2ES2 gl, final int tileX, final int tileY, final int tileWidth, final int tileHeight, final int imageWidth, final int imageHeight) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", tileRendererInUse "+tileRendererInUse);
+        if(verbose) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", tileRendererInUse "+tileRendererInUse);
+        }
         // Thread.dumpStack();
         if( !gl.hasGLSL() ) {
             return;
@@ -247,7 +257,9 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
 
     @Override
     public void dispose(final GLAutoDrawable glad) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.dispose: tileRendererInUse "+tileRendererInUse);
+        if(verbose) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.dispose: tileRendererInUse "+tileRendererInUse);
+        }
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if( !gl.hasGLSL() ) {
             return;
@@ -255,6 +267,8 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         st.destroy(gl);
         st = null;
         pmvMatrix = null;
-        System.err.println(Thread.currentThread()+" RedSquareES2.dispose FIN");
+        if(verbose) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.dispose FIN");
+        }
     }
 }
