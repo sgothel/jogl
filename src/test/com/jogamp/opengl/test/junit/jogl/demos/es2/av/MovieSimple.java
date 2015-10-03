@@ -186,7 +186,7 @@ public class MovieSimple implements GLEventListener {
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
             final String ptsPrec = null != regionFPS ? "3.1" : "3.0";
-            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
+            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %b",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
                     aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
