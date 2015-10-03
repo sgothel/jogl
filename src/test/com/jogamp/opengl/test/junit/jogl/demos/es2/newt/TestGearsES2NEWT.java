@@ -102,7 +102,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGL2 = false;
-    static boolean demo2 = false;
+    static int demoType = 1;
     static boolean manualTest = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
@@ -144,16 +144,20 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.confinePointer(mouseConfined);
 
         final GLEventListener demo;
-        if( demo2 ) {
+        if( 2 == demoType ) {
             final LineSquareXDemoES2 demo2 = new LineSquareXDemoES2(false);
             demo = demo2;
-        } else {
+        } else if( 1 == demoType ) {
             final GearsES2 gearsES2 = new GearsES2(swapInterval);
             gearsES2.setUseMappedBuffers(useMappedBuffers);
             gearsES2.setValidateBuffers(true);
             demo = gearsES2;
+        } else {
+            demo = null;
         }
-        glWindow.addGLEventListener(demo);
+        if( null != demo ) {
+            glWindow.addGLEventListener(demo);
+        }
 
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
@@ -506,8 +510,9 @@ public class TestGearsES2NEWT extends UITestCase {
                 sysExit = SysExit.valueOf(args[i]);
             } else if(args[i].equals("-manual")) {
                 manualTest = true;
-            } else if(args[i].equals("-demo2")) {
-                demo2 = true;
+            } else if(args[i].equals("-demo")) {
+                i++;
+                demoType = MiscUtils.atoi(args[i], 0);
             }
         }
         wsize = new Dimension(w, h);
@@ -546,6 +551,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("useAnimator "+useAnimator);
         System.err.println("sysExitWithin "+sysExit);
         System.err.println("mappedBuffers "+useMappedBuffers);
+        System.err.println("demoType "+demoType);
 
         if(waitForKey) {
             JunitTracer.waitForKey("Start");
