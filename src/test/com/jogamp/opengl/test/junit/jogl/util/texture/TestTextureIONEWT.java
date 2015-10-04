@@ -45,7 +45,7 @@ import com.jogamp.opengl.util.texture.ImageType;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
