@@ -436,9 +436,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     }
                     break;
 
-                case 2: if( vPixelFmt == VideoPixelFormat.YUYV422 ) {
+                case 2: if( vPixelFmt == VideoPixelFormat.YUYV422 || vPixelFmt == VideoPixelFormat.UYVY422 ) {
                             // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
-                            // Stuffed into RGBA half width texture
+                            // UYVY422: // < packed YUV 4:2:2, 2x 16bpp, Cb Y0 Cr Y1
+                            // Both stuffed into RGBA half width texture
                             tf = GL.GL_RGBA; tif=GL.GL_RGBA; break;
                         } else {
                             tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
@@ -606,6 +607,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     texWidth = vTexWidth[0] + vTexWidth[1] + vTexWidth[2]; texHeight = vH;
                     break;
                 case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
+                case UYVY422: // < packed YUV 4:2:2, 2x 16bpp, Cb Y0 Cr Y1 - stuffed into RGBA half width texture
                 case BGR24:
                     usesTexLookupShader = true;
                     texWidth = vTexWidth[0]; texHeight = vH;
@@ -764,6 +766,29 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
+        case UYVY422: // < packed YUV 4:2:2, 2 x 16bpp, Cb Y0 Cr Y1
+                      // Stuffed into RGBA half width texture
+          return
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  float y1,u,y2,v,y,r,g,b;\n"+
+              "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
+              "  vec4 uyvy = texture2D(image, tc_halfw).rgba;\n"+
+              "  u  = uyvy.r;\n"+
+              "  y1 = uyvy.g;\n"+
+              "  v  = uyvy.b;\n"+
+              "  y2 = uyvy.a;\n"+
+              "  y = mix( y1, y2, mod(gl_FragCoord.x, 2) ); /* avoid branching! */\n"+
+              "  y = 1.1643*(y-0.0625);\n"+
+              "  u = u-0.5;\n"+
+              "  v = v-0.5;\n"+
+              "  r = y+1.5958*v;\n"+
+              "  g = y-0.39173*u-0.81290*v;\n"+
+              "  b = y+2.017*u;\n"+
+              "  return vec4(r, g, b, 1);\n"+
+              "}\n"
+          ;
+
         case BGR24:
           return
               "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+

@@ -1148,8 +1148,10 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
                 #endif
             } else {
                 vLinesize[0] = pAV->pVFrame->linesize[0];
-                if( pAV->vPixFmt == PIX_FMT_YUYV422 ) {
-                    // Stuff 2x 16bpp (YUYV) into one RGBA pixel!
+                if( pAV->vPixFmt == PIX_FMT_YUYV422 || 
+                    pAV->vPixFmt == PIX_FMT_UYVY422 ) 
+                {
+                    // Stuff 2x 16bpp (YUYV, UYVY) into one RGBA pixel!
                     pAV->vTexWidth[0] = pAV->pVCodecCtx->width / 2;
                 } else {
                     pAV->vTexWidth[0] = pAV->pVCodecCtx->width;

@@ -64,7 +64,7 @@ public enum VideoPixelFormat {
     XVMC_MPEG2_MC,
     /** */
     XVMC_MPEG2_IDCT,
-    /** packed YUV 4:2:2, 16bpp, Cb Y0 Cr Y1 */
+    /** packed YUV 4:2:2, 16bpp, Cb Y0 Cr Y1 ( sharing Cb and Cr w/ 2 pixels ) */
     UYVY422,
     /** packed YUV 4:1:1, 12bpp, Cb Y0 Y1 Cr Y2 Y3 */
     UYYVYY411,
