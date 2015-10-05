@@ -106,11 +106,12 @@ import jogamp.opengl.util.av.VideoPixelFormat;
  * <p>
  * Currently we are binary compatible w/:
  * <table border="1">
- * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr/lswr</th>    <th>FFMPEG* class</th></tr>
+ * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr/lswr</th>  <th>FFMPEG* class</th></tr>
  * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>     <td></td>        <td>FFMPEGv08</td></tr>
  * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>     <td>01/00</td>   <td>FFMPEGv09</td></tr>
  * <tr><td>10 / 2.[0-3]</td>  <td>55</td>  <td>55</td>  <td>53/52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
- * <tr><td>11 / 2.[4-x]</td>  <td>56</td>  <td>56</td>  <td>54</td>     <td>02/01</td>   <td>FFMPEGv11</td></tr>
+ * <tr><td>11 / 2.[4-8]</td>  <td>56</td>  <td>56</td>  <td>54</td>     <td>02/01</td>   <td>FFMPEGv11</td></tr>
+ * <tr><td>12 / 2.[9-x]</td>  <td>57</td>  <td>57</td>  <td>55</td>     <td>02/01</td>   <td>TODO</td></tr>
  * </table>
  * </p>
  * <p>
@@ -145,13 +146,21 @@ import jogamp.opengl.util.av.VideoPixelFormat;
  *   <li>GNU/Linux: ffmpeg or libav are deployed in most distributions.</li>
  *   <li>Windows:
  *   <ul>
+ *     <li>https://ffmpeg.org/download.html#build-windows</li>
  *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg) <i>recommended, works w/ dshow</i></li>
  *     <li>http://win32.libav.org/releases/  (libav)</li>
  *   </ul></li>
- *   <li>MacOSX using Homebrew
+ *   <li>MacOSX
  *   <ul>
- *   <li>https://github.com/Homebrew/homebrew/wiki/Installation</li>
- *   <li>https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX</li>
+ *     <li>Builds
+ *     <ul>
+ *       <li>https://ffmpeg.org/download.html#build-mac</li>
+ *     </ul></li>
+ *     <li>Building using Homebrew *
+ *     <ul>
+ *       <li>https://github.com/Homebrew/homebrew/wiki/Installation</li>
+ *       <li>https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX</li>
+ *     </ul></li>
  *   </ul></li>
  *   <li>OpenIndiana/Solaris:<pre>
  *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
