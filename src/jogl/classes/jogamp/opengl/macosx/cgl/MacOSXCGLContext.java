@@ -576,7 +576,7 @@ public class MacOSXCGLContext extends GLContextImpl
                   nsViewHandle = OSXUtil.GetNSView(drawableHandle);
               } else if( isPBuffer[0] ) {
                   nsViewHandle = 0;
-              } else if( isSurfacelessOK() ) {
+              } else if( isSurfaceless() ) {
                   isSurfaceless[0] = true;
                   nsViewHandle = 0;
               } else {

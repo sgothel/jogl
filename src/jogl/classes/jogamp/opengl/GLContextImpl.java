@@ -129,7 +129,7 @@ public abstract class GLContextImpl extends GLContext {
    * If GL >= 3.0 (ES or desktop) and not having {@link GLRendererQuirks#NoSurfacelessCtx},
    * being evaluated if not surface-handle is null and not yet set at makeCurrent(..).
    */
-  private boolean surfacelessOK = false;
+  private boolean isSurfaceless = false;
 
   private boolean pixelDataEvaluated;
   private int /* pixelDataInternalFormat, */ pixelDataFormat, pixelDataType;
@@ -212,7 +212,7 @@ public abstract class GLContextImpl extends GLContext {
           boundFBOTarget[1] = 0; // read
       }
 
-      surfacelessOK = false;
+      isSurfaceless = false;
       pixelDataEvaluated = false;
       currentSwapInterval = 0;
 
@@ -542,7 +542,7 @@ public abstract class GLContextImpl extends GLContext {
   //----------------------------------------------------------------------
   //
 
-  protected final boolean isSurfacelessOK() { return surfacelessOK; }
+  protected final boolean isSurfaceless() { return isSurfaceless; }
 
   /**
    * {@inheritDoc}
@@ -613,7 +613,7 @@ public abstract class GLContextImpl extends GLContext {
         if ( drawable.isRealized() ) {
             lock.lock();
             try {
-                if ( 0 == drawable.getHandle() && !surfacelessOK ) {
+                if ( 0 == drawable.getHandle() && !isSurfaceless ) {
                     if( DEBUG ) {
                         System.err.println(getThreadName() +": GLContext.makeCurrent: Surfaceless evaluate");
                     }
@@ -677,7 +677,7 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if ( CONTEXT_NOT_CURRENT != res ) { // still locked!
-      if( 0 == drawable.getHandle() && !surfacelessOK ) {
+      if( 0 == drawable.getHandle() && !isSurfaceless ) {
           if( hasRendererQuirk(GLRendererQuirks.NoSurfacelessCtx) ) {
               throw new GLException(String.format("Surfaceless not supported due to quirk %s: %s",
                       GLRendererQuirks.toString(GLRendererQuirks.NoSurfacelessCtx), toString()));
@@ -685,7 +685,7 @@ public abstract class GLContextImpl extends GLContext {
           if( DEBUG ) {
               System.err.println(getThreadName() +": GLContext.makeCurrent: Surfaceless OK - validated");
           }
-          surfacelessOK = true;
+          isSurfaceless = true;
       }
       setCurrent(this);
       if( CONTEXT_CURRENT_NEW == res ) {
