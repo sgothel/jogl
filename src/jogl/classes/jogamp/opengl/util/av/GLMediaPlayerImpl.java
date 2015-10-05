@@ -1431,7 +1431,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             this.fps = fps;
             if( 0 != fps ) {
                 this.frame_duration = 1000f / fps;
-                this.maxNullFrameCountUntilEOS = MAX_FRAMELESS_MS_UNTIL_EOS / (int)this.frame_duration;
+                final int fdurI = (int)this.frame_duration;
+                if( 0 < fdurI ) {
+                    this.maxNullFrameCountUntilEOS = MAX_FRAMELESS_MS_UNTIL_EOS / fdurI;
+                } else {
+                    this.maxNullFrameCountUntilEOS = MAX_FRAMELESS_UNTIL_EOS_DEFAULT;
+                }
             } else {
                 this.frame_duration = 0;
                 this.maxNullFrameCountUntilEOS = MAX_FRAMELESS_UNTIL_EOS_DEFAULT;

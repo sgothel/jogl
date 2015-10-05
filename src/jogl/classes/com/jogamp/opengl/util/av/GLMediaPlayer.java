@@ -205,22 +205,29 @@ public interface GLMediaPlayer extends TextureSequence {
      * {@link Uri#scheme Uri scheme} name {@value} for camera input. E.g. <code>camera:/0</code>
      * for the 1st camera device.
      * <p>
-     * The {@link Uri#path Uri path} is being used to identify the camera (<i>ID</i>),
+     * The {@link Uri#path Uri path} is being used to identify the camera (<i>&lt;id&gt;</i>),
      * where the root fwd-slash is being cut-off.
      * </p>
      * <p>
-     * The <i>ID</i> is usually an integer value indexing the camera
+     * The <i>&lt;id&gt;</i> is usually an integer value indexing the camera
      * ranging from [0..<i>max-number</i>].
+     * </p>
+     * <p>
+     * The <i>&lt;somewhere&gt;</i> is usually empty, since it would imply a networking camera protocol.
      * </p>
      * <p>
      * The {@link Uri#query Uri query} is used to pass options to the camera
      * using <i>;</i> as the separator. The latter avoids trouble w/ escaping.
      * </p>
      * <pre>
-     *    camera:/<id>
-     *    camera://somewhere/<id>
-     *    camera://somewhere/<id>?width=640;height=480;rate=15
-     *    camera://somewhere/<id>?size=640x480;rate=15
+     *    camera:/&lt;id&gt;
+     *    camera:/&lt;id&gt;?width=640;height=480;rate=15
+     *    camera:/&lt;id&gt;?size=640x480;rate=15
+     *    camera://&lt;somewhere&gt;/&lt;id&gt;
+     *    camera://&lt;somewhere&gt;/&lt;id&gt;?width=640;height=480;rate=15
+     *    camera://&lt;somewhere&gt;/&lt;id&gt;?size=640x480;rate=15
+     *    camera:///&lt;id&gt;?width=640;height=480;rate=15
+     *    camera:///&lt;id&gt;?size=640x480;rate=15
      * </pre>
      * <pre>
      *  Uri: [scheme:][//authority][path][?query][#fragment]
