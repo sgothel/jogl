@@ -47,7 +47,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.InterruptedRuntimeException;
