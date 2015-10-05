@@ -760,7 +760,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             }
             sp_av_dict_set(&inOpts, "framerate", buffer, 0);
         }
-        // FIXME pre-select: sp_av_dict_set(&inOpts, "pix_fmt", "yuyv422", 0);
+        // FIXME pre-select: sp_av_dict_set(&inOpts, "pixel_format", "yuyv422", 0); 
     }
 
     MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
