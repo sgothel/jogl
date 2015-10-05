@@ -346,12 +346,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     resStreamLocS = dev_video_linux + cameraPath.decode();
                     break;
                 case WINDOWS:
-                    resStreamLocS = cameraPath.decode();
-                    break;
                 case MACOS:
                 case OPENKODE:
                 default:
-                    resStreamLocS = streamLocS; // FIXME: ??
+                    resStreamLocS = cameraPath.decode();
                     break;
             }
             if( null != cameraProps ) {

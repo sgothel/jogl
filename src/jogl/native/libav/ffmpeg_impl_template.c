@@ -622,6 +622,7 @@ static const char * inFmtNames[] = {
     "video4linux",  // linux (old)
     "dshow",        // windows
     "vfwcap",       // windows (old)
+    "avfoundation", // osx
     "mpg",
     "yuv2",
     "mjpeg",
@@ -732,6 +733,9 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
                 fprintf(stderr, "Camera %d not found\n", devIdx);
             }
         }
+        if(pAV->verbose) {
+            fprintf(stderr, "Camera: Filename: %s\n", filename);
+        }
 
         const char *sizeS = NULL != jSizeS ? (*env)->GetStringUTFChars(env, jSizeS, &iscopy) : NULL;
         int hasSize = 0;
@@ -756,6 +760,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             }
             sp_av_dict_set(&inOpts, "framerate", buffer, 0);
         }
+        // FIXME pre-select: sp_av_dict_set(&inOpts, "pix_fmt", "yuyv422", 0);
     }
 
     MY_MUTEX_LOCK(env, mutex_avcodec_openclose);

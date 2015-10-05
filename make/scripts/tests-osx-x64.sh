@@ -1,7 +1,8 @@
 #! /bin/bash
 
 #export DYLD_LIBRARY_PATH=$HOME/ffmpeg-0.8_0.9/lib:$DYLD_LIBRARY_PATH
-export DYLD_LIBRARY_PATH=$HOME/ffmpeg-2.2.3/lib:$DYLD_LIBRARY_PATH
+#export DYLD_LIBRARY_PATH=$HOME/ffmpeg-2.2.3/lib:$DYLD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=/usr/local/Cellar/ffmpeg/2.8/lib:$DYLD_LIBRARY_PATH
 
 JAVA_HOME=`/usr/libexec/java_home -version 1.8`
 #JAVA_HOME=`/usr/libexec/java_home -version 1.7`
