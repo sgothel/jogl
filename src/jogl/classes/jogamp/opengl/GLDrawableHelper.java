@@ -76,6 +76,8 @@ public class GLDrawableHelper {
   }
 
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
+  private static final boolean DEBUG_SETCLEAR = GLContext.DEBUG_GL || DEBUG;
+
   private final Object listenersLock = new Object();
   private final ArrayList<GLEventListener> listeners = new ArrayList<GLEventListener>();
   private final HashSet<GLEventListener> listenersToBeInit = new HashSet<GLEventListener>();
@@ -638,10 +640,10 @@ public class GLDrawableHelper {
       }
   }
 
-  private final void init(final GLEventListener l, final GLAutoDrawable drawable, final boolean sendReshape, final boolean setViewport) {
+  private final void init(final GLEventListener l, final GLAutoDrawable drawable, final boolean sendReshape) {
       l.init(drawable);
       if(sendReshape) {
-          reshape(l, drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), setViewport, false /* checkInit */);
+          l.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
       }
   }
 
@@ -650,6 +652,7 @@ public class GLDrawableHelper {
    * @param sendReshape set to true if the subsequent display call won't reshape, otherwise false to avoid double reshape.
    **/
   public final void init(final GLAutoDrawable drawable, final boolean sendReshape) {
+    setViewportAndClear(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
     synchronized(listenersLock) {
         final ArrayList<GLEventListener> _listeners = listeners;
         final int listenerCount = _listeners.size();
@@ -661,11 +664,8 @@ public class GLDrawableHelper {
               // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
               // hence it must be called unconditional, always.
               listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
-              init( listener, drawable, sendReshape, 0==i /* setViewport */);
+              init(listener, drawable, sendReshape);
             }
-        } else {
-            // Expose same GL initialization if not using any GLEventListener
-            drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
     }
   }
@@ -687,7 +687,7 @@ public class GLDrawableHelper {
             // GLEventListener may need to be init,
             // in case this one is added after the realization of the GLAutoDrawable
             if( listenersToBeInit.remove(listener) ) {
-                init( listener, drawable, true /* sendReshape */, listenersToBeInit.size() + 1 == listenerCount /* setViewport if 1st init */ );
+                init( listener, drawable, true /* sendReshape */ );
             }
             listener.display(drawable);
           }
@@ -712,41 +712,43 @@ public class GLDrawableHelper {
             // GLEventListener may need to be init,
             // in case this one is added after the realization of the GLAutoDrawable
             if( listenersToBeInit.remove(listener) ) {
-                init( listener, drawable, true /* sendReshape */, listenersToBeInit.size() + 1 == listenerCount /* setViewport if 1st init */ );
+                init( listener, drawable, true /* sendReshape */ );
             }
             action.run(drawable, listener);
           }
       }
   }
 
-  private final void reshape(final GLEventListener listener, final GLAutoDrawable drawable,
-                             final int x, final int y, final int width, final int height, final boolean setViewport, final boolean checkInit) {
-    if(checkInit) {
-        // GLEventListener may need to be init,
-        // in case this one is added after the realization of the GLAutoDrawable
-        synchronized(listenersLock) {
-            if( listenersToBeInit.remove(listener) ) {
-                listener.init(drawable);
-            }
-        }
-    }
-    if(setViewport) {
-        if( GLContext.DEBUG_GL || DEBUG ) {
-            final int glerr0 = drawable.getGL().glGetError();
-            if( GL.GL_NO_ERROR != glerr0 ) {
-                System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
-                ExceptionUtils.dumpStack(System.err);
-            }
-        }
-        drawable.getGL().glViewport(x, y, width, height);
-    }
-    listener.reshape(drawable, x, y, width, height);
+  /**
+   * Bug 1206: Security: Clear exposed framebuffer after creation and before visibility
+   * - Clear framebuffer after setting viewport
+   * - Since we only attempt to help against leaking un-initialized framebuffer content
+   *   not against user-app faults, we do not clear a 2nd-buffer (double-buffering).
+   */
+  private final void setViewportAndClear(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+      final GL gl = drawable.getGL();
+      if( DEBUG_SETCLEAR ) {
+          final int glerr0 = gl.glGetError();
+          if( GL.GL_NO_ERROR != glerr0 ) {
+              System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
+              ExceptionUtils.dumpStack(System.err);
+          }
+      }
+      gl.glViewport(x, y, width, height);
+      gl.glClear(GL.GL_COLOR_BUFFER_BIT);
   }
 
   public final void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+    setViewportAndClear(drawable, x, y, width, height);
     synchronized(listenersLock) {
         for (int i=0; i < listeners.size(); i++) {
-          reshape(listeners.get(i), drawable, x, y, width, height, 0==i /* setViewport */, true /* checkInit */);
+            final GLEventListener l = listeners.get(i);
+            // GLEventListener may need to be init,
+            // in case this one is added after the realization of the GLAutoDrawable
+            if( listenersToBeInit.remove(l) ) {
+                l.init(drawable);
+            }
+            l.reshape(drawable, x, y, width, height);
         }
     }
   }

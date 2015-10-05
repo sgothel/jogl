@@ -48,6 +48,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
+import com.jogamp.opengl.test.junit.jogl.demos.GLClearOnInitReshape;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LineSquareXDemoES2;
 import com.jogamp.nativewindow.NativeWindowFactory;
@@ -152,6 +153,8 @@ public class TestGearsES2NEWT extends UITestCase {
             gearsES2.setUseMappedBuffers(useMappedBuffers);
             gearsES2.setValidateBuffers(true);
             demo = gearsES2;
+        } else if( 0 == demoType ) {
+            demo = new GLClearOnInitReshape();
         } else {
             demo = null;
         }

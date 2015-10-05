@@ -65,6 +65,7 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.opengl.test.junit.jogl.demos.GLClearOnInitReshape;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -80,6 +81,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGLFFP = false;
+    static int demoType = 1;
     static boolean shallUsePBuffer = false;
     static boolean shallUseBitmap = false;
     static boolean useMSAA = false;
@@ -132,6 +134,26 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 hasSurfacePixelScale[0]+"x"+hasSurfacePixelScale[1]+"]");
     }
 
+    protected GLEventListener createDemo(final GLCapabilities caps) {
+        final GLEventListener demo;
+        if( 1 == demoType ) {
+            if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
+                final Gears gears = new Gears(swapInterval);
+                gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+                demo = gears;
+            } else {
+                final GearsES2 gears = new GearsES2(swapInterval);
+                gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+                demo = gears;
+            }
+        } else if( 0 == demoType ) {
+            demo = new GLClearOnInitReshape();
+        } else {
+            demo = null;
+        }
+        return demo;
+    }
+
     protected GLJPanel newGLJPanel(final JFrame frame, final GLCapabilities caps, final FPSAnimator animator, final SnapshotGLEventListener snap)
             throws AWTException, InterruptedException, InvocationTargetException
     {
@@ -142,14 +164,11 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
         glJPanel.setSurfaceScale(reqSurfacePixelScale);
-        if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
-            final Gears gears = new Gears(swapInterval);
-            gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
-            glJPanel.addGLEventListener(gears);
-        } else {
-            final GearsES2 gears = new GearsES2(swapInterval);
-            gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
-            glJPanel.addGLEventListener(gears);
+        {
+            final GLEventListener demo = createDemo(caps);
+            if( null != demo ) {
+                glJPanel.addGLEventListener(demo);
+            }
         }
         if( null != snap ) {
             glJPanel.addGLEventListener(snap);
@@ -644,6 +663,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 shallUseBitmap = true;
             } else if(args[i].equals("-manual")) {
                 manualTest = true;
+            } else if(args[i].equals("-demo")) {
+                i++;
+                demoType = MiscUtils.atoi(args[i], 0);
             }
         }
         wsize = new Dimension(w, h);
@@ -663,6 +685,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
         System.err.println("manualTest "+manualTest);
+        System.err.println("demoType "+demoType);
 
         org.junit.runner.JUnitCore.main(TestGearsES2GLJPanelAWT.class.getName());
     }

@@ -437,7 +437,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -707,7 +707,7 @@ function testawtswt() {
 # <END>
 #
 
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1245JTabbedPanelCrashAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1245JTabbedPanelCrashAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug675BeansInDesignTimeAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
