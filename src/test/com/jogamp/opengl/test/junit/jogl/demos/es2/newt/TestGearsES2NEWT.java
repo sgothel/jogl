@@ -39,6 +39,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.TraceMouseAdapter;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
@@ -104,6 +105,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceGL3 = false;
     static boolean forceGL2 = false;
     static int demoType = 1;
+    static boolean traceMouse = false;
     static boolean manualTest = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
@@ -203,6 +205,9 @@ public class TestGearsES2NEWT extends UITestCase {
         final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
+        if( traceMouse ) {
+            glWindow.addMouseListener(new TraceMouseAdapter());
+        }
         glWindow.addMouseListener(newtDemoListener);
         glWindow.addWindowListener(newtDemoListener);
         glWindow.addKeyListener(new KeyAdapter() {
@@ -516,6 +521,8 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-demo")) {
                 i++;
                 demoType = MiscUtils.atoi(args[i], 0);
+            } else if(args[i].equals("-traceMouse")) {
+                traceMouse = true;
             }
         }
         wsize = new Dimension(w, h);
@@ -555,6 +562,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("sysExitWithin "+sysExit);
         System.err.println("mappedBuffers "+useMappedBuffers);
         System.err.println("demoType "+demoType);
+        System.err.println("traceMouse "+traceMouse);
 
         if(waitForKey) {
             JunitTracer.waitForKey("Start");
