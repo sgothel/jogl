@@ -50,27 +50,30 @@ public class GLNameResolver {
     private static final String[] extensionsARB = { "ARB", "GL2", "OES", "KHR", "OML" };
     private static final String[] extensionsVEN = { "3DFX",
                                                     "AMD",
+                                                    "ANDROID",
                                                     "ANGLE",
                                                     "ARM",
                                                     "APPLE",
                                                     "ATI",
                                                     "EXT",
+                                                    "FJ",
                                                     "HI",
                                                     "HP",
                                                     "IBM",
                                                     "IMG",
+                                                    "INGR",
+                                                    "INTEL",
                                                     "MESA",
                                                     "MESAX",
                                                     "NV",
+                                                    "PGI",
                                                     "QCOM",
                                                     "SGI",
                                                     "SGIS",
                                                     "SGIX",
                                                     "SUN",
                                                     "VIV",
-                                                    "WIN"
-    };
-
+                                                    "WIN" };
 
     public static final boolean isGLFunction(final String str) {
         return str.startsWith("gl")  || /* str.startsWith("glu") || str.startsWith("glX") || */
