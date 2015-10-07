@@ -5,7 +5,7 @@
 // "gl2ext.h" and "gl3ext.h" are parsed.
 #define GL_GLEXT_PROTOTYPES
 
-#include <GLES3/gl31.h>
+#include <GLES3/gl3x.h>
 #include <GLES3/gl3ext.h>
 
 /** Shared between ES2 and ES3 .. */
