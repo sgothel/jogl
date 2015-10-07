@@ -237,6 +237,19 @@ public interface GLBase {
   public boolean isGLES31Compatible();
 
   /**
+   * Indicates whether this GL object is compatible with the core OpenGL ES3.2 functionality.
+   * <p>
+   * Return true if the underlying context is an ES3 context &ge; 3.2 or implements
+   * the extension <code>GL_ARB_ES3_2_compatibility</code>, otherwise false.
+   * </p>
+   * <p>
+   * Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_2_compatibility and GLES3 &ge; 3.2 ]
+   * </p>
+   * @see GLContext#isGLES32Compatible()
+   */
+  public boolean isGLES32Compatible();
+
+  /**
    * Indicates whether this GL object supports GLSL.
    * @see GLContext#hasGLSL()
    */

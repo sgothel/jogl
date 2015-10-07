@@ -54,6 +54,7 @@ public class GLExtensions {
   public static final String ARB_ES2_compatibility           = "GL_ARB_ES2_compatibility";
   public static final String ARB_ES3_compatibility           = "GL_ARB_ES3_compatibility";
   public static final String ARB_ES3_1_compatibility         = "GL_ARB_ES3_1_compatibility";
+  public static final String ARB_ES3_2_compatibility         = "GL_ARB_ES3_2_compatibility";
 
   public static final String EXT_abgr                        = "GL_EXT_abgr";
   public static final String OES_rgb8_rgba8                  = "GL_OES_rgb8_rgba8";

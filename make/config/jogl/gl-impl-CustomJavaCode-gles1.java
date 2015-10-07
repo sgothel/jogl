@@ -119,6 +119,11 @@ public final boolean isGLES31Compatible() {
 }
 
 @Override
+public final boolean isGLES32Compatible() {
+    return false;
+}
+
+@Override
 public final boolean isGL2GL3() {
     return false;
 }

@@ -120,6 +120,11 @@ public final boolean isGLES31Compatible() {
 }
 
 @Override
+public final boolean isGLES32Compatible() {
+    return _context.isGLES32Compatible();
+}
+
+@Override
 public final boolean isGL2GL3() {
     return false;
 }

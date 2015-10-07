@@ -198,8 +198,11 @@ public abstract class GLContext {
   /** <code>GL_ARB_ES3_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES3Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IMPL_ES3_COMPAT  = 1 << 11;
 
-  /** <code>GL_ARB_ES3_1_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES31Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
+  /** <code>GL_ARB_ES3_1_compatibility</code> implementation related: Context is compatible w/ ES 3.1. Not a cache key. See {@link #isGLES31Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IMPL_ES31_COMPAT = 1 << 12;
+
+  /** <code>GL_ARB_ES3_2_compatibility</code> implementation related: Context is compatible w/ ES 3.2. Not a cache key. See {@link #isGLES32Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
+  protected static final int CTX_IMPL_ES32_COMPAT = 1 << 13;
 
   /**
    * Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
@@ -207,7 +210,7 @@ public abstract class GLContext {
    * @see #hasBasicFBOSupport()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FBO         = 1 << 13;
+  protected static final int CTX_IMPL_FBO         = 1 << 14;
 
   /**
    * Context supports <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points,
@@ -216,7 +219,7 @@ public abstract class GLContext {
    * @see #hasFP32CompatAPI()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 14;
+  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 15;
 
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
@@ -923,6 +926,17 @@ public abstract class GLContext {
   }
 
   /**
+   * Return true if this context is an ES3 context &ge; 3.2 or implements
+   * the extension <code>GL_ARB_ES3_2_compatibility</code>, otherwise false.
+   * <p>
+   * Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_2_compatibility and GLES3 &ge; 3.2 ]
+   * </p>
+   */
+  public final boolean isGLES32Compatible() {
+      return 0 != ( ctxOptions & CTX_IMPL_ES32_COMPAT ) ;
+  }
+
+  /**
    * @return true if impl. is a hardware rasterizer, otherwise false.
    * @see #isHardwareRasterizer(AbstractGraphicsDevice, GLProfile)
    * @see GLProfile#isHardwareRasterizer()
@@ -1497,7 +1511,7 @@ public abstract class GLContext {
       /* 0.*/ { -1 },
       /* 1.*/ { 0, 1 },
       /* 2.*/ { 0 },
-      /* 3.*/ { 0, 1 } };
+      /* 3.*/ { 0, 1, 2 } };
 
   public static final int getMaxMajor(final int ctxProfile) {
       return ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ? ES_VERSIONS.length-1 : GL_VERSIONS.length-1;
@@ -1948,15 +1962,7 @@ public abstract class GLContext {
       return isGLVersionAvailable(device, 3, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
-  /**
-   * Returns true if a ES3 compatible profile is available,
-   * i.e. either a &ge; 4.3 context or a &ge; 3.1 context supporting <code>GL_ARB_ES3_compatibility</code>,
-   * otherwise false.
-   * <p>
-   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
-   * </p>
-   */
-  public static final boolean isGLES3CompatibleAvailable(final AbstractGraphicsDevice device) {
+  private static final int getGL3ctp(final AbstractGraphicsDevice device) {
       final int major[] = { 0 };
       final int minor[] = { 0 };
       final int ctp[] = { 0 };
@@ -1969,7 +1975,19 @@ public abstract class GLContext {
       if( !ok ) {
           GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
       }
-      return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
+      return ctp[0];
+  }
+
+  /**
+   * Returns true if a ES3 compatible profile is available,
+   * i.e. either a &ge; 4.3 context or a &ge; 3.1 context supporting <code>GL_ARB_ES3_compatibility</code>,
+   * otherwise false.
+   * <p>
+   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
+   * </p>
+   */
+  public static final boolean isGLES3CompatibleAvailable(final AbstractGraphicsDevice device) {
+      return 0 != ( getGL3ctp(device) & CTX_IMPL_ES3_COMPAT );
   }
   /**
    * Returns true if a ES3 &ge; 3.1 compatible profile is available,
@@ -1980,19 +1998,18 @@ public abstract class GLContext {
    * </p>
    */
   public static final boolean isGLES31CompatibleAvailable(final AbstractGraphicsDevice device) {
-      final int major[] = { 0 };
-      final int minor[] = { 0 };
-      final int ctp[] = { 0 };
-      boolean ok;
-
-      ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
-      if( !ok ) {
-          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
-      }
-      if( !ok ) {
-          GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
-      }
-      return 0 != ( ctp[0] & CTX_IMPL_ES31_COMPAT );
+      return 0 != ( getGL3ctp(device) & CTX_IMPL_ES31_COMPAT );
+  }
+  /**
+   * Returns true if a ES3 &ge; 3.2 compatible profile is available,
+   * i.e. either a &ge; 4.5 context or a &ge; 3.1 context supporting <code>GL_ARB_ES3_2_compatibility</code>,
+   * otherwise false.
+   * <p>
+   * Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_2_compatibility and GLES3 &ge; 3.2 ]
+   * </p>
+   */
+  public static final boolean isGLES32CompatibleAvailable(final AbstractGraphicsDevice device) {
+      return 0 != ( getGL3ctp(device) & CTX_IMPL_ES32_COMPAT );
   }
 
   public static boolean isGL4bcAvailable(final AbstractGraphicsDevice device, final boolean isHardware[]) {
@@ -2029,6 +2046,7 @@ public abstract class GLContext {
         needColon = appendString(sb, "ES2",               needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
         needColon = appendString(sb, "ES3",               needColon, 0 != ( CTX_IMPL_ES3_COMPAT & ctp ));
         needColon = appendString(sb, "ES31",              needColon, 0 != ( CTX_IMPL_ES31_COMPAT & ctp ));
+        needColon = appendString(sb, "ES32",              needColon, 0 != ( CTX_IMPL_ES32_COMPAT & ctp ));
         needColon = appendString(sb, "FP32",              needColon, 0 != ( CTX_IMPL_FP32_COMPAT_API & ctp ));
         needColon = false;
     }

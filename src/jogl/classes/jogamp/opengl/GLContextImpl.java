@@ -1894,7 +1894,8 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if( major < 2 ) { // there is no ES2/3-compat for a profile w/ major < 2
-        ctxProfileBits &= ~ ( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES31_COMPAT ) ;
+        ctxProfileBits &= ~ ( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_ES3_COMPAT |
+                              GLContext.CTX_IMPL_ES31_COMPAT | GLContext.CTX_IMPL_ES32_COMPAT ) ;
     }
 
     if(!isCurrentContextHardwareRasterizer()) {
@@ -2017,7 +2018,9 @@ public abstract class GLContextImpl extends GLContext {
         if( major >= 3 ) {
             ctxProfileBits |= CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
             ctxProfileBits |= CTX_IMPL_FBO;
-            if( minor >= 1 ) {
+            if( minor >= 2 ) {
+                ctxProfileBits |= CTX_IMPL_ES32_COMPAT | CTX_IMPL_ES31_COMPAT;
+            } else if( minor >= 1 ) {
                 ctxProfileBits |= CTX_IMPL_ES31_COMPAT;
             }
         } else if( major >= 2 ) {
@@ -2025,10 +2028,15 @@ public abstract class GLContextImpl extends GLContext {
             ctxProfileBits |= CTX_IMPL_FBO;
         }
     } else if( ( major > 4 || major == 4 && minor >= 5 ) ||
-               ( ( major > 3 || major == 3 && minor >= 1 ) && isExtensionAvailable( GLExtensions.ARB_ES3_1_compatibility ) ) ) {
-        // See GLContext.isGLES31CompatibleAvailable(..)/isGLES31Compatible()
-        //   Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_1_compatibility and GLES &ge; 3.1 ]
-        ctxProfileBits |= CTX_IMPL_ES31_COMPAT | CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
+               ( major > 3 || major == 3 && minor >= 1 ) ) {
+        // See GLContext.isGLES31CompatibleAvailable(..)/isGLES3[12]Compatible()
+        //   Includes [ GL &ge; 4.5, GL &ge; 3.1 w/ GL_ARB_ES3_[12]_compatibility and GLES &ge; 3.[12] ]
+        if( isExtensionAvailable( GLExtensions.ARB_ES3_2_compatibility ) ) {
+            ctxProfileBits |= CTX_IMPL_ES32_COMPAT | CTX_IMPL_ES31_COMPAT;
+        } else if( isExtensionAvailable( GLExtensions.ARB_ES3_1_compatibility ) ) {
+            ctxProfileBits |= CTX_IMPL_ES31_COMPAT;
+        }
+        ctxProfileBits |= CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT;
         ctxProfileBits |= CTX_IMPL_FBO;
     } else if( ( major > 4 || major == 4 && minor >= 3 ) ||
                ( ( major > 3 || major == 3 && minor >= 1 ) && isExtensionAvailable( GLExtensions.ARB_ES3_compatibility ) ) ) {
