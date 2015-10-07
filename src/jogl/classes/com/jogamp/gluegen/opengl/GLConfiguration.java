@@ -254,6 +254,14 @@ public class GLConfiguration extends ProcAddressConfiguration {
         super.logRenames();
     }
 
+    protected boolean isIgnoredExtension(final String extensionName) {
+        if( ignoredExtensions.contains(extensionName) ) {
+            return !forcedExtensions.contains(extensionName);
+        } else {
+            return false;
+        }
+    }
+
     protected boolean shouldIgnoreExtension(final AliasedSymbol symbol) {
         final Set<String> symExtensionNames;
         // collect current-name symbol extensions

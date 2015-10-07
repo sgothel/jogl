@@ -112,31 +112,35 @@ public class GLEmitter extends ProcAddressEmitter {
         final Set<String> extensionSet = isSemHeader ? config.getExtensionsRenamedIntoCore() : glInfo.getExtensions();
 
         for (final String extension : extensionSet) {
-            LOG.log(INFO, "<RenameExtensionIntoCore: {0} BEGIN {1}", extension, headerType);
-            final Set<String> declarations = glInfo.getDeclarations(extension);
-            if (declarations != null) {
-                for (final Iterator<String> iterator = declarations.iterator(); iterator.hasNext();) {
-                    final String decl = iterator.next();
-                    final boolean isGLFunction = GLNameResolver.isGLFunction(decl);
-                    boolean isGLEnumeration = false;
-                    if (!isGLFunction) {
-                        isGLEnumeration = GLNameResolver.isGLEnumeration(decl);
-                    }
-                    if (isGLFunction || isGLEnumeration) {
-                        final String renamed = GLNameResolver.normalize(decl, isGLFunction);
-                        if (!renamed.equals(decl)) {
-                            if( isSemHeader ) {
-                                // Sem + Doc
-                                config.addJavaSymbolRename(decl, renamed);
-                            } else {
-                                // Doc only
-                                config.addJavaDocSymbolRename(decl, renamed);
+            if( isSemHeader && config.isIgnoredExtension(extension) ) {
+                LOG.log(INFO, "<RenameExtensionIntoCore: {0} IGNORED {1}>", extension, headerType);
+            } else {
+                LOG.log(INFO, "<RenameExtensionIntoCore: {0} BEGIN {1}", extension, headerType);
+                final Set<String> declarations = glInfo.getDeclarations(extension);
+                if (declarations != null) {
+                    for (final Iterator<String> iterator = declarations.iterator(); iterator.hasNext();) {
+                        final String decl = iterator.next();
+                        final boolean isGLFunction = GLNameResolver.isGLFunction(decl);
+                        boolean isGLEnumeration = false;
+                        if (!isGLFunction) {
+                            isGLEnumeration = GLNameResolver.isGLEnumeration(decl);
+                        }
+                        if (isGLFunction || isGLEnumeration) {
+                            final String renamed = GLNameResolver.normalize(decl, isGLFunction);
+                            if (!renamed.equals(decl)) {
+                                if( isSemHeader ) {
+                                    // Sem + Doc
+                                    config.addJavaSymbolRename(decl, renamed);
+                                } else {
+                                    // Doc only
+                                    config.addJavaDocSymbolRename(decl, renamed);
+                                }
                             }
                         }
                     }
                 }
+                LOG.log(INFO, "RenameExtensionIntoCore: {0} END>", extension, headerType);
             }
-            LOG.log(INFO, "RenameExtensionIntoCore: {0} END>", extension, headerType);
         }
     }
 
